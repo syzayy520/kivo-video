@@ -158,7 +158,7 @@ Status legend:
 - DONE: P2-001C Future Contract Placeholders. Evidence: `docs/p2_real_playback/future_contract_placeholders.md`, 10 placeholder headers in `backend/include/kivo/cinema_engine/` (source_core, security_core, network_cache_core, color_science_core, subtitle_core, playback_inspector_core, diagnostic_core, governance_core).
 - DONE: P2-002 Adapter Boundary Hardening. Evidence: `docs/p2_real_playback/adapter_boundary.md`, governance gate verifies adapter boundary directory rules, forbidden patterns documented, platform-neutral naming enforced.
 - DONE: P2-003 Third Party Dependency Lock. Evidence: `docs/p2_real_playback/third_party_dependency_lock.md`, `docs/p2_real_playback/license_boundary.md`, `vcpkg.json` with dependency declarations, governance gate verifies dependency lock and license boundary.
-- TODO: P2-004 Capability Join / Playback Eligibility. Evidence target: P2 eligibility service, tests, and doc.
+- DONE: P2-004 Capability Join / Playback Eligibility. Evidence: `backend/include/kivo/cinema_engine/capability_core/fake_playback_eligibility_service.hpp`, `backend/src/capability_core/fake_playback_eligibility_service.cpp`, `backend/tests/capability_core/playback_eligibility_test.cpp`, `docs/p2_real_playback/capability_join_and_playback_eligibility.md`. CTest 13/13 PASS.
 - TODO: P2-005 Playback Session State Machine. Evidence target: real playback state transitions beyond fake state machine.
 - TODO: P2-006 User Preference Contract Skeleton. Evidence target: `PreferenceSnapshot` contract and tests.
 - TODO: P2-007 Timebase Normalization. Evidence target: ContainerTime / StreamTime / KivoMediaTime normalization.
@@ -228,9 +228,9 @@ Status legend:
 - DONE: `docs/p2_real_playback/governance_gate_skeleton.md`.
 - DONE: `docs/p2_real_playback/future_contract_placeholders.md`.
 - DONE: `docs/p2_real_playback/adapter_boundary.md`.
-- TODO: `docs/p2_real_playback/third_party_dependency_lock.md`.
-- TODO: `docs/p2_real_playback/license_boundary.md`.
-- TODO: `docs/p2_real_playback/capability_join_and_playback_eligibility.md`.
+- DONE: `docs/p2_real_playback/third_party_dependency_lock.md`.
+- DONE: `docs/p2_real_playback/license_boundary.md`.
+- DONE: `docs/p2_real_playback/capability_join_and_playback_eligibility.md`.
 - TODO: `docs/p2_real_playback/playback_state_machine.md`.
 - TODO: `docs/p2_real_playback/user_preference_contract.md`.
 - TODO: `docs/p2_real_playback/source_runtime.md`.
@@ -284,7 +284,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C, P2-002, P2-003 DONE. Proceed to P2-004 Capability Join / Playback Eligibility:
+P2-001A/B/C, P2-002, P2-003, P2-004 DONE. Proceed to P2-005 Playback Session State Machine:
 
-1. Create P2 eligibility service, tests, and doc.
+1. Create real playback state transitions beyond fake state machine.
 2. Keep P2 focused on local playback path: source -> byte_stream -> probe -> demux -> decode -> graph -> presenter -> audio -> state -> inspector.

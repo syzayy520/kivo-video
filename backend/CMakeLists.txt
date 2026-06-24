@@ -25,6 +25,7 @@ add_library(kivo_cinema_engine STATIC
   src/feature_gate_core/fake_feature_gate_service.cpp
   src/resource_core/fake_resource_budget_service.cpp
   src/adapter_boundary/adapter_boundary_contract.cpp
+  src/capability_core/fake_playback_eligibility_service.cpp
   src/session_core/session_store.cpp
   src/subtitle_core/fake_subtitle_service.cpp
   src/video_render_core/fake_presenter_service.cpp
@@ -112,6 +113,12 @@ add_executable(kivo_adapter_boundary_test
 
 target_link_libraries(kivo_adapter_boundary_test PRIVATE kivo_cinema_engine)
 
+add_executable(kivo_capability_eligibility_test
+  tests/capability_core/playback_eligibility_test.cpp
+)
+
+target_link_libraries(kivo_capability_eligibility_test PRIVATE kivo_cinema_engine)
+
 enable_testing()
 add_test(NAME kivo_fake_session_test COMMAND kivo_fake_session_test)
 add_test(NAME kivo_contract_gate_test COMMAND kivo_contract_gate_test)
@@ -125,3 +132,4 @@ add_test(NAME kivo_audio_subtitle_test COMMAND kivo_audio_subtitle_test)
 add_test(NAME kivo_inspector_diagnostic_test COMMAND kivo_inspector_diagnostic_test)
 add_test(NAME kivo_policy_compliance_resource_test COMMAND kivo_policy_compliance_resource_test)
 add_test(NAME kivo_adapter_boundary_test COMMAND kivo_adapter_boundary_test)
+add_test(NAME kivo_capability_eligibility_test COMMAND kivo_capability_eligibility_test)
