@@ -164,7 +164,7 @@ Status legend:
 - DONE: P2-007 Timebase Normalization. Evidence: `backend/include/kivo/cinema_engine/media_timeline_core/fake_timebase_service.hpp`, `backend/src/media_timeline_core/fake_timebase_service.cpp`, `backend/tests/media_timeline_core/timebase_normalization_test.cpp`, `docs/p2_real_playback/timebase_normalization.md`. CTest 16/16 PASS.
 - DONE: P2-008 Master Clock / AV Sync Policy. Evidence: `backend/include/kivo/cinema_engine/media_timeline_core/fake_master_clock_service.hpp`, `backend/src/media_timeline_core/fake_master_clock_service.cpp`, `backend/tests/media_timeline_core/master_clock_av_sync_test.cpp`, `docs/p2_real_playback/master_clock_av_sync.md`. CTest 17/17 PASS.
 - DONE: P2-009 Playback Command Contract. Evidence: `backend/include/kivo/cinema_engine/engine_api/fake_playback_command_service.hpp`, `backend/src/engine_api/fake_playback_command_service.cpp`, `backend/tests/engine_api/playback_command_test.cpp`, `docs/p2_real_playback/playback_command_contract.md`. CTest 18/18 PASS.
-- TODO: P2-010 Windows File Identity Runtime. Evidence target: stable local file identity snapshot.
+- DONE: P2-010 Windows File Identity Runtime. Evidence: `backend/include/kivo/cinema_engine/source_core/fake_file_identity_service.hpp`, `backend/src/source_core/fake_file_identity_service.cpp`, `backend/tests/source_core/file_identity_test.cpp`, `docs/p2_real_playback/windows_file_runtime.md`. CTest 19/19 PASS.
 - TODO: P2-011 Local File Source Runtime. Evidence target: local file source adapter and byte stream.
 - TODO: P2-012 FFmpeg Probe + StreamInventory. Evidence target: real FFmpeg probe behind adapter boundary.
 - TODO: P2-013 Frame Queue / Memory Budget. Evidence target: bounded queues and memory budget tests.
@@ -234,7 +234,7 @@ Status legend:
 - DONE: `docs/p2_real_playback/playback_state_machine.md`.
 - DONE: `docs/p2_real_playback/user_preference_contract.md`.
 - TODO: `docs/p2_real_playback/source_runtime.md`.
-- TODO: `docs/p2_real_playback/windows_file_runtime.md`.
+- DONE: `docs/p2_real_playback/windows_file_runtime.md`.
 - TODO: `docs/p2_real_playback/byte_stream_runtime.md`.
 - DONE: `docs/p2_real_playback/timebase_normalization.md`.
 - DONE: `docs/p2_real_playback/master_clock_av_sync.md`.
@@ -284,7 +284,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-009 DONE. Proceed to P2-010 Windows File Identity Runtime:
+P2-001A/B/C through P2-010 DONE. Proceed to P2-011 Local File Source Runtime:
 
-1. Create stable local file identity snapshot.
+1. Create local file source adapter and byte stream.
 2. Keep P2 focused on local playback path: source -> byte_stream -> probe -> demux -> decode -> graph -> presenter -> audio -> state -> inspector.
