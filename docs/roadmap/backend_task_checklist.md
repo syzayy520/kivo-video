@@ -162,7 +162,7 @@ Status legend:
 - DONE: P2-005 Playback Session State Machine. Evidence: `backend/include/kivo/cinema_engine/playback_core/playback_session_state_machine.hpp`, `backend/src/playback_core/playback_session_state_machine.cpp`, `backend/tests/playback_core/playback_session_state_machine_test.cpp`, `docs/p2_real_playback/playback_state_machine.md`. CTest 14/14 PASS.
 - DONE: P2-006 User Preference Contract Skeleton. Evidence: `backend/include/kivo/cinema_engine/preference_core/preference_snapshot.hpp`, `backend/include/kivo/cinema_engine/preference_core/fake_preference_service.hpp`, `backend/src/preference_core/fake_preference_service.cpp`, `backend/tests/preference_core/preference_snapshot_test.cpp`, `docs/p2_real_playback/user_preference_contract.md`. CTest 15/15 PASS.
 - DONE: P2-007 Timebase Normalization. Evidence: `backend/include/kivo/cinema_engine/media_timeline_core/fake_timebase_service.hpp`, `backend/src/media_timeline_core/fake_timebase_service.cpp`, `backend/tests/media_timeline_core/timebase_normalization_test.cpp`, `docs/p2_real_playback/timebase_normalization.md`. CTest 16/16 PASS.
-- TODO: P2-008 Master Clock / AV Sync Policy. Evidence target: audio-master clock policy and AV sync controller skeleton.
+- DONE: P2-008 Master Clock / AV Sync Policy. Evidence: `backend/include/kivo/cinema_engine/media_timeline_core/fake_master_clock_service.hpp`, `backend/src/media_timeline_core/fake_master_clock_service.cpp`, `backend/tests/media_timeline_core/master_clock_av_sync_test.cpp`, `docs/p2_real_playback/master_clock_av_sync.md`. CTest 17/17 PASS.
 - TODO: P2-009 Playback Command Contract. Evidence target: generation-token command handling.
 - TODO: P2-010 Windows File Identity Runtime. Evidence target: stable local file identity snapshot.
 - TODO: P2-011 Local File Source Runtime. Evidence target: local file source adapter and byte stream.
@@ -237,7 +237,7 @@ Status legend:
 - TODO: `docs/p2_real_playback/windows_file_runtime.md`.
 - TODO: `docs/p2_real_playback/byte_stream_runtime.md`.
 - DONE: `docs/p2_real_playback/timebase_normalization.md`.
-- TODO: `docs/p2_real_playback/master_clock_av_sync.md`.
+- DONE: `docs/p2_real_playback/master_clock_av_sync.md`.
 - TODO: `docs/p2_real_playback/windows_scheduling_policy.md`.
 - TODO: `docs/p2_real_playback/memory_budget.md`.
 - TODO: `docs/p2_real_playback/demux_decode_runtime.md`.
@@ -284,7 +284,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C, P2-002, P2-003, P2-004, P2-005, P2-006, P2-007 DONE. Proceed to P2-008 Master Clock / AV Sync Policy:
+P2-001A/B/C, P2-002, P2-003, P2-004, P2-005, P2-006, P2-007, P2-008 DONE. Proceed to P2-009 Playback Command Contract:
 
-1. Create audio-master clock policy and AV sync controller skeleton.
+1. Create generation-token command handling.
 2. Keep P2 focused on local playback path: source -> byte_stream -> probe -> demux -> decode -> graph -> presenter -> audio -> state -> inspector.
