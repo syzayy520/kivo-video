@@ -44,6 +44,7 @@ add_library(kivo_cinema_engine STATIC
   src/video_render_core/fake_presenter_service.cpp
   src/video_render_core/fake_sdr_upload_service.cpp
   src/video_render_core/fake_visual_quality_service.cpp
+  src/video_render_core/fake_flip_presenter_service.cpp
   src/windows_hdr_core/fake_windows_hdr_service.cpp
 )
 
@@ -205,6 +206,11 @@ add_executable(kivo_sdr_upload_visual_quality_test
 )
 target_link_libraries(kivo_sdr_upload_visual_quality_test PRIVATE kivo_cinema_engine)
 
+add_executable(kivo_flip_presenter_first_frame_test
+  tests/video_render_core/flip_presenter_first_frame_test.cpp
+)
+target_link_libraries(kivo_flip_presenter_first_frame_test PRIVATE kivo_cinema_engine)
+
 enable_testing()
 add_test(NAME kivo_fake_session_test COMMAND kivo_fake_session_test)
 add_test(NAME kivo_contract_gate_test COMMAND kivo_contract_gate_test)
@@ -233,3 +239,4 @@ add_test(NAME kivo_scheduling_policy_test COMMAND kivo_scheduling_policy_test)
 add_test(NAME kivo_demux_runtime_test COMMAND kivo_demux_runtime_test)
 add_test(NAME kivo_decode_runtime_test COMMAND kivo_decode_runtime_test)
 add_test(NAME kivo_sdr_upload_visual_quality_test COMMAND kivo_sdr_upload_visual_quality_test)
+add_test(NAME kivo_flip_presenter_first_frame_test COMMAND kivo_flip_presenter_first_frame_test)

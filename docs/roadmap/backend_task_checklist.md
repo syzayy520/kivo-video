@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 07:10
+Updated: 2026-06-25 07:20
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -172,7 +172,7 @@ Status legend:
 - DONE: P2-015 FFmpeg Demux Runtime. Evidence: `backend/include/kivo/cinema_engine/demux_core/demux_request.hpp`, `backend/include/kivo/cinema_engine/demux_core/demux_result.hpp`, `backend/include/kivo/cinema_engine/demux_core/fake_demux_runtime.hpp`, `backend/src/demux_core/fake_demux_runtime.cpp`, `backend/tests/demux_core/demux_runtime_test.cpp`, `docs/p2_real_playback/demux_decode_runtime.md`. CTest 25/25 PASS.
 - DONE: P2-016 Software Decode Runtime. Evidence: `backend/include/kivo/cinema_engine/decode_core/decode_request.hpp`, `backend/include/kivo/cinema_engine/decode_core/decode_result.hpp`, `backend/include/kivo/cinema_engine/decode_core/fake_decode_runtime.hpp`, `backend/src/decode_core/fake_decode_runtime.cpp`, `backend/tests/decode_core/decode_runtime_test.cpp`, `docs/p2_real_playback/software_decode_runtime.md`. CTest 26/26 PASS.
 - DONE: P2-017 SDR Video Upload + Visual Quality Baseline. Evidence: `backend/include/kivo/cinema_engine/video_render_core/sdr_upload_config.hpp`, `backend/include/kivo/cinema_engine/video_render_core/sdr_upload_result.hpp`, `backend/include/kivo/cinema_engine/video_render_core/fake_sdr_upload_service.hpp`, `backend/src/video_render_core/fake_sdr_upload_service.cpp`, `backend/include/kivo/cinema_engine/video_render_core/visual_quality_metrics.hpp`, `backend/include/kivo/cinema_engine/video_render_core/visual_quality_result.hpp`, `backend/include/kivo/cinema_engine/video_render_core/fake_visual_quality_service.hpp`, `backend/src/video_render_core/fake_visual_quality_service.cpp`, `backend/tests/video_render_core/sdr_upload_visual_quality_test.cpp`, `docs/p2_real_playback/sdr_video_upload_visual_quality.md`. CTest 27/27 PASS.
-- TODO: P2-018 D3D11 Flip Presenter First Frame. Evidence target: D3D11 presenter first-frame integration test or manual gate.
+- DONE: P2-018 Flip Presenter First Frame. Evidence: `backend/include/kivo/cinema_engine/video_render_core/flip_presenter_first_frame_config.hpp`, `backend/include/kivo/cinema_engine/video_render_core/flip_presenter_first_frame_result.hpp`, `backend/include/kivo/cinema_engine/video_render_core/fake_flip_presenter_service.hpp`, `backend/src/video_render_core/fake_flip_presenter_service.cpp`, `backend/tests/video_render_core/flip_presenter_first_frame_test.cpp`, `docs/p2_real_playback/d3d11_flip_presenter_first_frame.md`. CTest 28/28 PASS.
 - TODO: P2-019 WASAPI Shared PCM Output. Evidence target: shared-mode PCM output test or manual gate.
 - TODO: P2-020 Minimal UserPerceivedQualitySnapshot. Evidence target: snapshot contract/service/test.
 - TODO: P2-021 Minimal Inspector / Diagnostic Redaction. Evidence target: Inspector runtime for real playback path and redaction verification.
@@ -285,7 +285,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-015 DONE. Proceed to P2-016 Software Decode Runtime:
+P2-001A/B/C through P2-018 DONE. Proceed to P2-019 WASAPI Shared PCM Output:
 
-1. Software decode producing decoded audio/video frames.
-2. FFmpeg decode behind adapter boundary.
+1. WASAPI shared-mode PCM output.
+2. Shared-mode audio output test or manual gate.
