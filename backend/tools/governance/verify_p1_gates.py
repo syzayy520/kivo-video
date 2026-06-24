@@ -73,6 +73,7 @@ ALLOWED_ROOT_FILES = {
     "CMakeLists.txt",
     "CMakePresets.json",
     "README.md",
+    "vcpkg.json",
 }
 
 FORBIDDEN_CORE_PATTERNS = [
@@ -818,6 +819,43 @@ def check_p2_no_adapter_leak_in_new_headers() -> None:
                 fail(f"P2 header contains forbidden adapter type: {rel}")
 
 
+def check_dependency_lock() -> None:
+    vcpkg_path = ROOT / "vcpkg.json"
+    if not vcpkg_path.is_file():
+        fail("missing vcpkg.json dependency lock file")
+    
+    import json
+    vcpkg_text = read(vcpkg_path)
+    try:
+        vcpkg_data = json.loads(vcpkg_text)
+    except json.JSONDecodeError as e:
+        fail(f"invalid vcpkg.json: {e}")
+    
+    if "dependencies" not in vcpkg_data:
+        fail("vcpkg.json missing dependencies array")
+    
+    for dep in vcpkg_data["dependencies"]:
+        for field in ["name", "version", "license", "purpose"]:
+            if field not in dep:
+                fail(f"dependency missing required field '{field}': {dep.get('name', 'unknown')}")
+
+
+def check_license_boundary() -> None:
+    vcpkg_path = ROOT / "vcpkg.json"
+    if not vcpkg_path.is_file():
+        return  # check_dependency_lock will catch this
+    
+    import json
+    vcpkg_data = json.loads(read(vcpkg_path))
+    
+    blocked_licenses = {"GPL-2.0", "GPL-3.0", "AGPL-3.0", "GPL-2.0+", "GPL-3.0+", "AGPL-3.0+"}
+    
+    for dep in vcpkg_data.get("dependencies", []):
+        license_id = dep.get("license", "")
+        if license_id in blocked_licenses:
+            fail(f"blocked license '{license_id}' for dependency: {dep['name']}")
+
+
 def main() -> int:
     check_docs()
     check_root_not_flat()
@@ -847,6 +885,9 @@ def main() -> int:
     check_p2_001c_placeholder_headers()
     check_p2_header_schema_metadata()
     check_p2_no_adapter_leak_in_new_headers()
+    # P2-003 gates
+    check_dependency_lock()
+    check_license_boundary()
     print("PASS: P0/P1/P2 governance gates")
     return 0
 

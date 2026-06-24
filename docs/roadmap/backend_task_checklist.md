@@ -157,7 +157,7 @@ Status legend:
 - DONE: P2-001B Governance Gate Skeleton. Evidence: `docs/p2_real_playback/governance_gate_skeleton.md`, P2 checks added to `backend/tools/governance/verify_p1_gates.py`.
 - DONE: P2-001C Future Contract Placeholders. Evidence: `docs/p2_real_playback/future_contract_placeholders.md`, 10 placeholder headers in `backend/include/kivo/cinema_engine/` (source_core, security_core, network_cache_core, color_science_core, subtitle_core, playback_inspector_core, diagnostic_core, governance_core).
 - DONE: P2-002 Adapter Boundary Hardening. Evidence: `docs/p2_real_playback/adapter_boundary.md`, governance gate verifies adapter boundary directory rules, forbidden patterns documented, platform-neutral naming enforced.
-- TODO: P2-003 Third Party Dependency Lock. Evidence target: `docs/p2_real_playback/third_party_dependency_lock.md`, `license_boundary.md`, dependency lock inputs.
+- DONE: P2-003 Third Party Dependency Lock. Evidence: `docs/p2_real_playback/third_party_dependency_lock.md`, `docs/p2_real_playback/license_boundary.md`, `vcpkg.json` with dependency declarations, governance gate verifies dependency lock and license boundary.
 - TODO: P2-004 Capability Join / Playback Eligibility. Evidence target: P2 eligibility service, tests, and doc.
 - TODO: P2-005 Playback Session State Machine. Evidence target: real playback state transitions beyond fake state machine.
 - TODO: P2-006 User Preference Contract Skeleton. Evidence target: `PreferenceSnapshot` contract and tests.
@@ -284,9 +284,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C and P2-002 DONE. Proceed to P2-003 Third Party Dependency Lock:
+P2-001A/B/C, P2-002, P2-003 DONE. Proceed to P2-004 Capability Join / Playback Eligibility:
 
-1. Create `docs/p2_real_playback/third_party_dependency_lock.md` with dependency lock rules.
-2. Create `docs/p2_real_playback/license_boundary.md` with license boundary rules.
-3. Update governance gate to verify dependency lock and license boundary.
-4. Keep P2 focused on local playback path: source -> byte_stream -> probe -> demux -> decode -> graph -> presenter -> audio -> state -> inspector.
+1. Create P2 eligibility service, tests, and doc.
+2. Keep P2 focused on local playback path: source -> byte_stream -> probe -> demux -> decode -> graph -> presenter -> audio -> state -> inspector.
