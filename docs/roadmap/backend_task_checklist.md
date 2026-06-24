@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 06:41
+Updated: 2026-06-25 06:55
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -166,7 +166,7 @@ Status legend:
 - DONE: P2-009 Playback Command Contract. Evidence: `backend/include/kivo/cinema_engine/engine_api/fake_playback_command_service.hpp`, `backend/src/engine_api/fake_playback_command_service.cpp`, `backend/tests/engine_api/playback_command_test.cpp`, `docs/p2_real_playback/playback_command_contract.md`. CTest 18/18 PASS.
 - DONE: P2-010 Windows File Identity Runtime. Evidence: `backend/include/kivo/cinema_engine/source_core/fake_file_identity_service.hpp`, `backend/src/source_core/fake_file_identity_service.cpp`, `backend/tests/source_core/file_identity_test.cpp`, `docs/p2_real_playback/windows_file_runtime.md`. CTest 19/19 PASS.
 - DONE: P2-011 Local File Source Runtime. Evidence: `backend/include/kivo/cinema_engine/source_core/fake_local_file_source_service.hpp`, `backend/src/source_core/fake_local_file_source_service.cpp`, `backend/tests/source_core/local_file_source_test.cpp`, `docs/p2_real_playback/source_runtime.md`. CTest 20/20 PASS.
-- TODO: P2-012 FFmpeg Probe + StreamInventory. Evidence target: real FFmpeg probe behind adapter boundary.
+- DONE: P2-012 FFmpeg Probe + StreamInventory. Evidence: `backend/include/kivo/cinema_engine/demux_core/probe_request.hpp`, `backend/include/kivo/cinema_engine/demux_core/probe_result.hpp`, `backend/include/kivo/cinema_engine/demux_core/fake_probe_service.hpp`, `backend/src/demux_core/fake_probe_service.cpp`, `backend/tests/demux_core/probe_service_test.cpp`, `docs/p2_real_playback/ffmpeg_probe_stream_inventory.md`. CTest 21/21 PASS.
 - TODO: P2-013 Frame Queue / Memory Budget. Evidence target: bounded queues and memory budget tests.
 - TODO: P2-014 Windows Scheduling / MMCSS Policy. Evidence target: scheduling policy doc and implementation skeleton.
 - TODO: P2-015 FFmpeg Demux Runtime. Evidence target: real demux runtime producing KivoPacket.
@@ -240,6 +240,7 @@ Status legend:
 - DONE: `docs/p2_real_playback/master_clock_av_sync.md`.
 - TODO: `docs/p2_real_playback/windows_scheduling_policy.md`.
 - TODO: `docs/p2_real_playback/memory_budget.md`.
+- DONE: `docs/p2_real_playback/ffmpeg_probe_stream_inventory.md`.
 - TODO: `docs/p2_real_playback/demux_decode_runtime.md`.
 - TODO: `docs/p2_real_playback/graph_runtime.md`.
 - TODO: `docs/p2_real_playback/video_presenter_runtime.md`.
@@ -284,7 +285,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-011 DONE. Proceed to P2-012 FFmpeg Probe + StreamInventory:
+P2-001A/B/C through P2-012 DONE. Proceed to P2-013 Frame Queue / Memory Budget:
 
-1. Real FFmpeg probe behind adapter boundary.
-2. StreamInventory extraction from probe results.
+1. Bounded frame queues for decoded frames.
+2. Memory budget enforcement.
