@@ -34,6 +34,7 @@ add_library(kivo_cinema_engine STATIC
   src/feature_gate_core/fake_feature_gate_service.cpp
   src/resource_core/fake_resource_budget_service.cpp
   src/resource_core/fake_memory_budget_service.cpp
+  src/scheduling_core/fake_scheduling_service.cpp
   src/adapter_boundary/adapter_boundary_contract.cpp
   src/capability_core/fake_playback_eligibility_service.cpp
   src/session_core/session_store.cpp
@@ -180,6 +181,11 @@ add_executable(kivo_memory_budget_test
 )
 target_link_libraries(kivo_memory_budget_test PRIVATE kivo_cinema_engine)
 
+add_executable(kivo_scheduling_policy_test
+  tests/scheduling_core/scheduling_policy_test.cpp
+)
+target_link_libraries(kivo_scheduling_policy_test PRIVATE kivo_cinema_engine)
+
 enable_testing()
 add_test(NAME kivo_fake_session_test COMMAND kivo_fake_session_test)
 add_test(NAME kivo_contract_gate_test COMMAND kivo_contract_gate_test)
@@ -204,3 +210,4 @@ add_test(NAME kivo_local_file_source_test COMMAND kivo_local_file_source_test)
 add_test(NAME kivo_probe_service_test COMMAND kivo_probe_service_test)
 add_test(NAME kivo_frame_queue_test COMMAND kivo_frame_queue_test)
 add_test(NAME kivo_memory_budget_test COMMAND kivo_memory_budget_test)
+add_test(NAME kivo_scheduling_policy_test COMMAND kivo_scheduling_policy_test)
