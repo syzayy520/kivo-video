@@ -46,6 +46,7 @@ add_library(kivo_cinema_engine STATIC
   src/video_render_core/fake_visual_quality_service.cpp
   src/video_render_core/fake_flip_presenter_service.cpp
   src/audio_core/fake_audio_endpoint_service.cpp
+  src/quality_core/fake_user_perceived_quality_service.cpp
   src/windows_hdr_core/fake_windows_hdr_service.cpp
 )
 
@@ -217,6 +218,11 @@ add_executable(kivo_audio_endpoint_test
 )
 target_link_libraries(kivo_audio_endpoint_test PRIVATE kivo_cinema_engine)
 
+add_executable(kivo_user_perceived_quality_test
+  tests/quality_core/user_perceived_quality_test.cpp
+)
+target_link_libraries(kivo_user_perceived_quality_test PRIVATE kivo_cinema_engine)
+
 enable_testing()
 add_test(NAME kivo_fake_session_test COMMAND kivo_fake_session_test)
 add_test(NAME kivo_contract_gate_test COMMAND kivo_contract_gate_test)
@@ -247,3 +253,4 @@ add_test(NAME kivo_decode_runtime_test COMMAND kivo_decode_runtime_test)
 add_test(NAME kivo_sdr_upload_visual_quality_test COMMAND kivo_sdr_upload_visual_quality_test)
 add_test(NAME kivo_flip_presenter_first_frame_test COMMAND kivo_flip_presenter_first_frame_test)
 add_test(NAME kivo_audio_endpoint_test COMMAND kivo_audio_endpoint_test)
+add_test(NAME kivo_user_perceived_quality_test COMMAND kivo_user_perceived_quality_test)
