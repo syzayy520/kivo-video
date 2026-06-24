@@ -21,6 +21,7 @@ add_library(kivo_cinema_engine STATIC
   src/playback_core/playback_invariant.cpp
   src/playback_core/playback_session_state_machine.cpp
   src/preference_core/fake_preference_service.cpp
+  src/media_timeline_core/fake_timebase_service.cpp
   src/playback_inspector_core/fake_inspector_service.cpp
   src/policy_core/fake_policy_service.cpp
   src/compliance_core/fake_compliance_service.cpp
@@ -132,6 +133,11 @@ add_executable(kivo_preference_test
 )
 target_link_libraries(kivo_preference_test PRIVATE kivo_cinema_engine)
 
+add_executable(kivo_timebase_test
+  tests/media_timeline_core/timebase_normalization_test.cpp
+)
+target_link_libraries(kivo_timebase_test PRIVATE kivo_cinema_engine)
+
 enable_testing()
 add_test(NAME kivo_fake_session_test COMMAND kivo_fake_session_test)
 add_test(NAME kivo_contract_gate_test COMMAND kivo_contract_gate_test)
@@ -148,3 +154,4 @@ add_test(NAME kivo_adapter_boundary_test COMMAND kivo_adapter_boundary_test)
 add_test(NAME kivo_capability_eligibility_test COMMAND kivo_capability_eligibility_test)
 add_test(NAME kivo_playback_state_machine_test COMMAND kivo_playback_state_machine_test)
 add_test(NAME kivo_preference_test COMMAND kivo_preference_test)
+add_test(NAME kivo_timebase_test COMMAND kivo_timebase_test)
