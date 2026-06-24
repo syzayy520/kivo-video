@@ -50,6 +50,7 @@ add_library(kivo_cinema_engine STATIC
   src/quality_core/fake_user_perceived_quality_service.cpp
   src/windows_hdr_core/fake_windows_hdr_service.cpp
   src/disc_core/fake_bdmv_probe_service.cpp
+  src/disc_core/fake_bdmv_playlist_duplicate_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -239,6 +240,11 @@ add_executable(kivo_bdmv_probe_test
 )
 target_link_libraries(kivo_bdmv_probe_test PRIVATE kivo_cinema_engine)
 
+add_executable(kivo_bdmv_playlist_duplicate_test
+  tests/disc_core/bdmv_playlist_duplicate_test.cpp
+)
+target_link_libraries(kivo_bdmv_playlist_duplicate_test PRIVATE kivo_cinema_engine)
+
 enable_testing()
 add_test(NAME kivo_fake_session_test COMMAND kivo_fake_session_test)
 add_test(NAME kivo_contract_gate_test COMMAND kivo_contract_gate_test)
@@ -273,3 +279,4 @@ add_test(NAME kivo_audio_endpoint_test COMMAND kivo_audio_endpoint_test)
 add_test(NAME kivo_user_perceived_quality_test COMMAND kivo_user_perceived_quality_test)
 add_test(NAME kivo_local_file_playback_gate_test COMMAND kivo_local_file_playback_gate_test)
 add_test(NAME kivo_bdmv_probe_test COMMAND kivo_bdmv_probe_test)
+add_test(NAME kivo_bdmv_playlist_duplicate_test COMMAND kivo_bdmv_playlist_duplicate_test)

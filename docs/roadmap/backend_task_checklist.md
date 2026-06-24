@@ -181,7 +181,7 @@ Status legend:
 ## P2.1.5 Disc Image / BDMV Tasks
 
 - DONE: P2-023 Disc Image / BDMV / Mounted ISO Probe. Evidence: `backend/include/kivo/cinema_engine/disc_core/bdmv_probe_request.hpp`, `backend/include/kivo/cinema_engine/disc_core/bdmv_probe_result.hpp`, `backend/include/kivo/cinema_engine/disc_core/fake_bdmv_probe_service.hpp`, `backend/src/disc_core/fake_bdmv_probe_service.cpp`, `backend/tests/disc_core/bdmv_probe_test.cpp`, `docs/p2_real_playback/disc_image_bdmv_probe.md`. CTest 33/33 PASS. 5 tests covering successful/failed/mounted/empty/playlists BDMV probe scenarios.
-- TODO: P2-024 BDMV Playlist Duplicate Policy. Evidence target: duplicate playlist collapse policy and tests.
+- DONE: P2-024 BDMV Playlist Duplicate Policy. Evidence: `backend/include/kivo/cinema_engine/disc_core/bdmv_playlist_duplicate_request.hpp`, `backend/include/kivo/cinema_engine/disc_core/bdmv_playlist_duplicate_result.hpp`, `backend/include/kivo/cinema_engine/disc_core/fake_bdmv_playlist_duplicate_service.hpp`, `backend/src/disc_core/fake_bdmv_playlist_duplicate_service.cpp`, `backend/tests/disc_core/bdmv_playlist_duplicate_test.cpp`, `docs/p2_real_playback/bdmv_playlist_duplicate_policy.md`. CTest 34/34 PASS. 5 tests covering no duplicates, identical, subset, superset, and similar playlist collapse scenarios.
 - TODO: P2-025 BDMV Main Title Selection. Evidence target: main playlist selection reason in Inspector.
 - TODO: P2-026 BDMV / Mounted ISO Main Title Playback Gate. Evidence target: m2ts sequence playback and encrypted disc fail-closed gate.
 
@@ -248,6 +248,7 @@ Status legend:
 - TODO: `docs/p2_real_playback/qt_surface_runtime.md`.
 - TODO: `docs/p2_real_playback/audio_runtime.md`.
 - DONE: `docs/p2_real_playback/disc_image_bdmv_probe.md`.
+- DONE: `docs/p2_real_playback/bdmv_playlist_duplicate_policy.md`.
 - TODO: `docs/p2_real_playback/cache_runtime.md`.
 - TODO: `docs/p2_real_playback/remote_runtime.md`.
 - TODO: `docs/p2_real_playback/network_security_policy.md`.
@@ -285,7 +286,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-023 DONE. Proceed to P2-024 BDMV Playlist Duplicate Policy:
+P2-001A/B/C through P2-024 DONE. Proceed to P2-025 BDMV Main Title Selection:
 
-1. Duplicate playlist collapse policy.
-2. Tests for duplicate playlist scenarios.
+1. Main playlist selection reason in Inspector.
+2. Tests for main title selection scenarios.
