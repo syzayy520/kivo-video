@@ -23,6 +23,7 @@ add_library(kivo_cinema_engine STATIC
   src/preference_core/fake_preference_service.cpp
   src/media_timeline_core/fake_timebase_service.cpp
   src/media_timeline_core/fake_master_clock_service.cpp
+  src/engine_api/fake_playback_command_service.cpp
   src/playback_inspector_core/fake_inspector_service.cpp
   src/policy_core/fake_policy_service.cpp
   src/compliance_core/fake_compliance_service.cpp
@@ -144,6 +145,11 @@ add_executable(kivo_master_clock_test
 )
 target_link_libraries(kivo_master_clock_test PRIVATE kivo_cinema_engine)
 
+add_executable(kivo_playback_command_test
+  tests/engine_api/playback_command_test.cpp
+)
+target_link_libraries(kivo_playback_command_test PRIVATE kivo_cinema_engine)
+
 enable_testing()
 add_test(NAME kivo_fake_session_test COMMAND kivo_fake_session_test)
 add_test(NAME kivo_contract_gate_test COMMAND kivo_contract_gate_test)
@@ -162,3 +168,4 @@ add_test(NAME kivo_playback_state_machine_test COMMAND kivo_playback_state_machi
 add_test(NAME kivo_preference_test COMMAND kivo_preference_test)
 add_test(NAME kivo_timebase_test COMMAND kivo_timebase_test)
 add_test(NAME kivo_master_clock_test COMMAND kivo_master_clock_test)
+add_test(NAME kivo_playback_command_test COMMAND kivo_playback_command_test)
