@@ -160,7 +160,7 @@ Status legend:
 - DONE: P2-003 Third Party Dependency Lock. Evidence: `docs/p2_real_playback/third_party_dependency_lock.md`, `docs/p2_real_playback/license_boundary.md`, `vcpkg.json` with dependency declarations, governance gate verifies dependency lock and license boundary.
 - DONE: P2-004 Capability Join / Playback Eligibility. Evidence: `backend/include/kivo/cinema_engine/capability_core/fake_playback_eligibility_service.hpp`, `backend/src/capability_core/fake_playback_eligibility_service.cpp`, `backend/tests/capability_core/playback_eligibility_test.cpp`, `docs/p2_real_playback/capability_join_and_playback_eligibility.md`. CTest 13/13 PASS.
 - DONE: P2-005 Playback Session State Machine. Evidence: `backend/include/kivo/cinema_engine/playback_core/playback_session_state_machine.hpp`, `backend/src/playback_core/playback_session_state_machine.cpp`, `backend/tests/playback_core/playback_session_state_machine_test.cpp`, `docs/p2_real_playback/playback_state_machine.md`. CTest 14/14 PASS.
-- TODO: P2-006 User Preference Contract Skeleton. Evidence target: `PreferenceSnapshot` contract and tests.
+- DONE: P2-006 User Preference Contract Skeleton. Evidence: `backend/include/kivo/cinema_engine/preference_core/preference_snapshot.hpp`, `backend/include/kivo/cinema_engine/preference_core/fake_preference_service.hpp`, `backend/src/preference_core/fake_preference_service.cpp`, `backend/tests/preference_core/preference_snapshot_test.cpp`, `docs/p2_real_playback/user_preference_contract.md`. CTest 15/15 PASS.
 - TODO: P2-007 Timebase Normalization. Evidence target: ContainerTime / StreamTime / KivoMediaTime normalization.
 - TODO: P2-008 Master Clock / AV Sync Policy. Evidence target: audio-master clock policy and AV sync controller skeleton.
 - TODO: P2-009 Playback Command Contract. Evidence target: generation-token command handling.
@@ -232,7 +232,7 @@ Status legend:
 - DONE: `docs/p2_real_playback/license_boundary.md`.
 - DONE: `docs/p2_real_playback/capability_join_and_playback_eligibility.md`.
 - DONE: `docs/p2_real_playback/playback_state_machine.md`.
-- TODO: `docs/p2_real_playback/user_preference_contract.md`.
+- DONE: `docs/p2_real_playback/user_preference_contract.md`.
 - TODO: `docs/p2_real_playback/source_runtime.md`.
 - TODO: `docs/p2_real_playback/windows_file_runtime.md`.
 - TODO: `docs/p2_real_playback/byte_stream_runtime.md`.
@@ -284,7 +284,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C, P2-002, P2-003, P2-004, P2-005 DONE. Proceed to P2-006 User Preference Contract Skeleton:
+P2-001A/B/C, P2-002, P2-003, P2-004, P2-005, P2-006 DONE. Proceed to P2-007 Timebase Normalization:
 
-1. Create `PreferenceSnapshot` contract and tests.
+1. Create ContainerTime / StreamTime / KivoMediaTime normalization.
 2. Keep P2 focused on local playback path: source -> byte_stream -> probe -> demux -> decode -> graph -> presenter -> audio -> state -> inspector.
