@@ -2,6 +2,7 @@ add_library(kivo_cinema_engine STATIC
   src/audio_core/fake_audio_service.cpp
   src/color_science_core/fake_color_output_service.cpp
   src/decode_core/fake_decode_path.cpp
+  src/decode_core/fake_decode_runtime.cpp
   src/decode_core/fake_frame_queue_service.cpp
   src/decision_ledger_core/decision_ledger_store.cpp
   src/diagnostic_core/diagnostic_redaction_gate.cpp
@@ -192,6 +193,11 @@ add_executable(kivo_demux_runtime_test
 )
 target_link_libraries(kivo_demux_runtime_test PRIVATE kivo_cinema_engine)
 
+add_executable(kivo_decode_runtime_test
+  tests/decode_core/decode_runtime_test.cpp
+)
+target_link_libraries(kivo_decode_runtime_test PRIVATE kivo_cinema_engine)
+
 enable_testing()
 add_test(NAME kivo_fake_session_test COMMAND kivo_fake_session_test)
 add_test(NAME kivo_contract_gate_test COMMAND kivo_contract_gate_test)
@@ -218,3 +224,4 @@ add_test(NAME kivo_frame_queue_test COMMAND kivo_frame_queue_test)
 add_test(NAME kivo_memory_budget_test COMMAND kivo_memory_budget_test)
 add_test(NAME kivo_scheduling_policy_test COMMAND kivo_scheduling_policy_test)
 add_test(NAME kivo_demux_runtime_test COMMAND kivo_demux_runtime_test)
+add_test(NAME kivo_decode_runtime_test COMMAND kivo_decode_runtime_test)

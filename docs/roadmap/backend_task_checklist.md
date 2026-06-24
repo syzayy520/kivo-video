@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 07:40
+Updated: 2026-06-25 07:05
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -170,7 +170,7 @@ Status legend:
 - DONE: P2-013 Frame Queue / Memory Budget. Evidence: `backend/include/kivo/cinema_engine/decode_core/frame_queue_config.hpp`, `backend/include/kivo/cinema_engine/decode_core/frame_queue_status.hpp`, `backend/include/kivo/cinema_engine/decode_core/fake_frame_queue_service.hpp`, `backend/src/decode_core/fake_frame_queue_service.cpp`, `backend/include/kivo/cinema_engine/resource_core/fake_memory_budget_service.hpp`, `backend/src/resource_core/fake_memory_budget_service.cpp`, `backend/tests/decode_core/frame_queue_test.cpp`, `backend/tests/resource_core/memory_budget_test.cpp`, `docs/p2_real_playback/memory_budget.md`. CTest 23/23 PASS.
 - DONE: P2-014 Windows Scheduling / MMCSS Policy. Evidence: `backend/include/kivo/cinema_engine/scheduling_core/scheduling_policy_config.hpp`, `backend/include/kivo/cinema_engine/scheduling_core/scheduling_policy_status.hpp`, `backend/include/kivo/cinema_engine/scheduling_core/fake_scheduling_service.hpp`, `backend/src/scheduling_core/fake_scheduling_service.cpp`, `backend/tests/scheduling_core/scheduling_policy_test.cpp`, `docs/p2_real_playback/windows_scheduling_policy.md`. CTest 24/24 PASS.
 - DONE: P2-015 FFmpeg Demux Runtime. Evidence: `backend/include/kivo/cinema_engine/demux_core/demux_request.hpp`, `backend/include/kivo/cinema_engine/demux_core/demux_result.hpp`, `backend/include/kivo/cinema_engine/demux_core/fake_demux_runtime.hpp`, `backend/src/demux_core/fake_demux_runtime.cpp`, `backend/tests/demux_core/demux_runtime_test.cpp`, `docs/p2_real_playback/demux_decode_runtime.md`. CTest 25/25 PASS.
-- TODO: P2-016 Software Decode Runtime. Evidence target: software decode producing decoded audio/video frames.
+- DONE: P2-016 Software Decode Runtime. Evidence: `backend/include/kivo/cinema_engine/decode_core/decode_request.hpp`, `backend/include/kivo/cinema_engine/decode_core/decode_result.hpp`, `backend/include/kivo/cinema_engine/decode_core/fake_decode_runtime.hpp`, `backend/src/decode_core/fake_decode_runtime.cpp`, `backend/tests/decode_core/decode_runtime_test.cpp`, `docs/p2_real_playback/software_decode_runtime.md`. CTest 26/26 PASS.
 - TODO: P2-017 SDR Video Upload + Visual Quality Baseline. Evidence target: SDR route and visual quality baseline.
 - TODO: P2-018 D3D11 Flip Presenter First Frame. Evidence target: D3D11 presenter first-frame integration test or manual gate.
 - TODO: P2-019 WASAPI Shared PCM Output. Evidence target: shared-mode PCM output test or manual gate.
