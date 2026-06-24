@@ -8,6 +8,7 @@ add_library(kivo_cinema_engine STATIC
   src/diagnostic_core/fake_diagnostic_bundle_export.cpp
   src/demux_core/fake_stream_probe.cpp
   src/demux_core/fake_probe_service.cpp
+  src/demux_core/fake_demux_runtime.cpp
   src/engine_api/cancellation_token.cpp
   src/engine_api/command_queue.cpp
   src/engine_api/event_bus.cpp
@@ -186,6 +187,11 @@ add_executable(kivo_scheduling_policy_test
 )
 target_link_libraries(kivo_scheduling_policy_test PRIVATE kivo_cinema_engine)
 
+add_executable(kivo_demux_runtime_test
+  tests/demux_core/demux_runtime_test.cpp
+)
+target_link_libraries(kivo_demux_runtime_test PRIVATE kivo_cinema_engine)
+
 enable_testing()
 add_test(NAME kivo_fake_session_test COMMAND kivo_fake_session_test)
 add_test(NAME kivo_contract_gate_test COMMAND kivo_contract_gate_test)
@@ -211,3 +217,4 @@ add_test(NAME kivo_probe_service_test COMMAND kivo_probe_service_test)
 add_test(NAME kivo_frame_queue_test COMMAND kivo_frame_queue_test)
 add_test(NAME kivo_memory_budget_test COMMAND kivo_memory_budget_test)
 add_test(NAME kivo_scheduling_policy_test COMMAND kivo_scheduling_policy_test)
+add_test(NAME kivo_demux_runtime_test COMMAND kivo_demux_runtime_test)

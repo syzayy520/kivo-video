@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 07:25
+Updated: 2026-06-25 07:40
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -169,7 +169,7 @@ Status legend:
 - DONE: P2-012 FFmpeg Probe + StreamInventory. Evidence: `backend/include/kivo/cinema_engine/demux_core/probe_request.hpp`, `backend/include/kivo/cinema_engine/demux_core/probe_result.hpp`, `backend/include/kivo/cinema_engine/demux_core/fake_probe_service.hpp`, `backend/src/demux_core/fake_probe_service.cpp`, `backend/tests/demux_core/probe_service_test.cpp`, `docs/p2_real_playback/ffmpeg_probe_stream_inventory.md`. CTest 21/21 PASS.
 - DONE: P2-013 Frame Queue / Memory Budget. Evidence: `backend/include/kivo/cinema_engine/decode_core/frame_queue_config.hpp`, `backend/include/kivo/cinema_engine/decode_core/frame_queue_status.hpp`, `backend/include/kivo/cinema_engine/decode_core/fake_frame_queue_service.hpp`, `backend/src/decode_core/fake_frame_queue_service.cpp`, `backend/include/kivo/cinema_engine/resource_core/fake_memory_budget_service.hpp`, `backend/src/resource_core/fake_memory_budget_service.cpp`, `backend/tests/decode_core/frame_queue_test.cpp`, `backend/tests/resource_core/memory_budget_test.cpp`, `docs/p2_real_playback/memory_budget.md`. CTest 23/23 PASS.
 - DONE: P2-014 Windows Scheduling / MMCSS Policy. Evidence: `backend/include/kivo/cinema_engine/scheduling_core/scheduling_policy_config.hpp`, `backend/include/kivo/cinema_engine/scheduling_core/scheduling_policy_status.hpp`, `backend/include/kivo/cinema_engine/scheduling_core/fake_scheduling_service.hpp`, `backend/src/scheduling_core/fake_scheduling_service.cpp`, `backend/tests/scheduling_core/scheduling_policy_test.cpp`, `docs/p2_real_playback/windows_scheduling_policy.md`. CTest 24/24 PASS.
-- TODO: P2-015 FFmpeg Demux Runtime. Evidence target: real demux runtime producing KivoPacket.
+- DONE: P2-015 FFmpeg Demux Runtime. Evidence: `backend/include/kivo/cinema_engine/demux_core/demux_request.hpp`, `backend/include/kivo/cinema_engine/demux_core/demux_result.hpp`, `backend/include/kivo/cinema_engine/demux_core/fake_demux_runtime.hpp`, `backend/src/demux_core/fake_demux_runtime.cpp`, `backend/tests/demux_core/demux_runtime_test.cpp`, `docs/p2_real_playback/demux_decode_runtime.md`. CTest 25/25 PASS.
 - TODO: P2-016 Software Decode Runtime. Evidence target: software decode producing decoded audio/video frames.
 - TODO: P2-017 SDR Video Upload + Visual Quality Baseline. Evidence target: SDR route and visual quality baseline.
 - TODO: P2-018 D3D11 Flip Presenter First Frame. Evidence target: D3D11 presenter first-frame integration test or manual gate.
@@ -241,7 +241,7 @@ Status legend:
 - DONE: `docs/p2_real_playback/windows_scheduling_policy.md`.
 - DONE: `docs/p2_real_playback/memory_budget.md`.
 - DONE: `docs/p2_real_playback/ffmpeg_probe_stream_inventory.md`.
-- TODO: `docs/p2_real_playback/demux_decode_runtime.md`.
+- DONE: `docs/p2_real_playback/demux_decode_runtime.md`.
 - TODO: `docs/p2_real_playback/graph_runtime.md`.
 - TODO: `docs/p2_real_playback/video_presenter_runtime.md`.
 - TODO: `docs/p2_real_playback/visual_quality_baseline.md`.
@@ -285,7 +285,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-014 DONE. Proceed to P2-015 FFmpeg Demux Runtime:
+P2-001A/B/C through P2-015 DONE. Proceed to P2-016 Software Decode Runtime:
 
-1. Real demux runtime producing KivoPacket.
-2. FFmpeg demux behind adapter boundary.
+1. Software decode producing decoded audio/video frames.
+2. FFmpeg decode behind adapter boundary.
