@@ -176,7 +176,7 @@ Status legend:
 - DONE: P2-019 WASAPI Shared PCM Output. Evidence: `backend/include/kivo/cinema_engine/audio_core/audio_endpoint_contract.hpp`, `backend/include/kivo/cinema_engine/audio_core/fake_audio_endpoint_service.hpp`, `backend/src/audio_core/fake_audio_endpoint_service.cpp`, `backend/tests/audio_core/audio_endpoint_test.cpp`, `docs/p2_real_playback/wasapi_shared_pcm_output.md`. CTest 29/29 PASS.
 - DONE: P2-020 Minimal UserPerceivedQualitySnapshot. Evidence: `backend/include/kivo/cinema_engine/quality_core/user_perceived_quality_snapshot.hpp`, `backend/include/kivo/cinema_engine/quality_core/fake_user_perceived_quality_service.hpp`, `backend/src/quality_core/fake_user_perceived_quality_service.cpp`, `backend/tests/quality_core/user_perceived_quality_test.cpp`, `docs/p2_real_playback/user_perceived_quality_snapshot.md`. CTest 30/30 PASS.
 - DONE: P2-021 Minimal Inspector / Diagnostic Redaction. Evidence: `backend/include/kivo/cinema_engine/playback_inspector_core/fake_inspector_runtime_service.hpp`, `backend/src/playback_inspector_core/fake_inspector_runtime_service.cpp`, `backend/tests/playback_inspector_core/inspector_runtime_test.cpp`, `docs/p2_real_playback/inspector_runtime_redaction.md`. CTest 31/31 PASS.
-- TODO: P2-022 Local File End-to-End Playback Gate. Evidence target: local H.264/AAC SDR MP4 and H.264/AC3 SDR MKV play/pause/seek/resume/stop gates.
+- DONE: P2-022 Local File End-to-End Playback Gate. Evidence: `backend/tests/end_to_end/local_file_playback_gate_test.cpp`, `docs/p2_real_playback/local_file_end_to_end_playback_gate.md`. CTest 32/32 PASS. 14 tests covering MP4 and MKV play/pause/seek/resume/stop via full state machine startup sequence.
 
 ## P2.1.5 Disc Image / BDMV Tasks
 
@@ -285,7 +285,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-021 DONE. Proceed to P2-022 Local File End-to-End Playback Gate:
+P2-001A/B/C through P2-022 DONE. Proceed to P2-023 Disc Image / BDMV / Mounted ISO Probe:
 
-1. Local H.264/AAC SDR MP4 and H.264/AC3 SDR MKV play/pause/seek/resume/stop gates.
-2. Integration with all P2.1 components.
+1. BDMV folder probe.
+2. Mounted ISO as BDMV folder.

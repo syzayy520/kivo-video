@@ -228,6 +228,11 @@ add_executable(kivo_user_perceived_quality_test
 )
 target_link_libraries(kivo_user_perceived_quality_test PRIVATE kivo_cinema_engine)
 
+add_executable(kivo_local_file_playback_gate_test
+  tests/end_to_end/local_file_playback_gate_test.cpp
+)
+target_link_libraries(kivo_local_file_playback_gate_test PRIVATE kivo_cinema_engine)
+
 enable_testing()
 add_test(NAME kivo_fake_session_test COMMAND kivo_fake_session_test)
 add_test(NAME kivo_contract_gate_test COMMAND kivo_contract_gate_test)
@@ -260,3 +265,4 @@ add_test(NAME kivo_sdr_upload_visual_quality_test COMMAND kivo_sdr_upload_visual
 add_test(NAME kivo_flip_presenter_first_frame_test COMMAND kivo_flip_presenter_first_frame_test)
 add_test(NAME kivo_audio_endpoint_test COMMAND kivo_audio_endpoint_test)
 add_test(NAME kivo_user_perceived_quality_test COMMAND kivo_user_perceived_quality_test)
+add_test(NAME kivo_local_file_playback_gate_test COMMAND kivo_local_file_playback_gate_test)
