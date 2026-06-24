@@ -31,6 +31,12 @@ REQUIRED_DOCS = [
     "docs/roadmap/p1_media_pipeline_contracts.md",
     "docs/roadmap/p1_color_hdr_presenter_services.md",
     "docs/roadmap/p1_audio_subtitle_services.md",
+    # P2 design docs
+    "docs/p2_real_playback/architecture.md",
+    "docs/p2_real_playback/family_tree.md",
+    "docs/p2_real_playback/minimal_executable_architecture_slice.md",
+    "docs/p2_real_playback/governance_gate_skeleton.md",
+    "docs/p2_real_playback/future_contract_placeholders.md",
 ]
 
 REQUIRED_CONTRACTS = [
@@ -720,6 +726,98 @@ def check_no_non_entry_files_in_root() -> None:
             fail(f"unexpected root-level implementation file: {path.name}")
 
 
+# --- P2-001A/B/C Governance Gates ---
+
+P2_DESIGN_DOCS = [
+    "docs/p2_real_playback/architecture.md",
+    "docs/p2_real_playback/family_tree.md",
+    "docs/p2_real_playback/minimal_executable_architecture_slice.md",
+    "docs/p2_real_playback/governance_gate_skeleton.md",
+    "docs/p2_real_playback/future_contract_placeholders.md",
+]
+
+P2_001A_MINIMAL_SLICE_HEADERS = [
+    "backend/include/kivo/cinema_engine/source_core/byte_stream_contract.hpp",
+    "backend/include/kivo/cinema_engine/source_core/local_file_identity.hpp",
+    "backend/include/kivo/cinema_engine/content_integrity_core/content_integrity_contract.hpp",
+    "backend/include/kivo/cinema_engine/demux_core/demux_runtime.hpp",
+    "backend/include/kivo/cinema_engine/demux_core/kivo_packet.hpp",
+    "backend/include/kivo/cinema_engine/decode_core/decode_runtime.hpp",
+    "backend/include/kivo/cinema_engine/decode_core/decoded_frame.hpp",
+    "backend/include/kivo/cinema_engine/graph_core/graph_node.hpp",
+    "backend/include/kivo/cinema_engine/graph_core/graph_edge.hpp",
+    "backend/include/kivo/cinema_engine/media_timeline_core/timebase_normalization.hpp",
+    "backend/include/kivo/cinema_engine/media_timeline_core/master_clock.hpp",
+    "backend/include/kivo/cinema_engine/media_timeline_core/av_sync_policy.hpp",
+    "backend/include/kivo/cinema_engine/presentation_timing_core/frame_pacing.hpp",
+    "backend/include/kivo/cinema_engine/presentation_timing_core/vsync_policy.hpp",
+    "backend/include/kivo/cinema_engine/video_render_core/d3d11_presenter.hpp",
+    "backend/include/kivo/cinema_engine/audio_core/wasapi_endpoint.hpp",
+    "backend/include/kivo/cinema_engine/resource_core/memory_budget.hpp",
+    "backend/include/kivo/cinema_engine/storage_core/source_db.hpp",
+    "backend/include/kivo/cinema_engine/storage_core/playback_db.hpp",
+    "backend/include/kivo/cinema_engine/storage_core/decision_db.hpp",
+]
+
+P2_001C_PLACEHOLDER_HEADERS = [
+    "backend/include/kivo/cinema_engine/source_core/source_adapter_contract.hpp",
+    "backend/include/kivo/cinema_engine/source_core/source_health_snapshot.hpp",
+    "backend/include/kivo/cinema_engine/security_core/redirect_policy.hpp",
+    "backend/include/kivo/cinema_engine/network_cache_core/segment_cache_runtime.hpp",
+    "backend/include/kivo/cinema_engine/color_science_core/hdr_detection.hpp",
+    "backend/include/kivo/cinema_engine/subtitle_core/subtitle_overlay.hpp",
+    "backend/include/kivo/cinema_engine/playback_inspector_core/inspector_runtime.hpp",
+    "backend/include/kivo/cinema_engine/diagnostic_core/telemetry_ring_buffer.hpp",
+    "backend/include/kivo/cinema_engine/governance_core/schema_migration_policy.hpp",
+    "backend/include/kivo/cinema_engine/governance_core/claim_vocabulary_gate.hpp",
+]
+
+
+def check_p2_design_docs() -> None:
+    for rel in P2_DESIGN_DOCS:
+        if not (ROOT / rel).is_file():
+            fail(f"missing P2 design doc: {rel}")
+
+
+def check_p2_001a_minimal_slice_headers() -> None:
+    for rel in P2_001A_MINIMAL_SLICE_HEADERS:
+        if not (ROOT / rel).is_file():
+            fail(f"missing P2-001A minimal slice header: {rel}")
+
+
+def check_p2_001c_placeholder_headers() -> None:
+    for rel in P2_001C_PLACEHOLDER_HEADERS:
+        if not (ROOT / rel).is_file():
+            fail(f"missing P2-001C placeholder header: {rel}")
+
+
+def check_p2_header_schema_metadata() -> None:
+    all_p2_headers = P2_001A_MINIMAL_SLICE_HEADERS + P2_001C_PLACEHOLDER_HEADERS
+    for rel in all_p2_headers:
+        text = read(ROOT / rel)
+        if "ContractMetadata metadata" not in text:
+            fail(f"P2 header missing ContractMetadata metadata field: {rel}")
+
+
+def check_p2_no_adapter_leak_in_new_headers() -> None:
+    adapter_patterns = [
+        r"\bWASAPI\b",
+        r"\bD3D11\b",
+        r"\bDXGI\b",
+        r"\bAVFormatContext\b",
+        r"\bAVCodecContext\b",
+        r"\bAVFrame\b",
+        r"\bAVPacket\b",
+        r"#\s*include\s*[<\"]windows\.h[>\"]",
+    ]
+    all_p2_headers = P2_001A_MINIMAL_SLICE_HEADERS + P2_001C_PLACEHOLDER_HEADERS
+    for rel in all_p2_headers:
+        text = read(ROOT / rel)
+        for pattern in adapter_patterns:
+            if re.search(pattern, text, flags=re.IGNORECASE):
+                fail(f"P2 header contains forbidden adapter type: {rel}")
+
+
 def main() -> int:
     check_docs()
     check_root_not_flat()
@@ -743,7 +841,13 @@ def main() -> int:
     check_no_non_entry_files_in_root()
     check_redaction_gate_model()
     check_invariant_gate_model()
-    print("PASS: P0/P1 governance gates")
+    # P2-001A/B/C gates
+    check_p2_design_docs()
+    check_p2_001a_minimal_slice_headers()
+    check_p2_001c_placeholder_headers()
+    check_p2_header_schema_metadata()
+    check_p2_no_adapter_leak_in_new_headers()
+    print("PASS: P0/P1/P2 governance gates")
     return 0
 
 

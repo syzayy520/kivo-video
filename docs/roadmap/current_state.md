@@ -1,12 +1,13 @@
 # Current State
 
-Updated: 2026-06-24
+Updated: 2026-06-25
 
 ## Done
 
 - Local Codex memory created for the Kivo Video iron gate.
 - Backend goal persisted in `.codex/memory/backend-goal.md`.
 - Detailed execution checklist created at `docs/roadmap/backend_task_checklist.md`.
+- P2 Real Playback Backend Implementation Spec V1.5 added to `docs/roadmap/backend_task_checklist.md`.
 - Natural family tree created in `docs/p0/core-architecture/natural_family_tree.md`.
 - First 12 P0 contract docs created.
 - Second batch P0 docs created for subtitle, audio, inspector, and diagnostic manifest.
@@ -26,13 +27,14 @@ Updated: 2026-06-24
 - Color/HDR/Presenter fake services created.
 - Audio/Subtitle fake services created.
 - Governance gate script created and passed.
+- P2-001A/B/C completed: 5 design docs, 20 minimal slice headers, 10 placeholder headers, governance gate updated with P2 checks.
 
 ## Verification
 
-- `backend/tools/governance/verify_p1_gates.py`: PASS.
-- `cmake --preset ninja-debug`: PASS through Visual Studio Developer Command Prompt.
-- `cmake --build --preset ninja-debug`: PASS through Visual Studio Developer Command Prompt.
-- `ctest --preset ninja-debug --output-on-failure`: PASS, 9/9 tests after Audio/Subtitle fake services.
+- `backend/tools/governance/verify_p1_gates.py`: PASS (P0/P1/P2 governance gates).
+- `cmake --preset ninja-debug`: PASS.
+- `cmake --build --preset ninja-debug`: PASS (70 targets).
+- `ctest --preset ninja-debug --output-on-failure`: PASS, 12/12 tests.
 
 ## Next Work
 
@@ -40,8 +42,5 @@ Follow `docs/roadmap/backend_task_checklist.md`.
 
 Immediate next task:
 
-1. Add PlaybackInspectorCore fake inspector service.
-2. Add DiagnosticCore fake bundle manifest export service.
-3. Add `kivo_inspector_diagnostic_test`.
-4. Extend `verify_p1_gates.py`.
-5. Run governance, build, and CTest verification.
+1. P2-002 Adapter Boundary Hardening.
+2. Keep the path focused on local playback: source -> byte_stream -> probe -> demux -> decode -> graph -> presenter -> audio -> state -> inspector.

@@ -144,15 +144,148 @@ Status legend:
 - DONE: Subtitle/Audio generation gets dedicated services and tests outside fake session. Evidence: `backend/tests/audio_subtitle/audio_subtitle_contract_test.cpp`.
 - DONE: Inspector/Diagnostic generation gets dedicated services and tests outside fake session. Evidence: `backend/tests/inspector_diagnostic/inspector_diagnostic_contract_test.cpp`.
 
+## P2 Real Playback Backend Spec Intake
+
+- DONE: P2 spec file located. Evidence: `C:\Users\Administrator\Downloads\KivoCinemaEngine P2 Real Playback Backend Implementation Spec.docx`.
+- DONE: P2 spec title captured. Evidence: `KivoCinemaEngine P2 Real Playback Backend Implementation Spec V1.5 Ultimate Integrated Final Freeze`.
+- DONE: P2 spec scope captured. Evidence: P2 is split into P2.1 Local Real Playback Closure, P2.1.5 Disc Image / BDMV Closure, P2.2 Remote Direct Play Closure, and P2.3 Quality / Recovery / Inspector Closure.
+- DONE: P2 source-of-truth rule captured. Evidence: section 71 says P2 design is frozen and execution should begin, not expand design indefinitely.
+
+## P2.1 Local Playback Tasks
+
+- DONE: P2-001A Minimal Executable Architecture Slice. Evidence: `docs/p2_real_playback/minimal_executable_architecture_slice.md`, 20 contract headers in `backend/include/kivo/cinema_engine/` (source_core, content_integrity_core, demux_core, decode_core, graph_core, media_timeline_core, presentation_timing_core, video_render_core, audio_core, resource_core, storage_core).
+- DONE: P2-001B Governance Gate Skeleton. Evidence: `docs/p2_real_playback/governance_gate_skeleton.md`, P2 checks added to `backend/tools/governance/verify_p1_gates.py`.
+- DONE: P2-001C Future Contract Placeholders. Evidence: `docs/p2_real_playback/future_contract_placeholders.md`, 10 placeholder headers in `backend/include/kivo/cinema_engine/` (source_core, security_core, network_cache_core, color_science_core, subtitle_core, playback_inspector_core, diagnostic_core, governance_core).
+- TODO: P2-002 Adapter Boundary Hardening. Evidence target: adapter hardening doc and gate update.
+- TODO: P2-003 Third Party Dependency Lock. Evidence target: `docs/p2_real_playback/third_party_dependency_lock.md`, `license_boundary.md`, dependency lock inputs.
+- TODO: P2-004 Capability Join / Playback Eligibility. Evidence target: P2 eligibility service, tests, and doc.
+- TODO: P2-005 Playback Session State Machine. Evidence target: real playback state transitions beyond fake state machine.
+- TODO: P2-006 User Preference Contract Skeleton. Evidence target: `PreferenceSnapshot` contract and tests.
+- TODO: P2-007 Timebase Normalization. Evidence target: ContainerTime / StreamTime / KivoMediaTime normalization.
+- TODO: P2-008 Master Clock / AV Sync Policy. Evidence target: audio-master clock policy and AV sync controller skeleton.
+- TODO: P2-009 Playback Command Contract. Evidence target: generation-token command handling.
+- TODO: P2-010 Windows File Identity Runtime. Evidence target: stable local file identity snapshot.
+- TODO: P2-011 Local File Source Runtime. Evidence target: local file source adapter and byte stream.
+- TODO: P2-012 FFmpeg Probe + StreamInventory. Evidence target: real FFmpeg probe behind adapter boundary.
+- TODO: P2-013 Frame Queue / Memory Budget. Evidence target: bounded queues and memory budget tests.
+- TODO: P2-014 Windows Scheduling / MMCSS Policy. Evidence target: scheduling policy doc and implementation skeleton.
+- TODO: P2-015 FFmpeg Demux Runtime. Evidence target: real demux runtime producing KivoPacket.
+- TODO: P2-016 Software Decode Runtime. Evidence target: software decode producing decoded audio/video frames.
+- TODO: P2-017 SDR Video Upload + Visual Quality Baseline. Evidence target: SDR route and visual quality baseline.
+- TODO: P2-018 D3D11 Flip Presenter First Frame. Evidence target: D3D11 presenter first-frame integration test or manual gate.
+- TODO: P2-019 WASAPI Shared PCM Output. Evidence target: shared-mode PCM output test or manual gate.
+- TODO: P2-020 Minimal UserPerceivedQualitySnapshot. Evidence target: snapshot contract/service/test.
+- TODO: P2-021 Minimal Inspector / Diagnostic Redaction. Evidence target: Inspector runtime for real playback path and redaction verification.
+- TODO: P2-022 Local File End-to-End Playback Gate. Evidence target: local H.264/AAC SDR MP4 and H.264/AC3 SDR MKV play/pause/seek/resume/stop gates.
+
+## P2.1.5 Disc Image / BDMV Tasks
+
+- TODO: P2-023 Disc Image / BDMV / Mounted ISO Probe. Evidence target: BDMV folder and mounted ISO probe.
+- TODO: P2-024 BDMV Playlist Duplicate Policy. Evidence target: duplicate playlist collapse policy and tests.
+- TODO: P2-025 BDMV Main Title Selection. Evidence target: main playlist selection reason in Inspector.
+- TODO: P2-026 BDMV / Mounted ISO Main Title Playback Gate. Evidence target: m2ts sequence playback and encrypted disc fail-closed gate.
+
+## P2.2 Remote Playback Tasks
+
+- TODO: P2-027 Source Adapter Contract Skeleton. Evidence target: `source_adapter_core` contracts.
+- TODO: P2-028 Network Security Policy Skeleton. Evidence target: redirect, TLS, SSRF, and credential policy docs/tests.
+- TODO: P2-029 Source Health / Remote Reliability. Evidence target: `source_health_core` snapshots and Inspector integration.
+- TODO: P2-030 Network Range Reader. Evidence target: verified range reader behind source adapter boundary.
+- TODO: P2-031 Segment Cache Runtime. Evidence target: cache extent runtime bound to RemoteObjectIdentity.
+- TODO: P2-032 WebDAV Server Behavior Profile. Evidence target: WebDAV profile and verified/unsupported range behavior.
+- TODO: P2-033 WebDAV Range Playback. Evidence target: WebDAV verified range playback and visible fallback.
+- TODO: P2-034 AList Provider Behavior Profile. Evidence target: AList provider profile.
+- TODO: P2-035 AList Direct Link Playback. Evidence target: direct link TTL refresh and identity stability.
+- TODO: P2-036 Emby Session Runtime. Evidence target: Emby session identity and runtime lifecycle.
+- TODO: P2-037 Emby Direct Play Playback. Evidence target: Emby item_id + media_source_id identity and direct play path.
+- TODO: P2-038 Remote Direct Play Gate. Evidence target: no silent transcode, credential redaction, redirect leakage gate, cache identity binding.
+
+## P2.3 Quality / Recovery / Inspector Tasks
+
+- TODO: P2-039 Subtitle Runtime. Evidence target: SRT / ASS / external subtitle runtime and D3D11 overlay.
+- TODO: P2-040 HDR / Color Output Runtime. Evidence target: HDR10 / HLG / DV metadata detection without false Dolby claim.
+- TODO: P2-041 Claim Vocabulary Freeze Gate. Evidence target: vocabulary gate for HDR / DV / audio claims.
+- TODO: P2-042 Playback Inspector Runtime. Evidence target: full Inspector runtime reading snapshots/ledger/telemetry.
+- TODO: P2-043 Telemetry Sampling / Hot Path Policy. Evidence target: bounded ring buffers and no hot-path locks.
+- TODO: P2-044 Schema Migration Policy. Evidence target: schema migration policy and compatibility tests.
+- TODO: P2-045 Database Resilience Policy Skeleton. Evidence target: source/playback/decision/cache/telemetry/preference/schema db resilience rules.
+- TODO: P2-046 Crash Dump / Support Bundle Privacy Policy. Evidence target: privacy policy and fail-closed support bundle redaction.
+- TODO: P2-047 Dependency Security / SBOM Policy Draft. Evidence target: third-party dependency lock, SBOM draft, CVE policy.
+- TODO: P2-048 Product Claim Governance Gate Skeleton. Evidence target: product claim gate and no false marketing claims.
+- TODO: P2-049 Feature Flag / Config Default Skeleton. Evidence target: safe defaults and rollout contract.
+- TODO: P2-050 Test Oracle / Reproducibility Skeleton. Evidence target: hermetic fake + manual hardware pair policy.
+- TODO: P2-051 Media Parser Security / Fuzz Skeleton. Evidence target: parser security core, quarantine, fuzz shell.
+- TODO: P2-052 Build / Signing / Symbol / Update Policy Skeleton. Evidence target: build/signing/symbol/update policy docs.
+- TODO: P2-053 Recovery / Fallback Runtime. Evidence target: recovery matrix implementation and failure budget.
+- TODO: P2-054 Release Readiness Matrix. Evidence target: P2 release readiness matrix.
+- TODO: P2-055 Full Integration Gate. Evidence target: P2.1 / P2.1.5 / P2.2 / P2.3 pass evidence.
+
+## P2 Required Design Output Files
+
+- DONE: `docs/p2_real_playback/architecture.md`.
+- DONE: `docs/p2_real_playback/family_tree.md`.
+- DONE: `docs/p2_real_playback/minimal_executable_architecture_slice.md`.
+- DONE: `docs/p2_real_playback/governance_gate_skeleton.md`.
+- DONE: `docs/p2_real_playback/future_contract_placeholders.md`.
+- TODO: `docs/p2_real_playback/adapter_boundary.md`.
+- TODO: `docs/p2_real_playback/third_party_dependency_lock.md`.
+- TODO: `docs/p2_real_playback/license_boundary.md`.
+- TODO: `docs/p2_real_playback/capability_join_and_playback_eligibility.md`.
+- TODO: `docs/p2_real_playback/playback_state_machine.md`.
+- TODO: `docs/p2_real_playback/user_preference_contract.md`.
+- TODO: `docs/p2_real_playback/source_runtime.md`.
+- TODO: `docs/p2_real_playback/windows_file_runtime.md`.
+- TODO: `docs/p2_real_playback/byte_stream_runtime.md`.
+- TODO: `docs/p2_real_playback/timebase_normalization.md`.
+- TODO: `docs/p2_real_playback/master_clock_av_sync.md`.
+- TODO: `docs/p2_real_playback/windows_scheduling_policy.md`.
+- TODO: `docs/p2_real_playback/memory_budget.md`.
+- TODO: `docs/p2_real_playback/demux_decode_runtime.md`.
+- TODO: `docs/p2_real_playback/graph_runtime.md`.
+- TODO: `docs/p2_real_playback/video_presenter_runtime.md`.
+- TODO: `docs/p2_real_playback/visual_quality_baseline.md`.
+- TODO: `docs/p2_real_playback/qt_surface_runtime.md`.
+- TODO: `docs/p2_real_playback/audio_runtime.md`.
+- TODO: `docs/p2_real_playback/disc_image_runtime.md`.
+- TODO: `docs/p2_real_playback/cache_runtime.md`.
+- TODO: `docs/p2_real_playback/remote_runtime.md`.
+- TODO: `docs/p2_real_playback/network_security_policy.md`.
+- TODO: `docs/p2_real_playback/webdav_server_behavior_profile.md`.
+- TODO: `docs/p2_real_playback/alist_provider_behavior_profile.md`.
+- TODO: `docs/p2_real_playback/emby_session_runtime.md`.
+- TODO: `docs/p2_real_playback/emby_selection_policy.md`.
+- TODO: `docs/p2_real_playback/source_health_and_remote_reliability.md`.
+- TODO: `docs/p2_real_playback/subtitle_runtime.md`.
+- TODO: `docs/p2_real_playback/hdr_color_runtime.md`.
+- TODO: `docs/p2_real_playback/claim_vocabulary_freeze.md`.
+- TODO: `docs/p2_real_playback/playback_inspector_runtime.md`.
+- TODO: `docs/p2_real_playback/telemetry_sampling_and_hot_path_policy.md`.
+- TODO: `docs/p2_real_playback/schema_migration_policy.md`.
+- TODO: `docs/p2_real_playback/storage_resilience_policy.md`.
+- TODO: `docs/p2_real_playback/crash_dump_privacy_policy.md`.
+- TODO: `docs/p2_real_playback/support_bundle_privacy_policy.md`.
+- TODO: `docs/p2_real_playback/dependency_security_policy.md`.
+- TODO: `docs/p2_real_playback/sbom_policy.md`.
+- TODO: `docs/p2_real_playback/recovery_runtime.md`.
+- TODO: `docs/p2_real_playback/sample_media_policy.md`.
+- TODO: `docs/p2_real_playback/media_parser_security_policy.md`.
+- TODO: `docs/p2_real_playback/test_oracle_policy.md`.
+- TODO: `docs/p2_real_playback/error_mapping.md`.
+- TODO: `docs/p2_real_playback/governance_gates.md`.
+- TODO: `docs/p2_real_playback/release_readiness_matrix.md`.
+- TODO: `docs/p2_real_playback/acceptance_matrix.md`.
+
+## P2 Definition Of Done
+
+- TODO: P2.1 Done: configure/build, hermetic tests, local machine integration tests, local MP4/MKV play/pause/seek/resume/stop, real FFmpeg probe/demux/software decode, CapabilityJoin path, PlaybackSessionStateMachine, timebase normalization, master clock, queue budget, scheduling policy, D3D11 first frame, WASAPI shared PCM, minimal Inspector, UserPerceivedQualitySnapshot, VisualQualityResult, local file identity, parser failure handling, offline local playback, no forbidden include/symbol/ABI/link violation.
+- TODO: P2.1.5 Done: BDMV folder probe, mounted ISO as BDMV folder, main playlist selection, duplicate playlist collapse, m2ts sequence playback, encrypted disc fail closed, no DRM bypass, playlist reason in Inspector, no fake full Blu-ray menu support.
+- TODO: P2.2 Done: SourceAdapterContract, Source Health, Network Range Reader, Segment Cache Runtime, WebDAV profile/range playback/fallback, AList provider/direct link TTL refresh, Emby session/direct play, no silent transcode, cache identity binding, credential redaction, redirect credential leakage gate.
+- TODO: P2.3 Done: subtitle runtime, D3D11 subtitle overlay, HDR10/HLG detection, DV metadata without false Dolby claim, claim vocabulary gate, audio fallback visibility, presenter/audio/subtitle recovery, telemetry hot path policy, schema migration, database resilience, crash privacy, dependency security, diagnostic redaction, full Inspector, release readiness, Full Integration Gate.
+
 ## Immediate Next Task
 
-All adapter boundary tasks completed:
-- Adapter boundary directory rules verification in governance script.
-- No non-entry implementation files added to root verification in governance script.
-- `backend/tests/adapter_boundary/adapter_boundary_test.cpp`
-- Governance checks for adapter boundary directory rules.
-- `cmake --preset ninja-debug`
-- `cmake --build --preset ninja-debug`
-- `ctest --preset ninja-debug --output-on-failure`
+P2-001A/B/C DONE. Proceed to P2-002 Adapter Boundary Hardening:
 
-P1 backend implementation is now complete. All governance gates pass.
+1. Create `docs/p2_real_playback/adapter_boundary.md` with adapter boundary hardening rules.
+2. Update governance gate to verify adapter boundary directory rules for new P2 modules.
+3. Keep P2 focused on local playback path: source -> byte_stream -> probe -> demux -> decode -> graph -> presenter -> audio -> state -> inspector.
