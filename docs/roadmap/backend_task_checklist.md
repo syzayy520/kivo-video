@@ -156,7 +156,7 @@ Status legend:
 - DONE: P2-001A Minimal Executable Architecture Slice. Evidence: `docs/p2_real_playback/minimal_executable_architecture_slice.md`, 20 contract headers in `backend/include/kivo/cinema_engine/` (source_core, content_integrity_core, demux_core, decode_core, graph_core, media_timeline_core, presentation_timing_core, video_render_core, audio_core, resource_core, storage_core).
 - DONE: P2-001B Governance Gate Skeleton. Evidence: `docs/p2_real_playback/governance_gate_skeleton.md`, P2 checks added to `backend/tools/governance/verify_p1_gates.py`.
 - DONE: P2-001C Future Contract Placeholders. Evidence: `docs/p2_real_playback/future_contract_placeholders.md`, 10 placeholder headers in `backend/include/kivo/cinema_engine/` (source_core, security_core, network_cache_core, color_science_core, subtitle_core, playback_inspector_core, diagnostic_core, governance_core).
-- TODO: P2-002 Adapter Boundary Hardening. Evidence target: adapter hardening doc and gate update.
+- DONE: P2-002 Adapter Boundary Hardening. Evidence: `docs/p2_real_playback/adapter_boundary.md`, governance gate verifies adapter boundary directory rules, forbidden patterns documented, platform-neutral naming enforced.
 - TODO: P2-003 Third Party Dependency Lock. Evidence target: `docs/p2_real_playback/third_party_dependency_lock.md`, `license_boundary.md`, dependency lock inputs.
 - TODO: P2-004 Capability Join / Playback Eligibility. Evidence target: P2 eligibility service, tests, and doc.
 - TODO: P2-005 Playback Session State Machine. Evidence target: real playback state transitions beyond fake state machine.
@@ -227,7 +227,7 @@ Status legend:
 - DONE: `docs/p2_real_playback/minimal_executable_architecture_slice.md`.
 - DONE: `docs/p2_real_playback/governance_gate_skeleton.md`.
 - DONE: `docs/p2_real_playback/future_contract_placeholders.md`.
-- TODO: `docs/p2_real_playback/adapter_boundary.md`.
+- DONE: `docs/p2_real_playback/adapter_boundary.md`.
 - TODO: `docs/p2_real_playback/third_party_dependency_lock.md`.
 - TODO: `docs/p2_real_playback/license_boundary.md`.
 - TODO: `docs/p2_real_playback/capability_join_and_playback_eligibility.md`.
@@ -284,8 +284,9 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C DONE. Proceed to P2-002 Adapter Boundary Hardening:
+P2-001A/B/C and P2-002 DONE. Proceed to P2-003 Third Party Dependency Lock:
 
-1. Create `docs/p2_real_playback/adapter_boundary.md` with adapter boundary hardening rules.
-2. Update governance gate to verify adapter boundary directory rules for new P2 modules.
-3. Keep P2 focused on local playback path: source -> byte_stream -> probe -> demux -> decode -> graph -> presenter -> audio -> state -> inspector.
+1. Create `docs/p2_real_playback/third_party_dependency_lock.md` with dependency lock rules.
+2. Create `docs/p2_real_playback/license_boundary.md` with license boundary rules.
+3. Update governance gate to verify dependency lock and license boundary.
+4. Keep P2 focused on local playback path: source -> byte_stream -> probe -> demux -> decode -> graph -> presenter -> audio -> state -> inspector.
