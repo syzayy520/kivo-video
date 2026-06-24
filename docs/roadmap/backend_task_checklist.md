@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 06:55
+Updated: 2026-06-25 07:10
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -167,7 +167,7 @@ Status legend:
 - DONE: P2-010 Windows File Identity Runtime. Evidence: `backend/include/kivo/cinema_engine/source_core/fake_file_identity_service.hpp`, `backend/src/source_core/fake_file_identity_service.cpp`, `backend/tests/source_core/file_identity_test.cpp`, `docs/p2_real_playback/windows_file_runtime.md`. CTest 19/19 PASS.
 - DONE: P2-011 Local File Source Runtime. Evidence: `backend/include/kivo/cinema_engine/source_core/fake_local_file_source_service.hpp`, `backend/src/source_core/fake_local_file_source_service.cpp`, `backend/tests/source_core/local_file_source_test.cpp`, `docs/p2_real_playback/source_runtime.md`. CTest 20/20 PASS.
 - DONE: P2-012 FFmpeg Probe + StreamInventory. Evidence: `backend/include/kivo/cinema_engine/demux_core/probe_request.hpp`, `backend/include/kivo/cinema_engine/demux_core/probe_result.hpp`, `backend/include/kivo/cinema_engine/demux_core/fake_probe_service.hpp`, `backend/src/demux_core/fake_probe_service.cpp`, `backend/tests/demux_core/probe_service_test.cpp`, `docs/p2_real_playback/ffmpeg_probe_stream_inventory.md`. CTest 21/21 PASS.
-- TODO: P2-013 Frame Queue / Memory Budget. Evidence target: bounded queues and memory budget tests.
+- DONE: P2-013 Frame Queue / Memory Budget. Evidence: `backend/include/kivo/cinema_engine/decode_core/frame_queue_config.hpp`, `backend/include/kivo/cinema_engine/decode_core/frame_queue_status.hpp`, `backend/include/kivo/cinema_engine/decode_core/fake_frame_queue_service.hpp`, `backend/src/decode_core/fake_frame_queue_service.cpp`, `backend/include/kivo/cinema_engine/resource_core/fake_memory_budget_service.hpp`, `backend/src/resource_core/fake_memory_budget_service.cpp`, `backend/tests/decode_core/frame_queue_test.cpp`, `backend/tests/resource_core/memory_budget_test.cpp`, `docs/p2_real_playback/memory_budget.md`. CTest 23/23 PASS.
 - TODO: P2-014 Windows Scheduling / MMCSS Policy. Evidence target: scheduling policy doc and implementation skeleton.
 - TODO: P2-015 FFmpeg Demux Runtime. Evidence target: real demux runtime producing KivoPacket.
 - TODO: P2-016 Software Decode Runtime. Evidence target: software decode producing decoded audio/video frames.
@@ -239,7 +239,7 @@ Status legend:
 - DONE: `docs/p2_real_playback/timebase_normalization.md`.
 - DONE: `docs/p2_real_playback/master_clock_av_sync.md`.
 - TODO: `docs/p2_real_playback/windows_scheduling_policy.md`.
-- TODO: `docs/p2_real_playback/memory_budget.md`.
+- DONE: `docs/p2_real_playback/memory_budget.md`.
 - DONE: `docs/p2_real_playback/ffmpeg_probe_stream_inventory.md`.
 - TODO: `docs/p2_real_playback/demux_decode_runtime.md`.
 - TODO: `docs/p2_real_playback/graph_runtime.md`.
@@ -285,7 +285,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-012 DONE. Proceed to P2-013 Frame Queue / Memory Budget:
+P2-001A/B/C through P2-013 DONE. Proceed to P2-014 Windows Scheduling / MMCSS Policy:
 
-1. Bounded frame queues for decoded frames.
-2. Memory budget enforcement.
+1. Scheduling policy doc and implementation skeleton.
+2. MMCSS integration for media playback.
