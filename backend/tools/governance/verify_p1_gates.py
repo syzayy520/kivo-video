@@ -753,7 +753,7 @@ P2_001A_MINIMAL_SLICE_HEADERS = [
     "backend/include/kivo/cinema_engine/presentation_timing_core/frame_pacing.hpp",
     "backend/include/kivo/cinema_engine/presentation_timing_core/vsync_policy.hpp",
     "backend/include/kivo/cinema_engine/video_render_core/d3d11_presenter.hpp",
-    "backend/include/kivo/cinema_engine/audio_core/wasapi_endpoint.hpp",
+    "backend/include/kivo/cinema_engine/audio_core/audio_endpoint_contract.hpp",
     "backend/include/kivo/cinema_engine/resource_core/memory_budget.hpp",
     "backend/include/kivo/cinema_engine/storage_core/source_db.hpp",
     "backend/include/kivo/cinema_engine/storage_core/playback_db.hpp",

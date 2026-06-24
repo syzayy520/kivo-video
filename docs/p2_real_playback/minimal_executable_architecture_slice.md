@@ -136,7 +136,7 @@ LocalFileSource
 | `include/.../presentation_timing_core/frame_pacing.hpp` | presentation_timing_core | Frame pacing |
 | `include/.../presentation_timing_core/vsync_policy.hpp` | presentation_timing_core | VSync |
 | `include/.../video_render_core/d3d11_presenter.hpp` | video_render_core | D3D11 presenter |
-| `include/.../audio_core/wasapi_endpoint.hpp` | audio_core | WASAPI endpoint |
+| `include/.../audio_core/audio_endpoint_contract.hpp` | audio_core | Audio endpoint contract |
 | `include/.../resource_core/memory_budget.hpp` | resource_core | Memory budget |
 | `include/.../storage_core/source_db.hpp` | storage_core | Source DB |
 | `include/.../storage_core/playback_db.hpp` | storage_core | Playback DB |

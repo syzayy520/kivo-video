@@ -91,7 +91,7 @@ backend/
 │   │── audio_core/
 │   │   ├── audio_output_decision.hpp
 │   │   ├── fake_audio_service.hpp
-│   │   └── wasapi_endpoint.hpp               [NEW P2]
+│   │   └── audio_endpoint_contract.hpp               [NEW P2]
 │   │
 │   │── subtitle_core/
 │   │   ├── subtitle_render_plan.hpp
@@ -172,7 +172,7 @@ backend/
 | presentation_timing_core | Frame pacing, VSync | P2.1 |
 | video_render_core/d3d11_presenter | D3D11 presenter | P2.1 |
 | color_science_core/hdr_detection | HDR/DV detection | P2.3 |
-| audio_core/wasapi_endpoint | WASAPI output | P2.1 |
+| audio_core/audio_endpoint_contract | Audio endpoint contract | P2.1 |
 | subtitle_core/subtitle_overlay | D3D11 subtitle overlay | P2.3 |
 | capability_core/*_snapshot | Capability layers | P2.1 |
 | policy_core/playback_eligibility | Eligibility check | P2.1 |
