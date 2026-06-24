@@ -31,6 +31,7 @@ add_library(kivo_cinema_engine STATIC
   src/source_core/fake_file_identity_service.cpp
   src/source_core/fake_local_file_source_service.cpp
   src/playback_inspector_core/fake_inspector_service.cpp
+  src/playback_inspector_core/fake_inspector_runtime_service.cpp
   src/policy_core/fake_policy_service.cpp
   src/compliance_core/fake_compliance_service.cpp
   src/feature_gate_core/fake_feature_gate_service.cpp
@@ -116,8 +117,12 @@ target_link_libraries(kivo_audio_subtitle_test PRIVATE kivo_cinema_engine)
 add_executable(kivo_inspector_diagnostic_test
   tests/inspector_diagnostic/inspector_diagnostic_contract_test.cpp
 )
-
 target_link_libraries(kivo_inspector_diagnostic_test PRIVATE kivo_cinema_engine)
+
+add_executable(kivo_inspector_runtime_test
+  tests/playback_inspector_core/inspector_runtime_test.cpp
+)
+target_link_libraries(kivo_inspector_runtime_test PRIVATE kivo_cinema_engine)
 
 add_executable(kivo_policy_compliance_resource_test
   tests/policy_compliance_resource/policy_compliance_resource_contract_test.cpp
@@ -234,6 +239,7 @@ add_test(NAME kivo_media_pipeline_contract_test COMMAND kivo_media_pipeline_cont
 add_test(NAME kivo_color_hdr_presenter_test COMMAND kivo_color_hdr_presenter_test)
 add_test(NAME kivo_audio_subtitle_test COMMAND kivo_audio_subtitle_test)
 add_test(NAME kivo_inspector_diagnostic_test COMMAND kivo_inspector_diagnostic_test)
+add_test(NAME kivo_inspector_runtime_test COMMAND kivo_inspector_runtime_test)
 add_test(NAME kivo_policy_compliance_resource_test COMMAND kivo_policy_compliance_resource_test)
 add_test(NAME kivo_adapter_boundary_test COMMAND kivo_adapter_boundary_test)
 add_test(NAME kivo_capability_eligibility_test COMMAND kivo_capability_eligibility_test)

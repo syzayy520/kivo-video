@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 07:40
+Updated: 2026-06-25 07:45
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -175,7 +175,7 @@ Status legend:
 - DONE: P2-018 Flip Presenter First Frame. Evidence: `backend/include/kivo/cinema_engine/video_render_core/flip_presenter_first_frame_config.hpp`, `backend/include/kivo/cinema_engine/video_render_core/flip_presenter_first_frame_result.hpp`, `backend/include/kivo/cinema_engine/video_render_core/fake_flip_presenter_service.hpp`, `backend/src/video_render_core/fake_flip_presenter_service.cpp`, `backend/tests/video_render_core/flip_presenter_first_frame_test.cpp`, `docs/p2_real_playback/d3d11_flip_presenter_first_frame.md`. CTest 28/28 PASS.
 - DONE: P2-019 WASAPI Shared PCM Output. Evidence: `backend/include/kivo/cinema_engine/audio_core/audio_endpoint_contract.hpp`, `backend/include/kivo/cinema_engine/audio_core/fake_audio_endpoint_service.hpp`, `backend/src/audio_core/fake_audio_endpoint_service.cpp`, `backend/tests/audio_core/audio_endpoint_test.cpp`, `docs/p2_real_playback/wasapi_shared_pcm_output.md`. CTest 29/29 PASS.
 - DONE: P2-020 Minimal UserPerceivedQualitySnapshot. Evidence: `backend/include/kivo/cinema_engine/quality_core/user_perceived_quality_snapshot.hpp`, `backend/include/kivo/cinema_engine/quality_core/fake_user_perceived_quality_service.hpp`, `backend/src/quality_core/fake_user_perceived_quality_service.cpp`, `backend/tests/quality_core/user_perceived_quality_test.cpp`, `docs/p2_real_playback/user_perceived_quality_snapshot.md`. CTest 30/30 PASS.
-- TODO: P2-021 Minimal Inspector / Diagnostic Redaction. Evidence target: Inspector runtime for real playback path and redaction verification.
+- DONE: P2-021 Minimal Inspector / Diagnostic Redaction. Evidence: `backend/include/kivo/cinema_engine/playback_inspector_core/fake_inspector_runtime_service.hpp`, `backend/src/playback_inspector_core/fake_inspector_runtime_service.cpp`, `backend/tests/playback_inspector_core/inspector_runtime_test.cpp`, `docs/p2_real_playback/inspector_runtime_redaction.md`. CTest 31/31 PASS.
 - TODO: P2-022 Local File End-to-End Playback Gate. Evidence target: local H.264/AAC SDR MP4 and H.264/AC3 SDR MKV play/pause/seek/resume/stop gates.
 
 ## P2.1.5 Disc Image / BDMV Tasks
@@ -285,7 +285,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-020 DONE. Proceed to P2-021 Minimal Inspector / Diagnostic Redaction:
+P2-001A/B/C through P2-021 DONE. Proceed to P2-022 Local File End-to-End Playback Gate:
 
-1. Inspector runtime for real playback path.
-2. Redaction verification.
+1. Local H.264/AAC SDR MP4 and H.264/AC3 SDR MKV play/pause/seek/resume/stop gates.
+2. Integration with all P2.1 components.
