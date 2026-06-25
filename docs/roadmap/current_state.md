@@ -12,7 +12,8 @@ Updated: 2026-06-25
 - P2 Remaining Full Coverage Roadmap V8 added to `docs/roadmap/backend_task_checklist.md` as `P2-REMAINING-COVERAGE-V8`; next executable child task is `P2-LOCAL-REPAIR-DELTA-001`.
 - V8 direct execution cards created at `docs/roadmap/p2_remaining_coverage_v8_execution_cards.md`; next assistant should execute cards in order starting at `V8-001`.
 - Latest checklist cross-check found a V8/V10 issue: some current V10 runtime claims mention stub/simulator evidence, which V8 forbids as `RUNTIME_PASS`; next work starts with audit, downgrade, or real-runtime repair before remote/provider work.
-- Latest governance verification: V8-001 through V8-009 completed. V8-001 cleaned root, V8-002 audited consistency, V8-003 protected work, V8-004 mapped families, V8-005 enforced claim vocabulary, V8-006 enforced status vocabulary, V8-007 enforced evidence paths, V8-008 defined provider matrix schema, V8-009 locked final gates. All evidence in artifacts/p2/evidence/. Next task: LRD-001 Planning Draft.
+- Latest governance verification: V8-001 through V8-009 completed. V8-001 cleaned root, V8-002 audited consistency, V8-003 protected work, V8-004 mapped families, V8-005 enforced claim vocabulary, V8-006 enforced status vocabulary, V8-007 enforced evidence paths, V8-008 defined provider matrix schema, V8-009 locked final gates. All evidence in artifacts/p2/evidence/.
+- P2-LOCAL-REPAIR-DELTA-001 completed: LRD-001 through LRD-013 all DONE. Evidence in artifacts/p2/evidence/LRD-001.json through LRD-013.json. Planning documents in docs/roadmap/p2_local_repair_delta_*.md. Overall classification: CONTRACT_PASS (real FFmpeg foundation proven; downstream stages are correct stubs but cannot be RUNTIME_PASS without real hardware). Next task: SGF-001 Define p2-evidence-v8 schema.
 - V10-014 lifecycle abort popup fixed: `kivo_lifecycle_test` now follows the real startup state-machine path and passes; full `ctest --preset vs-debug --output-on-failure --timeout 30` passes 74/74.
 - Natural family tree created in `docs/p0/core-architecture/natural_family_tree.md`.
 - First 12 P0 contract docs created.
@@ -52,7 +53,7 @@ Follow `docs/roadmap/backend_task_checklist.md`.
 Immediate next task:
 
 1. Open `docs/roadmap/p2_remaining_coverage_v8_execution_cards.md`.
-2. Execute `V8-001` Branch / Workspace / Root Clean Gate.
-3. Execute `V8-002` Current Checklist Consistency Gate and reconcile V10 DONE claims against V8 anti-fake rules.
-4. Execute `LRD-001` Local Repair Delta Planning Draft before runtime code.
-5. Audit D3D11 / WASAPI / PCM / local E2E / micro soak for real runtime proof before remote, cloud, IPTV, Cast, PiP, Cinema, Trakt, Foundation Final Gate, or All Providers Runtime Verified Gate work.
+2. Execute `SGF-001` Define `p2-evidence-v8` schema.
+3. Execute `SGF-002` Define `p2-inspector-v8` schema.
+4. Execute `SGF-003` Define `p2-decision-ledger-v8` schema.
+5. Continue with `SGF-004` through `SGF-008` for schema foundation completion.

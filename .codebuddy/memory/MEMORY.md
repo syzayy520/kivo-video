@@ -4,7 +4,7 @@
 - **Repository**: https://github.com/syzayy520/kivo-video
 - **Primary Branch**: kivo-video-p2-real-001-repair-ffmpeg-proof
 - **Current Focus**: P2 Remaining Coverage V8 Global Gates
-- **Next Task**: LRD-001 Planning Draft
+- **Next Task**: SGF-001 Define p2-evidence-v8 schema
 
 ## Key Architecture Decisions
 1. **Iron Gate Rule**: conception → planning design → natural family tree → implementation → single file, single responsibility → no flat files
@@ -50,11 +50,14 @@
 
 ## Last Verification
 - **Branch**: kivo-video-p2-real-001-repair-ffmpeg-proof
-- **HEAD**: V8-009 completion (all V8 gates DONE)
+- **HEAD**: 79c2d38 (V8-001 through V8-009 completion)
 - **Remote**: Synced
 - **Tests**: 84/84 CTest PASS (FFmpeg ON build)
 - **Working Tree**: Clean
 - **V8 Gates**: V8-001 through V8-009 all DONE, evidence in artifacts/p2/evidence/
+- **LRD Progress**: LRD-001 through LRD-013 all DONE, evidence in artifacts/p2/evidence/
+- **Commit**: 79c2d38 feat(v8): complete V8-001 through V8-009 global gates
+- **Push**: PUSHED_SUCCESSFULLY to kivo-video-p2-real-001-repair-ffmpeg-proof
 
 ## V8 Global Gates Completion
 - **V8-001**: Branch / Workspace / Root Clean Gate - DONE
@@ -68,4 +71,4 @@
 - **V8-009**: Final Gate Sequencing Gate - DONE
 
 ## Memory Maintenance
-- Updated: 2026-06-26 (V8-001 through V8-009 completion)
+- Updated: 2026-06-26 (V8-001 through V8-009 completion, commit 79c2d38 pushed; LRD-001 through LRD-013 completion, P2-LOCAL-REPAIR-DELTA-001 complete, overall classification CONTRACT_PASS)

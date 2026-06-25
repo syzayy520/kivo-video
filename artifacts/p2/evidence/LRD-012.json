@@ -1,0 +1,38 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "LRD-012",
+  "task_name": "Regression Protection",
+  "family": "local_repair_delta/regression",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "regression",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": true,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T00:50:00Z",
+  "evidence_file": "artifacts/p2/evidence/LRD-012.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "regression_summary": {
+    "ffmpeg_on_preset": "vs-debug-ffmpeg",
+    "ffmpeg_on_total_tests": 84,
+    "ffmpeg_on_passed": 84,
+    "ffmpeg_on_failed": 0,
+    "ffmpeg_off_preset": "vs-debug",
+    "ffmpeg_off_total_tests": 81,
+    "ffmpeg_off_passed": 81,
+    "ffmpeg_off_failed": 0,
+    "regression_detected": false,
+    "fake_decode_call_found": false,
+    "scope_leak_detected": false
+  },
+  "regression_points": [
+    {"point": "P2-REAL-001 FFmpeg probe", "status": "PASS", "details": "real FfmpegAdapter::open_file + probe_container"},
+    {"point": "P2-REAL-001 FFmpeg demux", "status": "PASS", "details": "real FfmpegAdapter::read_packet with packet_data"},
+    {"point": "P2-REAL-001 FFmpeg decode", "status": "PASS", "details": "real FfmpegAdapter::send_packet with real data"},
+    {"point": "Presenter abort repair", "status": "PASS", "details": "kivo_lifecycle_test real state machine"},
+    {"point": "D3D11 unavailable skip", "status": "PASS", "details": "tests skip gracefully"},
+    {"point": "FFmpeg ON/OFF behavior", "status": "PASS", "details": "84/84 ON, 81/81 OFF"}
+  ]
+}
