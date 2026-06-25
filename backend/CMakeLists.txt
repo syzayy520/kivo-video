@@ -30,6 +30,7 @@ add_library(kivo_cinema_engine STATIC
   src/engine_api/fake_playback_command_service.cpp
   src/source_core/fake_file_identity_service.cpp
   src/source_core/fake_local_file_source_service.cpp
+  src/source_core/fake_source_adapter_service.cpp
   src/playback_inspector_core/fake_inspector_service.cpp
   src/playback_inspector_core/fake_inspector_runtime_service.cpp
   src/policy_core/fake_policy_service.cpp
@@ -294,3 +295,10 @@ add_test(NAME kivo_bdmv_probe_test COMMAND kivo_bdmv_probe_test)
 add_test(NAME kivo_bdmv_playlist_duplicate_test COMMAND kivo_bdmv_playlist_duplicate_test)
 add_test(NAME kivo_bdmv_main_title_test COMMAND kivo_bdmv_main_title_test)
 add_test(NAME kivo_bdmv_playback_gate_test COMMAND kivo_bdmv_playback_gate_test)
+
+add_executable(kivo_source_adapter_test
+  tests/source_core/source_adapter_test.cpp
+)
+target_link_libraries(kivo_source_adapter_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_source_adapter_test COMMAND kivo_source_adapter_test)

@@ -187,7 +187,7 @@ Status legend:
 
 ## P2.2 Remote Playback Tasks
 
-- TODO: P2-027 Source Adapter Contract Skeleton. Evidence target: `source_adapter_core` contracts.
+- DONE: P2-027 Source Adapter Contract Skeleton. Evidence: `backend/include/kivo/cinema_engine/source_core/source_adapter_identity.hpp`, `backend/include/kivo/cinema_engine/source_core/source_adapter_capability.hpp`, `backend/include/kivo/cinema_engine/source_core/source_adapter_failure.hpp`, `backend/include/kivo/cinema_engine/source_core/fake_source_adapter_service.hpp`, `backend/src/source_core/fake_source_adapter_service.cpp`, `backend/tests/source_core/source_adapter_test.cpp`, `docs/p2_real_playback/source_adapter_contract.md`. CTest 37/37 PASS. 9 tests covering local file, WebDAV, AList, Emby adapter identity/capability, and connection/auth/timeout failure scenarios.
 - TODO: P2-028 Network Security Policy Skeleton. Evidence target: redirect, TLS, SSRF, and credential policy docs/tests.
 - TODO: P2-029 Source Health / Remote Reliability. Evidence target: `source_health_core` snapshots and Inspector integration.
 - TODO: P2-030 Network Range Reader. Evidence target: verified range reader behind source adapter boundary.
@@ -251,6 +251,7 @@ Status legend:
 - DONE: `docs/p2_real_playback/bdmv_playlist_duplicate_policy.md`.
 - DONE: `docs/p2_real_playback/bdmv_main_title_selection.md`.
 - DONE: `docs/p2_real_playback/bdmv_main_title_playback_gate.md`.
+- DONE: `docs/p2_real_playback/source_adapter_contract.md`.
 - TODO: `docs/p2_real_playback/cache_runtime.md`.
 - TODO: `docs/p2_real_playback/remote_runtime.md`.
 - TODO: `docs/p2_real_playback/network_security_policy.md`.
@@ -288,7 +289,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-026 DONE. Proceed to P2-027 Source Adapter Contract Skeleton:
+P2-001A/B/C through P2-027 DONE. Proceed to P2-028 Network Security Policy Skeleton:
 
-1. `source_adapter_core` contracts.
-2. Source adapter boundary with identity, capability, and failure types.
+1. Redirect policy (cross-origin, credential stripping).
+2. TLS, SSRF, and credential policy docs/tests.
