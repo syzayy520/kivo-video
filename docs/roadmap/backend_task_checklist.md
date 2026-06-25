@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 09:52
+Updated: 2026-06-25 09:56
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -194,7 +194,7 @@ Status legend:
 - DONE: P2-031 Segment Cache Runtime. Evidence: `backend/include/kivo/cinema_engine/network_cache_core/segment_cache_runtime.hpp` (expanded), `backend/include/kivo/cinema_engine/network_cache_core/cache_segment_descriptor.hpp`, `backend/include/kivo/cinema_engine/network_cache_core/cache_lookup_request.hpp`, `backend/include/kivo/cinema_engine/network_cache_core/cache_lookup_result.hpp`, `backend/include/kivo/cinema_engine/network_cache_core/fake_segment_cache_service.hpp`, `backend/src/network_cache_core/fake_segment_cache_service.cpp`, `backend/tests/network_cache_core/segment_cache_test.cpp`, `docs/p2_real_playback/cache_runtime.md`. CTest 41/41 PASS. 15 tests covering empty/active/full/degraded cache runtime, cached/downloading/evicted/invalidated segments, full/partial/miss lookups, request construction, and remote object binding.
 - DONE: P2-032 WebDAV Server Behavior Profile. Evidence: `backend/include/kivo/cinema_engine/source_core/webdav_server_profile.hpp`, `backend/include/kivo/cinema_engine/source_core/webdav_range_behavior.hpp`, `backend/include/kivo/cinema_engine/source_core/webdav_server_failure.hpp`, `backend/include/kivo/cinema_engine/source_core/webdav_probe_result.hpp`, `backend/include/kivo/cinema_engine/source_core/fake_webdav_profile_service.hpp`, `backend/src/source_core/fake_webdav_profile_service.cpp`, `backend/tests/source_core/webdav_profile_test.cpp`, `docs/p2_real_playback/webdav_server_behavior_profile.md`. CTest 42/42 PASS. 14 tests covering nginx/apache/rclone/synology/no-range profiles, range behaviors, failures, and probe results.
 - DONE: P2-033 WebDAV Range Playback. Evidence: `backend/include/kivo/cinema_engine/source_core/webdav_range_request.hpp`, `backend/include/kivo/cinema_engine/source_core/webdav_range_response.hpp`, `backend/include/kivo/cinema_engine/source_core/webdav_range_fallback.hpp`, `backend/include/kivo/cinema_engine/source_core/fake_webdav_range_playback_service.hpp`, `backend/src/source_core/fake_webdav_range_playback_service.cpp`, `backend/tests/source_core/webdav_range_playback_test.cpp`, `docs/p2_real_playback/webdav_range_playback.md`. CTest 43/43 PASS. 14 tests covering request construction, range responses (206/200/416/304), fallback strategies, and cross-type bindings.
-- TODO: P2-034 AList Provider Behavior Profile. Evidence target: AList provider profile.
+- DONE: P2-034 AList Provider Behavior Profile. Evidence: `backend/include/kivo/cinema_engine/source_core/alist_server_profile.hpp`, `backend/include/kivo/cinema_engine/source_core/alist_api_behavior.hpp`, `backend/include/kivo/cinema_engine/source_core/alist_server_failure.hpp`, `backend/include/kivo/cinema_engine/source_core/fake_alist_profile_service.hpp`, `backend/src/source_core/fake_alist_profile_service.cpp`, `backend/tests/source_core/alist_profile_test.cpp`, `docs/p2_real_playback/alist_provider_behavior_profile.md`. CTest 44/44 PASS. 11 tests covering standard/webdav/restricted profiles, full/readonly/minimal API behaviors, and 5 failure kinds.
 - TODO: P2-035 AList Direct Link Playback. Evidence target: direct link TTL refresh and identity stability.
 - TODO: P2-036 Emby Session Runtime. Evidence target: Emby session identity and runtime lifecycle.
 - TODO: P2-037 Emby Direct Play Playback. Evidence target: Emby item_id + media_source_id identity and direct play path.
@@ -260,7 +260,7 @@ Status legend:
 - TODO: `docs/p2_real_playback/network_security_policy.md`.
 - DONE: `docs/p2_real_playback/webdav_server_behavior_profile.md`.
 - DONE: `docs/p2_real_playback/webdav_range_playback.md`.
-- TODO: `docs/p2_real_playback/alist_provider_behavior_profile.md`.
+- DONE: `docs/p2_real_playback/alist_provider_behavior_profile.md`.
 - TODO: `docs/p2_real_playback/emby_session_runtime.md`.
 - TODO: `docs/p2_real_playback/emby_selection_policy.md`.
 - TODO: `docs/p2_real_playback/source_health_and_remote_reliability.md`.
@@ -293,7 +293,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-033 DONE. Proceed to P2-034 AList Provider Behavior Profile:
+P2-001A/B/C through P2-034 DONE. Proceed to P2-035 AList Direct Link Playback:
 
-1. AList provider behavior profile and capability detection.
-2. AList-specific adapter and connection handling.
+1. AList direct link TTL refresh and identity stability.
+2. AList direct link generation and caching.
