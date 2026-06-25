@@ -22,6 +22,17 @@
       }
     },
     {
+      "name": "vs-debug",
+      "displayName": "Visual Studio Debug",
+      "generator": "Visual Studio 18 2026",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/vs-debug",
+      "cacheVariables": {
+        "KIVO_ENABLE_FFMPEG": "OFF",
+        "KIVO_ENABLE_REAL_MEDIA_TESTS": "OFF"
+      }
+    },
+    {
       "name": "vs-debug-ffmpeg",
       "displayName": "Visual Studio Debug + FFmpeg",
       "generator": "Visual Studio 18 2026",
@@ -39,6 +50,11 @@
       "configurePreset": "ninja-debug"
     },
     {
+      "name": "vs-debug",
+      "configurePreset": "vs-debug",
+      "configuration": "Debug"
+    },
+    {
       "name": "vs-debug-ffmpeg",
       "configurePreset": "vs-debug-ffmpeg",
       "configuration": "Debug"
@@ -48,6 +64,14 @@
     {
       "name": "ninja-debug",
       "configurePreset": "ninja-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "vs-debug",
+      "configurePreset": "vs-debug",
+      "configuration": "Debug",
       "output": {
         "outputOnFailure": true
       }
