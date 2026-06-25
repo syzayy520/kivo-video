@@ -9,7 +9,10 @@ Updated: 2026-06-25
 - Detailed execution checklist created at `docs/roadmap/backend_task_checklist.md`.
 - P2 Real Playback Backend Implementation Spec V1.5 added to `docs/roadmap/backend_task_checklist.md`.
 - P2 Real Local Closure V10 added to `docs/roadmap/backend_task_checklist.md` as `P2-REAL-LOCAL-CLOSURE-V10`, backed by PDF, pasted text, and docx sources.
-- Latest V10 checklist cross-check found the V10 entries in place; governance verification is currently blocked by root-level `build_output.txt`, which the no-flat-files gate reports as unexpected.
+- P2 Remaining Full Coverage Roadmap V8 added to `docs/roadmap/backend_task_checklist.md` as `P2-REMAINING-COVERAGE-V8`; next executable child task is `P2-LOCAL-REPAIR-DELTA-001`.
+- V8 direct execution cards created at `docs/roadmap/p2_remaining_coverage_v8_execution_cards.md`; next assistant should execute cards in order starting at `V8-001`.
+- Latest checklist cross-check found a V8/V10 issue: some current V10 runtime claims mention stub/simulator evidence, which V8 forbids as `RUNTIME_PASS`; next work starts with audit, downgrade, or real-runtime repair before remote/provider work.
+- Latest governance verification is currently blocked by root-level temporary build outputs such as `build_err.txt`, which the no-flat-files gate reports as unexpected.
 - V10-014 lifecycle abort popup fixed: `kivo_lifecycle_test` now follows the real startup state-machine path and passes; full `ctest --preset vs-debug --output-on-failure --timeout 30` passes 74/74.
 - Natural family tree created in `docs/p0/core-architecture/natural_family_tree.md`.
 - First 12 P0 contract docs created.
@@ -40,6 +43,7 @@ Updated: 2026-06-25
 - `ctest --preset ninja-debug --output-on-failure`: PASS, 12/12 tests.
 - `cmake --build --preset vs-debug`: PASS.
 - `ctest --preset vs-debug --output-on-failure --timeout 30`: PASS, 74/74 tests.
+- Latest `backend/tools/governance/verify_p1_gates.py`: blocked by root temporary outputs (build_output.txt, tmp/). V8-001 cleaned root: build_output.txt and tmp/ removed, workspace documented, evidence generated at artifacts/p2/evidence/V8-001.json.
 
 ## Next Work
 
@@ -47,8 +51,8 @@ Follow `docs/roadmap/backend_task_checklist.md`.
 
 Immediate next task:
 
-1. Begin `P2-REAL-LOCAL-CLOSURE-V10`.
-2. Run Branch / Workspace Gate.
-3. Run Diff Base / Scope Scan Base Gate using `a44fae9` unless a different base is proven.
-4. Write Planning Draft before runtime code.
-5. Keep the path focused on local playback only: source -> byte_stream -> probe -> demux -> decode -> graph -> presenter -> audio -> state -> inspector.
+1. Open `docs/roadmap/p2_remaining_coverage_v8_execution_cards.md`.
+2. Execute `V8-001` Branch / Workspace / Root Clean Gate.
+3. Execute `V8-002` Current Checklist Consistency Gate and reconcile V10 DONE claims against V8 anti-fake rules.
+4. Execute `LRD-001` Local Repair Delta Planning Draft before runtime code.
+5. Audit D3D11 / WASAPI / PCM / local E2E / micro soak for real runtime proof before remote, cloud, IPTV, Cast, PiP, Cinema, Trakt, Foundation Final Gate, or All Providers Runtime Verified Gate work.

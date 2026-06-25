@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 20:10 (V10-022 DONE)
+Updated: 2026-06-25 (P2-REMAINING-COVERAGE-V8 added)
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -394,11 +394,104 @@ Status legend:
 - TODO: Working tree clean PASS.
 - TODO: Only then report `P2 Local Real Playback Closure PASS`; never report P3, flagship playback, HDR, hardware decode, remote, WASAPI exclusive, or passthrough completion.
 
+## P2-REMAINING-COVERAGE-V8 Spec Intake
+
+- DONE: V8 DOCX located. Evidence: `C:\Users\Administrator\Downloads\KIVO-VIDEO — P2 Remaining Full Coverage Roadmap V8 ULTIMATE HARDENED.docx`.
+- DONE: V8 DOCX title captured. Evidence: paragraph 1 reads `KIVO-VIDEO — P2 Remaining Full Coverage Roadmap V8 ULTIMATE HARDENED`.
+- DONE: V8 canonical name chosen. Evidence: use `P2-REMAINING-COVERAGE-V8`; human name `P2 Remaining Full Coverage Roadmap V8`; next executable child task is `P2-LOCAL-REPAIR-DELTA-001`.
+- DONE: V8 direct execution cards created. Evidence: `docs/roadmap/p2_remaining_coverage_v8_execution_cards.md` converts V8 into assistant-ready cards from `V8-001` through `LRD-013`, with later foundation cards queued.
+- DONE: V8 positioning captured. Evidence: the DOCX says this is not a single implementation task; it is the P2 remaining coverage roadmap, boundary list, dedupe list, dependency order, state semantics, evidence semantics, Provider Runtime Matrix, Foundation Final Gate, All Providers Runtime Verified Gate, and later Codex task baseline.
+- DONE: V8 allowed final P2 foundation claim captured. Evidence: only `P2 FOUNDATION COMPLETE` / `Direct Play / Direct Stream / Presentation Foundation Complete` after Foundation Final Gate; never `ALL PROVIDERS RUNTIME VERIFIED` unless every provider runtime status is `RUNTIME_PASS`.
+- DONE: V8 evidence statuses captured. Evidence: evidence status vocabulary is `RUNTIME_PASS`, `CONTRACT_PASS`, `FAIL`, `BLOCKED_ENV`, `NOT_IMPLEMENTED`, `SKIPPED_TEST_ONLY`.
+
+## P2-REMAINING-COVERAGE-V8 Issues Found
+
+- ISSUE: Current V10 checklist has DONE claims whose evidence text still mentions `Stub implementation`, `stub generates placeholder PCM data`, `SoakSimulator`, and state-machine-only tests. V8 explicitly forbids fake / stub / simulator / state-only proof from being reported as `RUNTIME_PASS`.
+- ISSUE: Current V10 mission says all gates DONE, but its Required Artifacts / Required Tests / Completion Definition subsections still contain TODO items. V8 requires evidence/report/source consistency; this mismatch must be reconciled before any P2 Foundation claim.
+- ISSUE: Current workspace has recently contained root-level temporary build outputs such as `build_err.txt`; V8 requires clean workspace and no generated artifacts polluting source.
+- ISSUE: V8 includes remote, cloud, IPTV, Cast, PiP, Cinema, and Trakt foundations, but it does not allow these to be called fully runtime verified without real environment evidence.
+- ISSUE: V8 changes the naming hierarchy: `P2 Local Real Playback Closure` is a local foundation child, not full P2 completion; `P2 Foundation Complete` is later; `All Providers Runtime Verified` is a separate post-foundation gate.
+
+## P2-REMAINING-COVERAGE-V8 Global Gates
+
+- DONE: V8-001 Branch / Workspace / Root Clean Gate. Evidence: `artifacts/p2/evidence/V8-001.json`. Branch: kivo-video-p2-real-001-repair-ffmpeg-proof, HEAD: 48bf8d0, remote synced, root temporary files removed (build_output.txt, tmp/), workspace state documented.
+- TODO: V8-002 Current Checklist Consistency Gate. Evidence target: reconcile V10 DONE claims with remaining TODO subsections and final report statements.
+- TODO: V8-003 No Duplicate Work Gate. Evidence target: list work that must not be repeated: FFmpeg probe/demux/decode skeleton, presenter abort repair, D3D11 unavailable SKIP semantics, `wasapi_internal.hpp`, `d3d11_internal.hpp`, FfmpegFrameResult frame data / linesize / plane count.
+- TODO: V8-004 Natural Family Tree Gate. Evidence target: P2 remaining families mapped before code: local_repair_delta, evidence_schema, redline_gate, format_compat, media_identity, subtitle_chapter, source_core, provider_runtime, playback_state, audio_codec_policy, presentation_extension, final_gate.
+- TODO: V8-005 Allowed / Forbidden Claims Gate. Evidence target: allowed claim vocabulary and forbidden claim scan for `P2 Complete`, `ALL PROVIDERS RUNTIME VERIFIED`, `P3 COMPLETE`, `HDR COMPLETE`, `ATMOS BITSTREAM COMPLETE`, `AIRPLAY PRODUCT COMPLETE`.
+- TODO: V8-006 Status Vocabulary Gate. Evidence target: code/docs/evidence only use `RUNTIME_PASS`, `CONTRACT_PASS`, `FAIL`, `BLOCKED_ENV`, `NOT_IMPLEMENTED`, `SKIPPED_TEST_ONLY` in V8 evidence.
+- TODO: V8-007 Evidence Path Gate. Evidence target: every child task writes or plans `artifacts/p2/evidence/<task-id>.json` with schema version `p2-evidence-v8`.
+- TODO: V8-008 Provider Runtime Matrix Gate Plan. Evidence target: provider matrix path `artifacts/p2/provider_runtime_matrix.json`, provider list, blocked/runtime semantics.
+- TODO: V8-009 Final Gate Sequencing Gate. Evidence target: Foundation Final Gate is locked until all foundation child evidence exists; All Providers Runtime Verified Gate is explicitly post-foundation.
+
+## P2-LOCAL-REPAIR-DELTA-001
+
+- NEXT: LRD-001 Planning Draft. Evidence target: create planning draft before code with tree inventory, current V10 evidence audit, allowed files, forbidden files, dependency direction, single-file responsibility table, tests, sample/runtime risks, anti-fake strategy, evidence schema plan, redline plan, final report rules.
+- TODO: LRD-002 V10 Evidence Downgrade / Repair Audit. Evidence target: classify each V10-007 through V10-028 item as `RUNTIME_PASS`, `CONTRACT_PASS`, `FAIL`, or `NEEDS_REPAIR`; do not let stub/simulator proof remain runtime proof.
+- TODO: LRD-003 D3D11 Device Reality Audit. Evidence target: prove real D3D11 device/context when available; graceful `BLOCKED_ENV` or skip semantics when unavailable; no fake texture PASS.
+- TODO: LRD-004 D3D11 Real Decoded Frame Upload. Evidence target: decoded video frame planes/linesize uploaded into real D3D11 texture; no empty texture, dummy frame, bool-only proof, or log-only proof.
+- TODO: LRD-005 Presenter Boundary Reality Audit. Evidence target: presenter receives real uploaded texture boundary proof; unavailable device does not become runtime PASS.
+- TODO: LRD-006 PCM Converter Reality Audit. Evidence target: PCM buffer derives from real decoded audio frame data; no placeholder silence or generated dummy PCM as runtime proof.
+- TODO: LRD-007 WASAPI Shared Runtime Audit. Evidence target: real COM initialization, default render endpoint, shared-mode format negotiation, `IAudioClient`, `IAudioRenderClient`, `GetBuffer`, `ReleaseBuffer`, `Start`, `Stop`.
+- TODO: LRD-008 Local E2E Runtime Audit. Evidence target: local playback E2E touches real source, probe, demux, decode, upload/presenter boundary, PCM/WASAPI boundary, clock, seek, lifecycle; not state-machine-only.
+- TODO: LRD-009 Micro Soak Runtime Audit. Evidence target: 30s continuous local playback runtime over sample; no `SoakSimulator`, no repeated open/close fake soak, queue/memory high-water proof.
+- TODO: LRD-010 Evidence Artifact Audit. Evidence target: `playback_proof.json`, `inspector_snapshot.json`, `decision_ledger.json`, `micro_soak_metrics.json`, `ffmpeg_off_antifake.json`, `evidence_schema_validation.json` exist or are explicitly regenerated under artifact directory, not source root.
+- TODO: LRD-011 Final Report Consistency Audit. Evidence target: final report statements match source implementation and test evidence; stub/contract proof not described as real runtime proof.
+- TODO: LRD-012 Regression Protection. Evidence target: P2-REAL-001 FFmpeg probe/demux/decode PASS, presenter abort repair PASS, D3D11 unavailable SKIP semantics PASS, FFmpeg ON/OFF behavior PASS.
+- TODO: LRD-013 Classification. Evidence target: `P2-LOCAL-REPAIR-DELTA = RUNTIME_PASS` only if real local runtime proof is complete; otherwise classify as `FAIL`, `BLOCKED_ENV`, or `CONTRACT_PASS` with explicit limitation.
+
+## P2-SCHEMA-GATE-FOUNDATION
+
+- TODO: SGF-001 Define `p2-evidence-v8` schema. Evidence target: required fields from V8 including task id, family, status, runtime mode, runtime environment kind, media/source/extension identities, Inspector, DecisionLedger, errors, redaction, schema validation, anti-fake, redline, commands, artifacts, provider matrix impact.
+- TODO: SGF-002 Define `p2-inspector-v8` schema. Evidence target: source, probe, demux, decode, presenter, audio, clock, seek, lifecycle, threading, provider, extension, and error snapshots.
+- TODO: SGF-003 Define `p2-decision-ledger-v8` schema. Evidence target: monotonic ordered decisions with reason, input, output, generation, redaction state, provider impact, runtime status.
+- TODO: SGF-004 Define `p2-extension-decision-ledger-v8` schema. Evidence target: Cast, PiP, Cinema, Trakt, playlist, queue, resume, playback history decisions stay outside MediaSourceKind.
+- TODO: SGF-005 Define `provider-runtime-matrix-v8` schema. Evidence target: provider kind, contract status, runtime status, environment kind, environment required/available, runtime verified, blocked reason, commands, evidence file, timestamp.
+- TODO: SGF-006 Implement Schema Validation Command. Evidence target: local command validates all schemas and fails on missing required fields, unknown status, fake runtime status, missing Inspector, missing DecisionLedger, missing redaction.
+- TODO: SGF-007 Schema Negative Tests. Evidence target: simulator + RUNTIME_PASS fails, unit_test + Runtime Final PASS fails, credential_redacted=false + PASS fails, CONTRACT_PASS + runtime_verified=true fails, RUNTIME_PASS + runtime_verified=false fails, mock runtime + RUNTIME_PASS fails.
+- TODO: SGF-008 Final Gate Evidence Reader Foundation. Evidence target: reader consumes evidence files, not logs or narrative reports.
+
+## P2-REDLINE-GATE-FOUNDATION
+
+- TODO: RGF-001 Redline Vocabulary. Evidence target: fake/stub/simulate/simulator/dummy/mock-only/todo-pass/always-pass/state-only-pass/silent fallback/not implemented but pass/P3 false-complete terms.
+- TODO: RGF-002 Allowlist Rules. Evidence target: allow forbidden words only in Forbidden Scope, Known Limitations, Next Recommendation, or explicit CONTRACT_PASS explanation.
+- TODO: RGF-003 Source Redline Scan. Evidence target: production code and tests cannot contain fake PASS, silent fallback, provider runtime pass without environment, controlled protocol mislabeled as cloud account.
+- TODO: RGF-004 Artifact Redline Scan. Evidence target: evidence JSON, Inspector artifacts, DecisionLedger artifacts, Provider Runtime Matrix, and final report scanned.
+- TODO: RGF-005 Report/Source Conflict Scan. Evidence target: final report claims fail if they contradict source implementation or evidence status.
+
+## P2 Foundation Remaining Families
+
+- TODO: FMT-001 P2-FORMAT-COMPAT. Evidence target: AVI, MOV, M4V, MP4, MKV, TS, M2TS, WebM, FLV, WMV, MPG, MPEG, 3GP, OGV sample matrix; real samples `RUNTIME_PASS`, missing samples `CONTRACT_PASS` with sample gap list.
+- TODO: MID-001 P2-MEDIA-IDENTITY. Evidence target: MediaIdentity, FileIdentity, StreamIdentity, ServerItemIdentity, CloudItemIdentity, PlaylistItemIdentity, Episode/Movie candidate identity, SampleIdentity, stable fingerprint, redacted display identity.
+- TODO: SUB-001 P2-SUBTITLE-CHAPTER. Evidence target: internal/external subtitles, SRT, ASS/SSA, WebVTT, PGS/VobSub inventory, language/default/forced/delay, MKV font attachments, chapters, jump policy.
+- TODO: SRC-001 P2-SOURCE-CORE. Evidence target: SourceIdentity, MediaSourceKind, ReadableByteStream, range/seek capabilities, credential profile/redaction, source health, direct play/stream decision, cache/retry/reconnect, Inspector, DecisionLedger, ErrorMapping.
+- TODO: NET-001 P2-NETWORK-FILE-SOURCES. Evidence target: SMB, NFS, FTP, FTPS, SFTP, HTTP/HTTPS direct media, HTTP/HTTPS stream, DLNA/UPnP source; missing real environment becomes Provider Matrix `BLOCKED_ENV`, not runtime PASS.
+- TODO: OBJ-001 P2-OBJECT-STORAGE. Evidence target: S3-compatible and MinIO endpoint/object identity, credential redaction, HEAD/GET/Range, ETag, Last-Modified, permission/not found/throttling/TLS errors.
+- TODO: WDA-001 P2-WEBDAV-ALIST. Evidence target: WebDAV PROPFIND/HEAD/GET Range/auth/TLS/redirect; AList profile/list/direct link/expiry/refresh/range/source health/redaction.
+- TODO: MSV-001 P2-MEDIA-SERVER. Evidence target: Emby, Plex, Jellyfin server profile/auth/discovery/library/media identity/stream URL/direct play/direct stream/transcode detection/resume/progress/watched/offline/token redaction.
+- TODO: CLD-001 P2-CLOUD-DRIVE. Evidence target: Google Drive and OneDrive OAuth profile, token refresh, listing/navigation, download URL resolve, range, quota/rate limit, link refresh, cache policy, redaction.
+- TODO: IPTV-001 P2-IPTV-LIVE. Evidence target: M3U, M3U8, HLS, TS live stream, XMLTV EPG, channel grouping, HLS refresh, segment fetch, reconnect, channel switch, live seek policy.
+- TODO: PST-001 P2-PLAYBACK-STATE. Evidence target: PlaybackSessionIdentity, progress snapshot, resume point, recent playback, playlist, queue, repeat/shuffle, watched threshold, local history, non-blocking sync.
+- TODO: ACP-001 P2-AUDIO-CODEC-POLICY. Evidence target: DD/DD+/TrueHD/Atmos metadata/DTS/DTS-HD/DTS:X/PCM/FLAC/AAC/Opus inventory, route candidate, PCM fallback reason, passthrough eligibility preview only.
+- TODO: CAST-001 P2-CAST-FOUNDATION. Evidence target: Cast/AirPlay abstraction, device identity, session state, handoff policy, local/cast split, Inspector, DecisionLedger, feasibility/legal/protocol review; no final product claim.
+- TODO: PIP-001 P2-PIP-FOUNDATION. Evidence target: PiP state model, surface detach/attach contract, main player sync, mini command bridge, window bounds, multi-monitor, DPI, restore behavior.
+- TODO: CIN-001 P2-CINEMA-FOUNDATION. Evidence target: cinema mode state, normal/fullscreen/cinema/PiP/cast conflict policy, enter/exit, restore, chrome/cursor/OSD/subtitle safe area, playback continuity, multi-monitor, DPI, sleep inhibit.
+- TODO: TRK-001 P2-TRAKT-FOUNDATION. Evidence target: OAuth profile, movie/episode identity mapping, manual match, watched/collection, scrobble start/pause/stop, progress/resume sync, offline queue, retry, privacy, conflict policy.
+
+## P2 Provider Matrix And Final Gates
+
+- TODO: PMX-001 Generate Provider Runtime Matrix. Evidence target: `artifacts/p2/provider_runtime_matrix.json` includes local_file, smb, nfs, ftp, ftps, sftp, http_file, https_file, dlna_upnp, s3_object, minio_object, webdav, alist, emby, plex, jellyfin, google_drive, onedrive, iptv_hls, airplay_cast, trakt_api.
+- TODO: PMX-002 Matrix Honesty Gate. Evidence target: no provider defaults to PASS; missing real external environment is `BLOCKED_ENV`; controlled protocol server is not mislabeled as commercial cloud/account runtime.
+- TODO: PFFG-001 P2 Foundation Final Gate Reader. Evidence target: reads all child evidence and provider matrix; fails on FAIL, NOT_IMPLEMENTED, SKIPPED_TEST_ONLY, missing evidence, missing schema validation, fake RUNTIME_PASS, report/source conflict, evidence/source conflict.
+- TODO: PFFG-002 P2 Foundation Final Report. Evidence target: only allowed final claim is `P2 FOUNDATION COMPLETE` / `Direct Play / Direct Stream / Presentation Foundation Complete`; explicitly list provider runtime gaps.
+- TODO: APRV-001 P2 All Providers Runtime Verified Gate. Evidence target: post-foundation only; requires all provider runtime statuses `RUNTIME_PASS`, all provider evidence schema/redaction/anti-fake/redline PASS, no BLOCKED_ENV, no CONTRACT_PASS-only provider.
+
 ## Immediate Next Task
 
-Begin `P2-REAL-LOCAL-CLOSURE-V10`.
+Begin `P2-REMAINING-COVERAGE-V8` with `P2-LOCAL-REPAIR-DELTA-001`.
 
-1. Run V10-001 Branch / Workspace Gate.
-2. Run V10-002 Diff Base / Scope Scan Base Gate using `a44fae9` unless a different base is proven.
-3. Write V10-003 Planning Draft before runtime code.
-4. Keep implementation focused on local playback only: source -> byte_stream -> probe -> demux -> decode -> graph -> presenter -> audio -> state -> inspector.
+1. Open `docs/roadmap/p2_remaining_coverage_v8_execution_cards.md`.
+2. Execute `V8-001` Branch / Workspace / Root Clean Gate.
+3. Execute `V8-002` Current Checklist Consistency Gate and reconcile V10 DONE claims against V8 anti-fake rules.
+4. Execute `LRD-001` Planning Draft before runtime code.
+5. Audit D3D11 / WASAPI / PCM / local E2E / micro soak for real runtime proof before any remote, cloud, IPTV, Cast, PiP, Cinema, Trakt, Foundation Final Gate, or All Providers Runtime Verified Gate work.
