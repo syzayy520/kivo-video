@@ -33,6 +33,7 @@ add_library(kivo_cinema_engine STATIC
   src/source_core/fake_source_adapter_service.cpp
   src/source_core/fake_source_health_service.cpp
   src/source_core/fake_webdav_profile_service.cpp
+  src/source_core/fake_webdav_range_playback_service.cpp
   src/playback_inspector_core/fake_inspector_service.cpp
   src/playback_inspector_core/fake_inspector_runtime_service.cpp
   src/policy_core/fake_policy_service.cpp
@@ -342,3 +343,10 @@ add_executable(kivo_webdav_profile_test
 target_link_libraries(kivo_webdav_profile_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_webdav_profile_test COMMAND kivo_webdav_profile_test)
+
+add_executable(kivo_webdav_range_playback_test
+  tests/source_core/webdav_range_playback_test.cpp
+)
+target_link_libraries(kivo_webdav_range_playback_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_webdav_range_playback_test COMMAND kivo_webdav_range_playback_test)
