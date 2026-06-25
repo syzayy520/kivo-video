@@ -82,6 +82,7 @@ add_library(kivo_cinema_engine STATIC
   src/symbol_core/fake_symbol_service.cpp
   src/update_core/fake_update_service.cpp
   src/recovery_core/fake_recovery_fallback_service.cpp
+  src/release_core/fake_release_readiness_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -505,3 +506,10 @@ add_executable(kivo_recovery_fallback_test
 target_link_libraries(kivo_recovery_fallback_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_recovery_fallback_test COMMAND kivo_recovery_fallback_test)
+
+add_executable(kivo_release_readiness_test
+  tests/release_core/release_readiness_test.cpp
+)
+target_link_libraries(kivo_release_readiness_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_release_readiness_test COMMAND kivo_release_readiness_test)
