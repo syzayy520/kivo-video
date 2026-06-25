@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 11:35 (P2-048 DONE)
+Updated: 2026-06-25 11:50 (P2-049 DONE)
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -212,7 +212,7 @@ Status legend:
 - DONE: P2-046 Crash Dump / Support Bundle Privacy Policy. Evidence: `backend/include/kivo/cinema_engine/diagnostic_core/crash_dump_privacy_policy.hpp`, `backend/include/kivo/cinema_engine/diagnostic_core/support_bundle_redaction_policy.hpp`, `backend/include/kivo/cinema_engine/diagnostic_core/privacy_consent_record.hpp`, `backend/include/kivo/cinema_engine/diagnostic_core/fake_crash_dump_privacy_service.hpp`, `backend/src/diagnostic_core/fake_crash_dump_privacy_service.cpp`, `backend/tests/diagnostic_core/crash_dump_privacy_test.cpp`, `docs/p2_real_playback/crash_dump_privacy_policy.md`. CTest 55/55 PASS. 10 tests covering crash dump privacy policy, support bundle redaction, and privacy consent records.
 - DONE: P2-047 Dependency Security / SBOM Policy Draft. Evidence: `backend/include/kivo/cinema_engine/compliance_core/dependency_security_policy.hpp`, `backend/include/kivo/cinema_engine/compliance_core/sbom_record.hpp`, `backend/include/kivo/cinema_engine/compliance_core/cve_policy.hpp`, `backend/include/kivo/cinema_engine/compliance_core/fake_dependency_security_service.hpp`, `backend/src/compliance_core/fake_dependency_security_service.cpp`, `backend/tests/compliance_core/dependency_security_test.cpp`, `docs/p2_real_playback/dependency_security_policy.md`. CTest 56/56 PASS. 12 tests covering dependency security policy, SBOM record, and CVE policy.
 - DONE: P2-048 Product Claim Governance Gate Skeleton. Evidence: `backend/include/kivo/cinema_engine/governance_core/product_claim_request.hpp`, `backend/include/kivo/cinema_engine/governance_core/product_claim_result.hpp`, `backend/include/kivo/cinema_engine/governance_core/claim_validation_rule.hpp`, `backend/include/kivo/cinema_engine/governance_core/fake_product_claim_service.hpp`, `backend/src/governance_core/fake_product_claim_service.cpp`, `backend/tests/governance_core/product_claim_test.cpp`, `docs/p2_real_playback/product_claim_governance_gate.md`. CTest 57/57 PASS. 12 tests covering product claim requests, validation rules, and claim results.
-- TODO: P2-049 Feature Flag / Config Default Skeleton. Evidence target: safe defaults and rollout contract.
+- DONE: P2-049 Feature Flag / Config Default Skeleton. Evidence: `backend/include/kivo/cinema_engine/feature_gate_core/feature_flag_definition.hpp`, `backend/include/kivo/cinema_engine/feature_gate_core/config_default_rule.hpp`, `backend/include/kivo/cinema_engine/feature_gate_core/rollout_strategy.hpp`, `backend/include/kivo/cinema_engine/feature_gate_core/fake_feature_flag_service.hpp`, `backend/src/feature_gate_core/fake_feature_flag_service.cpp`, `backend/tests/feature_gate_core/feature_flag_test.cpp`, `docs/p2_real_playback/feature_flag_config_default.md`. CTest 58/58 PASS. 12 tests covering feature flag definitions, config defaults, and rollout strategies.
 - TODO: P2-050 Test Oracle / Reproducibility Skeleton. Evidence target: hermetic fake + manual hardware pair policy.
 - TODO: P2-051 Media Parser Security / Fuzz Skeleton. Evidence target: parser security core, quarantine, fuzz shell.
 - TODO: P2-052 Build / Signing / Symbol / Update Policy Skeleton. Evidence target: build/signing/symbol/update policy docs.
@@ -293,6 +293,6 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-048 DONE. Proceed to P2-049 through P2-055.
+P2-001A/B/C through P2-049 DONE. Proceed to P2-050 through P2-055.
 
-Next: P2-049 Feature Flag / Config Default Skeleton.
+Next: P2-050 Test Oracle / Reproducibility Skeleton.

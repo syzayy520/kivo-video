@@ -74,6 +74,7 @@ add_library(kivo_cinema_engine STATIC
   src/diagnostic_core/fake_crash_dump_privacy_service.cpp
   src/compliance_core/fake_dependency_security_service.cpp
   src/governance_core/fake_product_claim_service.cpp
+  src/feature_gate_core/fake_feature_flag_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -462,3 +463,10 @@ add_executable(kivo_product_claim_test
 target_link_libraries(kivo_product_claim_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_product_claim_test COMMAND kivo_product_claim_test)
+
+add_executable(kivo_feature_flag_test
+  tests/feature_gate_core/feature_flag_test.cpp
+)
+target_link_libraries(kivo_feature_flag_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_feature_flag_test COMMAND kivo_feature_flag_test)
