@@ -1,3 +1,6 @@
+option(KIVO_ENABLE_FFMPEG "Enable FFmpeg-based real media processing" OFF)
+option(KIVO_ENABLE_REAL_MEDIA_TESTS "Enable integration tests requiring real media samples" OFF)
+
 add_library(kivo_cinema_engine STATIC
   src/audio_core/fake_audio_service.cpp
   src/color_science_core/fake_color_output_service.cpp
@@ -84,6 +87,11 @@ add_library(kivo_cinema_engine STATIC
   src/recovery_core/fake_recovery_fallback_service.cpp
   src/release_core/fake_release_readiness_service.cpp
   src/integration_core/fake_integration_gate_service.cpp
+  src/byte_stream_core/local_file_byte_stream_impl.cpp
+  src/demux_core/real_probe_runtime.cpp
+  src/demux_core/real_demux_runtime.cpp
+  src/decode_core/real_software_decode_runtime.cpp
+  src/third_party_adapter/ffmpeg_adapter/ffmpeg_adapter.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -92,6 +100,14 @@ target_include_directories(kivo_cinema_engine
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+if(KIVO_ENABLE_FFMPEG)
+  target_compile_definitions(kivo_cinema_engine PUBLIC KIVO_ENABLE_FFMPEG)
+endif()
+
+if(KIVO_ENABLE_REAL_MEDIA_TESTS)
+  target_compile_definitions(kivo_cinema_engine PUBLIC KIVO_ENABLE_REAL_MEDIA_TESTS)
+endif()
 
 add_executable(kivo_fake_session_test
   tests/fake_backend/fake_engine_api_scenario_test.cpp
@@ -521,3 +537,47 @@ add_executable(kivo_integration_gate_test
 target_link_libraries(kivo_integration_gate_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_integration_gate_test COMMAND kivo_integration_gate_test)
+
+# ─── P2-REAL-001: Real media processing test targets ───
+
+add_executable(kivo_real_probe_runtime_test
+  tests/demux_core/real_probe_runtime_test.cpp
+)
+target_link_libraries(kivo_real_probe_runtime_test PRIVATE kivo_cinema_engine)
+
+add_executable(kivo_real_demux_runtime_test
+  tests/demux_core/real_demux_runtime_test.cpp
+)
+target_link_libraries(kivo_real_demux_runtime_test PRIVATE kivo_cinema_engine)
+
+add_executable(kivo_real_decode_runtime_test
+  tests/decode_core/real_software_decode_runtime_test.cpp
+)
+target_link_libraries(kivo_real_decode_runtime_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_real_probe_runtime_test COMMAND kivo_real_probe_runtime_test)
+add_test(NAME kivo_real_demux_runtime_test COMMAND kivo_real_demux_runtime_test)
+add_test(NAME kivo_real_decode_runtime_test COMMAND kivo_real_decode_runtime_test)
+
+# ─── P2-REAL-001: Integration test targets (require KIVO_ENABLE_REAL_MEDIA_TESTS) ───
+
+add_executable(kivo_local_file_byte_stream_integration_test
+  tests/integration_local/local_file_byte_stream_integration_test.cpp
+)
+target_link_libraries(kivo_local_file_byte_stream_integration_test PRIVATE kivo_cinema_engine)
+
+add_executable(kivo_real_probe_integration_test
+  tests/integration_local/real_probe_integration_test.cpp
+)
+target_link_libraries(kivo_real_probe_integration_test PRIVATE kivo_cinema_engine)
+
+add_executable(kivo_real_demux_decode_integration_test
+  tests/integration_local/real_demux_decode_integration_test.cpp
+)
+target_link_libraries(kivo_real_demux_decode_integration_test PRIVATE kivo_cinema_engine)
+
+if(KIVO_ENABLE_REAL_MEDIA_TESTS)
+  add_test(NAME kivo_local_file_byte_stream_integration_test COMMAND kivo_local_file_byte_stream_integration_test)
+  add_test(NAME kivo_real_probe_integration_test COMMAND kivo_real_probe_integration_test)
+  add_test(NAME kivo_real_demux_decode_integration_test COMMAND kivo_real_demux_decode_integration_test)
+endif()

@@ -9,18 +9,53 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
+    },
+    {
+      "name": "ninja-debug-ffmpeg",
+      "displayName": "Ninja Debug + FFmpeg",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/ninja-debug-ffmpeg",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "KIVO_ENABLE_FFMPEG": "ON",
+        "KIVO_ENABLE_REAL_MEDIA_TESTS": "ON"
+      }
+    },
+    {
+      "name": "vs-debug-ffmpeg",
+      "displayName": "Visual Studio Debug + FFmpeg",
+      "generator": "Visual Studio 18 2026",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/vs-debug-ffmpeg",
+      "cacheVariables": {
+        "KIVO_ENABLE_FFMPEG": "ON",
+        "KIVO_ENABLE_REAL_MEDIA_TESTS": "ON"
+      }
     }
   ],
   "buildPresets": [
     {
       "name": "ninja-debug",
       "configurePreset": "ninja-debug"
+    },
+    {
+      "name": "vs-debug-ffmpeg",
+      "configurePreset": "vs-debug-ffmpeg",
+      "configuration": "Debug"
     }
   ],
   "testPresets": [
     {
       "name": "ninja-debug",
       "configurePreset": "ninja-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "vs-debug-ffmpeg",
+      "configurePreset": "vs-debug-ffmpeg",
+      "configuration": "Debug",
       "output": {
         "outputOnFailure": true
       }
