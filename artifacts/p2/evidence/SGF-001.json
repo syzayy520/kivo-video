@@ -1,0 +1,82 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "SGF-001",
+  "task_name": "Define p2-evidence-v8 schema",
+  "family": "evidence_schema",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "schema",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T00:59:00Z",
+  "evidence_file": "artifacts/p2/evidence/SGF-001.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "schema_definition": {
+    "schema_name": "p2-evidence-v8",
+    "document_path": "docs/roadmap/p2_evidence_v8_schema.md",
+    "required_top_level_fields": 13,
+    "optional_field_groups": 9,
+    "example_evidence_file": "artifacts/p2/evidence/LRD-013.json",
+    "validation_rules": 8,
+    "negative_test_cases": 6
+  },
+  "field_inventory": {
+    "required": [
+      "schema_version",
+      "task_id",
+      "task_name",
+      "family",
+      "status",
+      "runtime_mode",
+      "runtime_environment_kind",
+      "environment_required",
+      "environment_available",
+      "blocked_reason",
+      "runtime_verified_timestamp",
+      "evidence_file",
+      "provider_matrix_impact"
+    ],
+    "optional_groups": [
+      "media_identity",
+      "source_identity",
+      "extension_identity",
+      "inspector_snapshot",
+      "decision_ledger",
+      "errors",
+      "redaction",
+      "schema_validation",
+      "anti_fake",
+      "redline",
+      "commands",
+      "artifacts"
+    ]
+  },
+  "status_vocabulary": [
+    "RUNTIME_PASS",
+    "CONTRACT_PASS",
+    "FAIL",
+    "BLOCKED_ENV",
+    "NOT_IMPLEMENTED",
+    "SKIPPED_TEST_ONLY"
+  ],
+  "runtime_mode_vocabulary": [
+    "runtime",
+    "contract",
+    "audit",
+    "regression",
+    "classification",
+    "schema",
+    "redline"
+  ],
+  "runtime_environment_kind_vocabulary": [
+    "test_harness",
+    "local_machine",
+    "remote_server",
+    "cloud_account",
+    "simulated",
+    "none"
+  ]
+}

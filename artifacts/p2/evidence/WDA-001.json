@@ -1,0 +1,105 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "WDA-001",
+  "task_name": "P2-WEBDAV-ALIST",
+  "family": "webdav_alist",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "protocol_definition",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+  "evidence_file": "artifacts/p2/evidence/WDA-001.json",
+  "provider_matrix_impact": {
+    "webdav": "CONTRACT_PASS",
+    "alist": "CONTRACT_PASS"
+  },
+  "webdav_protocol": {
+    "document_path": "docs/roadmap/p2_webdav_alist.md",
+    "operations": {
+      "propfind": {
+        "purpose": "Get file/directory properties",
+        "supported": true,
+        "authentication_required": true
+      },
+      "head": {
+        "purpose": "Get file metadata without download",
+        "supported": true,
+        "authentication_required": true
+      },
+      "get": {
+        "purpose": "Download file",
+        "supported": true,
+        "authentication_required": true,
+        "range_support": true
+      }
+    },
+    "capabilities": {
+      "range_requests": true,
+      "seek": true,
+      "streaming": true,
+      "authentication": ["Basic", "Digest", "OAuth"]
+    }
+  },
+  "alist_protocol": {
+    "operations": {
+      "profile": {
+        "purpose": "Get server capabilities",
+        "supported": true,
+        "authentication_required": true
+      },
+      "list": {
+        "purpose": "List directory contents",
+        "supported": true,
+        "authentication_required": true
+      },
+      "direct_link": {
+        "purpose": "Get direct download link",
+        "supported": true,
+        "authentication_required": true
+      }
+    },
+    "capabilities": {
+      "multi_cloud": true,
+      "direct_links": true,
+      "caching": true,
+      "authentication": "Token-based"
+    }
+  },
+  "source_health": {
+    "monitoring": {
+      "active_interval": "30s",
+      "passive_interval": "per_request",
+      "background_interval": "5m"
+    },
+    "status_values": ["healthy", "degraded", "unhealthy", "unknown"],
+    "health_checks": ["connection", "authentication", "permission", "performance"]
+  },
+  "direct_link_management": {
+    "generation": true,
+    "refresh": true,
+    "expiration_tracking": true,
+    "auto_refresh": true
+  },
+  "privacy_redaction": {
+    "server_url_redaction": true,
+    "credential_redaction": true,
+    "path_redaction": true
+  },
+  "gate_integration": [
+    "WDA-001: WebDAV/AList system defined",
+    "PFFG-001: Foundation Final Gate Reader checks WebDAV/AList definitions",
+    "PMX-001: Provider Runtime Matrix includes WebDAV/AList support"
+  ],
+  "test_cases": {
+    "positive_test_cases": 6,
+    "negative_test_cases": 6,
+    "total_test_cases": 12
+  },
+  "implementation_requirements": {
+    "webdav_client": ["Implement WebDAV operations", "Handle authentication", "Support range requests", "Handle errors"],
+    "alist_client": ["Implement AList API operations", "Handle token authentication", "Support direct links", "Handle errors"],
+    "health_monitoring": ["Implement health checks", "Track health metrics", "Handle health status changes", "Report health status"]
+  }
+}

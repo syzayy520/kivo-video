@@ -1,0 +1,121 @@
+{
+  "task_id": "LRD-003",
+  "task_family": "local repair delta/video",
+  "execution_timestamp": "2026-06-26T00:45:00Z",
+  "status": "CONTRACT_PASS",
+  "goal": "prove real D3D11 device/context or honest environment block",
+  "audit_document_path": "docs/roadmap/p2_local_repair_delta_003_d3d11_audit.md",
+  "d3d11_device_context": {
+    "interface_definition": "d3d11_device_context.hpp",
+    "current_status": "CONTRACT_PASS (stub implementation)",
+    "required_repair": "Real D3D11 device creation with hardware/WARP detection"
+  },
+  "d3d11_texture_upload": {
+    "interface_definition": "d3d11_texture_upload.hpp",
+    "current_status": "CONTRACT_PASS (stub implementation)",
+    "required_repair": "Real D3D11 texture creation and upload"
+  },
+  "environment_detection_plan": {
+    "hardware_detection": "Attempt D3D11CreateDevice with hardware adapter",
+    "warp_fallback": "If hardware unavailable, try WARP adapter",
+    "unavailable_handling": "If both fail, return BLOCKED_ENV",
+    "device_classification": "Report 'hardware', 'warp', or 'unavailable'"
+  },
+  "reality_proof_requirements": {
+    "real_device_creation": "Real D3D11CreateDevice call (not stub)",
+    "real_adapter_enumeration": "Real adapter enumeration (hardware/WARP)",
+    "real_device_context": "Real immediate context creation",
+    "real_feature_level": "Real feature level detection",
+    "real_device_type": "Real 'hardware' or 'warp' classification"
+  },
+  "texture_proof_requirements": {
+    "real_texture_creation": "Real ID3D11Texture2D creation",
+    "real_texture_description": "Real width, height, format, usage",
+    "real_texture_upload": "Real UpdateSubresource or map/unmap",
+    "real_texture_metadata": "Real texture dimensions and format"
+  },
+  "test_strategy": {
+    "existing_tests": "kivo_d3d11_first_frame_test (6 tests, CONTRACT_PASS)",
+    "required_reality_tests": [
+      "D3D11 Device Creation Test",
+      "D3D11 Adapter Enumeration Test",
+      "D3D11 Feature Level Test",
+      "D3D11 Texture Creation Test",
+      "D3D11 Texture Upload Test",
+      "D3D11 Environment Block Test"
+    ]
+  },
+  "inspector_snapshot_requirements": {
+    "d3d11_capability_snapshot": "device_type, adapter_description, feature_level, vendor_id, device_id",
+    "d3d11_texture_snapshot": "texture_width, texture_height, texture_format, upload_success"
+  },
+  "decision_ledger_requirements": {
+    "device_selection_decision": "Input: requested_device_type, fallback_allowed; Output: selected_device_type, reason",
+    "environment_block_decision": "If unavailable: BLOCKED_ENV with blocked_reason"
+  },
+  "evidence_artifact_requirements": {
+    "evidence_file": "artifacts/p2/evidence/LRD-003.json",
+    "required_fields": [
+      "task_id",
+      "status",
+      "d3d11_device_context",
+      "d3d11_texture_upload",
+      "environment_detection",
+      "inspector_snapshot",
+      "decision_ledger",
+      "schema_validation",
+      "anti_fake_assertions"
+    ]
+  },
+  "schema_gate_requirements": {
+    "environment_kind_required": "device_type field must be present",
+    "runtime_status_consistency": "BLOCKED_ENV if environment unavailable",
+    "anti_fake_validation": "no stub/dummy proof in runtime status",
+    "inspector_snapshot_required": "D3D11 capability snapshot must exist",
+    "decision_ledger_required": "device selection decision must exist"
+  },
+  "redline_gate_requirements": {
+    "forbidden_terms": ["fake device", "dummy texture", "stub implementation", "placeholder", "bool-only proof", "log-only proof", "interface contract only"],
+    "allowlist_terms": ["hardware", "warp", "unavailable", "device_type", "adapter_description", "feature_level", "RUNTIME_PASS", "BLOCKED_ENV"]
+  },
+  "anti_fake_gate_requirements": {
+    "real_d3d11_proof": [
+      "Real device creation: D3D11CreateDevice call, not stub",
+      "Real adapter enumeration: Real adapter information",
+      "Real texture creation: Real ID3D11Texture2D creation",
+      "Real texture upload: Real UpdateSubresource call",
+      "Real environment detection: Real hardware/WARP detection"
+    ],
+    "forbidden_fake_proofs": [
+      "stub D3D11 device → CONTRACT_PASS only",
+      "dummy texture → CONTRACT_PASS only",
+      "bool-only device creation → insufficient proof",
+      "log-only texture upload → insufficient proof"
+    ]
+  },
+  "clean_workspace_gate": {
+    "workspace_requirements": [
+      "No root-level D3D11 outputs",
+      "No generated texture files in source root",
+      "Evidence file in artifacts/p2/evidence/",
+      "Test outputs in backend/tests/video_upload/"
+    ]
+  },
+  "final_report_rules": {
+    "classification_options": [
+      "RUNTIME_PASS: Real D3D11 device/context created, real texture upload",
+      "BLOCKED_ENV: D3D11 environment unavailable, honest block",
+      "CONTRACT_PASS: Interface contract proven but not runtime",
+      "FAIL: Required proof missing or conflicting"
+    ],
+    "forbidden_claims": [
+      "Never claim real D3D11 if stub used",
+      "Never claim hardware if WARP used",
+      "Never claim runtime PASS if BLOCKED_ENV",
+      "Never claim texture upload if dummy texture"
+    ]
+  },
+  "evidence_status": "CONTRACT_PASS",
+  "reason": "D3D11 device reality audit planned. Current interface is stub implementation (CONTRACT_PASS). Real D3D11 device creation, adapter enumeration, texture creation, and upload required for RUNTIME_PASS. Environment detection with hardware/WARP/unavailable classification planned.",
+  "next_task": "LRD-004 D3D11 Real Decoded Frame Upload"
+}

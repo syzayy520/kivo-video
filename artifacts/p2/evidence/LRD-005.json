@@ -1,0 +1,142 @@
+{
+  "task_id": "LRD-005",
+  "task_family": "local_repair_delta/video",
+  "execution_timestamp": "2026-06-26T01:00:00Z",
+  "status": "CONTRACT_PASS",
+  "goal": "presenter receives real uploaded texture boundary proof",
+  "audit_document_path": "docs/roadmap/p2_local_repair_delta_005_presenter_audit.md",
+  "current_interface": {
+    "file": "backend/include/kivo/cinema_engine/presenter/presenter_boundary_shell.hpp",
+    "methods": [
+      "initialize()",
+      "present(D3D11TextureHandle texture, int32_t width, int32_t height)",
+      "first_frame_time_us()",
+      "frames_presented()",
+      "has_first_frame()",
+      "status()",
+      "release()",
+      "is_ready()"
+    ],
+    "responsibility": "Receive uploaded texture and record first-frame proof"
+  },
+  "current_implementation": {
+    "file": "backend/src/presenter/presenter_boundary_shell.cpp",
+    "status": "stub implementation",
+    "notes": "Records timestamps and frame counts but does not actually present texture"
+  },
+  "current_test_coverage": {
+    "test_file": "backend/tests/presenter/presenter_boundary_first_frame_test.cpp",
+    "test_count": 7,
+    "test_names": [
+      "Presenter boundary initialized",
+      "No first frame initially",
+      "Texture created for presentation",
+      "First frame presented",
+      "Second frame presented",
+      "Status is 'presenting'",
+      "Presenter released"
+    ],
+    "reality_proof": "Requires real D3D11 device context for texture tests"
+  },
+  "reality_proof_requirements": {
+    "real_texture_boundary": "Presenter must receive actual D3D11TextureHandle from real upload",
+    "real_presentation": "Presenter must actually present texture (not just record timestamp)",
+    "real_first_frame_detection": "First frame must be from actual texture presentation",
+    "real_frame_counter": "Must increment only on real presentations",
+    "real_timestamps": "First frame timestamp must be from real presentation",
+    "device_unavailable_handling": "Must return BLOCKED_ENV when device unavailable"
+  },
+  "test_strategy": {
+    "required_reality_tests": [
+      "Real Texture Presentation Test: Present actual texture from real upload",
+      "Real First Frame Detection Test: Verify first frame from real presentation",
+      "Real Frame Counter Test: Verify frame counter increments on real presentations",
+      "Real Timestamp Test: Verify timestamps from real system clock",
+      "Device Unavailable Block Test: Verify BLOCKED_ENV when device unavailable",
+      "No Fake Presentation Test: Verify no simulation without real device"
+    ],
+    "test_requirements": [
+      "All tests must use real D3d11DeviceContext and D3d11TextureUpload",
+      "No mock textures or stub presentations",
+      "Tests must handle device unavailable scenario honestly",
+      "Evidence must prove real texture boundary, not just interface contract"
+    ]
+  },
+  "inspector_snapshot_requirements": {
+    "presenter_boundary_snapshot": "initialization, texture_handle, presentation_result, first_frame_time, frame_count, device_availability"
+  },
+  "decision_ledger_requirements": {
+    "presentation_decision": "Input: texture, dimensions; Output: success, first_frame_time, frame_count"
+  },
+  "evidence_artifact_requirements": {
+    "evidence_file": "artifacts/p2/evidence/LRD-005.json",
+    "required_fields": [
+      "task_id",
+      "status",
+      "runtime_mode",
+      "runtime_environment",
+      "presenter_boundary",
+      "texture_handle",
+      "presentation_result",
+      "device_availability",
+      "inspector_snapshot",
+      "decision_ledger",
+      "errors",
+      "redaction",
+      "schema_validation",
+      "anti_fake",
+      "redline"
+    ]
+  },
+  "schema_gate_requirements": {
+    "texture_handle_required": "texture_handle must not be null for RUNTIME_PASS",
+    "presentation_result_required": "presentation_result must be true for RUNTIME_PASS",
+    "first_frame_time_required": "first_frame_time must be > 0 for RUNTIME_PASS",
+    "device_availability_required": "device_availability must be 'available' for RUNTIME_PASS",
+    "anti_fake_validation": "no stub presentation or simulated texture"
+  },
+  "redline_gate_requirements": {
+    "forbidden_terms": ["stub presentation", "simulated texture", "fake presenter", "interface contract only", "device unavailable but pass"],
+    "allowlist_terms": ["real texture", "actual presentation", "real first frame", "device unavailable", "BLOCKED_ENV"]
+  },
+  "anti_fake_gate_requirements": {
+    "real_texture_boundary_proof": [
+      "Real texture handle: D3D11TextureHandle passed to present()",
+      "Real dimensions: width/height match actual texture",
+      "Real presentation: actual texture presentation",
+      "Real first frame: from actual presentation",
+      "Real frame counter: increments on real presentations"
+    ],
+    "forbidden_fake_proofs": [
+      "stub presentation → CONTRACT_PASS only",
+      "simulated texture → CONTRACT_PASS only",
+      "timestamp without real presentation → insufficient proof",
+      "frame counter without real presentations → insufficient proof"
+    ]
+  },
+  "clean_workspace_gate": {
+    "workspace_requirements": [
+      "No root-level presenter outputs",
+      "No generated texture files in source root",
+      "Evidence file in artifacts/p2/evidence/",
+      "Test outputs in backend/tests/presenter/"
+    ]
+  },
+  "final_report_rules": {
+    "classification_options": [
+      "RUNTIME_PASS: Real texture presented with real device",
+      "BLOCKED_ENV: Device unavailable, honest block",
+      "CONTRACT_PASS: Interface contract proven but not runtime",
+      "FAIL: Required proof missing or conflicting"
+    ],
+    "forbidden_claims": [
+      "Never claim real presentation without real device",
+      "Never claim runtime PASS if BLOCKED_ENV",
+      "Never claim presentation verification without real verification",
+      "Never claim first frame without real presentation"
+    ]
+  },
+  "evidence_status": "CONTRACT_PASS",
+  "reason": "Presenter boundary reality audit planned. Current interface is stub implementation (CONTRACT_PASS). Real texture presentation with real D3D11 device required for RUNTIME_PASS. Device unavailable must result in BLOCKED_ENV.",
+  "next_task": "LRD-006 PCM Converter Reality Audit"
+}

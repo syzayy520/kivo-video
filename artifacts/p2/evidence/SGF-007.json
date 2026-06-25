@@ -1,0 +1,57 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "SGF-007",
+  "task_name": "Schema Negative Tests",
+  "family": "evidence_schema",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "schema",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:05:00Z",
+  "evidence_file": "artifacts/p2/evidence/SGF-007.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "negative_test_definition": {
+    "document_path": "docs/roadmap/p2_schema_negative_tests.md",
+    "test_file_location": "backend/tests/governance/p2_schema_negative_tests.cpp",
+    "total_negative_tests": 54,
+    "test_categories": {
+      "evidence_schema": 22,
+      "inspector_schema": 9,
+      "decision_ledger_schema": 7,
+      "extension_decision_ledger": 6,
+      "provider_runtime_matrix": 10
+    }
+  },
+  "negative_test_coverage": {
+    "missing_required_fields": 5,
+    "invalid_status_vocabulary": 5,
+    "invalid_runtime_mode": 2,
+    "invalid_environment_kind": 2,
+    "anti_fake_violations": 8,
+    "redaction_violations": 4,
+    "missing_info_objects": 5,
+    "invalid_info_object_fields": 3,
+    "privacy_violations": 2,
+    "non_monotonic_generations": 3,
+    "invalid_decision_types": 2,
+    "invalid_stages": 2,
+    "boundary_violations": 3,
+    "missing_evidence": 2,
+    "invalid_environment": 3,
+    "count_mismatches": 3,
+    "vocabulary_violations": 2
+  },
+  "gate_integration": {
+    "sgf_007": "All negative test categories must have test cases, each schema must have at least 5 negative tests",
+    "pffg_001": "Foundation Final Gate Reader runs negative tests before accepting evidence",
+    "aprv_001": "All Providers Runtime Verified Gate runs negative tests on provider evidence"
+  },
+  "test_execution": {
+    "run_all": "ctest --preset ninja-debug -R p2_schema_negative_tests --output-on-failure",
+    "run_specific": "ctest --preset ninja-debug -R SchemaNegativeTest.MissingSchemaVersion --output-on-failure"
+  }
+}

@@ -1,0 +1,185 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "PIP-001",
+  "task_name": "P2-PIP-FOUNDATION",
+  "family": "pip_foundation",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "pip_protocol_definition",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:25:00Z",
+  "evidence_file": "artifacts/p2/evidence/PIP-001.json",
+  "provider_matrix_impact": {
+    "pip_foundation": "CONTRACT_PASS"
+  },
+  "pip_state_model": {
+    "states": ["NotActive", "Detaching", "Active", "Attaching", "Paused", "Error"],
+    "transitions": {
+      "start": "NotActive → Detaching → Active",
+      "pause": "Active → Paused",
+      "resume": "Paused → Active",
+      "attach": "Active → Attaching → NotActive",
+      "error": "Any → Error",
+      "recovery": "Error → NotActive"
+    },
+    "properties": {
+      "allowed_transitions": true,
+      "state_persistence": true,
+      "recovery": true,
+      "timeout": "5 seconds"
+    }
+  },
+  "surface_management": {
+    "detach_contract": {
+      "request_fields": ["surface_id", "main_window", "transfer_state", "video_format", "audio_format", "preserve_playback_position"],
+      "result_fields": ["success", "pip_window", "error_message", "detach_duration_ms"]
+    },
+    "attach_contract": {
+      "request_fields": ["surface_id", "pip_window", "main_window", "restore_playback_position"],
+      "result_fields": ["success", "restored_state", "error_message", "attach_duration_ms"]
+    },
+    "lifecycle": ["Detach", "Transfer", "Render", "Attach", "Restore"]
+  },
+  "main_player_synchronization": {
+    "sync_contract": {
+      "fields": ["sync_playback_position", "sync_playback_state", "sync_audio_volume", "sync_subtitle_visibility", "sync_audio_track_selection", "precision"],
+      "precision": "Milliseconds"
+    },
+    "rules": [
+      "Position Sync: PiP and main player maintain same playback position",
+      "State Sync: Play/pause state synchronized bidirectionally",
+      "Volume Sync: Audio volume changes propagate to both",
+      "Subtitle Sync: Subtitle visibility synchronized",
+      "Track Sync: Audio track selection synchronized"
+    ],
+    "conflict_resolution": [
+      "Main Player Focus: When main player gains focus, PiP pauses",
+      "PiP Focus: When PiP window gains focus, main player pauses",
+      "User Preference: User can override sync behavior",
+      "Performance: Sync disabled during high CPU usage"
+    ]
+  },
+  "mini_command_bridge": {
+    "command_interface": {
+      "playback_control": ["play", "pause", "stop", "seek"],
+      "volume_control": ["set_volume", "mute"],
+      "subtitle_control": ["show_subtitles", "set_subtitle_track"],
+      "window_control": ["set_window_bounds", "set_opacity", "set_always_on_top"],
+      "state_query": ["get_state", "get_playback_state", "get_position_ms", "get_volume"]
+    },
+    "features": [
+      "Low Latency: Commands execute within 16ms (60fps)",
+      "Thread Safety: Commands thread-safe from UI and playback threads",
+      "Error Handling: Commands return success/failure with error codes",
+      "State Validation: Commands validate state before execution",
+      "Batch Commands: Support for command batching to reduce IPC overhead"
+    ]
+  },
+  "window_management": {
+    "window_bounds_contract": {
+      "fields": ["x", "y", "width", "height", "min_width", "min_height", "max_width", "max_height", "aspect_ratio", "maintain_aspect"],
+      "defaults": {
+        "min_width": 150,
+        "min_height": 100,
+        "max_width": "screen_width/2",
+        "max_height": "screen_height/2",
+        "position": "Bottom-right corner with 20px margin"
+      }
+    },
+    "behavior": [
+      "Default Position: Bottom-right corner with 20px margin",
+      "Snap to Edge: Window snaps to screen edges",
+      "Collision Avoidance: Window avoids overlapping taskbar",
+      "Multi-Monitor: Window stays on same monitor as main player",
+      "DPI Scaling: Window scales with system DPI settings",
+      "Resize: User can resize with aspect ratio lock"
+    ],
+    "persistence": ["Position", "Size", "Opacity", "Always on Top", "Restore on Launch"]
+  },
+  "multi_monitor_support": {
+    "monitor_detection": {
+      "fields": ["id", "bounds", "work_area", "dpi_scale", "is_primary", "device_name"]
+    },
+    "rules": [
+      "Primary Monitor: PiP defaults to primary monitor",
+      "Same Monitor: PiP stays on same monitor as main player",
+      "Monitor Switch: User can drag PiP to other monitors",
+      "DPI Handling: PiP scales correctly across monitors",
+      "Resolution Change: PiP adapts to monitor resolution changes"
+    ]
+  },
+  "dpi_handling": {
+    "dpi_scaling": {
+      "fields": ["system_dpi", "app_dpi", "scale_factor", "per_monitor_dpi", "dpi_awareness"]
+    },
+    "rules": [
+      "System DPI: Use system DPI for default window size",
+      "Per-Monitor DPI: Scale correctly on multi-monitor setups",
+      "Text Scaling: Scale text and UI elements with DPI",
+      "Icon Scaling: Scale icons with DPI",
+      "Video Scaling: Video maintains quality at different DPI"
+    ]
+  },
+  "restore_behavior": {
+    "restore_contract": {
+      "request_fields": ["pip_window", "main_window", "restore_playback_position", "restore_playback_state", "restore_subtitle_state", "restore_audio_state"],
+      "result_fields": ["success", "restored_state", "restored_position_ms", "error_message", "restore_duration_ms"]
+    },
+    "rules": [
+      "Position Restore: Restore to exact playback position",
+      "State Restore: Restore play/pause state",
+      "Subtitle Restore: Restore subtitle visibility and track",
+      "Audio Restore: Restore volume and audio track",
+      "Error Recovery: If restore fails, return to NotActive state",
+      "Timeout: Restore must complete within 2 seconds"
+    ]
+  },
+  "error_handling": {
+    "error_types": ["None", "SurfaceCreationFailed", "SurfaceDetachFailed", "SurfaceAttachFailed", "WindowCreationFailed", "WindowBoundsInvalid", "SyncFailed", "CommandBridgeFailed", "MonitorNotFound", "DpiScalingFailed", "RestoreFailed", "Timeout", "Unknown"],
+    "recovery": [
+      "Automatic Recovery: Some errors auto-recover to NotActive",
+      "User Notification: Errors shown to user with recovery options",
+      "Fallback: If PiP fails, fallback to main player",
+      "Logging: All errors logged for diagnostics",
+      "Retry: Transient errors can be retried automatically"
+    ]
+  },
+  "privacy_redaction": {
+    "redaction_rules": [
+      "Window Titles: No sensitive information in PiP window title",
+      "File Paths: Redact file paths in PiP UI",
+      "Network URLs: Redact network URLs in PiP UI",
+      "User Data: No user data in PiP window properties",
+      "Diagnostics: Redact sensitive info in PiP diagnostics"
+    ],
+    "privacy_controls": [
+      "PiP Screenshot: User can disable PiP screenshots",
+      "PiP Recording: User can disable PiP recording",
+      "PiP Sharing: User can disable PiP sharing",
+      "PiP Overlay: User can disable PiP overlay content",
+      "PiP Metadata: Redact metadata in PiP window"
+    ]
+  },
+  "implementation_requirements": {
+    "core_components": ["PipStateManager", "SurfaceManager", "SyncManager", "CommandBridge", "WindowManager", "MonitorManager", "DpiManager", "RestoreManager", "ErrorHandler", "PrivacyManager"],
+    "integration_points": ["Main Player", "Playback Engine", "UI Framework", "Window System", "Monitor System", "DPI System", "Preferences", "Inspector", "DecisionLedger", "ErrorMapping"]
+  },
+  "gate_integration": [
+    "PIP-001: PiP foundation system defined",
+    "PFFG-001: Foundation Final Gate Reader checks PiP foundation definitions",
+    "PMX-001: Provider Runtime Matrix includes PiP foundation support"
+  ],
+  "test_cases": {
+    "positive_test_cases": 12,
+    "negative_test_cases": 12,
+    "total_test_cases": 24
+  },
+  "error_handling_full": {
+    "connection_errors": ["SurfaceCreationFailed", "SurfaceDetachFailed", "SurfaceAttachFailed"],
+    "window_errors": ["WindowCreationFailed", "WindowBoundsInvalid", "MonitorNotFound"],
+    "sync_errors": ["SyncFailed", "CommandBridgeFailed", "DpiScalingFailed"],
+    "restore_errors": ["RestoreFailed", "Timeout", "Unknown"]
+  }
+}

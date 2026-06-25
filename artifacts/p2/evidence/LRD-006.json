@@ -1,0 +1,140 @@
+{
+  "task_id": "LRD-006",
+  "task_family": "local_repair_delta/audio",
+  "execution_timestamp": "2026-06-26T01:10:00Z",
+  "status": "CONTRACT_PASS",
+  "goal": "PCM buffer derives from real decoded audio frame data",
+  "audit_document_path": "docs/roadmap/p2_local_repair_delta_006_pcm_converter_audit.md",
+  "current_interface": {
+    "file": "backend/include/kivo/cinema_engine/audio_output/decoded_audio_frame_converter.hpp",
+    "methods": [
+      "convert(const DecodedFrame& frame, const PcmFormat& target_format)",
+      "is_ready()",
+      "last_error()",
+      "release()"
+    ],
+    "responsibility": "Convert decoded audio frames to PCM format"
+  },
+  "current_implementation": {
+    "file": "backend/src/audio_output/decoded_audio_frame_converter.cpp",
+    "status": "stub implementation",
+    "notes": "Converts audio frames but may not handle all format conversions accurately"
+  },
+  "current_test_coverage": {
+    "test_file": "backend/tests/audio_output/decoded_audio_frame_converter_test.cpp",
+    "test_count": 8,
+    "test_names": [
+      "Converter created",
+      "Converter is ready",
+      "No error initially",
+      "Conversion successful",
+      "Conversion to 32-bit float successful",
+      "Empty frame conversion fails correctly",
+      "Video frame conversion fails correctly",
+      "Converter released"
+    ],
+    "reality_proof": "Uses real sine wave audio data for conversion tests"
+  },
+  "reality_proof_requirements": {
+    "real_audio_data": "PCM buffer must derive from actual decoded audio frame data",
+    "real_sample_conversion": "Must convert actual samples, not generate placeholder silence",
+    "real_format_handling": "Must handle actual sample formats (s16, s32, flt, dbl)",
+    "real_channel_mapping": "Must handle actual channel configurations",
+    "no_placeholder_proof": "Cannot generate silent PCM buffer as proof",
+    "sample_accuracy": "Converted samples must be accurate (not all zeros)"
+  },
+  "test_strategy": {
+    "required_reality_tests": [
+      "Real Audio Data Conversion Test: Convert actual decoded audio frame with real samples",
+      "Real Sample Accuracy Test: Verify converted samples are accurate (not all zeros)",
+      "Real Format Handling Test: Handle actual sample formats (s16, s32, flt, dbl)",
+      "Real Channel Mapping Test: Handle actual channel configurations",
+      "No Placeholder Proof Test: Verify no silent PCM buffer generation",
+      "Timestamp Preservation Test: Verify presentation timestamp preserved"
+    ],
+    "test_requirements": [
+      "All tests must use real DecodedFrame with actual audio data",
+      "No mock frames or stub conversions",
+      "Tests must verify actual sample conversion (not just interface contract)",
+      "Evidence must prove real PCM derivation, not just interface"
+    ]
+  },
+  "inspector_snapshot_requirements": {
+    "pcm_conversion_snapshot": "input_frame, output_pcm, conversion_result, sample_accuracy, format_correctness"
+  },
+  "decision_ledger_requirements": {
+    "conversion_decision": "Input: frame, format; Output: success, sample_count, bytes_per_sample"
+  },
+  "evidence_artifact_requirements": {
+    "evidence_file": "artifacts/p2/evidence/LRD-006.json",
+    "required_fields": [
+      "task_id",
+      "status",
+      "runtime_mode",
+      "runtime_environment",
+      "pcm_conversion",
+      "input_frame",
+      "output_pcm",
+      "conversion_result",
+      "sample_accuracy",
+      "format_correctness",
+      "inspector_snapshot",
+      "decision_ledger",
+      "errors",
+      "redaction",
+      "schema_validation",
+      "anti_fake",
+      "redline"
+    ]
+  },
+  "schema_gate_requirements": {
+    "output_pcm_required": "output_pcm must not be empty for RUNTIME_PASS",
+    "sample_accuracy_required": "sample_accuracy must be true for RUNTIME_PASS",
+    "format_correctness_required": "format_correctness must be true for RUNTIME_PASS",
+    "anti_fake_validation": "no placeholder silence or dummy PCM"
+  },
+  "redline_gate_requirements": {
+    "forbidden_terms": ["placeholder silence", "dummy PCM", "mock conversion", "interface contract only", "generated PCM data"],
+    "allowlist_terms": ["real audio data", "actual samples", "non-zero output", "sample conversion", "format handling"]
+  },
+  "anti_fake_gate_requirements": {
+    "real_pcm_derivation_proof": [
+      "Real audio data: DecodedFrame contains actual audio samples",
+      "Real sample conversion: Conversion produces non-zero output",
+      "Real format handling: Output format matches target format",
+      "Real channel mapping: Channel configuration handled correctly",
+      "Real timestamp preservation: Presentation timestamp preserved"
+    ],
+    "forbidden_fake_proofs": [
+      "placeholder silence → CONTRACT_PASS only",
+      "dummy PCM data → CONTRACT_PASS only",
+      "mock conversion → insufficient proof",
+      "interface contract only → insufficient proof"
+    ]
+  },
+  "clean_workspace_gate": {
+    "workspace_requirements": [
+      "No root-level PCM outputs",
+      "No generated audio files in source root",
+      "Evidence file in artifacts/p2/evidence/",
+      "Test outputs in backend/tests/audio_output/"
+    ]
+  },
+  "final_report_rules": {
+    "classification_options": [
+      "RUNTIME_PASS: Real PCM conversion with real audio data",
+      "BLOCKED_ENV: No real audio sample available",
+      "CONTRACT_PASS: Interface contract proven but not runtime",
+      "FAIL: Required proof missing or conflicting"
+    ],
+    "forbidden_claims": [
+      "Never claim real conversion without real audio data",
+      "Never claim runtime PASS if BLOCKED_ENV",
+      "Never claim sample accuracy without real verification",
+      "Never claim format correctness without real verification"
+    ]
+  },
+  "evidence_status": "CONTRACT_PASS",
+  "reason": "PCM converter reality audit planned. Current interface is stub implementation (CONTRACT_PASS). Real PCM conversion with real audio data required for RUNTIME_PASS. No placeholder silence or dummy PCM allowed.",
+  "next_task": "LRD-007 WASAPI Shared Runtime Audit"
+}

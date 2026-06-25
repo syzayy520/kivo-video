@@ -1,0 +1,236 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "CIN-001",
+  "task_name": "P2-CINEMA-FOUNDATION",
+  "family": "cinema_foundation",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "cinema_protocol_definition",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:30:00Z",
+  "evidence_file": "artifacts/p2/evidence/CIN-001.json",
+  "provider_matrix_impact": {
+    "cinema_foundation": "CONTRACT_PASS"
+  },
+  "cinema_state_model": {
+    "states": ["Normal", "Fullscreen", "Cinema", "PiP", "Cast", "Transitioning"],
+    "transitions": {
+      "enter_fullscreen": "Normal → Fullscreen",
+      "enter_cinema": "Normal → Cinema",
+      "enter_pip": "Normal → PiP",
+      "enter_cast": "Normal → Cast",
+      "exit_fullscreen": "Fullscreen → Normal",
+      "exit_cinema": "Cinema → Normal",
+      "exit_pip": "PiP → Normal",
+      "exit_cast": "Cast → Normal",
+      "transition": "Any → Transitioning",
+      "transition_complete": "Transitioning → Any"
+    },
+    "properties": {
+      "ui_visibility": "UI hidden in Fullscreen/Cinema/PiP/Cast modes",
+      "video_scaling": "Video scales to fill available area",
+      "audio_routing": "Audio routes to appropriate output device",
+      "input_handling": "Input events handled differently per state",
+      "performance": "Different performance profiles per state"
+    }
+  },
+  "conflict_policy": {
+    "resolution_matrix": {
+      "Normal_to_Fullscreen": "Allow",
+      "Normal_to_Cinema": "Allow",
+      "Normal_to_PiP": "Allow",
+      "Normal_to_Cast": "Allow",
+      "Fullscreen_to_Cinema": "Transition to Cinema",
+      "Fullscreen_to_PiP": "Transition to PiP",
+      "Fullscreen_to_Cast": "Transition to Cast",
+      "Cinema_to_Fullscreen": "Transition to Fullscreen",
+      "Cinema_to_PiP": "Transition to PiP",
+      "Cinema_to_Cast": "Transition to Cast",
+      "PiP_to_Fullscreen": "Transition to Fullscreen",
+      "PiP_to_Cinema": "Transition to Cinema",
+      "PiP_to_Cast": "Transition to Cast",
+      "Cast_to_Fullscreen": "Transition to Fullscreen",
+      "Cast_to_Cinema": "Transition to Cinema",
+      "Cast_to_PiP": "Transition to PiP"
+    },
+    "rules": [
+      "Priority Order: Fullscreen > Cinema > PiP > Cast > Normal",
+      "User Preference: User can override priority order",
+      "Hardware Limitation: Some transitions blocked by hardware",
+      "Performance: High-resolution video may block PiP transition",
+      "Network: Cast mode requires network connection",
+      "Battery: PiP mode may be blocked on low battery"
+    ],
+    "resolution_types": ["Automatic", "User Choice", "Fail Safe", "Priority Based", "Resource Based"]
+  },
+  "enter_exit_behavior": {
+    "enter_cinema_request": {
+      "fields": ["target_state", "preserve_playback", "preserve_audio", "preserve_subtitles", "preserve_position", "monitor_id", "hide_cursor", "hide_osd", "hide_subtitles"]
+    },
+    "enter_cinema_result": {
+      "fields": ["success", "actual_state", "error_message", "transition_duration_ms"]
+    },
+    "exit_cinema_request": {
+      "fields": ["from_state", "restore_playback", "restore_audio", "restore_subtitles", "restore_position", "restore_cursor", "restore_osd"]
+    },
+    "exit_cinema_result": {
+      "fields": ["success", "actual_state", "error_message", "transition_duration_ms"]
+    },
+    "rules": [
+      "Animation: Smooth transition animations between states",
+      "Input Block: Block input during transition",
+      "Audio Fade: Fade audio during transition",
+      "Video Scaling: Scale video during transition",
+      "State Persistence: Save state before transition",
+      "Error Recovery: Recover to previous state on failure"
+    ]
+  },
+  "safe_areas": {
+    "safe_area_definitions": {
+      "fields": ["top", "bottom", "left", "right", "title_safe", "action_safe"],
+      "title_safe_percentage": 80,
+      "action_safe_percentage": 90
+    },
+    "cinema_safe_areas": {
+      "areas": ["video_safe", "subtitle_safe", "osd_safe", "cursor_safe", "control_safe"]
+    },
+    "chrome_hiding_rules": ["Title Bar", "Menu Bar", "Status Bar", "Toolbars", "Scrollbars"],
+    "cursor_handling": [
+      "Auto Hide: Cursor hides after 3 seconds of inactivity",
+      "Show on Movement: Cursor shows on mouse movement",
+      "Custom Cursor: Cinema mode uses custom cursor",
+      "Cursor Size: Cursor scales with DPI",
+      "Cursor Opacity: Cursor fades out instead of hiding"
+    ],
+    "osd_handling": ["Play/Pause", "Volume", "Seek", "Time", "Status"],
+    "subtitle_safe_area": [
+      "Position: Subtitles positioned in safe area",
+      "Margin: 10% margin from screen edges",
+      "Scaling: Subtitles scale with screen size",
+      "Background: Optional subtitle background",
+      "Animation: Subtitle fade in/out animation"
+    ]
+  },
+  "playback_continuity": {
+    "continuity_contract": {
+      "fields": ["maintain_position", "maintain_state", "maintain_volume", "maintain_subtitles", "maintain_audio_track", "maintain_video_track", "precision"],
+      "precision": "Milliseconds"
+    },
+    "rules": [
+      "Position Continuity: Playback position preserved across state changes",
+      "State Continuity: Play/pause state preserved across state changes",
+      "Audio Continuity: Volume and audio track preserved",
+      "Subtitle Continuity: Subtitle visibility preserved",
+      "Video Continuity: Video track preserved",
+      "Network Continuity: Network connection preserved in Cast mode"
+    ],
+    "discontinuity_handling": [
+      "Forced Discontinuity: Some state changes force discontinuity",
+      "User Choice: User can choose to maintain or reset continuity",
+      "Performance: High-resolution video may cause discontinuity",
+      "Network: Network issues may cause discontinuity in Cast mode",
+      "Error: Errors may cause discontinuity"
+    ]
+  },
+  "multi_monitor_support": {
+    "multi_monitor_cinema": {
+      "fields": ["primary_monitor", "extend_to_secondary", "separate_controls", "separate_subtitles", "arrangement"]
+    },
+    "rules": [
+      "Primary Monitor: Cinema mode defaults to primary monitor",
+      "Secondary Monitor: Optional extended Cinema on secondary monitor",
+      "Monitor Switching: User can switch Cinema to different monitor",
+      "Monitor Arrangement: Support for horizontal/vertical/diagonal arrangements",
+      "DPI Scaling: Cinema scales correctly across monitors"
+    ],
+    "features": [
+      "Extended Cinema: Video on primary, controls on secondary",
+      "Picture-in-Picture: Video on primary, PiP on secondary",
+      "Cast Display: Video on external display, controls on primary",
+      "Monitor Profiles: Save monitor configurations per user",
+      "Auto Switch: Auto-switch to Cinema monitor when entering Cinema"
+    ]
+  },
+  "dpi_handling": {
+    "cinema_dpi": {
+      "fields": ["video_scale_factor", "ui_scale_factor", "subtitle_scale_factor", "osd_scale_factor", "per_monitor_dpi", "dpi_aware_video"]
+    },
+    "rules": [
+      "Video Scaling: Video maintains aspect ratio with DPI",
+      "UI Scaling: UI elements scale with DPI",
+      "Subtitle Scaling: Subtitles scale with DPI",
+      "OSD Scaling: OSD scales with DPI",
+      "Cursor Scaling: Cursor scales with DPI",
+      "Safe Area Scaling: Safe areas scale with DPI"
+    ],
+    "dpi_transitions": [
+      "Monitor Change: DPI changes when moving Cinema to different monitor",
+      "System Change: DPI changes when system DPI changes",
+      "Application Change: DPI changes when application DPI changes",
+      "Manual Change: User manually changes DPI settings",
+      "Auto Adapt: Cinema adapts to DPI changes automatically"
+    ]
+  },
+  "sleep_inhibit": {
+    "sleep_inhibit_contract": {
+      "fields": ["inhibit_sleep", "inhibit_screen_save", "inhibit_idle", "inhibit_power_save", "reason", "timeout_seconds"]
+    },
+    "rules": [
+      "Active Playback: Inhibit sleep during active playback",
+      "Paused Playback: Inhibit sleep for 5 minutes after pause",
+      "Cinema Mode: Inhibit sleep during Cinema mode",
+      "Cast Mode: Inhibit sleep during Cast mode",
+      "PiP Mode: Inhibit sleep during PiP mode",
+      "User Preference: User can override sleep inhibit"
+    ],
+    "power_management": [
+      "Battery Mode: Different sleep rules on battery",
+      "Plugged In: Different sleep rules when plugged in",
+      "Power Profile: Respect system power profile",
+      "User Override: User can override power management",
+      "Auto Resume: Auto-resume sleep inhibit when needed"
+    ]
+  },
+  "error_handling": {
+    "error_types": ["None", "StateTransitionFailed", "FullscreenFailed", "CinemaModeFailed", "PiPFailed", "CastFailed", "SafeAreaCalculationFailed", "MonitorNotFound", "DpiScalingFailed", "SleepInhibitFailed", "RestoreFailed", "Timeout", "Unknown"],
+    "recovery": [
+      "Automatic Recovery: Some errors auto-recover to Normal mode",
+      "User Notification: Errors shown to user with recovery options",
+      "Fallback: If Cinema fails, fallback to Normal mode",
+      "Logging: All errors logged for diagnostics",
+      "Retry: Transient errors can be retried automatically"
+    ]
+  },
+  "privacy_redaction": {
+    "cinema_privacy_rules": [
+      "Window Titles: No sensitive information in Cinema window title",
+      "File Paths: Redact file paths in Cinema UI",
+      "Network URLs: Redact network URLs in Cinema UI",
+      "User Data: No user data in Cinema window properties",
+      "Diagnostics: Redact sensitive info in Cinema diagnostics"
+    ],
+    "cinema_redaction_controls": [
+      "Cinema Screenshot: User can disable Cinema screenshots",
+      "Cinema Recording: User can disable Cinema recording",
+      "Cinema Sharing: User can disable Cinema sharing",
+      "Cinema Overlay: User can disable Cinema overlay content",
+      "Cinema Metadata: Redact metadata in Cinema window"
+    ]
+  },
+  "implementation_requirements": {
+    "core_components": ["CinemaStateManager", "ConflictResolver", "TransitionManager", "SafeAreaManager", "ChromeManager", "CursorManager", "OsdManager", "SubtitleManager", "ContinuityManager", "MonitorManager", "DpiManager", "SleepManager", "ErrorHandler", "PrivacyManager"],
+    "integration_points": ["Main Player", "Playback Engine", "UI Framework", "Window System", "Monitor System", "DPI System", "Power Management", "Preferences", "Inspector", "DecisionLedger", "ErrorMapping"]
+  },
+  "gate_integration": [
+    "CIN-001: Cinema foundation system defined",
+    "PFFG-001: Foundation Final Gate Reader checks Cinema foundation definitions",
+    "PMX-001: Provider Runtime Matrix includes Cinema foundation support"
+  ],
+  "test_cases": {
+    "positive_test_cases": 20,
+    "negative_test_cases": 12,
+    "total_test_cases": 32
+  }
+}

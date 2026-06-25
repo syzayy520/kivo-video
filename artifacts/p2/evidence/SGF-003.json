@@ -1,0 +1,59 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "SGF-003",
+  "task_name": "Define p2-decision-ledger-v8 schema",
+  "family": "evidence_schema",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "schema",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:01:00Z",
+  "evidence_file": "artifacts/p2/evidence/SGF-003.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "schema_definition": {
+    "schema_name": "p2-decision-ledger-v8",
+    "document_path": "docs/roadmap/p2_decision_ledger_v8_schema.md",
+    "top_level_fields": 6,
+    "entry_fields": 12,
+    "decision_type_vocabulary": 15,
+    "stage_vocabulary": 12,
+    "validation_rules": 8
+  },
+  "vocabulary_inventory": {
+    "decision_types": [
+      "source_selection",
+      "probe_decision",
+      "demux_decision",
+      "decode_decision",
+      "format_negotiation",
+      "clock_sync",
+      "seek_decision",
+      "pause_decision",
+      "resume_decision",
+      "stop_decision",
+      "close_decision",
+      "error_recovery",
+      "quality_decision",
+      "resource_allocation",
+      "policy_enforcement"
+    ],
+    "stages": [
+      "source",
+      "probe",
+      "demux",
+      "decode",
+      "render",
+      "audio",
+      "clock",
+      "seek",
+      "lifecycle",
+      "threading",
+      "policy",
+      "recovery"
+    ]
+  }
+}

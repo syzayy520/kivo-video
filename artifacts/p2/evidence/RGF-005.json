@@ -1,0 +1,92 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "RGF-005",
+  "task_name": "Report/Source Conflict Scan",
+  "family": "redline_gate",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "redline",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:16:00Z",
+  "evidence_file": "artifacts/p2/evidence/RGF-005.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "report_source_conflict_scan_definition": {
+    "document_path": "docs/roadmap/p2_report_source_conflict_scan.md",
+    "scan_scope": {
+      "final_report_claims": {
+        "directories": ["docs/roadmap/"],
+        "file_patterns": ["*final_report.md"],
+        "claims_to_scan": ["completion_claims", "runtime_claims", "implementation_claims"],
+        "conflict_types": ["contradicts_source", "contradicts_evidence", "premature_claim", "false_claim"]
+      },
+      "source_implementation": {
+        "directories": ["backend/src/", "backend/include/"],
+        "file_patterns": ["*.cpp", "*.hpp"],
+        "implementation_facts": ["stub_implementations", "fake_services", "real_implementations"],
+        "conflict_types": ["report_claims_real_but_source_is_stub", "report_claims_complete_but_source_is_incomplete"]
+      },
+      "evidence_status": {
+        "directories": ["artifacts/p2/evidence/"],
+        "file_patterns": ["*.json"],
+        "evidence_facts": ["status_fields", "runtime_verified_timestamp", "blocked_reason"],
+        "conflict_types": ["report_claims_RUNTIME_PASS_but_evidence_is_CONTRACT_PASS", "report_claims_complete_but_evidence_is_BLOCKED_ENV"]
+      },
+      "checklist_consistency": {
+        "directories": ["docs/roadmap/"],
+        "file_patterns": ["backend_task_checklist.md"],
+        "checklist_facts": ["DONE_TODO_BLOCKED_status", "evidence_references"],
+        "conflict_types": ["report_claims_complete_but_checklist_says_TODO", "report_references_wrong_evidence"]
+      }
+    },
+    "scan_rules": {
+      "rule_1_completion_claim_validation": "Scan final reports for completion claims, validate against foundation gate dependencies, detect premature claims",
+      "rule_2_runtime_claim_validation": "Scan final reports for runtime claims, validate against evidence status files, detect false runtime claims",
+      "rule_3_source_implementation_validation": "Scan final reports for implementation claims, validate against source code stub vs real, detect implementation contradictions",
+      "rule_4_checklist_consistency_validation": "Scan final reports for task completion claims, validate against checklist status, detect checklist inconsistencies"
+    },
+    "violation_severity_levels": {
+      "high": "Premature P2 FOUNDATION COMPLETE claim, premature ALL PROVIDERS RUNTIME VERIFIED claim, false RUNTIME_PASS claim when evidence is CONTRACT_PASS/BLOCKED_ENV/FAIL",
+      "medium": "Implementation claim contradicts source stub, runtime claim contradicts source implementation, foundation claim contradicts foundation gate dependencies",
+      "low": "Checklist inconsistency, evidence reference mismatch, task status inconsistency, minor claim wording inconsistency"
+    },
+    "claim_extraction_patterns": {
+      "completion_claim_patterns": ["P2 FOUNDATION COMPLETE", "Direct Play.*Direct Stream.*Presentation Foundation Complete", "ALL PROVIDERS RUNTIME VERIFIED", "P2.*COMPLETE", "FOUNDATION.*COMPLETE"],
+      "runtime_claim_patterns": ["RUNTIME_PASS", "runtime.*verified", "real.*implementation", "actual.*runtime"],
+      "implementation_claim_patterns": ["real implementation", "actual runtime", "interface only", "stub implementation"]
+    },
+    "gate_integration": [
+      "RGF-005: Report/source conflict scan implemented",
+      "PFFG-001: Foundation Final Gate Reader runs report/source conflict scan",
+      "PFFG-002: Foundation Final Report must pass conflict scan before generation",
+      "APRV-001: All Providers Runtime Verified Gate runs report/source conflict scan"
+    ],
+    "test_cases": {
+      "positive_test_cases": 6,
+      "negative_test_cases": 6,
+      "total_test_cases": 12
+    },
+    "implementation_requirements": {
+      "claim_extraction": "Extract completion claims using regex patterns, extract runtime claims using regex patterns, extract implementation claims using regex patterns",
+      "fact_collection": "Collect evidence status facts from evidence files, collect source implementation facts from source code, collect checklist status facts from checklist file",
+      "validation": "Validate claims against collected facts, detect contradictions between claims and facts, classify violation severity, generate detailed violation reports"
+    }
+  },
+  "redline_vocabulary_reference": {
+    "rgf_001_document": "docs/roadmap/p2_redline_vocabulary.md",
+    "forbidden_terms_count": 32,
+    "allowlist_rules_reference": "docs/roadmap/p2_allowlist_rules.md"
+  },
+  "scan_coverage_verification": {
+    "final_report_claims_scanned": true,
+    "source_implementation_scanned": true,
+    "evidence_status_scanned": true,
+    "checklist_consistency_scanned": true,
+    "claim_extraction_working": true,
+    "validation_against_facts_working": true,
+    "violation_reporting_working": true
+  }
+}

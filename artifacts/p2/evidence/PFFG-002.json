@@ -1,0 +1,188 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "PFFG-002",
+  "task_name": "P2-FOUNDATION-FINAL-REPORT",
+  "family": "final_gate",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "report_generation",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+  "evidence_file": "artifacts/p2/evidence/PFFG-002.json",
+  "provider_matrix_impact": {
+    "foundation_final_report": "CONTRACT_PASS"
+  },
+  "report_purpose": {
+    "description": "Comprehensive documentation of P2 Foundation completion status",
+    "report_functions": [
+      "Completion Documentation: Official record of P2 Foundation completion",
+      "Gap Documentation: Honest listing of provider runtime gaps",
+      "Limitation Documentation: Known limitations and constraints",
+      "Evidence Summary: Summary of all foundation evidence",
+      "Next Steps: Recommended next actions"
+    ]
+  },
+  "report_dependencies": {
+    "required_gates_passed": {
+      "pffg_001": "Foundation Final Gate Reader must PASS",
+      "all_foundation_evidence": "All foundation evidence must exist and be valid",
+      "provider_matrix": "Provider Runtime Matrix must be generated",
+      "matrix_honesty": "Matrix Honesty Gate must pass",
+      "redline_compliance": "No forbidden terms or premature claims"
+    },
+    "required_evidence": {
+      "all_foundation_families": "Evidence from all foundation families",
+      "provider_runtime_matrix": "PMX-001 evidence",
+      "matrix_honesty_gate": "PMX-002 evidence",
+      "foundation_final_gate": "PFFG-001 evidence",
+      "all_previous_gates": "Evidence from V8-001 through V8-009, LRD-001 through LRD-013, SGF-001 through SGF-008, RGF-001 through RGF-005"
+    }
+  },
+  "report_structure": {
+    "executive_summary": {
+      "fields": ["report_date", "report_version", "classification", "foundation_complete", "all_providers_runtime_verified", "provider_runtime_gaps", "key_findings", "recommendations"]
+    },
+    "evidence_summary": {
+      "fields": ["foundation_families", "evidence_statistics"],
+      "foundation_families_table": ["Family", "Tasks", "Evidence Files", "Status"],
+      "evidence_statistics": ["total_evidence_files", "valid_evidence_files", "invalid_evidence_files", "missing_evidence_files", "evidence_schema_version"]
+    },
+    "provider_runtime_matrix": {
+      "fields": ["provider_status_summary", "provider_details", "runtime_gaps"],
+      "provider_status_summary_table": ["Status", "Count", "Percentage"],
+      "provider_details_table": ["Provider", "Kind", "Contract Status", "Runtime Status", "Environment", "Evidence"]
+    },
+    "known_limitations": {
+      "fields": ["technical_limitations", "environment_limitations", "scope_limitations", "dependency_limitations"]
+    },
+    "verification_results": {
+      "fields": ["build_verification", "gate_verification", "evidence_verification", "redline_verification", "quality_verification"]
+    },
+    "provider_runtime_gaps": {
+      "fields": ["high_priority_gaps", "medium_priority_gaps", "low_priority_gaps"]
+    },
+    "recommendations": {
+      "fields": ["immediate_actions", "short_term_actions", "long_term_actions", "resource_requirements", "timeline_planning"]
+    },
+    "classification": {
+      "fields": ["foundation_classification", "allowed_claims", "forbidden_claims"]
+    }
+  },
+  "report_generation_process": {
+    "step_1_evidence_collection": [
+      "Load All Evidence: Load all foundation evidence files",
+      "Validate Evidence: Validate evidence against schema",
+      "Check Completeness: Check all required evidence exists",
+      "Check Consistency: Check evidence consistency",
+      "Check Timestamps: Check evidence timestamps are recent"
+    ],
+    "step_2_provider_matrix_analysis": [
+      "Load Provider Matrix: Load PMX-001 evidence",
+      "Load Honesty Gate: Load PMX-002 evidence",
+      "Analyze Statuses: Analyze provider runtime statuses",
+      "Identify Gaps: Identify provider runtime gaps",
+      "Document Gaps: Document provider runtime gaps"
+    ],
+    "step_3_limitation_documentation": [
+      "Technical Limitations: Document technical limitations",
+      "Environment Limitations: Document environment limitations",
+      "Scope Limitations: Document scope limitations",
+      "Dependency Limitations: Document dependency limitations",
+      "Risk Limitations: Document risk limitations"
+    ],
+    "step_4_verification_results": [
+      "Build Verification: Document build verification results",
+      "Gate Verification: Document gate verification results",
+      "Evidence Verification: Document evidence verification results",
+      "Redline Verification: Document redline verification results",
+      "Quality Verification: Document quality verification results"
+    ],
+    "step_5_recommendation_generation": [
+      "Immediate Actions: Generate immediate action recommendations",
+      "Short-term Actions: Generate short-term action recommendations",
+      "Long-term Actions: Generate long-term action recommendations",
+      "Resource Requirements: Document resource requirements",
+      "Timeline Planning: Plan implementation timeline"
+    ],
+    "step_6_classification_determination": [
+      "Foundation Status: Determine foundation completion status",
+      "Provider Status: Determine provider runtime status",
+      "Allowed Claims: Determine allowed claims",
+      "Forbidden Claims: Determine forbidden claims",
+      "Final Classification: Determine final classification"
+    ]
+  },
+  "integration_points": {
+    "aprv_001_all_providers_runtime_verified_gate": [
+      "Reads Foundation Final Report",
+      "Requires no provider runtime gaps",
+      "Requires all providers RUNTIME_PASS",
+      "Requires post-foundation status"
+    ],
+    "inspector_integration": [
+      "Reports foundation final report status",
+      "Reports provider runtime gaps",
+      "Reports known limitations",
+      "Tracks report history"
+    ],
+    "decision_ledger_integration": [
+      "Records foundation final report generation",
+      "Records provider runtime gaps",
+      "Records known limitations",
+      "Records recommendations"
+    ]
+  },
+  "test_cases": {
+    "positive_test_cases": [
+      "Report generated with all required sections",
+      "All evidence files validated",
+      "Provider matrix analyzed correctly",
+      "Gaps identified and documented",
+      "Limitations documented honestly",
+      "Recommendations actionable",
+      "Classification correct",
+      "No forbidden claims",
+      "No premature completion claims",
+      "Report consistent with evidence"
+    ],
+    "negative_test_cases": [
+      "Missing evidence files",
+      "Invalid evidence files",
+      "Provider matrix not generated",
+      "Gaps not identified",
+      "Limitations not documented",
+      "Recommendations not actionable",
+      "Classification incorrect",
+      "Forbidden claims found",
+      "Premature completion claims",
+      "Report inconsistent with evidence"
+    ],
+    "total_test_cases": 20
+  },
+  "current_report_status": {
+    "report_generation_status": "CONTRACT_PASS",
+    "report_sections_generated": 0,
+    "report_sections_valid": 0,
+    "foundation_complete_claim_allowed": false,
+    "remediation_required": false
+  },
+  "implementation_requirements": {
+    "report_components": ["EvidenceCollector", "ProviderMatrixAnalyzer", "LimitationDocumenter", "VerificationResultGenerator", "RecommendationGenerator", "ClassificationDeterminer", "ReportGenerator", "ReportValidator"],
+    "integration_points": ["Evidence Storage", "Provider Runtime Matrix", "Inspector", "DecisionLedger", "ErrorMapping"]
+  },
+  "gate_integration": [
+    "PMX-001: Provider Runtime Matrix generated",
+    "PMX-002: Matrix Honesty Gate validates matrix",
+    "PFFG-001: Foundation Final Gate Reader reads all evidence",
+    "PFFG-002: Foundation Final Report generated",
+    "APRV-001: All Providers Runtime Verified Gate uses report"
+  ],
+  "next_steps": [
+    "APRV-001: All Providers Runtime Verified Gate",
+    "Provider Runtime Verification",
+    "Gap Resolution",
+    "Feature Completion"
+  ]
+}

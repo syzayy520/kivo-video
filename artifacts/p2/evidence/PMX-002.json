@@ -1,0 +1,236 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "PMX-002",
+  "task_name": "P2-MATRIX-HONESTY-GATE",
+  "family": "provider_matrix",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "honesty_validation",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+  "evidence_file": "artifacts/p2/evidence/PMX-002.json",
+  "provider_matrix_impact": {
+    "matrix_honesty_gate": "CONTRACT_PASS"
+  },
+  "honesty_rules": {
+    "rule_1_no_default_runtime_pass": {
+      "description": "No provider may default to RUNTIME_PASS status without explicit verification evidence",
+      "validation": [
+        "Evidence Required: Every RUNTIME_PASS must have corresponding evidence file",
+        "Verification Timestamp: Evidence must have recent verification timestamp",
+        "Environment Proof: Evidence must prove real environment usage",
+        "Runtime Proof: Evidence must prove actual runtime execution",
+        "No Assumptions: Cannot assume runtime pass based on contract pass"
+      ],
+      "detection": [
+        "Scan matrix for RUNTIME_PASS entries",
+        "Verify evidence file exists for each RUNTIME_PASS",
+        "Validate evidence timestamp is recent (within 30 days)",
+        "Validate evidence contains runtime proof",
+        "Flag any RUNTIME_PASS without evidence"
+      ]
+    },
+    "rule_2_missing_environment_blocked_env": {
+      "description": "Providers requiring unavailable environment must be marked BLOCKED_ENV, not RUNTIME_PASS or CONTRACT_PASS",
+      "validation": [
+        "Environment Check: Verify environment availability",
+        "Status Accuracy: BLOCKED_ENV if environment unavailable",
+        "No Fake Runtime: Cannot claim runtime pass without environment",
+        "Honest Blocking: BLOCKED_ENV is honest status",
+        "No Workaround: Cannot use test harness as real environment"
+      ],
+      "detection": [
+        "Scan matrix for providers with environment_required=true",
+        "Check environment_available for each provider",
+        "Verify BLOCKED_ENV status if environment unavailable",
+        "Flag any provider claiming runtime pass without environment",
+        "Validate no test harness used as real environment"
+      ]
+    },
+    "rule_3_controlled_protocol_not_commercial_cloud": {
+      "description": "Controlled protocol servers (test servers, local servers) cannot be mislabeled as commercial cloud/account runtime",
+      "validation": [
+        "Server Type: Identify server type (controlled vs commercial)",
+        "Authentication: Test servers use test credentials, not real accounts",
+        "Network: Test servers on local network, not internet",
+        "Data: Test servers use test data, not real user data",
+        "Terms: Test servers not subject to commercial terms"
+      ],
+      "detection": [
+        "Scan evidence for server type identification",
+        "Verify test servers marked as controlled",
+        "Verify commercial servers marked as commercial",
+        "Flag any mislabeling of server types",
+        "Validate authentication type matches server type"
+      ]
+    }
+  },
+  "gate_validation_process": {
+    "step_1_matrix_scan": [
+      "Load Matrix: Load provider runtime matrix",
+      "Extract Providers: Extract all provider entries",
+      "Identify Statuses: Identify contract and runtime statuses",
+      "Identify Environments: Identify environment requirements",
+      "Identify Evidence: Identify evidence file references"
+    ],
+    "step_2_rule_validation": [
+      "Validate Rule 1: Check no default RUNTIME_PASS",
+      "Validate Rule 2: Check BLOCKED_ENV for missing environments",
+      "Validate Rule 3: Check controlled vs commercial labeling",
+      "Validate Evidence: Check evidence files exist and valid",
+      "Validate Timestamps: Check evidence timestamps recent"
+    ],
+    "step_3_violation_detection": [
+      "Missing Evidence: RUNTIME_PASS without evidence",
+      "Stale Evidence: Evidence older than 30 days",
+      "Fake Runtime: Runtime pass without real environment",
+      "Environment Mismatch: Status inconsistent with environment",
+      "Server Mislabeling: Controlled server labeled as commercial"
+    ],
+    "step_4_violation_reporting": [
+      "Violation Type: Classify violation type",
+      "Provider Impact: Identify affected providers",
+      "Severity Assessment: Assess violation severity",
+      "Remediation Required: Determine required remediation",
+      "Gate Result: Determine gate pass/fail"
+    ]
+  },
+  "validation_checks": {
+    "evidence_completeness_check": {
+      "description": "Verify evidence files exist for RUNTIME_PASS providers",
+      "fields": ["provider_id", "runtime_status", "evidence_file", "evidence_exists", "evidence_valid", "evidence_recent", "check_passed"],
+      "validation": [
+        "For each RUNTIME_PASS, evidence file must exist",
+        "Evidence file must be valid JSON",
+        "Evidence must validate against schema",
+        "Evidence timestamp must be within 30 days",
+        "Evidence must contain runtime proof"
+      ]
+    },
+    "environment_accuracy_check": {
+      "description": "Verify environment requirements match status assignments",
+      "fields": ["provider_id", "environment_kind", "environment_required", "environment_available", "runtime_status", "check_passed"],
+      "validation": [
+        "If environment_required=true and environment_available=false, status must be BLOCKED_ENV",
+        "If environment_required=false, status can be RUNTIME_PASS with test harness",
+        "No provider can claim RUNTIME_PASS without required environment",
+        "Environment availability must be accurately reported",
+        "No fake environment claims"
+      ]
+    },
+    "server_type_accuracy_check": {
+      "description": "Verify server type labeling is accurate",
+      "fields": ["provider_id", "server_type", "authentication_type", "network_type", "check_passed"],
+      "validation": [
+        "Controlled servers must use test credentials",
+        "Commercial servers must use real accounts",
+        "Test servers must be on local network",
+        "Commercial servers must be on internet",
+        "No mislabeling of server types"
+      ]
+    }
+  },
+  "gate_output": {
+    "matrix_honesty_gate_result_structure": {
+      "description": "Result structure for matrix honesty gate validation",
+      "fields": ["gate_passed", "gate_timestamp", "total_providers_checked", "violations_found", "violations", "gate_summary", "remediation_required"]
+    },
+    "violation_structure": {
+      "description": "Structure for individual violations detected",
+      "fields": ["violation_type", "provider_id", "description", "evidence_required", "remediation_action", "severity"],
+      "violation_types": ["missing_evidence", "stale_evidence", "fake_runtime", "environment_mismatch", "server_mislabeling"],
+      "severity_levels": ["1=low", "2=medium", "3=high", "4=critical"]
+    },
+    "gate_summary": {
+      "description": "Summary of gate validation results",
+      "fields": ["providers_checked", "violations_found", "critical_violations", "gate_decision", "remediation_required"]
+    }
+  },
+  "integration_points": {
+    "pffg_001_foundation_final_gate_reader": [
+      "Reads Matrix Honesty Gate result",
+      "Validates no critical violations",
+      "Validates gate passed",
+      "Integrates with foundation final gate"
+    ],
+    "aprv_001_all_providers_runtime_verified_gate": [
+      "Requires Matrix Honesty Gate passed",
+      "Requires no server mislabeling",
+      "Requires honest environment reporting",
+      "Requires evidence completeness"
+    ],
+    "inspector_integration": [
+      "Reports honesty gate status",
+      "Reports violation details",
+      "Reports remediation requirements",
+      "Tracks gate history"
+    ],
+    "decision_ledger_integration": [
+      "Records gate execution decision",
+      "Records violation findings",
+      "Records remediation actions",
+      "Records gate pass/fail"
+    ]
+  },
+  "test_cases": {
+    "positive_test_cases": [
+      "Matrix with all providers having evidence for RUNTIME_PASS",
+      "Matrix with BLOCKED_ENV for missing environments",
+      "Matrix with controlled servers correctly labeled",
+      "Matrix with commercial servers correctly labeled",
+      "Matrix with recent evidence timestamps",
+      "Matrix with valid evidence schemas",
+      "Matrix with accurate environment availability",
+      "Matrix with honest status assignments",
+      "Matrix with no default RUNTIME_PASS",
+      "Matrix with proper server type identification"
+    ],
+    "negative_test_cases": [
+      "RUNTIME_PASS without evidence file",
+      "RUNTIME_PASS with stale evidence (>30 days)",
+      "RUNTIME_PASS without real environment",
+      "BLOCKED_ENV with environment available",
+      "Controlled server labeled as commercial",
+      "Commercial server labeled as controlled",
+      "Test credentials used for commercial server",
+      "Real account used for test server",
+      "Local server claiming internet runtime",
+      "Internet server claiming local runtime"
+    ],
+    "total_test_cases": 20
+  },
+  "current_matrix_status": {
+    "total_providers": 22,
+    "runtime_pass_count": 0,
+    "contract_pass_count": 1,
+    "blocked_env_count": 0,
+    "fail_count": 0,
+    "not_implemented_count": 21,
+    "skipped_test_only_count": 0
+  },
+  "honesty_gate_status": {
+    "rule_1_status": "PASS",
+    "rule_2_status": "PASS",
+    "rule_3_status": "PASS",
+    "overall_honesty_status": "PASS",
+    "violations_detected": 0,
+    "remediation_required": false
+  },
+  "implementation_requirements": {
+    "honesty_gate_components": ["MatrixScanner", "RuleValidator", "EvidenceChecker", "ViolationDetector", "SeverityAssessor", "RemediationPlanner", "GateReporter", "HistoryTracker"],
+    "integration_points": ["Provider Runtime Matrix", "Evidence Storage", "Inspector", "DecisionLedger", "ErrorMapping"]
+  },
+  "gate_integration": [
+    "PMX-001: Provider Runtime Matrix generated",
+    "PMX-002: Matrix Honesty Gate validates matrix",
+    "PFFG-001: Foundation Final Gate Reader reads matrix",
+    "APRV-001: All Providers Runtime Verified Gate uses matrix"
+  ],
+  "next_steps": [
+    "PFFG-001: Foundation Final Gate Reader",
+    "PFFG-002: Foundation Final Report",
+    "APRV-001: All Providers Runtime Verified Gate"
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "MID-001",
+  "task_name": "P2-MEDIA-IDENTITY",
+  "family": "media_identity",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "identity_verification",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+  "evidence_file": "artifacts/p2/evidence/MID-001.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "media_identity_definition": {
+    "document_path": "docs/roadmap/p2_media_identity.md",
+    "identity_types": {
+      "media_identity": {
+        "purpose": "Global unique identifier for media content",
+        "fields": ["media_id", "content_hash", "media_type", "created_at", "source_count"],
+        "stability_rules": ["Same content from different sources produces same MediaIdentity", "Content changes produce new MediaIdentity", "Metadata changes do not affect MediaIdentity"]
+      },
+      "file_identity": {
+        "purpose": "Identity for local/remote files",
+        "fields": ["file_path", "file_size", "file_hash", "container_format", "creation_time"],
+        "modification_rules": ["Path redaction required", "No username/path segment leakage"]
+      },
+      "stream_identity": {
+        "purpose": "Identity for individual streams within media",
+        "fields": ["stream_index", "stream_type", "codec_id", "language", "default_flag", "forced_flag"]
+      },
+      "server_item_identity": {
+        "purpose": "Identity for items on media servers",
+        "fields": ["server_id", "item_id", "server_type", "library_id", "series_id"],
+        "redaction_rules": ["No server credentials", "No API tokens"]
+      },
+      "cloud_item_identity": {
+        "purpose": "Identity for items in cloud storage",
+        "fields": ["cloud_provider", "cloud_item_id", "parent_folder_id", "owner_id"],
+        "redaction_rules": ["No OAuth tokens", "No refresh tokens"]
+      },
+      "playlist_item_identity": {
+        "purpose": "Identity for playlist items",
+        "fields": ["playlist_id", "playlist_name", "item_position", "item_source"],
+        "redaction_rules": ["No private playlist names without consent"]
+      },
+      "episode_movie_candidate_identity": {
+        "purpose": "Identity for episode/movie matching",
+        "fields": ["series_name", "season_number", "episode_number", "movie_title", "release_date", "imdb_id"],
+        "matching_rules": ["Fuzzy matching for titles", "Exact matching for IDs"]
+      },
+      "sample_identity": {
+        "purpose": "Identity for test samples",
+        "fields": ["sample_id", "sample_path", "sample_format", "sample_codecs", "sample_duration"],
+        "privacy_rules": ["No full paths", "No user-specific paths"]
+      }
+    },
+    "fingerprinting_system": {
+      "content_fingerprint": {
+        "algorithm": "Perceptual hashing + metadata hashing",
+        "components": ["Video fingerprint", "Audio fingerprint", "Metadata hash"],
+        "stability": ["Same content with different encoding → Same fingerprint", "Same content with different metadata → Different fingerprint", "Content edits → Different fingerprint"]
+      },
+      "file_fingerprint": {
+        "algorithm": "File header hash + file size",
+        "components": ["Header hash", "File size", "Container signature"],
+        "stability": ["Same file copied → Same fingerprint", "File re-encoded → Different fingerprint", "File truncated → Different fingerprint"]
+      },
+      "stream_fingerprint": {
+        "algorithm": "Stream header hash + codec parameters",
+        "components": ["Stream header hash", "Codec parameters", "Stream layout"],
+        "stability": ["Same stream copied → Same fingerprint", "Stream re-encoded → Different fingerprint", "Stream parameters changed → Different fingerprint"]
+      }
+    },
+    "metadata_extraction": {
+      "container_metadata": ["title", "artist", "album", "year", "genre", "track", "disc", "description", "comment"],
+      "stream_metadata": ["codec_name", "codec_long_name", "profile", "level", "width", "height", "sample_rate", "channels"],
+      "technical_metadata": ["bitrate", "duration", "format_name", "format_long_name", "size"]
+    },
+    "content_identification": {
+      "manual_identification": "User provides title, year, season, episode",
+      "automatic_identification": "Content fingerprint matching",
+      "server_identification": "Server metadata matching"
+    },
+    "privacy_redaction": {
+      "path_redaction": "No full file paths in identity",
+      "credential_redaction": "No tokens, passwords, or credentials",
+      "personal_information_redaction": "No usernames, email addresses, or personal data"
+    }
+  },
+  "gate_integration": [
+    "MID-001: Media identity types defined",
+    "PFFG-001: Foundation Final Gate Reader checks media identity definitions",
+    "PMX-001: Provider Runtime Matrix includes identity support"
+  ],
+  "test_cases": {
+    "positive_test_cases": 6,
+    "negative_test_cases": 6,
+    "total_test_cases": 12
+  },
+  "implementation_requirements": {
+    "identity_generation": "UUID v4 for MediaIdentity, SHA-256 for content/file hashing, Perceptual hashing for content fingerprinting, Metadata extraction via FFprobe",
+    "privacy_enforcement": "Automatic path redaction, Automatic credential redaction, Automatic personal information redaction, Privacy validation before identity storage",
+    "stability_verification": "Test same content from different sources, Test content changes produce new identity, Test metadata changes do not affect identity, Test file copies produce same identity"
+  }
+}

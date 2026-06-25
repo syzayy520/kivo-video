@@ -1,0 +1,53 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "SGF-006",
+  "task_name": "Implement Schema Validation Command",
+  "family": "evidence_schema",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "schema",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:04:00Z",
+  "evidence_file": "artifacts/p2/evidence/SGF-006.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "schema_validation_command": {
+    "command_path": "backend/tools/governance/validate_p2_schemas.py",
+    "document_path": "docs/roadmap/p2_schema_validation_command.md",
+    "usage": "python backend/tools/governance/validate_p2_schemas.py [--verbose] [--fix] [--report]",
+    "validation_rules": [
+      "Evidence schema validation (p2-evidence-v8)",
+      "Inspector schema validation (p2-inspector-v8)",
+      "Decision ledger schema validation (p2-decision-ledger-v8)",
+      "Extension decision ledger schema validation (p2-extension-decision-ledger-v8)",
+      "Provider runtime matrix schema validation (provider-runtime-matrix-v8)",
+      "Anti-fake validation",
+      "Redaction validation",
+      "Vocabulary compliance"
+    ],
+    "integration_points": [
+      "SGF-006 Gate: Validates all schemas exist and are correct",
+      "SGF-007 Gate: Validates negative test cases exist",
+      "PFFG-001 Gate: Validates all evidence files against schemas",
+      "APRV-001 Gate: Validates all providers have RUNTIME_PASS"
+    ]
+  },
+  "validation_output": {
+    "success_format": "✓ {validation_name}: PASS ({count} files)",
+    "failure_format": "✗ {validation_name}: FAIL\\n  - File: {file_path}\\n  - Error: {error_message}"
+  },
+  "report_generation": {
+    "report_path": "artifacts/p2/evidence/schema_validation_report.json",
+    "report_fields": [
+      "validation_timestamp",
+      "files_validated",
+      "pass_fail_counts",
+      "detailed_error_list",
+      "vocabulary_compliance_summary",
+      "anti_fake_compliance_summary"
+    ]
+  }
+}

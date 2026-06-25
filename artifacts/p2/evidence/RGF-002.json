@@ -1,0 +1,51 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "RGF-002",
+  "task_name": "Allowlist Rules",
+  "family": "redline_gate",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "redline",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:08:00Z",
+  "evidence_file": "artifacts/p2/evidence/RGF-002.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "allowlist_rules_definition": {
+    "document_path": "docs/roadmap/p2_allowlist_rules.md",
+    "allowlist_contexts_count": 6,
+    "allowlist_contexts": [
+      "forbidden_scope_documentation",
+      "known_limitations_documentation",
+      "next_recommendation_documentation",
+      "contract_pass_explanation",
+      "test_file_names",
+      "fake_service_implementations"
+    ],
+    "context_detection_methods": [
+      "file_pattern_matching",
+      "section_detection",
+      "status_condition",
+      "line_context_analysis"
+    ],
+    "allowlist_implementation": {
+      "cpp_class": "AllowlistChecker",
+      "python_class": "AllowlistChecker",
+      "test_file": "backend/tests/governance/allowlist_checker_test.cpp"
+    }
+  },
+  "context_detection_rules": {
+    "file_pattern_detection": "Match file path against allowed patterns",
+    "section_detection": "Detect document section by heading",
+    "status_condition": "Check evidence status field for CONTRACT_PASS",
+    "line_context": "Analyze surrounding lines for context"
+  },
+  "gate_integration": [
+    "RGF-002: Allowlist rules implemented and documented",
+    "RGF-003: Source redline scan uses allowlist checker",
+    "RGF-004: Artifact redline scan uses allowlist checker"
+  ]
+}

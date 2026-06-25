@@ -1,0 +1,156 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "IPTV-001",
+  "task_name": "P2-IPTV-LIVE",
+  "family": "iptv_live",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "streaming_protocol_definition",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+  "evidence_file": "artifacts/p2/evidence/IPTV-001.json",
+  "provider_matrix_impact": {
+    "iptv_hls": "CONTRACT_PASS"
+  },
+  "playlist_formats": {
+    "m3u": {
+      "structure": "Plain text playlist",
+      "fields": ["duration", "title", "url", "logo", "group"],
+      "encoding": "UTF-8",
+      "use_cases": ["simple_playlists", "radio_streams"]
+    },
+    "m3u8": {
+      "structure": "HLS playlist format",
+      "fields": ["duration", "title", "url", "logo", "group", "language"],
+      "encoding": "UTF-8",
+      "use_cases": ["video_playlists", "live_streams"]
+    }
+  },
+  "hls_live_stream": {
+    "protocol": "HTTP Live Streaming",
+    "structure": "Master playlist → Media playlists → Segments",
+    "segment_duration": {
+      "live_seconds": "2-10",
+      "vod_seconds": "6-10"
+    },
+    "codec_support": ["H.264", "H.265/HEVC", "AAC", "MP3"],
+    "features": ["live_edge", "segment_rotation", "playlist_update", "bitrate_switching"]
+  },
+  "stream_handling": {
+    "acquisition": {
+      "process": "Download master playlist → select stream → download segments",
+      "timeout_seconds": 10,
+      "retry_attempts": 3,
+      "buffer_segments": "3-5"
+    },
+    "management": {
+      "start": "Begin playback from live edge",
+      "pause": "Stop segment download",
+      "resume": "Reconnect and resume from live edge",
+      "stop": "Release resources"
+    }
+  },
+  "xmltv_epg": {
+    "format": "XML-based program guide",
+    "fields": ["channel", "title", "start_end_time", "description", "icon"],
+    "encoding": "UTF-8",
+    "update_frequency": "daily_or_hourly",
+    "features": ["channel_listing", "program_schedule", "search", "favorites"]
+  },
+  "channel_management": {
+    "grouping": ["by_category", "custom_groups", "favorites", "recent"],
+    "metadata": {
+      "basic_fields": ["name", "logo", "url", "group"],
+      "extended_fields": ["language", "country", "quality"],
+      "program_info": ["current", "next"],
+      "status": ["online", "offline"]
+    }
+  },
+  "hls_refresh_updates": {
+    "playlist_refresh": {
+      "interval_seconds": "2-10",
+      "process": "Re-download playlist, update segment list",
+      "new_segments": "Detect and queue new segments",
+      "removed_segments": "Skip removed segments"
+    },
+    "stream_resilience": {
+      "connection_loss": "Automatic reconnection",
+      "segment_missing": "Skip missing segment",
+      "playlist_error": "Retry with backoff",
+      "codec_change": "Handle codec switching"
+    }
+  },
+  "segment_fetching": {
+    "download": {
+      "process": "Download segment sequentially",
+      "buffering": "3-5 segment buffer",
+      "parallel_downloads": "Optional parallel fetching",
+      "priority": "Prioritize current segments"
+    },
+    "processing": {
+      "decrypt": "Handle encrypted segments (AES-128)",
+      "demux": "Separate audio/video streams",
+      "timestamp": "Track segment timestamps",
+      "duration": "Calculate segment duration"
+    }
+  },
+  "reconnection_strategy": {
+    "monitoring": {
+      "detection": "Monitor download progress",
+      "timeout_seconds": 10,
+      "retry": "Exponential backoff",
+      "limit": "Maximum 5 reconnection attempts"
+    },
+    "process": [
+      "Detect connection loss",
+      "Wait with backoff",
+      "Re-download playlist",
+      "Resume from live edge"
+    ]
+  },
+  "channel_switching": {
+    "process": ["Stop current stream", "Cleanup current resources", "Start new stream", "Rebuild buffer for new stream"],
+    "optimization": ["Pre-buffer next channel", "Cache playlist data", "Minimize switch time", "Preserve volume/mute state"]
+  },
+  "live_seek_policy": {
+    "limitations": {
+      "live_edge": "Cannot seek beyond live edge",
+      "buffer_limit": "Cannot seek before buffer start",
+      "seek_range": "Limited to buffered content",
+      "accuracy": "Segment-level accuracy"
+    },
+    "implementation": {
+      "process": "Find segment containing target time",
+      "offset": "Calculate offset within segment",
+      "buffer": "Ensure target is buffered",
+      "resume": "Resume from seek position"
+    }
+  },
+  "error_handling": {
+    "stream_errors": ["playlist_error", "segment_error", "codec_error", "network_error"],
+    "epg_errors": ["xml_error", "parse_error", "update_error", "data_error"]
+  },
+  "privacy_redaction": {
+    "url_redaction": true,
+    "epg_data_redaction": true,
+    "channel_redaction": true
+  },
+  "gate_integration": [
+    "IPTV-001: IPTV live streaming system defined",
+    "PFFG-001: Foundation Final Gate Reader checks IPTV live definitions",
+    "PMX-001: Provider Runtime Matrix includes IPTV live support"
+  ],
+  "test_cases": {
+    "positive_test_cases": 6,
+    "negative_test_cases": 6,
+    "total_test_cases": 12
+  },
+  "implementation_requirements": {
+    "playlist_parser": ["Implement M3U parser", "Implement M3U8 parser", "Handle encoding variations", "Validate playlist format"],
+    "stream_player": ["Implement HLS player", "Handle live streaming", "Manage segment buffering", "Handle codec switching"],
+    "epg_manager": ["Implement XMLTV parser", "Handle EPG updates", "Provide search functionality", "Manage channel metadata"],
+    "channel_manager": ["Implement channel grouping", "Handle channel switching", "Manage favorites", "Track channel status"]
+  }
+}

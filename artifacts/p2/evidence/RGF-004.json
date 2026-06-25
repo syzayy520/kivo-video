@@ -1,0 +1,95 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "RGF-004",
+  "task_name": "Artifact Redline Scan",
+  "family": "redline_gate",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "redline",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:13:00Z",
+  "evidence_file": "artifacts/p2/evidence/RGF-004.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "artifact_redline_scan_definition": {
+    "document_path": "docs/roadmap/p2_artifact_redline_scan.md",
+    "scan_scope": {
+      "evidence_json": {
+        "directories": ["artifacts/p2/evidence/"],
+        "file_patterns": ["*.json"],
+        "forbidden_terms_count": 32,
+        "context": "runtime_evidence_contexts_only"
+      },
+      "inspector_artifacts": {
+        "directories": ["artifacts/p2/inspector/"],
+        "file_patterns": ["*.json"],
+        "forbidden_terms_count": 32,
+        "context": "runtime_evidence_contexts_only"
+      },
+      "decision_ledger_artifacts": {
+        "directories": ["artifacts/p2/decision_ledger/"],
+        "file_patterns": ["*.json"],
+        "forbidden_terms_count": 32,
+        "context": "runtime_evidence_contexts_only"
+      },
+      "provider_runtime_matrix": {
+        "directories": ["artifacts/p2/"],
+        "file_patterns": ["provider_runtime_matrix.json"],
+        "forbidden_terms_count": 32,
+        "context": "runtime_evidence_contexts_only"
+      },
+      "final_reports": {
+        "directories": ["docs/roadmap/"],
+        "file_patterns": ["*final_report.md"],
+        "forbidden_terms_count": 32,
+        "context": "allowed_in_forbidden_scope_known_limitations_next_recommendation_sections"
+      }
+    },
+    "scan_rules": {
+      "rule_1_evidence_json_strict_scan": "Scan all evidence JSON files, check status field, check blocked_reason, check runtime_mode, record violations",
+      "rule_2_inspector_decision_ledger_scan": "Scan Inspector and DecisionLedger JSON files, check snapshot data, check decision entry context",
+      "rule_3_provider_runtime_matrix_scan": "Scan provider runtime matrix JSON, check provider runtime status, check blocked_reason, check evidence_file reference",
+      "rule_4_final_report_section_scan": "Scan final report markdown, detect section by heading, check allowed section"
+    },
+    "violation_severity_levels": {
+      "high": "Forbidden terms in RUNTIME_PASS evidence status, provider runtime status RUNTIME_PASS, Inspector snapshots RUNTIME_PASS, DecisionLedger entries RUNTIME_PASS",
+      "medium": "Forbidden terms in CONTRACT_PASS evidence explanations, Inspector snapshots CONTRACT_PASS, DecisionLedger entries CONTRACT_PASS, provider runtime status CONTRACT_PASS",
+      "low": "Forbidden terms in blocked_reason fields (allowed), runtime_mode fields (allowed), evidence_file references (allowed), final report allowed sections"
+    },
+    "scan_output_format": {
+      "violation_output": "file_path, field_path, term, context, violation_type, severity, value",
+      "report_output": "scan_timestamp, total_files_scanned, total_violations, violations, term_counts, context_counts, compliance_status"
+    },
+    "gate_integration": [
+      "RGF-004: Artifact redline scan implemented",
+      "PFFG-001: Foundation Final Gate Reader runs artifact redline scan",
+      "APRV-001: All Providers Runtime Verified Gate runs artifact redline scan"
+    ],
+    "test_cases": {
+      "positive_test_cases": 6,
+      "negative_test_cases": 6,
+      "total_test_cases": 12
+    },
+    "implementation_requirements": {
+      "file_discovery": "Recursively scan specified directories, filter by file patterns, skip binary files and build artifacts, handle JSON parsing errors",
+      "performance": "Scan 100+ JSON files in < 5 seconds, memory usage < 50MB, parallel scanning, incremental scanning"
+    }
+  },
+  "redline_vocabulary_reference": {
+    "rgf_001_document": "docs/roadmap/p2_redline_vocabulary.md",
+    "forbidden_terms_count": 32,
+    "allowlist_rules_reference": "docs/roadmap/p2_allowlist_rules.md"
+  },
+  "scan_coverage_verification": {
+    "evidence_json_scanned": true,
+    "inspector_artifacts_scanned": true,
+    "decision_ledger_artifacts_scanned": true,
+    "provider_runtime_matrix_scanned": true,
+    "final_reports_scanned": true,
+    "allowlist_integration_working": true,
+    "violation_reporting_working": true
+  }
+}

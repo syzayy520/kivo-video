@@ -1,0 +1,135 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "MSV-001",
+  "task_name": "P2-MEDIA-SERVER",
+  "family": "media_server",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "server_protocol_definition",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+  "evidence_file": "artifacts/p2/evidence/MSV-001.json",
+  "provider_matrix_impact": {
+    "emby": "CONTRACT_PASS",
+    "plex": "CONTRACT_PASS",
+    "jellyfin": "CONTRACT_PASS"
+  },
+  "server_profiles": {
+    "emby": {
+      "protocol": "Emby REST API",
+      "authentication": "Token-based",
+      "features": ["library_browsing", "media_streaming", "device_management", "user_management"]
+    },
+    "plex": {
+      "protocol": "Plex Media Server API",
+      "authentication": "Token-based",
+      "features": ["library_browsing", "media_streaming", "device_management", "user_management"]
+    },
+    "jellyfin": {
+      "protocol": "Jellyfin REST API",
+      "authentication": "Token-based",
+      "features": ["library_browsing", "media_streaming", "device_management", "user_management"]
+    }
+  },
+  "discovery": {
+    "methods": ["SSDP", "mDNS", "network_scan"],
+    "protocols": ["UPnP/DLNA", "Bonjour"],
+    "timeout_seconds": 5,
+    "retry_attempts": 2,
+    "manual_configuration": true
+  },
+  "authentication": {
+    "token_based": {
+      "process": "Login with username/password → receive token",
+      "lifetime_days": 30,
+      "refresh": "automatic",
+      "revocation": "manual"
+    },
+    "api_key": {
+      "process": "Generate API key in server settings",
+      "lifetime": "permanent",
+      "usage": "HTTP header or query parameter"
+    }
+  },
+  "library_system": {
+    "structure": ["folders", "collections", "playlists"],
+    "metadata": ["title", "year", "rating", "genre", "cast"],
+    "browsing": ["list", "search", "filter"],
+    "pagination": "page-based",
+    "sorting": ["title", "year", "rating", "date_added"],
+    "filtering": ["genre", "year", "rating", "status"]
+  },
+  "media_identity": {
+    "fields": ["server_id", "media_id", "media_type"],
+    "uniqueness": "Server + media ID combination",
+    "stability": "Persistent across server restarts",
+    "metadata_fields": ["title", "year", "duration", "rating"],
+    "user_data": ["watch_progress", "ratings", "favorites"]
+  },
+  "streaming_capabilities": {
+    "direct_play": {
+      "process": "Client plays media directly without transcoding",
+      "requirements": "Compatible codecs, container format",
+      "advantages": "No server load, highest quality"
+    },
+    "direct_stream": {
+      "process": "Server remuxes container without transcoding",
+      "requirements": "Compatible video/audio codecs",
+      "advantages": "Minimal server load, compatible format"
+    },
+    "transcoding": {
+      "process": "Server transcodes media to compatible format",
+      "requirements": "Server CPU/GPU resources",
+      "advantages": "Universal compatibility"
+    }
+  },
+  "playback_integration": {
+    "session": {
+      "creation": "Start playback session",
+      "tracking": "Progress, position, duration",
+      "control": "Play, pause, seek, stop",
+      "termination": "End session, mark watched"
+    },
+    "progress_sync": {
+      "upload": "Client reports progress to server",
+      "download": "Client receives progress from server",
+      "conflict_resolution": "Latest timestamp wins",
+      "offline": "Queue progress for later sync"
+    },
+    "watch_status": {
+      "watched": "Mark as watched when completed",
+      "unwatched": "Mark as unwatched",
+      "resume_point": "Last playback position",
+      "history": "Playback history per user"
+    }
+  },
+  "error_handling": {
+    "connection_errors": ["timeout", "refused", "dns", "network"],
+    "authentication_errors": ["invalid_token", "permission_denied", "rate_limiting", "server_error"],
+    "media_errors": ["not_found", "unavailable", "corrupted", "unsupported"]
+  },
+  "privacy_redaction": {
+    "server_url_redaction": true,
+    "token_redaction": true,
+    "path_redaction": true,
+    "user_data_redaction": true
+  },
+  "gate_integration": [
+    "MSV-001: Media server system defined",
+    "PFFG-001: Foundation Final Gate Reader checks media server definitions",
+    "PMX-001: Provider Runtime Matrix includes media server support"
+  ],
+  "test_cases": {
+    "positive_test_cases": 6,
+    "negative_test_cases": 6,
+    "total_test_cases": 12
+  },
+  "implementation_requirements": {
+    "server_client": ["Implement server discovery", "Handle authentication", "Browse library", "Stream media"],
+    "media_identity": ["Map server media to universal identity", "Handle metadata synchronization", "Track playback progress", "Manage watch status"],
+    "playback_integration": ["Create playback sessions", "Track progress", "Sync across devices", "Handle conflicts"],
+    "error_handling": ["Implement connection retry", "Handle authentication failures", "Manage media errors", "Report errors appropriately"]
+  }
+}

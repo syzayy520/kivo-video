@@ -1,0 +1,106 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "SGF-004",
+  "task_name": "Define p2-extension-decision-ledger-v8 schema",
+  "family": "evidence_schema",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "schema",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:02:00Z",
+  "evidence_file": "artifacts/p2/evidence/SGF-004.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "schema_definition": {
+    "schema_name": "p2-extension-decision-ledger-v8",
+    "document_path": "docs/roadmap/p2_extension_decision_ledger_v8_schema.md",
+    "top_level_fields": 13,
+    "entry_fields": 12,
+    "extension_decision_types": 40,
+    "extension_stages": 8,
+    "validation_rules": 8,
+    "negative_test_cases": 6
+  },
+  "extension_decision_inventory": {
+    "cast": [
+      "cast_device_discovery",
+      "cast_session_handoff",
+      "cast_protocol_selection",
+      "cast_quality_negotiation",
+      "cast_error_recovery"
+    ],
+    "pip": [
+      "pip_surface_detach",
+      "pip_surface_attach",
+      "pip_size_change",
+      "pip_position_change",
+      "pip_restore"
+    ],
+    "cinema": [
+      "cinema_mode_enter",
+      "cinema_mode_exit",
+      "cinema_chrome_visibility",
+      "cinema_cursor_visibility",
+      "cinema_osd_safe_area"
+    ],
+    "trakt": [
+      "trakt_scrobble_start",
+      "trakt_scrobble_pause",
+      "trakt_scrobble_stop",
+      "trakt_watched_mark",
+      "trakt_collection_sync"
+    ],
+    "playlist": [
+      "playlist_item_next",
+      "playlist_item_previous",
+      "playlist_shuffle_enable",
+      "playlist_repeat_mode",
+      "playlist_item_remove"
+    ],
+    "queue": [
+      "queue_item_add",
+      "queue_item_remove",
+      "queue_item_reorder",
+      "queue_clear",
+      "queue_persist"
+    ],
+    "resume": [
+      "resume_point_save",
+      "resume_point_load",
+      "resume_point_delete",
+      "resume_auto_resume",
+      "resume_cross_device_sync"
+    ],
+    "history": [
+      "history_record",
+      "history_clear",
+      "history_export",
+      "history_import",
+      "history_prune"
+    ]
+  },
+  "stage_vocabulary": [
+    "cast",
+    "pip",
+    "cinema",
+    "trakt",
+    "playlist",
+    "queue",
+    "resume",
+    "history"
+  ],
+  "extension_boundary_rules": {
+    "media_source_kind_exclusion": "Extension decisions cannot use MediaSourceKind decision types from p2-decision-ledger-v8",
+    "stage_boundary": "Each extension type must use its corresponding stage",
+    "anti_fake_rules": [
+      "Cast decisions cannot claim RUNTIME_PASS without real cast device",
+      "PiP decisions cannot claim RUNTIME_PASS without real surface detach/attach",
+      "Cinema decisions cannot claim RUNTIME_PASS without real display mode change",
+      "Trakt decisions cannot claim RUNTIME_PASS without real Trakt API",
+      "Playlist/queue/resume/history decisions can claim RUNTIME_PASS with local state"
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "SGF-002",
+  "task_name": "Define p2-inspector-v8 schema",
+  "family": "evidence_schema",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "schema",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:00:00Z",
+  "evidence_file": "artifacts/p2/evidence/SGF-002.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "schema_definition": {
+    "schema_name": "p2-inspector-v8",
+    "document_path": "docs/roadmap/p2_inspector_v8_schema.md",
+    "top_level_fields": 13,
+    "info_object_fields": 11,
+    "error_entry_fields": 7,
+    "validation_rules": 6
+  },
+  "info_object_inventory": [
+    "source_info",
+    "probe_info",
+    "demux_info",
+    "decode_info",
+    "presenter_info",
+    "audio_info",
+    "clock_info",
+    "seek_info",
+    "lifecycle_info",
+    "threading_info",
+    "provider_info",
+    "extension_info",
+    "errors"
+  ],
+  "field_counts": {
+    "source_info": 7,
+    "probe_info": 9,
+    "demux_info": 8,
+    "decode_info": 8,
+    "presenter_info": 7,
+    "audio_info": 8,
+    "clock_info": 7,
+    "seek_info": 6,
+    "lifecycle_info": 8,
+    "threading_info": 7,
+    "error_entry": 7
+  }
+}

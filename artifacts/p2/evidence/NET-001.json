@@ -1,0 +1,137 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "NET-001",
+  "task_name": "P2-NETWORK-FILE-SOURCES",
+  "family": "network_file_sources",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "network_source_verification",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:26:00Z",
+  "evidence_file": "artifacts/p2/evidence/NET-001.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "network_file_sources_definition": {
+    "document_path": "docs/roadmap/p2_network_file_sources.md",
+    "network_source_types": {
+      "smb": {
+        "protocol": "SMB/CIFS",
+        "use_cases": ["Windows file shares", "NAS devices"],
+        "authentication": ["NTLM", "Kerberos"],
+        "features": ["File browsing", "Range requests", "File locking", "Unicode support"],
+        "capabilities": {
+          "supports_range": true,
+          "supports_seek": true,
+          "supports_streaming": true,
+          "max_concurrent_connections": 16
+        }
+      },
+      "nfs": {
+        "protocol": "NFS v3/v4",
+        "use_cases": ["Linux/Unix file shares", "NAS devices"],
+        "authentication": ["Kerberos", "AUTH_SYS"],
+        "features": ["File browsing", "Range requests", "Symbolic links", "File attributes"],
+        "capabilities": {
+          "supports_range": true,
+          "supports_seek": true,
+          "supports_streaming": true,
+          "max_concurrent_connections": 32
+        }
+      },
+      "ftp": {
+        "protocol": "FTP/FTPS",
+        "use_cases": ["Traditional file servers"],
+        "authentication": ["Username/password"],
+        "features": ["File listing", "Passive mode", "Binary transfer", "Resume support"],
+        "capabilities": {
+          "supports_range": false,
+          "supports_seek": false,
+          "supports_streaming": true,
+          "max_concurrent_connections": 8
+        }
+      },
+      "sftp": {
+        "protocol": "SFTP over SSH",
+        "use_cases": ["Secure file transfers"],
+        "authentication": ["SSH keys", "password"],
+        "features": ["Encrypted transfer", "File browsing", "Resume support", "Directory listing"],
+        "capabilities": {
+          "supports_range": false,
+          "supports_seek": false,
+          "supports_streaming": true,
+          "max_concurrent_connections": 4
+        }
+      },
+      "http_https_direct_media": {
+        "protocol": "HTTP/HTTPS",
+        "use_cases": ["Direct media file URLs"],
+        "authentication": ["None", "Basic", "Token"],
+        "features": ["Range requests", "Content-Length", "ETag support", "Cache-Control"],
+        "capabilities": {
+          "supports_range": true,
+          "supports_seek": true,
+          "supports_streaming": true,
+          "max_concurrent_connections": 32
+        }
+      },
+      "http_https_stream": {
+        "protocol": "HTTP/HTTPS",
+        "use_cases": ["Live streams", "HLS", "DASH"],
+        "authentication": ["None", "Token"],
+        "features": ["Chunked transfer", "Streaming protocol", "Adaptive bitrate", "Segment fetching"],
+        "capabilities": {
+          "supports_range": false,
+          "supports_seek": false,
+          "supports_streaming": true,
+          "max_concurrent_connections": 16
+        }
+      },
+      "dlna_upnp": {
+        "protocol": "DLNA/UPnP AV",
+        "use_cases": ["Media servers", "smart devices"],
+        "authentication": ["None"],
+        "features": ["Device discovery", "Content browsing", "Streaming", "Rendering"],
+        "capabilities": {
+          "supports_range": false,
+          "supports_seek": false,
+          "supports_streaming": true,
+          "max_concurrent_connections": 8
+        }
+      }
+    },
+    "source_capabilities": {
+      "connection_management": ["Connection pooling", "Connection limits", "Connection timeout", "Keep-Alive"],
+      "authentication": ["Credential storage", "Credential rotation", "Multi-Factor", "Token refresh"],
+      "error_handling": ["Retry logic", "Circuit breaker", "Fallback", "Graceful degradation"],
+      "performance_optimization": ["Caching", "Prefetching", "Parallel transfers", "Bandwidth management"]
+    },
+    "missing_environment_handling": {
+      "blocked_env_status": "Real network environment not available",
+      "not_runtime_pass": "Missing environment cannot be RUNTIME_PASS",
+      "environment_requirements": ["Network connectivity", "Authentication credentials", "Test media files", "Setup instructions"]
+    }
+  },
+  "privacy_redaction": {
+    "server_address_redaction": "No internal IP addresses or hostnames",
+    "credential_redaction": "No tokens, passwords, or credentials",
+    "path_redaction": "No full file paths"
+  },
+  "gate_integration": [
+    "NET-001: Network file sources defined",
+    "PFFG-001: Foundation Final Gate Reader checks network source definitions",
+    "PMX-001: Provider Runtime Matrix includes network source support"
+  ],
+  "test_cases": {
+    "positive_test_cases": 6,
+    "negative_test_cases": 6,
+    "total_test_cases": 12
+  },
+  "implementation_requirements": {
+    "protocol_implementation": ["Implement protocol-specific clients", "Handle protocol version differences", "Support protocol extensions", "Handle protocol errors"],
+    "connection_management": ["Connection pooling", "Connection health monitoring", "Connection recovery", "Connection cleanup"],
+    "error_handling": ["Protocol-specific error mapping", "Retry logic implementation", "Circuit breaker pattern", "Graceful degradation"]
+  }
+}

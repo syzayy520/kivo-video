@@ -1,0 +1,55 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "RGF-001",
+  "task_name": "Redline Vocabulary",
+  "family": "redline_gate",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "redline",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:07:00Z",
+  "evidence_file": "artifacts/p2/evidence/RGF-001.json",
+  "provider_matrix_impact": {
+    "local_file": "CONTRACT_PASS"
+  },
+  "redline_vocabulary_definition": {
+    "document_path": "docs/roadmap/p2_redline_vocabulary.md",
+    "forbidden_terms_count": 32,
+    "forbidden_term_categories": {
+      "fake_stub_terms": 8,
+      "false_pass_terms": 7,
+      "premature_completion_terms": 6,
+      "scope_violation_terms": 6,
+      "privacy_violation_terms": 6
+    },
+    "allowlist_contexts": [
+      "forbidden_scope_documentation",
+      "known_limitations_documentation",
+      "next_recommendation_documentation",
+      "contract_pass_explanation",
+      "test_file_names",
+      "fake_service_implementations"
+    ],
+    "redline_violation_types": [
+      "fake_pass_violation",
+      "silent_fallback_violation",
+      "premature_completion_violation",
+      "scope_violation",
+      "privacy_violation"
+    ]
+  },
+  "redline_scan_rules": {
+    "source_code_scan": "Scan production code, test code, documentation for forbidden terms",
+    "evidence_scan": "Scan evidence JSON, Inspector snapshots, DecisionLedger entries, Provider Runtime Matrix",
+    "report_scan": "Scan final reports, planning documents, audit documents"
+  },
+  "gate_integration": [
+    "RGF-001: Forbidden terms vocabulary defined",
+    "RGF-002: Allowlist rules implemented",
+    "RGF-003: Source redline scan implemented",
+    "RGF-004: Artifact redline scan implemented",
+    "RGF-005: Report/source conflict scan implemented"
+  ]
+}

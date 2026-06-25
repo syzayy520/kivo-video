@@ -1,0 +1,165 @@
+{
+  "task_id": "LRD-007",
+  "task_family": "local_repair_delta/audio",
+  "execution_timestamp": "2026-06-26T01:20:00Z",
+  "status": "CONTRACT_PASS",
+  "goal": "real WASAPI shared mode runtime with COM initialization, device enumeration, format negotiation, and buffer operations",
+  "audit_document_path": "docs/roadmap/p2_local_repair_delta_007_wasapi_shared_runtime_audit.md",
+  "current_interface": {
+    "file": "backend/include/kivo/cinema_engine/audio_output/wasapi_shared_pcm_writer.hpp",
+    "methods": [
+      "initialize(const AudioEndpointRuntimeContract& endpoint)",
+      "write(const uint8_t* pcm_data, int32_t byte_size)",
+      "available_frames()",
+      "start()",
+      "stop()",
+      "release()"
+    ],
+    "responsibility": "Write PCM data to WASAPI shared mode buffer"
+  },
+  "current_internal_state": {
+    "file": "backend/include/kivo/cinema_engine/audio_output/wasapi_internal.hpp",
+    "fields": [
+      "IMMDeviceEnumerator* enumerator",
+      "IMMDevice* device",
+      "IAudioClient* audio_client",
+      "IAudioRenderClient* render_client",
+      "WAVEFORMATEX* mix_format",
+      "UINT32 buffer_frame_count",
+      "bool com_initialized",
+      "bool is_playing"
+    ],
+    "responsibility": "Internal WASAPI state hidden behind opaque handle"
+  },
+  "current_implementation": {
+    "file": "backend/src/audio_output/wasapi_shared_pcm_writer.cpp",
+    "status": "stub implementation",
+    "notes": "Implements interface but may not use real WASAPI APIs"
+  },
+  "current_test_coverage": {
+    "test_file": "backend/tests/audio_output/wasapi_shared_pcm_writer_test.cpp",
+    "test_count": 9,
+    "test_names": [
+      "Writer created",
+      "Writer not ready initially",
+      "No error initially",
+      "Writer initialized with endpoint",
+      "PCM data written",
+      "Available frames",
+      "Playback started",
+      "Playback stopped",
+      "Writer released"
+    ],
+    "reality_proof": "Checks WASAPI availability before tests, skips if unavailable"
+  },
+  "reality_proof_requirements": {
+    "real_com_initialization": "Must initialize COM with CoInitializeEx and MTA",
+    "real_device_enumeration": "Must enumerate audio devices with IMMDeviceEnumerator",
+    "real_default_endpoint": "Must get default render endpoint",
+    "real_format_negotiation": "Must negotiate shared-mode format with IAudioClient",
+    "real_audio_client": "Must initialize IAudioClient",
+    "real_render_client": "Must get IAudioRenderClient",
+    "real_buffer_operations": "Must use GetBuffer/ReleaseBuffer for writing",
+    "real_start_stop": "Must use Start/Stop on audio client"
+  },
+  "test_strategy": {
+    "required_reality_tests": [
+      "Real COM Initialization Test: Verify COM initialized with MTA",
+      "Real Device Enumeration Test: Verify device enumeration works",
+      "Real Default Endpoint Test: Verify default render endpoint obtained",
+      "Real Format Negotiation Test: Verify shared-mode format negotiation",
+      "Real Audio Client Test: Verify IAudioClient initialization",
+      "Real Render Client Test: Verify IAudioRenderClient obtained",
+      "Real Buffer Operations Test: Verify GetBuffer/ReleaseBuffer work",
+      "Real Start/Stop Test: Verify Start/Stop operations work"
+    ],
+    "test_requirements": [
+      "All tests must use real WASAPI interfaces (not stubs)",
+      "Tests must handle device unavailable scenario honestly",
+      "Evidence must prove real WASAPI runtime, not just interface contract",
+      "Platform: Windows only (WASAPI is Windows-specific)"
+    ]
+  },
+  "inspector_snapshot_requirements": {
+    "wasapi_runtime_snapshot": "com_state, device_info, format, audio_client, render_client, buffer_stats"
+  },
+  "decision_ledger_requirements": {
+    "wasapi_operation_decision": "Input: endpoint, PCM data; Output: success, samples_written"
+  },
+  "evidence_artifact_requirements": {
+    "evidence_file": "artifacts/p2/evidence/LRD-007.json",
+    "required_fields": [
+      "task_id",
+      "status",
+      "runtime_mode",
+      "runtime_environment",
+      "wasapi_runtime",
+      "com_initialization",
+      "device_enumeration",
+      "format_negotiation",
+      "audio_client",
+      "render_client",
+      "buffer_operations",
+      "start_stop",
+      "inspector_snapshot",
+      "decision_ledger",
+      "errors",
+      "redaction",
+      "schema_validation",
+      "anti_fake",
+      "redline"
+    ]
+  },
+  "schema_gate_requirements": {
+    "com_initialized_required": "com_initialized must be true for RUNTIME_PASS",
+    "device_enumerated_required": "device_enumerated must be true for RUNTIME_PASS",
+    "format_negotiated_required": "format_negotiated must be true for RUNTIME_PASS",
+    "buffer_operations_required": "buffer_operations must be real for RUNTIME_PASS",
+    "anti_fake_validation": "no stub WASAPI or mock COM"
+  },
+  "redline_gate_requirements": {
+    "forbidden_terms": ["stub WASAPI", "mock COM", "simulated buffer", "interface contract only", "fake audio client"],
+    "allowlist_terms": ["real COM initialization", "actual device enumeration", "real format negotiation", "real buffer operations", "WASAPI shared mode"]
+  },
+  "anti_fake_gate_requirements": {
+    "real_wasapi_runtime_proof": [
+      "Real COM initialization: CoInitializeEx with MTA",
+      "Real device enumeration: IMMDeviceEnumerator::EnumAudioEndpoints",
+      "Real default endpoint: IMMDeviceEnumerator::GetDefaultAudioEndpoint",
+      "Real format negotiation: IAudioClient::GetMixFormat and Initialize",
+      "Real buffer operations: IAudioRenderClient::GetBuffer and ReleaseBuffer",
+      "Real start/stop: IAudioClient::Start and Stop"
+    ],
+    "forbidden_fake_proofs": [
+      "stub WASAPI → CONTRACT_PASS only",
+      "mock COM → CONTRACT_PASS only",
+      "simulated buffer → CONTRACT_PASS only",
+      "interface contract only → insufficient proof"
+    ]
+  },
+  "clean_workspace_gate": {
+    "workspace_requirements": [
+      "No root-level audio outputs",
+      "No generated audio files in source root",
+      "Evidence file in artifacts/p2/evidence/",
+      "Test outputs in backend/tests/audio_output/"
+    ]
+  },
+  "final_report_rules": {
+    "classification_options": [
+      "RUNTIME_PASS: Real WASAPI shared mode runtime",
+      "BLOCKED_ENV: WASAPI unavailable, honest block",
+      "CONTRACT_PASS: Interface contract proven but not runtime",
+      "FAIL: Required proof missing or conflicting"
+    ],
+    "forbidden_claims": [
+      "Never claim real WASAPI without real COM",
+      "Never claim runtime PASS if BLOCKED_ENV",
+      "Never claim buffer operations without real operations",
+      "Never claim Start/Stop without real operations"
+    ]
+  },
+  "evidence_status": "CONTRACT_PASS",
+  "reason": "WASAPI shared runtime audit planned. Current interface is stub implementation (CONTRACT_PASS). Real WASAPI runtime with COM initialization, device enumeration, format negotiation, and buffer operations required for RUNTIME_PASS. Windows platform required.",
+  "next_task": "LRD-008 Local E2E Runtime Audit"
+}

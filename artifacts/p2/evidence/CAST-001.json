@@ -1,0 +1,128 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "CAST-001",
+  "task_name": "P2-CAST-FOUNDATION",
+  "family": "cast_foundation",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "cast_protocol_definition",
+  "runtime_environment_kind": "test_harness",
+  "environment_required": false,
+  "environment_available": false,
+  "blocked_reason": null,
+  "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+  "evidence_file": "artifacts/p2/evidence/CAST-001.json",
+  "provider_matrix_impact": {
+    "airplay_cast": "CONTRACT_PASS"
+  },
+  "cast_airplay_abstraction": {
+    "protocols": ["Google Cast", "Apple AirPlay"],
+    "discovery": ["mDNS/DNS-SD", "Bonjour"],
+    "connection": ["TCP/IP", "HTTP"],
+    "streaming": ["RTP", "HTTP Live Streaming"],
+    "features": ["device_discovery", "session_management", "media_control", "status_monitoring"]
+  },
+  "device_identity": {
+    "cast_device": {
+      "fields": ["device_id", "device_name", "device_type", "protocol"],
+      "capabilities": ["supported_codecs", "resolutions", "features"],
+      "status": ["online/offline", "busy/idle"],
+      "network": ["ip_address", "port", "protocol_version"]
+    },
+    "airplay_device": {
+      "fields": ["device_id", "device_name", "device_type", "protocol"],
+      "capabilities": ["supported_formats", "features"],
+      "status": ["online/offline", "busy/idle"],
+      "network": ["ip_address", "port", "protocol_version"]
+    }
+  },
+  "session_state_management": {
+    "states": ["Idle", "Connecting", "Connected", "Playing", "Paused", "Buffering", "Error"],
+    "transitions": {
+      "start": "Idle → Connecting → Connected",
+      "play": "Connected → Playing",
+      "pause": "Playing → Paused",
+      "stop": "Any → Idle",
+      "error": "Any → Error"
+    }
+  },
+  "handoff_policy": {
+    "local_to_cast": {
+      "process": "Transfer playback from local to cast device",
+      "state_transfer": "Transfer playback state",
+      "quality_adaptation": "Adapt to device capabilities",
+      "fallback": "Fallback to local if cast fails"
+    },
+    "cast_to_local": {
+      "process": "Transfer playback from cast to local device",
+      "state_transfer": "Transfer playback state",
+      "quality_adaptation": "Adapt to local capabilities",
+      "seamless": "Maintain playback continuity"
+    }
+  },
+  "local_cast_split": {
+    "local_playback": {
+      "processing": "Local device processing",
+      "rendering": "Local device rendering",
+      "audio": "Local device audio output",
+      "control": "Local device control"
+    },
+    "cast_playback": {
+      "processing": "Cast device processing",
+      "rendering": "Cast device rendering",
+      "audio": "Cast device audio output",
+      "control": "Local device control (remote)"
+    }
+  },
+  "inspector_integration": {
+    "cast_inspector": {
+      "session_info": "Cast session details",
+      "device_info": "Cast device information",
+      "playback_info": "Playback state and progress",
+      "error_info": "Error details and recovery"
+    },
+    "inspector_data": {
+      "connection": "Connection quality and stability",
+      "performance": "Streaming performance metrics",
+      "compatibility": "Device compatibility information",
+      "health": "Device health status"
+    }
+  },
+  "decision_ledger_integration": {
+    "cast_decisions": ["Device Selection", "Session Start", "Quality Adaptation", "Handoff"],
+    "decision_logging": ["Timestamp", "Reason", "Outcome", "Impact"]
+  },
+  "feasibility_assessment": {
+    "technical": ["Device Support", "Network", "Codec", "Bandwidth"],
+    "protocol": ["Cast Protocol", "AirPlay Protocol", "Version", "Features"]
+  },
+  "legal_protocol_review": {
+    "legal": ["Licensing", "DRM", "Terms", "Privacy"],
+    "protocol": ["Compatibility", "Security", "Performance", "Reliability"]
+  },
+  "error_handling": {
+    "connection_errors": ["Timeout", "Refused", "Lost", "Failed"],
+    "streaming_errors": ["Buffering", "Quality", "Dropout", "Sync"],
+    "session_errors": ["Start", "Control", "End", "State"]
+  },
+  "privacy_redaction": {
+    "device_information_redaction": true,
+    "network_information_redaction": true,
+    "session_data_redaction": true
+  },
+  "gate_integration": [
+    "CAST-001: Cast foundation system defined",
+    "PFFG-001: Foundation Final Gate Reader checks Cast foundation definitions",
+    "PMX-001: Provider Runtime Matrix includes Cast foundation support"
+  ],
+  "test_cases": {
+    "positive_test_cases": 6,
+    "negative_test_cases": 6,
+    "total_test_cases": 12
+  },
+  "implementation_requirements": {
+    "cast_manager": ["Implement device discovery", "Handle session management", "Manage media control", "Handle errors"],
+    "device_manager": ["Implement device identity", "Handle device capabilities", "Manage device status", "Handle device events"],
+    "session_manager": ["Implement session state", "Handle session transitions", "Manage session persistence", "Handle session errors"],
+    "inspector": ["Implement cast inspection", "Collect session data", "Monitor performance", "Report errors"]
+  }
+}
