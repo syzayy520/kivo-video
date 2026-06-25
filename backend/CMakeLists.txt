@@ -92,6 +92,11 @@ add_library(kivo_cinema_engine STATIC
   src/demux_core/real_demux_runtime.cpp
   src/decode_core/real_software_decode_runtime.cpp
   src/third_party_adapter/ffmpeg_adapter/ffmpeg_adapter.cpp
+  src/video_upload/d3d11_device_context.cpp
+  src/video_upload/d3d11_texture_upload.cpp
+  src/presenter/presenter_boundary_shell.cpp
+  src/audio_output/decoded_audio_frame_converter.cpp
+  src/audio_output/wasapi_shared_pcm_writer.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -589,3 +594,127 @@ if(KIVO_ENABLE_REAL_MEDIA_TESTS)
   add_test(NAME kivo_real_probe_integration_test COMMAND kivo_real_probe_integration_test)
   add_test(NAME kivo_real_demux_decode_integration_test COMMAND kivo_real_demux_decode_integration_test)
 endif()
+
+# ─── V10: D3D11 first frame test ───
+
+add_executable(kivo_d3d11_first_frame_test
+  tests/video_upload/d3d11_first_frame_test.cpp
+)
+target_link_libraries(kivo_d3d11_first_frame_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_d3d11_first_frame_test COMMAND kivo_d3d11_first_frame_test)
+
+# ─── V10: Presenter boundary first frame test ───
+
+add_executable(kivo_presenter_boundary_first_frame_test
+  tests/presenter/presenter_boundary_first_frame_test.cpp
+)
+target_link_libraries(kivo_presenter_boundary_first_frame_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_presenter_boundary_first_frame_test COMMAND kivo_presenter_boundary_first_frame_test)
+
+# ─── V10: Audio output tests ───
+
+add_executable(kivo_decoded_audio_frame_converter_test
+  tests/audio_output/decoded_audio_frame_converter_test.cpp
+)
+target_link_libraries(kivo_decoded_audio_frame_converter_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_decoded_audio_frame_converter_test COMMAND kivo_decoded_audio_frame_converter_test)
+
+add_executable(kivo_wasapi_shared_pcm_writer_test
+  tests/audio_output/wasapi_shared_pcm_writer_test.cpp
+)
+target_link_libraries(kivo_wasapi_shared_pcm_writer_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_wasapi_shared_pcm_writer_test COMMAND kivo_wasapi_shared_pcm_writer_test)
+
+# ─── V10: Clock AV sync test ───
+
+add_executable(kivo_clock_av_sync_test
+  tests/clock/clock_av_sync_test.cpp
+)
+target_link_libraries(kivo_clock_av_sync_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_clock_av_sync_test COMMAND kivo_clock_av_sync_test)
+
+# ─── V10-013: Seek / Flush / Generation Isolation ───
+
+add_executable(kivo_seek_flush_generation_test
+  tests/seek/seek_flush_generation_test.cpp
+)
+target_link_libraries(kivo_seek_flush_generation_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_seek_flush_generation_test COMMAND kivo_seek_flush_generation_test)
+
+# ─── V10-014: Pause / Resume / Stop / Close Lifecycle ───
+
+add_executable(kivo_lifecycle_test
+  tests/presenter/lifecycle_test.cpp
+)
+target_link_libraries(kivo_lifecycle_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_lifecycle_test COMMAND kivo_lifecycle_test)
+
+# ─── V10-015: Threading / COM / Device Ownership Proof ───
+
+add_executable(kivo_threading_ownership_test
+  tests/presenter/threading_ownership_test.cpp
+)
+target_link_libraries(kivo_threading_ownership_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_threading_ownership_test COMMAND kivo_threading_ownership_test)
+
+# ─── V10-016: Inspector / DecisionLedger / ErrorMapping Runtime Proof ───
+
+add_executable(kivo_inspector_decision_ledger_test
+  tests/presenter/inspector_decision_ledger_test.cpp
+)
+target_link_libraries(kivo_inspector_decision_ledger_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_inspector_decision_ledger_test COMMAND kivo_inspector_decision_ledger_test)
+
+# ─── V10-017: Machine-Readable Evidence Schema ───
+
+add_executable(kivo_evidence_schema_test
+  tests/presenter/evidence_schema_test.cpp
+)
+target_link_libraries(kivo_evidence_schema_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_evidence_schema_test COMMAND kivo_evidence_schema_test)
+
+# ─── V10-018: Failure Injection Coverage ───
+
+add_executable(kivo_failure_injection_test
+  tests/presenter/failure_injection_test.cpp
+)
+target_link_libraries(kivo_failure_injection_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_failure_injection_test COMMAND kivo_failure_injection_test)
+
+# ─── V10-019: Sample Gate ───
+
+add_executable(kivo_sample_gate_test
+  tests/presenter/sample_gate_test.cpp
+)
+target_link_libraries(kivo_sample_gate_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_sample_gate_test COMMAND kivo_sample_gate_test)
+
+# ─── V10-020: Local Minimal Playback End-To-End Gate ───
+
+add_executable(kivo_local_playback_e2e_test
+  tests/presenter/local_playback_e2e_test.cpp
+)
+target_link_libraries(kivo_local_playback_e2e_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_local_playback_e2e_test COMMAND kivo_local_playback_e2e_test)
+
+# ─── V10-021: 30s Local Playback Micro Soak Gate ───
+
+add_executable(kivo_micro_soak_test
+  tests/presenter/micro_soak_test.cpp
+)
+target_link_libraries(kivo_micro_soak_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_micro_soak_test COMMAND kivo_micro_soak_test)

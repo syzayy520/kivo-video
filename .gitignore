@@ -12,4 +12,11 @@ CMakeUserPresets.json
 *.dll
 *.lib
 *.log
+vcpkg_installed/
+tmp/
+tests/real/
+build_output*.txt
+install_ffmpeg*.bat
+vcpkg_*.txt
+vcpkg_out.txt
 

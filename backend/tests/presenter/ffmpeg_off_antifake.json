@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "ffmpeg_off_antifake",
+  "build_preset": "vs-debug",
+  "ffmpeg_linked": false,
+  "real_probe_disabled": true,
+  "real_demux_disabled": true,
+  "real_decode_disabled": true,
+  "real_playback_tests_skipped": true,
+  "skip_reason": "FFmpeg not linked in this preset",
+  "inspector_claims_real_ffmpeg": false,
+  "decision_ledger_claims_real_ffmpeg": false,
+  "evidence_contains_fake_as_real": false,
+  "unit_tests_pass": true,
+  "unit_test_count": 81,
+  "unit_test_passed": 81,
+  "unit_test_failed": 0
+}
