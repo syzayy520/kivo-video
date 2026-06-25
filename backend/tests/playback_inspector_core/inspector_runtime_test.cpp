@@ -70,14 +70,54 @@ static void test_redaction_with_inspector_data() {
     std::cout << "  PASS: redaction_with_inspector_data\n";
 }
 
+static void test_snapshot_read_request() {
+    auto r = build_snapshot_read_request("inspector-001", "session-abc");
+    assert(r.request_id == "req-snapshot-session-abc");
+    assert(r.source_type == "snapshot");
+    assert(r.session_id == "session-abc");
+    assert(r.include_redacted == false);
+    std::cout << "  PASS: snapshot_read_request\n";
+}
+
+static void test_ledger_read_request() {
+    auto r = build_ledger_read_request("inspector-001", "session-def");
+    assert(r.request_id == "req-ledger-session-def");
+    assert(r.source_type == "ledger");
+    assert(r.session_id == "session-def");
+    std::cout << "  PASS: ledger_read_request\n";
+}
+
+static void test_successful_read_result() {
+    auto res = build_successful_read_result("req-snapshot-session-abc", "snapshot", 42);
+    assert(res.record_count == 42);
+    assert(res.was_redacted == false);
+    assert(res.source_type == "snapshot");
+    assert(!res.data_payload.empty());
+    std::cout << "  PASS: successful_read_result\n";
+}
+
+static void test_redacted_read_result() {
+    auto res = build_redacted_read_result("req-ledger-session-def", "ledger");
+    assert(res.was_redacted == true);
+    assert(res.record_count == 5);
+    assert(res.data_payload.find("redacted") != std::string::npos);
+    std::cout << "  PASS: redacted_read_result\n";
+}
+
 int main() {
     std::cout << "inspector_runtime_test:\n";
+    // Existing tests
     test_default_inspector_runtime();
     test_decision_ledger_only_inspector();
     test_telemetry_only_inspector();
     test_no_redaction_inspector();
     test_disabled_inspector();
     test_redaction_with_inspector_data();
-    std::cout << "ALL 6 TESTS PASSED\n";
+    // P2-042 new tests
+    test_snapshot_read_request();
+    test_ledger_read_request();
+    test_successful_read_result();
+    test_redacted_read_result();
+    std::cout << "ALL 10 TESTS PASSED\n";
     return 0;
 }

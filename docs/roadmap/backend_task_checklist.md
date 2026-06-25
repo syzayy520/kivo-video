@@ -205,7 +205,7 @@ Status legend:
 - DONE: P2-039 Subtitle Runtime. Evidence: `backend/include/kivo/cinema_engine/subtitle_core/subtitle_track_info.hpp`, `backend/include/kivo/cinema_engine/subtitle_core/subtitle_entry.hpp`, `backend/include/kivo/cinema_engine/subtitle_core/subtitle_load_result.hpp`, `backend/include/kivo/cinema_engine/subtitle_core/fake_subtitle_runtime_service.hpp`, `backend/src/subtitle_core/fake_subtitle_runtime_service.cpp`, `backend/tests/subtitle_core/subtitle_runtime_test.cpp`, `docs/p2_real_playback/subtitle_runtime.md`. CTest 49/49 PASS. 11 tests covering SRT/ASS track info, subtitle entries, load results, runtime state, timing validity, and language/default tracking.
 - DONE: P2-040 HDR / Color Output Runtime. Evidence: `backend/include/kivo/cinema_engine/color_science_core/hdr_detection_result.hpp`, `backend/include/kivo/cinema_engine/color_science_core/color_space_descriptor.hpp`, `backend/include/kivo/cinema_engine/color_science_core/fake_hdr_color_service.hpp`, `backend/src/color_science_core/fake_hdr_color_service.cpp`, `backend/tests/color_science_core/hdr_color_runtime_test.cpp`, `docs/p2_real_playback/hdr_color_runtime.md`. CTest 50/50 PASS. 10 tests covering HDR10/HLG/DV detection, color space descriptors, valid/false Dolby Vision claims, luminance tracking, and transfer function tracking.
 - DONE: P2-041 Claim Vocabulary Freeze Gate. Evidence: `backend/include/kivo/cinema_engine/governance_core/claim_vocabulary_gate_request.hpp`, `backend/include/kivo/cinema_engine/governance_core/claim_vocabulary_gate_result.hpp`, `backend/include/kivo/cinema_engine/governance_core/fake_claim_vocabulary_gate_service.hpp`, `backend/src/governance_core/fake_claim_vocabulary_gate_service.cpp`, `backend/tests/governance_core/claim_vocabulary_gate_test.cpp`, `docs/p2_real_playback/claim_vocabulary_freeze.md`. CTest 51/51 PASS. 10 tests covering strict/warn/audit gate policies, HDR/audio/forbidden claim requests, and allowed/blocked/warned results.
-- TODO: P2-042 Playback Inspector Runtime. Evidence target: full Inspector runtime reading snapshots/ledger/telemetry.
+- DONE: P2-042 Playback Inspector Runtime. Evidence: `backend/include/kivo/cinema_engine/playback_inspector_core/inspector_read_request.hpp`, `backend/include/kivo/cinema_engine/playback_inspector_core/inspector_read_result.hpp`, `backend/include/kivo/cinema_engine/playback_inspector_core/fake_inspector_runtime_service.hpp` (expanded), `backend/src/playback_inspector_core/fake_inspector_runtime_service.cpp` (expanded), `backend/tests/playback_inspector_core/inspector_runtime_test.cpp` (10 tests, up from 6), `docs/p2_real_playback/playback_inspector_runtime.md`. CTest 51/51 PASS.
 - TODO: P2-043 Telemetry Sampling / Hot Path Policy. Evidence target: bounded ring buffers and no hot-path locks.
 - TODO: P2-044 Schema Migration Policy. Evidence target: schema migration policy and compatibility tests.
 - TODO: P2-045 Database Resilience Policy Skeleton. Evidence target: source/playback/decision/cache/telemetry/preference/schema db resilience rules.
@@ -267,7 +267,7 @@ Status legend:
 - TODO: `docs/p2_real_playback/subtitle_runtime.md`.
 - DONE: `docs/p2_real_playback/hdr_color_runtime.md`.
 - DONE: `docs/p2_real_playback/claim_vocabulary_freeze.md`.
-- TODO: `docs/p2_real_playback/playback_inspector_runtime.md`.
+- DONE: `docs/p2_real_playback/playback_inspector_runtime.md`.
 - TODO: `docs/p2_real_playback/telemetry_sampling_and_hot_path_policy.md`.
 - TODO: `docs/p2_real_playback/schema_migration_policy.md`.
 - TODO: `docs/p2_real_playback/storage_resilience_policy.md`.
@@ -293,6 +293,6 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-041 DONE. P2.2 Remote Playback Tasks COMPLETE. Proceed to P2.3 Quality / Recovery / Inspector Tasks (P2-042 through P2-055).
+P2-001A/B/C through P2-042 DONE. P2.2 Remote Playback Tasks COMPLETE. Proceed to P2.3 Quality / Recovery / Inspector Tasks (P2-043 through P2-055).
 
-Next: P2-042 Playback Inspector Runtime.
+Next: P2-043 Telemetry Sampling / Hot Path Policy.

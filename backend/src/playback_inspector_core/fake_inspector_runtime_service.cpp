@@ -62,4 +62,77 @@ InspectorRuntimeContract build_disabled_inspector(const std::string& inspector_i
     return contract;
 }
 
+// --- Request builders ---
+
+InspectorReadRequest build_snapshot_read_request(const std::string& inspector_id, const std::string& session_id) {
+    InspectorReadRequest r;
+    r.metadata.schema_version = "1.1";
+    r.request_id = "req-snapshot-" + session_id;
+    r.inspector_id = inspector_id;
+    r.source_type = "snapshot";
+    r.session_id = session_id;
+    r.include_redacted = false;
+    return r;
+}
+
+InspectorReadRequest build_ledger_read_request(const std::string& inspector_id, const std::string& session_id) {
+    InspectorReadRequest r;
+    r.metadata.schema_version = "1.1";
+    r.request_id = "req-ledger-" + session_id;
+    r.inspector_id = inspector_id;
+    r.source_type = "ledger";
+    r.session_id = session_id;
+    r.include_redacted = false;
+    return r;
+}
+
+InspectorReadRequest build_telemetry_read_request(const std::string& inspector_id, const std::string& session_id) {
+    InspectorReadRequest r;
+    r.metadata.schema_version = "1.1";
+    r.request_id = "req-telemetry-" + session_id;
+    r.inspector_id = inspector_id;
+    r.source_type = "telemetry";
+    r.session_id = session_id;
+    r.include_redacted = false;
+    return r;
+}
+
+// --- Result builders ---
+
+InspectorReadResult build_successful_read_result(const std::string& request_id, const std::string& source_type, int64_t record_count) {
+    InspectorReadResult res;
+    res.metadata.schema_version = "1.1";
+    res.result_id = "res-ok-" + request_id;
+    res.request_id = request_id;
+    res.source_type = source_type;
+    res.data_payload = "{\"status\":\"ok\",\"source\":\"" + source_type + "\"}";
+    res.record_count = record_count;
+    res.was_redacted = false;
+    return res;
+}
+
+InspectorReadResult build_empty_read_result(const std::string& request_id, const std::string& source_type) {
+    InspectorReadResult res;
+    res.metadata.schema_version = "1.1";
+    res.result_id = "res-empty-" + request_id;
+    res.request_id = request_id;
+    res.source_type = source_type;
+    res.data_payload = "{\"status\":\"empty\"}";
+    res.record_count = 0;
+    res.was_redacted = false;
+    return res;
+}
+
+InspectorReadResult build_redacted_read_result(const std::string& request_id, const std::string& source_type) {
+    InspectorReadResult res;
+    res.metadata.schema_version = "1.1";
+    res.result_id = "res-redacted-" + request_id;
+    res.request_id = request_id;
+    res.source_type = source_type;
+    res.data_payload = "{\"status\":\"redacted\",\"fields\":[\"token\",\"credential\"]}";
+    res.record_count = 5;
+    res.was_redacted = true;
+    return res;
+}
+
 }  // namespace kivo::cinema_engine
