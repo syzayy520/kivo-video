@@ -64,6 +64,7 @@ add_library(kivo_cinema_engine STATIC
   src/security_core/fake_network_security_service.cpp
   src/network_cache_core/fake_range_reader_service.cpp
   src/network_cache_core/fake_segment_cache_service.cpp
+  src/network_cache_core/fake_remote_direct_play_gate_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -382,3 +383,10 @@ add_executable(kivo_emby_direct_play_test
 target_link_libraries(kivo_emby_direct_play_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_emby_direct_play_test COMMAND kivo_emby_direct_play_test)
+
+add_executable(kivo_remote_direct_play_gate_test
+  tests/network_cache_core/remote_direct_play_gate_test.cpp
+)
+target_link_libraries(kivo_remote_direct_play_gate_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_remote_direct_play_gate_test COMMAND kivo_remote_direct_play_gate_test)
