@@ -118,6 +118,19 @@ if(KIVO_ENABLE_FFMPEG)
   endif()
 endif()
 
+# Windows platform libraries for D3D11 and WASAPI
+if(WIN32)
+  target_link_libraries(kivo_cinema_engine PUBLIC
+    d3d11
+    dxgi
+    ole32
+    oleaut32
+    mmdevapi
+    mfplat
+    mfuuid
+  )
+endif()
+
 if(KIVO_ENABLE_REAL_MEDIA_TESTS)
   target_compile_definitions(kivo_cinema_engine PUBLIC KIVO_ENABLE_REAL_MEDIA_TESTS)
 endif()

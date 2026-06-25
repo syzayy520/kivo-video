@@ -31,6 +31,9 @@ struct TextureUploadResult {
 struct D3d11TextureUpload {
     ContractMetadata metadata;
 
+    // Initialize with device context.
+    bool initialize(D3d11DeviceContext* device_context);
+
     // Create a texture for the given frame dimensions and format.
     // Returns a handle to the texture (nullptr on failure).
     D3D11TextureHandle create_texture(int32_t width, int32_t height,

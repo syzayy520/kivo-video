@@ -9,6 +9,9 @@
 
 namespace kivo::cinema_engine {
 
+// Forward declaration of internal WASAPI state (defined in wasapi_internal.hpp).
+struct WasapiWriterImpl;
+
 // WriteResult contains the result of a PCM write operation.
 struct WriteResult {
     bool success{false};
@@ -33,6 +36,9 @@ struct BufferStats {
 // This interface is platform-neutral; actual WASAPI calls stay inside adapter boundary.
 struct WasapiSharedPcmWriter {
     ContractMetadata metadata;
+
+    WasapiSharedPcmWriter();
+    ~WasapiSharedPcmWriter();
 
     // Initialize the WASAPI shared mode writer with the given audio endpoint.
     bool initialize(const AudioEndpointRuntimeContract& endpoint);
@@ -65,6 +71,9 @@ private:
     std::string last_error_;
     int64_t total_bytes_written_{0};
     int64_t total_samples_written_{0};
+    
+    // Opaque handle to internal WASAPI state
+    WasapiWriterImpl* impl_{nullptr};
 };
 
 }  // namespace kivo::cinema_engine

@@ -3,6 +3,7 @@
 #include <string>
 
 #include "kivo/cinema_engine/presenter/presenter_boundary_shell.hpp"
+#include "kivo/cinema_engine/video_upload/d3d11_device_context.hpp"
 #include "kivo/cinema_engine/video_upload/d3d11_texture_upload.hpp"
 
 using namespace kivo::cinema_engine;
@@ -24,7 +25,19 @@ int main() {
     std::cout << "  PASS: No first frame initially\n";
 
     // Test 3: Create texture for presentation
+    // Requires a real D3D11 device context (hardware or WARP).
+    D3d11DeviceContext device_ctx;
+    if (!device_ctx.initialize()) {
+        std::cout << "  SKIP: D3D11 device not available, skipping texture tests\n";
+        presenter.release();
+        return 0;
+    }
+    std::cout << "  INFO: D3D11 device type = " << device_ctx.device_type() << "\n";
+
     D3d11TextureUpload uploader;
+    bool upload_init = uploader.initialize(&device_ctx);
+    assert(upload_init);
+
     D3D11TextureHandle texture = uploader.create_texture(320, 240, "yuv420p");
     assert(texture != nullptr);
     std::cout << "  PASS: Texture created for presentation\n";
@@ -57,6 +70,8 @@ int main() {
 
     // Cleanup
     uploader.release_texture(texture);
+    uploader.release();
+    device_ctx.release();
 
     std::cout << "ALL 7 TESTS PASSED\n";
     return 0;

@@ -167,6 +167,8 @@ DecodeResult RealSoftwareDecodeRuntime::decode(const KivoPacket& packet, const s
         result.frame.width = frame.width;
         result.frame.height = frame.height;
         result.frame.pixel_format = frame.pixel_format;
+        result.frame.frame_data = std::move(frame.frame_data);
+        for (int i = 0; i < 4; ++i) result.frame.linesize[i] = frame.linesize[i];
         pixel_format_ = frame.pixel_format;
         width_ = frame.width;
         height_ = frame.height;
@@ -175,6 +177,8 @@ DecodeResult RealSoftwareDecodeRuntime::decode(const KivoPacket& packet, const s
         result.frame.sample_rate = frame.sample_rate;
         result.frame.channels = frame.channels;
         result.frame.sample_format = frame.sample_format;
+        result.frame.frame_data = std::move(frame.frame_data);
+        for (int i = 0; i < 4; ++i) result.frame.linesize[i] = frame.linesize[i];
     }
 
     result.success = true;

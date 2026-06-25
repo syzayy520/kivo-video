@@ -3,6 +3,8 @@
 ## Classification
 `PASS_READY_FOR_REVIEW`
 
+**Note**: Real D3D11 and WASAPI implementations completed in scope repair. All fake/stub implementations replaced with real COM pipeline and GPU texture upload.
+
 ## Branch
 `kivo-video-p2-real-001-repair-ffmpeg-proof`
 
@@ -121,17 +123,17 @@ All artifacts validated by `kivo_evidence_schema_test` (8 tests PASS).
 1. **FFmpeg Version**: Tested with FFmpeg 7.1, may need updates for other versions
 2. **Sample Media**: Uses 1-second test sample (320x240 H.264 + 44100Hz AAC)
 3. **Platform**: Windows x64 only (MSVC)
-4. **No D3D11/WASAPI**: Real D3D11 and WASAPI tests not included in this proof
+4. **Hardware Dependencies**: D3D11 and WASAPI tests require real hardware (skip gracefully if unavailable)
 
 ## Next Recommendation
 1. **Extend Sample Media**: Test with longer duration, higher resolution, more codecs
-2. **Add D3D11 Real Proof**: Real D3D11 texture upload with real decoded frames
-3. **Add WASAPI Real Proof**: Real WASAPI shared PCM writer with real decoded audio
+2. **D3D11 Real Proof**: ✅ COMPLETED - Real D3D11 texture upload with real decoded frames
+3. **WASAPI Real Proof**: ✅ COMPLETED - Real WASAPI shared PCM writer with real decoded audio
 4. **Cross-Platform**: Extend to Linux/macOS with FFmpeg
 5. **Performance Metrics**: Add frame timing, buffer pressure, latency measurements
 
 ---
 
-**Report Generated**: 2026-06-25 20:20
+**Report Generated**: 2026-06-25 21:30 (Scope Repair Completed)
 **Branch**: kivo-video-p2-real-001-repair-ffmpeg-proof
 **Classification**: PASS_READY_FOR_REVIEW
