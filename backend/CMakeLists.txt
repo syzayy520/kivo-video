@@ -73,6 +73,7 @@ add_library(kivo_cinema_engine STATIC
   src/storage_core/fake_database_resilience_service.cpp
   src/diagnostic_core/fake_crash_dump_privacy_service.cpp
   src/compliance_core/fake_dependency_security_service.cpp
+  src/governance_core/fake_product_claim_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -454,3 +455,10 @@ add_executable(kivo_dependency_security_test
 target_link_libraries(kivo_dependency_security_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_dependency_security_test COMMAND kivo_dependency_security_test)
+
+add_executable(kivo_product_claim_test
+  tests/governance_core/product_claim_test.cpp
+)
+target_link_libraries(kivo_product_claim_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_product_claim_test COMMAND kivo_product_claim_test)
