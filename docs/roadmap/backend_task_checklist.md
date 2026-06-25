@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 10:14
+Updated: 2026-06-25 10:18
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -202,7 +202,7 @@ Status legend:
 
 ## P2.3 Quality / Recovery / Inspector Tasks
 
-- TODO: P2-039 Subtitle Runtime. Evidence target: SRT / ASS / external subtitle runtime and D3D11 overlay.
+- DONE: P2-039 Subtitle Runtime. Evidence: `backend/include/kivo/cinema_engine/subtitle_core/subtitle_track_info.hpp`, `backend/include/kivo/cinema_engine/subtitle_core/subtitle_entry.hpp`, `backend/include/kivo/cinema_engine/subtitle_core/subtitle_load_result.hpp`, `backend/include/kivo/cinema_engine/subtitle_core/fake_subtitle_runtime_service.hpp`, `backend/src/subtitle_core/fake_subtitle_runtime_service.cpp`, `backend/tests/subtitle_core/subtitle_runtime_test.cpp`, `docs/p2_real_playback/subtitle_runtime.md`. CTest 49/49 PASS. 11 tests covering SRT/ASS track info, subtitle entries, load results, runtime state, timing validity, and language/default tracking.
 - TODO: P2-040 HDR / Color Output Runtime. Evidence target: HDR10 / HLG / DV metadata detection without false Dolby claim.
 - TODO: P2-041 Claim Vocabulary Freeze Gate. Evidence target: vocabulary gate for HDR / DV / audio claims.
 - TODO: P2-042 Playback Inspector Runtime. Evidence target: full Inspector runtime reading snapshots/ledger/telemetry.
@@ -295,4 +295,4 @@ Status legend:
 
 P2-001A/B/C through P2-038 DONE. P2.2 Remote Playback Tasks COMPLETE. Proceed to P2.3 Quality / Recovery / Inspector Tasks (P2-039 through P2-055).
 
-Next: P2-039 Subtitle Runtime.
+Next: P2-040 HDR / Color Output Runtime.

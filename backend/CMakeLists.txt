@@ -50,6 +50,7 @@ add_library(kivo_cinema_engine STATIC
   src/capability_core/fake_playback_eligibility_service.cpp
   src/session_core/session_store.cpp
   src/subtitle_core/fake_subtitle_service.cpp
+  src/subtitle_core/fake_subtitle_runtime_service.cpp
   src/video_render_core/fake_presenter_service.cpp
   src/video_render_core/fake_sdr_upload_service.cpp
   src/video_render_core/fake_visual_quality_service.cpp
@@ -390,3 +391,10 @@ add_executable(kivo_remote_direct_play_gate_test
 target_link_libraries(kivo_remote_direct_play_gate_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_remote_direct_play_gate_test COMMAND kivo_remote_direct_play_gate_test)
+
+add_executable(kivo_subtitle_runtime_test
+  tests/subtitle_core/subtitle_runtime_test.cpp
+)
+target_link_libraries(kivo_subtitle_runtime_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_subtitle_runtime_test COMMAND kivo_subtitle_runtime_test)
