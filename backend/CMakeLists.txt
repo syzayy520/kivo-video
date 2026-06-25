@@ -83,6 +83,7 @@ add_library(kivo_cinema_engine STATIC
   src/update_core/fake_update_service.cpp
   src/recovery_core/fake_recovery_fallback_service.cpp
   src/release_core/fake_release_readiness_service.cpp
+  src/integration_core/fake_integration_gate_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -513,3 +514,10 @@ add_executable(kivo_release_readiness_test
 target_link_libraries(kivo_release_readiness_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_release_readiness_test COMMAND kivo_release_readiness_test)
+
+add_executable(kivo_integration_gate_test
+  tests/integration_core/integration_gate_test.cpp
+)
+target_link_libraries(kivo_integration_gate_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_integration_gate_test COMMAND kivo_integration_gate_test)
