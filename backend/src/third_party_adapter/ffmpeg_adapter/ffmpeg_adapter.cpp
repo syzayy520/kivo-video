@@ -362,11 +362,47 @@ bool FfmpegAdapter::receive_frame(FfmpegCodecHandle codec_handle,
             auto* desc = av_pix_fmt_desc_get(static_cast<AVPixelFormat>(frame->format));
             result.pixel_format = desc ? desc->name : "unknown";
         }
+        // Extract real pixel data from AVFrame
+        result.plane_count = av_pix_fmt_count_planes(static_cast<AVPixelFormat>(frame->format));
+        if (result.plane_count < 1) result.plane_count = 1;
+        size_t total_size = 0;
+        for (int p = 0; p < result.plane_count && p < 4; ++p) {
+            result.linesize[p] = frame->linesize[p];
+            int plane_height = (p == 0) ? frame->height : (frame->height + 1) / 2;
+            int plane_width_bytes = frame->linesize[p];
+            total_size += static_cast<size_t>(plane_height) * plane_width_bytes;
+        }
+        result.frame_data.resize(total_size);
+        size_t offset = 0;
+        for (int p = 0; p < result.plane_count && p < 4; ++p) {
+            int plane_height = (p == 0) ? frame->height : (frame->height + 1) / 2;
+            for (int row = 0; row < plane_height; ++row) {
+                memcpy(result.frame_data.data() + offset,
+                       frame->data[p] + row * frame->linesize[p],
+                       frame->linesize[p]);
+                offset += frame->linesize[p];
+            }
+        }
     } else if (frame->nb_samples > 0) {
         result.is_audio = true;
         result.sample_rate = frame->sample_rate;
         result.channels = frame->ch_layout.nb_channels;
         result.sample_format = av_get_sample_fmt_name(static_cast<AVSampleFormat>(frame->format));
+        // Extract real sample data from AVFrame
+        AVSampleFormat fmt = static_cast<AVSampleFormat>(frame->format);
+        int bytes_per_sample = av_get_bytes_per_sample(fmt);
+        result.plane_count = av_sample_fmt_is_planar(fmt) ? result.channels : 1;
+        size_t total_size = 0;
+        for (int p = 0; p < result.plane_count && p < 4; ++p) {
+            result.linesize[p] = frame->linesize[p];
+            total_size += frame->linesize[p];
+        }
+        result.frame_data.resize(total_size);
+        size_t offset = 0;
+        for (int p = 0; p < result.plane_count && p < 4; ++p) {
+            memcpy(result.frame_data.data() + offset, frame->data[p], frame->linesize[p]);
+            offset += frame->linesize[p];
+        }
     }
 
     av_frame_free(&frame);

@@ -46,6 +46,10 @@ struct FfmpegFrameResult {
     int sample_rate = 0;
     int channels = 0;
     std::string sample_format;
+    // Real pixel/sample data extracted from AVFrame.
+    std::vector<uint8_t> frame_data;
+    int linesize[4]{0, 0, 0, 0};  // stride per plane
+    int plane_count{0};            // number of planes
 };
 
 // ─── Codec info (extracted from AVCodecContext) ────────────────────
