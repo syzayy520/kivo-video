@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 12:10 (P2-050 DONE)
+Updated: 2026-06-25 12:20 (P2-051 DONE)
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -214,7 +214,7 @@ Status legend:
 - DONE: P2-048 Product Claim Governance Gate Skeleton. Evidence: `backend/include/kivo/cinema_engine/governance_core/product_claim_request.hpp`, `backend/include/kivo/cinema_engine/governance_core/product_claim_result.hpp`, `backend/include/kivo/cinema_engine/governance_core/claim_validation_rule.hpp`, `backend/include/kivo/cinema_engine/governance_core/fake_product_claim_service.hpp`, `backend/src/governance_core/fake_product_claim_service.cpp`, `backend/tests/governance_core/product_claim_test.cpp`, `docs/p2_real_playback/product_claim_governance_gate.md`. CTest 57/57 PASS. 12 tests covering product claim requests, validation rules, and claim results.
 - DONE: P2-049 Feature Flag / Config Default Skeleton. Evidence: `backend/include/kivo/cinema_engine/feature_gate_core/feature_flag_definition.hpp`, `backend/include/kivo/cinema_engine/feature_gate_core/config_default_rule.hpp`, `backend/include/kivo/cinema_engine/feature_gate_core/rollout_strategy.hpp`, `backend/include/kivo/cinema_engine/feature_gate_core/fake_feature_flag_service.hpp`, `backend/src/feature_gate_core/fake_feature_flag_service.cpp`, `backend/tests/feature_gate_core/feature_flag_test.cpp`, `docs/p2_real_playback/feature_flag_config_default.md`. CTest 58/58 PASS. 12 tests covering feature flag definitions, config defaults, and rollout strategies.
 - DONE: P2-050 Test Oracle / Reproducibility Skeleton. Evidence: `backend/include/kivo/cinema_engine/testing_core/hermetic_fake_requirement.hpp`, `backend/include/kivo/cinema_engine/testing_core/hardware_pair_policy.hpp`, `backend/include/kivo/cinema_engine/testing_core/test_reproducibility_rule.hpp`, `backend/include/kivo/cinema_engine/testing_core/fake_test_oracle_service.hpp`, `backend/src/testing_core/fake_test_oracle_service.cpp`, `backend/tests/testing_core/test_oracle_test.cpp`, `docs/p2_real_playback/test_oracle_reproducibility.md`. CTest 59/59 PASS. 12 tests covering hermetic requirements, hardware pair policies, and reproducibility rules.
-- TODO: P2-051 Media Parser Security / Fuzz Skeleton. Evidence target: parser security core, quarantine, fuzz shell.
+- DONE: P2-051 Media Parser Security / Fuzz Skeleton. Evidence: `backend/include/kivo/cinema_engine/parser_security_core/parser_security_policy.hpp`, `backend/include/kivo/cinema_engine/parser_security_core/quarantine_policy.hpp`, `backend/include/kivo/cinema_engine/parser_security_core/fuzz_test_shell.hpp`, `backend/include/kivo/cinema_engine/parser_security_core/fake_parser_security_service.hpp`, `backend/src/parser_security_core/fake_parser_security_service.cpp`, `backend/tests/parser_security_core/parser_security_test.cpp`, `docs/p2_real_playback/media_parser_security_policy.md`. CTest 60/60 PASS. 12 tests covering parser security, quarantine, and fuzz shell.
 - TODO: P2-052 Build / Signing / Symbol / Update Policy Skeleton. Evidence target: build/signing/symbol/update policy docs.
 - TODO: P2-053 Recovery / Fallback Runtime. Evidence target: recovery matrix implementation and failure budget.
 - TODO: P2-054 Release Readiness Matrix. Evidence target: P2 release readiness matrix.
@@ -293,6 +293,6 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-050 DONE. Proceed to P2-051 through P2-055.
+P2-001A/B/C through P2-051 DONE. Proceed to P2-052 through P2-055.
 
-Next: P2-051 Media Parser Security / Fuzz Skeleton.
+Next: P2-052 Build / Signing / Symbol / Update Policy Skeleton.

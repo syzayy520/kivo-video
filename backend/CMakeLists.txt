@@ -76,6 +76,7 @@ add_library(kivo_cinema_engine STATIC
   src/governance_core/fake_product_claim_service.cpp
   src/feature_gate_core/fake_feature_flag_service.cpp
   src/testing_core/fake_test_oracle_service.cpp
+  src/parser_security_core/fake_parser_security_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -478,3 +479,10 @@ add_executable(kivo_test_oracle_test
 target_link_libraries(kivo_test_oracle_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_test_oracle_test COMMAND kivo_test_oracle_test)
+
+add_executable(kivo_parser_security_test
+  tests/parser_security_core/parser_security_test.cpp
+)
+target_link_libraries(kivo_parser_security_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_parser_security_test COMMAND kivo_parser_security_test)
