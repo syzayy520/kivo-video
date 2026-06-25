@@ -56,6 +56,7 @@ add_library(kivo_cinema_engine STATIC
   src/disc_core/fake_bdmv_main_title_service.cpp
   src/disc_core/fake_bdmv_playback_gate_service.cpp
   src/security_core/fake_network_security_service.cpp
+  src/network_cache_core/fake_range_reader_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -318,3 +319,10 @@ add_executable(kivo_source_health_test
 target_link_libraries(kivo_source_health_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_source_health_test COMMAND kivo_source_health_test)
+
+add_executable(kivo_range_reader_test
+  tests/network_cache_core/range_reader_test.cpp
+)
+target_link_libraries(kivo_range_reader_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_range_reader_test COMMAND kivo_range_reader_test)

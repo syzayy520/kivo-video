@@ -190,7 +190,7 @@ Status legend:
 - DONE: P2-027 Source Adapter Contract Skeleton. Evidence: `backend/include/kivo/cinema_engine/source_core/source_adapter_identity.hpp`, `backend/include/kivo/cinema_engine/source_core/source_adapter_capability.hpp`, `backend/include/kivo/cinema_engine/source_core/source_adapter_failure.hpp`, `backend/include/kivo/cinema_engine/source_core/fake_source_adapter_service.hpp`, `backend/src/source_core/fake_source_adapter_service.cpp`, `backend/tests/source_core/source_adapter_test.cpp`, `docs/p2_real_playback/source_adapter_contract.md`. CTest 37/37 PASS. 9 tests covering local file, WebDAV, AList, Emby adapter identity/capability, and connection/auth/timeout failure scenarios.
 - DONE: P2-028 Network Security Policy Skeleton. Evidence: `backend/include/kivo/cinema_engine/security_core/credential_policy.hpp`, `backend/include/kivo/cinema_engine/security_core/tls_policy.hpp`, `backend/include/kivo/cinema_engine/security_core/ssrf_policy.hpp`, `backend/include/kivo/cinema_engine/security_core/fake_network_security_service.hpp`, `backend/src/security_core/fake_network_security_service.cpp`, `backend/tests/security_core/network_security_test.cpp`, `docs/p2_real_playback/network_security_policy.md`. CTest 38/38 PASS. 6 tests covering strict/relaxed credential, TLS, and SSRF policies.
 - DONE: P2-029 Source Health / Remote Reliability. Evidence: `backend/include/kivo/cinema_engine/source_core/source_health_status.hpp`, `backend/include/kivo/cinema_engine/source_core/source_reliability_metrics.hpp`, `backend/include/kivo/cinema_engine/source_core/source_health_check.hpp`, `backend/include/kivo/cinema_engine/source_core/fake_source_health_service.hpp`, `backend/src/source_core/fake_source_health_service.cpp`, `backend/tests/source_core/source_health_test.cpp`, `docs/p2_real_playback/source_health_and_remote_reliability.md`. CTest 39/39 PASS. 4 tests covering healthy/degraded/unreachable/recovering source health scenarios.
-- TODO: P2-030 Network Range Reader. Evidence target: verified range reader behind source adapter boundary.
+- DONE: P2-030 Network Range Reader. Evidence: `backend/include/kivo/cinema_engine/network_cache_core/network_range_reader.hpp`, `backend/include/kivo/cinema_engine/network_cache_core/range_read_request.hpp`, `backend/include/kivo/cinema_engine/network_cache_core/range_read_result.hpp`, `backend/include/kivo/cinema_engine/network_cache_core/fake_range_reader_service.hpp`, `backend/src/network_cache_core/fake_range_reader_service.cpp`, `backend/tests/network_cache_core/range_reader_test.cpp`, `docs/p2_real_playback/network_range_reader.md`. CTest 40/40 PASS. 5 tests covering reader identity, successful read, range not satisfiable, partial content, and connection error scenarios.
 - TODO: P2-031 Segment Cache Runtime. Evidence target: cache extent runtime bound to RemoteObjectIdentity.
 - TODO: P2-032 WebDAV Server Behavior Profile. Evidence target: WebDAV profile and verified/unsupported range behavior.
 - TODO: P2-033 WebDAV Range Playback. Evidence target: WebDAV verified range playback and visible fallback.
@@ -254,6 +254,7 @@ Status legend:
 - DONE: `docs/p2_real_playback/source_adapter_contract.md`.
 - DONE: `docs/p2_real_playback/network_security_policy.md`.
 - DONE: `docs/p2_real_playback/source_health_and_remote_reliability.md`.
+- DONE: `docs/p2_real_playback/network_range_reader.md`.
 - TODO: `docs/p2_real_playback/cache_runtime.md`.
 - TODO: `docs/p2_real_playback/remote_runtime.md`.
 - TODO: `docs/p2_real_playback/network_security_policy.md`.
@@ -291,7 +292,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-029 DONE. Proceed to P2-030 Network Range Reader:
+P2-001A/B/C through P2-030 DONE. Proceed to P2-031 Segment Cache Runtime:
 
-1. Verified range reader behind source adapter boundary.
-2. Range request with byte offset and length.
+1. Cache extent runtime bound to RemoteObjectIdentity.
+2. Segment cache with hit rate tracking.
