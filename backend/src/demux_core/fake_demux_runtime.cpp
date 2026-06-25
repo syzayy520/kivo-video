@@ -13,8 +13,7 @@ DemuxResult build_successful_demux_result() {
     result.packet.duration = 40;
     result.packet.is_key_frame = true;
     result.packet.is_corrupt = false;
-    result.packet.data_size = 1024;
-    result.packet.data_ref = "adapter://packet-001";
+    result.packet.data.resize(1024, 0xAB);
     result.success = true;
     result.eof = false;
     return result;

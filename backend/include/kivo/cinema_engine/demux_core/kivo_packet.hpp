@@ -8,8 +8,7 @@
 
 namespace kivo::cinema_engine {
 
-// KivoPacket is a typed packet wrapper replacing raw codec packets.
-// The actual data is managed by the adapter; KivoPacket carries metadata only.
+// KivoPacket is a typed packet wrapper carrying compressed codec data.
 struct KivoPacket {
     ContractMetadata metadata;
     std::string packet_id;
@@ -19,8 +18,7 @@ struct KivoPacket {
     int64_t duration{0};
     bool is_key_frame{false};
     bool is_corrupt{false};
-    int64_t data_size{0};
-    std::string data_ref;   // reference to actual data in adapter
+    std::vector<uint8_t> data;  // owned compressed packet payload
 };
 
 }  // namespace kivo::cinema_engine

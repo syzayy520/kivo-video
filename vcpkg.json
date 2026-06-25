@@ -4,17 +4,7 @@
   "version": "1.0.0",
   "description": "KivoCinemaEngine - Video playback engine",
   "dependencies": [
-    {
-      "name": "ffmpeg",
-      "version": "7.1",
-      "license": "LGPL-2.1",
-      "purpose": "Video/audio demuxing, decoding, and format detection"
-    },
-    {
-      "name": "catch2",
-      "version": "3.5.2",
-      "license": "BSL-1.0",
-      "purpose": "Unit testing framework"
-    }
+    "ffmpeg",
+    "catch2"
   ]
 }

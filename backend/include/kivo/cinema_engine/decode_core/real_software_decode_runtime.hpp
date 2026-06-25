@@ -26,6 +26,10 @@ public:
     // Open a decoder for a specific codec (by name, e.g. "h264", "aac")
     bool open(const std::string& codec_name, const std::string& trace_id);
 
+    // Adopt an already-opened native codec context (takes ownership via void*)
+    bool adopt_codec_context(void* native_context, const std::string& codec_name,
+                             const std::string& trace_id);
+
     // Decode a packet, producing zero or more frames
     DecodeResult decode(const KivoPacket& packet, const std::string& trace_id);
 

@@ -17,8 +17,7 @@ static void test_successful_demux() {
     assert(result.packet.duration == 40);
     assert(result.packet.is_key_frame == true);
     assert(result.packet.is_corrupt == false);
-    assert(result.packet.data_size == 1024);
-    assert(result.packet.data_ref == "adapter://packet-001");
+    assert(static_cast<int64_t>(result.packet.data.size()) == 1024);
     std::cout << "  PASS: successful_demux\n";
 }
 
@@ -49,8 +48,7 @@ static void test_custom_packet() {
     packet.duration = 20;
     packet.is_key_frame = false;
     packet.is_corrupt = false;
-    packet.data_size = 512;
-    packet.data_ref = "adapter://custom-packet";
+    packet.data.resize(512, 0xAB);
     auto result = build_demux_result_with_packet(packet);
     assert(result.success == true);
     assert(result.packet.packet_id == "custom-packet");

@@ -81,6 +81,33 @@ bool RealSoftwareDecodeRuntime::open(const std::string& codec_name, const std::s
     return true;
 }
 
+bool RealSoftwareDecodeRuntime::adopt_codec_context(void* native_context,
+                                                     const std::string& codec_name,
+                                                     const std::string& trace_id) {
+    close();
+    if (!native_context) {
+        error_code_ = "null_context";
+        inspector_hint_ = "Cannot adopt null native context";
+        return false;
+    }
+
+    codec_context_ = native_context;
+    codec_name_ = codec_name;
+    trace_id_ = trace_id;
+    is_open_ = true;
+    is_flushed_ = false;
+
+    FfmpegCodecHandle handle{native_context};
+    FfmpegCodecInfo info = FfmpegAdapter::get_codec_info(handle);
+    width_ = info.width;
+    height_ = info.height;
+    pixel_format_ = info.pixel_format;
+
+    error_code_.clear();
+    inspector_hint_ = "Decoder adopted: " + codec_name;
+    return true;
+}
+
 DecodeResult RealSoftwareDecodeRuntime::decode(const KivoPacket& packet, const std::string& trace_id) {
     DecodeResult result;
     result.metadata.trace_id = trace_id;
@@ -94,10 +121,6 @@ DecodeResult RealSoftwareDecodeRuntime::decode(const KivoPacket& packet, const s
     FfmpegCodecHandle codec;
     codec.native = codec_context_;
 
-    FfmpegSendResult send_result = FfmpegAdapter::send_packet(
-        codec, FfmpegPacketInfo{}, nullptr, 0);
-
-    // For actual data decoding, use packet metadata
     FfmpegPacketInfo pkt_info;
     pkt_info.stream_index = packet.stream_index;
     pkt_info.pts = packet.pts;
@@ -105,7 +128,10 @@ DecodeResult RealSoftwareDecodeRuntime::decode(const KivoPacket& packet, const s
     pkt_info.duration = static_cast<int>(packet.duration);
     pkt_info.is_key_frame = packet.is_key_frame;
 
-    send_result = FfmpegAdapter::send_packet(codec, pkt_info, nullptr, 0);
+    FfmpegSendResult send_result = FfmpegAdapter::send_packet(
+        codec, pkt_info,
+        packet.data.empty() ? nullptr : packet.data.data(),
+        static_cast<int>(packet.data.size()));
 
     if (send_result.status == FfmpegSendStatus::NeedDrain) {
         result.needs_more_input = true;

@@ -129,8 +129,7 @@ static void test_kivo_packet_structure() {
     assert(packet.duration == 0);
     assert(packet.is_key_frame == false);
     assert(packet.is_corrupt == false);
-    assert(packet.data_size == 0);
-    assert(packet.data_ref.empty());
+    assert(packet.data.empty());
     std::cout << "  PASS: kivo_packet_structure\n";
 }
 
