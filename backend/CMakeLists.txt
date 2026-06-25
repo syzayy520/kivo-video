@@ -71,6 +71,7 @@ add_library(kivo_cinema_engine STATIC
   src/diagnostic_core/fake_telemetry_sampling_service.cpp
   src/governance_core/fake_schema_migration_service.cpp
   src/storage_core/fake_database_resilience_service.cpp
+  src/diagnostic_core/fake_crash_dump_privacy_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -438,3 +439,10 @@ add_executable(kivo_database_resilience_test
 target_link_libraries(kivo_database_resilience_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_database_resilience_test COMMAND kivo_database_resilience_test)
+
+add_executable(kivo_crash_dump_privacy_test
+  tests/diagnostic_core/crash_dump_privacy_test.cpp
+)
+target_link_libraries(kivo_crash_dump_privacy_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_crash_dump_privacy_test COMMAND kivo_crash_dump_privacy_test)
