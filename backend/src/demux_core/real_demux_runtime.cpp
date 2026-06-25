@@ -3,13 +3,6 @@
 
 #include <utility>
 
-#ifdef KIVO_ENABLE_FFMPEG
-extern "C" {
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-}
-#endif
-
 namespace kivo::cinema_engine {
 
 RealDemuxRuntime::RealDemuxRuntime()
@@ -65,25 +58,28 @@ bool RealDemuxRuntime::open(const std::string& path, const std::string& trace_id
     close();
     trace_id_ = trace_id;
 
-#ifdef KIVO_ENABLE_FFMPEG
-    auto* ctx = FfmpegAdapter::open_file(path);
-    if (!ctx) {
-        error_code_ = "open_failed";
-        inspector_hint_ = "Failed to open file for demuxing: " + path;
+    FfmpegFormatHandle handle = FfmpegAdapter::open_file(path);
+    if (!handle.native) {
+        if (!FfmpegAdapter::is_available()) {
+            error_code_ = "ffmpeg_not_available";
+            inspector_hint_ = "FFmpeg adapter disabled at build time";
+        } else {
+            error_code_ = "open_failed";
+            inspector_hint_ = "Failed to open file for demuxing: " + path;
+        }
         return false;
     }
 
-    format_context_ = ctx;
+    format_context_ = handle.native;
 
     std::string container_format;
-    double duration = 0.0;
+    double dur = 0.0;
     int64_t bitrate = 0;
-    FfmpegAdapter::probe_container(ctx, container_format, duration, bitrate);
+    FfmpegAdapter::probe_container(handle, container_format, duration_, bitrate);
     container_format_ = container_format;
-    duration_ = duration;
 
     std::vector<int> video_idx, audio_idx, subtitle_idx;
-    FfmpegAdapter::enumerate_streams(ctx, video_idx, audio_idx, subtitle_idx);
+    FfmpegAdapter::enumerate_streams(handle, video_idx, audio_idx, subtitle_idx);
     video_stream_count_ = static_cast<int>(video_idx.size());
     audio_stream_count_ = static_cast<int>(audio_idx.size());
     subtitle_stream_count_ = static_cast<int>(subtitle_idx.size());
@@ -93,20 +89,15 @@ bool RealDemuxRuntime::open(const std::string& path, const std::string& trace_id
     error_code_.clear();
     inspector_hint_ = "Demuxer opened: " + path + " [" + container_format_ + "]";
     return true;
-#else
-    error_code_ = "ffmpeg_not_available";
-    inspector_hint_ = "FFmpeg adapter disabled at build time";
-    return false;
-#endif
 }
 
 void RealDemuxRuntime::close() {
-#ifdef KIVO_ENABLE_FFMPEG
     if (format_context_) {
-        FfmpegAdapter::free_format_context(static_cast<AVFormatContext*>(format_context_));
+        FfmpegFormatHandle handle;
+        handle.native = format_context_;
+        FfmpegAdapter::free_format_context(handle);
         format_context_ = nullptr;
     }
-#endif
     is_open_ = false;
     is_eof_ = false;
     video_stream_count_ = 0;
@@ -124,46 +115,35 @@ DemuxResult RealDemuxRuntime::read_packet(const std::string& trace_id) {
         return result;
     }
 
-#ifdef KIVO_ENABLE_FFMPEG
-    auto* ctx = static_cast<AVFormatContext*>(format_context_);
-    AVPacket* packet = av_packet_alloc();
-    if (!packet) {
+    FfmpegFormatHandle handle;
+    handle.native = format_context_;
+
+    FfmpegReadResult read_result = FfmpegAdapter::read_packet(handle);
+
+    if (read_result.eof) {
+        is_eof_ = true;
+        result.success = true;
+        result.eof = true;
+        return result;
+    }
+
+    if (!read_result.success) {
         result.success = false;
-        result.error_message = "packet_alloc_failed: Failed to allocate packet";
+        result.error_message = read_result.error_message;
         return result;
     }
 
-    int ret = av_read_frame(ctx, packet);
-    if (ret < 0) {
-        av_packet_free(&packet);
-        if (ret == AVERROR_EOF || avio_feof(ctx->pb)) {
-            is_eof_ = true;
-            result.success = true;
-            result.eof = true;
-        } else {
-            result.success = false;
-            result.error_message = FfmpegAdapter::map_error(ret);
-        }
-        return result;
-    }
+    result.packet.stream_index = read_result.packet.stream_index;
+    result.packet.pts = read_result.packet.pts;
+    result.packet.dts = read_result.packet.dts;
+    result.packet.duration = read_result.packet.duration;
+    result.packet.is_key_frame = read_result.packet.is_key_frame;
+    result.packet.data_size = static_cast<int64_t>(read_result.packet_data.size());
+    result.packet.packet_id = "pkt_" + std::to_string(read_result.packet.stream_index) + "_" +
+                              std::to_string(read_result.packet.pts);
 
-    result.packet.stream_index = packet->stream_index;
-    result.packet.pts = (packet->pts != AV_NOPTS_VALUE) ? packet->pts : 0;
-    result.packet.dts = (packet->dts != AV_NOPTS_VALUE) ? packet->dts : 0;
-    result.packet.duration = packet->duration;
-    result.packet.is_key_frame = (packet->flags & AV_PKT_FLAG_KEY) != 0;
-    result.packet.data_size = packet->size;
-    result.packet.packet_id = "pkt_" + std::to_string(packet->stream_index) + "_" +
-                              std::to_string(packet->pts);
-
-    av_packet_free(&packet);
     result.success = true;
     return result;
-#else
-    result.success = false;
-    result.error_message = "ffmpeg_not_available: FFmpeg adapter disabled at build time";
-    return result;
-#endif
 }
 
 bool RealDemuxRuntime::seek_to_time(double seconds) {
@@ -171,23 +151,19 @@ bool RealDemuxRuntime::seek_to_time(double seconds) {
         return false;
     }
 
-#ifdef KIVO_ENABLE_FFMPEG
-    auto* ctx = static_cast<AVFormatContext*>(format_context_);
-    int64_t target_ts = static_cast<int64_t>(seconds * AV_TIME_BASE);
-    int ret = av_seek_frame(ctx, -1, target_ts, AVSEEK_FLAG_BACKWARD);
-    if (ret < 0) {
-        error_code_ = FfmpegAdapter::map_error(ret);
-        inspector_hint_ = "Seek failed";
+    FfmpegFormatHandle handle;
+    handle.native = format_context_;
+
+    if (!FfmpegAdapter::seek(handle, seconds)) {
+        error_code_ = "seek_failed";
+        inspector_hint_ = "Seek to " + std::to_string(seconds) + "s failed";
         return false;
     }
-    avcodec_flush_buffers(ctx->streams[0]->codecpar ? nullptr : nullptr);
+
     is_eof_ = false;
     error_code_.clear();
     inspector_hint_ = "Seek to " + std::to_string(seconds) + "s OK";
     return true;
-#else
-    return false;
-#endif
 }
 
 bool RealDemuxRuntime::is_open() const { return is_open_; }

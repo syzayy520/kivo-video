@@ -103,6 +103,14 @@ target_include_directories(kivo_cinema_engine
 
 if(KIVO_ENABLE_FFMPEG)
   target_compile_definitions(kivo_cinema_engine PUBLIC KIVO_ENABLE_FFMPEG)
+  if(FFMPEG_ROOT)
+    message(STATUS "FFmpeg SDK root: ${FFMPEG_ROOT}")
+    target_include_directories(kivo_cinema_engine PUBLIC ${FFMPEG_ROOT}/include)
+    target_link_directories(kivo_cinema_engine PUBLIC ${FFMPEG_ROOT}/lib)
+    target_link_libraries(kivo_cinema_engine PUBLIC avformat avcodec avutil swresample)
+  else()
+    message(WARNING "KIVO_ENABLE_FFMPEG=ON but FFMPEG_ROOT is not set. FFmpeg symbols will not be linked.")
+  endif()
 endif()
 
 if(KIVO_ENABLE_REAL_MEDIA_TESTS)

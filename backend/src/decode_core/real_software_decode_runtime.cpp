@@ -3,14 +3,6 @@
 
 #include <utility>
 
-#ifdef KIVO_ENABLE_FFMPEG
-extern "C" {
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-#include <libavutil/pixdesc.h>
-}
-#endif
-
 namespace kivo::cinema_engine {
 
 RealSoftwareDecodeRuntime::RealSoftwareDecodeRuntime()
@@ -63,47 +55,30 @@ bool RealSoftwareDecodeRuntime::open(const std::string& codec_name, const std::s
     codec_name_ = codec_name;
     trace_id_ = trace_id;
 
-#ifdef KIVO_ENABLE_FFMPEG
-    const AVCodec* codec = avcodec_find_decoder_by_name(codec_name.c_str());
-    if (!codec) {
-        error_code_ = "codec_not_found";
-        inspector_hint_ = "Decoder not found: " + codec_name;
+    FfmpegCodecHandle handle = FfmpegAdapter::open_decoder_by_name(codec_name);
+    if (!handle.native) {
+        if (!FfmpegAdapter::is_available()) {
+            error_code_ = "ffmpeg_not_available";
+            inspector_hint_ = "FFmpeg adapter disabled at build time";
+        } else {
+            error_code_ = "codec_not_found";
+            inspector_hint_ = "Decoder not found: " + codec_name;
+        }
         return false;
     }
 
-    AVCodecContext* ctx = avcodec_alloc_context3(codec);
-    if (!ctx) {
-        error_code_ = "context_alloc_failed";
-        inspector_hint_ = "Failed to allocate codec context for: " + codec_name;
-        return false;
-    }
-
-    int ret = avcodec_open2(ctx, codec, nullptr);
-    if (ret < 0) {
-        avcodec_free_context(&ctx);
-        error_code_ = FfmpegAdapter::map_error(ret);
-        inspector_hint_ = "Failed to open codec: " + codec_name;
-        return false;
-    }
-
-    codec_context_ = ctx;
+    codec_context_ = handle.native;
     is_open_ = true;
     is_flushed_ = false;
 
-    width_ = ctx->width;
-    height_ = ctx->height;
-    if (ctx->pix_fmt != AV_PIX_FMT_NONE) {
-        pixel_format_ = FfmpegAdapter::get_pixel_format_name(ctx->pix_fmt);
-    }
+    FfmpegCodecInfo info = FfmpegAdapter::get_codec_info(handle);
+    width_ = info.width;
+    height_ = info.height;
+    pixel_format_ = info.pixel_format;
 
     error_code_.clear();
     inspector_hint_ = "Decoder opened: " + codec_name;
     return true;
-#else
-    error_code_ = "ffmpeg_not_available";
-    inspector_hint_ = "FFmpeg adapter disabled at build time";
-    return false;
-#endif
 }
 
 DecodeResult RealSoftwareDecodeRuntime::decode(const KivoPacket& packet, const std::string& trace_id) {
@@ -116,94 +91,68 @@ DecodeResult RealSoftwareDecodeRuntime::decode(const KivoPacket& packet, const s
         return result;
     }
 
-#ifdef KIVO_ENABLE_FFMPEG
-    auto* ctx = static_cast<AVCodecContext*>(codec_context_);
+    FfmpegCodecHandle codec;
+    codec.native = codec_context_;
 
-    AVPacket* av_packet = av_packet_alloc();
-    if (!av_packet) {
+    FfmpegSendResult send_result = FfmpegAdapter::send_packet(
+        codec, FfmpegPacketInfo{}, nullptr, 0);
+
+    // For actual data decoding, use packet metadata
+    FfmpegPacketInfo pkt_info;
+    pkt_info.stream_index = packet.stream_index;
+    pkt_info.pts = packet.pts;
+    pkt_info.dts = packet.dts;
+    pkt_info.duration = static_cast<int>(packet.duration);
+    pkt_info.is_key_frame = packet.is_key_frame;
+
+    send_result = FfmpegAdapter::send_packet(codec, pkt_info, nullptr, 0);
+
+    if (send_result.status == FfmpegSendStatus::NeedDrain) {
+        result.needs_more_input = true;
+        result.success = true;
+        return result;
+    }
+    if (send_result.status == FfmpegSendStatus::EndOfStream) {
+        result.eof = true;
+        result.success = true;
+        return result;
+    }
+    if (send_result.status == FfmpegSendStatus::Error) {
         result.success = false;
-        result.error_message = "packet_alloc_failed: Failed to allocate packet for decoding";
+        result.error_message = send_result.error_message;
         return result;
     }
 
-    av_packet->stream_index = packet.stream_index;
-    av_packet->pts = packet.pts;
-    av_packet->dts = packet.dts;
-    av_packet->duration = static_cast<int>(packet.duration);
-    if (packet.is_key_frame) {
-        av_packet->flags |= AV_PKT_FLAG_KEY;
-    }
-
-    int ret = avcodec_send_packet(ctx, av_packet);
-    av_packet_free(&av_packet);
-
-    if (ret < 0) {
-        if (ret == AVERROR(EAGAIN)) {
-            result.needs_more_input = true;
-            result.success = true;
-        } else if (ret == AVERROR_EOF) {
-            result.eof = true;
-            result.success = true;
-        } else {
-            result.success = false;
-            result.error_message = FfmpegAdapter::map_error(ret);
-        }
+    // Try to receive a frame
+    FfmpegFrameResult frame;
+    if (!FfmpegAdapter::receive_frame(codec, frame)) {
+        result.needs_more_input = true;
+        result.success = true;
         return result;
     }
 
-    AVFrame* frame = av_frame_alloc();
-    if (!frame) {
-        result.success = false;
-        result.error_message = "frame_alloc_failed: Failed to allocate frame";
-        return result;
-    }
+    result.frame.frame_id = "frame_" + std::to_string(frame.pts);
+    result.frame.pts = frame.pts;
+    result.frame.dts = frame.dts;
+    result.frame.duration = frame.duration;
 
-    ret = avcodec_receive_frame(ctx, frame);
-    if (ret < 0) {
-        av_frame_free(&frame);
-        if (ret == AVERROR(EAGAIN)) {
-            result.needs_more_input = true;
-            result.success = true;
-        } else if (ret == AVERROR_EOF) {
-            result.eof = true;
-            result.success = true;
-        } else {
-            result.success = false;
-            result.error_message = FfmpegAdapter::map_error(ret);
-        }
-        return result;
-    }
-
-    result.frame.frame_id = "frame_" + std::to_string(frame->pts);
-    result.frame.pts = frame->pts;
-    result.frame.dts = frame->dts;
-    result.frame.duration = frame->duration;
-
-    if (frame->width > 0 && frame->height > 0) {
+    if (frame.is_video) {
         result.frame.stream_kind = "video";
-        result.frame.width = frame->width;
-        result.frame.height = frame->height;
-        if (frame->format != AV_PIX_FMT_NONE) {
-            result.frame.pixel_format = FfmpegAdapter::get_pixel_format_name(frame->format);
-            pixel_format_ = result.frame.pixel_format;
-        }
-        width_ = frame->width;
-        height_ = frame->height;
-    } else if (frame->nb_samples > 0) {
+        result.frame.width = frame.width;
+        result.frame.height = frame.height;
+        result.frame.pixel_format = frame.pixel_format;
+        pixel_format_ = frame.pixel_format;
+        width_ = frame.width;
+        height_ = frame.height;
+    } else if (frame.is_audio) {
         result.frame.stream_kind = "audio";
-        result.frame.sample_rate = frame->sample_rate;
-        result.frame.channels = frame->ch_layout.nb_channels;
-        result.frame.sample_format = FfmpegAdapter::get_sample_format_name(frame->format);
+        result.frame.sample_rate = frame.sample_rate;
+        result.frame.channels = frame.channels;
+        result.frame.sample_format = frame.sample_format;
     }
 
-    av_frame_free(&frame);
     result.success = true;
     return result;
-#else
-    result.success = false;
-    result.error_message = "ffmpeg_not_available: FFmpeg adapter disabled at build time";
-    return result;
-#endif
 }
 
 DecodeResult RealSoftwareDecodeRuntime::flush(const std::string& trace_id) {
@@ -216,41 +165,23 @@ DecodeResult RealSoftwareDecodeRuntime::flush(const std::string& trace_id) {
         return result;
     }
 
-#ifdef KIVO_ENABLE_FFMPEG
-    auto* ctx = static_cast<AVCodecContext*>(codec_context_);
-
-    int ret = avcodec_send_packet(ctx, nullptr);
-    if (ret < 0 && ret != AVERROR_EOF) {
-        result.success = false;
-        result.error_message = FfmpegAdapter::map_error(ret);
-        return result;
-    }
-
-    AVFrame* frame = av_frame_alloc();
-    while (true) {
-        ret = avcodec_receive_frame(ctx, frame);
-        if (ret < 0) break;
-    }
-    av_frame_free(&frame);
+    FfmpegCodecHandle codec;
+    codec.native = codec_context_;
+    FfmpegAdapter::flush_decoder(codec);
 
     is_flushed_ = true;
     result.success = true;
     result.eof = true;
     return result;
-#else
-    result.success = false;
-    result.error_message = "ffmpeg_not_available: FFmpeg adapter disabled at build time";
-    return result;
-#endif
 }
 
 void RealSoftwareDecodeRuntime::close() {
-#ifdef KIVO_ENABLE_FFMPEG
     if (codec_context_) {
-        FfmpegAdapter::free_codec_context(static_cast<AVCodecContext*>(codec_context_));
+        FfmpegCodecHandle handle;
+        handle.native = codec_context_;
+        FfmpegAdapter::free_codec_context(handle);
         codec_context_ = nullptr;
     }
-#endif
     is_open_ = false;
     is_flushed_ = false;
     width_ = 0;

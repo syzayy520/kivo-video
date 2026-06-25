@@ -18,7 +18,8 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "KIVO_ENABLE_FFMPEG": "ON",
-        "KIVO_ENABLE_REAL_MEDIA_TESTS": "ON"
+        "KIVO_ENABLE_REAL_MEDIA_TESTS": "ON",
+        "FFMPEG_ROOT": "C:/ffmpeg-sdk/ffmpeg-n7.1-latest-win64-gpl-shared-7.1"
       }
     },
     {
@@ -40,7 +41,8 @@
       "binaryDir": "${sourceDir}/build/vs-debug-ffmpeg",
       "cacheVariables": {
         "KIVO_ENABLE_FFMPEG": "ON",
-        "KIVO_ENABLE_REAL_MEDIA_TESTS": "ON"
+        "KIVO_ENABLE_REAL_MEDIA_TESTS": "ON",
+        "FFMPEG_ROOT": "C:/ffmpeg-sdk/ffmpeg-n7.1-latest-win64-gpl-shared-7.1"
       }
     }
   ],

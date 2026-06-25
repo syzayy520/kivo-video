@@ -40,7 +40,7 @@ static void test_demux_decode_first_frames() {
         auto result = demux.read_packet("integ_pkt_" + std::to_string(i));
         if (result.eof) break;
         if (!result.success) {
-            std::cout << "  WARN: packet read failed: " << result.error_code << "\n";
+            std::cout << "  WARN: packet read failed: " << result.error_message << "\n";
             break;
         }
         packets_read++;

@@ -14,16 +14,17 @@ ProbeResult RealProbeRuntime::probe_file(const std::string& path, const std::str
         return result;
     }
 
-    AVFormatContext* format_context = FfmpegAdapter::open_file(path);
-    if (!format_context) {
+    FfmpegFormatHandle handle = FfmpegAdapter::open_file(path);
+    if (!handle.native) {
         result.success = false;
         result.error_code = "open_failed";
         result.inspector_hint = "Failed to open file: " + path;
         return result;
     }
 
-    result = probe_format_context(format_context, trace_id);
-    FfmpegAdapter::free_format_context(format_context);
+    result = probe_format_context(handle.native, trace_id);
+    FfmpegFormatHandle free_handle = handle;
+    FfmpegAdapter::free_format_context(free_handle);
     return result;
 }
 
@@ -52,9 +53,7 @@ ProbeResult RealProbeRuntime::probe_stream(LocalFileByteStream& byte_stream, con
 }
 
 std::vector<std::string> RealProbeRuntime::supported_container_formats() {
-    if (!is_ffmpeg_available()) {
-        return {};
-    }
+    if (!is_ffmpeg_available()) return {};
     return {
         "mov", "mp4", "mkv", "avi", "flv", "wmv", "webm", "ogg",
         "ts", "m2ts", "mpg", "mpeg", "3gp", "m4a", "aac", "flac",
@@ -63,9 +62,7 @@ std::vector<std::string> RealProbeRuntime::supported_container_formats() {
 }
 
 std::vector<std::string> RealProbeRuntime::supported_video_codecs() {
-    if (!is_ffmpeg_available()) {
-        return {};
-    }
+    if (!is_ffmpeg_available()) return {};
     return {
         "h264", "hevc", "vp8", "vp9", "av1", "mpeg2video", "mpeg4",
         "theora", "mjpeg", "prores", "dnxhd", "cfhd"
@@ -73,9 +70,7 @@ std::vector<std::string> RealProbeRuntime::supported_video_codecs() {
 }
 
 std::vector<std::string> RealProbeRuntime::supported_audio_codecs() {
-    if (!is_ffmpeg_available()) {
-        return {};
-    }
+    if (!is_ffmpeg_available()) return {};
     return {
         "aac", "opus", "flac", "vorbis", "mp3", "ac3", "eac3",
         "dca", "pcm_s16le", "pcm_s24le", "pcm_f32le", "alac"
@@ -83,11 +78,7 @@ std::vector<std::string> RealProbeRuntime::supported_audio_codecs() {
 }
 
 bool RealProbeRuntime::is_ffmpeg_available() {
-#ifdef KIVO_ENABLE_FFMPEG
-    return true;
-#else
-    return false;
-#endif
+    return FfmpegAdapter::is_available();
 }
 
 ProbeResult RealProbeRuntime::probe_format_context(void* format_context, const std::string& trace_id) {
@@ -101,14 +92,14 @@ ProbeResult RealProbeRuntime::probe_format_context(void* format_context, const s
         return result;
     }
 
-#ifdef KIVO_ENABLE_FFMPEG
-    auto* ctx = static_cast<AVFormatContext*>(format_context);
+    FfmpegFormatHandle handle;
+    handle.native = format_context;
 
     std::string container_format;
     double duration = 0.0;
     int64_t bitrate_estimate = 0;
 
-    if (!FfmpegAdapter::probe_container(ctx, container_format, duration, bitrate_estimate)) {
+    if (!FfmpegAdapter::probe_container(handle, container_format, duration, bitrate_estimate)) {
         result.success = false;
         result.error_code = "probe_failed";
         result.inspector_hint = "Failed to probe container metadata";
@@ -121,16 +112,16 @@ ProbeResult RealProbeRuntime::probe_format_context(void* format_context, const s
     result.bitrate_estimate = bitrate_estimate;
 
     std::vector<int> video_indices, audio_indices, subtitle_indices;
-    FfmpegAdapter::enumerate_streams(ctx, video_indices, audio_indices, subtitle_indices);
+    FfmpegAdapter::enumerate_streams(handle, video_indices, audio_indices, subtitle_indices);
 
     auto extract_stream_info = [&](int stream_index) -> StreamInfo {
         StreamInfo info;
         info.index = stream_index;
-        FfmpegAdapter::get_stream_codec_name(ctx, stream_index, info.codec_name);
+        FfmpegAdapter::get_stream_codec_name(handle, stream_index, info.codec_name);
 
         int64_t duration_val = 0, bitrate_val = 0;
         std::string language;
-        FfmpegAdapter::get_stream_metadata(ctx, stream_index, language, duration_val, bitrate_val);
+        FfmpegAdapter::get_stream_metadata(handle, stream_index, language, duration_val, bitrate_val);
         info.duration = duration_val;
         info.bitrate = bitrate_val;
         info.language = language;
@@ -138,7 +129,7 @@ ProbeResult RealProbeRuntime::probe_format_context(void* format_context, const s
         int width = 0, height = 0;
         double fps = 0.0;
         std::string pixel_fmt;
-        if (FfmpegAdapter::get_stream_video_info(ctx, stream_index, width, height, fps, pixel_fmt)) {
+        if (FfmpegAdapter::get_stream_video_info(handle, stream_index, width, height, fps, pixel_fmt)) {
             info.width = width;
             info.height = height;
             info.fps = fps;
@@ -147,7 +138,7 @@ ProbeResult RealProbeRuntime::probe_format_context(void* format_context, const s
 
         int sample_rate = 0, channels = 0;
         std::string ch_layout, samp_fmt;
-        if (FfmpegAdapter::get_stream_audio_info(ctx, stream_index, sample_rate, channels, ch_layout, samp_fmt)) {
+        if (FfmpegAdapter::get_stream_audio_info(handle, stream_index, sample_rate, channels, ch_layout, samp_fmt)) {
             info.sample_rate = sample_rate;
             info.channels = channels;
             info.channel_layout = ch_layout;
@@ -168,12 +159,6 @@ ProbeResult RealProbeRuntime::probe_format_context(void* format_context, const s
     }
 
     return result;
-#else
-    result.success = false;
-    result.error_code = "ffmpeg_not_available";
-    result.inspector_hint = "FFmpeg adapter disabled at build time";
-    return result;
-#endif
 }
 
 }  // namespace kivo::cinema_engine
