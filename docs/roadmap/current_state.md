@@ -43,7 +43,7 @@ Updated: 2026-06-25
 - `ctest --preset ninja-debug --output-on-failure`: PASS, 12/12 tests.
 - `cmake --build --preset vs-debug`: PASS.
 - `ctest --preset vs-debug --output-on-failure --timeout 30`: PASS, 74/74 tests.
-- Latest `backend/tools/governance/verify_p1_gates.py`: blocked by root temporary outputs (build_output.txt, tmp/). V8-001 cleaned root: build_output.txt and tmp/ removed, workspace documented, evidence generated at artifacts/p2/evidence/V8-001.json. V8-002 audit completed: 4 V10 items downgraded to CONTRACT_PASS, 18 remain RUNTIME_PASS. Evidence at artifacts/p2/evidence/V8-002.json.
+- Latest `backend/tools/governance/verify_p1_gates.py`: blocked by root temporary outputs (build_output.txt, tmp/). V8-001 cleaned root: build_output.txt and tmp/ removed, workspace documented, evidence generated at artifacts/p2/evidence/V8-001.json. V8-002 audit completed: 4 V10 items downgraded to CONTRACT_PASS, 18 remain RUNTIME_PASS. Evidence at artifacts/p2/evidence/V8-002.json. V8-003 protected work documented: FFmpeg skeleton, presenter abort fix, D3D11 skip semantics, wasapi_internal.hpp, d3d11_internal.hpp, FfmpegFrameResult frame data fields. Evidence at artifacts/p2/evidence/V8-003.json.
 
 ## Next Work
 
