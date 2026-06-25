@@ -31,6 +31,7 @@ add_library(kivo_cinema_engine STATIC
   src/source_core/fake_file_identity_service.cpp
   src/source_core/fake_local_file_source_service.cpp
   src/source_core/fake_source_adapter_service.cpp
+  src/source_core/fake_source_health_service.cpp
   src/playback_inspector_core/fake_inspector_service.cpp
   src/playback_inspector_core/fake_inspector_runtime_service.cpp
   src/policy_core/fake_policy_service.cpp
@@ -310,3 +311,10 @@ add_executable(kivo_network_security_test
 target_link_libraries(kivo_network_security_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_network_security_test COMMAND kivo_network_security_test)
+
+add_executable(kivo_source_health_test
+  tests/source_core/source_health_test.cpp
+)
+target_link_libraries(kivo_source_health_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_source_health_test COMMAND kivo_source_health_test)
