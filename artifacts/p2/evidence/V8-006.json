@@ -1,0 +1,73 @@
+{
+  "task_id": "V8-006",
+  "task_family": "schema foundation",
+  "execution_timestamp": "2026-06-26T00:35:00Z",
+  "status": "CONTRACT_PASS",
+  "goal": "enforce the six V8 evidence statuses",
+  "vocabulary": {
+    "allowed_statuses": [
+      "RUNTIME_PASS",
+      "CONTRACT_PASS",
+      "FAIL",
+      "BLOCKED_ENV",
+      "NOT_IMPLEMENTED",
+      "SKIPPED_TEST_ONLY"
+    ]
+  },
+  "scan_results": [
+    {
+      "file": "V8-001.json",
+      "status_field": "RUNTIME_PASS",
+      "evidence_status_field": "RUNTIME_PASS",
+      "verdict": "PASS"
+    },
+    {
+      "file": "V8-002.json",
+      "status_field": "RUNTIME_PASS",
+      "evidence_status_field": "RUNTIME_PASS",
+      "inner_item_statuses": ["RUNTIME_PASS", "CONTRACT_PASS"],
+      "verdict": "PASS"
+    },
+    {
+      "file": "V8-003.json",
+      "status_field": "RUNTIME_PASS",
+      "evidence_status_field": "RUNTIME_PASS",
+      "inner_item_statuses": ["DONE"],
+      "verdict": "PASS — DONE is item implementation state, not evidence status"
+    },
+    {
+      "file": "V8-004.json",
+      "status_field": "CONTRACT_PASS",
+      "evidence_status_field": "CONTRACT_PASS",
+      "verdict": "PASS"
+    },
+    {
+      "file": "V8-005.json",
+      "status_field": "CONTRACT_PASS",
+      "evidence_status_field": "CONTRACT_PASS",
+      "verdict": "PASS"
+    }
+  ],
+  "non_standard_status_scan": {
+    "PASS_READY_FOR_REVIEW": {
+      "found": true,
+      "location": "V8-002.json line 135 — inside consistency_check description, not an evidence status value",
+      "verdict": "PASS — descriptive text, not status usage"
+    },
+    "NEEDS_REPAIR": {
+      "found": true,
+      "location": "V8-002.json — count field (needs_repair: 0) and reason text",
+      "verdict": "PASS — count/mention, not status usage"
+    }
+  },
+  "summary": {
+    "total_evidence_files": 5,
+    "files_with_standard_status_only": 5,
+    "files_with_non_standard_status": 0,
+    "all_statuses_used": ["RUNTIME_PASS", "CONTRACT_PASS"]
+  },
+  "machine_check_result": "ALL_EVIDENCE_FILES_USE_STANDARD_VOCABULARY",
+  "evidence_status": "CONTRACT_PASS",
+  "reason": "All 5 V8 evidence files use only standard V8 status vocabulary (RUNTIME_PASS, CONTRACT_PASS). No non-standard statuses found in status fields. DONE appears only as item implementation state in V8-003 (not evidence status). Vocabulary is machine-checkable.",
+  "next_task": "V8-007 Evidence Path Gate"
+}
