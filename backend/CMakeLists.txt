@@ -625,6 +625,9 @@ add_executable(kivo_presenter_boundary_first_frame_test
 target_link_libraries(kivo_presenter_boundary_first_frame_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_presenter_boundary_first_frame_test COMMAND kivo_presenter_boundary_first_frame_test)
+set_tests_properties(kivo_presenter_boundary_first_frame_test PROPERTIES
+  SKIP_REGULAR_EXPRESSION "SKIP: D3D11 device not available"
+)
 
 # ─── V10: Audio output tests ───
 
