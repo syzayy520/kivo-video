@@ -36,6 +36,7 @@ add_library(kivo_cinema_engine STATIC
   src/source_core/fake_webdav_range_playback_service.cpp
   src/source_core/fake_alist_profile_service.cpp
   src/source_core/fake_alist_direct_link_service.cpp
+  src/source_core/fake_emby_session_service.cpp
   src/playback_inspector_core/fake_inspector_service.cpp
   src/playback_inspector_core/fake_inspector_runtime_service.cpp
   src/policy_core/fake_policy_service.cpp
@@ -366,3 +367,10 @@ add_executable(kivo_alist_direct_link_test
 target_link_libraries(kivo_alist_direct_link_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_alist_direct_link_test COMMAND kivo_alist_direct_link_test)
+
+add_executable(kivo_emby_session_test
+  tests/source_core/emby_session_test.cpp
+)
+target_link_libraries(kivo_emby_session_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_emby_session_test COMMAND kivo_emby_session_test)
