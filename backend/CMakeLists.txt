@@ -70,6 +70,7 @@ add_library(kivo_cinema_engine STATIC
   src/governance_core/fake_claim_vocabulary_gate_service.cpp
   src/diagnostic_core/fake_telemetry_sampling_service.cpp
   src/governance_core/fake_schema_migration_service.cpp
+  src/storage_core/fake_database_resilience_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -430,3 +431,10 @@ add_executable(kivo_schema_migration_test
 target_link_libraries(kivo_schema_migration_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_schema_migration_test COMMAND kivo_schema_migration_test)
+
+add_executable(kivo_database_resilience_test
+  tests/storage_core/database_resilience_test.cpp
+)
+target_link_libraries(kivo_database_resilience_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_database_resilience_test COMMAND kivo_database_resilience_test)

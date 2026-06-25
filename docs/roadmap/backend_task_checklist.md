@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 10:45 (P2-044 DONE)
+Updated: 2026-06-25 10:55 (P2-045 DONE)
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -208,7 +208,7 @@ Status legend:
 - DONE: P2-042 Playback Inspector Runtime. Evidence: `backend/include/kivo/cinema_engine/playback_inspector_core/inspector_read_request.hpp`, `backend/include/kivo/cinema_engine/playback_inspector_core/inspector_read_result.hpp`, `backend/include/kivo/cinema_engine/playback_inspector_core/fake_inspector_runtime_service.hpp` (expanded), `backend/src/playback_inspector_core/fake_inspector_runtime_service.cpp` (expanded), `backend/tests/playback_inspector_core/inspector_runtime_test.cpp` (10 tests, up from 6), `docs/p2_real_playback/playback_inspector_runtime.md`. CTest 51/51 PASS.
 - DONE: P2-043 Telemetry Sampling / Hot Path Policy. Evidence: `backend/include/kivo/cinema_engine/diagnostic_core/telemetry_sample_request.hpp`, `backend/include/kivo/cinema_engine/diagnostic_core/telemetry_sample_result.hpp`, `backend/include/kivo/cinema_engine/diagnostic_core/telemetry_sampling_policy.hpp`, `backend/include/kivo/cinema_engine/diagnostic_core/fake_telemetry_sampling_service.hpp`, `backend/src/diagnostic_core/fake_telemetry_sampling_service.cpp`, `backend/tests/diagnostic_core/telemetry_sampling_test.cpp`, `docs/p2_real_playback/telemetry_sampling_and_hot_path_policy.md`. CTest 52/52 PASS. 10 tests covering ring buffer sampling, hot path policy, sample rate limiting, and capacity tracking.
 - DONE: P2-044 Schema Migration Policy. Evidence: `backend/include/kivo/cinema_engine/governance_core/schema_migration_policy.hpp` (expanded), `backend/include/kivo/cinema_engine/governance_core/schema_version.hpp`, `backend/include/kivo/cinema_engine/governance_core/migration_step.hpp`, `backend/include/kivo/cinema_engine/governance_core/compatibility_test_result.hpp`, `backend/include/kivo/cinema_engine/governance_core/fake_schema_migration_service.hpp`, `backend/src/governance_core/fake_schema_migration_service.cpp`, `backend/tests/governance_core/schema_migration_test.cpp`, `docs/p2_real_playback/schema_migration_policy.md`. CTest 53/53 PASS. 10 tests covering schema migration policy, version tracking, migration steps, and compatibility test results.
-- TODO: P2-045 Database Resilience Policy Skeleton. Evidence target: source/playback/decision/cache/telemetry/preference/schema db resilience rules.
+- DONE: P2-045 Database Resilience Policy Skeleton. Evidence: `backend/include/kivo/cinema_engine/storage_core/database_resilience_policy.hpp`, `backend/include/kivo/cinema_engine/storage_core/database_health_check.hpp`, `backend/include/kivo/cinema_engine/storage_core/database_backup_policy.hpp`, `backend/include/kivo/cinema_engine/storage_core/database_recovery_policy.hpp`, `backend/include/kivo/cinema_engine/storage_core/fake_database_resilience_service.hpp`, `backend/src/storage_core/fake_database_resilience_service.cpp`, `backend/tests/storage_core/database_resilience_test.cpp`, `docs/p2_real_playback/database_resilience_policy.md`. CTest 54/54 PASS. 10 tests covering resilience policy, health check, backup policy, and recovery policy for 7 database types.
 - TODO: P2-046 Crash Dump / Support Bundle Privacy Policy. Evidence target: privacy policy and fail-closed support bundle redaction.
 - TODO: P2-047 Dependency Security / SBOM Policy Draft. Evidence target: third-party dependency lock, SBOM draft, CVE policy.
 - TODO: P2-048 Product Claim Governance Gate Skeleton. Evidence target: product claim gate and no false marketing claims.
@@ -293,6 +293,6 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-044 DONE. P2.2 Remote Playback Tasks COMPLETE. Proceed to P2.3 Quality / Recovery / Inspector Tasks (P2-045 through P2-055).
+P2-001A/B/C through P2-045 DONE. P2.2 Remote Playback Tasks COMPLETE. Proceed to P2.3 Quality / Recovery / Inspector Tasks (P2-046 through P2-055).
 
-Next: P2-045 Database Resilience Policy Skeleton.
+Next: P2-046 Crash Dump / Support Bundle Privacy Policy.
