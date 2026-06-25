@@ -1,0 +1,137 @@
+{
+  "task_id": "V8-004",
+  "task_family": "planning",
+  "execution_timestamp": "2026-06-26T00:20:00Z",
+  "status": "CONTRACT_PASS",
+  "goal": "map all P2 remaining families before implementation",
+  "family_tree_path": "docs/p2/remaining_coverage/natural_family_tree.md",
+  "families_mapped": [
+    {
+      "family_name": "local_repair_delta",
+      "task_ids": ["LRD-001", "LRD-002", "LRD-003", "LRD-004", "LRD-005", "LRD-006", "LRD-007", "LRD-008", "LRD-009", "LRD-010", "LRD-011", "LRD-012", "LRD-013"],
+      "responsibility": "Local playback proof, device reality audit, presenter boundary, PCM conversion, WASAPI shared mode, E2E runtime, micro soak, evidence artifacts, final report consistency, regression protection",
+      "directory_mapping": "Uses existing families: video_upload, presenter, audio_output, playback_core, playback_inspector_core",
+      "dependency_direction": "LRD-001 → LRD-013 (sequential)"
+    },
+    {
+      "family_name": "evidence_schema",
+      "task_ids": ["SGF-001", "SGF-002", "SGF-003", "SGF-004", "SGF-005", "SGF-006", "SGF-007", "SGF-008"],
+      "responsibility": "Evidence schema validation, artifact path enforcement, schema versioning, privacy compliance, anti-fake validation",
+      "directory_mapping": "backend/include/kivo/cinema_engine/governance_core/",
+      "dependency_direction": "SGF-001 → SGF-008 (sequential)"
+    },
+    {
+      "family_name": "redline_gate",
+      "task_ids": ["RGF-001", "RGF-002", "RGF-003", "RGF-004", "RGF-005"],
+      "responsibility": "Redline gate enforcement, forbidden claim scanning, report/source conflict detection, premature claim prevention",
+      "directory_mapping": "backend/include/kivo/cinema_engine/governance_core/",
+      "dependency_direction": "RGF-001 → RGF-005 (sequential)"
+    },
+    {
+      "family_name": "format_compat",
+      "task_ids": ["FMT-001"],
+      "responsibility": "Format compatibility matrix, codec support, container format validation, transcoding policy",
+      "directory_mapping": "backend/include/kivo/cinema_engine/decode_core/ (existing)",
+      "dependency_direction": "After RGF-005"
+    },
+    {
+      "family_name": "media_identity",
+      "task_ids": ["MID-001"],
+      "responsibility": "Media identity resolution, fingerprinting, metadata extraction, content identification",
+      "directory_mapping": "backend/include/kivo/cinema_engine/source_core/ (existing)",
+      "dependency_direction": "After FMT-001"
+    },
+    {
+      "family_name": "subtitle_chapter",
+      "task_ids": ["SUB-001"],
+      "responsibility": "Subtitle rendering, chapter navigation, subtitle format support, chapter metadata",
+      "directory_mapping": "backend/include/kivo/cinema_engine/subtitle_core/ (existing)",
+      "dependency_direction": "After MID-001"
+    },
+    {
+      "family_name": "source_core",
+      "task_ids": ["SRC-001"],
+      "responsibility": "Source playable object contracts, source identity, source location, source access",
+      "directory_mapping": "backend/include/kivo/cinema_engine/source_core/ (existing)",
+      "dependency_direction": "After SUB-001"
+    },
+    {
+      "family_name": "provider_runtime",
+      "task_ids": ["PMX-001", "PMX-002"],
+      "responsibility": "Provider runtime matrix generation, provider honesty gate, provider status tracking",
+      "directory_mapping": "backend/include/kivo/cinema_engine/governance_core/",
+      "dependency_direction": "PMX-001 → PMX-002"
+    },
+    {
+      "family_name": "playback_state",
+      "task_ids": ["PST-001"],
+      "responsibility": "Playback state management, state transitions, state persistence, state recovery",
+      "directory_mapping": "backend/include/kivo/cinema_engine/playback_core/ (existing)",
+      "dependency_direction": "After provider runtime"
+    },
+    {
+      "family_name": "audio_codec_policy",
+      "task_ids": ["ACP-001"],
+      "responsibility": "Audio codec policy, codec selection, bitrate policy, channel mapping",
+      "directory_mapping": "backend/include/kivo/cinema_engine/audio_core/ (existing)",
+      "dependency_direction": "After PST-001"
+    },
+    {
+      "family_name": "presentation_extension",
+      "task_ids": ["CAST-001", "PIP-001", "CIN-001", "TRK-001"],
+      "responsibility": "Cast foundation, PiP foundation, cinema foundation, Trakt foundation",
+      "directory_mapping": "backend/include/kivo/cinema_engine/integration_core/ and media_experience_core/ (existing)",
+      "dependency_direction": "After ACP-001"
+    },
+    {
+      "family_name": "final_gate",
+      "task_ids": ["PFFG-001", "PFFG-002", "APRV-001"],
+      "responsibility": "P2 foundation final gate, foundation final report, all providers runtime verified gate",
+      "directory_mapping": "backend/include/kivo/cinema_engine/governance_core/",
+      "dependency_direction": "PFFG-001 → PFFG-002 → APRV-001"
+    }
+  ],
+  "provider_families": [
+    {
+      "family_name": "network_file_sources",
+      "task_id": "NET-001",
+      "responsibility": "Network file sources (SMB, NFS, FTP, FTPS, SFTP, HTTP/HTTPS)"
+    },
+    {
+      "family_name": "object_storage",
+      "task_id": "OBJ-001",
+      "responsibility": "Object storage (S3, MinIO)"
+    },
+    {
+      "family_name": "webdav_alist",
+      "task_id": "WDA-001",
+      "responsibility": "WebDAV and AList sources"
+    },
+    {
+      "family_name": "media_server",
+      "task_id": "MSV-001",
+      "responsibility": "Media server sources (Emby, Plex, Jellyfin)"
+    },
+    {
+      "family_name": "cloud_drive",
+      "task_id": "CLD-001",
+      "responsibility": "Cloud drive sources (Google Drive, OneDrive)"
+    },
+    {
+      "family_name": "iptv_live",
+      "task_id": "IPTV-001",
+      "responsibility": "IPTV live sources"
+    }
+  ],
+  "dependency_graph": "V8-001 → V8-009 → LRD-001 → LRD-013 → SGF-001 → SGF-008 → RGF-001 → RGF-005 → FMT-001 → MID-001 → SUB-001 → SRC-001 → NET-001 → OBJ-001 → WDA-001 → MSV-001 → CLD-001 → IPTV-001 → PMX-001 → PMX-002 → PST-001 → ACP-001 → CAST-001 → PIP-001 → CIN-001 → TRK-001 → PFFG-001 → PFFG-002 → APRV-001",
+  "rules_enforced": [
+    "No common, misc, or utility dumping-ground families",
+    "Family names match task IDs (e.g., local_repair_delta for LRD tasks)",
+    "Each family has clear responsibility boundaries",
+    "Existing families reused where possible",
+    "New families only when responsibility doesn't fit existing structure"
+  ],
+  "evidence_status": "CONTRACT_PASS",
+  "reason": "All P2 remaining families mapped to existing backend natural family tree style. Family names match task IDs. No dumping-ground families. Dependency direction documented.",
+  "next_task": "V8-005 Allowed / Forbidden Claims Gate"
+}
