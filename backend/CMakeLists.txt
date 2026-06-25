@@ -81,6 +81,7 @@ add_library(kivo_cinema_engine STATIC
   src/signing_core/fake_signing_service.cpp
   src/symbol_core/fake_symbol_service.cpp
   src/update_core/fake_update_service.cpp
+  src/recovery_core/fake_recovery_fallback_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -497,3 +498,10 @@ add_executable(kivo_build_signing_symbol_update_test
 target_link_libraries(kivo_build_signing_symbol_update_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_build_signing_symbol_update_test COMMAND kivo_build_signing_symbol_update_test)
+
+add_executable(kivo_recovery_fallback_test
+  tests/recovery_core/recovery_fallback_test.cpp
+)
+target_link_libraries(kivo_recovery_fallback_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_recovery_fallback_test COMMAND kivo_recovery_fallback_test)
