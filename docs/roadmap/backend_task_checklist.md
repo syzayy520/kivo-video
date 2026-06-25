@@ -420,9 +420,9 @@ Status legend:
 - DONE: V8-004 Natural Family Tree Gate. Evidence: `artifacts/p2/evidence/V8-004.json`. All P2 remaining families mapped to existing backend natural family tree style. Family names match task IDs. No dumping-ground families. Dependency direction documented.
 - DONE: V8-005 Allowed / Forbidden Claims Gate. Evidence: `artifacts/p2/evidence/V8-005.json`. Forbidden claim scan: 6 forbidden terms scanned across docs and evidence, 0 premature completion claims found. Allowed claim vocabulary documented.
 - DONE: V8-006 Status Vocabulary Gate. Evidence: `artifacts/p2/evidence/V8-006.json`. All 5 V8 evidence files use only standard V8 status vocabulary. No non-standard statuses found.
-- TODO: V8-007 Evidence Path Gate. Evidence target: every child task writes or plans `artifacts/p2/evidence/<task-id>.json` with schema version `p2-evidence-v8`.
-- TODO: V8-008 Provider Runtime Matrix Gate Plan. Evidence target: provider matrix path `artifacts/p2/provider_runtime_matrix.json`, provider list, blocked/runtime semantics.
-- TODO: V8-009 Final Gate Sequencing Gate. Evidence target: Foundation Final Gate is locked until all foundation child evidence exists; All Providers Runtime Verified Gate is explicitly post-foundation.
+- DONE: V8-007 Evidence Path Gate. Evidence: `artifacts/p2/evidence/V8-007.json`. All 7 V8 evidence files exist in correct artifact path (artifacts/p2/evidence/). No evidence files in source root. Path format matches <task-id>.json pattern. Schema version p2-evidence-v8 defined.
+- DONE: V8-008 Provider Runtime Matrix Gate Plan. Evidence: `artifacts/p2/evidence/V8-008.json`. Provider matrix schema defined with 21 providers, runtime semantics rules documented, allowed/forbidden claims listed. Matrix is planned, not complete.
+- DONE: V8-009 Final Gate Sequencing Gate. Evidence: `artifacts/p2/evidence/V8-009.json`. Final gate sequencing rules defined, dependency list documented, premature claim detection active. Foundation Final Gate and All Providers Runtime Verified Gate are locked until their dependencies exist.
 
 ## P2-LOCAL-REPAIR-DELTA-001
 

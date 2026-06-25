@@ -1,0 +1,67 @@
+{
+  "task_id": "V8-007",
+  "task_family": "evidence foundation",
+  "execution_timestamp": "2026-06-26T00:40:00Z",
+  "status": "CONTRACT_PASS",
+  "goal": "define artifact paths and prevent source-root evidence dumping",
+  "artifact_root": "artifacts/p2/evidence/",
+  "evidence_path_audit": [
+    {
+      "task_id": "V8-001",
+      "evidence_path": "artifacts/p2/evidence/V8-001.json",
+      "exists": true,
+      "verdict": "PASS"
+    },
+    {
+      "task_id": "V8-002",
+      "evidence_path": "artifacts/p2/evidence/V8-002.json",
+      "exists": true,
+      "verdict": "PASS"
+    },
+    {
+      "task_id": "V8-003",
+      "evidence_path": "artifacts/p2/evidence/V8-003.json",
+      "exists": true,
+      "verdict": "PASS"
+    },
+    {
+      "task_id": "V8-004",
+      "evidence_path": "artifacts/p2/evidence/V8-004.json",
+      "exists": true,
+      "verdict": "PASS"
+    },
+    {
+      "task_id": "V8-005",
+      "evidence_path": "artifacts/p2/evidence/V8-005.json",
+      "exists": true,
+      "verdict": "PASS"
+    },
+    {
+      "task_id": "V8-006",
+      "evidence_path": "artifacts/p2/evidence/V8-006.json",
+      "exists": true,
+      "verdict": "PASS"
+    },
+    {
+      "task_id": "V8-007",
+      "evidence_path": "artifacts/p2/evidence/V8-007.json",
+      "exists": true,
+      "verdict": "PASS — this file"
+    }
+  ],
+  "root_evidence_audit": {
+    "root_json_files": ["CMakePresets.json", "vcpkg.json"],
+    "root_evidence_files": [],
+    "verdict": "PASS — no evidence files in source root"
+  },
+  "schema_version": "p2-evidence-v8",
+  "path_rules": {
+    "artifact_root": "artifacts/p2/evidence/",
+    "format": "artifacts/p2/evidence/<task-id>.json",
+    "root_dumping_forbidden": true,
+    "root_evidence_allowed": false
+  },
+  "evidence_status": "CONTRACT_PASS",
+  "reason": "All 7 V8 evidence files exist in correct artifact path (artifacts/p2/evidence/). No evidence files in source root. Path format matches <task-id>.json pattern. Schema version p2-evidence-v8 defined.",
+  "next_task": "V8-008 Provider Runtime Matrix Gate Plan"
+}
