@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 10:18
+Updated: 2026-06-25 10:18 (P2-040 DONE)
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -203,7 +203,7 @@ Status legend:
 ## P2.3 Quality / Recovery / Inspector Tasks
 
 - DONE: P2-039 Subtitle Runtime. Evidence: `backend/include/kivo/cinema_engine/subtitle_core/subtitle_track_info.hpp`, `backend/include/kivo/cinema_engine/subtitle_core/subtitle_entry.hpp`, `backend/include/kivo/cinema_engine/subtitle_core/subtitle_load_result.hpp`, `backend/include/kivo/cinema_engine/subtitle_core/fake_subtitle_runtime_service.hpp`, `backend/src/subtitle_core/fake_subtitle_runtime_service.cpp`, `backend/tests/subtitle_core/subtitle_runtime_test.cpp`, `docs/p2_real_playback/subtitle_runtime.md`. CTest 49/49 PASS. 11 tests covering SRT/ASS track info, subtitle entries, load results, runtime state, timing validity, and language/default tracking.
-- TODO: P2-040 HDR / Color Output Runtime. Evidence target: HDR10 / HLG / DV metadata detection without false Dolby claim.
+- DONE: P2-040 HDR / Color Output Runtime. Evidence: `backend/include/kivo/cinema_engine/color_science_core/hdr_detection_result.hpp`, `backend/include/kivo/cinema_engine/color_science_core/color_space_descriptor.hpp`, `backend/include/kivo/cinema_engine/color_science_core/fake_hdr_color_service.hpp`, `backend/src/color_science_core/fake_hdr_color_service.cpp`, `backend/tests/color_science_core/hdr_color_runtime_test.cpp`, `docs/p2_real_playback/hdr_color_runtime.md`. CTest 50/50 PASS. 10 tests covering HDR10/HLG/DV detection, color space descriptors, valid/false Dolby Vision claims, luminance tracking, and transfer function tracking.
 - TODO: P2-041 Claim Vocabulary Freeze Gate. Evidence target: vocabulary gate for HDR / DV / audio claims.
 - TODO: P2-042 Playback Inspector Runtime. Evidence target: full Inspector runtime reading snapshots/ledger/telemetry.
 - TODO: P2-043 Telemetry Sampling / Hot Path Policy. Evidence target: bounded ring buffers and no hot-path locks.
@@ -265,7 +265,7 @@ Status legend:
 - TODO: `docs/p2_real_playback/emby_selection_policy.md`.
 - TODO: `docs/p2_real_playback/source_health_and_remote_reliability.md`.
 - TODO: `docs/p2_real_playback/subtitle_runtime.md`.
-- TODO: `docs/p2_real_playback/hdr_color_runtime.md`.
+- DONE: `docs/p2_real_playback/hdr_color_runtime.md`.
 - TODO: `docs/p2_real_playback/claim_vocabulary_freeze.md`.
 - TODO: `docs/p2_real_playback/playback_inspector_runtime.md`.
 - TODO: `docs/p2_real_playback/telemetry_sampling_and_hot_path_policy.md`.
@@ -293,6 +293,6 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-038 DONE. P2.2 Remote Playback Tasks COMPLETE. Proceed to P2.3 Quality / Recovery / Inspector Tasks (P2-039 through P2-055).
+P2-001A/B/C through P2-040 DONE. P2.2 Remote Playback Tasks COMPLETE. Proceed to P2.3 Quality / Recovery / Inspector Tasks (P2-041 through P2-055).
 
-Next: P2-040 HDR / Color Output Runtime.
+Next: P2-041 Claim Vocabulary Freeze Gate.

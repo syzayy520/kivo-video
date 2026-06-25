@@ -66,6 +66,7 @@ add_library(kivo_cinema_engine STATIC
   src/network_cache_core/fake_range_reader_service.cpp
   src/network_cache_core/fake_segment_cache_service.cpp
   src/network_cache_core/fake_remote_direct_play_gate_service.cpp
+  src/color_science_core/fake_hdr_color_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -398,3 +399,10 @@ add_executable(kivo_subtitle_runtime_test
 target_link_libraries(kivo_subtitle_runtime_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_subtitle_runtime_test COMMAND kivo_subtitle_runtime_test)
+
+add_executable(kivo_hdr_color_runtime_test
+  tests/color_science_core/hdr_color_runtime_test.cpp
+)
+target_link_libraries(kivo_hdr_color_runtime_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_hdr_color_runtime_test COMMAND kivo_hdr_color_runtime_test)
