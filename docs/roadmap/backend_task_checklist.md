@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 10:06
+Updated: 2026-06-25 10:10
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -197,7 +197,7 @@ Status legend:
 - DONE: P2-034 AList Provider Behavior Profile. Evidence: `backend/include/kivo/cinema_engine/source_core/alist_server_profile.hpp`, `backend/include/kivo/cinema_engine/source_core/alist_api_behavior.hpp`, `backend/include/kivo/cinema_engine/source_core/alist_server_failure.hpp`, `backend/include/kivo/cinema_engine/source_core/fake_alist_profile_service.hpp`, `backend/src/source_core/fake_alist_profile_service.cpp`, `backend/tests/source_core/alist_profile_test.cpp`, `docs/p2_real_playback/alist_provider_behavior_profile.md`. CTest 44/44 PASS. 11 tests covering standard/webdav/restricted profiles, full/readonly/minimal API behaviors, and 5 failure kinds.
 - DONE: P2-035 AList Direct Link Playback. Evidence: `backend/include/kivo/cinema_engine/source_core/alist_direct_link_request.hpp`, `backend/include/kivo/cinema_engine/source_core/alist_direct_link_response.hpp`, `backend/include/kivo/cinema_engine/source_core/alist_direct_link_identity.hpp`, `backend/include/kivo/cinema_engine/source_core/alist_direct_link_failure.hpp`, `backend/include/kivo/cinema_engine/source_core/fake_alist_direct_link_service.hpp`, `backend/src/source_core/fake_alist_direct_link_service.cpp`, `backend/tests/source_core/alist_direct_link_test.cpp`, `docs/p2_real_playback/alist_direct_link_playback.md`. CTest 45/45 PASS. 10 tests covering direct link request/response construction, TTL tracking, identity stability across refreshes, and failure handling.
 - DONE: P2-036 Emby Session Runtime. Evidence: `backend/include/kivo/cinema_engine/source_core/emby_session_identity.hpp`, `backend/include/kivo/cinema_engine/source_core/emby_session_runtime.hpp`, `backend/include/kivo/cinema_engine/source_core/emby_session_failure.hpp`, `backend/include/kivo/cinema_engine/source_core/fake_emby_session_service.hpp`, `backend/src/source_core/fake_emby_session_service.cpp`, `backend/tests/source_core/emby_session_test.cpp`, `docs/p2_real_playback/emby_session_runtime.md`. CTest 46/46 PASS. 10 tests covering session identity, runtime lifecycle (created/playing/paused/torndown), and 4 failure kinds.
-- TODO: P2-037 Emby Direct Play Playback. Evidence target: Emby item_id + media_source_id identity and direct play path.
+- DONE: P2-037 Emby Direct Play Playback. Evidence: `backend/include/kivo/cinema_engine/source_core/emby_direct_play_request.hpp`, `backend/include/kivo/cinema_engine/source_core/emby_direct_play_response.hpp`, `backend/include/kivo/cinema_engine/source_core/emby_direct_play_failure.hpp`, `backend/include/kivo/cinema_engine/source_core/fake_emby_direct_play_service.hpp`, `backend/src/source_core/fake_emby_direct_play_service.cpp`, `backend/tests/source_core/emby_direct_play_test.cpp`, `docs/p2_real_playback/emby_direct_play.md`. CTest 47/47 PASS. 10 tests covering direct play request/response, transcoding fallback, container/bitrate tracking, and 3 failure kinds.
 - TODO: P2-038 Remote Direct Play Gate. Evidence target: no silent transcode, credential redaction, redirect leakage gate, cache identity binding.
 
 ## P2.3 Quality / Recovery / Inspector Tasks
@@ -293,7 +293,8 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-036 DONE. Proceed to P2-037 Emby Direct Play Playback:
+P2-001A/B/C through P2-037 DONE. Proceed to P2-038 Remote Direct Play Gate:
 
-1. Emby item_id + media_source_id identity.
-2. Emby direct play path and transcoding fallback.
+1. No silent transcode gate.
+2. Credential redaction and redirect leakage prevention.
+3. Cache identity binding verification.
