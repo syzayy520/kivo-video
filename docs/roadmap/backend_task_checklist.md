@@ -183,7 +183,7 @@ Status legend:
 - DONE: P2-023 Disc Image / BDMV / Mounted ISO Probe. Evidence: `backend/include/kivo/cinema_engine/disc_core/bdmv_probe_request.hpp`, `backend/include/kivo/cinema_engine/disc_core/bdmv_probe_result.hpp`, `backend/include/kivo/cinema_engine/disc_core/fake_bdmv_probe_service.hpp`, `backend/src/disc_core/fake_bdmv_probe_service.cpp`, `backend/tests/disc_core/bdmv_probe_test.cpp`, `docs/p2_real_playback/disc_image_bdmv_probe.md`. CTest 33/33 PASS. 5 tests covering successful/failed/mounted/empty/playlists BDMV probe scenarios.
 - DONE: P2-024 BDMV Playlist Duplicate Policy. Evidence: `backend/include/kivo/cinema_engine/disc_core/bdmv_playlist_duplicate_request.hpp`, `backend/include/kivo/cinema_engine/disc_core/bdmv_playlist_duplicate_result.hpp`, `backend/include/kivo/cinema_engine/disc_core/fake_bdmv_playlist_duplicate_service.hpp`, `backend/src/disc_core/fake_bdmv_playlist_duplicate_service.cpp`, `backend/tests/disc_core/bdmv_playlist_duplicate_test.cpp`, `docs/p2_real_playback/bdmv_playlist_duplicate_policy.md`. CTest 34/34 PASS. 5 tests covering no duplicates, identical, subset, superset, and similar playlist collapse scenarios.
 - DONE: P2-025 BDMV Main Title Selection. Evidence: `backend/include/kivo/cinema_engine/disc_core/bdmv_main_title_request.hpp`, `backend/include/kivo/cinema_engine/disc_core/bdmv_main_title_result.hpp`, `backend/include/kivo/cinema_engine/disc_core/fake_bdmv_main_title_service.hpp`, `backend/src/disc_core/fake_bdmv_main_title_service.cpp`, `backend/tests/disc_core/bdmv_main_title_test.cpp`, `docs/p2_real_playback/bdmv_main_title_selection.md`. CTest 35/35 PASS. 5 tests covering longest duration, most chapters, largest size, lowest number, and user override selection scenarios.
-- TODO: P2-026 BDMV / Mounted ISO Main Title Playback Gate. Evidence target: m2ts sequence playback and encrypted disc fail-closed gate.
+- DONE: P2-026 BDMV / Mounted ISO Main Title Playback Gate. Evidence: `backend/include/kivo/cinema_engine/disc_core/bdmv_playback_gate_request.hpp`, `backend/include/kivo/cinema_engine/disc_core/bdmv_playback_gate_result.hpp`, `backend/include/kivo/cinema_engine/disc_core/fake_bdmv_playback_gate_service.hpp`, `backend/src/disc_core/fake_bdmv_playback_gate_service.cpp`, `backend/tests/disc_core/bdmv_playback_gate_test.cpp`, `docs/p2_real_playback/bdmv_main_title_playback_gate.md`. CTest 36/36 PASS. 5 tests covering valid BDMV, mounted ISO, encrypted disc fail-closed, missing streams, and invalid playlist gate scenarios.
 
 ## P2.2 Remote Playback Tasks
 
@@ -250,6 +250,7 @@ Status legend:
 - DONE: `docs/p2_real_playback/disc_image_bdmv_probe.md`.
 - DONE: `docs/p2_real_playback/bdmv_playlist_duplicate_policy.md`.
 - DONE: `docs/p2_real_playback/bdmv_main_title_selection.md`.
+- DONE: `docs/p2_real_playback/bdmv_main_title_playback_gate.md`.
 - TODO: `docs/p2_real_playback/cache_runtime.md`.
 - TODO: `docs/p2_real_playback/remote_runtime.md`.
 - TODO: `docs/p2_real_playback/network_security_policy.md`.
@@ -287,7 +288,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-025 DONE. Proceed to P2-026 BDMV / Mounted ISO Main Title Playback Gate:
+P2-001A/B/C through P2-026 DONE. Proceed to P2-027 Source Adapter Contract Skeleton:
 
-1. m2ts sequence playback.
-2. Encrypted disc fail-closed gate.
+1. `source_adapter_core` contracts.
+2. Source adapter boundary with identity, capability, and failure types.
