@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 10:18 (P2-040 DONE)
+Updated: 2026-06-25 10:31 (P2-043 DONE)
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -206,7 +206,7 @@ Status legend:
 - DONE: P2-040 HDR / Color Output Runtime. Evidence: `backend/include/kivo/cinema_engine/color_science_core/hdr_detection_result.hpp`, `backend/include/kivo/cinema_engine/color_science_core/color_space_descriptor.hpp`, `backend/include/kivo/cinema_engine/color_science_core/fake_hdr_color_service.hpp`, `backend/src/color_science_core/fake_hdr_color_service.cpp`, `backend/tests/color_science_core/hdr_color_runtime_test.cpp`, `docs/p2_real_playback/hdr_color_runtime.md`. CTest 50/50 PASS. 10 tests covering HDR10/HLG/DV detection, color space descriptors, valid/false Dolby Vision claims, luminance tracking, and transfer function tracking.
 - DONE: P2-041 Claim Vocabulary Freeze Gate. Evidence: `backend/include/kivo/cinema_engine/governance_core/claim_vocabulary_gate_request.hpp`, `backend/include/kivo/cinema_engine/governance_core/claim_vocabulary_gate_result.hpp`, `backend/include/kivo/cinema_engine/governance_core/fake_claim_vocabulary_gate_service.hpp`, `backend/src/governance_core/fake_claim_vocabulary_gate_service.cpp`, `backend/tests/governance_core/claim_vocabulary_gate_test.cpp`, `docs/p2_real_playback/claim_vocabulary_freeze.md`. CTest 51/51 PASS. 10 tests covering strict/warn/audit gate policies, HDR/audio/forbidden claim requests, and allowed/blocked/warned results.
 - DONE: P2-042 Playback Inspector Runtime. Evidence: `backend/include/kivo/cinema_engine/playback_inspector_core/inspector_read_request.hpp`, `backend/include/kivo/cinema_engine/playback_inspector_core/inspector_read_result.hpp`, `backend/include/kivo/cinema_engine/playback_inspector_core/fake_inspector_runtime_service.hpp` (expanded), `backend/src/playback_inspector_core/fake_inspector_runtime_service.cpp` (expanded), `backend/tests/playback_inspector_core/inspector_runtime_test.cpp` (10 tests, up from 6), `docs/p2_real_playback/playback_inspector_runtime.md`. CTest 51/51 PASS.
-- TODO: P2-043 Telemetry Sampling / Hot Path Policy. Evidence target: bounded ring buffers and no hot-path locks.
+- DONE: P2-043 Telemetry Sampling / Hot Path Policy. Evidence: `backend/include/kivo/cinema_engine/diagnostic_core/telemetry_sample_request.hpp`, `backend/include/kivo/cinema_engine/diagnostic_core/telemetry_sample_result.hpp`, `backend/include/kivo/cinema_engine/diagnostic_core/telemetry_sampling_policy.hpp`, `backend/include/kivo/cinema_engine/diagnostic_core/fake_telemetry_sampling_service.hpp`, `backend/src/diagnostic_core/fake_telemetry_sampling_service.cpp`, `backend/tests/diagnostic_core/telemetry_sampling_test.cpp`, `docs/p2_real_playback/telemetry_sampling_and_hot_path_policy.md`. CTest 52/52 PASS. 10 tests covering ring buffer sampling, hot path policy, sample rate limiting, and capacity tracking.
 - TODO: P2-044 Schema Migration Policy. Evidence target: schema migration policy and compatibility tests.
 - TODO: P2-045 Database Resilience Policy Skeleton. Evidence target: source/playback/decision/cache/telemetry/preference/schema db resilience rules.
 - TODO: P2-046 Crash Dump / Support Bundle Privacy Policy. Evidence target: privacy policy and fail-closed support bundle redaction.
@@ -293,6 +293,6 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-042 DONE. P2.2 Remote Playback Tasks COMPLETE. Proceed to P2.3 Quality / Recovery / Inspector Tasks (P2-043 through P2-055).
+P2-001A/B/C through P2-043 DONE. P2.2 Remote Playback Tasks COMPLETE. Proceed to P2.3 Quality / Recovery / Inspector Tasks (P2-044 through P2-055).
 
-Next: P2-043 Telemetry Sampling / Hot Path Policy.
+Next: P2-044 Schema Migration Policy.

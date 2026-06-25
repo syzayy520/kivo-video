@@ -68,6 +68,7 @@ add_library(kivo_cinema_engine STATIC
   src/network_cache_core/fake_remote_direct_play_gate_service.cpp
   src/color_science_core/fake_hdr_color_service.cpp
   src/governance_core/fake_claim_vocabulary_gate_service.cpp
+  src/diagnostic_core/fake_telemetry_sampling_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -414,3 +415,10 @@ add_executable(kivo_claim_vocabulary_gate_test
 target_link_libraries(kivo_claim_vocabulary_gate_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_claim_vocabulary_gate_test COMMAND kivo_claim_vocabulary_gate_test)
+
+add_executable(kivo_telemetry_sampling_test
+  tests/diagnostic_core/telemetry_sampling_test.cpp
+)
+target_link_libraries(kivo_telemetry_sampling_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_telemetry_sampling_test COMMAND kivo_telemetry_sampling_test)
