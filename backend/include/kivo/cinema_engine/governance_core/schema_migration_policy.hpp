@@ -11,11 +11,13 @@ namespace kivo::cinema_engine {
 // forward-only, backward-compatible, or destructive upgrades.
 struct SchemaMigrationPolicy {
     ContractMetadata metadata;
-    std::string schema_name;
-    int from_version{0};
-    int to_version{0};
-    std::string migration_strategy;  // "forward_only", "backward_compatible", "destructive"
-    bool requires_backup{true};
+    std::string policy_id;  // Unique policy identifier
+    std::string source_schema_version;  // Current schema version
+    std::string target_schema_version;  // Target schema version
+    bool allow_breaking_changes{false};  // Whether breaking changes are allowed
+    bool require_compatibility_test{true};  // Whether compatibility test is required
+    bool rollback_enabled{true};  // Whether rollback is supported
+    int64_t migration_timeout_ms{30000};  // Maximum migration time
 };
 
 }  // namespace kivo::cinema_engine
