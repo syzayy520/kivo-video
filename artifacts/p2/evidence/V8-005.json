@@ -1,0 +1,73 @@
+{
+  "task_id": "V8-005",
+  "task_family": "governance",
+  "execution_timestamp": "2026-06-26T00:30:00Z",
+  "status": "CONTRACT_PASS",
+  "goal": "enforce claim vocabulary before new evidence is generated",
+  "forbidden_claims_scanned": [
+    "P2 Complete",
+    "ALL PROVIDERS RUNTIME VERIFIED",
+    "P3 COMPLETE",
+    "HDR COMPLETE",
+    "ATMOS BITSTREAM COMPLETE",
+    "AIRPLAY PRODUCT COMPLETE"
+  ],
+  "scan_results": [
+    {
+      "claim": "P2 Complete",
+      "locations_scanned": ["docs/", "artifacts/p2/evidence/"],
+      "matches_found": 0,
+      "verdict": "PASS"
+    },
+    {
+      "claim": "ALL PROVIDERS RUNTIME VERIFIED",
+      "locations_scanned": ["docs/", "artifacts/p2/evidence/"],
+      "matches_found": 1,
+      "match_details": "V8-004.json line 89: task family description 'all providers runtime verified gate' — not a completion claim, only a task family name reference.",
+      "verdict": "PASS — task family description, not premature claim"
+    },
+    {
+      "claim": "P3 COMPLETE",
+      "locations_scanned": ["docs/", "artifacts/p2/evidence/"],
+      "matches_found": 0,
+      "verdict": "PASS"
+    },
+    {
+      "claim": "HDR COMPLETE",
+      "locations_scanned": ["docs/", "artifacts/p2/evidence/"],
+      "matches_found": 0,
+      "verdict": "PASS"
+    },
+    {
+      "claim": "ATMOS BITSTREAM COMPLETE",
+      "locations_scanned": ["docs/", "artifacts/p2/evidence/"],
+      "matches_found": 0,
+      "verdict": "PASS"
+    },
+    {
+      "claim": "AIRPLAY PRODUCT COMPLETE",
+      "locations_scanned": ["docs/", "artifacts/p2/evidence/"],
+      "matches_found": 0,
+      "verdict": "PASS"
+    }
+  ],
+  "allowed_claim_vocabulary": {
+    "allowed_after_this_gate": [
+      "V8 governance readiness for V8 child tasks"
+    ],
+    "explicitly_forbidden_until_final_gate": [
+      "P2 FOUNDATION COMPLETE",
+      "Direct Play / Direct Stream / Presentation Foundation Complete",
+      "ALL PROVIDERS RUNTIME VERIFIED"
+    ],
+    "never_allowed": [
+      "P3 COMPLETE",
+      "HDR COMPLETE",
+      "ATMOS BITSTREAM COMPLETE",
+      "AIRPLAY PRODUCT COMPLETE"
+    ]
+  },
+  "evidence_status": "CONTRACT_PASS",
+  "reason": "No premature completion claims found in docs or evidence. All forbidden terms only appear in execution card rule definitions. The only near-match is a task family name description in V8-004.json, not a completion claim. Allowed claim vocabulary documented.",
+  "next_task": "V8-006 Status Vocabulary Gate"
+}
