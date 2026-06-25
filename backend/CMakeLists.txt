@@ -77,6 +77,10 @@ add_library(kivo_cinema_engine STATIC
   src/feature_gate_core/fake_feature_flag_service.cpp
   src/testing_core/fake_test_oracle_service.cpp
   src/parser_security_core/fake_parser_security_service.cpp
+  src/build_core/fake_build_config_service.cpp
+  src/signing_core/fake_signing_service.cpp
+  src/symbol_core/fake_symbol_service.cpp
+  src/update_core/fake_update_service.cpp
 )
 
 target_compile_features(kivo_cinema_engine PUBLIC cxx_std_20)
@@ -486,3 +490,10 @@ add_executable(kivo_parser_security_test
 target_link_libraries(kivo_parser_security_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_parser_security_test COMMAND kivo_parser_security_test)
+
+add_executable(kivo_build_signing_symbol_update_test
+  tests/build_signing_symbol_update/build_signing_symbol_update_test.cpp
+)
+target_link_libraries(kivo_build_signing_symbol_update_test PRIVATE kivo_cinema_engine)
+
+add_test(NAME kivo_build_signing_symbol_update_test COMMAND kivo_build_signing_symbol_update_test)
