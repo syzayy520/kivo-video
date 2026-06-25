@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 09:42
+Updated: 2026-06-25 09:48
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -192,7 +192,7 @@ Status legend:
 - DONE: P2-029 Source Health / Remote Reliability. Evidence: `backend/include/kivo/cinema_engine/source_core/source_health_status.hpp`, `backend/include/kivo/cinema_engine/source_core/source_reliability_metrics.hpp`, `backend/include/kivo/cinema_engine/source_core/source_health_check.hpp`, `backend/include/kivo/cinema_engine/source_core/fake_source_health_service.hpp`, `backend/src/source_core/fake_source_health_service.cpp`, `backend/tests/source_core/source_health_test.cpp`, `docs/p2_real_playback/source_health_and_remote_reliability.md`. CTest 39/39 PASS. 4 tests covering healthy/degraded/unreachable/recovering source health scenarios.
 - DONE: P2-030 Network Range Reader. Evidence: `backend/include/kivo/cinema_engine/network_cache_core/network_range_reader.hpp`, `backend/include/kivo/cinema_engine/network_cache_core/range_read_request.hpp`, `backend/include/kivo/cinema_engine/network_cache_core/range_read_result.hpp`, `backend/include/kivo/cinema_engine/network_cache_core/fake_range_reader_service.hpp`, `backend/src/network_cache_core/fake_range_reader_service.cpp`, `backend/tests/network_cache_core/range_reader_test.cpp`, `docs/p2_real_playback/network_range_reader.md`. CTest 40/40 PASS. 5 tests covering reader identity, successful read, range not satisfiable, partial content, and connection error scenarios.
 - DONE: P2-031 Segment Cache Runtime. Evidence: `backend/include/kivo/cinema_engine/network_cache_core/segment_cache_runtime.hpp` (expanded), `backend/include/kivo/cinema_engine/network_cache_core/cache_segment_descriptor.hpp`, `backend/include/kivo/cinema_engine/network_cache_core/cache_lookup_request.hpp`, `backend/include/kivo/cinema_engine/network_cache_core/cache_lookup_result.hpp`, `backend/include/kivo/cinema_engine/network_cache_core/fake_segment_cache_service.hpp`, `backend/src/network_cache_core/fake_segment_cache_service.cpp`, `backend/tests/network_cache_core/segment_cache_test.cpp`, `docs/p2_real_playback/cache_runtime.md`. CTest 41/41 PASS. 15 tests covering empty/active/full/degraded cache runtime, cached/downloading/evicted/invalidated segments, full/partial/miss lookups, request construction, and remote object binding.
-- TODO: P2-032 WebDAV Server Behavior Profile. Evidence target: WebDAV profile and verified/unsupported range behavior.
+- DONE: P2-032 WebDAV Server Behavior Profile. Evidence: `backend/include/kivo/cinema_engine/source_core/webdav_server_profile.hpp`, `backend/include/kivo/cinema_engine/source_core/webdav_range_behavior.hpp`, `backend/include/kivo/cinema_engine/source_core/webdav_server_failure.hpp`, `backend/include/kivo/cinema_engine/source_core/webdav_probe_result.hpp`, `backend/include/kivo/cinema_engine/source_core/fake_webdav_profile_service.hpp`, `backend/src/source_core/fake_webdav_profile_service.cpp`, `backend/tests/source_core/webdav_profile_test.cpp`, `docs/p2_real_playback/webdav_server_behavior_profile.md`. CTest 42/42 PASS. 14 tests covering nginx/apache/rclone/synology/no-range profiles, range behaviors, failures, and probe results.
 - TODO: P2-033 WebDAV Range Playback. Evidence target: WebDAV verified range playback and visible fallback.
 - TODO: P2-034 AList Provider Behavior Profile. Evidence target: AList provider profile.
 - TODO: P2-035 AList Direct Link Playback. Evidence target: direct link TTL refresh and identity stability.
@@ -258,7 +258,7 @@ Status legend:
 - DONE: `docs/p2_real_playback/cache_runtime.md`.
 - TODO: `docs/p2_real_playback/remote_runtime.md`.
 - TODO: `docs/p2_real_playback/network_security_policy.md`.
-- TODO: `docs/p2_real_playback/webdav_server_behavior_profile.md`.
+- DONE: `docs/p2_real_playback/webdav_server_behavior_profile.md`.
 - TODO: `docs/p2_real_playback/alist_provider_behavior_profile.md`.
 - TODO: `docs/p2_real_playback/emby_session_runtime.md`.
 - TODO: `docs/p2_real_playback/emby_selection_policy.md`.
@@ -292,7 +292,7 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-031 DONE. Proceed to P2-032 WebDAV Server Behavior Profile:
+P2-001A/B/C through P2-032 DONE. Proceed to P2-033 WebDAV Range Playback:
 
-1. WebDAV profile and verified/unsupported range behavior.
-2. WebDAV server capability detection and profiling.
+1. WebDAV verified range playback and visible fallback.
+2. Range-based content streaming for WebDAV sources.
