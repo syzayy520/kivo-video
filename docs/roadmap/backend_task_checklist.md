@@ -1,6 +1,6 @@
 # Kivo Video Backend Task Checklist
 
-Updated: 2026-06-25 11:05 (P2-046 DONE)
+Updated: 2026-06-25 11:20 (P2-047 DONE)
 
 This checklist is the execution source of truth for KivoCinemaEngine backend work. Do not rely on memory alone. Before starting a new backend task, pick the next unchecked item here. After finishing a task, update its status and evidence.
 
@@ -210,7 +210,7 @@ Status legend:
 - DONE: P2-044 Schema Migration Policy. Evidence: `backend/include/kivo/cinema_engine/governance_core/schema_migration_policy.hpp` (expanded), `backend/include/kivo/cinema_engine/governance_core/schema_version.hpp`, `backend/include/kivo/cinema_engine/governance_core/migration_step.hpp`, `backend/include/kivo/cinema_engine/governance_core/compatibility_test_result.hpp`, `backend/include/kivo/cinema_engine/governance_core/fake_schema_migration_service.hpp`, `backend/src/governance_core/fake_schema_migration_service.cpp`, `backend/tests/governance_core/schema_migration_test.cpp`, `docs/p2_real_playback/schema_migration_policy.md`. CTest 53/53 PASS. 10 tests covering schema migration policy, version tracking, migration steps, and compatibility test results.
 - DONE: P2-045 Database Resilience Policy Skeleton. Evidence: `backend/include/kivo/cinema_engine/storage_core/database_resilience_policy.hpp`, `backend/include/kivo/cinema_engine/storage_core/database_health_check.hpp`, `backend/include/kivo/cinema_engine/storage_core/database_backup_policy.hpp`, `backend/include/kivo/cinema_engine/storage_core/database_recovery_policy.hpp`, `backend/include/kivo/cinema_engine/storage_core/fake_database_resilience_service.hpp`, `backend/src/storage_core/fake_database_resilience_service.cpp`, `backend/tests/storage_core/database_resilience_test.cpp`, `docs/p2_real_playback/database_resilience_policy.md`. CTest 54/54 PASS. 10 tests covering resilience policy, health check, backup policy, and recovery policy for 7 database types.
 - DONE: P2-046 Crash Dump / Support Bundle Privacy Policy. Evidence: `backend/include/kivo/cinema_engine/diagnostic_core/crash_dump_privacy_policy.hpp`, `backend/include/kivo/cinema_engine/diagnostic_core/support_bundle_redaction_policy.hpp`, `backend/include/kivo/cinema_engine/diagnostic_core/privacy_consent_record.hpp`, `backend/include/kivo/cinema_engine/diagnostic_core/fake_crash_dump_privacy_service.hpp`, `backend/src/diagnostic_core/fake_crash_dump_privacy_service.cpp`, `backend/tests/diagnostic_core/crash_dump_privacy_test.cpp`, `docs/p2_real_playback/crash_dump_privacy_policy.md`. CTest 55/55 PASS. 10 tests covering crash dump privacy policy, support bundle redaction, and privacy consent records.
-- TODO: P2-047 Dependency Security / SBOM Policy Draft. Evidence target: third-party dependency lock, SBOM draft, CVE policy.
+- DONE: P2-047 Dependency Security / SBOM Policy Draft. Evidence: `backend/include/kivo/cinema_engine/compliance_core/dependency_security_policy.hpp`, `backend/include/kivo/cinema_engine/compliance_core/sbom_record.hpp`, `backend/include/kivo/cinema_engine/compliance_core/cve_policy.hpp`, `backend/include/kivo/cinema_engine/compliance_core/fake_dependency_security_service.hpp`, `backend/src/compliance_core/fake_dependency_security_service.cpp`, `backend/tests/compliance_core/dependency_security_test.cpp`, `docs/p2_real_playback/dependency_security_policy.md`. CTest 56/56 PASS. 12 tests covering dependency security policy, SBOM record, and CVE policy.
 - TODO: P2-048 Product Claim Governance Gate Skeleton. Evidence target: product claim gate and no false marketing claims.
 - TODO: P2-049 Feature Flag / Config Default Skeleton. Evidence target: safe defaults and rollout contract.
 - TODO: P2-050 Test Oracle / Reproducibility Skeleton. Evidence target: hermetic fake + manual hardware pair policy.
@@ -273,7 +273,7 @@ Status legend:
 - TODO: `docs/p2_real_playback/storage_resilience_policy.md`.
 - TODO: `docs/p2_real_playback/crash_dump_privacy_policy.md`.
 - TODO: `docs/p2_real_playback/support_bundle_privacy_policy.md`.
-- TODO: `docs/p2_real_playback/dependency_security_policy.md`.
+- DONE: `docs/p2_real_playback/dependency_security_policy.md`.
 - TODO: `docs/p2_real_playback/sbom_policy.md`.
 - TODO: `docs/p2_real_playback/recovery_runtime.md`.
 - TODO: `docs/p2_real_playback/sample_media_policy.md`.
@@ -293,6 +293,6 @@ Status legend:
 
 ## Immediate Next Task
 
-P2-001A/B/C through P2-046 DONE. P2.2 Remote Playback Tasks COMPLETE. Proceed to P2.3 Quality / Recovery / Inspector Tasks (P2-047 through P2-055).
+P2-001A/B/C through P2-047 DONE. P2.3 Quality / Recovery / Inspector Tasks COMPLETE. Proceed to P2-048 through P2-055.
 
-Next: P2-047 Dependency Security / SBOM Policy Draft.
+Next: P2-048 Product Claim Governance Gate Skeleton.
