@@ -34,6 +34,9 @@ public:
         source_core::SourceSessionId session_id, LocalFileSessionStore& store);
     static source_core::SourceEvidenceSnapshot get_evidence(
         source_core::SourceSessionId session_id, LocalFileSessionStore& store);
+
+    static source_core::SourceError resolve_access_ref(
+        const source_core::OpaqueSourceAccessRef& ref, LocalFileSessionStore& store);
 };
 
 }  // namespace kivo::video::providers::local_file

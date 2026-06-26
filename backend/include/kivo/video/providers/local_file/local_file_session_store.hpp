@@ -25,6 +25,7 @@ struct LocalFileSessionRecord {
     std::uint64_t current_offset{0};
     std::string internal_safe_path;
     std::uint64_t file_size{0};
+    std::uint64_t last_mtime{0};
 
     bool is_open() const {
         return session.session_state == source_core::SourceSessionState::open;

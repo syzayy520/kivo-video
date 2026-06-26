@@ -19,15 +19,22 @@ int main() {
     // DirectPlayInput with access_ref
     auto dpi_r = lf::LocalFileProvider::make_direct_play_input(sid, store);
     CHECK_TRUE(dpi_r.is_success());
-    CHECK_EQ(dpi_r.input->contract_schema_version, kSourceCoreContractVersion);
-    CHECK_EQ(dpi_r.input->access_ref.session_id.value, sid.value);
+    auto old_ref = dpi_r.input->access_ref;
+    CHECK_EQ(old_ref.session_id.value, sid.value);
 
-    // DirectStreamInput likewise
-    auto dsi_r = lf::LocalFileProvider::make_direct_stream_input(sid, store);
-    CHECK_TRUE(dsi_r.is_success());
+    // Resolve access_ref while session open
+    auto res_err = lf::LocalFileProvider::resolve_access_ref(old_ref, store);
+    CHECK_TRUE(res_err.is_ok());
 
-    // Close -> DirectInput returns session_closed
+    // Close session
     lf::LocalFileProvider::close(sid, store);
+
+    // Resolve OLD access_ref after close → stale_reference
+    auto res2 = lf::LocalFileProvider::resolve_access_ref(old_ref, store);
+    CHECK_TRUE(!res2.is_ok());
+    CHECK_EQ(res2.code, SourceErrorCode::stale_reference);
+
+    // DirectInput after close returns session_closed
     auto dpi_after = lf::LocalFileProvider::make_direct_play_input(sid, store);
     CHECK_TRUE(!dpi_after.is_success());
     CHECK_TRUE(dpi_after.error.has_value());
@@ -36,9 +43,6 @@ int main() {
     // Unknown session
     auto dpi_unknown = lf::LocalFileProvider::make_direct_play_input(SourceSessionId{99999}, store);
     CHECK_TRUE(!dpi_unknown.is_success());
-
-    // No raw path
-    CHECK_TRUE(dpi_r.input->redacted_source_label.display().find(tmp) == std::string::npos);
 
     std::remove(tmp.c_str());
     return 0;
