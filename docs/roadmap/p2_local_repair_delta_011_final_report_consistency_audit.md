@@ -39,7 +39,7 @@ Ensure report, source, tests, and evidence agree. No false runtime claims. No st
 ### Claim Vocabulary Compliance
 
 - No premature `P2 FOUNDATION COMPLETE` claim
-- No `ALL PROVIDERS RUNTIME VERIFIED` claim
+- No `APRV-001 final verification` claim
 - All claims use allowed vocabulary: `PASS_READY_FOR_REVIEW`, `CONTRACT_PASS`, `RUNTIME_PASS`
 - Stub/contract claims correctly use `CONTRACT_PASS`
 

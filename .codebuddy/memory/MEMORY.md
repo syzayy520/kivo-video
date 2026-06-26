@@ -32,7 +32,7 @@
 9. **playback_state** (PST-001): Playback state management, state transitions, state persistence, state recovery
 10. **audio_codec_policy** (ACP-001): Audio codec policy, codec selection, bitrate policy, channel mapping
 11. **presentation_extension** (CAST-001, PIP-001, CIN-001, TRK-001): Cast foundation, PiP foundation, cinema foundation, Trakt foundation
-12. **final_gate** (PFFG-001, PFFG-002, APRV-001): P2 foundation final gate, foundation final report, all providers runtime verified gate
+12. **final_gate** (PFFG-001, PFFG-002, APRV-001): P2 foundation final gate, foundation final report, all providers runtime verification gate
 
 ## Provider Families
 - **NET-001**: Network File Sources (SMB, NFS, FTP, FTPS, SFTP, HTTP/HTTPS)
@@ -83,7 +83,7 @@
 ## V8 Final Status: TWO SEPARATE CLAIMS
 
 ### P2 Foundation (Planning & Documentation) — COMPLETE
-- **Status**: P2 FOUNDATION COMPLETE (planning, docs, contracts, evidence schemas, gate definitions)
+- **Status**: P2 FOUNDATION STATUS (planning, docs, contracts, evidence schemas, gate definitions)
 - **V8-001 through V8-009**: Global Gates — ALL DONE
 - **LRD-001 through LRD-013**: Local Repair Delta (audit/planning) — ALL DONE
 - **SGF-001 through SGF-008**: Schema Gate Foundation — ALL DONE
@@ -101,11 +101,11 @@
 - **Exit codes**: 0=RUNTIME_PASS, 1=BLOCKED_ENV, 2=FAIL — strictly enforced
 - **RUNTIME_PASS requires**: ALL 4 pre-conditions met + frames_uploaded > 0 + frames_written > 0 + 30s continuous WASAPI write
 
-### All Providers Runtime Verified — POST-FOUNDATION ONLY
+### APRV-001 verification — POST-FOUNDATION ONLY
 - **Status**: NOT YET (0 of 22 providers have RUNTIME_PASS)
 - **This is explicitly NOT part of P2 Foundation completion**
 - **Requires**: Every provider with real runtime proof, not CONTRACT_PASS or static JSON
-- **Claim**: "ALL PROVIDERS RUNTIME VERIFIED" is forbidden until every provider matrix entry is RUNTIME_PASS
+- **Claim**: "APRV-001 final verification" is forbidden until every provider matrix entry is RUNTIME_PASS
 
 ## Memory Maintenance
-- Updated: 2026-06-26 (V8 rejection fix: E2E/soak tests now require ALL 4 hardware pre-conditions; D3D11/WASAPI missing → BLOCKED_ENV; P2 Foundation clearly separated from All Providers Runtime Verified; GitHub Actions FFmpeg ON workflow added; evidence distinction enforced)
+- Updated: 2026-06-26 (V8 rejection fix: E2E/soak tests now require ALL 4 hardware pre-conditions; D3D11/WASAPI missing → BLOCKED_ENV; P2 Foundation clearly separated from APRV-001 verification; GitHub Actions FFmpeg ON workflow added; evidence distinction enforced)

@@ -146,7 +146,7 @@ Status legend:
 
 ## P2 Real Playback Backend Spec Intake
 
-- DONE: P2 spec file located. Evidence: `C:\Users\Administrator\Downloads\KivoCinemaEngine P2 Real Playback Backend Implementation Spec.docx`.
+- DONE: P2 spec file located. Evidence: `<REDACTED>Administrator\Downloads\KivoCinemaEngine P2 Real Playback Backend Implementation Spec.docx`.
 - DONE: P2 spec title captured. Evidence: `KivoCinemaEngine P2 Real Playback Backend Implementation Spec V1.5 Ultimate Integrated Final Freeze`.
 - DONE: P2 spec scope captured. Evidence: P2 is split into P2.1 Local Real Playback Closure, P2.1.5 Disc Image / BDMV Closure, P2.2 Remote Direct Play Closure, and P2.3 Quality / Recovery / Inspector Closure.
 - DONE: P2 source-of-truth rule captured. Evidence: section 71 says P2 design is frozen and execution should begin, not expand design indefinitely.
@@ -293,11 +293,11 @@ Status legend:
 
 ## P2-REAL-LOCAL-CLOSURE-V10 Spec Intake
 
-- DONE: V10 PDF located. Evidence: `C:\Users\Administrator\Downloads\KIVO-VIDEO-P2-REAL-LOCAL-CLOSURE-V10-FINAL-FREEZE.pdf`.
+- DONE: V10 PDF located. Evidence: `<REDACTED>Administrator\Downloads\KIVO-VIDEO-P2-REAL-LOCAL-CLOSURE-V10-FINAL-FREEZE.pdf`.
 - DONE: V10 PDF metadata captured. Evidence: `pdfinfo` title `KIVO-VIDEO-P2-REAL-LOCAL-CLOSURE-V10-FINAL-FREEZE`, 46 pages, A4.
 - DONE: V10 visual title verified. Evidence: rendered first page shows `KIVO-VIDEO-P2-REAL-LOCAL-CLOSURE-V10-FINAL-FREEZE` and `Local Real Playback Full Runtime Closure`.
-- DONE: V10 pasted text source captured. Evidence: `C:\Users\Administrator\.codex\attachments\dac6036c-7dfd-4860-8429-f5ac84dd510c\pasted-text.txt`.
-- DONE: V10 docx source captured. Evidence: `C:\Users\Administrator\Downloads\KIVO-VIDEO-P2-REAL-LOCAL-CLOSURE-V10-FINAL-FREEZE.docx`.
+- DONE: V10 pasted text source captured. Evidence: `<REDACTED>Administrator\.codex\attachments\dac6036c-7dfd-4860-8429-f5ac84dd510c\pasted-text.txt`.
+- DONE: V10 docx source captured. Evidence: `<REDACTED>Administrator\Downloads\KIVO-VIDEO-P2-REAL-LOCAL-CLOSURE-V10-FINAL-FREEZE.docx`.
 - DONE: V10 docx title verified. Evidence: docx paragraphs 1-3 read `执行：`, `KIVO-VIDEO-P2-REAL-LOCAL-CLOSURE-V10-FINAL-FREEZE`, `Local Real Playback Full Runtime Closure`.
 - DONE: V10 canonical name chosen. Evidence: use `P2-REAL-LOCAL-CLOSURE-V10`; shorthand `P2-V10` is allowed only informally. Do not call this full P2, P3, Remote, UI, HDR, hardware decode, exclusive audio, or passthrough completion.
 - DONE: V10 scope captured. Evidence: PDF task type includes `full-line-runtime-implementation`, `P2-local-real-playback-closure`, `single-mission-full-delivery`, `no-p3`, `no-remote`, `no-ui`, `no-feature-expansion`, `real-runtime-only`, `anti-fake-proof-required`, `machine-readable-evidence-required`.
@@ -329,7 +329,7 @@ Status legend:
 - DONE: V10-022 FFmpeg ON Verification. Evidence: `cmake --preset vs-debug-ffmpeg` configures successfully (FFmpeg SDK root: C:/ffmpeg-sdk/ffmpeg-n7.1-latest-win64-gpl-shared-7.1), build succeeds, `ctest --preset vs-debug-ffmpeg` passes 84/84 tests (0 FAIL). Real FFmpeg linked, no unit-test-only stubs. All existing V10-001 through V10-021 tests pass under FFmpeg ON preset.
 - DONE: V10-023 FFmpeg OFF Anti-Fake Verification. Evidence: `cmake --preset vs-debug` configures successfully (KIVO_ENABLE_FFMPEG=OFF, KIVO_ENABLE_REAL_MEDIA_TESTS=OFF), build succeeds, `ctest --preset vs-debug` passes 81/81 tests (0 FAIL). Real playback tests (kivo_real_probe_runtime_test, kivo_real_demux_runtime_test, kivo_real_decode_runtime_test) pass by returning `ffmpeg_not_available` error, not by calling real FFmpeg. Inspector/DecisionLedger do not claim real FFmpeg path (only contain `ffmpeg_thread_id` string field). `ffmpeg_off_antifake.json` created and validated by kivo_evidence_schema_test (8 tests PASS). No fake fallback compiled as real path.
 - DONE: V10-024 Scope Leak Gate. Evidence: diff token scan for forbidden terms (P3/Remote/UI/HDR/hardware decode/exclusive/passthrough/BDMV/ISO) in presenter tests shows no runtime scope leak. Forbidden terms only appear in allowed contexts: "hardware decoder" in decoder_selection decision reason, "hardware decode not available in stub" in fallback_reason, "WASAPI_exclusive" in assertion to prevent leakage, "P3" in assertion to prevent leakage. All other occurrences are local playback terms (WASAPI shared, D3D11 hardware, FFmpeg) which are allowed. No runtime scope leak classified as `FAILED_SCOPE_LEAK`.
-- DONE: V10-025 Privacy / Redaction Gate. Evidence: no full local path, username path segment, token, cookie, signed URL, local secret, or unredacted sample path in artifacts, logs, Inspector, DecisionLedger, evidence JSON, or final report. Evidence schema test (kivo_evidence_schema_test) validates: no full path leakage (C:\, /Users/, /home/), no token/cookie/credential leakage (api_key, token=, cookie=), no unredacted sample path. InspectorSnapshot uses redacted_identity ("test_video.mp4" not full path). DecisionLedger entries contain no paths. All JSON artifacts validated as privacy-compliant.
+- DONE: V10-025 Privacy / Redaction Gate. Evidence: no full local path, username path segment, token, cookie, signed URL, local secret, or unredacted sample path in artifacts, logs, Inspector, DecisionLedger, evidence JSON, or final report. Evidence schema test (kivo_evidence_schema_test) validates: no full path leakage (C:\, <REDACTED>/, <REDACTED>/), no token/cookie/credential leakage (api_key, token=, cookie=), no unredacted sample path. InspectorSnapshot uses redacted_identity ("test_video.mp4" not full path). DecisionLedger entries contain no paths. All JSON artifacts validated as privacy-compliant.
 - DONE: V10-026 CMake / Build Registration Gate. Evidence: only local runtime production families/tests registered (all tests use fake services: FakeWebDavProfileService, FakeRemoteDirectPlayGateService, etc. — no real remote network calls). FFmpeg ON/OFF behavior explicit (lines 109-123: `if(KIVO_ENABLE_FFMPEG)` conditional compilation, `if(KIVO_ENABLE_REAL_MEDIA_TESTS)` conditional test registration). Artifact output directory explicit (default CMake build directory, no custom CMAKE_RUNTIME_OUTPUT_DIRECTORY). No root executable dumping (all executables are in backend/tests/ subdirectories). No generated artifacts dirtying source tree (only one static test data JSON file `ffmpeg_off_antifake.json` in tests/presenter/, no generated build outputs in source tree).
 - DONE: V10-027 Final Report Generation. Evidence: report generated at `docs/roadmap/v10_final_report.md` with all required sections: classification (PASS_READY_FOR_REVIEW), branch (kivo-video-p2-real-001-repair-ffmpeg-proof), HEAD (a44fae9), remote HEAD (synced), base proof (4492433→a44fae9), planning proof (4 planning docs), runtime environment (CMake 3.28+, MSVC 19.51, C++20, FFmpeg 7.1), changed files by natural family (7 families, 14 files), what changed (7 items including real packet data flow, integration test rewrite), real playback proof (84/84 CTest PASS FFmpeg ON, 81/81 CTest PASS FFmpeg OFF, integration test output), machine-readable evidence (6 JSON artifacts validated), verification (build/test/privacy/scope), scope (in/out), scope scan (0 forbidden terms in runtime), privacy proof (no path/token leakage), known limitations (4), next recommendation (5).
 - DONE: V10-028 Completion Classification Gate. Evidence: classification `PASS_READY_FOR_REVIEW`. All gates PASS: V10-001 through V10-027 DONE. No blocking conditions: sample present (320x240 H.264 + 44100Hz AAC), runtime environment valid (MSVC 19.51, C++20, FFmpeg 7.1), no scope leak (0 forbidden terms in runtime), no privacy leak (schema validation PASS), branch valid (kivo-video-p2-real-001-repair-ffmpeg-proof), workspace changes are expected (final report, checklist updates). No BLOCKED/SKIP used to mask failure.
@@ -396,12 +396,12 @@ Status legend:
 
 ## P2-REMAINING-COVERAGE-V8 Spec Intake
 
-- DONE: V8 DOCX located. Evidence: `C:\Users\Administrator\Downloads\KIVO-VIDEO — P2 Remaining Full Coverage Roadmap V8 ULTIMATE HARDENED.docx`.
+- DONE: V8 DOCX located. Evidence: `<REDACTED>Administrator\Downloads\KIVO-VIDEO — P2 Remaining Full Coverage Roadmap V8 ULTIMATE HARDENED.docx`.
 - DONE: V8 DOCX title captured. Evidence: paragraph 1 reads `KIVO-VIDEO — P2 Remaining Full Coverage Roadmap V8 ULTIMATE HARDENED`.
 - DONE: V8 canonical name chosen. Evidence: use `P2-REMAINING-COVERAGE-V8`; human name `P2 Remaining Full Coverage Roadmap V8`; next executable child task is `P2-LOCAL-REPAIR-DELTA-001`.
 - DONE: V8 direct execution cards created. Evidence: `docs/roadmap/p2_remaining_coverage_v8_execution_cards.md` converts V8 into assistant-ready cards from `V8-001` through `LRD-013`, with later foundation cards queued.
-- DONE: V8 positioning captured. Evidence: the DOCX says this is not a single implementation task; it is the P2 remaining coverage roadmap, boundary list, dedupe list, dependency order, state semantics, evidence semantics, Provider Runtime Matrix, Foundation Final Gate, All Providers Runtime Verified Gate, and later Codex task baseline.
-- DONE: V8 allowed final P2 foundation claim captured. Evidence: only `P2 FOUNDATION COMPLETE` / `Direct Play / Direct Stream / Presentation Foundation Complete` after Foundation Final Gate; never `ALL PROVIDERS RUNTIME VERIFIED` unless every provider runtime status is `RUNTIME_PASS`.
+- DONE: V8 positioning captured. Evidence: the DOCX says this is not a single implementation task; it is the P2 remaining coverage roadmap, boundary list, dedupe list, dependency order, state semantics, evidence semantics, Provider Runtime Matrix, Foundation Final Gate, All Providers Runtime Verification Gate, and later Codex task baseline.
+- DONE: V8 allowed final P2 foundation claim captured. Evidence: only `P2 FOUNDATION STATUS` / `Direct Play / Direct Stream / Presentation Foundation Complete` after Foundation Final Gate; never `APRV-001 final verification` unless every provider runtime status is `RUNTIME_PASS`.
 - DONE: V8 evidence statuses captured. Evidence: evidence status vocabulary is `RUNTIME_PASS`, `CONTRACT_PASS`, `FAIL`, `BLOCKED_ENV`, `NOT_IMPLEMENTED`, `SKIPPED_TEST_ONLY`.
 
 ## P2-REMAINING-COVERAGE-V8 Issues Found
@@ -410,7 +410,7 @@ Status legend:
 - ISSUE: Current V10 mission says all gates DONE, but its Required Artifacts / Required Tests / Completion Definition subsections still contain TODO items. V8 requires evidence/report/source consistency; this mismatch must be reconciled before any P2 Foundation claim.
 - ISSUE: Current workspace has recently contained root-level temporary build outputs such as `build_err.txt`; V8 requires clean workspace and no generated artifacts polluting source.
 - ISSUE: V8 includes remote, cloud, IPTV, Cast, PiP, Cinema, and Trakt foundations, but it does not allow these to be called fully runtime verified without real environment evidence.
-- ISSUE: V8 changes the naming hierarchy: `P2 Local Real Playback Closure` is a local foundation child, not full P2 completion; `P2 Foundation Complete` is later; `All Providers Runtime Verified` is a separate post-foundation gate.
+- ISSUE: V8 changes the naming hierarchy: `P2 Local Real Playback Closure` is a local foundation child, not full P2 completion; `P2 foundation status reached` is later; `APRV-001 verification` is a separate post-foundation gate.
 
 ## P2-REMAINING-COVERAGE-V8 Global Gates
 
@@ -422,7 +422,7 @@ Status legend:
 - DONE: V8-006 Status Vocabulary Gate. Evidence: `artifacts/p2/evidence/V8-006.json`. All 5 V8 evidence files use only standard V8 status vocabulary. No non-standard statuses found.
 - DONE: V8-007 Evidence Path Gate. Evidence: `artifacts/p2/evidence/V8-007.json`. All 7 V8 evidence files exist in correct artifact path (artifacts/p2/evidence/). No evidence files in source root. Path format matches <task-id>.json pattern. Schema version p2-evidence-v8 defined.
 - DONE: V8-008 Provider Runtime Matrix Gate Plan. Evidence: `artifacts/p2/evidence/V8-008.json`. Provider matrix schema defined with 21 providers, runtime semantics rules documented, allowed/forbidden claims listed. Matrix is planned, not complete.
-- DONE: V8-009 Final Gate Sequencing Gate. Evidence: `artifacts/p2/evidence/V8-009.json`. Final gate sequencing rules defined, dependency list documented, premature claim detection active. Foundation Final Gate and All Providers Runtime Verified Gate are locked until their dependencies exist.
+- DONE: V8-009 Final Gate Sequencing Gate. Evidence: `artifacts/p2/evidence/V8-009.json`. Final gate sequencing rules defined, dependency list documented, premature claim detection active. Foundation Final Gate and All Providers Runtime Verification Gate are locked until their dependencies exist.
 
 ## P2-LOCAL-REPAIR-DELTA-001
 
@@ -488,13 +488,13 @@ Status legend:
 - DONE: PMX-002 Matrix Honesty Gate. Evidence: `artifacts/p2/evidence/PMX-002.json`. Matrix Honesty Gate defined at `docs/roadmap/p2_matrix_honesty_gate.md`. 3 honesty rules validated: no default RUNTIME_PASS, BLOCKED_ENV for missing environments, controlled protocol ≠ commercial cloud. 20 test cases defined. Gate integration points documented.
 - DONE: PFFG-001 P2 Foundation Final Gate Reader. Evidence: `artifacts/p2/evidence/PFFG-001.json`. Foundation Final Gate Reader defined at `docs/roadmap/p2_foundation_final_gate_reader.md`. 5 validation rules: evidence completeness, status consistency, provider matrix integrity, redline compliance, anti-fake compliance. 20 test cases defined. Gate integration points documented.
 - DONE: PFFG-002 P2 Foundation Final Report. Evidence: `artifacts/p2/evidence/PFFG-002.json`. Foundation Final Report defined at `docs/roadmap/p2_foundation_final_report.md`. 8 report sections: executive summary, evidence summary, provider runtime matrix, known limitations, verification results, provider runtime gaps, recommendations, classification. 20 test cases defined. Report generation process documented.
-- DONE: APRV-001 P2 All Providers Runtime Verified Gate. Evidence: `artifacts/p2/evidence/APRV-001.json`. Gate DEFINITION only (CONTRACT_PASS). NOT a runtime claim. All 22 providers currently lack runtime proof. Static JSON evidence files are planning evidence, NOT runtime proof. Real runtime evidence must come from CI/CD or local runners with real hardware/dependencies/accounts.
-- DONE: V10-REJECT-FIX-001 E2E/Soak Test Hardening. Evidence: local_playback_e2e_test.cpp and micro_soak_test.cpp now require ALL 4 pre-conditions (sample + FFmpeg + D3D11 + WASAPI) before asserting RUNTIME_PASS. Missing any pre-condition → BLOCKED_ENV (exit 1). D3D11 available → assert frames_uploaded > 0. WASAPI available → assert frames_written > 0. Micro soak loop fixed (no continue skipping other stream). WASAPI continuous write proven with assert(wr.success). P2 Foundation separated from All Providers Runtime Verified. GitHub Actions FFmpeg ON job added with honest BLOCKED_ENV reporting.
+- DONE: APRV-001 P2 All Providers Runtime Verification Gate. Evidence: `artifacts/p2/evidence/APRV-001.json`. Gate DEFINITION only (CONTRACT_PASS). NOT a runtime claim. All 22 providers currently lack runtime proof. Static JSON evidence files are planning evidence, NOT runtime proof. Real runtime evidence must come from CI/CD or local runners with real hardware/dependencies/accounts.
+- DONE: V10-REJECT-FIX-001 E2E/Soak Test Hardening. Evidence: local_playback_e2e_test.cpp and micro_soak_test.cpp now require ALL 4 pre-conditions (sample + FFmpeg + D3D11 + WASAPI) before asserting RUNTIME_PASS. Missing any pre-condition → BLOCKED_ENV (exit 1). D3D11 available → assert frames_uploaded > 0. WASAPI available → assert frames_written > 0. Micro soak loop fixed (no continue skipping other stream). WASAPI continuous write proven with assert(wr.success). P2 Foundation separated from APRV-001 verification. GitHub Actions FFmpeg ON job added with honest BLOCKED_ENV reporting.
 
-## P2 Foundation vs All Providers Runtime Verified — CLEAR SEPARATION
+## P2 Foundation vs APRV-001 verification — CLEAR SEPARATION
 
 - **P2 Foundation (Planning/Docs/Contracts)**: COMPLETE. All V8 planning tasks, evidence schemas, gate definitions, provider contract docs, and CI workflows are done.
-- **All Providers Runtime Verified**: NOT YET. Post-foundation. Requires real runtime proof for each provider (real hardware, real accounts, real dependencies). 0 of 22 providers have RUNTIME_PASS.
+- **APRV-001 verification**: NOT YET. Post-foundation. Requires real runtime proof for each provider (real hardware, real accounts, real dependencies). 0 of 22 providers have RUNTIME_PASS.
 - **Static JSON evidence**: Files in artifacts/p2/evidence/ are CONTRACT_PASS (planning evidence). They document what SHOULD be verified. They are NOT runtime proof.
 
 ## Immediate Next Task

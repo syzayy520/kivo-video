@@ -198,7 +198,7 @@ Before `PFFG-001` (Foundation Final Gate Reader):
 3. Remote providers must have honest `BLOCKED_ENV` or `RUNTIME_PASS`.
 4. Matrix must be generated and validated.
 
-Before `APRV-001` (All Providers Runtime Verified Gate):
+Before `APRV-001` (All Providers Runtime Verification Gate):
 
 1. All providers must have `RUNTIME_PASS` status.
 2. All evidence must be validated.

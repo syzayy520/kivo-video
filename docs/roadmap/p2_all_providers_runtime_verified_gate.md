@@ -1,12 +1,12 @@
-# P2-APRV-001 All Providers Runtime Verified Gate
+# P2-APRV-001 All Providers Runtime Verification Gate
 
 ## Overview
 
-All Providers Runtime Verified Gate is the final post-foundation gate that verifies all providers have achieved RUNTIME_PASS status. This gate is explicitly post-foundation and requires all provider runtime statuses to be RUNTIME_PASS with real runtime evidence.
+All Providers Runtime Verification Gate is the final post-foundation gate that verifies all providers have achieved RUNTIME_PASS status. This gate is explicitly post-foundation and requires all provider runtime statuses to be RUNTIME_PASS with real runtime evidence.
 
 ## Gate Purpose
 
-The All Providers Runtime Verified Gate serves as:
+The All Providers Runtime Verification Gate serves as:
 
 1. **Post-Foundation Gate**: Explicitly post-foundation, not part of foundation completion
 2. **Runtime Verification**: Verifies all providers have real runtime proof
@@ -18,7 +18,7 @@ The All Providers Runtime Verified Gate serves as:
 
 ### Required Pre-conditions
 
-Before All Providers Runtime Verified Gate can pass:
+Before All Providers Runtime Verification Gate can pass:
 
 1. **PFFG-001**: Foundation Final Gate Reader must PASS
 2. **PFFG-002**: Foundation Final Report must be generated
@@ -144,7 +144,7 @@ The gate reads evidence from:
 
 ## Gate Output Structure
 
-### All Providers Runtime Verified Gate Result
+### All Providers Runtime Verification Gate Result
 
 ```cpp
 struct AllProvidersRuntimeVerifiedGateResult {
@@ -296,14 +296,14 @@ struct AntiFakeComplianceResult {
 
 ### Inspector Integration
 
-- Reports all providers runtime verified gate status
+- Reports all providers runtime verification gate status
 - Reports provider runtime verification results
 - Reports provider evidence validation
 - Tracks gate history
 
 ### DecisionLedger Integration
 
-- Records all providers runtime verified gate decision
+- Records all providers runtime verification gate decision
 - Records provider runtime verification results
 - Records provider evidence validation
 - Records gate pass/fail

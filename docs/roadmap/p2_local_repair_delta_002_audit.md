@@ -179,7 +179,7 @@ Status: AUDIT
 
 ### V10-025 Privacy / Redaction Gate
 - **Current Status**: RUNTIME_PASS
-- **Evidence**: No full local path, username path segment, token, cookie, signed URL, local secret, or unredacted sample path in artifacts, logs, Inspector, DecisionLedger, evidence JSON, or final report. Evidence schema test (kivo_evidence_schema_test) validates: no full path leakage (C:\, /Users/, /home/), no token/cookie/credential leakage (api_key, token=, cookie=), no unredacted sample path. InspectorSnapshot uses redacted_identity ("test_video.mp4" not full path). DecisionLedger entries contain no paths. All JSON artifacts validated as privacy-compliant.
+- **Evidence**: No full local path, username path segment, token, cookie, signed URL, local secret, or unredacted sample path in artifacts, logs, Inspector, DecisionLedger, evidence JSON, or final report. Evidence schema test (kivo_evidence_schema_test) validates: no full path leakage (C:\, <REDACTED>/, <REDACTED>/), no token/cookie/credential leakage (api_key, token=, cookie=), no unredacted sample path. InspectorSnapshot uses redacted_identity ("test_video.mp4" not full path). DecisionLedger entries contain no paths. All JSON artifacts validated as privacy-compliant.
 - **Audit Finding**: No path/token leakage.
 - **Final Classification**: RUNTIME_PASS
 - **Repair Needed**: None
@@ -250,7 +250,7 @@ Status: AUDIT
 ## 6. Redline Gate Check
 
 ### Forbidden Terms in Evidence
-- No "P2 COMPLETE", "ALL PROVIDERS RUNTIME VERIFIED", "P3 COMPLETE", "HDR COMPLETE", "ATMOS BITSTREAM COMPLETE", "AIRPLAY PRODUCT COMPLETE" found
+- No "P2 COMPLETE", "APRV-001 final verification", "P3 capability", "HDR capability", "Atmos bitstream capability", "AirPlay capability" found
 - No premature completion claims found
 
 ### Report/Source Conflict

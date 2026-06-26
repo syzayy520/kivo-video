@@ -229,7 +229,7 @@ python backend/tools/governance/validate_p2_schemas.py --negative-tests-only
 - Any negative test failure blocks P2 Foundation claim.
 
 ### APRV-001 Gate Integration
-- All Providers Runtime Verified Gate runs negative tests on provider evidence.
+- All Providers Runtime Verification Gate runs negative tests on provider evidence.
 - Any negative test failure blocks provider RUNTIME_PASS claim.
 
 ## Test Coverage Requirements

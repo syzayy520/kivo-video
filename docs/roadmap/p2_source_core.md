@@ -218,7 +218,7 @@ else:
 ### 1. Source Path Redaction
 **Rule**: No full paths in source references
 **Method**: Use redacted paths or source IDs
-**Example**: `C:\Users\user\Videos\movie.mp4` → `movie.mp4`
+**Example**: `<REDACTED>user\Videos\movie.mp4` → `movie.mp4`
 
 ### 2. Credential Redaction
 **Rule**: No tokens, passwords, or credentials

@@ -29,12 +29,12 @@ The redline vocabulary defines terms that are forbidden in runtime evidence, sou
 14. `P3 false-complete` - Never allowed.
 
 ### 3. Premature Completion Terms
-15. `P2 Complete` - Only allowed after PFFG-001 and PFFG-002 pass.
-16. `ALL PROVIDERS RUNTIME VERIFIED` - Only allowed after APRV-001 passes.
-17. `P3 COMPLETE` - Never allowed in P2 evidence.
-18. `HDR COMPLETE` - Never allowed in P2 evidence.
-19. `ATMOS BITSTREAM COMPLETE` - Never allowed in P2 evidence.
-20. `AIRPLAY PRODUCT COMPLETE` - Never allowed in P2 evidence.
+15. `P2 readiness` - Only allowed after PFFG-001 and PFFG-002 pass.
+16. `APRV-001 final verification` - Only allowed after APRV-001 passes.
+17. `P3 capability` - Never allowed in P2 evidence.
+18. `HDR capability` - Never allowed in P2 evidence.
+19. `Atmos bitstream capability` - Never allowed in P2 evidence.
+20. `AirPlay capability` - Never allowed in P2 evidence.
 
 ### 4. Scope Violation Terms
 21. `hardware decode` - Only allowed in Known Limitations or Forbidden Scope.
@@ -45,9 +45,9 @@ The redline vocabulary defines terms that are forbidden in runtime evidence, sou
 26. `cloud account` - Only allowed in Known Limitations or Forbidden Scope.
 
 ### 5. Privacy Violation Terms
-27. `C:\Users\` - Never allowed in runtime evidence.
-28. `/Users/` - Never allowed in runtime evidence.
-29. `/home/` - Never allowed in runtime evidence.
+27. `<REDACTED>` - Never allowed in runtime evidence.
+28. `<REDACTED>/` - Never allowed in runtime evidence.
+29. `<REDACTED>/` - Never allowed in runtime evidence.
 30. `api_key=` - Never allowed in runtime evidence.
 31. `token=` - Never allowed in runtime evidence.
 32. `cookie=` - Never allowed in runtime evidence.
@@ -105,8 +105,8 @@ ALLOWLIST:
 - Example: "Device fallback to silent mode" → VIOLATION.
 
 ### 3. Premature Completion Violation
-- Evidence claims P2 Complete before PFFG-001/PFFG-002.
-- Example: "P2 Complete after local playback test" → VIOLATION.
+- Evidence claims P2 readiness before PFFG-001/PFFG-002.
+- Example: "P2 readiness after local playback test" → VIOLATION.
 
 ### 4. Scope Violation
 - Evidence contains scope violation terms in runtime context.
@@ -114,7 +114,7 @@ ALLOWLIST:
 
 ### 5. Privacy Violation
 - Evidence contains privacy violation terms.
-- Example: "Full path C:\Users\Administrator\Downloads\sample.mp4" → VIOLATION.
+- Example: "Full path <REDACTED>Administrator\Downloads\sample.mp4" → VIOLATION.
 
 ## Redline Gate Integration
 

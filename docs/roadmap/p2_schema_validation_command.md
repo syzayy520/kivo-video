@@ -55,7 +55,7 @@ python backend/tools/governance/validate_p2_schemas.py [--verbose] [--fix] [--re
 - Stub/simulator cannot claim `RUNTIME_PASS`.
 
 #### Redaction Validation
-- No full local paths (C:\, /Users/, /home/).
+- No full local paths (C:\, <REDACTED>/, <REDACTED>/).
 - No token/cookie/credential leakage.
 - No unredacted sample paths.
 
@@ -181,7 +181,7 @@ Report contains:
 - Validates anti-fake compliance.
 - Validates redaction compliance.
 
-### APRV-001 Gate (All Providers Runtime Verified)
+### APRV-001 Gate (APRV-001 verification)
 - Validates all providers have RUNTIME_PASS.
 - Validates all evidence is valid.
 - Validates no BLOCKED_ENV or CONTRACT_PASS providers.

@@ -39,8 +39,8 @@ The report/source conflict scan prevents premature completion claims, false runt
 ### Rule 1: Completion Claim Validation
 - Scan final reports for completion claims.
 - For each completion claim found:
-  a. Check if claim is "P2 FOUNDATION COMPLETE" or "Direct Play / Direct Stream / Presentation Foundation Complete".
-  b. Check if claim is "ALL PROVIDERS RUNTIME VERIFIED".
+  a. Check if claim is "P2 FOUNDATION STATUS" or "Direct Play / Direct Stream / Presentation Foundation Complete".
+  b. Check if claim is "APRV-001 final verification".
   c. Validate claim against foundation gate dependencies.
   d. If claim is premature, record violation.
 - Severity: HIGH for premature completion claims.
@@ -136,9 +136,9 @@ class ReportSourceConflictScanner:
 def extract_completion_claims(report_content: str) -> List[CompletionClaim]:
     claims = []
     patterns = [
-        r"P2 FOUNDATION COMPLETE",
+        r"P2 FOUNDATION STATUS",
         r"Direct Play.*Direct Stream.*Presentation Foundation Complete",
-        r"ALL PROVIDERS RUNTIME VERIFIED",
+        r"APRV-001 final verification",
         r"P2.*COMPLETE",
         r"FOUNDATION.*COMPLETE"
     ]
@@ -223,8 +223,8 @@ def validate_implementation_claim_against_source(claim: ImplementationClaim, sou
 ## Violation Severity Levels
 
 ### HIGH Severity
-- Premature "P2 FOUNDATION COMPLETE" claim.
-- Premature "ALL PROVIDERS RUNTIME VERIFIED" claim.
+- Premature "P2 FOUNDATION STATUS" claim.
+- Premature "APRV-001 final verification" claim.
 - False "RUNTIME_PASS" claim when evidence is CONTRACT_PASS.
 - False "RUNTIME_PASS" claim when evidence is BLOCKED_ENV.
 - False "COMPLETE" claim when evidence is FAIL.
@@ -247,7 +247,7 @@ def validate_implementation_claim_against_source(claim: ImplementationClaim, sou
 ```json
 {
   "report_file": "docs/roadmap/v10_final_report.md",
-  "claim_text": "P2 FOUNDATION COMPLETE",
+  "claim_text": "P2 FOUNDATION STATUS",
   "claim_type": "completion_claim",
   "conflict_type": "premature_claim",
   "conflicting_evidence": "artifacts/p2/evidence/PFFG-001.json",
@@ -293,7 +293,7 @@ def validate_implementation_claim_against_source(claim: ImplementationClaim, sou
 - Report generation includes conflict scan verification.
 
 ### APRV-001 Gate Integration
-- All Providers Runtime Verified Gate runs report/source conflict scan.
+- All Providers Runtime Verification Gate runs report/source conflict scan.
 - Any provider claim contradiction blocks All Providers claim.
 
 ## Test Cases
@@ -307,12 +307,12 @@ def validate_implementation_claim_against_source(claim: ImplementationClaim, sou
 6. Scan final report with evidence references matching evidence files → PASS.
 
 ### Negative Test Cases
-1. Scan final report with premature "P2 FOUNDATION COMPLETE" → VIOLATION.
+1. Scan final report with premature "P2 FOUNDATION STATUS" → VIOLATION.
 2. Scan final report with "RUNTIME_PASS" when evidence is CONTRACT_PASS → VIOLATION.
 3. Scan final report with "real implementation" when source is stub → VIOLATION.
 4. Scan final report with task completion when checklist says TODO → VIOLATION.
 5. Scan final report with evidence reference to non-existent file → VIOLATION.
-6. Scan final report with "ALL PROVIDERS RUNTIME VERIFIED" prematurely → VIOLATION.
+6. Scan final report with "APRV-001 final verification" prematurely → VIOLATION.
 
 ## Implementation Requirements
 

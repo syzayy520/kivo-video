@@ -170,7 +170,7 @@ The media identity system provides stable, unique identification for media conte
 ### 1. Path Redaction
 **Rule**: No full file paths in identity
 **Method**: Replace with redacted path (filename only)
-**Example**: `C:\Users\user\Videos\movie.mp4` → `movie.mp4`
+**Example**: `<REDACTED>user\Videos\movie.mp4` → `movie.mp4`
 
 ### 2. Credential Redaction
 **Rule**: No tokens, passwords, or credentials

@@ -7,8 +7,8 @@
 Real D3D11 and WASAPI implementations are in place but runtime verification depends on hardware availability.
 
 ## P2 Foundation Status (HONEST)
-- **P2 Foundation Complete**: `NO` — Foundation scaffolding exists but runtime verification incomplete
-- **P2 Foundation Claim**: `NOT ALLOWED` — Cannot claim P2 Foundation Complete until all runtime gates produce real evidence
+- **P2 foundation status reached**: `NO` — Foundation scaffolding exists but runtime verification incomplete
+- **P2 Foundation Claim**: `NOT ALLOWED` — Cannot claim P2 foundation status reached until all runtime gates produce real evidence
 - **All Providers Runtime Verified**: `NO` — No providers have RUNTIME_PASS status yet
 - **Provider Runtime Gaps**: 21 of 22 providers are NOT_IMPLEMENTED or CONTRACT_PASS only
 

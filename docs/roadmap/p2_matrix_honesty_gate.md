@@ -202,7 +202,7 @@ struct MatrixHonestyViolation {
 - Validates gate passed
 - Integrates with foundation final gate
 
-### APRV-001 All Providers Runtime Verified Gate
+### APRV-001 All Providers Runtime Verification Gate
 
 - Requires Matrix Honesty Gate passed
 - Requires no server mislabeling

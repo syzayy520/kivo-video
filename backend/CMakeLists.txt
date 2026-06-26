@@ -759,7 +759,7 @@ if(PYTHON_EXE)
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
   )
   add_test(NAME kivo_redline_gate_production_scan
-    COMMAND ${PYTHON_EXE} "${CMAKE_SOURCE_DIR}/backend/tools/governance/redline_gate/redline_checker.py" --root="${CMAKE_SOURCE_DIR}" --scan=all
+    COMMAND ${PYTHON_EXE} "${CMAKE_SOURCE_DIR}/backend/tools/governance/redline_gate/redline_checker.py" --root=${CMAKE_SOURCE_DIR} --scan=all
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
   )
 endif()

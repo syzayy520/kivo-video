@@ -195,7 +195,7 @@ private:
 };
 ```
 
-### APRV-001 (All Providers Runtime Verified Gate)
+### APRV-001 (All Providers Runtime Verification Gate)
 ```cpp
 class AllProvidersRuntimeVerifiedGate {
 public:
@@ -361,7 +361,7 @@ class EvidenceReader:
 - Generates evidence report for final gate.
 
 ### APRV-001 Integration
-- All Providers Runtime Verified Gate uses EvidenceReader.
+- All Providers Runtime Verification Gate uses EvidenceReader.
 - Validates all provider evidence.
 - Verifies no BLOCKED_ENV providers.
 

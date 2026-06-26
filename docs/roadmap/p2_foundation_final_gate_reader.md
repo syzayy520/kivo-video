@@ -2,7 +2,7 @@
 
 ## Overview
 
-Foundation Final Gate Reader is the comprehensive validation gate that reads all child evidence and provider matrix to determine if P2 Foundation is complete. This gate validates consistency, completeness, and honesty of all foundation claims before allowing "P2 FOUNDATION COMPLETE" claim.
+Foundation Final Gate Reader is the comprehensive validation gate that reads all child evidence and provider matrix to determine if P2 Foundation is complete. This gate validates consistency, completeness, and honesty of all foundation claims before allowing "P2 FOUNDATION STATUS" claim.
 
 ## Gate Purpose
 
@@ -267,7 +267,7 @@ struct AntiFakeComplianceResult {
 - Lists provider runtime gaps
 - Documents known limitations
 
-### APRV-001 All Providers Runtime Verified Gate
+### APRV-001 All Providers Runtime Verification Gate
 
 - Requires Foundation Final Gate Reader passed
 - Requires no provider runtime gaps

@@ -327,7 +327,7 @@ struct MatrixMetadata {
 
 1. **PFFG-001**: Foundation Final Gate Reader
 2. **PMX-002**: Matrix Honesty Gate
-3. **APRV-001**: All Providers Runtime Verified Gate
+3. **APRV-001**: All Providers Runtime Verification Gate
 4. **Inspector**: Playback Inspector
 5. **DecisionLedger**: Decision Ledger
 
@@ -390,7 +390,7 @@ struct MatrixMetadata {
 - Validates evidence references
 - Validates matrix metadata
 
-### APRV-001 All Providers Runtime Verified Gate
+### APRV-001 All Providers Runtime Verification Gate
 
 - Requires all providers RUNTIME_PASS
 - Requires all evidence validated

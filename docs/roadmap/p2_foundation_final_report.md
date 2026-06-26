@@ -50,8 +50,8 @@ The report reads evidence from:
 **Classification**: [PASS_READY_FOR_REVIEW / FAIL / BLOCKED_ENV]
 
 ### Foundation Status
-- **P2 Foundation Complete**: [YES/NO]
-- **All Providers Runtime Verified**: [YES/NO]
+- **P2 foundation status reached**: [YES/NO]
+- **APRV-001 verification**: [YES/NO]
 - **Provider Runtime Gaps**: [Number]
 
 ### Key Findings
@@ -240,20 +240,20 @@ The report reads evidence from:
 ## Classification
 
 ### Foundation Classification
-- **P2 Foundation Complete**: [YES/NO]
-- **All Providers Runtime Verified**: [YES/NO]
+- **P2 foundation status reached**: [YES/NO]
+- **APRV-001 verification**: [YES/NO]
 - **Classification**: [PASS_READY_FOR_REVIEW / FAIL / BLOCKED_ENV]
 
 ### Allowed Claims
-- **P2 FOUNDATION COMPLETE**: [ALLOWED/NOT_ALLOWED]
+- **P2 FOUNDATION STATUS**: [ALLOWED/NOT_ALLOWED]
 - **Direct Play / Direct Stream / Presentation Foundation Complete**: [ALLOWED/NOT_ALLOWED]
-- **ALL PROVIDERS RUNTIME VERIFIED**: [NOT_ALLOWED until APRV-001 passes]
+- **APRV-001 final verification**: [NOT_ALLOWED until APRV-001 passes]
 
 ### Forbidden Claims
-- **P3 COMPLETE**: NOT ALLOWED
-- **HDR COMPLETE**: NOT ALLOWED
-- **ATMOS BITSTREAM COMPLETE**: NOT ALLOWED
-- **AIRPLAY PRODUCT COMPLETE**: NOT ALLOWED
+- **P3 capability**: NOT ALLOWED
+- **HDR capability**: NOT ALLOWED
+- **Atmos bitstream capability**: NOT ALLOWED
+- **AirPlay capability**: NOT ALLOWED
 ```
 
 ## Report Generation Process
@@ -308,7 +308,7 @@ The report reads evidence from:
 
 ## Integration Points
 
-### APRV-001 All Providers Runtime Verified Gate
+### APRV-001 All Providers Runtime Verification Gate
 
 - Reads Foundation Final Report
 - Requires no provider runtime gaps

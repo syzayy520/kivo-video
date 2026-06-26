@@ -12,7 +12,7 @@ This file converts the V8 roadmap into task cards an assistant can execute direc
 - Follow the iron gate: conception -> planning design -> natural family tree -> implementation -> single file single responsibility -> no flat files.
 - Do not start code for a card until its planning draft exists.
 - Do not report `P2 FOUNDATION COMPLETE` until `PFFG-001` and `PFFG-002` pass.
-- Do not report `ALL PROVIDERS RUNTIME VERIFIED` until `APRV-001` passes.
+- Do not report `APRV-001 final verification` until `APRV-001` passes.
 - Do not report `RUNTIME_PASS` from stub, fake, simulator, state-only, log-only, or mock-only proof.
 - Use only these evidence statuses: `RUNTIME_PASS`, `CONTRACT_PASS`, `FAIL`, `BLOCKED_ENV`, `NOT_IMPLEMENTED`, `SKIPPED_TEST_ONLY`.
 - Put evidence under `artifacts/p2/evidence/<task-id>.json` or document why the artifact path is blocked.
@@ -164,7 +164,7 @@ Each task card must be executed with these fields:
 - Inspector Output: not required.
 - DecisionLedger Output: optional.
 - Schema Gate: claim status must map to V8 status vocabulary.
-- Redline Gate: fail on premature `P2 Complete`, `ALL PROVIDERS RUNTIME VERIFIED`, `P3 COMPLETE`, `HDR COMPLETE`, `ATMOS BITSTREAM COMPLETE`, or `AIRPLAY PRODUCT COMPLETE`.
+- Redline Gate: fail on premature `P2 readiness`, `APRV-001 final verification`, `P3 capability`, `HDR capability`, `Atmos bitstream capability`, or `AirPlay capability`.
 - Anti-fake Gate: no single test can close P2.
 - Clean Workspace Gate: required.
 - Final Report Rules: allowed claim after this gate is only governance readiness for V8, not P2 completion.
@@ -542,4 +542,4 @@ The following cards are queued after `LRD-013`. Each must be expanded into the s
 - `PMX-002`: Matrix Honesty Gate.
 - `PFFG-001`: Foundation Final Gate Reader.
 - `PFFG-002`: Foundation Final Report.
-- `APRV-001`: All Providers Runtime Verified Gate.
+- `APRV-001`: All Providers Runtime Verification Gate.

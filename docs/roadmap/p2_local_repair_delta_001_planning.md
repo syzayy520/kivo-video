@@ -379,7 +379,7 @@ Run forbidden token scan on all new/modified files:
 - fake/stub/simulate/simulator/dummy/mock-only
 - todo-pass/always-pass/state-only-pass
 - silent fallback/not implemented but pass
-- P3 false-complete/HDR complete/Atmos complete
+- P3 false-complete/HDR completion/Atmos completion
 
 ### Allowlist Rules
 - Allow forbidden words only in:
@@ -421,8 +421,8 @@ Run forbidden token scan on all new/modified files:
 - Next recommendation
 
 ### Forbidden Claims
-- Never claim P2 FOUNDATION COMPLETE
-- Never claim ALL PROVIDERS RUNTIME VERIFIED
+- Never claim P2 FOUNDATION STATUS
+- Never claim APRV-001 final verification
 - Never claim P3/HDR/Atmos/remote completion
 - Never claim full playback closure without all providers
 
@@ -461,8 +461,8 @@ Run forbidden token scan on all new/modified files:
 - [ ] FFmpeg OFF anti-fake passes
 - [ ] Machine-readable evidence generated
 - [ ] Final report classification correct
-- [ ] No premature P2 FOUNDATION COMPLETE claim
-- [ ] No premature ALL PROVIDERS RUNTIME VERIFIED claim
+- [ ] No premature P2 FOUNDATION STATUS claim
+- [ ] No premature ALL PROVIDERS RUNTIME VERIFICATION claim
 
 ---
 

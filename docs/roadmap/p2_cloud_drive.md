@@ -158,7 +158,7 @@ The cloud drive system provides access to files stored on cloud drives (Google D
 #### Token Redaction
 **Rule**: No access tokens or refresh tokens
 **Method**: Remove or mask credentials
-**Example**: `access_token=ya29...` → `access_token=***`
+**Example**: `access_token=<REDACTED>` → `access_token=***`
 
 #### File Path Redaction
 **Rule**: No full file paths

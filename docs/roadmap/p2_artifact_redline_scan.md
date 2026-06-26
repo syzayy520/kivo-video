@@ -268,7 +268,7 @@ def is_json_violation_allowed(violation: RedlineViolation, context: str) -> bool
 - Any HIGH severity violation blocks P2 Foundation claim.
 
 ### APRV-001 Gate Integration
-- All Providers Runtime Verified Gate runs artifact redline scan.
+- All Providers Runtime Verification Gate runs artifact redline scan.
 - Any violation in provider runtime matrix blocks All Providers claim.
 
 ## Test Cases
