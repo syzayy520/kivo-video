@@ -1,0 +1,41 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "KIVO-VIDEO-P2-REMOTE-RANGE-RUNTIME-FOUNDATION-HTTP-WEBDAV-001",
+  "task_family": "source_core",
+  "status": "RUNTIME_PASS",
+  "runtime_verified": true,
+  "runtime_environment_kind": "deterministic_transport_fixture_runtime",
+  "runtime_fixture_level": "level_1_deterministic_transport_fixture",
+  "provider_runtime_scope": "http_range_only",
+  "implementation": {
+    "http_range_open_verified": true,
+    "http_range_read_real_bytes_verified": true,
+    "http_range_positioned_read_verified": true,
+    "http_range_seek_verified": true,
+    "http_range_close_verified": true,
+    "http_range_redaction_verified": true,
+    "http_range_direct_input_verified": true,
+    "http_range_thread_safety_verified": true,
+    "http_range_tests_passed": 7,
+    "http_range_tests_total": 7,
+    "webdav_range_bridge": "not_implemented",
+    "loopback_socket_runtime": "not_verified",
+    "production_http_transport": "not_claimed",
+    "external_network_runtime": "not_claimed",
+    "remote_provider_runtime": "not_implemented"
+  },
+  "anti_fake_checks": {
+    "no_provider_manager": true,
+    "no_all_providers_verified": true,
+    "no_p2_complete": true,
+    "no_raw_url_in_evidence": true
+  },
+  "redaction_verified": true,
+  "schema_validated": true,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "media_input": { "kind": "not_applicable" },
+  "extension_input": {},
+  "requires_provider_matrix": false,
+  "timestamp_utc": "2026-06-27T03:30:00Z"
+}

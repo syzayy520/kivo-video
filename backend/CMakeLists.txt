@@ -856,6 +856,32 @@ foreach(test_name ${LF_TESTS})
   set_tests_properties(kivo_video_provider_local_file_${test_name}_test PROPERTIES TIMEOUT 10)
 endforeach()
 
+# ─── HTTP Range Provider ───
+add_library(kivo_video_provider_http_range STATIC
+  src/providers/http/http_url.cpp
+  src/providers/http/content_range_parser.cpp
+  src/providers/http/http_range_provider.cpp
+)
+target_include_directories(kivo_video_provider_http_range PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_options(kivo_video_provider_http_range PRIVATE /std:c++17)
+target_link_libraries(kivo_video_provider_http_range PUBLIC kivo_video_source_core_runtime)
+
+set(HR_TESTS open read seek close redaction direct_input basic_thread_safety)
+foreach(test_name ${HR_TESTS})
+  add_executable(kivo_video_provider_http_range_${test_name}_test
+    tests/providers/http/${test_name}_test.cpp
+  )
+  target_include_directories(kivo_video_provider_http_range_${test_name}_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/tests
+  )
+  target_compile_options(kivo_video_provider_http_range_${test_name}_test PRIVATE /std:c++17)
+  target_link_libraries(kivo_video_provider_http_range_${test_name}_test PRIVATE kivo_video_provider_http_range)
+  add_test(NAME kivo_video_provider_http_range_${test_name}_test
+    COMMAND kivo_video_provider_http_range_${test_name}_test
+  )
+  set_tests_properties(kivo_video_provider_http_range_${test_name}_test PROPERTIES TIMEOUT 10)
+endforeach()
+
 # ─── P2 Schema Gate Validator ───
 find_program(PYTHON_EXE python)
 if(PYTHON_EXE)
