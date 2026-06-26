@@ -746,3 +746,12 @@ set_tests_properties(kivo_micro_soak_test PROPERTIES
   SKIP_REGULAR_EXPRESSION
   "Classification: (BLOCKED_ENV|BLOCKED_SAMPLE_TOO_SHORT|BLOCKED_SAMPLE_INVALID)"
 )
+
+# ─── P2 Schema Gate Validator ───
+find_program(PYTHON_EXE python)
+if(PYTHON_EXE)
+  add_test(NAME kivo_schema_gate_self_test
+    COMMAND ${PYTHON_EXE} "${CMAKE_SOURCE_DIR}/backend/tools/governance/schema_gate/validator/schema_gate_validator.py" --self-test
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  )
+endif()

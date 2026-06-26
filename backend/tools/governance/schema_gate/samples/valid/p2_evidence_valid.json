@@ -1,0 +1,40 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "V10-020",
+  "task_family": "local_playback_e2e",
+  "status": "RUNTIME_PASS",
+  "completion_level": "p2-local-runtime",
+  "runtime_mode": "real_runtime",
+  "runtime_environment_kind": "local_real_runtime",
+  "environment": {
+    "environment_required": true,
+    "environment_available": true
+  },
+  "media_input": {
+    "kind": "local_file"
+  },
+  "inspector_snapshot": {
+    "schema_version": "p2-inspector-v8",
+    "inspector_id": "e2e-inspector-1",
+    "task_id": "V10-020",
+    "source_summary": { "provider_kind": "local_file", "source_available": true, "credentials_redacted": true },
+    "media_summary": { "container_format": "mp4", "duration_seconds": 35.0, "has_video": true, "has_audio": true }
+  },
+  "decision_ledger": {
+    "schema_version": "p2-decision-ledger-v8",
+    "ledger_id": "e2e-ledger-1",
+    "task_id": "V10-020",
+    "decisions": [
+      {
+        "decision_id": "d1",
+        "domain": "probe",
+        "decision": "probe_ok",
+        "reason": "valid H.264+AAC MP4",
+        "status": "RUNTIME_PASS"
+      }
+    ]
+  },
+  "redaction_verified": true,
+  "runtime_verified": true,
+  "timestamp_utc": "2026-06-26T06:36:00Z"
+}

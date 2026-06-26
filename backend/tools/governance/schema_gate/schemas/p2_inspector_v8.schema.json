@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "P2 Inspector V8 Schema",
+  "type": "object",
+  "required": ["schema_version", "inspector_id", "task_id", "source_summary", "media_summary", "timestamp_utc"],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^p2-inspector-v8$" },
+    "inspector_id": { "type": "string", "minLength": 1 },
+    "task_id": { "type": "string", "minLength": 1 },
+    "source_summary": {
+      "type": "object",
+      "properties": {
+        "provider_kind": { "type": "string" },
+        "source_available": { "type": "boolean" },
+        "blocked_reason": { "type": "string" },
+        "credentials_redacted": { "type": "boolean" }
+      }
+    },
+    "media_summary": {
+      "type": "object",
+      "properties": {
+        "container_format": { "type": "string" },
+        "duration_seconds": { "type": "number" },
+        "has_video": { "type": "boolean" },
+        "has_audio": { "type": "boolean" }
+      }
+    },
+    "video_summary": { "type": "object" },
+    "audio_summary": { "type": "object" },
+    "subtitle_summary": { "type": "object" },
+    "chapter_summary": { "type": "object" },
+    "playback_summary": { "type": "object" },
+    "runtime_summary": { "type": "object" },
+    "environment_summary": { "type": "object" },
+    "errors": { "type": "array" },
+    "warnings": { "type": "array" },
+    "redaction_summary": {
+      "type": "object",
+      "properties": {
+        "no_full_path_leakage": { "type": "boolean" },
+        "no_token_cookie_credential_leakage": { "type": "boolean" }
+      }
+    },
+    "timestamp_utc": { "type": "string", "format": "date-time" }
+  }
+}

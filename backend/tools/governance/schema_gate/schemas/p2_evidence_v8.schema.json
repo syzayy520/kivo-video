@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "P2 Evidence V8 Schema",
+  "description": "Machine-readable evidence format for P2 runtime/proof gates",
+  "type": "object",
+  "required": [
+    "schema_version", "task_id", "task_family", "status",
+    "runtime_mode", "runtime_environment_kind",
+    "inspector_snapshot", "decision_ledger",
+    "redaction_verified", "runtime_verified",
+    "timestamp_utc"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^p2-evidence-v8$" },
+    "task_id": { "type": "string", "minLength": 1 },
+    "task_family": { "type": "string", "minLength": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["RUNTIME_PASS", "CONTRACT_PASS", "FAIL", "BLOCKED_ENV", "NOT_IMPLEMENTED", "SKIPPED_TEST_ONLY"]
+    },
+    "completion_level": { "type": "string" },
+    "runtime_mode": { "type": "string" },
+    "runtime_environment_kind": {
+      "type": "string",
+      "enum": [
+        "local_real_runtime", "windows_device_runtime",
+        "controlled_real_protocol_server", "real_external_service",
+        "real_external_account", "real_external_device",
+        "mock", "unit_test", "simulator", "not_applicable"
+      ]
+    },
+    "environment": {
+      "type": "object",
+      "properties": {
+        "environment_required": { "type": "boolean" },
+        "environment_available": { "type": "boolean" },
+        "blocked_reason": { "type": "string" }
+      }
+    },
+    "implementation": { "type": "object" },
+    "media_input": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string" }
+      }
+    },
+    "extension_input": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string" }
+      }
+    },
+    "media_identity": { "type": "object" },
+    "source_identity": { "type": "object" },
+    "extension_identity": { "type": "object" },
+    "capability_probe": { "type": "object" },
+    "direct_play_decision": { "type": "object" },
+    "direct_stream_decision": { "type": "object" },
+    "subtitle_snapshot": { "type": "object" },
+    "chapter_snapshot": { "type": "object" },
+    "playback_state_snapshot": { "type": "object" },
+    "inspector_snapshot": { "type": "object" },
+    "decision_ledger": { "type": "object" },
+    "errors": { "type": "array" },
+    "redaction_verified": { "type": "boolean" },
+    "schema_validated": { "type": "boolean" },
+    "anti_fake_checks": { "type": "object" },
+    "redline_scan": { "type": "object" },
+    "test_commands": { "type": "array" },
+    "artifacts": { "type": "array" },
+    "requires_provider_matrix": { "type": "boolean" },
+    "runtime_verified": { "type": "boolean" },
+    "blocked_reason": { "type": "string" },
+    "timestamp_utc": { "type": "string", "format": "date-time" }
+  }
+}

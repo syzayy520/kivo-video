@@ -1,0 +1,8 @@
+{
+  "schema_version": "p2-extension-decision-ledger-v8",
+  "ledger_id": "ext-fake-1",
+  "task_id": "FAKE-EXT",
+  "extension_kind": "local_file",
+  "extension_identity": {},
+  "timestamp_utc": "2026-06-26T00:00:00Z"
+}

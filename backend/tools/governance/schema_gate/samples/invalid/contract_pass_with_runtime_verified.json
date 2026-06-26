@@ -1,0 +1,13 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "FAKE-002",
+  "task_family": "test",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "test",
+  "runtime_environment_kind": "unit_test",
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "redaction_verified": true,
+  "runtime_verified": true,
+  "timestamp_utc": "2026-06-26T00:00:00Z"
+}

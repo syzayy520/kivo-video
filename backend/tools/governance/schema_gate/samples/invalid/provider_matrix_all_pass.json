@@ -1,0 +1,10 @@
+{
+  "schema_version": "provider-runtime-matrix-v8",
+  "matrix_id": "matrix-fake",
+  "generated_by_task": "FAKE",
+  "providers": [
+    { "provider_kind": "local_file", "contract_status": "CONTRACT_PASS", "runtime_status": "RUNTIME_PASS", "runtime_verified": true, "runtime_environment_kind": "local_real_runtime", "environment_required": true, "environment_available": true, "evidence_file": "" },
+    { "provider_kind": "webdav", "contract_status": "CONTRACT_PASS", "runtime_status": "RUNTIME_PASS", "runtime_verified": true, "runtime_environment_kind": "local_real_runtime", "environment_required": true, "environment_available": true, "evidence_file": "" }
+  ],
+  "timestamp_utc": "2026-06-26T00:00:00Z"
+}

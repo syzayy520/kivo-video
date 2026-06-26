@@ -1,0 +1,12 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "FAKE-005",
+  "task_family": "test",
+  "status": "RUNTIME_PASS",
+  "runtime_mode": "test",
+  "runtime_environment_kind": "local_real_runtime",
+  "inspector_snapshot": {},
+  "redaction_verified": true,
+  "runtime_verified": true,
+  "timestamp_utc": "2026-06-26T00:00:00Z"
+}
