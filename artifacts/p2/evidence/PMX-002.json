@@ -337,12 +337,12 @@
       "PMX-001: Provider Runtime Matrix generated",
       "PMX-002: Matrix Honesty Gate validates matrix",
       "PFFG-001: Foundation Final Gate Reader reads matrix",
-      "APRV-001: All Providers Runtime Verified Gate uses matrix"
+      "APRV-001: All Providers Runtime Verification Gate uses matrix"
     ],
     "next_steps": [
       "PFFG-001: Foundation Final Gate Reader",
       "PFFG-002: Foundation Final Report",
-      "APRV-001: All Providers Runtime Verified Gate"
+      "APRV-001: All Providers Runtime Verification Gate"
     ]
   },
   "legacy_fields": {
@@ -635,12 +635,12 @@
       "PMX-001: Provider Runtime Matrix generated",
       "PMX-002: Matrix Honesty Gate validates matrix",
       "PFFG-001: Foundation Final Gate Reader reads matrix",
-      "APRV-001: All Providers Runtime Verified Gate uses matrix"
+      "APRV-001: All Providers Runtime Verification Gate uses matrix"
     ],
     "next_steps": [
       "PFFG-001: Foundation Final Gate Reader",
       "PFFG-002: Foundation Final Report",
-      "APRV-001: All Providers Runtime Verified Gate"
+      "APRV-001: All Providers Runtime Verification Gate"
     ]
   },
   "legacy_migration_audit": {

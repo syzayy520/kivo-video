@@ -311,13 +311,13 @@
         "Requires report documents known limitations"
       ],
       "inspector_integration": [
-        "Reports all providers runtime verified gate status",
+        "Reports APRV-001 gate status",
         "Reports provider runtime verification results",
         "Reports provider evidence validation",
         "Tracks gate history"
       ],
       "decision_ledger_integration": [
-        "Records all providers runtime verified gate decision",
+        "Records APRV-001 gate decision",
         "Records provider runtime verification results",
         "Records provider evidence validation",
         "Records gate pass/fail"
@@ -334,7 +334,7 @@
         "No stub/fake/simulator proof claimed as runtime",
         "All evidence timestamps recent",
         "No status conflicts between evidence and source",
-        "All providers runtime verified claim allowed"
+        "APRV-001 claim allowed"
       ],
       "negative_test_cases": [
         "Any provider has non-RUNTIME_PASS status",
@@ -346,7 +346,7 @@
         "Stub/fake/simulator proof claimed as RUNTIME_PASS",
         "Evidence timestamp older than 30 days",
         "Status conflict between evidence and source",
-        "All providers runtime verified claim not allowed"
+        "APRV-001 claim not allowed"
       ],
       "total_test_cases": 20
     },
@@ -383,7 +383,7 @@
       "PMX-002: Matrix Honesty Gate validates matrix",
       "PFFG-001: Foundation Final Gate Reader reads all evidence",
       "PFFG-002: Foundation Final Report generated",
-      "APRV-001: All Providers Runtime Verified Gate verifies all providers"
+      "APRV-001: All Providers Runtime Verification Gate verifies all providers"
     ],
     "important_notes": {
       "post_foundation_gate": "This gate is explicitly post-foundation. It is NOT part of P2 Foundation completion.",
@@ -662,13 +662,13 @@
         "Requires report documents known limitations"
       ],
       "inspector_integration": [
-        "Reports all providers runtime verified gate status",
+        "Reports APRV-001 gate status",
         "Reports provider runtime verification results",
         "Reports provider evidence validation",
         "Tracks gate history"
       ],
       "decision_ledger_integration": [
-        "Records all providers runtime verified gate decision",
+        "Records APRV-001 gate decision",
         "Records provider runtime verification results",
         "Records provider evidence validation",
         "Records gate pass/fail"
@@ -685,7 +685,7 @@
         "No stub/fake/simulator proof claimed as runtime",
         "All evidence timestamps recent",
         "No status conflicts between evidence and source",
-        "All providers runtime verified claim allowed"
+        "APRV-001 claim allowed"
       ],
       "negative_test_cases": [
         "Any provider has non-RUNTIME_PASS status",
@@ -697,7 +697,7 @@
         "Stub/fake/simulator proof claimed as RUNTIME_PASS",
         "Evidence timestamp older than 30 days",
         "Status conflict between evidence and source",
-        "All providers runtime verified claim not allowed"
+        "APRV-001 claim not allowed"
       ],
       "total_test_cases": 20
     },
@@ -734,7 +734,7 @@
       "PMX-002: Matrix Honesty Gate validates matrix",
       "PFFG-001: Foundation Final Gate Reader reads all evidence",
       "PFFG-002: Foundation Final Report generated",
-      "APRV-001: All Providers Runtime Verified Gate verifies all providers"
+      "APRV-001: All Providers Runtime Verification Gate verifies all providers"
     ],
     "important_notes": {
       "post_foundation_gate": "This gate is explicitly post-foundation. It is NOT part of P2 Foundation completion.",

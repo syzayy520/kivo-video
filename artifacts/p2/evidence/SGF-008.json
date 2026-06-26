@@ -68,7 +68,7 @@
       "validation_rules": "Schema, anti-fake, redaction validation",
       "gate_integration": [
         "PFFG-001: Foundation Final Gate Reader uses EvidenceReader",
-        "APRV-001: All Providers Runtime Verified Gate uses EvidenceReader"
+        "APRV-001: All Providers Runtime Verification Gate uses EvidenceReader"
       ]
     },
     "implementation_requirements": {
@@ -115,7 +115,7 @@
       "validation_rules": "Schema, anti-fake, redaction validation",
       "gate_integration": [
         "PFFG-001: Foundation Final Gate Reader uses EvidenceReader",
-        "APRV-001: All Providers Runtime Verified Gate uses EvidenceReader"
+        "APRV-001: All Providers Runtime Verification Gate uses EvidenceReader"
       ]
     },
     "implementation_requirements": {

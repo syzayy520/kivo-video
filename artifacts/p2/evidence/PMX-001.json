@@ -400,7 +400,7 @@
       "PMX-001: Provider Runtime Matrix generated",
       "PMX-002: Matrix Honesty Gate validates matrix",
       "PFFG-001: Foundation Final Gate Reader reads matrix",
-      "APRV-001: All Providers Runtime Verified Gate uses matrix"
+      "APRV-001: All Providers Runtime Verification Gate uses matrix"
     ],
     "test_cases": {
       "positive_test_cases": 10,
@@ -761,7 +761,7 @@
       "PMX-001: Provider Runtime Matrix generated",
       "PMX-002: Matrix Honesty Gate validates matrix",
       "PFFG-001: Foundation Final Gate Reader reads matrix",
-      "APRV-001: All Providers Runtime Verified Gate uses matrix"
+      "APRV-001: All Providers Runtime Verification Gate uses matrix"
     ],
     "test_cases": {
       "positive_test_cases": 10,

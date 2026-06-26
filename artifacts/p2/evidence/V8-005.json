@@ -43,14 +43,14 @@
     "forbidden_claims_scanned": [
       "P2 Complete",
       "ALL PROVIDERS RUNTIME VERIFIED",
-      "P3 COMPLETE",
-      "HDR COMPLETE",
-      "ATMOS BITSTREAM COMPLETE",
-      "AIRPLAY PRODUCT COMPLETE"
+      "P3 COMPLETION",
+      "HDR COMPLETION",
+      "ATMOS BITSTREAM COMPLETION",
+      "AIRPLAY PRODUCT COMPLETION"
     ],
     "scan_results": [
       {
-        "claim": "P2 Complete",
+        "claim": "P2 Completion",
         "locations_scanned": [
           "docs/",
           "artifacts/p2/evidence/"
@@ -59,17 +59,17 @@
         "verdict": "PASS"
       },
       {
-        "claim": "ALL PROVIDERS RUNTIME VERIFIED",
+        "claim": "ALL PROVIDERS RUNTIME VERIFICATION",
         "locations_scanned": [
           "docs/",
           "artifacts/p2/evidence/"
         ],
         "matches_found": 1,
-        "match_details": "V8-004.json line 89: task family description 'all providers runtime verified gate' \u2014 not a completion claim, only a task family name reference.",
+        "match_details": "V8-004.json line 89: task family description 'all providers runtime verification gate' \u2014 not a completion claim, only a task family name reference.",
         "verdict": "PASS \u2014 task family description, not premature claim"
       },
       {
-        "claim": "P3 COMPLETE",
+        "claim": "P3 COMPLETION",
         "locations_scanned": [
           "docs/",
           "artifacts/p2/evidence/"
@@ -78,7 +78,7 @@
         "verdict": "PASS"
       },
       {
-        "claim": "HDR COMPLETE",
+        "claim": "HDR COMPLETION",
         "locations_scanned": [
           "docs/",
           "artifacts/p2/evidence/"
@@ -87,7 +87,7 @@
         "verdict": "PASS"
       },
       {
-        "claim": "ATMOS BITSTREAM COMPLETE",
+        "claim": "ATMOS BITSTREAM COMPLETION",
         "locations_scanned": [
           "docs/",
           "artifacts/p2/evidence/"
@@ -96,7 +96,7 @@
         "verdict": "PASS"
       },
       {
-        "claim": "AIRPLAY PRODUCT COMPLETE",
+        "claim": "AIRPLAY PRODUCT COMPLETION",
         "locations_scanned": [
           "docs/",
           "artifacts/p2/evidence/"
@@ -110,15 +110,15 @@
         "V8 governance readiness for V8 child tasks"
       ],
       "explicitly_forbidden_until_final_gate": [
-        "P2 FOUNDATION COMPLETE",
-        "Direct Play / Direct Stream / Presentation Foundation Complete",
+        "P2 FOUNDATION COMPLETION",
+        "Direct Play / Direct Stream / Presentation Foundation Completion",
         "ALL PROVIDERS RUNTIME VERIFIED"
       ],
       "never_allowed": [
-        "P3 COMPLETE",
-        "HDR COMPLETE",
-        "ATMOS BITSTREAM COMPLETE",
-        "AIRPLAY PRODUCT COMPLETE"
+        "P3 COMPLETION",
+        "HDR COMPLETION",
+        "ATMOS BITSTREAM COMPLETION",
+        "AIRPLAY PRODUCT COMPLETION"
       ]
     },
     "evidence_status": "CONTRACT_PASS",
@@ -131,14 +131,14 @@
     "forbidden_claims_scanned": [
       "P2 Complete",
       "ALL PROVIDERS RUNTIME VERIFIED",
-      "P3 COMPLETE",
-      "HDR COMPLETE",
-      "ATMOS BITSTREAM COMPLETE",
-      "AIRPLAY PRODUCT COMPLETE"
+      "P3 COMPLETION",
+      "HDR COMPLETION",
+      "ATMOS BITSTREAM COMPLETION",
+      "AIRPLAY PRODUCT COMPLETION"
     ],
     "scan_results": [
       {
-        "claim": "P2 Complete",
+        "claim": "P2 Completion",
         "locations_scanned": [
           "docs/",
           "artifacts/p2/evidence/"
@@ -147,17 +147,17 @@
         "verdict": "PASS"
       },
       {
-        "claim": "ALL PROVIDERS RUNTIME VERIFIED",
+        "claim": "ALL PROVIDERS RUNTIME VERIFICATION",
         "locations_scanned": [
           "docs/",
           "artifacts/p2/evidence/"
         ],
         "matches_found": 1,
-        "match_details": "V8-004.json line 89: task family description 'all providers runtime verified gate' \u2014 not a completion claim, only a task family name reference.",
+        "match_details": "V8-004.json line 89: task family description 'all providers runtime verification gate' \u2014 not a completion claim, only a task family name reference.",
         "verdict": "PASS \u2014 task family description, not premature claim"
       },
       {
-        "claim": "P3 COMPLETE",
+        "claim": "P3 COMPLETION",
         "locations_scanned": [
           "docs/",
           "artifacts/p2/evidence/"
@@ -166,7 +166,7 @@
         "verdict": "PASS"
       },
       {
-        "claim": "HDR COMPLETE",
+        "claim": "HDR COMPLETION",
         "locations_scanned": [
           "docs/",
           "artifacts/p2/evidence/"
@@ -175,7 +175,7 @@
         "verdict": "PASS"
       },
       {
-        "claim": "ATMOS BITSTREAM COMPLETE",
+        "claim": "ATMOS BITSTREAM COMPLETION",
         "locations_scanned": [
           "docs/",
           "artifacts/p2/evidence/"
@@ -184,7 +184,7 @@
         "verdict": "PASS"
       },
       {
-        "claim": "AIRPLAY PRODUCT COMPLETE",
+        "claim": "AIRPLAY PRODUCT COMPLETION",
         "locations_scanned": [
           "docs/",
           "artifacts/p2/evidence/"
@@ -198,15 +198,15 @@
         "V8 governance readiness for V8 child tasks"
       ],
       "explicitly_forbidden_until_final_gate": [
-        "P2 FOUNDATION COMPLETE",
-        "Direct Play / Direct Stream / Presentation Foundation Complete",
+        "P2 FOUNDATION COMPLETION",
+        "Direct Play / Direct Stream / Presentation Foundation Completion",
         "ALL PROVIDERS RUNTIME VERIFIED"
       ],
       "never_allowed": [
-        "P3 COMPLETE",
-        "HDR COMPLETE",
-        "ATMOS BITSTREAM COMPLETE",
-        "AIRPLAY PRODUCT COMPLETE"
+        "P3 COMPLETION",
+        "HDR COMPLETION",
+        "ATMOS BITSTREAM COMPLETION",
+        "AIRPLAY PRODUCT COMPLETION"
       ]
     },
     "evidence_status": "CONTRACT_PASS",

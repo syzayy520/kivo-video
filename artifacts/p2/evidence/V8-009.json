@@ -42,7 +42,7 @@
     "goal": "lock final gates until all dependencies are complete",
     "final_gate_sequencing_rules": [
       "Foundation Final Gate (PFFG-001, PFFG-002) is locked until all foundation child evidence exists",
-      "All Providers Runtime Verified Gate (APRV-001) is explicitly post-foundation, not part of foundation",
+      "All Providers Runtime Verification Gate (APRV-001) is explicitly post-foundation, not part of foundation",
       "P2 FOUNDATION COMPLETE claim requires PFFG-001 and PFFG-002 to pass",
       "provider runtime verified claims require provider evidence with RUNTIME_PASS status",
       "V10 local closure history is not P2 Foundation Final Gate",
@@ -64,7 +64,7 @@
         "allowed_claim": "P2 FOUNDATION COMPLETE / Direct Play / Direct Stream / Presentation Foundation Complete"
       },
       {
-        "gate": "All Providers Runtime Verified Gate (APRV-001)",
+        "gate": "All Providers Runtime Verification Gate (APRV-001)",
         "status": "NOT_IMPLEMENTED",
         "blocked_by": [
           "Foundation Final Gate completion",
@@ -72,7 +72,7 @@
           "no provider with BLOCKED_ENV, FAIL, or NOT_IMPLEMENTED status"
         ],
         "evidence_exists": false,
-        "allowed_claim": "ALL PROVIDERS RUNTIME VERIFIED"
+        "allowed_claim": "ALL PROVIDERS RUNTIME VERIFICATION"
       }
     ],
     "current_v8_progress": {
@@ -95,10 +95,10 @@
       "forbidden_claims": [
         "P2 COMPLETE",
         "ALL PROVIDERS RUNTIME VERIFIED",
-        "P3 COMPLETE",
-        "HDR COMPLETE",
-        "ATMOS BITSTREAM COMPLETE",
-        "AIRPLAY PRODUCT COMPLETE",
+        "P3 COMPLETION",
+        "HDR COMPLETION",
+        "ATMOS BITSTREAM COMPLETION",
+        "AIRPLAY PRODUCT COMPLETION",
         "FOUNDATION COMPLETE without PFFG-001 and PFFG-002"
       ],
       "scan_result": "0 premature claims found in current evidence",
@@ -115,12 +115,12 @@
     },
     "gating_rules": {
       "foundation_final_gate": {
-        "required_before": "P2 FOUNDATION COMPLETE claim",
+        "required_before": "P2 FOUNDATION COMPLETION claim",
         "evidence_required": "PFFG-001.json and PFFG-002.json with status PASS",
         "dependencies": "all foundation family cards must have evidence"
       },
       "all_providers_runtime_verified_gate": {
-        "required_before": "ALL PROVIDERS RUNTIME VERIFIED claim",
+        "required_before": "ALL PROVIDERS RUNTIME VERIFICATION claim",
         "evidence_required": "APRV-001.json with status PASS",
         "dependencies": "Foundation Final Gate must pass first",
         "provider_requirements": "all provider entries in provider_runtime_matrix.json must have runtime_status RUNTIME_PASS"
@@ -128,7 +128,7 @@
     },
     "schema_version": "p2-evidence-v8",
     "evidence_status": "CONTRACT_PASS",
-    "reason": "Final gate sequencing rules defined, dependency list documented, premature claim detection active. Foundation Final Gate and All Providers Runtime Verified Gate are locked until their dependencies exist. Next allowed card is LRD-001.",
+    "reason": "Final gate sequencing rules defined, dependency list documented, premature claim detection active. Foundation Final Gate and All Providers Runtime Verification Gate are locked until their dependencies exist. Next allowed card is LRD-001.",
     "next_task": "LRD-001 Planning Draft"
   },
   "legacy_fields": {
@@ -136,7 +136,7 @@
     "goal": "lock final gates until all dependencies are complete",
     "final_gate_sequencing_rules": [
       "Foundation Final Gate (PFFG-001, PFFG-002) is locked until all foundation child evidence exists",
-      "All Providers Runtime Verified Gate (APRV-001) is explicitly post-foundation, not part of foundation",
+      "All Providers Runtime Verification Gate (APRV-001) is explicitly post-foundation, not part of foundation",
       "P2 FOUNDATION COMPLETE claim requires PFFG-001 and PFFG-002 to pass",
       "provider runtime verified claims require provider evidence with RUNTIME_PASS status",
       "V10 local closure history is not P2 Foundation Final Gate",
@@ -158,7 +158,7 @@
         "allowed_claim": "P2 FOUNDATION COMPLETE / Direct Play / Direct Stream / Presentation Foundation Complete"
       },
       {
-        "gate": "All Providers Runtime Verified Gate (APRV-001)",
+        "gate": "All Providers Runtime Verification Gate (APRV-001)",
         "status": "NOT_IMPLEMENTED",
         "blocked_by": [
           "Foundation Final Gate completion",
@@ -166,7 +166,7 @@
           "no provider with BLOCKED_ENV, FAIL, or NOT_IMPLEMENTED status"
         ],
         "evidence_exists": false,
-        "allowed_claim": "ALL PROVIDERS RUNTIME VERIFIED"
+        "allowed_claim": "ALL PROVIDERS RUNTIME VERIFICATION"
       }
     ],
     "current_v8_progress": {
@@ -189,10 +189,10 @@
       "forbidden_claims": [
         "P2 COMPLETE",
         "ALL PROVIDERS RUNTIME VERIFIED",
-        "P3 COMPLETE",
-        "HDR COMPLETE",
-        "ATMOS BITSTREAM COMPLETE",
-        "AIRPLAY PRODUCT COMPLETE",
+        "P3 COMPLETION",
+        "HDR COMPLETION",
+        "ATMOS BITSTREAM COMPLETION",
+        "AIRPLAY PRODUCT COMPLETION",
         "FOUNDATION COMPLETE without PFFG-001 and PFFG-002"
       ],
       "scan_result": "0 premature claims found in current evidence",
@@ -209,19 +209,19 @@
     },
     "gating_rules": {
       "foundation_final_gate": {
-        "required_before": "P2 FOUNDATION COMPLETE claim",
+        "required_before": "P2 FOUNDATION COMPLETION claim",
         "evidence_required": "PFFG-001.json and PFFG-002.json with status PASS",
         "dependencies": "all foundation family cards must have evidence"
       },
       "all_providers_runtime_verified_gate": {
-        "required_before": "ALL PROVIDERS RUNTIME VERIFIED claim",
+        "required_before": "ALL PROVIDERS RUNTIME VERIFICATION claim",
         "evidence_required": "APRV-001.json with status PASS",
         "dependencies": "Foundation Final Gate must pass first",
         "provider_requirements": "all provider entries in provider_runtime_matrix.json must have runtime_status RUNTIME_PASS"
       }
     },
     "evidence_status": "CONTRACT_PASS",
-    "reason": "Final gate sequencing rules defined, dependency list documented, premature claim detection active. Foundation Final Gate and All Providers Runtime Verified Gate are locked until their dependencies exist. Next allowed card is LRD-001.",
+    "reason": "Final gate sequencing rules defined, dependency list documented, premature claim detection active. Foundation Final Gate and All Providers Runtime Verification Gate are locked until their dependencies exist. Next allowed card is LRD-001.",
     "next_task": "LRD-001 Planning Draft"
   },
   "legacy_migration_audit": {

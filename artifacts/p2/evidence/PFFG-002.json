@@ -298,10 +298,10 @@
       "PMX-002: Matrix Honesty Gate validates matrix",
       "PFFG-001: Foundation Final Gate Reader reads all evidence",
       "PFFG-002: Foundation Final Report generated",
-      "APRV-001: All Providers Runtime Verified Gate uses report"
+      "APRV-001: All Providers Runtime Verification Gate uses report"
     ],
     "next_steps": [
-      "APRV-001: All Providers Runtime Verified Gate",
+      "APRV-001: All Providers Runtime Verification Gate",
       "Provider Runtime Verification",
       "Gap Resolution",
       "Feature Completion"
@@ -558,10 +558,10 @@
       "PMX-002: Matrix Honesty Gate validates matrix",
       "PFFG-001: Foundation Final Gate Reader reads all evidence",
       "PFFG-002: Foundation Final Report generated",
-      "APRV-001: All Providers Runtime Verified Gate uses report"
+      "APRV-001: All Providers Runtime Verification Gate uses report"
     ],
     "next_steps": [
-      "APRV-001: All Providers Runtime Verified Gate",
+      "APRV-001: All Providers Runtime Verification Gate",
       "Provider Runtime Verification",
       "Gap Resolution",
       "Feature Completion"

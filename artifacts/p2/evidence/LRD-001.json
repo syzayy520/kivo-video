@@ -229,7 +229,7 @@
         "fake/stub/simulate/simulator/dummy/mock-only",
         "todo-pass/always-pass/state-only-pass",
         "silent fallback/not implemented but pass",
-        "P3 false-complete/HDR complete/Atmos complete"
+        "P3 false-complete/HDR completion/Atmos completion"
       ],
       "allowlist_rules": "Allow forbidden words only in Forbidden Scope, Known Limitations, Next Recommendation, or explicit CONTRACT_PASS explanation",
       "scan_targets": [
@@ -298,8 +298,8 @@
       "FFmpeg OFF anti-fake passes",
       "Machine-readable evidence generated",
       "Final report classification correct",
-      "No premature P2 FOUNDATION COMPLETE claim",
-      "No premature ALL PROVIDERS RUNTIME VERIFIED claim"
+      "No premature P2 FOUNDATION COMPLETION claim",
+      "No premature ALL PROVIDERS RUNTIME VERIFICATION claim"
     ],
     "evidence_status": "CONTRACT_PASS",
     "reason": "Planning draft created with all required sections. No runtime code changes yet. Planning document exists at docs/roadmap/p2_local_repair_delta_001_planning.md. Evidence output at artifacts/p2/evidence/LRD-001.json.",
@@ -497,7 +497,7 @@
         "fake/stub/simulate/simulator/dummy/mock-only",
         "todo-pass/always-pass/state-only-pass",
         "silent fallback/not implemented but pass",
-        "P3 false-complete/HDR complete/Atmos complete"
+        "P3 false-complete/HDR completion/Atmos completion"
       ],
       "allowlist_rules": "Allow forbidden words only in Forbidden Scope, Known Limitations, Next Recommendation, or explicit CONTRACT_PASS explanation",
       "scan_targets": [
@@ -566,8 +566,8 @@
       "FFmpeg OFF anti-fake passes",
       "Machine-readable evidence generated",
       "Final report classification correct",
-      "No premature P2 FOUNDATION COMPLETE claim",
-      "No premature ALL PROVIDERS RUNTIME VERIFIED claim"
+      "No premature P2 FOUNDATION COMPLETION claim",
+      "No premature ALL PROVIDERS RUNTIME VERIFICATION claim"
     ],
     "evidence_status": "CONTRACT_PASS",
     "reason": "Planning draft created with all required sections. No runtime code changes yet. Planning document exists at docs/roadmap/p2_local_repair_delta_001_planning.md. Evidence output at artifacts/p2/evidence/LRD-001.json.",

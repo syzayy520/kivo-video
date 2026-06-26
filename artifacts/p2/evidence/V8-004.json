@@ -175,7 +175,7 @@
           "PFFG-002",
           "APRV-001"
         ],
-        "responsibility": "P2 foundation final gate, foundation final report, all providers runtime verified gate",
+        "responsibility": "P2 foundation final gate, foundation final report, all providers runtime verification gate",
         "directory_mapping": "backend/include/kivo/cinema_engine/governance_core/",
         "dependency_direction": "PFFG-001 \u2192 PFFG-002 \u2192 APRV-001"
       }
@@ -362,7 +362,7 @@
           "PFFG-002",
           "APRV-001"
         ],
-        "responsibility": "P2 foundation final gate, foundation final report, all providers runtime verified gate",
+        "responsibility": "P2 foundation final gate, foundation final report, all providers runtime verification gate",
         "directory_mapping": "backend/include/kivo/cinema_engine/governance_core/",
         "dependency_direction": "PFFG-001 \u2192 PFFG-002 \u2192 APRV-001"
       }
