@@ -747,6 +747,68 @@ set_tests_properties(kivo_micro_soak_test PROPERTIES
   "Classification: (BLOCKED_ENV|BLOCKED_SAMPLE_TOO_SHORT|BLOCKED_SAMPLE_INVALID)"
 )
 
+# ─── P2 Source Core Skeleton Targets ───
+
+# Contract contracts (header-only INTERFACE)
+add_library(kivo_video_source_core_contracts INTERFACE)
+target_include_directories(kivo_video_source_core_contracts INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+# Runtime contracts (header-only INTERFACE, depends on contracts)
+add_library(kivo_video_source_core_runtime INTERFACE)
+target_include_directories(kivo_video_source_core_runtime INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+target_link_libraries(kivo_video_source_core_runtime INTERFACE kivo_video_source_core_contracts)
+
+# Contract tests — one executable per family
+set(SC_CONTRACT_TESTS
+  provider_kind
+  uri
+  identity
+  capability
+  auth
+  redaction
+  error
+  evidence
+  decision_input
+)
+foreach(test_family ${SC_CONTRACT_TESTS})
+  add_executable(kivo_video_source_core_contract_${test_family}_test
+    tests/source_core/contracts/${test_family}/${test_family}_tests.cpp
+  )
+  target_include_directories(kivo_video_source_core_contract_${test_family}_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+  )
+  target_compile_options(kivo_video_source_core_contract_${test_family}_test PRIVATE /std:c++17)
+  target_link_libraries(kivo_video_source_core_contract_${test_family}_test PRIVATE kivo_video_source_core_contracts)
+endforeach()
+
+# Runtime tests — one executable per family
+set(SC_RUNTIME_TESTS session open read seek cancel timeout error)
+foreach(test_family ${SC_RUNTIME_TESTS})
+  add_executable(kivo_video_source_core_runtime_${test_family}_test
+    tests/source_core/runtime/${test_family}/${test_family}_tests.cpp
+  )
+  target_include_directories(kivo_video_source_core_runtime_${test_family}_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+  )
+  target_compile_options(kivo_video_source_core_runtime_${test_family}_test PRIVATE /std:c++17)
+  target_link_libraries(kivo_video_source_core_runtime_${test_family}_test PRIVATE kivo_video_source_core_runtime)
+endforeach()
+
+# Provider placeholder INTERFACE targets (no runtime, no source files)
+foreach(provider local_file http webdav alist emby cloud_drive hls)
+  add_library(kivo_video_providers_${provider} INTERFACE)
+  target_include_directories(kivo_video_providers_${provider} INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+  )
+  target_link_libraries(kivo_video_providers_${provider} INTERFACE
+    kivo_video_source_core_contracts
+  )
+endforeach()
+
 # ─── P2 Schema Gate Validator ───
 find_program(PYTHON_EXE python)
 if(PYTHON_EXE)

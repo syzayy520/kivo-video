@@ -14,6 +14,7 @@ Updated: 2026-06-25
 - Latest checklist cross-check found a V8/V10 issue: some current V10 runtime claims mention stub/simulator evidence, which V8 forbids as `RUNTIME_PASS`; next work starts with audit, downgrade, or real-runtime repair before remote/provider work.
 - Latest governance verification: V8-001 through V8-009 completed. V8-001 cleaned root, V8-002 audited consistency, V8-003 protected work, V8-004 mapped families, V8-005 enforced claim vocabulary, V8-006 enforced status vocabulary, V8-007 enforced evidence paths, V8-008 defined provider matrix schema, V8-009 locked final gates. All evidence in artifacts/p2/evidence/.
 - P2-LOCAL-REPAIR-DELTA-001 completed: LRD-001 through LRD-013 all DONE. Evidence in artifacts/p2/evidence/LRD-001.json through LRD-013.json. Planning documents in docs/roadmap/p2_local_repair_delta_*.md. Overall classification: CONTRACT_PASS (real FFmpeg foundation proven; downstream stages are correct stubs but cannot be RUNTIME_PASS without real hardware). Next task: SGF-001 Define p2-evidence-v8 schema.
+- Source Core Skeleton task book added as `SRC-CORE-SKELETON-001`. Execution card: `docs/roadmap/p2_source_core_skeleton_001_execution_card.md`. This is a delegated implementation-skeleton task and supersedes historical source-core planning for implementation details.
 - V10-014 lifecycle abort popup fixed: `kivo_lifecycle_test` now follows the real startup state-machine path and passes; full `ctest --preset vs-debug --output-on-failure --timeout 30` passes 74/74.
 - Natural family tree created in `docs/p0/core-architecture/natural_family_tree.md`.
 - First 12 P0 contract docs created.
@@ -52,8 +53,8 @@ Follow `docs/roadmap/backend_task_checklist.md`.
 
 Immediate next task:
 
-1. Open `docs/roadmap/p2_remaining_coverage_v8_execution_cards.md`.
-2. Execute `SGF-001` Define `p2-evidence-v8` schema.
-3. Execute `SGF-002` Define `p2-inspector-v8` schema.
-4. Execute `SGF-003` Define `p2-decision-ledger-v8` schema.
-5. Continue with `SGF-004` through `SGF-008` for schema foundation completion.
+1. Open `docs/roadmap/p2_source_core_skeleton_001_execution_card.md`.
+2. Execute `SRC-CORE-SKELETON-001` starting with SCS-001 Branch/Base/Clean Gate.
+3. Run Redline Baseline Gate before any skeleton files.
+4. Build only canonical Source Core contracts/runtime skeleton and provider boundaries.
+5. Produce `artifacts/p2/evidence/SRC-CORE-SKELETON-001.json` as `CONTRACT_PASS`; do not report provider runtime proof or P2 completion.

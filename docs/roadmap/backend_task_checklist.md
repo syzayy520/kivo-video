@@ -466,6 +466,24 @@ Status legend:
 ## P2-SOURCE-CORE
 
 - DONE: SRC-CORE-PLANNING-001 P2 Source Core Comprehensive Planning. Evidence: `artifacts/p2/evidence/SRC-CORE-PLANNING-001.json`. Planning doc at `docs/roadmap/p2_source_core_planning_001.md`. 13 family subdirectories, 31 planned files, 25 contracts defined, 7 provider family boundaries. Family tree: identity/, provider_kind/, uri/, capability/, open/, read/, seek/, cache/, auth/, redaction/, error/, evidence/, decision_input/. Single-file responsibility table. Dependency direction plan. Redline rules (14). STATUS: CONTRACT_PASS (planning-only, no implementation).
+- NEXT: SRC-CORE-SKELETON-001 Source Core contract skeleton. Evidence target: `docs/roadmap/p2_source_core_skeleton_001_execution_card.md` and `artifacts/p2/evidence/SRC-CORE-SKELETON-001.json`. This is the delegated implementation-skeleton task and supersedes historical source-core planning for implementation details. Required status is `CONTRACT_PASS` with `runtime_verified=false`.
+- TODO: SCS-001 Branch/Base/Clean Gate. Evidence target: branch `kivo-video-p2-source-core-skeleton-001`, accepted base `532ad9b7bde3ef3ffc6071a0d2ab03d5696f8f48`, clean workspace, no unrelated dirty files.
+- TODO: SCS-002 Redline Baseline Gate. Evidence target: redline self-test PASS and scan-all PASS before skeleton work.
+- TODO: SCS-003 Three-Layer Architecture Gate. Evidence target: contracts layer, runtime layer, and provider boundary layer with one-way dependency rules.
+- TODO: SCS-004 Canonical Paths / Namespace / Legacy Gate. Evidence target: canonical `kivo::video::source_core` paths and namespace, legacy source-core path untouched, no legacy includes in new files.
+- TODO: SCS-005 Directory Family Gate. Evidence target: 9 contracts families, 7 runtime families, 7 provider boundary families under semantic include/src/tests roots.
+- TODO: SCS-006 SourceSession-Centered Model Gate. Evidence target: `SourceSession`, typed session id/state, contract version, and open/read/seek request/result binding.
+- TODO: SCS-007 Contract Version Gate. Evidence target: one compile-time contract version constant at the required decision-input path, value verified as `1`.
+- TODO: SCS-008 Typed Contract Gate. Evidence target: typed provider kind, URI layering, identity, capability, auth, redaction, error, evidence, direct input, and runtime contracts.
+- TODO: SCS-009 CMake Target Gate. Evidence target: required source-core contracts/runtime/test targets plus provider placeholder interface targets with clean dependencies.
+- TODO: SCS-010 Contract Test Gate. Evidence target: family-split contract/runtime tests for typed enum, URI separation, identity redaction, capability unknown/evidence semantics, contract-pass-only evidence, SourceSession model, and direct-input carrier-only behavior.
+- TODO: SCS-011 Allowed Files Gate. Evidence target: changes restricted to canonical source-core paths, provider placeholder paths, required CMake, evidence, checklist, and day memory.
+- TODO: SCS-012 Evidence JSON Gate. Evidence target: `SRC-CORE-SKELETON-001.json` schema version `p2-evidence-v8`, status `CONTRACT_PASS`, runtime verified false, and implementation facts nested under `implementation`.
+- TODO: SCS-013 Scan Gates. Evidence target: forbidden-token scan per pasted task book, no exception-control scan on changed source/header/test files, and legacy include scan. Do not copy the pasted forbidden-token list into checklist, memory, or evidence.
+- TODO: SCS-014 Build/Test Gate. Evidence target: configure/build required targets, run source-core contract/runtime tests, schema validator, redline self-test, redline scan all.
+- TODO: SCS-015 CMake Dependency Audit Gate. Evidence target: contracts do not depend on runtime/providers; runtime depends only on contracts; provider placeholders do not link runtime.
+- TODO: SCS-016 STOP/Fail Conditions Gate. Evidence target: stop instead of hard-changing forbidden subsystems if any pasted task-book STOP condition triggers.
+- TODO: SCS-017 Final Report / Commit Gate. Evidence target: final report with required proof sections, clean final status, commit/push if environment allows, no fake commit/push claim.
 
 ## P2 Foundation Remaining Families
 
@@ -503,4 +521,10 @@ Status legend:
 
 ## Immediate Next Task
 
-P2 Foundation is COMPLETE. Runtime verification requires real hardware/accounts/dependencies for each provider. Next: Provider runtime verification one by one, starting with local_file when hardware environment is available.
+Execute `SRC-CORE-SKELETON-001` from `docs/roadmap/p2_source_core_skeleton_001_execution_card.md`.
+
+1. Run SCS-001 Branch/Base/Clean Gate.
+2. Run SCS-002 Redline Baseline Gate.
+3. Build only the Source Core contracts/runtime skeleton and provider boundaries described by the execution card.
+4. Produce `artifacts/p2/evidence/SRC-CORE-SKELETON-001.json` as `CONTRACT_PASS`, not runtime proof.
+5. Do not begin provider runtime verification until this skeleton task is complete or honestly failed.
