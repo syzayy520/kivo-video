@@ -2,7 +2,12 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "P2 Decision Ledger V8 Schema",
   "type": "object",
-  "required": ["schema_version", "ledger_id", "task_id", "decisions", "timestamp_utc"],
+  "required": [
+    "schema_version", "ledger_id", "task_id",
+    "decisions", "fallbacks", "blocked_reasons",
+    "runtime_claims", "forbidden_claims", "evidence_links",
+    "timestamp_utc"
+  ],
   "properties": {
     "schema_version": { "type": "string", "pattern": "^p2-decision-ledger-v8$" },
     "ledger_id": { "type": "string", "minLength": 1 },
@@ -11,7 +16,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["decision_id", "domain", "decision", "reason", "status"],
+        "required": ["decision_id","domain","input","decision","reason","status","allowed_claim","forbidden_claim"],
         "properties": {
           "decision_id": { "type": "string" },
           "domain": { "type": "string" },

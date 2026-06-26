@@ -1,0 +1,14 @@
+{
+  "schema_version": "provider-runtime-matrix-v8",
+  "matrix_id": "matrix-missing",
+  "generated_by_task": "FAKE-MISSING",
+  "providers": [
+    {
+      "provider_kind": "local_file",
+      "contract_status": "CONTRACT_PASS",
+      "runtime_status": "RUNTIME_PASS"
+    }
+  ],
+  "summary": {},
+  "timestamp_utc": "2026-06-26T00:00:00Z"
+}

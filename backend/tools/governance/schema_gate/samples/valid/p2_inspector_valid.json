@@ -1,0 +1,18 @@
+{
+  "schema_version": "p2-inspector-v8",
+  "inspector_id": "insp-001",
+  "task_id": "V10-020",
+  "source_summary": {"provider_kind":"local_file","source_available":true,"credentials_redacted":true},
+  "media_summary": {"container_format":"mp4","duration_seconds":35.0,"has_video":true,"has_audio":true},
+  "video_summary": {"codec":"h264","width":640,"height":360,"frames_decoded":1050},
+  "audio_summary": {"codec":"aac","sample_rate":48000,"channels":2,"frames_decoded":1642},
+  "subtitle_summary": {"present":false},
+  "chapter_summary": {"present":false},
+  "playback_summary": {"state":"playing","position_seconds":0},
+  "runtime_summary": {"mode":"30S_REAL_SAMPLE_SOAK","elapsed_seconds":35},
+  "environment_summary": {"d3d11":"Intel UHD Graphics 630","wasapi":"shared_pcm"},
+  "errors": [],
+  "warnings": [],
+  "redaction_summary": {"no_full_path_leakage":true,"no_token_cookie_credential_leakage":true},
+  "timestamp_utc": "2026-06-26T06:36:00Z"
+}

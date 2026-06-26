@@ -1,0 +1,17 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "FAKE-MISSING",
+  "task_family": "test",
+  "status": "CONTRACT_PASS",
+  "runtime_mode": "test",
+  "runtime_environment_kind": "unit_test",
+  "environment": {},
+  "implementation": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "timestamp_utc": "2026-06-26T00:00:00Z"
+}

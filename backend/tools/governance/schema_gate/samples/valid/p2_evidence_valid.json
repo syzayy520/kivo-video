@@ -6,35 +6,43 @@
   "completion_level": "p2-local-runtime",
   "runtime_mode": "real_runtime",
   "runtime_environment_kind": "local_real_runtime",
-  "environment": {
-    "environment_required": true,
-    "environment_available": true
-  },
-  "media_input": {
-    "kind": "local_file"
-  },
+  "environment": {"environment_required":true,"environment_available":true},
+  "implementation": {"ffmpeg":"7.1","d3d11":"Intel UHD Graphics 630","wasapi":"shared_pcm"},
+  "media_input": {"kind":"local_file"},
+  "extension_input": {},
+  "media_identity": {"container":"mp4","duration":35.0},
+  "source_identity": {"provider":"local_file","path_redacted":true},
+  "extension_identity": {},
+  "capability_probe": {"h264_supported":true,"aac_supported":true},
+  "direct_play_decision": {"decision":"direct_play","reason":"format supported"},
+  "direct_stream_decision": {"decision":"not_needed"},
+  "subtitle_snapshot": {"present":false},
+  "chapter_snapshot": {"present":false},
+  "playback_state_snapshot": {"state":"playing"},
   "inspector_snapshot": {
-    "schema_version": "p2-inspector-v8",
-    "inspector_id": "e2e-inspector-1",
-    "task_id": "V10-020",
-    "source_summary": { "provider_kind": "local_file", "source_available": true, "credentials_redacted": true },
-    "media_summary": { "container_format": "mp4", "duration_seconds": 35.0, "has_video": true, "has_audio": true }
+    "schema_version":"p2-inspector-v8","inspector_id":"e2e-insp","task_id":"V10-020",
+    "source_summary":{},"media_summary":{},
+    "video_summary":{},"audio_summary":{},
+    "subtitle_summary":{},"chapter_summary":{},
+    "playback_summary":{},"runtime_summary":{},"environment_summary":{},
+    "errors":[],"warnings":[],"redaction_summary":{"no_full_path_leakage":true,"no_token_cookie_credential_leakage":true},
+    "timestamp_utc":"2026-06-26T00:00:00Z"
   },
   "decision_ledger": {
-    "schema_version": "p2-decision-ledger-v8",
-    "ledger_id": "e2e-ledger-1",
-    "task_id": "V10-020",
-    "decisions": [
-      {
-        "decision_id": "d1",
-        "domain": "probe",
-        "decision": "probe_ok",
-        "reason": "valid H.264+AAC MP4",
-        "status": "RUNTIME_PASS"
-      }
-    ]
+    "schema_version":"p2-decision-ledger-v8","ledger_id":"e2e-ledger","task_id":"V10-020",
+    "decisions":[{"decision_id":"d1","domain":"probe","input":{},"decision":"ok","reason":"valid","status":"RUNTIME_PASS","allowed_claim":"","forbidden_claim":""}],
+    "fallbacks":[],"blocked_reasons":[],"runtime_claims":[],"forbidden_claims":[],"evidence_links":[],
+    "timestamp_utc":"2026-06-26T00:00:00Z"
   },
+  "errors": [],
   "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {"silent_fallback":false},
+  "redline_scan": {"forbidden_terms_found":0},
+  "test_commands": ["kivo_local_playback_e2e_test"],
+  "artifacts": ["artifacts/p2/evidence/e2e_runtime.json"],
+  "requires_provider_matrix": false,
   "runtime_verified": true,
+  "blocked_reason": "",
   "timestamp_utc": "2026-06-26T06:36:00Z"
 }

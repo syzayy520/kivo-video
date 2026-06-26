@@ -2,15 +2,19 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "P2 Extension Decision Ledger V8 Schema",
   "type": "object",
-  "required": ["schema_version", "ledger_id", "task_id", "extension_kind", "extension_identity", "timestamp_utc"],
+  "required": [
+    "schema_version", "ledger_id", "task_id",
+    "extension_kind", "extension_identity",
+    "session_state", "handoff_policy", "state_split_policy",
+    "privacy_policy", "sync_policy",
+    "blocked_reasons", "runtime_claims", "forbidden_claims",
+    "timestamp_utc"
+  ],
   "properties": {
     "schema_version": { "type": "string", "pattern": "^p2-extension-decision-ledger-v8$" },
     "ledger_id": { "type": "string", "minLength": 1 },
     "task_id": { "type": "string", "minLength": 1 },
-    "extension_kind": {
-      "type": "string",
-      "enum": ["cast_target", "pip_surface", "cinema_mode", "trakt_identity", "playlist_state", "queue_state", "resume_state", "playback_history"]
-    },
+    "extension_kind": { "type": "string", "enum": ["cast_target","pip_surface","cinema_mode","trakt_identity","playlist_state","queue_state","resume_state","playback_history"] },
     "extension_identity": { "type": "object" },
     "session_state": { "type": "object" },
     "handoff_policy": { "type": "object" },

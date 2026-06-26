@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Provider Runtime Matrix V8 Schema",
   "type": "object",
-  "required": ["schema_version", "matrix_id", "generated_by_task", "providers", "timestamp_utc"],
+  "required": ["schema_version","matrix_id","generated_by_task","providers","summary","timestamp_utc"],
   "properties": {
     "schema_version": { "type": "string", "pattern": "^provider-runtime-matrix-v8$" },
     "matrix_id": { "type": "string", "minLength": 1 },
@@ -11,17 +11,17 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["provider_kind", "contract_status", "runtime_status", "runtime_verified"],
+        "required": [
+          "provider_kind","contract_status","runtime_status",
+          "runtime_environment_kind","environment_required","environment_available",
+          "runtime_verified","blocked_reason",
+          "test_commands","evidence_file",
+          "last_verified_utc","allowed_claim","forbidden_claim"
+        ],
         "properties": {
           "provider_kind": { "type": "string" },
-          "contract_status": {
-            "type": "string",
-            "enum": ["CONTRACT_PASS", "NOT_IMPLEMENTED", "FAIL"]
-          },
-          "runtime_status": {
-            "type": "string",
-            "enum": ["RUNTIME_PASS", "CONTRACT_PASS", "BLOCKED_ENV", "FAIL", "NOT_IMPLEMENTED", "SKIPPED_TEST_ONLY"]
-          },
+          "contract_status": { "type": "string", "enum": ["CONTRACT_PASS","NOT_IMPLEMENTED","FAIL"] },
+          "runtime_status": { "type": "string", "enum": ["RUNTIME_PASS","CONTRACT_PASS","BLOCKED_ENV","FAIL","NOT_IMPLEMENTED","SKIPPED_TEST_ONLY"] },
           "runtime_environment_kind": { "type": "string" },
           "environment_required": { "type": "boolean" },
           "environment_available": { "type": "boolean" },

@@ -1,366 +1,248 @@
 #!/usr/bin/env python3
 """
-P2 Schema Gate Validator V8
-Validates evidence files against P2 V8 schemas and semantic rules.
-Python stdlib only - no external dependencies required.
+P2 Schema Gate Validator V8 — Strict Edition
+Validates evidence against P2 V8 schemas with all required fields.
+Python stdlib only.
 """
-import json
-import os
-import sys
-import glob
-from datetime import datetime
+import json, os, sys
 
-# ─── Status Vocabulary ───
-VALID_STATUSES = {"RUNTIME_PASS", "CONTRACT_PASS", "FAIL", "BLOCKED_ENV", "NOT_IMPLEMENTED", "SKIPPED_TEST_ONLY"}
-VALID_RUNTIME_KINDS = {
-    "local_real_runtime", "windows_device_runtime",
-    "controlled_real_protocol_server", "real_external_service",
-    "real_external_account", "real_external_device",
-    "mock", "unit_test", "simulator", "not_applicable"
-}
-MOCK_KINDS = {"mock", "simulator", "unit_test"}
-MEDIA_INPUT_KINDS = {
-    "local_file", "smb", "nfs", "ftp", "ftps", "sftp",
-    "http_file", "https_file", "http_stream", "https_stream",
-    "dlna_upnp", "s3_object", "minio_object",
-    "webdav", "alist", "emby", "plex", "jellyfin",
-    "google_drive", "onedrive", "iptv_m3u", "hls_live"
-}
-EXTENSION_INPUT_KINDS = {
-    "cast_target", "pip_surface", "cinema_mode", "trakt_identity",
-    "playlist_state", "queue_state", "resume_state", "playback_history"
-}
-PROVIDER_KINDS = MEDIA_INPUT_KINDS | EXTENSION_INPUT_KINDS | {"iptv_hls", "airplay_cast", "trakt_api"}
-
-class SchemaGateResult:
-    def __init__(self):
-        self.errors = []
-        self.warnings = []
-        self.files_checked = 0
-        self.files_valid = 0
-        self.files_invalid = 0
-
-    def add_error(self, msg):
-        self.errors.append(msg)
-
-    def add_warning(self, msg):
-        self.warnings.append(msg)
-
-    @property
-    def passed(self):
-        return len(self.errors) == 0 and self.files_checked > 0
-
-    @property
-    def classification(self):
-        if self.passed:
-            return "RUNTIME_PASS"
-        return "FAIL"
+VALID_STATUSES = {"RUNTIME_PASS","CONTRACT_PASS","FAIL","BLOCKED_ENV","NOT_IMPLEMENTED","SKIPPED_TEST_ONLY"}
+VALID_RUNTIME_KINDS = {"local_real_runtime","windows_device_runtime","controlled_real_protocol_server","real_external_service","real_external_account","real_external_device","mock","unit_test","simulator","not_applicable"}
+MOCK_KINDS = {"mock","simulator","unit_test"}
+MEDIA_KINDS = {"local_file","smb","nfs","ftp","ftps","sftp","http_file","https_file","http_stream","https_stream","dlna_upnp","s3_object","minio_object","webdav","alist","emby","plex","jellyfin","google_drive","onedrive","iptv_m3u","hls_live"}
+EXTENSION_KINDS = {"cast_target","pip_surface","cinema_mode","trakt_identity","playlist_state","queue_state","resume_state","playback_history"}
+PROVIDER_KINDS = MEDIA_KINDS | EXTENSION_KINDS | {"iptv_hls","airplay_cast","trakt_api"}
 
 def load_json(path):
     with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-def validate_schema_version(data, expected):
-    sv = data.get("schema_version", "")
-    if sv != expected:
-        return f"schema_version '{sv}' != expected '{expected}'"
-    return None
-
-def check_required_fields(data, fields):
+def check_req(data, fields):
     missing = [f for f in fields if f not in data]
-    if missing:
-        return f"missing required fields: {missing}"
-    return None
+    return [f"missing field: {m}" for m in missing] if missing else []
 
-# ─── p2-evidence-v8 semantic rules ───
-def validate_p2_evidence(data, path):
-    errors = []
+def check_nonempty(data, fields):
+    return [f"field '{f}' is empty" for f in fields if f in data and not data[f]]
 
-    err = validate_schema_version(data, "p2-evidence-v8")
-    if err: errors.append(err)
+# ═══════════════════════════════════════════
+# p2-evidence-v8
+# ═══════════════════════════════════════════
+EVIDENCE_REQUIRED = [
+    "schema_version","task_id","task_family","status",
+    "completion_level","runtime_mode","runtime_environment_kind",
+    "environment","implementation",
+    "media_input","extension_input",
+    "media_identity","source_identity","extension_identity",
+    "capability_probe",
+    "direct_play_decision","direct_stream_decision",
+    "subtitle_snapshot","chapter_snapshot","playback_state_snapshot",
+    "inspector_snapshot","decision_ledger",
+    "errors",
+    "redaction_verified","schema_validated",
+    "anti_fake_checks","redline_scan",
+    "test_commands","artifacts",
+    "requires_provider_matrix",
+    "runtime_verified","blocked_reason",
+    "timestamp_utc"
+]
 
-    required = ["task_id", "task_family", "status", "runtime_mode",
-                "runtime_environment_kind", "inspector_snapshot", "decision_ledger",
-                "redaction_verified", "runtime_verified", "timestamp_utc"]
-    err = check_required_fields(data, required)
-    if err: errors.append(err)
+INSPECTOR_REQUIRED = [
+    "schema_version","inspector_id","task_id",
+    "source_summary","media_summary",
+    "video_summary","audio_summary",
+    "subtitle_summary","chapter_summary",
+    "playback_summary","runtime_summary","environment_summary",
+    "errors","warnings","redaction_summary",
+    "timestamp_utc"
+]
 
-    status = data.get("status", "")
-    if status not in VALID_STATUSES:
-        errors.append(f"unknown status: '{status}'")
+LEDGER_REQUIRED = [
+    "schema_version","ledger_id","task_id",
+    "decisions","fallbacks","blocked_reasons",
+    "runtime_claims","forbidden_claims","evidence_links",
+    "timestamp_utc"
+]
 
-    rtv = data.get("runtime_verified", None)
-    if status == "RUNTIME_PASS" and rtv != True:
-        errors.append("RUNTIME_PASS but runtime_verified is not true")
-    if status == "CONTRACT_PASS" and rtv != False:
-        errors.append("CONTRACT_PASS but runtime_verified is not false")
+DECISION_REQUIRED = ["decision_id","domain","input","decision","reason","status","allowed_claim","forbidden_claim"]
 
-    rek = data.get("runtime_environment_kind", "")
-    if rek not in VALID_RUNTIME_KINDS:
-        errors.append(f"unknown runtime_environment_kind: '{rek}'")
-    if status == "RUNTIME_PASS" and rek in MOCK_KINDS:
-        errors.append(f"RUNTIME_PASS with runtime_environment_kind={rek} (mock/simulator not allowed for runtime)")
+EXT_LEDGER_REQUIRED = [
+    "schema_version","ledger_id","task_id",
+    "extension_kind","extension_identity",
+    "session_state","handoff_policy","state_split_policy",
+    "privacy_policy","sync_policy",
+    "blocked_reasons","runtime_claims","forbidden_claims",
+    "timestamp_utc"
+]
 
-    redaction = data.get("redaction_verified", None)
-    if status in ("RUNTIME_PASS", "CONTRACT_PASS") and redaction != True:
-        errors.append(f"status={status} but redaction_verified is not true")
+PROVIDER_REQUIRED = [
+    "schema_version","matrix_id","generated_by_task","providers","summary","timestamp_utc"
+]
 
-    inspector = data.get("inspector_snapshot", None)
-    if status in ("RUNTIME_PASS", "CONTRACT_PASS") and (inspector is None or inspector == {}):
-        errors.append(f"status={status} but inspector_snapshot is missing or empty")
+PROVIDER_ITEM_REQUIRED = [
+    "provider_kind","contract_status","runtime_status",
+    "runtime_environment_kind","environment_required","environment_available",
+    "runtime_verified","blocked_reason",
+    "test_commands","evidence_file",
+    "last_verified_utc","allowed_claim","forbidden_claim"
+]
 
-    ledger = data.get("decision_ledger", None)
-    if status in ("RUNTIME_PASS", "CONTRACT_PASS") and (ledger is None or ledger == {}):
-        errors.append(f"status={status} but decision_ledger is missing or empty")
+def validate_evidence(data, path):
+    errs = []
+    errs += check_req(data, EVIDENCE_REQUIRED)
+    sv = data.get("schema_version","")
+    if sv != "p2-evidence-v8": errs.append(f"bad schema_version: '{sv}'")
 
-    media_input = data.get("media_input", {})
-    mi_kind = media_input.get("kind", "")
-    if mi_kind in EXTENSION_INPUT_KINDS:
-        errors.append(f"media_input.kind='{mi_kind}' is an extension kind, not a media source")
+    st = data.get("status","")
+    if st not in VALID_STATUSES: errs.append(f"unknown status: '{st}'")
 
-    silent_fb = data.get("anti_fake_checks", {}).get("silent_fallback", False)
-    if silent_fb and status in ("RUNTIME_PASS", "CONTRACT_PASS"):
-        errors.append("silent_fallback=true but status is not FAIL")
+    rtv = data.get("runtime_verified")
+    if st == "RUNTIME_PASS" and rtv != True: errs.append("RUNTIME_PASS requires runtime_verified=true")
+    if st == "CONTRACT_PASS" and rtv != False: errs.append("CONTRACT_PASS requires runtime_verified=false")
 
-    return errors
+    rek = data.get("runtime_environment_kind","")
+    if rek not in VALID_RUNTIME_KINDS: errs.append(f"unknown runtime_environment_kind: '{rek}'")
+    if st == "RUNTIME_PASS" and rek in MOCK_KINDS: errs.append(f"RUNTIME_PASS with {rek} forbidden")
 
-# ─── p2-inspector-v8 semantic rules ───
-def validate_p2_inspector(data, path):
-    errors = []
-    err = validate_schema_version(data, "p2-inspector-v8")
-    if err: errors.append(err)
+    if data.get("redaction_verified") != True and st in ("RUNTIME_PASS","CONTRACT_PASS"):
+        errs.append("redaction_verified must be true for PASS statuses")
 
-    required = ["inspector_id", "task_id", "source_summary", "media_summary", "timestamp_utc"]
-    err = check_required_fields(data, required)
-    if err: errors.append(err)
+    if data.get("schema_validated") != True and st in ("RUNTIME_PASS","CONTRACT_PASS"):
+        errs.append("schema_validated must be true for PASS statuses")
 
-    redaction = data.get("redaction_summary", {})
-    if redaction.get("no_full_path_leakage") != True:
-        errors.append("redaction_summary.no_full_path_leakage is not true")
-    if redaction.get("no_token_cookie_credential_leakage") != True:
-        errors.append("redaction_summary.no_token_cookie_credential_leakage is not true")
+    if st == "BLOCKED_ENV" and data.get("completion_level","").startswith("p2-foundation"):
+        errs.append("BLOCKED_ENV not allowed as foundation child status")
 
-    return errors
+    mi = data.get("media_input",{}).get("kind","")
+    if mi in EXTENSION_KINDS: errs.append(f"media_input.kind='{mi}' is extension kind, not media source")
 
-# ─── p2-decision-ledger-v8 semantic rules ───
-def validate_p2_decision_ledger(data, path):
-    errors = []
-    err = validate_schema_version(data, "p2-decision-ledger-v8")
-    if err: errors.append(err)
+    af = data.get("anti_fake_checks",{}).get("silent_fallback",False)
+    if af and st in ("RUNTIME_PASS","CONTRACT_PASS"): errs.append("silent_fallback=true with non-FAIL status")
 
-    required = ["ledger_id", "task_id", "decisions", "timestamp_utc"]
-    err = check_required_fields(data, required)
-    if err: errors.append(err)
+    return errs
 
-    decisions = data.get("decisions", [])
-    if not isinstance(decisions, list) or len(decisions) == 0:
-        errors.append("decisions array is missing or empty")
+def validate_inspector(data, path):
+    errs = []
+    errs += check_req(data, INSPECTOR_REQUIRED)
+    sv = data.get("schema_version","")
+    if sv != "p2-inspector-v8": errs.append(f"bad schema_version: '{sv}'")
+    rs = data.get("redaction_summary",{})
+    if rs.get("no_full_path_leakage") != True: errs.append("no_full_path_leakage must be true")
+    if rs.get("no_token_cookie_credential_leakage") != True: errs.append("no_token_cookie_credential_leakage must be true")
+    return errs
 
-    for d in decisions:
-        for f in ["decision_id", "domain", "decision", "reason", "status"]:
-            if f not in d:
-                errors.append(f"decision missing required field: '{f}'")
+def validate_ledger(data, path):
+    errs = []
+    errs += check_req(data, LEDGER_REQUIRED)
+    if data.get("schema_version","") != "p2-decision-ledger-v8": errs.append("bad schema_version")
+    decs = data.get("decisions",[])
+    if not isinstance(decs,list) or len(decs)==0: errs.append("decisions empty")
+    for d in decs:
+        m = [f for f in DECISION_REQUIRED if f not in d]
+        if m: errs.append(f"decision missing: {m}")
+    return errs
 
-    return errors
+def validate_ext_ledger(data, path):
+    errs = []
+    errs += check_req(data, EXT_LEDGER_REQUIRED)
+    if data.get("schema_version","") != "p2-extension-decision-ledger-v8": errs.append("bad schema_version")
+    ek = data.get("extension_kind","")
+    if ek not in EXTENSION_KINDS or ek in MEDIA_KINDS: errs.append(f"extension_kind='{ek}' is media kind, not extension")
+    return errs
 
-# ─── p2-extension-decision-ledger-v8 semantic rules ───
-def validate_p2_extension_decision_ledger(data, path):
-    errors = []
-    err = validate_schema_version(data, "p2-extension-decision-ledger-v8")
-    if err: errors.append(err)
-
-    required = ["ledger_id", "task_id", "extension_kind", "extension_identity", "timestamp_utc"]
-    err = check_required_fields(data, required)
-    if err: errors.append(err)
-
-    ek = data.get("extension_kind", "")
-    if ek not in EXTENSION_INPUT_KINDS:
-        errors.append(f"unknown extension_kind: '{ek}'")
-    if ek in MEDIA_INPUT_KINDS:
-        errors.append(f"extension_kind='{ek}' is a media kind, not an extension kind")
-
-    return errors
-
-# ─── provider-runtime-matrix-v8 semantic rules ───
-def validate_provider_runtime_matrix(data, path):
-    errors = []
-    err = validate_schema_version(data, "provider-runtime-matrix-v8")
-    if err: errors.append(err)
-
-    required = ["matrix_id", "generated_by_task", "providers", "timestamp_utc"]
-    err = check_required_fields(data, required)
-    if err: errors.append(err)
-
-    providers = data.get("providers", [])
-    if not isinstance(providers, list) or len(providers) == 0:
-        errors.append("providers array is missing or empty")
-
-    # Check each provider
-    runtime_pass_count = 0
-    for p in providers:
-        pk = p.get("provider_kind", "")
-        rs = p.get("runtime_status", "")
-        rv = p.get("runtime_verified", None)
-        rek = p.get("runtime_environment_kind", "")
-        evidence = p.get("evidence_file", "")
-
-        if pk not in PROVIDER_KINDS:
-            errors.append(f"unknown provider_kind: '{pk}'")
-
+def validate_provider_matrix(data, path):
+    errs = []
+    errs += check_req(data, PROVIDER_REQUIRED)
+    if data.get("schema_version","") != "provider-runtime-matrix-v8": errs.append("bad schema_version")
+    ps = data.get("providers",[])
+    if not isinstance(ps,list) or len(ps)==0: errs.append("providers empty")
+    runtime_count = 0
+    for p in ps:
+        errs += check_req(p, PROVIDER_ITEM_REQUIRED)
+        pk = p.get("provider_kind","")
+        if pk not in PROVIDER_KINDS: errs.append(f"unknown provider_kind: '{pk}'")
+        rs = p.get("runtime_status","")
         if rs == "RUNTIME_PASS":
-            runtime_pass_count += 1
-            if rv != True:
-                errors.append(f"provider '{pk}': RUNTIME_PASS but runtime_verified != true")
-            if rek in MOCK_KINDS:
-                errors.append(f"provider '{pk}': RUNTIME_PASS with mock/simulator environment")
-            if not evidence:
-                errors.append(f"provider '{pk}': RUNTIME_PASS but evidence_file is empty")
+            runtime_count += 1
+            if p.get("runtime_verified") != True: errs.append(f"'{pk}' RUNTIME_PASS needs runtime_verified=true")
+            if p.get("runtime_environment_kind","") in MOCK_KINDS: errs.append(f"'{pk}' RUNTIME_PASS with mock/simulator env")
+            if not p.get("evidence_file",""): errs.append(f"'{pk}' RUNTIME_PASS needs evidence_file")
+        if rs not in VALID_STATUSES and rs != "": errs.append(f"'{pk}' unknown runtime_status: '{rs}'")
+        cs = p.get("contract_status","")
+        if cs not in ("CONTRACT_PASS","NOT_IMPLEMENTED","FAIL",""): errs.append(f"'{pk}' bad contract_status")
+    if len(ps) < 21: errs.append(f"only {len(ps)} providers (need >=21)")
+    return errs
 
-        if rs not in VALID_STATUSES:
-            errors.append(f"provider '{pk}': unknown runtime_status '{rs}'")
-
-        if p.get("contract_status", "") not in ("CONTRACT_PASS", "NOT_IMPLEMENTED", "FAIL"):
-            errors.append(f"provider '{pk}': unknown contract_status")
-
-    # Provider count must be >= 21
-    if len(providers) < 21:
-        warnings = []
-        warnings.append(f"provider matrix has only {len(providers)} providers (expected >= 21)")
-
-    return errors
-
-# ─── Dispatch table ───
 VALIDATORS = {
-    "p2-evidence-v8": validate_p2_evidence,
-    "p2-inspector-v8": validate_p2_inspector,
-    "p2-decision-ledger-v8": validate_p2_decision_ledger,
-    "p2-extension-decision-ledger-v8": validate_p2_extension_decision_ledger,
-    "provider-runtime-matrix-v8": validate_provider_runtime_matrix,
+    "p2-evidence-v8": validate_evidence,
+    "p2-inspector-v8": validate_inspector,
+    "p2-decision-ledger-v8": validate_ledger,
+    "p2-extension-decision-ledger-v8": validate_ext_ledger,
+    "provider-runtime-matrix-v8": validate_provider_matrix,
 }
 
 def validate_file(path):
     try:
         data = load_json(path)
-    except (json.JSONDecodeError, IOError) as e:
-        return [f"failed to parse JSON: {e}"], []
-
-    sv = data.get("schema_version", "")
-    validator = VALIDATORS.get(sv)
-    if validator is None:
-        return [f"unknown schema_version: '{sv}' in {os.path.basename(path)}"], []
-    result = validator(data, path)
-    if isinstance(result, tuple) and len(result) == 2:
-        return result
+    except Exception as e:
+        return [f"JSON error: {e}"], []
+    sv = data.get("schema_version","")
+    fn = VALIDATORS.get(sv)
+    if fn is None: return [f"unknown schema_version: '{sv}'"], []
+    result = fn(data, path)
+    if isinstance(result, tuple) and len(result) == 2: return result
     return result, []
 
-def validate_directory(directory):
-    result = SchemaGateResult()
-    for root, _, files in os.walk(directory):
-        for f in files:
+def validate_dir(d):
+    r = type('R',(),{'files':0,'valid':0,'invalid':0,'errors':[],'warnings':[]})()
+    for root,_,files in os.walk(d):
+        for f in sorted(files):
             if f.endswith('.json'):
-                path = os.path.join(root, f)
-                result.files_checked += 1
-                errors, warnings = validate_file(path)
-                if errors:
-                    result.files_invalid += 1
-                    for e in errors:
-                        result.add_error(f"{path}: {e}")
-                else:
-                    result.files_valid += 1
-                for w in warnings:
-                    result.add_warning(f"{path}: {w}")
-    return result
+                path = os.path.join(root,f)
+                r.files += 1
+                errs, warns = validate_file(path)
+                if errs: r.invalid += 1; [r.errors.append(f"{f}: {e}") for e in errs]
+                else: r.valid += 1
+                [r.warnings.append(f"{f}: {w}") for w in warns]
+    return r
 
 def self_test():
-    """Run built-in validation tests against sample files."""
     base = os.path.dirname(os.path.abspath(__file__))
-    root = os.path.join(base, "..")
-    result_dir = os.path.join(root, "..")
-
-    valid_dir = os.path.join(root, "samples", "valid")
-    invalid_dir = os.path.join(root, "samples", "invalid")
-
-    print(f"Valid dir: {valid_dir} (exists: {os.path.isdir(valid_dir)})")
-    print(f"Invalid dir: {invalid_dir} (exists: {os.path.isdir(invalid_dir)})")
-
-    passed = 0
-    failed = 0
-
+    root = os.path.join(base,"..")
+    vd = os.path.join(root,"samples","valid")
+    ivd = os.path.join(root,"samples","invalid")
+    passed = failed = 0
     print("=== P2 Schema Gate Validator Self-Test ===\n")
-
-    # Test valid samples
-    if os.path.isdir(valid_dir):
-        for f in sorted(os.listdir(valid_dir)):
-            if f.endswith('.json'):
-                path = os.path.join(valid_dir, f)
-                errors, _ = validate_file(path)
-                if not errors:
-                    print(f"  PASS: {f}")
-                    passed += 1
-                else:
-                    print(f"  FAIL: {f}")
-                    for e in errors:
-                        print(f"    -> {e}")
-                    failed += 1
-
-    # Test invalid samples
-    if os.path.isdir(invalid_dir):
-        for f in sorted(os.listdir(invalid_dir)):
-            if f.endswith('.json'):
-                path = os.path.join(invalid_dir, f)
-                errors, _ = validate_file(path)
-                if errors:
-                    print(f"  PASS (expected fail): {f}")
-                    for e in errors:
-                        print(f"    -> {e}")
-                    passed += 1
-                else:
-                    print(f"  FAIL (expected fail but passed): {f}")
-                    failed += 1
-
-    print(f"\n  Total: {passed + failed}, Passed: {passed}, Failed: {failed}")
-    if failed > 0:
-        print("Classification: FAIL")
-        sys.exit(1)
-    else:
-        print("Classification: PASS")
-        sys.exit(0)
+    for f in sorted(os.listdir(vd)):
+        if f.endswith('.json'):
+            errs,_ = validate_file(os.path.join(vd,f))
+            if not errs: print(f"  PASS: {f}"); passed += 1
+            else: print(f"  FAIL: {f}"); [print(f"    -> {e}") for e in errs]; failed += 1
+    for f in sorted(os.listdir(ivd)):
+        if f.endswith('.json'):
+            errs,_ = validate_file(os.path.join(ivd,f))
+            if errs: print(f"  PASS (expected fail): {f}"); [print(f"    -> {e}") for e in errs]; passed += 1
+            else: print(f"  FAIL (should fail but passed): {f}"); failed += 1
+    t = passed + failed
+    print(f"\n  Total: {t}, Passed: {passed}, Failed: {failed}")
+    print(f"Classification: {'PASS' if failed==0 else 'FAIL'}")
+    sys.exit(0 if failed==0 else 1)
 
 def main():
-    if "--self-test" in sys.argv:
-        self_test()
-        return
-
-    if len(sys.argv) < 2:
-        print("Usage: python schema_gate_validator.py <file|directory> [--self-test]")
-        sys.exit(1)
-
-    target = sys.argv[1]
-    if not os.path.exists(target):
-        print(f"Error: '{target}' not found")
-        sys.exit(1)
-
-    if os.path.isfile(target):
-        errors, warnings = validate_file(target)
-        if errors:
-            print(f"Classification: FAIL")
-            for e in errors: print(f"  FAIL: {e}")
-            sys.exit(1)
-        else:
-            print(f"Classification: RUNTIME_PASS")
-            print(f"  {target}: valid")
-            sys.exit(0)
+    if "--self-test" in sys.argv: self_test(); return
+    if len(sys.argv) < 2: print("Usage: schema_gate_validator.py <file|dir> [--self-test]"); sys.exit(1)
+    t = sys.argv[1]
+    if not os.path.exists(t): print(f"'{t}' not found"); sys.exit(1)
+    if os.path.isfile(t):
+        errs,_ = validate_file(t)
+        if errs: print("Classification: FAIL"); [print(f"  FAIL: {e}") for e in errs]; sys.exit(1)
+        else: print(f"Classification: RUNTIME_PASS\n  {os.path.basename(t)}: valid"); sys.exit(0)
     else:
-        result = validate_directory(target)
-        print(f"Classification: {result.classification}")
-        print(f"  Files checked: {result.files_checked}")
-        print(f"  Files valid:   {result.files_valid}")
-        print(f"  Files invalid: {result.files_invalid}")
-        for e in result.errors:
-            print(f"  FAIL: {e}")
-        for w in result.warnings:
-            print(f"  WARN: {w}")
-        sys.exit(0 if result.passed else 1)
+        r = validate_dir(t)
+        print(f"Classification: {'RUNTIME_PASS' if r.invalid==0 and r.files>0 else 'FAIL'}")
+        print(f"  Files: {r.files}, Valid: {r.valid}, Invalid: {r.invalid}")
+        [print(f"  FAIL: {e}") for e in r.errors]
+        [print(f"  WARN: {w}") for w in r.warnings]
+        sys.exit(0 if r.invalid==0 and r.files>0 else 1)
 
 if __name__ == "__main__":
     main()

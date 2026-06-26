@@ -1,0 +1,16 @@
+{
+  "schema_version": "p2-extension-decision-ledger-v8",
+  "ledger_id": "ext-ledger-001",
+  "task_id": "CAST-001",
+  "extension_kind": "cast_target",
+  "extension_identity": {"target_id":"cast-1","protocol":"airplay"},
+  "session_state": {"connected":false},
+  "handoff_policy": {"allow_handoff":false},
+  "state_split_policy": {"split_local_remote":true},
+  "privacy_policy": {"redact_device_name":true},
+  "sync_policy": {"sync_progress":false},
+  "blocked_reasons": [],
+  "runtime_claims": [],
+  "forbidden_claims": [],
+  "timestamp_utc": "2026-06-26T06:36:00Z"
+}

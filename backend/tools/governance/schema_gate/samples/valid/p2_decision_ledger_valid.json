@@ -1,0 +1,18 @@
+{
+  "schema_version": "p2-decision-ledger-v8",
+  "ledger_id": "ledger-001",
+  "task_id": "V10-020",
+  "decisions": [
+    {
+      "decision_id": "d1", "domain": "probe", "input": {"source":"local_file"},
+      "decision": "probe_ok", "reason": "valid H.264+AAC MP4 found",
+      "status": "RUNTIME_PASS", "allowed_claim": "P2 Local Runtime", "forbidden_claim": "All Providers Runtime Verified"
+    }
+  ],
+  "fallbacks": [],
+  "blocked_reasons": [],
+  "runtime_claims": ["P2 Local Runtime: RUNTIME_PASS"],
+  "forbidden_claims": [],
+  "evidence_links": [],
+  "timestamp_utc": "2026-06-26T06:36:00Z"
+}
