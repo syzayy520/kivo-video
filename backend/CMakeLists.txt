@@ -727,6 +727,7 @@ target_link_libraries(kivo_local_playback_e2e_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_local_playback_e2e_test COMMAND kivo_local_playback_e2e_test)
 set_tests_properties(kivo_local_playback_e2e_test PROPERTIES
+  ENVIRONMENT "KIVO_SAMPLE_H264_AAC_MP4=$ENV{KIVO_SAMPLE_H264_AAC_MP4}"
   SKIP_REGULAR_EXPRESSION
   "Classification: (BLOCKED_ENV|BLOCKED_SAMPLE_TOO_SHORT|BLOCKED_SAMPLE_INVALID)"
 )
@@ -741,6 +742,7 @@ target_link_libraries(kivo_micro_soak_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_micro_soak_test COMMAND kivo_micro_soak_test)
 set_tests_properties(kivo_micro_soak_test PROPERTIES
+  ENVIRONMENT "KIVO_SAMPLE_H264_AAC_MP4=$ENV{KIVO_SAMPLE_H264_AAC_MP4}"
   SKIP_REGULAR_EXPRESSION
   "Classification: (BLOCKED_ENV|BLOCKED_SAMPLE_TOO_SHORT|BLOCKED_SAMPLE_INVALID)"
 )
