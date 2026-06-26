@@ -837,7 +837,7 @@ target_link_libraries(kivo_video_provider_local_file PUBLIC
 )
 
 # ─── Local File Provider Tests ───
-set(LF_TESTS open read zero_read seek error close redaction evidence direct_input path_validation schema)
+set(LF_TESTS open read zero_read seek error close redaction evidence direct_input path_validation schema basic_thread_safety)
 foreach(test_name ${LF_TESTS})
   add_executable(kivo_video_provider_local_file_${test_name}_test
     tests/providers/local_file/${test_name}_test.cpp
