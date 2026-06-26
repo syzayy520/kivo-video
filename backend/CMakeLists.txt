@@ -906,6 +906,15 @@ foreach(test_name ${WD_TESTS})
   set_tests_properties(kivo_video_provider_webdav_${test_name}_test PROPERTIES TIMEOUT 10)
 endforeach()
 
+# ─── Evidence JSON Validator Test ───
+add_executable(kivo_evidence_json_validator_test
+  tests/evidence/evidence_json_validator_test.cpp
+)
+target_include_directories(kivo_evidence_json_validator_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_options(kivo_evidence_json_validator_test PRIVATE /std:c++17)
+add_test(NAME kivo_evidence_json_validator_test COMMAND kivo_evidence_json_validator_test)
+set_tests_properties(kivo_evidence_json_validator_test PROPERTIES TIMEOUT 10)
+
 # ─── P2 Schema Gate Validator ───
 find_program(PYTHON_EXE python)
 if(PYTHON_EXE)
