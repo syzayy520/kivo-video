@@ -13,7 +13,43 @@
 #include <unordered_map>
 #include <mutex>
 #include <cstdint>
+#include <cstring>
 namespace kivo::video::providers::http {
+
+// RR-023: Provider-private URL wrapper with defense-in-depth secure_clear
+struct ProviderInternalRemoteUri {
+    std::string raw;
+    ProviderInternalRemoteUri() = default;
+    explicit ProviderInternalRemoteUri(std::string u) : raw(std::move(u)) {}
+    ~ProviderInternalRemoteUri() { secure_clear(); }
+    void secure_clear() { if(!raw.empty()){ std::memset(raw.data(),0,raw.size()); raw.clear(); } }
+    ProviderInternalRemoteUri(const ProviderInternalRemoteUri& o) : raw(o.raw) {}
+    ProviderInternalRemoteUri& operator=(const ProviderInternalRemoteUri& o) { raw=o.raw; return *this; }
+    ProviderInternalRemoteUri(ProviderInternalRemoteUri&& o) noexcept : raw(std::move(o.raw)) {}
+    ProviderInternalRemoteUri& operator=(ProviderInternalRemoteUri&& o) noexcept { raw=std::move(o.raw); return *this; }
+};
+
+// RR-021: Redirect policy DTO
+struct HttpRedirectChainDigest {
+    std::uint32_t hop_count{0}; bool crossed_origin{false}; bool downgraded_scheme{false};
+    bool auth_stripped{false}; std::uint32_t redirect_limit{5};
+};
+struct HttpRedirectPolicy {
+    std::uint32_t max_redirects{5}; bool allow_http_to_https{true};
+    bool allow_https_to_http{false}; bool allow_cross_origin_auth{false};
+    HttpRedirectChainDigest chain;
+};
+
+// RR-018/033: Concurrency and connection reuse policy DTOs
+struct HttpConcurrencyPolicy {
+    std::uint32_t max_concurrent_requests_per_session{4};
+    std::uint32_t max_concurrent_requests_per_origin{8};
+};
+struct HttpConnectionReusePolicy {
+    bool enable_keepalive{true}; std::uint32_t idle_timeout_ms{30000};
+    std::uint32_t max_connections_per_origin{6};
+};
+
 struct HttpTransportResponse { int status{0}; std::unordered_map<std::string,std::string> headers;
     std::vector<std::uint8_t> body; bool body_cap_hit{false}; };
 struct HttpTransportRequest { std::string method; std::string url; std::unordered_map<std::string,std::string> headers;
@@ -37,8 +73,10 @@ struct HttpRangeSessionRecord {
     source_core::SourceSession session; source_core::SourceIdentity identity;
     source_core::SourceCapabilitySnapshot capability; source_core::SourceEvidenceSnapshot evidence;
     std::uint64_t current_offset{0}; std::uint64_t content_length{0}; std::string redacted_url;
+    ProviderInternalRemoteUri raw_url;
     bool can_read{false};
     bool is_open() const { return session.session_state == source_core::SourceSessionState::open; }
+    void tombstone_sensitive_clear() { raw_url.secure_clear(); }
 };
 
 struct HttpRangeSessionStore {

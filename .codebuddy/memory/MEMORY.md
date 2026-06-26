@@ -2,9 +2,9 @@
 
 ## Project Overview
 - **Repository**: https://github.com/syzayy520/kivo-video
-- **Primary Branch**: kivo-video-p2-real-001-repair-ffmpeg-proof
-- **Current Focus**: P2 Local Runtime verified; next → P2-SCHEMA-GATE / P2-REDLINE-GATE / P2-SOURCE-CORE
-- **Next Task**: P2-SCHEMA-GATE or P2-REDLINE-GATE (NOT P3)
+- **Primary Branch**: kivo-video-p2-remote-range-runtime-http-webdav-001
+- **Current Focus**: HTTP Range + WebDAV Bridge runtime complete (46 provider tests PASS)
+- **Next Task**: AList/Emby/CloudDrive/HLS provider runtimes
 
 ## Key Architecture Decisions
 1. **Iron Gate Rule**: conception → planning design → natural family tree → implementation → single file, single responsibility → no flat files
@@ -49,18 +49,12 @@
 - **Test Command**: ctest --preset vs-debug --output-on-failure --timeout 30
 
 ## Last Verification
-- **Branch**: kivo-video-p2-real-001-repair-ffmpeg-proof
-- **HEAD**: efb417c (P2 Local Runtime Final Verification)
-- **Remote**: Synced
-- **Working Tree**: Clean
-- **CTest**: 84/84 PASS (FFmpeg ON, golden sample)
-- **Golden Sample**: kivo_h264_aac_35s_golden.mp4 (35s, H.264+AAC)
-- **E2E**: RUNTIME_PASS (640x360, 3 D3D11, WASAPI)
-- **Soak**: RUNTIME_PASS (35s, 10 D3D11, 3545 PCM)
-- **Gate**: No Debug Dialog PASS
-- **P2 Local Runtime**: RUNTIME_PASS
-- **local_file provider**: RUNTIME_PASS (only provider with RUNTIME_PASS)
-- **Push**: efb417c pushed to kivo-video-p2-real-001-repair-ffmpeg-proof
+- **Branch**: kivo-video-p2-remote-range-runtime-http-webdav-001
+- **Status**: HTTP Range + WebDAV Bridge runtime COMPLETE
+- **CTest (provider)**: 46/46 PASS (12 local_file + 25 HTTP range + 9 WebDAV bridge)
+- **CTest (source core)**: 16/16 PASS
+- **No Debug Dialog Gate**: PASS (all 4 new tests run without abort())
+- **2 crash bugs fixed**: webdav/auth_test.cpp (nullptr deref) + webdav/collection_test.cpp (nullptr std::function call)
 
 ## V8 Execution Sequence Completion
 - **V8-001**: Branch / Workspace / Root Clean Gate - DONE

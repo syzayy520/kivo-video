@@ -866,7 +866,7 @@ target_include_directories(kivo_video_provider_http_range PUBLIC ${CMAKE_CURRENT
 target_compile_options(kivo_video_provider_http_range PRIVATE /std:c++17)
 target_link_libraries(kivo_video_provider_http_range PUBLIC kivo_video_source_core_runtime)
 
-set(HR_TESTS open read seek close redaction direct_input basic_thread_safety empty_416 no_range unknown_length one_byte zero_read evidence schema redirect auth rate_limit compressed_range source_changed validator body_cap probe access_ref)
+set(HR_TESTS open read seek close redaction direct_input basic_thread_safety empty_416 no_range unknown_length one_byte zero_read evidence schema redirect auth rate_limit compressed_range source_changed validator body_cap probe access_ref cancel timeout positioned_read concurrent_read extended_probe probe_ambiguous cancel_mid_chunk rapid_close connection_reuse redirect_limit connection_key auth_isolation tombstone_clear opaque_validator secret_query_redaction tombstone_sensitive_clear)
 foreach(test_name ${HR_TESTS})
   add_executable(kivo_video_provider_http_range_${test_name}_test
     tests/providers/http/${test_name}_test.cpp
@@ -890,7 +890,7 @@ target_include_directories(kivo_video_provider_webdav PUBLIC ${CMAKE_CURRENT_SOU
 target_compile_options(kivo_video_provider_webdav PRIVATE /std:c++17)
 target_link_libraries(kivo_video_provider_webdav PUBLIC kivo_video_provider_http_range)
 
-set(WD_TESTS open read seek close redaction direct_input propfind)
+set(WD_TESTS open read seek close redaction direct_input propfind collection auth href_match propfind_malformed large_xml_cap propfind_fallback positioned_read auth_redaction)
 foreach(test_name ${WD_TESTS})
   add_executable(kivo_video_provider_webdav_${test_name}_test
     tests/providers/webdav/${test_name}_test.cpp
@@ -905,6 +905,39 @@ foreach(test_name ${WD_TESTS})
   )
   set_tests_properties(kivo_video_provider_webdav_${test_name}_test PROPERTIES TIMEOUT 10)
 endforeach()
+
+# ─── No Debug Dialog Gate (Remote Range) ───
+add_executable(kivo_no_debug_dialog_gate_test
+  tests/providers/no_debug_dialog_test.cpp
+)
+target_include_directories(kivo_no_debug_dialog_gate_test PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/tests
+)
+target_compile_options(kivo_no_debug_dialog_gate_test PRIVATE /std:c++17)
+target_link_libraries(kivo_no_debug_dialog_gate_test PRIVATE kivo_video_provider_webdav)
+add_test(NAME kivo_no_debug_dialog_gate_test COMMAND kivo_no_debug_dialog_gate_test)
+set_tests_properties(kivo_no_debug_dialog_gate_test PROPERTIES TIMEOUT 10)
+
+# ─── Malicious Evidence JSON Test ───
+add_executable(kivo_malicious_evidence_test
+  tests/evidence/malicious_evidence_test.cpp
+)
+target_include_directories(kivo_malicious_evidence_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_options(kivo_malicious_evidence_test PRIVATE /std:c++17)
+add_test(NAME kivo_malicious_evidence_test COMMAND kivo_malicious_evidence_test)
+set_tests_properties(kivo_malicious_evidence_test PROPERTIES TIMEOUT 10)
+
+# ─── Redaction Sentinel Test ───
+add_executable(kivo_redaction_sentinel_test
+  tests/providers/redaction_sentinel_test.cpp
+)
+target_include_directories(kivo_redaction_sentinel_test PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/tests
+)
+target_compile_options(kivo_redaction_sentinel_test PRIVATE /std:c++17)
+target_link_libraries(kivo_redaction_sentinel_test PRIVATE kivo_video_provider_webdav)
+add_test(NAME kivo_redaction_sentinel_test COMMAND kivo_redaction_sentinel_test)
+set_tests_properties(kivo_redaction_sentinel_test PROPERTIES TIMEOUT 10)
 
 # ─── Evidence JSON Validator Test ───
 add_executable(kivo_evidence_json_validator_test

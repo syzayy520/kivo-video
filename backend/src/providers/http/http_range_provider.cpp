@@ -15,7 +15,7 @@ void HttpRangeSessionStore::insert(HttpRangeSessionRecord r) { auto id=r.session
 std::optional<HttpRangeSessionRecord> HttpRangeSessionStore::snapshot(sc::SourceSessionId id) const { std::lock_guard lk(m); auto it=records.find(id.value); if(it!=records.end()) return it->second; auto tit=tombstones.find(id.value); if(tit!=tombstones.end()) return tit->second; return std::nullopt; }
 void HttpRangeSessionStore::update_offset(sc::SourceSessionId id, std::uint64_t off) { std::lock_guard lk(m); auto it=records.find(id.value); if(it!=records.end()) it->second.current_offset=off; }
 void HttpRangeSessionStore::append_evidence(sc::SourceSessionId id, sc::SourceEvidenceItem item) { std::lock_guard lk(m); auto it=records.find(id.value); if(it!=records.end()) { item.sequence_number=static_cast<std::uint64_t>(it->second.evidence.items.size()+1); it->second.evidence.items.push_back(std::move(item)); } }
-sc::SourceError HttpRangeSessionStore::close_session(sc::SourceSessionId id) { std::lock_guard lk(m); auto tit=tombstones.find(id.value); if(tit!=tombstones.end()) return sc::SourceError::ok(); auto it=records.find(id.value); if(it==records.end()) return {sc::SourceErrorCode::session_not_found,""}; it->second.session.session_state=sc::SourceSessionState::closed; tombstones[id.value]=std::move(it->second); records.erase(it); return sc::SourceError::ok(); }
+sc::SourceError HttpRangeSessionStore::close_session(sc::SourceSessionId id) { std::lock_guard lk(m); auto tit=tombstones.find(id.value); if(tit!=tombstones.end()) return sc::SourceError::ok(); auto it=records.find(id.value); if(it==records.end()) return {sc::SourceErrorCode::session_not_found,""}; it->second.session.session_state=sc::SourceSessionState::closed; it->second.tombstone_sensitive_clear(); tombstones[id.value]=std::move(it->second); records.erase(it); return sc::SourceError::ok(); }
 sc::OpaqueSourceAccessRef HttpRangeSessionStore::make_access_ref(sc::SourceSessionId id) const { std::lock_guard lk(m); sc::OpaqueSourceAccessRef ref; ref.session_id=id; ref.provider_kind=sc::ProviderKind::http_file; return ref; }
 
 // ── Open ─────────────────────────────────────────────
@@ -70,6 +70,7 @@ sc::SourceOpenResult HttpRangeProvider::open(const sc::SourceOpenRequest& req, H
 
     HttpRangeSessionRecord rec; rec.session=sess; rec.identity=identity; rec.capability=cap; rec.evidence=ev;
     rec.content_length=clen; rec.can_read=(rpk==sc::RangeProofKind::seekable_known_length); rec.redacted_url=url.safe_redacted();
+    rec.raw_url = ProviderInternalRemoteUri(raw);
     store.insert(std::move(rec));
     return sc::SourceOpenResult::success(sess);
 }
