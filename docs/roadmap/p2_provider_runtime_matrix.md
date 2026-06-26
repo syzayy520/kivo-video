@@ -102,19 +102,22 @@ enum class EnvironmentKind {
 };
 ```
 
-## Provider List
+## Provider List (HONEST STATUS - 2026-06-26)
 
 ### Local Playback Providers
 
 1. **local_file**: Local file playback
-   - Environment: Local hardware
-   - Runtime: Real FFmpeg, D3D11, WASAPI
-   - Status: CONTRACT_PASS (real FFmpeg probe/demux/decode proven)
+   - Environment: Local hardware (GPU + audio endpoint)
+   - Contract: CONTRACT_PASS (real FFmpeg probe/demux/decode proven)
+   - Runtime: CONTRACT_PASS (D3D11/WASAPI contracts defined, runtime verification hardware-dependent)
+   - RUNTIME_PASS: NO — requires real GPU + audio endpoint + test execution
+   - Evidence: Real FFmpeg pipeline proven; D3D11/WASAPI require hardware proof
 
 2. **disc_bdmv**: Disc image/BDMV playback
    - Environment: Local hardware + disc drive
-   - Runtime: Real disc reading, BDMV parsing
-   - Status: NOT_IMPLEMENTED
+   - Contract: NOT_IMPLEMENTED
+   - Runtime: NOT_IMPLEMENTED
+   - RUNTIME_PASS: NO
 
 ### Network File Providers
 
