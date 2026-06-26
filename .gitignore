@@ -20,3 +20,4 @@ install_ffmpeg*.bat
 vcpkg_*.txt
 vcpkg_out.txt
 
+backend/tools/governance/redline_gate/artifacts/
