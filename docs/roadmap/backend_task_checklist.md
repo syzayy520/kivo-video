@@ -484,14 +484,15 @@ Status legend:
 - DONE: PMX-002 Matrix Honesty Gate. Evidence: `artifacts/p2/evidence/PMX-002.json`. Matrix Honesty Gate defined at `docs/roadmap/p2_matrix_honesty_gate.md`. 3 honesty rules validated: no default RUNTIME_PASS, BLOCKED_ENV for missing environments, controlled protocol ≠ commercial cloud. 20 test cases defined. Gate integration points documented.
 - DONE: PFFG-001 P2 Foundation Final Gate Reader. Evidence: `artifacts/p2/evidence/PFFG-001.json`. Foundation Final Gate Reader defined at `docs/roadmap/p2_foundation_final_gate_reader.md`. 5 validation rules: evidence completeness, status consistency, provider matrix integrity, redline compliance, anti-fake compliance. 20 test cases defined. Gate integration points documented.
 - DONE: PFFG-002 P2 Foundation Final Report. Evidence: `artifacts/p2/evidence/PFFG-002.json`. Foundation Final Report defined at `docs/roadmap/p2_foundation_final_report.md`. 8 report sections: executive summary, evidence summary, provider runtime matrix, known limitations, verification results, provider runtime gaps, recommendations, classification. 20 test cases defined. Report generation process documented.
-- DONE: APRV-001 P2 All Providers Runtime Verified Gate. Evidence: `artifacts/p2/evidence/APRV-001.json`. All Providers Runtime Verified Gate defined at `docs/roadmap/p2_all_providers_runtime_verified_gate.md`. Gate validation rules defined with 6 rules: all providers runtime pass, real runtime evidence, environment availability, evidence schema compliance, redline compliance, anti-fake compliance. 20 test cases defined. Gate integration points documented. Current status: CONTRACT_PASS (no providers have RUNTIME_PASS yet). Gate is post-foundation and requires all providers to achieve RUNTIME_PASS status before passing.
+- DONE: APRV-001 P2 All Providers Runtime Verified Gate. Evidence: `artifacts/p2/evidence/APRV-001.json`. Gate DEFINITION only (CONTRACT_PASS). NOT a runtime claim. All 22 providers currently lack runtime proof. Static JSON evidence files are planning evidence, NOT runtime proof. Real runtime evidence must come from CI/CD or local runners with real hardware/dependencies/accounts.
+- DONE: V10-REJECT-FIX-001 E2E/Soak Test Hardening. Evidence: local_playback_e2e_test.cpp and micro_soak_test.cpp now require ALL 4 pre-conditions (sample + FFmpeg + D3D11 + WASAPI) before asserting RUNTIME_PASS. Missing any pre-condition → BLOCKED_ENV (exit 1). D3D11 available → assert frames_uploaded > 0. WASAPI available → assert frames_written > 0. Micro soak loop fixed (no continue skipping other stream). WASAPI continuous write proven with assert(wr.success). P2 Foundation separated from All Providers Runtime Verified. GitHub Actions FFmpeg ON job added with honest BLOCKED_ENV reporting.
+
+## P2 Foundation vs All Providers Runtime Verified — CLEAR SEPARATION
+
+- **P2 Foundation (Planning/Docs/Contracts)**: COMPLETE. All V8 planning tasks, evidence schemas, gate definitions, provider contract docs, and CI workflows are done.
+- **All Providers Runtime Verified**: NOT YET. Post-foundation. Requires real runtime proof for each provider (real hardware, real accounts, real dependencies). 0 of 22 providers have RUNTIME_PASS.
+- **Static JSON evidence**: Files in artifacts/p2/evidence/ are CONTRACT_PASS (planning evidence). They document what SHOULD be verified. They are NOT runtime proof.
 
 ## Immediate Next Task
 
-P2-LOCAL-REPAIR-DELTA-001 completed (LRD-001 through LRD-013 all DONE). Next: `P2-SCHEMA-GATE-FOUNDATION` with `SGF-001`.
-
-1. Open `docs/roadmap/p2_remaining_coverage_v8_execution_cards.md`.
-2. Execute `SGF-001` Define `p2-evidence-v8` schema.
-3. Execute `SGF-002` Define `p2-inspector-v8` schema.
-4. Execute `SGF-003` Define `p2-decision-ledger-v8` schema.
-5. Continue with `SGF-004` through `SGF-008` for schema foundation completion.
+P2 Foundation is COMPLETE. Runtime verification requires real hardware/accounts/dependencies for each provider. Next: Provider runtime verification one by one, starting with local_file when hardware environment is available.

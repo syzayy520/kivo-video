@@ -24,6 +24,13 @@
 
 using namespace kivo::cinema_engine;
 
+// ─── Exit codes for honest status reporting ───
+enum class E2eExitCode {
+    RUNTIME_PASS = 0,
+    BLOCKED_ENV = 1,
+    FAIL = 2
+};
+
 // ─── Step 1: Probe ───
 static void test_probe(const std::string& sample_path) {
     std::cout << "  [Step 1] Probe:\n";
@@ -38,18 +45,12 @@ static void test_probe(const std::string& sample_path) {
 }
 
 // ─── Step 2: Demux + decode video frames with real data ───
+// Hardware pre-condition: D3D11 MUST be available (checked before calling).
 static int test_video_pipeline(const std::string& sample_path, int video_idx,
-                               const std::string& video_codec) {
+                               const std::string& video_codec,
+                               D3d11DeviceContext& d3d_device) {
     std::cout << "  [Step 2] Video pipeline (demux → decode → D3D11 upload):\n";
-
-    // Initialize D3D11 if available
-    D3d11DeviceContext d3d_device;
-    bool d3d_ok = d3d_device.initialize();
-    if (d3d_ok) {
-        std::cout << "    D3D11: " << d3d_device.device_type() << " - " << d3d_device.adapter_description() << "\n";
-    } else {
-        std::cout << "    D3D11: not available (hardware skip)\n";
-    }
+    std::cout << "    D3D11: " << d3d_device.device_type() << " - " << d3d_device.adapter_description() << "\n";
 
     // Create codec context from file
     FfmpegFormatHandle fmt_handle = FfmpegAdapter::open_file(sample_path);
@@ -69,9 +70,7 @@ static int test_video_pipeline(const std::string& sample_path, int video_idx,
     int frames_decoded = 0;
     int frames_uploaded = 0;
     D3d11TextureUpload uploader;
-    if (d3d_ok) {
-        uploader.initialize(&d3d_device);
-    }
+    uploader.initialize(&d3d_device);
 
     for (int i = 0; i < 5000; ++i) {
         auto pkt = demux.read_packet("e2e_vpkt_" + std::to_string(i));
@@ -90,18 +89,16 @@ static int test_video_pipeline(const std::string& sample_path, int video_idx,
             assert(!dec.frame.frame_data.empty());
             assert(dec.frame.frame_data.size() > static_cast<size_t>(dec.frame.width * dec.frame.height));
 
-            // Upload to D3D11 if available
-            if (d3d_ok && frames_decoded <= 3) {
-                // Create texture for first frame dimensions
+            // Upload to D3D11 (hardware verified available)
+            if (frames_decoded <= 3) {
                 D3D11TextureHandle tex = uploader.create_texture(
                     dec.frame.width, dec.frame.height, dec.frame.pixel_format);
-                if (tex) {
-                    YuvRgbConversion conv;
-                    bool uploaded = uploader.upload_frame(tex, dec.frame, conv);
-                    assert(uploaded);
-                    frames_uploaded++;
-                    uploader.release_texture(tex);
-                }
+                assert(tex);  // V10 reject fix: texture creation must succeed
+                YuvRgbConversion conv;
+                bool uploaded = uploader.upload_frame(tex, dec.frame, conv);
+                assert(uploaded);  // V10 reject fix: must prove real GPU upload
+                frames_uploaded++;
+                uploader.release_texture(tex);
             }
 
             // Only process a limited number of frames for test speed
@@ -114,16 +111,14 @@ static int test_video_pipeline(const std::string& sample_path, int video_idx,
     FfmpegAdapter::free_format_context(fmt_handle);
 
     assert(frames_decoded > 0);
+    assert(frames_uploaded > 0);  // V10 reject fix: must prove real GPU upload
     std::cout << "    PASS: decoded " << frames_decoded << " video frames with real pixel data\n";
-    if (d3d_ok) {
-        std::cout << "    PASS: uploaded " << frames_uploaded << " frames to real D3D11 GPU texture\n";
-    } else {
-        std::cout << "    PASS: D3D11 upload skipped (no GPU)\n";
-    }
+    std::cout << "    PASS: uploaded " << frames_uploaded << " frames to real D3D11 GPU texture\n";
     return frames_decoded;
 }
 
 // ─── Step 3: Demux + decode audio frames with real data ───
+// Hardware pre-condition: WASAPI MUST be available (checked before calling).
 static int test_audio_pipeline(const std::string& sample_path, int audio_idx,
                                const std::string& audio_codec) {
     std::cout << "  [Step 3] Audio pipeline (demux → decode → PCM convert → WASAPI write):\n";
@@ -151,7 +146,7 @@ static int test_audio_pipeline(const std::string& sample_path, int audio_idx,
     pcm_target.bit_depth = 16;
     pcm_target.sample_format = "s16";
 
-    // Initialize WASAPI writer if available
+    // Initialize WASAPI writer (hardware verified available)
     AudioEndpointRuntimeContract endpoint;
     endpoint.endpoint_id = "default";
     endpoint.endpoint_name = "Default Audio Device";
@@ -162,11 +157,8 @@ static int test_audio_pipeline(const std::string& sample_path, int audio_idx,
 
     WasapiSharedPcmWriter wasapi_writer;
     bool wasapi_ok = wasapi_writer.initialize(endpoint);
-    if (wasapi_ok) {
-        std::cout << "    WASAPI: initialized successfully\n";
-    } else {
-        std::cout << "    WASAPI: not available (" << wasapi_writer.last_error() << ")\n";
-    }
+    assert(wasapi_ok);  // V10 reject fix: WASAPI must be available
+    std::cout << "    WASAPI: initialized successfully\n";
 
     int frames_decoded = 0;
     int frames_converted = 0;
@@ -199,14 +191,14 @@ static int test_audio_pipeline(const std::string& sample_path, int audio_idx,
                 for (size_t s = 0; s < pcm.pcm_data.size() / 2 && s < 1000; ++s) {
                     if (samples[s] != 0) { has_nonzero = true; break; }
                 }
+                assert(has_nonzero);  // V10 reject fix: PCM must contain real audio data
                 frames_converted++;
 
-                // Write to WASAPI if available
-                if (wasapi_ok) {
-                    WriteResult wr = wasapi_writer.write(pcm.pcm_data.data(),
-                                                         static_cast<int32_t>(pcm.pcm_data.size()));
-                    if (wr.success) frames_written++;
-                }
+                // Write to WASAPI (hardware verified available)
+                WriteResult wr = wasapi_writer.write(pcm.pcm_data.data(),
+                                                     static_cast<int32_t>(pcm.pcm_data.size()));
+                assert(wr.success);  // V10 reject fix: must prove real WASAPI write
+                frames_written++;
             }
 
             if (frames_decoded >= 100) break;
@@ -217,44 +209,76 @@ static int test_audio_pipeline(const std::string& sample_path, int audio_idx,
     demux.close();
     FfmpegAdapter::free_format_context(fmt_handle);
 
-    if (wasapi_ok) {
-        wasapi_writer.stop();
-        wasapi_writer.release();
-    }
+    wasapi_writer.stop();
+    wasapi_writer.release();
 
     assert(frames_decoded > 0);
+    assert(frames_converted > 0);
+    assert(frames_written > 0);  // V10 reject fix: must prove real WASAPI write
     std::cout << "    PASS: decoded " << frames_decoded << " audio frames with real sample data\n";
-    std::cout << "    PASS: converted " << frames_converted << " frames to real PCM\n";
-    if (wasapi_ok) {
-        std::cout << "    PASS: wrote " << frames_written << " frames to real WASAPI buffer\n";
-    } else {
-        std::cout << "    PASS: WASAPI write skipped (no audio device)\n";
-    }
+    std::cout << "    PASS: converted " << frames_converted << " frames to real PCM (non-zero audio)\n";
+    std::cout << "    PASS: wrote " << frames_written << " frames to real WASAPI buffer\n";
     return frames_decoded;
 }
 
 // ─── Main ───
 int main() {
-    std::cout << "local_playback_e2e_test (V10-020):\n";
+    std::cout << "local_playback_e2e_test (V10-020 FIXED):\n";
     std::cout << "=============================================\n";
-    std::cout << "Real implementation: file → FFmpeg → decode → D3D11 + WASAPI\n\n";
+    std::cout << "Real implementation: file → FFmpeg → decode → D3D11 + WASAPI\n";
+    std::cout << "HONEST STATUS: all 4 pre-conditions (sample + FFmpeg + D3D11 + WASAPI) MUST pass\n\n";
 
+    // ── Pre-condition 1: Sample file ──
     const char* sample_path_env = std::getenv("KIVO_SAMPLE_H264_AAC_MP4");
     if (!sample_path_env || std::string(sample_path_env).empty()) {
-        std::cout << "  SKIP: KIVO_SAMPLE_H264_AAC_MP4 not set\n";
+        std::cout << "  BLOCKED_ENV: KIVO_SAMPLE_H264_AAC_MP4 not set\n";
         std::cout << "  Set this env var to a real H.264+AAC MP4 file path.\n";
-        return 0;
+        std::cout << "Classification: BLOCKED_ENV (no sample file, cannot prove runtime)\n";
+        return static_cast<int>(E2eExitCode::BLOCKED_ENV);
     }
 
+    // ── Pre-condition 2: FFmpeg enabled ──
     if (!RealProbeRuntime::is_ffmpeg_available()) {
-        std::cout << "  SKIP: FFmpeg not enabled (KIVO_ENABLE_FFMPEG=OFF)\n";
-        return 0;
+        std::cout << "  BLOCKED_ENV: FFmpeg not enabled (KIVO_ENABLE_FFMPEG=OFF)\n";
+        std::cout << "Classification: BLOCKED_ENV (FFmpeg OFF, cannot prove runtime)\n";
+        return static_cast<int>(E2eExitCode::BLOCKED_ENV);
     }
 
     std::string sample_path(sample_path_env);
-    std::cout << "  Sample: " << sample_path << "\n\n";
+    std::cout << "  Sample: " << sample_path << "\n";
 
-    // Step 1: Probe
+    // ── Pre-condition 3: D3D11 GPU available ──
+    D3d11DeviceContext d3d_device;
+    bool d3d_ok = d3d_device.initialize();
+    if (!d3d_ok) {
+        std::cout << "  BLOCKED_ENV: D3D11 GPU not available (no hardware or WARP)\n";
+        std::cout << "  D3D11CreateDevice failed - cannot prove video upload runtime.\n";
+        std::cout << "Classification: BLOCKED_ENV (D3D11 unavailable, video runtime not proven)\n";
+        return static_cast<int>(E2eExitCode::BLOCKED_ENV);
+    }
+    std::cout << "  D3D11: " << d3d_device.device_type() << " - " << d3d_device.adapter_description() << "\n";
+
+    // ── Pre-condition 4: WASAPI audio device available ──
+    AudioEndpointRuntimeContract pre_endpoint;
+    pre_endpoint.endpoint_id = "default";
+    pre_endpoint.endpoint_name = "Default Audio Device";
+    pre_endpoint.output_mode = "shared_pcm";
+    pre_endpoint.sample_rate = 44100;
+    pre_endpoint.channels = 2;
+    pre_endpoint.bit_depth = 16;
+
+    WasapiSharedPcmWriter pre_wasapi;
+    bool wasapi_ok = pre_wasapi.initialize(pre_endpoint);
+    if (!wasapi_ok) {
+        std::cout << "  BLOCKED_ENV: WASAPI audio device not available\n";
+        std::cout << "  Error: " << pre_wasapi.last_error() << "\n";
+        std::cout << "Classification: BLOCKED_ENV (WASAPI unavailable, audio runtime not proven)\n";
+        return static_cast<int>(E2eExitCode::BLOCKED_ENV);
+    }
+    pre_wasapi.release();  // Release pre-check writer, pipeline will create its own
+    std::cout << "  WASAPI: audio device available\n\n";
+
+    // ── Step 1: Probe ──
     test_probe(sample_path);
     std::cout << "\n";
 
@@ -276,30 +300,37 @@ int main() {
         audio_codec = probe.audio_streams[0].codec_name;
     }
 
-    // Step 2: Video pipeline
+    // ── Step 2: Video pipeline (D3D11 verified available) ──
     int video_frames = 0;
     if (video_idx >= 0) {
-        video_frames = test_video_pipeline(sample_path, video_idx, video_codec);
+        video_frames = test_video_pipeline(sample_path, video_idx, video_codec, d3d_device);
     } else {
-        std::cout << "  [Step 2] SKIP: no video stream\n";
+        std::cout << "  [Step 2] FAIL: no video stream in sample - cannot prove E2E\n";
+        std::cout << "Classification: FAIL (sample has no video stream)\n";
+        return static_cast<int>(E2eExitCode::FAIL);
     }
     std::cout << "\n";
 
-    // Step 3: Audio pipeline
+    // ── Step 3: Audio pipeline (WASAPI verified available) ──
     int audio_frames = 0;
     if (audio_idx >= 0) {
         audio_frames = test_audio_pipeline(sample_path, audio_idx, audio_codec);
     } else {
-        std::cout << "  [Step 3] SKIP: no audio stream\n";
+        std::cout << "  [Step 3] FAIL: no audio stream in sample - cannot prove E2E\n";
+        std::cout << "Classification: FAIL (sample has no audio stream)\n";
+        return static_cast<int>(E2eExitCode::FAIL);
     }
     std::cout << "\n";
 
-    // Summary
+    // ── Summary ──
     std::cout << "=============================================\n";
     std::cout << "  Summary:\n";
     std::cout << "    Video frames decoded: " << video_frames << "\n";
     std::cout << "    Audio frames decoded: " << audio_frames << "\n";
     std::cout << "    Total real frames: " << (video_frames + audio_frames) << "\n";
-    std::cout << "ALL V10-020 LOCAL MINIMAL PLAYBACK END-TO-END GATE TESTS PASSED\n";
-    return 0;
+    std::cout << "    D3D11: " << d3d_device.device_type() << " (real GPU upload proven)\n";
+    std::cout << "    WASAPI: real PCM write proven\n";
+    std::cout << "V10-020 LOCAL MINIMAL PLAYBACK END-TO-END: RUNTIME_PASS\n";
+    std::cout << "Classification: RUNTIME_PASS (all 4 pre-conditions met, full E2E runtime proven)\n";
+    return static_cast<int>(E2eExitCode::RUNTIME_PASS);
 }

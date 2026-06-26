@@ -83,11 +83,32 @@
 - **Provider Matrix**: PMX-001, PMX-002 - ALL DONE
 - **Final Gates**: PFFG-001, PFFG-002, APRV-001 - ALL DONE
 
-## V8 Final Status
-- **Overall Classification**: All V8 execution sequence tasks completed
-- **Provider Runtime Status**: No providers have RUNTIME_PASS yet (only local_file has CONTRACT_PASS)
-- **P2 Foundation Claim**: Not yet allowed (requires all providers to achieve RUNTIME_PASS)
-- **Next Phase**: Provider runtime verification and gap resolution
+## V8 Final Status: TWO SEPARATE CLAIMS
+
+### P2 Foundation (Planning & Documentation) — COMPLETE
+- **Status**: P2 FOUNDATION COMPLETE (planning, docs, contracts, evidence schemas, gate definitions)
+- **V8-001 through V8-009**: Global Gates — ALL DONE
+- **LRD-001 through LRD-013**: Local Repair Delta (audit/planning) — ALL DONE
+- **SGF-001 through SGF-008**: Schema Gate Foundation — ALL DONE
+- **RGF-001 through RGF-005**: Redline Gate Foundation — ALL DONE
+- **Provider Foundations**: 12 provider families with docs/contract evidence — ALL DONE
+- **Presentation Extensions**: CAST-001, PIP-001, CIN-001, TRK-001 — ALL DONE
+- **Provider Matrix**: PMX-001, PMX-002 — ALL DONE
+- **Final Gates**: PFFG-001, PFFG-002, APRV-001 — ALL DONE (gate definitions)
+- **Evidence**: Foundation evidence files created in artifacts/p2/evidence/ (static planning evidence, not runtime proof)
+
+### P2 Local Runtime Verification — SEPARATE from Foundation
+- **Status**: Requires real hardware (D3D11 GPU + WASAPI audio device) with real sample file
+- **local_file (E2E)**: BLOCKED_ENV without all 4 pre-conditions (sample + FFmpeg + D3D11 + WASAPI)
+- **local_file (Soak)**: BLOCKED_ENV without all 4 pre-conditions
+- **Exit codes**: 0=RUNTIME_PASS, 1=BLOCKED_ENV, 2=FAIL — strictly enforced
+- **RUNTIME_PASS requires**: ALL 4 pre-conditions met + frames_uploaded > 0 + frames_written > 0 + 30s continuous WASAPI write
+
+### All Providers Runtime Verified — POST-FOUNDATION ONLY
+- **Status**: NOT YET (0 of 22 providers have RUNTIME_PASS)
+- **This is explicitly NOT part of P2 Foundation completion**
+- **Requires**: Every provider with real runtime proof, not CONTRACT_PASS or static JSON
+- **Claim**: "ALL PROVIDERS RUNTIME VERIFIED" is forbidden until every provider matrix entry is RUNTIME_PASS
 
 ## Memory Maintenance
-- Updated: 2026-06-26 (V8 execution sequence complete, all 84 evidence files added, commit 3bcb011 pushed; PMX-002, PFFG-001, PFFG-002, APRV-001 all DONE; overall V8 completion status updated)
+- Updated: 2026-06-26 (V8 rejection fix: E2E/soak tests now require ALL 4 hardware pre-conditions; D3D11/WASAPI missing → BLOCKED_ENV; P2 Foundation clearly separated from All Providers Runtime Verified; GitHub Actions FFmpeg ON workflow added; evidence distinction enforced)
