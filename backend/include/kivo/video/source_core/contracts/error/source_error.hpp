@@ -20,12 +20,21 @@ enum class SourceErrorCode : std::uint8_t {
     cancelled = 11,
     invalid_request = 12,
     internal_error = 13,
-    unknown = 14
+    session_not_found = 14,
+    session_closed = 15,
+    session_in_error = 16,
+    stale_reference = 17,
+    read_size_exceeded = 18,
+    unsupported_provider = 19,
+    source_changed = 20,
+    seek_out_of_range = 21,
+    seek_unsupported = 22,
+    unknown = 23
 };
 
 struct SourceError {
     SourceErrorCode code{SourceErrorCode::none};
-    std::string message;  // must be redacted for evidence
+    std::string message;
 
     bool is_ok() const { return code == SourceErrorCode::none; }
     static SourceError ok() { return SourceError{}; }

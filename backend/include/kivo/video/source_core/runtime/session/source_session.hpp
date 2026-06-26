@@ -1,5 +1,6 @@
 #pragma once
 
+#include "kivo/video/source_core/contracts/provider_kind/provider_kind.hpp"
 #include "kivo/video/source_core/contracts/decision_input/source_core_contract_version.hpp"
 
 #include <cstdint>
@@ -23,6 +24,7 @@ struct SourceSession {
     SourceSessionId session_id;
     SourceSessionState session_state{SourceSessionState::created};
     std::uint32_t contract_version{kSourceCoreContractVersion};
+    ProviderKind provider_kind{ProviderKind::unknown};
 
     std::string debug_string() const {
         return "SourceSession{session_id=" + std::to_string(session_id.value) +

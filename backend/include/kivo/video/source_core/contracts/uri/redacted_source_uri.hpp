@@ -11,7 +11,13 @@ class RedactedSourceUri {
 public:
     static RedactedSourceUri from_canonical(const CanonicalSourceUri& canonical) {
         RedactedSourceUri r;
-        r.display_ = canonical.to_string();  // already redacted from canonical
+        r.display_ = canonical.to_string();
+        return r;
+    }
+
+    static RedactedSourceUri from_raw(const std::string& already_redacted) {
+        RedactedSourceUri r;
+        r.display_ = already_redacted;
         return r;
     }
 

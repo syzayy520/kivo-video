@@ -809,7 +809,8 @@ foreach(test_family ${SC_RUNTIME_TESTS})
 endforeach()
 
 # Provider placeholder INTERFACE targets (no runtime, no source files)
-foreach(provider local_file http webdav alist emby cloud_drive hls)
+# local_file has been promoted to real implementation
+foreach(provider http webdav alist emby cloud_drive hls)
   add_library(kivo_video_providers_${provider} INTERFACE)
   target_include_directories(kivo_video_providers_${provider} INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -817,6 +818,42 @@ foreach(provider local_file http webdav alist emby cloud_drive hls)
   target_link_libraries(kivo_video_providers_${provider} INTERFACE
     kivo_video_source_core_contracts
   )
+endforeach()
+
+# ─── Local File Provider (real implementation) ───
+add_library(kivo_video_provider_local_file STATIC
+  src/providers/local_file/local_file_path_validation.cpp
+  src/providers/local_file/local_file_opaque_digest.cpp
+  src/providers/local_file/local_file_redaction.cpp
+  src/providers/local_file/local_file_session_store.cpp
+  src/providers/local_file/local_file_provider.cpp
+)
+target_include_directories(kivo_video_provider_local_file PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+target_compile_options(kivo_video_provider_local_file PRIVATE /std:c++17)
+target_link_libraries(kivo_video_provider_local_file PUBLIC
+  kivo_video_source_core_runtime
+)
+
+# ─── Local File Provider Tests ───
+set(LF_TESTS open read zero_read seek error close redaction evidence direct_input path_validation schema)
+foreach(test_name ${LF_TESTS})
+  add_executable(kivo_video_provider_local_file_${test_name}_test
+    tests/providers/local_file/${test_name}_test.cpp
+  )
+  target_include_directories(kivo_video_provider_local_file_${test_name}_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests
+  )
+  target_compile_options(kivo_video_provider_local_file_${test_name}_test PRIVATE /std:c++17)
+  target_link_libraries(kivo_video_provider_local_file_${test_name}_test PRIVATE
+    kivo_video_provider_local_file
+  )
+  add_test(NAME kivo_video_provider_local_file_${test_name}_test
+    COMMAND kivo_video_provider_local_file_${test_name}_test
+  )
+  set_tests_properties(kivo_video_provider_local_file_${test_name}_test PROPERTIES TIMEOUT 10)
 endforeach()
 
 # ─── P2 Schema Gate Validator ───

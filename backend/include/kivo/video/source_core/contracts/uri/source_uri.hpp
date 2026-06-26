@@ -28,6 +28,11 @@ public:
 
     bool empty() const { return raw_.empty(); }
 
+    // Restricted open-boundary consumption — only for local_file provider and tests.
+    // Must NOT be used as a generic raw-value/path/url accessor.
+    // Raw input must never reach identity, evidence, errors, or direct input.
+    std::string untrusted_input_for_open_boundary() const { return raw_; }
+
 private:
     std::string raw_;
     friend class CanonicalSourceUri;

@@ -26,13 +26,36 @@
     "direct_input_contract_complete": true,
     "provider_runtime": "not_implemented"
   },
-  "media_input": { "kind": "not_applicable" },
+  "media_input": {
+    "kind": "not_applicable"
+  },
   "extension_input": {},
-  "source_identity": { "provider_kinds": 22, "contract_implemented": true },
+  "source_identity": {
+    "provider_kinds": 22,
+    "contract_implemented": true
+  },
   "redaction_verified": true,
   "schema_validated": true,
-  "anti_fake_checks": { "contract_pass_only": true, "no_runtime_pass": true },
+  "anti_fake_checks": {
+    "contract_pass_only": true,
+    "no_runtime_pass": true
+  },
   "runtime_verified": false,
   "blocked_reason": "",
-  "timestamp_utc": "2026-06-26T14:10:00Z"
+  "timestamp_utc": "2026-06-26T14:10:00Z",
+  "requires_provider_matrix": false,
+  "artifacts": [],
+  "test_commands": [],
+  "errors": [],
+  "redline_scan": {},
+  "playback_state_snapshot": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "capability_probe": {},
+  "extension_identity": {},
+  "media_identity": {}
 }
