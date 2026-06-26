@@ -1,32 +1,33 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "CIN-001",
-  "task_name": "P2-CINEMA-FOUNDATION",
-  "family": "cinema_foundation",
   "status": "CONTRACT_PASS",
   "runtime_mode": "cinema_protocol_definition",
-  "runtime_environment_kind": "test_harness",
+  "runtime_environment_kind": "not_applicable",
   "environment_required": false,
   "environment_available": false,
-  "blocked_reason": null,
-  "runtime_verified_timestamp": "2026-06-26T01:30:00Z",
+  "blocked_reason": "",
   "evidence_file": "artifacts/p2/evidence/CIN-001.json",
-  "provider_matrix_impact": {
-    "cinema_foundation": "CONTRACT_PASS"
-  },
   "cinema_state_model": {
-    "states": ["Normal", "Fullscreen", "Cinema", "PiP", "Cast", "Transitioning"],
+    "states": [
+      "Normal",
+      "Fullscreen",
+      "Cinema",
+      "PiP",
+      "Cast",
+      "Transitioning"
+    ],
     "transitions": {
-      "enter_fullscreen": "Normal → Fullscreen",
-      "enter_cinema": "Normal → Cinema",
-      "enter_pip": "Normal → PiP",
-      "enter_cast": "Normal → Cast",
-      "exit_fullscreen": "Fullscreen → Normal",
-      "exit_cinema": "Cinema → Normal",
-      "exit_pip": "PiP → Normal",
-      "exit_cast": "Cast → Normal",
-      "transition": "Any → Transitioning",
-      "transition_complete": "Transitioning → Any"
+      "enter_fullscreen": "Normal \u2192 Fullscreen",
+      "enter_cinema": "Normal \u2192 Cinema",
+      "enter_pip": "Normal \u2192 PiP",
+      "enter_cast": "Normal \u2192 Cast",
+      "exit_fullscreen": "Fullscreen \u2192 Normal",
+      "exit_cinema": "Cinema \u2192 Normal",
+      "exit_pip": "PiP \u2192 Normal",
+      "exit_cast": "Cast \u2192 Normal",
+      "transition": "Any \u2192 Transitioning",
+      "transition_complete": "Transitioning \u2192 Any"
     },
     "properties": {
       "ui_visibility": "UI hidden in Fullscreen/Cinema/PiP/Cast modes",
@@ -63,20 +64,54 @@
       "Network: Cast mode requires network connection",
       "Battery: PiP mode may be blocked on low battery"
     ],
-    "resolution_types": ["Automatic", "User Choice", "Fail Safe", "Priority Based", "Resource Based"]
+    "resolution_types": [
+      "Automatic",
+      "User Choice",
+      "Fail Safe",
+      "Priority Based",
+      "Resource Based"
+    ]
   },
   "enter_exit_behavior": {
     "enter_cinema_request": {
-      "fields": ["target_state", "preserve_playback", "preserve_audio", "preserve_subtitles", "preserve_position", "monitor_id", "hide_cursor", "hide_osd", "hide_subtitles"]
+      "fields": [
+        "target_state",
+        "preserve_playback",
+        "preserve_audio",
+        "preserve_subtitles",
+        "preserve_position",
+        "monitor_id",
+        "hide_cursor",
+        "hide_osd",
+        "hide_subtitles"
+      ]
     },
     "enter_cinema_result": {
-      "fields": ["success", "actual_state", "error_message", "transition_duration_ms"]
+      "fields": [
+        "success",
+        "actual_state",
+        "error_message",
+        "transition_duration_ms"
+      ]
     },
     "exit_cinema_request": {
-      "fields": ["from_state", "restore_playback", "restore_audio", "restore_subtitles", "restore_position", "restore_cursor", "restore_osd"]
+      "fields": [
+        "from_state",
+        "restore_playback",
+        "restore_audio",
+        "restore_subtitles",
+        "restore_position",
+        "restore_cursor",
+        "restore_osd"
+      ]
     },
     "exit_cinema_result": {
-      "fields": ["success", "actual_state", "error_message", "transition_duration_ms"]
+      "fields": [
+        "success",
+        "actual_state",
+        "error_message",
+        "transition_duration_ms"
+      ]
     },
     "rules": [
       "Animation: Smooth transition animations between states",
@@ -89,14 +124,33 @@
   },
   "safe_areas": {
     "safe_area_definitions": {
-      "fields": ["top", "bottom", "left", "right", "title_safe", "action_safe"],
+      "fields": [
+        "top",
+        "bottom",
+        "left",
+        "right",
+        "title_safe",
+        "action_safe"
+      ],
       "title_safe_percentage": 80,
       "action_safe_percentage": 90
     },
     "cinema_safe_areas": {
-      "areas": ["video_safe", "subtitle_safe", "osd_safe", "cursor_safe", "control_safe"]
+      "areas": [
+        "video_safe",
+        "subtitle_safe",
+        "osd_safe",
+        "cursor_safe",
+        "control_safe"
+      ]
     },
-    "chrome_hiding_rules": ["Title Bar", "Menu Bar", "Status Bar", "Toolbars", "Scrollbars"],
+    "chrome_hiding_rules": [
+      "Title Bar",
+      "Menu Bar",
+      "Status Bar",
+      "Toolbars",
+      "Scrollbars"
+    ],
     "cursor_handling": [
       "Auto Hide: Cursor hides after 3 seconds of inactivity",
       "Show on Movement: Cursor shows on mouse movement",
@@ -104,7 +158,13 @@
       "Cursor Size: Cursor scales with DPI",
       "Cursor Opacity: Cursor fades out instead of hiding"
     ],
-    "osd_handling": ["Play/Pause", "Volume", "Seek", "Time", "Status"],
+    "osd_handling": [
+      "Play/Pause",
+      "Volume",
+      "Seek",
+      "Time",
+      "Status"
+    ],
     "subtitle_safe_area": [
       "Position: Subtitles positioned in safe area",
       "Margin: 10% margin from screen edges",
@@ -115,7 +175,15 @@
   },
   "playback_continuity": {
     "continuity_contract": {
-      "fields": ["maintain_position", "maintain_state", "maintain_volume", "maintain_subtitles", "maintain_audio_track", "maintain_video_track", "precision"],
+      "fields": [
+        "maintain_position",
+        "maintain_state",
+        "maintain_volume",
+        "maintain_subtitles",
+        "maintain_audio_track",
+        "maintain_video_track",
+        "precision"
+      ],
       "precision": "Milliseconds"
     },
     "rules": [
@@ -136,7 +204,13 @@
   },
   "multi_monitor_support": {
     "multi_monitor_cinema": {
-      "fields": ["primary_monitor", "extend_to_secondary", "separate_controls", "separate_subtitles", "arrangement"]
+      "fields": [
+        "primary_monitor",
+        "extend_to_secondary",
+        "separate_controls",
+        "separate_subtitles",
+        "arrangement"
+      ]
     },
     "rules": [
       "Primary Monitor: Cinema mode defaults to primary monitor",
@@ -155,7 +229,14 @@
   },
   "dpi_handling": {
     "cinema_dpi": {
-      "fields": ["video_scale_factor", "ui_scale_factor", "subtitle_scale_factor", "osd_scale_factor", "per_monitor_dpi", "dpi_aware_video"]
+      "fields": [
+        "video_scale_factor",
+        "ui_scale_factor",
+        "subtitle_scale_factor",
+        "osd_scale_factor",
+        "per_monitor_dpi",
+        "dpi_aware_video"
+      ]
     },
     "rules": [
       "Video Scaling: Video maintains aspect ratio with DPI",
@@ -175,7 +256,14 @@
   },
   "sleep_inhibit": {
     "sleep_inhibit_contract": {
-      "fields": ["inhibit_sleep", "inhibit_screen_save", "inhibit_idle", "inhibit_power_save", "reason", "timeout_seconds"]
+      "fields": [
+        "inhibit_sleep",
+        "inhibit_screen_save",
+        "inhibit_idle",
+        "inhibit_power_save",
+        "reason",
+        "timeout_seconds"
+      ]
     },
     "rules": [
       "Active Playback: Inhibit sleep during active playback",
@@ -194,7 +282,21 @@
     ]
   },
   "error_handling": {
-    "error_types": ["None", "StateTransitionFailed", "FullscreenFailed", "CinemaModeFailed", "PiPFailed", "CastFailed", "SafeAreaCalculationFailed", "MonitorNotFound", "DpiScalingFailed", "SleepInhibitFailed", "RestoreFailed", "Timeout", "Unknown"],
+    "error_types": [
+      "None",
+      "StateTransitionFailed",
+      "FullscreenFailed",
+      "CinemaModeFailed",
+      "PiPFailed",
+      "CastFailed",
+      "SafeAreaCalculationFailed",
+      "MonitorNotFound",
+      "DpiScalingFailed",
+      "SleepInhibitFailed",
+      "RestoreFailed",
+      "Timeout",
+      "Unknown"
+    ],
     "recovery": [
       "Automatic Recovery: Some errors auto-recover to Normal mode",
       "User Notification: Errors shown to user with recovery options",
@@ -220,8 +322,35 @@
     ]
   },
   "implementation_requirements": {
-    "core_components": ["CinemaStateManager", "ConflictResolver", "TransitionManager", "SafeAreaManager", "ChromeManager", "CursorManager", "OsdManager", "SubtitleManager", "ContinuityManager", "MonitorManager", "DpiManager", "SleepManager", "ErrorHandler", "PrivacyManager"],
-    "integration_points": ["Main Player", "Playback Engine", "UI Framework", "Window System", "Monitor System", "DPI System", "Power Management", "Preferences", "Inspector", "DecisionLedger", "ErrorMapping"]
+    "core_components": [
+      "CinemaStateManager",
+      "ConflictResolver",
+      "TransitionManager",
+      "SafeAreaManager",
+      "ChromeManager",
+      "CursorManager",
+      "OsdManager",
+      "SubtitleManager",
+      "ContinuityManager",
+      "MonitorManager",
+      "DpiManager",
+      "SleepManager",
+      "ErrorHandler",
+      "PrivacyManager"
+    ],
+    "integration_points": [
+      "Main Player",
+      "Playback Engine",
+      "UI Framework",
+      "Window System",
+      "Monitor System",
+      "DPI System",
+      "Power Management",
+      "Preferences",
+      "Inspector",
+      "DecisionLedger",
+      "ErrorMapping"
+    ]
   },
   "gate_integration": [
     "CIN-001: Cinema foundation system defined",
@@ -232,5 +361,34 @@
     "positive_test_cases": 20,
     "negative_test_cases": 12,
     "total_test_cases": 32
-  }
+  },
+  "timestamp_utc": "2026-06-26T01:30:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "task_family": "planning"
 }

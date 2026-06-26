@@ -96,8 +96,20 @@
     "anti_fake_validation": "no stub presentation or simulated texture"
   },
   "redline_gate_requirements": {
-    "forbidden_terms": ["stub presentation", "simulated texture", "fake presenter", "interface contract only", "device unavailable but pass"],
-    "allowlist_terms": ["real texture", "actual presentation", "real first frame", "device unavailable", "BLOCKED_ENV"]
+    "forbidden_terms": [
+      "stub presentation",
+      "simulated texture",
+      "fake presenter",
+      "interface contract only",
+      "device unavailable but pass"
+    ],
+    "allowlist_terms": [
+      "real texture",
+      "actual presentation",
+      "real first frame",
+      "device unavailable",
+      "BLOCKED_ENV"
+    ]
   },
   "anti_fake_gate_requirements": {
     "real_texture_boundary_proof": [
@@ -108,10 +120,10 @@
       "Real frame counter: increments on real presentations"
     ],
     "forbidden_fake_proofs": [
-      "stub presentation → CONTRACT_PASS only",
-      "simulated texture → CONTRACT_PASS only",
-      "timestamp without real presentation → insufficient proof",
-      "frame counter without real presentations → insufficient proof"
+      "stub presentation \u2192 CONTRACT_PASS only",
+      "simulated texture \u2192 CONTRACT_PASS only",
+      "timestamp without real presentation \u2192 insufficient proof",
+      "frame counter without real presentations \u2192 insufficient proof"
     ]
   },
   "clean_workspace_gate": {
@@ -138,5 +150,36 @@
   },
   "evidence_status": "CONTRACT_PASS",
   "reason": "Presenter boundary reality audit planned. Current interface is stub implementation (CONTRACT_PASS). Real texture presentation with real D3D11 device required for RUNTIME_PASS. Device unavailable must result in BLOCKED_ENV.",
-  "next_task": "LRD-006 PCM Converter Reality Audit"
+  "next_task": "LRD-006 PCM Converter Reality Audit",
+  "timestamp_utc": "2026-06-26T00:00:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable"
 }

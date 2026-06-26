@@ -1,27 +1,31 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "LRD-013",
-  "task_name": "Classification",
-  "family": "local_repair_delta/classification",
   "status": "CONTRACT_PASS",
   "runtime_mode": "classification",
-  "runtime_environment_kind": "test_harness",
+  "runtime_environment_kind": "not_applicable",
   "environment_required": false,
   "environment_available": false,
   "blocked_reason": "D3D11/WASAPI/PCM require real hardware for RUNTIME_PASS",
-  "runtime_verified_timestamp": "2026-06-26T00:50:00Z",
   "evidence_file": "artifacts/p2/evidence/LRD-013.json",
-  "provider_matrix_impact": {
-    "local_file": "CONTRACT_PASS"
-  },
   "classification": {
     "overall": "CONTRACT_PASS",
     "reason": "Real FFmpeg foundation proven; downstream stages (D3D11/WASAPI/PCM/Soak) are correct stubs but cannot be RUNTIME_PASS without real hardware",
     "not_runtime_pass_reason": "D3D11/WASAPI/PCM require real hardware environment",
     "not_fail_reason": "No failures detected; all tests pass",
     "not_blocked_env_for_entire_scope": "FFmpeg portion IS runtime-verified",
-    "real_runtime_stages": ["FFmpeg probe", "FFmpeg demux", "FFmpeg decode"],
-    "stub_stages": ["D3D11 first frame", "Presenter boundary", "PCM conversion", "WASAPI shared PCM", "Micro soak"]
+    "real_runtime_stages": [
+      "FFmpeg probe",
+      "FFmpeg demux",
+      "FFmpeg decode"
+    ],
+    "stub_stages": [
+      "D3D11 first frame",
+      "Presenter boundary",
+      "PCM conversion",
+      "WASAPI shared PCM",
+      "Micro soak"
+    ]
   },
   "allowed_next_steps": [
     "D3D11 real runtime proof (requires D3D11-capable machine)",
@@ -33,5 +37,34 @@
     "p2_foundation_complete_claimed": false,
     "all_providers_runtime_verified_claimed": false,
     "forbidden_terms_in_classification": []
-  }
+  },
+  "timestamp_utc": "2026-06-26T00:50:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "task_family": "planning"
 }

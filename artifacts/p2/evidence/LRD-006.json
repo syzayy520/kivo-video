@@ -94,8 +94,20 @@
     "anti_fake_validation": "no placeholder silence or dummy PCM"
   },
   "redline_gate_requirements": {
-    "forbidden_terms": ["placeholder silence", "dummy PCM", "mock conversion", "interface contract only", "generated PCM data"],
-    "allowlist_terms": ["real audio data", "actual samples", "non-zero output", "sample conversion", "format handling"]
+    "forbidden_terms": [
+      "placeholder silence",
+      "dummy PCM",
+      "mock conversion",
+      "interface contract only",
+      "generated PCM data"
+    ],
+    "allowlist_terms": [
+      "real audio data",
+      "actual samples",
+      "non-zero output",
+      "sample conversion",
+      "format handling"
+    ]
   },
   "anti_fake_gate_requirements": {
     "real_pcm_derivation_proof": [
@@ -106,10 +118,10 @@
       "Real timestamp preservation: Presentation timestamp preserved"
     ],
     "forbidden_fake_proofs": [
-      "placeholder silence → CONTRACT_PASS only",
-      "dummy PCM data → CONTRACT_PASS only",
-      "mock conversion → insufficient proof",
-      "interface contract only → insufficient proof"
+      "placeholder silence \u2192 CONTRACT_PASS only",
+      "dummy PCM data \u2192 CONTRACT_PASS only",
+      "mock conversion \u2192 insufficient proof",
+      "interface contract only \u2192 insufficient proof"
     ]
   },
   "clean_workspace_gate": {
@@ -136,5 +148,36 @@
   },
   "evidence_status": "CONTRACT_PASS",
   "reason": "PCM converter reality audit planned. Current interface is stub implementation (CONTRACT_PASS). Real PCM conversion with real audio data required for RUNTIME_PASS. No placeholder silence or dummy PCM allowed.",
-  "next_task": "LRD-007 WASAPI Shared Runtime Audit"
+  "next_task": "LRD-007 WASAPI Shared Runtime Audit",
+  "timestamp_utc": "2026-06-26T00:00:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable"
 }

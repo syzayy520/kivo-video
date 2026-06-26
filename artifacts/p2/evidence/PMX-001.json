@@ -1,37 +1,104 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "PMX-001",
-  "task_name": "P2-PROVIDER-RUNTIME-MATRIX",
-  "family": "provider_matrix",
   "status": "CONTRACT_PASS",
   "runtime_mode": "matrix_generation",
-  "runtime_environment_kind": "test_harness",
+  "runtime_environment_kind": "not_applicable",
   "environment_required": false,
   "environment_available": false,
-  "blocked_reason": null,
-  "runtime_verified_timestamp": "2026-06-26T01:40:00Z",
+  "blocked_reason": "",
   "evidence_file": "artifacts/p2/evidence/PMX-001.json",
-  "provider_matrix_impact": {
-    "matrix_generation": "CONTRACT_PASS"
-  },
   "matrix_schema": {
     "schema_version": "provider-runtime-matrix-v8",
-    "top_level_fields": ["schema_version", "generation_timestamp", "generator_version", "project_version", "providers", "metadata"],
-    "provider_entry_fields": ["provider_id", "provider_name", "provider_kind", "provider_version", "contract_status", "runtime_status", "environment_kind", "environment_required", "environment_available", "blocked_reason", "runtime_verified_timestamp", "evidence_file", "capabilities", "limitations", "dependencies"],
-    "contract_statuses": ["CONTRACT_PASS", "NOT_IMPLEMENTED", "FAIL", "PARTIAL_IMPLEMENTATION"],
-    "runtime_statuses": ["RUNTIME_PASS", "CONTRACT_PASS", "BLOCKED_ENV", "FAIL", "NOT_IMPLEMENTED", "SKIPPED_TEST_ONLY"],
-    "environment_kinds": ["TEST_HARNESS", "LOCAL_HARDWARE", "NETWORK_LOCAL", "NETWORK_INTERNET", "EXTERNAL_SERVICE", "HYBRID"]
+    "top_level_fields": [
+      "schema_version",
+      "generation_timestamp",
+      "generator_version",
+      "project_version",
+      "providers",
+      "metadata"
+    ],
+    "provider_entry_fields": [
+      "provider_id",
+      "provider_name",
+      "provider_kind",
+      "provider_version",
+      "contract_status",
+      "runtime_status",
+      "environment_kind",
+      "environment_required",
+      "environment_available",
+      "blocked_reason",
+      "runtime_verified_timestamp",
+      "evidence_file",
+      "capabilities",
+      "limitations",
+      "dependencies"
+    ],
+    "contract_statuses": [
+      "CONTRACT_PASS",
+      "NOT_IMPLEMENTED",
+      "FAIL",
+      "PARTIAL_IMPLEMENTATION"
+    ],
+    "runtime_statuses": [
+      "RUNTIME_PASS",
+      "CONTRACT_PASS",
+      "BLOCKED_ENV",
+      "FAIL",
+      "NOT_IMPLEMENTED",
+      "SKIPPED_TEST_ONLY"
+    ],
+    "environment_kinds": [
+      "TEST_HARNESS",
+      "LOCAL_HARDWARE",
+      "NETWORK_LOCAL",
+      "NETWORK_INTERNET",
+      "EXTERNAL_SERVICE",
+      "HYBRID"
+    ]
   },
   "provider_kinds": {
-    "local_playback": ["local_file", "disc_bdmv"],
-    "network_file": ["smb", "nfs", "ftp", "ftps", "sftp", "http_file", "https_file", "dlna_upnp"],
-    "object_storage": ["s3_object", "minio_object"],
-    "webdav_alist": ["webdav", "alist"],
-    "media_server": ["emby", "plex", "jellyfin"],
-    "cloud_storage": ["google_drive", "onedrive"],
-    "live_streaming": ["iptv_hls"],
-    "streaming_protocol": ["airplay_cast"],
-    "integration": ["trakt_api"]
+    "local_playback": [
+      "local_file",
+      "disc_bdmv"
+    ],
+    "network_file": [
+      "smb",
+      "nfs",
+      "ftp",
+      "ftps",
+      "sftp",
+      "http_file",
+      "https_file",
+      "dlna_upnp"
+    ],
+    "object_storage": [
+      "s3_object",
+      "minio_object"
+    ],
+    "webdav_alist": [
+      "webdav",
+      "alist"
+    ],
+    "media_server": [
+      "emby",
+      "plex",
+      "jellyfin"
+    ],
+    "cloud_storage": [
+      "google_drive",
+      "onedrive"
+    ],
+    "live_streaming": [
+      "iptv_hls"
+    ],
+    "streaming_protocol": [
+      "airplay_cast"
+    ],
+    "integration": [
+      "trakt_api"
+    ]
   },
   "provider_list": {
     "local_file": {
@@ -168,7 +235,16 @@
     }
   },
   "matrix_generation_rules": {
-    "generation_process": ["Discovery", "Contract Check", "Environment Check", "Runtime Verification", "Evidence Collection", "Status Assignment", "Matrix Assembly", "Validation"],
+    "generation_process": [
+      "Discovery",
+      "Contract Check",
+      "Environment Check",
+      "Runtime Verification",
+      "Evidence Collection",
+      "Status Assignment",
+      "Matrix Assembly",
+      "Validation"
+    ],
     "status_assignment_rules": [
       "Honest Status: Assign status based on actual verification",
       "No Default PASS: Never default to RUNTIME_PASS",
@@ -185,7 +261,22 @@
     ]
   },
   "matrix_metadata": {
-    "fields": ["generation_command", "generator_version", "project_version", "branch", "commit_hash", "build_configuration", "runtime_environment", "verification_timestamp", "total_providers", "runtime_pass_count", "contract_pass_count", "blocked_env_count", "fail_count", "not_implemented_count"]
+    "fields": [
+      "generation_command",
+      "generator_version",
+      "project_version",
+      "branch",
+      "commit_hash",
+      "build_configuration",
+      "runtime_environment",
+      "verification_timestamp",
+      "total_providers",
+      "runtime_pass_count",
+      "contract_pass_count",
+      "blocked_env_count",
+      "fail_count",
+      "not_implemented_count"
+    ]
   },
   "matrix_validation": {
     "validation_rules": [
@@ -211,13 +302,50 @@
     ]
   },
   "matrix_usage": {
-    "matrix_consumers": ["PFFG-001", "PMX-002", "APRV-001", "Inspector", "DecisionLedger"],
-    "matrix_queries": ["Provider Status", "Category Status", "Environment Status", "Capability Search", "Blocked Providers"],
-    "matrix_updates": ["Real-time Updates", "Periodic Updates", "Event-driven Updates", "Manual Updates", "Version Control"]
+    "matrix_consumers": [
+      "PFFG-001",
+      "PMX-002",
+      "APRV-001",
+      "Inspector",
+      "DecisionLedger"
+    ],
+    "matrix_queries": [
+      "Provider Status",
+      "Category Status",
+      "Environment Status",
+      "Capability Search",
+      "Blocked Providers"
+    ],
+    "matrix_updates": [
+      "Real-time Updates",
+      "Periodic Updates",
+      "Event-driven Updates",
+      "Manual Updates",
+      "Version Control"
+    ]
   },
   "implementation_requirements": {
-    "core_components": ["ProviderDiscovery", "ContractVerifier", "EnvironmentChecker", "RuntimeVerifier", "EvidenceCollector", "StatusAssigner", "MatrixAssembler", "MatrixValidator", "MatrixGenerator", "MatrixPersistence"],
-    "integration_points": ["Provider Registry", "Contract Registry", "Environment Detection", "Evidence Storage", "Inspector", "DecisionLedger", "ErrorMapping"]
+    "core_components": [
+      "ProviderDiscovery",
+      "ContractVerifier",
+      "EnvironmentChecker",
+      "RuntimeVerifier",
+      "EvidenceCollector",
+      "StatusAssigner",
+      "MatrixAssembler",
+      "MatrixValidator",
+      "MatrixGenerator",
+      "MatrixPersistence"
+    ],
+    "integration_points": [
+      "Provider Registry",
+      "Contract Registry",
+      "Environment Detection",
+      "Evidence Storage",
+      "Inspector",
+      "DecisionLedger",
+      "ErrorMapping"
+    ]
   },
   "gate_integration": [
     "PMX-001: Provider Runtime Matrix generated",
@@ -229,5 +357,34 @@
     "positive_test_cases": 10,
     "negative_test_cases": 10,
     "total_test_cases": 20
-  }
+  },
+  "timestamp_utc": "2026-06-26T01:40:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "task_family": "planning"
 }

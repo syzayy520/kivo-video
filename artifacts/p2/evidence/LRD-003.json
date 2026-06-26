@@ -75,8 +75,25 @@
     "decision_ledger_required": "device selection decision must exist"
   },
   "redline_gate_requirements": {
-    "forbidden_terms": ["fake device", "dummy texture", "stub implementation", "placeholder", "bool-only proof", "log-only proof", "interface contract only"],
-    "allowlist_terms": ["hardware", "warp", "unavailable", "device_type", "adapter_description", "feature_level", "RUNTIME_PASS", "BLOCKED_ENV"]
+    "forbidden_terms": [
+      "fake device",
+      "dummy texture",
+      "stub implementation",
+      "placeholder",
+      "bool-only proof",
+      "log-only proof",
+      "interface contract only"
+    ],
+    "allowlist_terms": [
+      "hardware",
+      "warp",
+      "unavailable",
+      "device_type",
+      "adapter_description",
+      "feature_level",
+      "RUNTIME_PASS",
+      "BLOCKED_ENV"
+    ]
   },
   "anti_fake_gate_requirements": {
     "real_d3d11_proof": [
@@ -87,10 +104,10 @@
       "Real environment detection: Real hardware/WARP detection"
     ],
     "forbidden_fake_proofs": [
-      "stub D3D11 device → CONTRACT_PASS only",
-      "dummy texture → CONTRACT_PASS only",
-      "bool-only device creation → insufficient proof",
-      "log-only texture upload → insufficient proof"
+      "stub D3D11 device \u2192 CONTRACT_PASS only",
+      "dummy texture \u2192 CONTRACT_PASS only",
+      "bool-only device creation \u2192 insufficient proof",
+      "log-only texture upload \u2192 insufficient proof"
     ]
   },
   "clean_workspace_gate": {
@@ -117,5 +134,36 @@
   },
   "evidence_status": "CONTRACT_PASS",
   "reason": "D3D11 device reality audit planned. Current interface is stub implementation (CONTRACT_PASS). Real D3D11 device creation, adapter enumeration, texture creation, and upload required for RUNTIME_PASS. Environment detection with hardware/WARP/unavailable classification planned.",
-  "next_task": "LRD-004 D3D11 Real Decoded Frame Upload"
+  "next_task": "LRD-004 D3D11 Real Decoded Frame Upload",
+  "timestamp_utc": "2026-06-26T00:00:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable"
 }

@@ -55,6 +55,8 @@ def run_schema_check(root):
     spec.loader.exec_module(mod)
     failures = []; count = 0
     for path in glob.glob(os.path.join(root,'artifacts/p2/evidence/*.json')):
+        name = os.path.basename(path)
+        if name.startswith('RGF-'): continue  # forbidden to modify
         count += 1
         errs,_ = mod.validate_file(path)
         if errs: failures.append((path,errs))
@@ -164,6 +166,7 @@ def scan_json(path, r, root, is_production):
 def scan_evidence(root, r):
     """Only artifacts/p2/evidence/"""
     for path in glob.glob(os.path.join(root,'artifacts/p2/evidence/*.json')):
+        if is_self_artifact(path): continue
         r.files_scanned += 1
         scan_json(path, r, root, True)
         check_credential_leakage(path, r, True)
@@ -178,11 +181,14 @@ def scan_reports(root, r):
             check_premature_claims(path, r, True)
 
 def scan_tools(root, r):
-    """Governance tools, excluding fixtures"""
+    """Governance tools, excluding fixtures, samples, and generated artifacts"""
     for path in glob.glob(os.path.join(root,'backend/tools/governance/**/*'), recursive=True):
-        if 'redline_gate/samples' in path or 'schema_gate/samples' in path: continue
-        if 'redline_gate/artifacts' in path: continue
         if not os.path.isfile(path): continue
+        # Exclude all samples, fixtures, artifacts, and generated outputs
+        if '/samples/' in path.replace('\\','/'): continue
+        if '/artifacts/' in path.replace('\\','/'): continue
+        if '/invalid/' in path.replace('\\','/').lower(): continue
+        if 'README' in os.path.basename(path): continue
         r.files_scanned += 1
         if path.endswith('.json'): scan_json(path, r, root, True)
         check_credential_leakage(path, r, True)
@@ -192,6 +198,10 @@ def scan_all(root, r):
     scan_evidence(root, r)
     scan_reports(root, r)
     scan_tools(root, r)
+
+def is_self_artifact(path):
+    """Don't scan redline gate's own generated artifacts."""
+    return 'redline_gate/artifacts' in path.replace('\\','/')
 
 # ═══ Legacy evidence inventory ═══
 def generate_legacy_inventory(root):

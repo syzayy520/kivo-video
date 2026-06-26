@@ -29,10 +29,10 @@
   "required_repair": "Real D3D11 texture upload with actual frame data",
   "upload_pipeline": {
     "steps": [
-      "DecodedFrame → YUV→RGB/NV12 conversion",
-      "YUV→RGB/NV12 → D3D11 Texture creation",
-      "D3D11 Texture → Data upload (UpdateSubresource/map/unmap)",
-      "D3D11 Texture → Upload verification"
+      "DecodedFrame \u2192 YUV\u2192RGB/NV12 conversion",
+      "YUV\u2192RGB/NV12 \u2192 D3D11 Texture creation",
+      "D3D11 Texture \u2192 Data upload (UpdateSubresource/map/unmap)",
+      "D3D11 Texture \u2192 Upload verification"
     ],
     "format_handling": {
       "yuv420p": "3 planes (Y, U, V) with separate linesizes",
@@ -55,7 +55,7 @@
       "YUV420P Upload Test: Upload real YUV420P frame data",
       "NV12 Upload Test: Upload real NV12 frame data",
       "RGB24 Upload Test: Upload real RGB24 frame data",
-      "Format Conversion Test: YUV→RGB conversion proof",
+      "Format Conversion Test: YUV\u2192RGB conversion proof",
       "Upload Verification Test: Verify texture contains uploaded data",
       "Linesize Handling Test: Handle different linesize values"
     ],
@@ -95,8 +95,28 @@
     "anti_fake_validation": "no empty texture or dummy frame"
   },
   "redline_gate_requirements": {
-    "forbidden_terms": ["empty texture", "dummy frame", "placeholder data", "stub upload", "bool-only proof", "log-only proof", "interface contract only"],
-    "allowlist_terms": ["real frame data", "actual pixels", "decoded frame", "texture upload", "UpdateSubresource", "map/unmap", "format conversion", "YUV→RGB", "NV12", "RUNTIME_PASS", "BLOCKED_ENV"]
+    "forbidden_terms": [
+      "empty texture",
+      "dummy frame",
+      "placeholder data",
+      "stub upload",
+      "bool-only proof",
+      "log-only proof",
+      "interface contract only"
+    ],
+    "allowlist_terms": [
+      "real frame data",
+      "actual pixels",
+      "decoded frame",
+      "texture upload",
+      "UpdateSubresource",
+      "map/unmap",
+      "format conversion",
+      "YUV\u2192RGB",
+      "NV12",
+      "RUNTIME_PASS",
+      "BLOCKED_ENV"
+    ]
   },
   "anti_fake_gate_requirements": {
     "real_upload_proof": [
@@ -107,10 +127,10 @@
       "Real upload verification: Texture contains uploaded data"
     ],
     "forbidden_fake_proofs": [
-      "empty texture → CONTRACT_PASS only",
-      "dummy frame data → CONTRACT_PASS only",
-      "bool-only upload → insufficient proof",
-      "log-only upload → insufficient proof"
+      "empty texture \u2192 CONTRACT_PASS only",
+      "dummy frame data \u2192 CONTRACT_PASS only",
+      "bool-only upload \u2192 insufficient proof",
+      "log-only upload \u2192 insufficient proof"
     ]
   },
   "clean_workspace_gate": {
@@ -137,5 +157,36 @@
   },
   "evidence_status": "CONTRACT_PASS",
   "reason": "D3D11 real decoded frame upload planned. Current interface is stub implementation (CONTRACT_PASS). Real frame data upload with YUV420P/NV12/RGB24 formats required for RUNTIME_PASS. Format conversion and upload verification planned.",
-  "next_task": "LRD-005 Presenter Boundary Reality Audit"
+  "next_task": "LRD-005 Presenter Boundary Reality Audit",
+  "timestamp_utc": "2026-06-26T00:00:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable"
 }

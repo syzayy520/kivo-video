@@ -25,15 +25,20 @@
       "file": "V8-002.json",
       "status_field": "RUNTIME_PASS",
       "evidence_status_field": "RUNTIME_PASS",
-      "inner_item_statuses": ["RUNTIME_PASS", "CONTRACT_PASS"],
+      "inner_item_statuses": [
+        "RUNTIME_PASS",
+        "CONTRACT_PASS"
+      ],
       "verdict": "PASS"
     },
     {
       "file": "V8-003.json",
       "status_field": "RUNTIME_PASS",
       "evidence_status_field": "RUNTIME_PASS",
-      "inner_item_statuses": ["DONE"],
-      "verdict": "PASS — DONE is item implementation state, not evidence status"
+      "inner_item_statuses": [
+        "DONE"
+      ],
+      "verdict": "PASS \u2014 DONE is item implementation state, not evidence status"
     },
     {
       "file": "V8-004.json",
@@ -51,23 +56,57 @@
   "non_standard_status_scan": {
     "PASS_READY_FOR_REVIEW": {
       "found": true,
-      "location": "V8-002.json line 135 — inside consistency_check description, not an evidence status value",
-      "verdict": "PASS — descriptive text, not status usage"
+      "location": "V8-002.json line 135 \u2014 inside consistency_check description, not an evidence status value",
+      "verdict": "PASS \u2014 descriptive text, not status usage"
     },
     "NEEDS_REPAIR": {
       "found": true,
-      "location": "V8-002.json — count field (needs_repair: 0) and reason text",
-      "verdict": "PASS — count/mention, not status usage"
+      "location": "V8-002.json \u2014 count field (needs_repair: 0) and reason text",
+      "verdict": "PASS \u2014 count/mention, not status usage"
     }
   },
   "summary": {
     "total_evidence_files": 5,
     "files_with_standard_status_only": 5,
     "files_with_non_standard_status": 0,
-    "all_statuses_used": ["RUNTIME_PASS", "CONTRACT_PASS"]
+    "all_statuses_used": [
+      "RUNTIME_PASS",
+      "CONTRACT_PASS"
+    ]
   },
   "machine_check_result": "ALL_EVIDENCE_FILES_USE_STANDARD_VOCABULARY",
   "evidence_status": "CONTRACT_PASS",
   "reason": "All 5 V8 evidence files use only standard V8 status vocabulary (RUNTIME_PASS, CONTRACT_PASS). No non-standard statuses found in status fields. DONE appears only as item implementation state in V8-003 (not evidence status). Vocabulary is machine-checkable.",
-  "next_task": "V8-007 Evidence Path Gate"
+  "next_task": "V8-007 Evidence Path Gate",
+  "timestamp_utc": "2026-06-26T00:00:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable"
 }

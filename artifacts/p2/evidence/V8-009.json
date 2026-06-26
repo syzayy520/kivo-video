@@ -40,8 +40,19 @@
     }
   ],
   "current_v8_progress": {
-    "completed_gates": ["V8-001", "V8-002", "V8-003", "V8-004", "V8-005", "V8-006", "V8-007", "V8-008"],
-    "remaining_gates": ["V8-009"],
+    "completed_gates": [
+      "V8-001",
+      "V8-002",
+      "V8-003",
+      "V8-004",
+      "V8-005",
+      "V8-006",
+      "V8-007",
+      "V8-008"
+    ],
+    "remaining_gates": [
+      "V8-009"
+    ],
     "next_task_after_v8": "LRD-001 Planning Draft"
   },
   "premature_claim_detection": {
@@ -55,7 +66,16 @@
       "FOUNDATION COMPLETE without PFFG-001 and PFFG-002"
     ],
     "scan_result": "0 premature claims found in current evidence",
-    "evidence_files_scanned": ["V8-001.json", "V8-002.json", "V8-003.json", "V8-004.json", "V8-005.json", "V8-006.json", "V8-007.json", "V8-008.json"]
+    "evidence_files_scanned": [
+      "V8-001.json",
+      "V8-002.json",
+      "V8-003.json",
+      "V8-004.json",
+      "V8-005.json",
+      "V8-006.json",
+      "V8-007.json",
+      "V8-008.json"
+    ]
   },
   "gating_rules": {
     "foundation_final_gate": {
@@ -73,5 +93,36 @@
   "schema_version": "p2-evidence-v8",
   "evidence_status": "CONTRACT_PASS",
   "reason": "Final gate sequencing rules defined, dependency list documented, premature claim detection active. Foundation Final Gate and All Providers Runtime Verified Gate are locked until their dependencies exist. Next allowed card is LRD-001.",
-  "next_task": "LRD-001 Planning Draft"
+  "next_task": "LRD-001 Planning Draft",
+  "timestamp_utc": "2026-06-26T00:00:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable"
 }

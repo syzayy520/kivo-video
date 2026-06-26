@@ -1,29 +1,37 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "PST-001",
-  "task_name": "P2-PLAYBACK-STATE",
-  "family": "playback_state",
   "status": "CONTRACT_PASS",
   "runtime_mode": "state_management_definition",
-  "runtime_environment_kind": "test_harness",
+  "runtime_environment_kind": "not_applicable",
   "environment_required": false,
   "environment_available": false,
-  "blocked_reason": null,
-  "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+  "blocked_reason": "",
   "evidence_file": "artifacts/p2/evidence/PST-001.json",
-  "provider_matrix_impact": {
-    "local_file": "CONTRACT_PASS",
-    "remote_sources": "CONTRACT_PASS"
-  },
   "playback_session_identity": {
-    "fields": ["session_id", "user_id", "device_id", "media_id"],
+    "fields": [
+      "session_id",
+      "user_id",
+      "device_id",
+      "media_id"
+    ],
     "uniqueness": "Globally unique session identifier",
     "lifetime": "Created on playback start, destroyed on session end",
     "persistence": "Optional persistence across app restarts",
-    "lifecycle_states": ["Created", "Active", "Paused", "Ended", "Archived"]
+    "lifecycle_states": [
+      "Created",
+      "Active",
+      "Paused",
+      "Ended",
+      "Archived"
+    ]
   },
   "progress_tracking": {
-    "snapshot_fields": ["current_position", "duration", "playback_speed"],
+    "snapshot_fields": [
+      "current_position",
+      "duration",
+      "playback_speed"
+    ],
     "update_frequency": "Every second or on significant change",
     "storage": "Local storage with optional cloud sync",
     "accuracy": "Millisecond precision",
@@ -35,7 +43,11 @@
     }
   },
   "resume_point_management": {
-    "fields": ["position", "timestamp", "device_id"],
+    "fields": [
+      "position",
+      "timestamp",
+      "device_id"
+    ],
     "creation": "Automatic on pause or stop",
     "storage": "Persistent storage",
     "retrieval": "On playback start",
@@ -47,7 +59,11 @@
     }
   },
   "recent_playback": {
-    "fields": ["media_id", "last_played_timestamp", "progress"],
+    "fields": [
+      "media_id",
+      "last_played_timestamp",
+      "progress"
+    ],
     "capacity": 50,
     "sorting": "By last played timestamp",
     "persistence": "Persistent storage",
@@ -59,9 +75,17 @@
     }
   },
   "playback_queue": {
-    "fields": ["media_list", "current_index", "shuffle_state"],
+    "fields": [
+      "media_list",
+      "current_index",
+      "shuffle_state"
+    ],
     "order": "Sequential or shuffled",
-    "navigation": ["next", "previous", "jump_to_index"],
+    "navigation": [
+      "next",
+      "previous",
+      "jump_to_index"
+    ],
     "persistence": "Optional persistence",
     "operations": {
       "add": "Add media to queue",
@@ -71,8 +95,15 @@
     }
   },
   "repeat_shuffle_modes": {
-    "repeat_modes": ["Off", "All", "One"],
-    "shuffle_modes": ["Off", "On"],
+    "repeat_modes": [
+      "Off",
+      "All",
+      "One"
+    ],
+    "shuffle_modes": [
+      "Off",
+      "On"
+    ],
     "state_persistence": "Persistent across sessions"
   },
   "watched_threshold": {
@@ -88,7 +119,12 @@
     }
   },
   "local_history": {
-    "fields": ["media_id", "timestamps", "durations", "devices"],
+    "fields": [
+      "media_id",
+      "timestamps",
+      "durations",
+      "devices"
+    ],
     "capacity": 1000,
     "granularity": "Per-play session",
     "persistence": "Persistent storage",
@@ -128,8 +164,18 @@
     }
   },
   "error_handling": {
-    "sync_errors": ["network", "conflict", "quota", "auth"],
-    "state_errors": ["corruption", "loss", "timeout", "partial"]
+    "sync_errors": [
+      "network",
+      "conflict",
+      "quota",
+      "auth"
+    ],
+    "state_errors": [
+      "corruption",
+      "loss",
+      "timeout",
+      "partial"
+    ]
   },
   "privacy_redaction": {
     "playback_data_redaction": true,
@@ -148,9 +194,58 @@
     "total_test_cases": 12
   },
   "implementation_requirements": {
-    "session_manager": ["Create and manage sessions", "Handle session lifecycle", "Persist session state", "Clean up resources"],
-    "progress_tracker": ["Track playback progress", "Calculate progress metrics", "Update progress frequently", "Persist progress data"],
-    "queue_manager": ["Manage playback queue", "Handle queue operations", "Support repeat/shuffle", "Persist queue state"],
-    "sync_manager": ["Sync state across devices", "Handle conflicts", "Queue offline changes", "Manage sync errors"]
-  }
+    "session_manager": [
+      "Create and manage sessions",
+      "Handle session lifecycle",
+      "Persist session state",
+      "Clean up resources"
+    ],
+    "progress_tracker": [
+      "Track playback progress",
+      "Calculate progress metrics",
+      "Update progress frequently",
+      "Persist progress data"
+    ],
+    "queue_manager": [
+      "Manage playback queue",
+      "Handle queue operations",
+      "Support repeat/shuffle",
+      "Persist queue state"
+    ],
+    "sync_manager": [
+      "Sync state across devices",
+      "Handle conflicts",
+      "Queue offline changes",
+      "Manage sync errors"
+    ]
+  },
+  "timestamp_utc": "2026-06-26T01:20:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "task_family": "planning"
 }

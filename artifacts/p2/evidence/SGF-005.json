@@ -1,19 +1,13 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "SGF-005",
-  "task_name": "Define provider-runtime-matrix-v8 schema",
-  "family": "evidence_schema",
   "status": "CONTRACT_PASS",
   "runtime_mode": "schema",
-  "runtime_environment_kind": "test_harness",
+  "runtime_environment_kind": "not_applicable",
   "environment_required": false,
   "environment_available": false,
-  "blocked_reason": null,
-  "runtime_verified_timestamp": "2026-06-26T01:03:00Z",
+  "blocked_reason": "",
   "evidence_file": "artifacts/p2/evidence/SGF-005.json",
-  "provider_matrix_impact": {
-    "local_file": "CONTRACT_PASS"
-  },
   "schema_definition": {
     "schema_name": "provider-runtime-matrix-v8",
     "document_path": "docs/roadmap/p2_provider_runtime_matrix_v8_schema.md",
@@ -74,5 +68,34 @@
   "final_gate_requirements": {
     "pffg_001": "All providers must have contract status, local providers must have runtime status, remote providers must have honest BLOCKED_ENV or RUNTIME_PASS",
     "aprv_001": "All providers must have RUNTIME_PASS status, all evidence validated, no BLOCKED_ENV or CONTRACT_PASS providers allowed"
-  }
+  },
+  "timestamp_utc": "2026-06-26T01:03:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "task_family": "planning"
 }

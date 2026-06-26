@@ -38,10 +38,10 @@
     "blocked_env": 0,
     "needs_repair": 0,
     "downgrade_decisions": [
-      "V10-009: D3D11 upload stub → CONTRACT_PASS (interface contract only)",
-      "V10-010: Presenter stub → CONTRACT_PASS (interface contract only)",
-      "V10-011: PCM stub → CONTRACT_PASS (interface contract only)",
-      "V10-021: SoakSimulator → CONTRACT_PASS (simulator not real runtime)"
+      "V10-009: D3D11 upload stub \u2192 CONTRACT_PASS (interface contract only)",
+      "V10-010: Presenter stub \u2192 CONTRACT_PASS (interface contract only)",
+      "V10-011: PCM stub \u2192 CONTRACT_PASS (interface contract only)",
+      "V10-021: SoakSimulator \u2192 CONTRACT_PASS (simulator not real runtime)"
     ]
   },
   "allowed_files": {
@@ -77,21 +77,36 @@
     "Evidence files in source root"
   ],
   "dependency_direction": {
-    "video_upload": ["decode", "third_party_adapter"],
-    "audio_output": ["decode", "third_party_adapter"],
-    "presenter": ["video_upload"],
-    "lifecycle": ["graph", "presenter", "audio_output", "inspector"],
-    "inspector": ["all modules (read-only observer)"]
+    "video_upload": [
+      "decode",
+      "third_party_adapter"
+    ],
+    "audio_output": [
+      "decode",
+      "third_party_adapter"
+    ],
+    "presenter": [
+      "video_upload"
+    ],
+    "lifecycle": [
+      "graph",
+      "presenter",
+      "audio_output",
+      "inspector"
+    ],
+    "inspector": [
+      "all modules (read-only observer)"
+    ]
   },
   "single_file_responsibility_table": {
     "d3d11_device_context.hpp": "D3D11 device/context lifecycle (opaque handle)",
     "d3d11_texture_upload.hpp": "Texture creation + upload proof",
     "decoded_video_frame_uploader.hpp": "Interface: upload DecodedFrame to GPU texture",
-    "yuv_rgb_conversion.hpp": "YUV→RGB/NV12 pixel format conversion policy",
-    "decoded_audio_frame_converter.hpp": "DecodedFrame→PCM format conversion",
+    "yuv_rgb_conversion.hpp": "YUV\u2192RGB/NV12 pixel format conversion policy",
+    "decoded_audio_frame_converter.hpp": "DecodedFrame\u2192PCM format conversion",
     "wasapi_shared_pcm_writer.hpp": "WASAPI shared mode PCM buffer write",
     "presenter_boundary_shell.hpp": "Presenter boundary: receive texture, record proof",
-    "playback_session_controller.hpp": "Lifecycle: open→play→pause→resume→seek→stop→close",
+    "playback_session_controller.hpp": "Lifecycle: open\u2192play\u2192pause\u2192resume\u2192seek\u2192stop\u2192close",
     "playback_inspector_snapshot.hpp": "Inspector snapshot: all key decisions",
     "decision_ledger_entry.hpp": "Decision ledger: monotonic ordered decisions"
   },
@@ -140,18 +155,18 @@
       "Scope proof: no forbidden terms in new code"
     ],
     "forbidden_substitutions": [
-      "stub ≠ real D3D11 device",
-      "placeholder PCM ≠ real audio conversion",
-      "SoakSimulator ≠ real 30s soak",
-      "interface contract ≠ runtime proof",
-      "log-only proof ≠ real upload",
-      "bool-only proof ≠ real texture"
+      "stub \u2260 real D3D11 device",
+      "placeholder PCM \u2260 real audio conversion",
+      "SoakSimulator \u2260 real 30s soak",
+      "interface contract \u2260 runtime proof",
+      "log-only proof \u2260 real upload",
+      "bool-only proof \u2260 real texture"
     ],
     "v10_contract_pass_items_must_become_runtime_pass": [
-      "V10-009: D3D11 upload stub → real D3D11 upload (LRD-004)",
-      "V10-010: Presenter stub → real presenter boundary (LRD-005)",
-      "V10-011: PCM stub → real PCM conversion (LRD-006)",
-      "V10-021: SoakSimulator → real 30s soak (LRD-009)"
+      "V10-009: D3D11 upload stub \u2192 real D3D11 upload (LRD-004)",
+      "V10-010: Presenter stub \u2192 real presenter boundary (LRD-005)",
+      "V10-011: PCM stub \u2192 real PCM conversion (LRD-006)",
+      "V10-021: SoakSimulator \u2192 real 30s soak (LRD-009)"
     ]
   },
   "evidence_schema_plan": {
@@ -252,5 +267,36 @@
   ],
   "evidence_status": "CONTRACT_PASS",
   "reason": "Planning draft created with all required sections. No runtime code changes yet. Planning document exists at docs/roadmap/p2_local_repair_delta_001_planning.md. Evidence output at artifacts/p2/evidence/LRD-001.json.",
-  "next_task": "LRD-002 V10 Evidence Downgrade / Repair Audit"
+  "next_task": "LRD-002 V10 Evidence Downgrade / Repair Audit",
+  "timestamp_utc": "2026-06-26T00:00:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable"
 }

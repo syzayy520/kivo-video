@@ -759,13 +759,7 @@ if(PYTHON_EXE)
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
   )
   add_test(NAME kivo_redline_gate_production_scan
-    COMMAND ${PYTHON_EXE} "${CMAKE_SOURCE_DIR}/backend/tools/governance/redline_gate/redline_checker.py" --root= "${CMAKE_SOURCE_DIR}" --scan=all
+    COMMAND ${PYTHON_EXE} "${CMAKE_SOURCE_DIR}/backend/tools/governance/redline_gate/redline_checker.py" --root="${CMAKE_SOURCE_DIR}" --scan=all
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-  )
-  # Production scan expected to FAIL until legacy evidence is repaired.
-  # self-test PASS proves the gate logic is correct.
-  set_tests_properties(kivo_redline_gate_production_scan PROPERTIES
-    WILL_FAIL TRUE
-    LABELS "legacy_evidence_blocking"
   )
 endif()

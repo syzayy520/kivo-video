@@ -118,8 +118,20 @@
     "anti_fake_validation": "no stub WASAPI or mock COM"
   },
   "redline_gate_requirements": {
-    "forbidden_terms": ["stub WASAPI", "mock COM", "simulated buffer", "interface contract only", "fake audio client"],
-    "allowlist_terms": ["real COM initialization", "actual device enumeration", "real format negotiation", "real buffer operations", "WASAPI shared mode"]
+    "forbidden_terms": [
+      "stub WASAPI",
+      "mock COM",
+      "simulated buffer",
+      "interface contract only",
+      "fake audio client"
+    ],
+    "allowlist_terms": [
+      "real COM initialization",
+      "actual device enumeration",
+      "real format negotiation",
+      "real buffer operations",
+      "WASAPI shared mode"
+    ]
   },
   "anti_fake_gate_requirements": {
     "real_wasapi_runtime_proof": [
@@ -131,10 +143,10 @@
       "Real start/stop: IAudioClient::Start and Stop"
     ],
     "forbidden_fake_proofs": [
-      "stub WASAPI → CONTRACT_PASS only",
-      "mock COM → CONTRACT_PASS only",
-      "simulated buffer → CONTRACT_PASS only",
-      "interface contract only → insufficient proof"
+      "stub WASAPI \u2192 CONTRACT_PASS only",
+      "mock COM \u2192 CONTRACT_PASS only",
+      "simulated buffer \u2192 CONTRACT_PASS only",
+      "interface contract only \u2192 insufficient proof"
     ]
   },
   "clean_workspace_gate": {
@@ -161,5 +173,36 @@
   },
   "evidence_status": "CONTRACT_PASS",
   "reason": "WASAPI shared runtime audit planned. Current interface is stub implementation (CONTRACT_PASS). Real WASAPI runtime with COM initialization, device enumeration, format negotiation, and buffer operations required for RUNTIME_PASS. Windows platform required.",
-  "next_task": "LRD-008 Local E2E Runtime Audit"
+  "next_task": "LRD-008 Local E2E Runtime Audit",
+  "timestamp_utc": "2026-06-26T00:00:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable"
 }

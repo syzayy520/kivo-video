@@ -1,30 +1,33 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "CLD-001",
-  "task_name": "P2-CLOUD-DRIVE",
-  "family": "cloud_drive",
   "status": "CONTRACT_PASS",
   "runtime_mode": "oauth_protocol_definition",
-  "runtime_environment_kind": "test_harness",
+  "runtime_environment_kind": "not_applicable",
   "environment_required": false,
   "environment_available": false,
-  "blocked_reason": null,
-  "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+  "blocked_reason": "",
   "evidence_file": "artifacts/p2/evidence/CLD-001.json",
-  "provider_matrix_impact": {
-    "google_drive": "CONTRACT_PASS",
-    "onedrive": "CONTRACT_PASS"
-  },
   "oauth_profiles": {
     "google_drive": {
       "protocol": "OAuth 2.0",
       "authentication": "OAuth 2.0 with refresh tokens",
-      "features": ["file_listing", "file_download", "file_upload", "quota_management"]
+      "features": [
+        "file_listing",
+        "file_download",
+        "file_upload",
+        "quota_management"
+      ]
     },
     "onedrive": {
       "protocol": "OAuth 2.0",
       "authentication": "OAuth 2.0 with refresh tokens",
-      "features": ["file_listing", "file_download", "file_upload", "quota_management"]
+      "features": [
+        "file_listing",
+        "file_download",
+        "file_upload",
+        "quota_management"
+      ]
     }
   },
   "oauth_flow": {
@@ -45,26 +48,54 @@
   },
   "file_operations": {
     "listing": {
-      "methods": ["list_directory"],
+      "methods": [
+        "list_directory"
+      ],
       "pagination": "page_token_based",
-      "sorting": ["name", "modified_date", "size"],
-      "filtering": ["file_type", "trashed_status"]
+      "sorting": [
+        "name",
+        "modified_date",
+        "size"
+      ],
+      "filtering": [
+        "file_type",
+        "trashed_status"
+      ]
     },
     "metadata": {
-      "standard_fields": ["id", "name", "size", "modified_date", "mime_type"],
-      "cloud_specific": ["shared_status", "permissions", "version"],
-      "user_data": ["starred_status", "last_viewed_date"]
+      "standard_fields": [
+        "id",
+        "name",
+        "size",
+        "modified_date",
+        "mime_type"
+      ],
+      "cloud_specific": [
+        "shared_status",
+        "permissions",
+        "version"
+      ],
+      "user_data": [
+        "starred_status",
+        "last_viewed_date"
+      ]
     }
   },
   "download_operations": {
     "url_resolution": {
       "process": "Get temporary download URL",
       "url_lifetime_hours": 24,
-      "parameters": ["file_id", "export_format"]
+      "parameters": [
+        "file_id",
+        "export_format"
+      ]
     },
     "range_requests": {
       "support": true,
-      "use_cases": ["partial_content_download", "seeking"],
+      "use_cases": [
+        "partial_content_download",
+        "seeking"
+      ],
       "limitations": "cloud_specific_chunk_sizes"
     }
   },
@@ -97,7 +128,11 @@
   "link_management": {
     "generation": {
       "process": "Generate shareable link",
-      "permissions": ["view", "comment", "edit"],
+      "permissions": [
+        "view",
+        "comment",
+        "edit"
+      ],
       "expiration": "optional",
       "password_protection": "optional"
     },
@@ -123,9 +158,24 @@
     }
   },
   "error_handling": {
-    "authentication_errors": ["invalid_token", "insufficient_scope", "rate_limiting", "server_error"],
-    "file_errors": ["not_found", "permission_denied", "quota_exceeded", "conflict"],
-    "network_errors": ["timeout", "dns", "ssl", "proxy"]
+    "authentication_errors": [
+      "invalid_token",
+      "insufficient_scope",
+      "rate_limiting",
+      "server_error"
+    ],
+    "file_errors": [
+      "not_found",
+      "permission_denied",
+      "quota_exceeded",
+      "conflict"
+    ],
+    "network_errors": [
+      "timeout",
+      "dns",
+      "ssl",
+      "proxy"
+    ]
   },
   "privacy_redaction": {
     "token_redaction": true,
@@ -144,9 +194,58 @@
     "total_test_cases": 12
   },
   "implementation_requirements": {
-    "oauth_client": ["Implement OAuth flow", "Handle token refresh", "Manage token storage", "Handle token revocation"],
-    "file_operations": ["Implement file listing", "Handle metadata", "Support pagination", "Handle sorting/filtering"],
-    "download_upload": ["Implement download with range support", "Handle resumable uploads", "Track progress", "Handle errors"],
-    "caching": ["Implement metadata caching", "Handle content caching", "Manage cache expiration", "Handle cache invalidation"]
-  }
+    "oauth_client": [
+      "Implement OAuth flow",
+      "Handle token refresh",
+      "Manage token storage",
+      "Handle token revocation"
+    ],
+    "file_operations": [
+      "Implement file listing",
+      "Handle metadata",
+      "Support pagination",
+      "Handle sorting/filtering"
+    ],
+    "download_upload": [
+      "Implement download with range support",
+      "Handle resumable uploads",
+      "Track progress",
+      "Handle errors"
+    ],
+    "caching": [
+      "Implement metadata caching",
+      "Handle content caching",
+      "Manage cache expiration",
+      "Handle cache invalidation"
+    ]
+  },
+  "timestamp_utc": "2026-06-26T01:20:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "task_family": "planning"
 }

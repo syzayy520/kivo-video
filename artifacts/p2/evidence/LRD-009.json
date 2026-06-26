@@ -72,14 +72,27 @@
     ]
   },
   "schema_gate_requirements": {
-    "duration_required": "duration must be ≥30 seconds for RUNTIME_PASS",
+    "duration_required": "duration must be \u226530 seconds for RUNTIME_PASS",
     "video_frames_decoded_required": "video_frames_decoded must be > 0 for RUNTIME_PASS",
     "audio_frames_decoded_required": "audio_frames_decoded must be > 0 for RUNTIME_PASS",
     "anti_fake_validation": "no SoakSimulator or fake counters"
   },
   "redline_gate_requirements": {
-    "forbidden_terms": ["SoakSimulator", "fake counters", "repeated open/close", "state machine simulation", "interface contract only"],
-    "allowlist_terms": ["real soak", "continuous playback", "real metrics", "queue high water", "memory usage", "frame counts"]
+    "forbidden_terms": [
+      "SoakSimulator",
+      "fake counters",
+      "repeated open/close",
+      "state machine simulation",
+      "interface contract only"
+    ],
+    "allowlist_terms": [
+      "real soak",
+      "continuous playback",
+      "real metrics",
+      "queue high water",
+      "memory usage",
+      "frame counts"
+    ]
   },
   "anti_fake_gate_requirements": {
     "real_soak_runtime_proof": [
@@ -91,10 +104,10 @@
       "Real error counts from actual failures"
     ],
     "forbidden_fake_proofs": [
-      "SoakSimulator class → CONTRACT_PASS only",
-      "fake counters → CONTRACT_PASS only",
-      "repeated open/close → CONTRACT_PASS only",
-      "state machine simulation → CONTRACT_PASS only"
+      "SoakSimulator class \u2192 CONTRACT_PASS only",
+      "fake counters \u2192 CONTRACT_PASS only",
+      "repeated open/close \u2192 CONTRACT_PASS only",
+      "state machine simulation \u2192 CONTRACT_PASS only"
     ]
   },
   "clean_workspace_gate": {
@@ -121,5 +134,36 @@
   },
   "evidence_status": "CONTRACT_PASS",
   "reason": "Micro soak runtime audit requires real 30s continuous playback without SoakSimulator. Current implementation uses SoakSimulator (CONTRACT_PASS). Real queue/memory tracking required for RUNTIME_PASS.",
-  "next_task": "LRD-010 Evidence Artifact Audit"
+  "next_task": "LRD-010 Evidence Artifact Audit",
+  "timestamp_utc": "2026-06-26T00:00:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable"
 }

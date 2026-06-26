@@ -1,36 +1,93 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "TRK-001",
-  "task_name": "P2-TRAKT-FOUNDATION",
-  "family": "trakt_foundation",
   "status": "CONTRACT_PASS",
   "runtime_mode": "trakt_protocol_definition",
-  "runtime_environment_kind": "test_harness",
+  "runtime_environment_kind": "not_applicable",
   "environment_required": true,
   "environment_available": false,
   "blocked_reason": "Requires network connection for Trakt API",
-  "runtime_verified_timestamp": "2026-06-26T01:35:00Z",
   "evidence_file": "artifacts/p2/evidence/TRK-001.json",
-  "provider_matrix_impact": {
-    "trakt_api": "CONTRACT_PASS"
-  },
   "oauth_profile": {
     "configuration": {
-      "fields": ["client_id", "client_secret", "redirect_uri", "api_base_url", "auth_base_url", "api_version", "scopes", "use_pkce", "token_expiry_buffer"]
+      "fields": [
+        "client_id",
+        "client_secret",
+        "redirect_uri",
+        "api_base_url",
+        "auth_base_url",
+        "api_version",
+        "scopes",
+        "use_pkce",
+        "token_expiry_buffer"
+      ]
     },
-    "scopes": ["Public", "History", "Watchlist", "Ratings", "Comments", "Lists", "Recommendations", "Discover"],
-    "flow": ["Authorization", "Token Exchange", "Token Refresh", "Token Revocation", "Token Storage"],
+    "scopes": [
+      "Public",
+      "History",
+      "Watchlist",
+      "Ratings",
+      "Comments",
+      "Lists",
+      "Recommendations",
+      "Discover"
+    ],
+    "flow": [
+      "Authorization",
+      "Token Exchange",
+      "Token Refresh",
+      "Token Revocation",
+      "Token Storage"
+    ],
     "token_management": {
-      "fields": ["access_token", "refresh_token", "token_type", "expires_in", "scope", "created_at", "username"]
+      "fields": [
+        "access_token",
+        "refresh_token",
+        "token_type",
+        "expires_in",
+        "scope",
+        "created_at",
+        "username"
+      ]
     },
-    "token_security": ["Secure Storage", "Token Rotation", "Token Revocation", "Token Validation", "Token Expiry"]
+    "token_security": [
+      "Secure Storage",
+      "Token Rotation",
+      "Token Revocation",
+      "Token Validation",
+      "Token Expiry"
+    ]
   },
   "identity_mapping": {
     "movie_identity": {
-      "fields": ["trakt_id", "title", "year", "imdb_id", "tmdb_id", "slug", "overview", "released", "runtime", "genres", "rating", "votes"]
+      "fields": [
+        "trakt_id",
+        "title",
+        "year",
+        "imdb_id",
+        "tmdb_id",
+        "slug",
+        "overview",
+        "released",
+        "runtime",
+        "genres",
+        "rating",
+        "votes"
+      ]
     },
     "episode_identity": {
-      "fields": ["trakt_id", "show_trakt_id", "title", "season", "episode", "first_aired", "overview", "runtime", "rating", "votes"]
+      "fields": [
+        "trakt_id",
+        "show_trakt_id",
+        "title",
+        "season",
+        "episode",
+        "first_aired",
+        "overview",
+        "runtime",
+        "rating",
+        "votes"
+      ]
     },
     "mapping_rules": [
       "IMDB Mapping: Map by IMDB ID when available",
@@ -49,7 +106,13 @@
   },
   "manual_match": {
     "interface": {
-      "methods": ["search", "get_match_details", "confirm_match", "remove_match", "get_match_history"]
+      "methods": [
+        "search",
+        "get_match_details",
+        "confirm_match",
+        "remove_match",
+        "get_match_history"
+      ]
     },
     "confidence": [
       "High Confidence: Exact title + year + IMDB/TMDB match",
@@ -68,10 +131,27 @@
   },
   "watched_collection_tracking": {
     "watched_status": {
-      "fields": ["trakt_id", "watched", "watched_at", "plays", "last_played_at", "progress", "fully_watched"]
+      "fields": [
+        "trakt_id",
+        "watched",
+        "watched_at",
+        "plays",
+        "last_played_at",
+        "progress",
+        "fully_watched"
+      ]
     },
     "collection_status": {
-      "fields": ["trakt_id", "collected", "collected_at", "media_type", "resolution", "audio_codec", "video_codec", "edition"]
+      "fields": [
+        "trakt_id",
+        "collected",
+        "collected_at",
+        "media_type",
+        "resolution",
+        "audio_codec",
+        "video_codec",
+        "edition"
+      ]
     },
     "tracking_rules": [
       "Automatic Tracking: Track automatically on playback",
@@ -80,11 +160,26 @@
       "Multi-Episode: Track multi-episode viewing",
       "Rewatch: Track rewatches separately"
     ],
-    "sync_frequency": ["Real-time", "Periodic", "On-demand", "Background", "Conflict Resolution"]
+    "sync_frequency": [
+      "Real-time",
+      "Periodic",
+      "On-demand",
+      "Background",
+      "Conflict Resolution"
+    ]
   },
   "scrobble_events": {
     "event_structure": {
-      "fields": ["event_type", "trakt_id", "media_type", "progress", "duration", "position", "app_version", "app_date"]
+      "fields": [
+        "event_type",
+        "trakt_id",
+        "media_type",
+        "progress",
+        "duration",
+        "position",
+        "app_version",
+        "app_date"
+      ]
     },
     "rules": [
       "Start: Send start event when playback begins",
@@ -100,14 +195,34 @@
       "Minimum Duration: 5 minute minimum for scrobble",
       "Maximum Gap: 30 minute maximum gap between events"
     ],
-    "error_handling": ["Retry", "Queue", "Conflict", "Offline", "Rate Limit"]
+    "error_handling": [
+      "Retry",
+      "Queue",
+      "Conflict",
+      "Offline",
+      "Rate Limit"
+    ]
   },
   "progress_resume_sync": {
     "progress_sync": {
-      "fields": ["trakt_id", "progress", "position", "duration", "last_synced", "synced"]
+      "fields": [
+        "trakt_id",
+        "progress",
+        "position",
+        "duration",
+        "last_synced",
+        "synced"
+      ]
     },
     "resume_sync": {
-      "fields": ["trakt_id", "resume_position", "resume_timestamp", "resume_available", "device", "app_version"]
+      "fields": [
+        "trakt_id",
+        "resume_position",
+        "resume_timestamp",
+        "resume_available",
+        "device",
+        "app_version"
+      ]
     },
     "sync_rules": [
       "Bidirectional Sync: Sync progress both ways",
@@ -116,12 +231,27 @@
       "Conflict Resolution: Handle sync conflicts",
       "Offline Support: Support offline progress tracking"
     ],
-    "sync_frequency": ["Real-time", "Periodic", "On-demand", "Background", "Startup"]
+    "sync_frequency": [
+      "Real-time",
+      "Periodic",
+      "On-demand",
+      "Background",
+      "Startup"
+    ]
   },
   "offline_queue": {
     "queue_structure": {
-      "queues": ["scrobble_queue", "progress_queue", "collection_queue", "watchlist_queue", "rating_queue"],
-      "fields": ["last_synced", "sync_in_progress"]
+      "queues": [
+        "scrobble_queue",
+        "progress_queue",
+        "collection_queue",
+        "watchlist_queue",
+        "rating_queue"
+      ],
+      "fields": [
+        "last_synced",
+        "sync_in_progress"
+      ]
     },
     "queue_rules": [
       "Priority: Scrobble events have highest priority",
@@ -130,12 +260,33 @@
       "Expiry: Expire old queue entries (7 days)",
       "Limit: Maximum queue size (1000 events)"
     ],
-    "queue_management": ["Add", "Remove", "Clear", "Export", "Import"],
-    "sync_strategy": ["Automatic Sync", "Manual Sync", "Background Sync", "Batch Sync", "Conflict Resolution"]
+    "queue_management": [
+      "Add",
+      "Remove",
+      "Clear",
+      "Export",
+      "Import"
+    ],
+    "sync_strategy": [
+      "Automatic Sync",
+      "Manual Sync",
+      "Background Sync",
+      "Batch Sync",
+      "Conflict Resolution"
+    ]
   },
   "retry_strategy": {
     "retry_config": {
-      "fields": ["max_retries", "retry_delay_ms", "max_retry_delay_ms", "backoff_factor", "retry_on_network_error", "retry_on_rate_limit", "retry_on_server_error", "rate_limit_delay_ms"]
+      "fields": [
+        "max_retries",
+        "retry_delay_ms",
+        "max_retry_delay_ms",
+        "backoff_factor",
+        "retry_on_network_error",
+        "retry_on_rate_limit",
+        "retry_on_server_error",
+        "rate_limit_delay_ms"
+      ]
     },
     "retry_rules": [
       "Exponential Backoff: Use exponential backoff for retries",
@@ -151,11 +302,27 @@
       "Client Errors: Do not retry",
       "Authentication Errors: Do not retry, refresh token"
     ],
-    "retry_monitoring": ["Retry Count", "Success Rate", "Failure Reasons", "Performance Impact", "User Notification"]
+    "retry_monitoring": [
+      "Retry Count",
+      "Success Rate",
+      "Failure Reasons",
+      "Performance Impact",
+      "User Notification"
+    ]
   },
   "privacy_rules": {
     "privacy_contract": {
-      "fields": ["share_watched", "share_rating", "share_watchlist", "share_collection", "share_comments", "share_recommendations", "allow_analytics", "allow_crash_reports", "privacy_level"]
+      "fields": [
+        "share_watched",
+        "share_rating",
+        "share_watchlist",
+        "share_collection",
+        "share_comments",
+        "share_recommendations",
+        "allow_analytics",
+        "allow_crash_reports",
+        "privacy_level"
+      ]
     },
     "privacy_controls": [
       "Profile Visibility: Control profile visibility",
@@ -180,9 +347,21 @@
     ]
   },
   "conflict_policy": {
-    "conflict_types": ["Status Conflict", "Progress Conflict", "Collection Conflict", "Rating Conflict", "Watchlist Conflict"],
+    "conflict_types": [
+      "Status Conflict",
+      "Progress Conflict",
+      "Collection Conflict",
+      "Rating Conflict",
+      "Watchlist Conflict"
+    ],
     "conflict_resolution": {
-      "fields": ["conflict_type", "resolution_strategy", "user_override", "fallback_strategy", "resolution_timeout"]
+      "fields": [
+        "conflict_type",
+        "resolution_strategy",
+        "user_override",
+        "fallback_strategy",
+        "resolution_timeout"
+      ]
     },
     "resolution_strategies": [
       "Latest Wins: Most recent change wins",
@@ -200,7 +379,22 @@
     ]
   },
   "error_handling": {
-    "error_types": ["None", "AuthenticationFailed", "TokenExpired", "TokenRevoked", "NetworkError", "RateLimited", "ServerError", "NotFound", "Forbidden", "Conflict", "ValidationFailed", "Offline", "Timeout", "Unknown"],
+    "error_types": [
+      "None",
+      "AuthenticationFailed",
+      "TokenExpired",
+      "TokenRevoked",
+      "NetworkError",
+      "RateLimited",
+      "ServerError",
+      "NotFound",
+      "Forbidden",
+      "Conflict",
+      "ValidationFailed",
+      "Offline",
+      "Timeout",
+      "Unknown"
+    ],
     "error_recovery": [
       "Authentication Errors: Refresh token or re-authenticate",
       "Network Errors: Retry with backoff",
@@ -218,8 +412,30 @@
     ]
   },
   "implementation_requirements": {
-    "core_components": ["TraktAuthManager", "TraktIdentityMapper", "TraktManualMatcher", "TraktWatchedTracker", "TraktCollectionTracker", "TraktScrobbleManager", "TraktProgressSyncManager", "TraktOfflineQueue", "TraktRetryManager", "TraktPrivacyManager", "TraktConflictResolver", "TraktErrorHandler"],
-    "integration_points": ["Playback Engine", "Media Library", "User Preferences", "Network Layer", "Storage", "Inspector", "DecisionLedger", "ErrorMapping"]
+    "core_components": [
+      "TraktAuthManager",
+      "TraktIdentityMapper",
+      "TraktManualMatcher",
+      "TraktWatchedTracker",
+      "TraktCollectionTracker",
+      "TraktScrobbleManager",
+      "TraktProgressSyncManager",
+      "TraktOfflineQueue",
+      "TraktRetryManager",
+      "TraktPrivacyManager",
+      "TraktConflictResolver",
+      "TraktErrorHandler"
+    ],
+    "integration_points": [
+      "Playback Engine",
+      "Media Library",
+      "User Preferences",
+      "Network Layer",
+      "Storage",
+      "Inspector",
+      "DecisionLedger",
+      "ErrorMapping"
+    ]
   },
   "gate_integration": [
     "TRK-001: Trakt foundation system defined",
@@ -230,5 +446,34 @@
     "positive_test_cases": 15,
     "negative_test_cases": 12,
     "total_test_cases": 27
-  }
+  },
+  "timestamp_utc": "2026-06-26T01:35:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "task_family": "planning"
 }

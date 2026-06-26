@@ -1,28 +1,29 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "PIP-001",
-  "task_name": "P2-PIP-FOUNDATION",
-  "family": "pip_foundation",
   "status": "CONTRACT_PASS",
   "runtime_mode": "pip_protocol_definition",
-  "runtime_environment_kind": "test_harness",
+  "runtime_environment_kind": "not_applicable",
   "environment_required": false,
   "environment_available": false,
-  "blocked_reason": null,
-  "runtime_verified_timestamp": "2026-06-26T01:25:00Z",
+  "blocked_reason": "",
   "evidence_file": "artifacts/p2/evidence/PIP-001.json",
-  "provider_matrix_impact": {
-    "pip_foundation": "CONTRACT_PASS"
-  },
   "pip_state_model": {
-    "states": ["NotActive", "Detaching", "Active", "Attaching", "Paused", "Error"],
+    "states": [
+      "NotActive",
+      "Detaching",
+      "Active",
+      "Attaching",
+      "Paused",
+      "Error"
+    ],
     "transitions": {
-      "start": "NotActive → Detaching → Active",
-      "pause": "Active → Paused",
-      "resume": "Paused → Active",
-      "attach": "Active → Attaching → NotActive",
-      "error": "Any → Error",
-      "recovery": "Error → NotActive"
+      "start": "NotActive \u2192 Detaching \u2192 Active",
+      "pause": "Active \u2192 Paused",
+      "resume": "Paused \u2192 Active",
+      "attach": "Active \u2192 Attaching \u2192 NotActive",
+      "error": "Any \u2192 Error",
+      "recovery": "Error \u2192 NotActive"
     },
     "properties": {
       "allowed_transitions": true,
@@ -33,18 +34,53 @@
   },
   "surface_management": {
     "detach_contract": {
-      "request_fields": ["surface_id", "main_window", "transfer_state", "video_format", "audio_format", "preserve_playback_position"],
-      "result_fields": ["success", "pip_window", "error_message", "detach_duration_ms"]
+      "request_fields": [
+        "surface_id",
+        "main_window",
+        "transfer_state",
+        "video_format",
+        "audio_format",
+        "preserve_playback_position"
+      ],
+      "result_fields": [
+        "success",
+        "pip_window",
+        "error_message",
+        "detach_duration_ms"
+      ]
     },
     "attach_contract": {
-      "request_fields": ["surface_id", "pip_window", "main_window", "restore_playback_position"],
-      "result_fields": ["success", "restored_state", "error_message", "attach_duration_ms"]
+      "request_fields": [
+        "surface_id",
+        "pip_window",
+        "main_window",
+        "restore_playback_position"
+      ],
+      "result_fields": [
+        "success",
+        "restored_state",
+        "error_message",
+        "attach_duration_ms"
+      ]
     },
-    "lifecycle": ["Detach", "Transfer", "Render", "Attach", "Restore"]
+    "lifecycle": [
+      "Detach",
+      "Transfer",
+      "Render",
+      "Attach",
+      "Restore"
+    ]
   },
   "main_player_synchronization": {
     "sync_contract": {
-      "fields": ["sync_playback_position", "sync_playback_state", "sync_audio_volume", "sync_subtitle_visibility", "sync_audio_track_selection", "precision"],
+      "fields": [
+        "sync_playback_position",
+        "sync_playback_state",
+        "sync_audio_volume",
+        "sync_subtitle_visibility",
+        "sync_audio_track_selection",
+        "precision"
+      ],
       "precision": "Milliseconds"
     },
     "rules": [
@@ -63,11 +99,31 @@
   },
   "mini_command_bridge": {
     "command_interface": {
-      "playback_control": ["play", "pause", "stop", "seek"],
-      "volume_control": ["set_volume", "mute"],
-      "subtitle_control": ["show_subtitles", "set_subtitle_track"],
-      "window_control": ["set_window_bounds", "set_opacity", "set_always_on_top"],
-      "state_query": ["get_state", "get_playback_state", "get_position_ms", "get_volume"]
+      "playback_control": [
+        "play",
+        "pause",
+        "stop",
+        "seek"
+      ],
+      "volume_control": [
+        "set_volume",
+        "mute"
+      ],
+      "subtitle_control": [
+        "show_subtitles",
+        "set_subtitle_track"
+      ],
+      "window_control": [
+        "set_window_bounds",
+        "set_opacity",
+        "set_always_on_top"
+      ],
+      "state_query": [
+        "get_state",
+        "get_playback_state",
+        "get_position_ms",
+        "get_volume"
+      ]
     },
     "features": [
       "Low Latency: Commands execute within 16ms (60fps)",
@@ -79,7 +135,18 @@
   },
   "window_management": {
     "window_bounds_contract": {
-      "fields": ["x", "y", "width", "height", "min_width", "min_height", "max_width", "max_height", "aspect_ratio", "maintain_aspect"],
+      "fields": [
+        "x",
+        "y",
+        "width",
+        "height",
+        "min_width",
+        "min_height",
+        "max_width",
+        "max_height",
+        "aspect_ratio",
+        "maintain_aspect"
+      ],
       "defaults": {
         "min_width": 150,
         "min_height": 100,
@@ -96,11 +163,24 @@
       "DPI Scaling: Window scales with system DPI settings",
       "Resize: User can resize with aspect ratio lock"
     ],
-    "persistence": ["Position", "Size", "Opacity", "Always on Top", "Restore on Launch"]
+    "persistence": [
+      "Position",
+      "Size",
+      "Opacity",
+      "Always on Top",
+      "Restore on Launch"
+    ]
   },
   "multi_monitor_support": {
     "monitor_detection": {
-      "fields": ["id", "bounds", "work_area", "dpi_scale", "is_primary", "device_name"]
+      "fields": [
+        "id",
+        "bounds",
+        "work_area",
+        "dpi_scale",
+        "is_primary",
+        "device_name"
+      ]
     },
     "rules": [
       "Primary Monitor: PiP defaults to primary monitor",
@@ -112,7 +192,13 @@
   },
   "dpi_handling": {
     "dpi_scaling": {
-      "fields": ["system_dpi", "app_dpi", "scale_factor", "per_monitor_dpi", "dpi_awareness"]
+      "fields": [
+        "system_dpi",
+        "app_dpi",
+        "scale_factor",
+        "per_monitor_dpi",
+        "dpi_awareness"
+      ]
     },
     "rules": [
       "System DPI: Use system DPI for default window size",
@@ -124,8 +210,21 @@
   },
   "restore_behavior": {
     "restore_contract": {
-      "request_fields": ["pip_window", "main_window", "restore_playback_position", "restore_playback_state", "restore_subtitle_state", "restore_audio_state"],
-      "result_fields": ["success", "restored_state", "restored_position_ms", "error_message", "restore_duration_ms"]
+      "request_fields": [
+        "pip_window",
+        "main_window",
+        "restore_playback_position",
+        "restore_playback_state",
+        "restore_subtitle_state",
+        "restore_audio_state"
+      ],
+      "result_fields": [
+        "success",
+        "restored_state",
+        "restored_position_ms",
+        "error_message",
+        "restore_duration_ms"
+      ]
     },
     "rules": [
       "Position Restore: Restore to exact playback position",
@@ -137,7 +236,21 @@
     ]
   },
   "error_handling": {
-    "error_types": ["None", "SurfaceCreationFailed", "SurfaceDetachFailed", "SurfaceAttachFailed", "WindowCreationFailed", "WindowBoundsInvalid", "SyncFailed", "CommandBridgeFailed", "MonitorNotFound", "DpiScalingFailed", "RestoreFailed", "Timeout", "Unknown"],
+    "error_types": [
+      "None",
+      "SurfaceCreationFailed",
+      "SurfaceDetachFailed",
+      "SurfaceAttachFailed",
+      "WindowCreationFailed",
+      "WindowBoundsInvalid",
+      "SyncFailed",
+      "CommandBridgeFailed",
+      "MonitorNotFound",
+      "DpiScalingFailed",
+      "RestoreFailed",
+      "Timeout",
+      "Unknown"
+    ],
     "recovery": [
       "Automatic Recovery: Some errors auto-recover to NotActive",
       "User Notification: Errors shown to user with recovery options",
@@ -163,8 +276,30 @@
     ]
   },
   "implementation_requirements": {
-    "core_components": ["PipStateManager", "SurfaceManager", "SyncManager", "CommandBridge", "WindowManager", "MonitorManager", "DpiManager", "RestoreManager", "ErrorHandler", "PrivacyManager"],
-    "integration_points": ["Main Player", "Playback Engine", "UI Framework", "Window System", "Monitor System", "DPI System", "Preferences", "Inspector", "DecisionLedger", "ErrorMapping"]
+    "core_components": [
+      "PipStateManager",
+      "SurfaceManager",
+      "SyncManager",
+      "CommandBridge",
+      "WindowManager",
+      "MonitorManager",
+      "DpiManager",
+      "RestoreManager",
+      "ErrorHandler",
+      "PrivacyManager"
+    ],
+    "integration_points": [
+      "Main Player",
+      "Playback Engine",
+      "UI Framework",
+      "Window System",
+      "Monitor System",
+      "DPI System",
+      "Preferences",
+      "Inspector",
+      "DecisionLedger",
+      "ErrorMapping"
+    ]
   },
   "gate_integration": [
     "PIP-001: PiP foundation system defined",
@@ -177,9 +312,54 @@
     "total_test_cases": 24
   },
   "error_handling_full": {
-    "connection_errors": ["SurfaceCreationFailed", "SurfaceDetachFailed", "SurfaceAttachFailed"],
-    "window_errors": ["WindowCreationFailed", "WindowBoundsInvalid", "MonitorNotFound"],
-    "sync_errors": ["SyncFailed", "CommandBridgeFailed", "DpiScalingFailed"],
-    "restore_errors": ["RestoreFailed", "Timeout", "Unknown"]
-  }
+    "connection_errors": [
+      "SurfaceCreationFailed",
+      "SurfaceDetachFailed",
+      "SurfaceAttachFailed"
+    ],
+    "window_errors": [
+      "WindowCreationFailed",
+      "WindowBoundsInvalid",
+      "MonitorNotFound"
+    ],
+    "sync_errors": [
+      "SyncFailed",
+      "CommandBridgeFailed",
+      "DpiScalingFailed"
+    ],
+    "restore_errors": [
+      "RestoreFailed",
+      "Timeout",
+      "Unknown"
+    ]
+  },
+  "timestamp_utc": "2026-06-26T01:25:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "task_family": "planning"
 }

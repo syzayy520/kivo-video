@@ -130,13 +130,13 @@
       "item": "V10-026",
       "status": "RUNTIME_PASS",
       "reason": "CMake / Build Registration Gate: proper build registration.",
-      "evidence_text": "Only local runtime production families/tests registered (all tests use fake services: FakeWebDavProfileService, FakeRemoteDirectPlayGateService, etc. — no real remote network calls). FFmpeg ON/OFF behavior explicit (lines 109-123: if(KIVO_ENABLE_FFMPEG) conditional compilation, if(KIVO_ENABLE_REAL_MEDIA_TESTS) conditional test registration). Artifact output directory explicit (default CMake build directory, no custom CMAKE_RUNTIME_OUTPUT_DIRECTORY). No root executable dumping (all executables are in backend/tests/ subdirectories). No generated artifacts dirtying source tree (only one static test data JSON file ffmpeg_off_antifake.json in tests/presenter/, no generated build outputs in source tree)."
+      "evidence_text": "Only local runtime production families/tests registered (all tests use fake services: FakeWebDavProfileService, FakeRemoteDirectPlayGateService, etc. \u2014 no real remote network calls). FFmpeg ON/OFF behavior explicit (lines 109-123: if(KIVO_ENABLE_FFMPEG) conditional compilation, if(KIVO_ENABLE_REAL_MEDIA_TESTS) conditional test registration). Artifact output directory explicit (default CMake build directory, no custom CMAKE_RUNTIME_OUTPUT_DIRECTORY). No root executable dumping (all executables are in backend/tests/ subdirectories). No generated artifacts dirtying source tree (only one static test data JSON file ffmpeg_off_antifake.json in tests/presenter/, no generated build outputs in source tree)."
     },
     {
       "item": "V10-027",
       "status": "RUNTIME_PASS",
       "reason": "Final Report Generation: report consistent with evidence.",
-      "evidence_text": "Report generated at docs/roadmap/v10_final_report.md with all required sections: classification (PASS_READY_FOR_REVIEW), branch (kivo-video-p2-real-001-repair-ffmpeg-proof), HEAD (a44fae9), remote HEAD (synced), base proof (4492433→a44fae9), planning proof (4 planning docs), runtime environment (CMake 3.28+, MSVC 19.51, C++20, FFmpeg 7.1), changed files by natural family (7 families, 14 files), what changed (7 items including real packet data flow, integration test rewrite), real playback proof (84/84 CTest PASS FFmpeg ON, 81/81 CTest PASS FFmpeg OFF, integration test output), machine-readable evidence (6 JSON artifacts validated), verification (build/test/privacy/scope), scope (in/out), scope scan (0 forbidden terms in runtime), privacy proof (no path/token leakage), known limitations (4), next recommendation (5)."
+      "evidence_text": "Report generated at docs/roadmap/v10_final_report.md with all required sections: classification (PASS_READY_FOR_REVIEW), branch (kivo-video-p2-real-001-repair-ffmpeg-proof), HEAD (a44fae9), remote HEAD (synced), base proof (4492433\u2192a44fae9), planning proof (4 planning docs), runtime environment (CMake 3.28+, MSVC 19.51, C++20, FFmpeg 7.1), changed files by natural family (7 families, 14 files), what changed (7 items including real packet data flow, integration test rewrite), real playback proof (84/84 CTest PASS FFmpeg ON, 81/81 CTest PASS FFmpeg OFF, integration test output), machine-readable evidence (6 JSON artifacts validated), verification (build/test/privacy/scope), scope (in/out), scope scan (0 forbidden terms in runtime), privacy proof (no path/token leakage), known limitations (4), next recommendation (5)."
     },
     {
       "item": "V10-028",
@@ -154,10 +154,10 @@
     "needs_repair": 0
   },
   "downgrade_decisions": [
-    "V10-009: D3D11 upload stub → CONTRACT_PASS (interface contract only)",
-    "V10-010: Presenter stub → CONTRACT_PASS (interface contract only)",
-    "V10-011: PCM stub → CONTRACT_PASS (interface contract only)",
-    "V10-021: SoakSimulator → CONTRACT_PASS (simulator not real runtime)"
+    "V10-009: D3D11 upload stub \u2192 CONTRACT_PASS (interface contract only)",
+    "V10-010: Presenter stub \u2192 CONTRACT_PASS (interface contract only)",
+    "V10-011: PCM stub \u2192 CONTRACT_PASS (interface contract only)",
+    "V10-021: SoakSimulator \u2192 CONTRACT_PASS (simulator not real runtime)"
   ],
   "repair_cards_required": [
     "LRD-003: D3D11 Device Reality Audit (for V10-009)",
@@ -175,10 +175,10 @@
   ],
   "anti_fake_gate": {
     "stub_simulator_detection": [
-      "V10-009: 'Stub implementation passes' → CONTRACT_PASS",
-      "V10-010: 'Stub implementation passes' → CONTRACT_PASS",
-      "V10-011: 'stub generates placeholder PCM data' → CONTRACT_PASS",
-      "V10-021: 'SoakSimulator with QueueStats' → CONTRACT_PASS"
+      "V10-009: 'Stub implementation passes' \u2192 CONTRACT_PASS",
+      "V10-010: 'Stub implementation passes' \u2192 CONTRACT_PASS",
+      "V10-011: 'stub generates placeholder PCM data' \u2192 CONTRACT_PASS",
+      "V10-021: 'SoakSimulator with QueueStats' \u2192 CONTRACT_PASS"
     ],
     "silent_upgrade_prevention": "No items upgraded from CONTRACT_PASS to RUNTIME_PASS without real runtime proof"
   },
@@ -188,5 +188,36 @@
   },
   "evidence_status": "RUNTIME_PASS",
   "reason": "Audit completed, 4 V10 items downgraded to CONTRACT_PASS, 18 remain RUNTIME_PASS. No FAIL or NEEDS_REPAIR items. Repair cards identified for CONTRACT_PASS items. Consistency gaps documented.",
-  "next_task": "LRD-003 D3D11 Device Reality Audit"
+  "next_task": "LRD-003 D3D11 Device Reality Audit",
+  "timestamp_utc": "2026-06-26T00:00:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable"
 }

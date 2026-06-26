@@ -1,19 +1,13 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "PFFG-001",
-  "task_name": "P2-FOUNDATION-FINAL-GATE-READER",
-  "family": "final_gate",
   "status": "CONTRACT_PASS",
   "runtime_mode": "gate_validation",
-  "runtime_environment_kind": "test_harness",
+  "runtime_environment_kind": "not_applicable",
   "environment_required": false,
   "environment_available": false,
-  "blocked_reason": null,
-  "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+  "blocked_reason": "",
   "evidence_file": "artifacts/p2/evidence/PFFG-001.json",
-  "provider_matrix_impact": {
-    "foundation_final_gate": "CONTRACT_PASS"
-  },
   "gate_purpose": {
     "description": "Final validation gate that reads all child evidence and provider matrix to determine if P2 Foundation is complete",
     "validation_checkpoints": [
@@ -26,24 +20,176 @@
   },
   "gate_dependencies": {
     "required_child_evidence": {
-      "p2_1_local_playback": ["P2-001A", "P2-001B", "P2-001C", "P2-002", "P2-003", "P2-004", "P2-005", "P2-006", "P2-007", "P2-008", "P2-009", "P2-010", "P2-011", "P2-012", "P2-013", "P2-014", "P2-015", "P2-016", "P2-017", "P2-018", "P2-019", "P2-020", "P2-021", "P2-022"],
-      "p2_1_5_disc_bdmv": ["P2-023", "P2-024", "P2-025", "P2-026"],
-      "p2_2_remote_playback": ["P2-027", "P2-028", "P2-029", "P2-030", "P2-031", "P2-032", "P2-033", "P2-034", "P2-035", "P2-036", "P2-037", "P2-038"],
-      "p2_3_quality_recovery_inspector": ["P2-039", "P2-040", "P2-041", "P2-042", "P2-043", "P2-044", "P2-045", "P2-046", "P2-047", "P2-048", "P2-049", "P2-050", "P2-051", "P2-052", "P2-053", "P2-054", "P2-055"],
+      "p2_1_local_playback": [
+        "P2-001A",
+        "P2-001B",
+        "P2-001C",
+        "P2-002",
+        "P2-003",
+        "P2-004",
+        "P2-005",
+        "P2-006",
+        "P2-007",
+        "P2-008",
+        "P2-009",
+        "P2-010",
+        "P2-011",
+        "P2-012",
+        "P2-013",
+        "P2-014",
+        "P2-015",
+        "P2-016",
+        "P2-017",
+        "P2-018",
+        "P2-019",
+        "P2-020",
+        "P2-021",
+        "P2-022"
+      ],
+      "p2_1_5_disc_bdmv": [
+        "P2-023",
+        "P2-024",
+        "P2-025",
+        "P2-026"
+      ],
+      "p2_2_remote_playback": [
+        "P2-027",
+        "P2-028",
+        "P2-029",
+        "P2-030",
+        "P2-031",
+        "P2-032",
+        "P2-033",
+        "P2-034",
+        "P2-035",
+        "P2-036",
+        "P2-037",
+        "P2-038"
+      ],
+      "p2_3_quality_recovery_inspector": [
+        "P2-039",
+        "P2-040",
+        "P2-041",
+        "P2-042",
+        "P2-043",
+        "P2-044",
+        "P2-045",
+        "P2-046",
+        "P2-047",
+        "P2-048",
+        "P2-049",
+        "P2-050",
+        "P2-051",
+        "P2-052",
+        "P2-053",
+        "P2-054",
+        "P2-055"
+      ],
       "p2_remaining_coverage": {
-        "local_repair_delta": ["LRD-001", "LRD-002", "LRD-003", "LRD-004", "LRD-005", "LRD-006", "LRD-007", "LRD-008", "LRD-009", "LRD-010", "LRD-011", "LRD-012", "LRD-013"],
-        "schema_gate_foundation": ["SGF-001", "SGF-002", "SGF-003", "SGF-004", "SGF-005", "SGF-006", "SGF-007", "SGF-008"],
-        "redline_gate_foundation": ["RGF-001", "RGF-002", "RGF-003", "RGF-004", "RGF-005"],
-        "foundation_families": ["FMT-001", "MID-001", "SUB-001", "SRC-001", "NET-001", "OBJ-001", "WDA-001", "MSV-001", "CLD-001", "IPTV-001", "PST-001", "ACP-001", "CAST-001", "PIP-001", "CIN-001", "TRK-001"],
-        "provider_matrix": ["PMX-001", "PMX-002"]
+        "local_repair_delta": [
+          "LRD-001",
+          "LRD-002",
+          "LRD-003",
+          "LRD-004",
+          "LRD-005",
+          "LRD-006",
+          "LRD-007",
+          "LRD-008",
+          "LRD-009",
+          "LRD-010",
+          "LRD-011",
+          "LRD-012",
+          "LRD-013"
+        ],
+        "schema_gate_foundation": [
+          "SGF-001",
+          "SGF-002",
+          "SGF-003",
+          "SGF-004",
+          "SGF-005",
+          "SGF-006",
+          "SGF-007",
+          "SGF-008"
+        ],
+        "redline_gate_foundation": [
+          "RGF-001",
+          "RGF-002",
+          "RGF-003",
+          "RGF-004",
+          "RGF-005"
+        ],
+        "foundation_families": [
+          "FMT-001",
+          "MID-001",
+          "SUB-001",
+          "SRC-001",
+          "NET-001",
+          "OBJ-001",
+          "WDA-001",
+          "MSV-001",
+          "CLD-001",
+          "IPTV-001",
+          "PST-001",
+          "ACP-001",
+          "CAST-001",
+          "PIP-001",
+          "CIN-001",
+          "TRK-001"
+        ],
+        "provider_matrix": [
+          "PMX-001",
+          "PMX-002"
+        ]
       }
     },
     "required_gates_passed": {
-      "v8_global_gates": ["V8-001", "V8-002", "V8-003", "V8-004", "V8-005", "V8-006", "V8-007", "V8-008", "V8-009"],
-      "local_repair_delta": ["LRD-001", "LRD-002", "LRD-003", "LRD-004", "LRD-005", "LRD-006", "LRD-007", "LRD-008", "LRD-009", "LRD-010", "LRD-011", "LRD-012", "LRD-013"],
-      "schema_gate_foundation": ["SGF-001", "SGF-002", "SGF-003", "SGF-004", "SGF-005", "SGF-006", "SGF-007", "SGF-008"],
-      "redline_gate_foundation": ["RGF-001", "RGF-002", "RGF-003", "RGF-004", "RGF-005"],
-      "provider_matrix": ["PMX-001", "PMX-002"]
+      "v8_global_gates": [
+        "V8-001",
+        "V8-002",
+        "V8-003",
+        "V8-004",
+        "V8-005",
+        "V8-006",
+        "V8-007",
+        "V8-008",
+        "V8-009"
+      ],
+      "local_repair_delta": [
+        "LRD-001",
+        "LRD-002",
+        "LRD-003",
+        "LRD-004",
+        "LRD-005",
+        "LRD-006",
+        "LRD-007",
+        "LRD-008",
+        "LRD-009",
+        "LRD-010",
+        "LRD-011",
+        "LRD-012",
+        "LRD-013"
+      ],
+      "schema_gate_foundation": [
+        "SGF-001",
+        "SGF-002",
+        "SGF-003",
+        "SGF-004",
+        "SGF-005",
+        "SGF-006",
+        "SGF-007",
+        "SGF-008"
+      ],
+      "redline_gate_foundation": [
+        "RGF-001",
+        "RGF-002",
+        "RGF-003",
+        "RGF-004",
+        "RGF-005"
+      ],
+      "provider_matrix": [
+        "PMX-001",
+        "PMX-002"
+      ]
     }
   },
   "gate_validation_rules": {
@@ -128,19 +274,67 @@
   },
   "gate_output_structure": {
     "foundation_final_gate_result": {
-      "fields": ["gate_passed", "gate_timestamp", "total_evidence_files_checked", "evidence_files_passed", "evidence_files_failed", "evidence_results", "provider_matrix_result", "redline_result", "antifake_result", "gate_summary", "remediation_required", "foundation_complete_allowed"]
+      "fields": [
+        "gate_passed",
+        "gate_timestamp",
+        "total_evidence_files_checked",
+        "evidence_files_passed",
+        "evidence_files_failed",
+        "evidence_results",
+        "provider_matrix_result",
+        "redline_result",
+        "antifake_result",
+        "gate_summary",
+        "remediation_required",
+        "foundation_complete_allowed"
+      ]
     },
     "evidence_file_result": {
-      "fields": ["evidence_file", "task_id", "status", "exists", "valid_json", "schema_valid", "timestamp_recent", "failure_reason"]
+      "fields": [
+        "evidence_file",
+        "task_id",
+        "status",
+        "exists",
+        "valid_json",
+        "schema_valid",
+        "timestamp_recent",
+        "failure_reason"
+      ]
     },
     "provider_matrix_result": {
-      "fields": ["matrix_generated", "honesty_gate_passed", "total_providers", "runtime_pass_count", "contract_pass_count", "blocked_env_count", "fail_count", "not_implemented_count", "matrix_complete", "honest_assignments"]
+      "fields": [
+        "matrix_generated",
+        "honesty_gate_passed",
+        "total_providers",
+        "runtime_pass_count",
+        "contract_pass_count",
+        "blocked_env_count",
+        "fail_count",
+        "not_implemented_count",
+        "matrix_complete",
+        "honest_assignments"
+      ]
     },
     "redline_compliance_result": {
-      "fields": ["compliance_passed", "forbidden_terms_found", "forbidden_terms", "premature_claims_found", "premature_claims", "claim_vocabulary_valid"]
+      "fields": [
+        "compliance_passed",
+        "forbidden_terms_found",
+        "forbidden_terms",
+        "premature_claims_found",
+        "premature_claims",
+        "claim_vocabulary_valid"
+      ]
     },
     "antifake_compliance_result": {
-      "fields": ["compliance_passed", "stub_fake_simulator_claims", "fake_claims", "state_only_claims", "log_only_claims", "test_harness_claims", "real_runtime_proof_present"]
+      "fields": [
+        "compliance_passed",
+        "stub_fake_simulator_claims",
+        "fake_claims",
+        "state_only_claims",
+        "log_only_claims",
+        "test_harness_claims",
+        "real_runtime_proof_present"
+      ]
     }
   },
   "gate_validation_process": {
@@ -250,8 +444,23 @@
     "remediation_required": false
   },
   "implementation_requirements": {
-    "gate_components": ["EvidenceDiscovery", "StatusValidator", "ProviderMatrixValidator", "RedlineComplianceChecker", "AntiFakeComplianceChecker", "GateDecisionMaker", "RemediationPlanner", "GateReporter"],
-    "integration_points": ["Evidence Storage", "Provider Runtime Matrix", "Inspector", "DecisionLedger", "ErrorMapping"]
+    "gate_components": [
+      "EvidenceDiscovery",
+      "StatusValidator",
+      "ProviderMatrixValidator",
+      "RedlineComplianceChecker",
+      "AntiFakeComplianceChecker",
+      "GateDecisionMaker",
+      "RemediationPlanner",
+      "GateReporter"
+    ],
+    "integration_points": [
+      "Evidence Storage",
+      "Provider Runtime Matrix",
+      "Inspector",
+      "DecisionLedger",
+      "ErrorMapping"
+    ]
   },
   "gate_integration": [
     "PMX-001: Provider Runtime Matrix generated",
@@ -263,5 +472,34 @@
   "next_steps": [
     "PFFG-002: Foundation Final Report",
     "APRV-001: All Providers Runtime Verified Gate"
-  ]
+  ],
+  "timestamp_utc": "2026-06-26T01:36:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "task_family": "planning"
 }

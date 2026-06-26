@@ -1,48 +1,62 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "MSV-001",
-  "task_name": "P2-MEDIA-SERVER",
-  "family": "media_server",
   "status": "CONTRACT_PASS",
   "runtime_mode": "server_protocol_definition",
-  "runtime_environment_kind": "test_harness",
+  "runtime_environment_kind": "not_applicable",
   "environment_required": false,
   "environment_available": false,
-  "blocked_reason": null,
-  "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+  "blocked_reason": "",
   "evidence_file": "artifacts/p2/evidence/MSV-001.json",
-  "provider_matrix_impact": {
-    "emby": "CONTRACT_PASS",
-    "plex": "CONTRACT_PASS",
-    "jellyfin": "CONTRACT_PASS"
-  },
   "server_profiles": {
     "emby": {
       "protocol": "Emby REST API",
       "authentication": "Token-based",
-      "features": ["library_browsing", "media_streaming", "device_management", "user_management"]
+      "features": [
+        "library_browsing",
+        "media_streaming",
+        "device_management",
+        "user_management"
+      ]
     },
     "plex": {
       "protocol": "Plex Media Server API",
       "authentication": "Token-based",
-      "features": ["library_browsing", "media_streaming", "device_management", "user_management"]
+      "features": [
+        "library_browsing",
+        "media_streaming",
+        "device_management",
+        "user_management"
+      ]
     },
     "jellyfin": {
       "protocol": "Jellyfin REST API",
       "authentication": "Token-based",
-      "features": ["library_browsing", "media_streaming", "device_management", "user_management"]
+      "features": [
+        "library_browsing",
+        "media_streaming",
+        "device_management",
+        "user_management"
+      ]
     }
   },
   "discovery": {
-    "methods": ["SSDP", "mDNS", "network_scan"],
-    "protocols": ["UPnP/DLNA", "Bonjour"],
+    "methods": [
+      "SSDP",
+      "mDNS",
+      "network_scan"
+    ],
+    "protocols": [
+      "UPnP/DLNA",
+      "Bonjour"
+    ],
     "timeout_seconds": 5,
     "retry_attempts": 2,
     "manual_configuration": true
   },
   "authentication": {
     "token_based": {
-      "process": "Login with username/password → receive token",
+      "process": "Login with username/password \u2192 receive token",
       "lifetime_days": 30,
       "refresh": "automatic",
       "revocation": "manual"
@@ -54,19 +68,56 @@
     }
   },
   "library_system": {
-    "structure": ["folders", "collections", "playlists"],
-    "metadata": ["title", "year", "rating", "genre", "cast"],
-    "browsing": ["list", "search", "filter"],
+    "structure": [
+      "folders",
+      "collections",
+      "playlists"
+    ],
+    "metadata": [
+      "title",
+      "year",
+      "rating",
+      "genre",
+      "cast"
+    ],
+    "browsing": [
+      "list",
+      "search",
+      "filter"
+    ],
     "pagination": "page-based",
-    "sorting": ["title", "year", "rating", "date_added"],
-    "filtering": ["genre", "year", "rating", "status"]
+    "sorting": [
+      "title",
+      "year",
+      "rating",
+      "date_added"
+    ],
+    "filtering": [
+      "genre",
+      "year",
+      "rating",
+      "status"
+    ]
   },
   "media_identity": {
-    "fields": ["server_id", "media_id", "media_type"],
+    "fields": [
+      "server_id",
+      "media_id",
+      "media_type"
+    ],
     "uniqueness": "Server + media ID combination",
     "stability": "Persistent across server restarts",
-    "metadata_fields": ["title", "year", "duration", "rating"],
-    "user_data": ["watch_progress", "ratings", "favorites"]
+    "metadata_fields": [
+      "title",
+      "year",
+      "duration",
+      "rating"
+    ],
+    "user_data": [
+      "watch_progress",
+      "ratings",
+      "favorites"
+    ]
   },
   "streaming_capabilities": {
     "direct_play": {
@@ -106,9 +157,24 @@
     }
   },
   "error_handling": {
-    "connection_errors": ["timeout", "refused", "dns", "network"],
-    "authentication_errors": ["invalid_token", "permission_denied", "rate_limiting", "server_error"],
-    "media_errors": ["not_found", "unavailable", "corrupted", "unsupported"]
+    "connection_errors": [
+      "timeout",
+      "refused",
+      "dns",
+      "network"
+    ],
+    "authentication_errors": [
+      "invalid_token",
+      "permission_denied",
+      "rate_limiting",
+      "server_error"
+    ],
+    "media_errors": [
+      "not_found",
+      "unavailable",
+      "corrupted",
+      "unsupported"
+    ]
   },
   "privacy_redaction": {
     "server_url_redaction": true,
@@ -127,9 +193,57 @@
     "total_test_cases": 12
   },
   "implementation_requirements": {
-    "server_client": ["Implement server discovery", "Handle authentication", "Browse library", "Stream media"],
-    "media_identity": ["Map server media to universal identity", "Handle metadata synchronization", "Track playback progress", "Manage watch status"],
-    "playback_integration": ["Create playback sessions", "Track progress", "Sync across devices", "Handle conflicts"],
-    "error_handling": ["Implement connection retry", "Handle authentication failures", "Manage media errors", "Report errors appropriately"]
-  }
+    "server_client": [
+      "Implement server discovery",
+      "Handle authentication",
+      "Browse library",
+      "Stream media"
+    ],
+    "media_identity": [
+      "Map server media to universal identity",
+      "Handle metadata synchronization",
+      "Track playback progress",
+      "Manage watch status"
+    ],
+    "playback_integration": [
+      "Create playback sessions",
+      "Track progress",
+      "Sync across devices",
+      "Handle conflicts"
+    ],
+    "error_handling": [
+      "Implement connection retry",
+      "Handle authentication failures",
+      "Manage media errors",
+      "Report errors appropriately"
+    ]
+  },
+  "timestamp_utc": "2026-06-26T01:20:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "task_family": "planning"
 }

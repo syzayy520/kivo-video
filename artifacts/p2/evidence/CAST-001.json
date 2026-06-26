@@ -1,48 +1,98 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "CAST-001",
-  "task_name": "P2-CAST-FOUNDATION",
-  "family": "cast_foundation",
   "status": "CONTRACT_PASS",
   "runtime_mode": "cast_protocol_definition",
-  "runtime_environment_kind": "test_harness",
+  "runtime_environment_kind": "not_applicable",
   "environment_required": false,
   "environment_available": false,
-  "blocked_reason": null,
-  "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+  "blocked_reason": "",
   "evidence_file": "artifacts/p2/evidence/CAST-001.json",
-  "provider_matrix_impact": {
-    "airplay_cast": "CONTRACT_PASS"
-  },
   "cast_airplay_abstraction": {
-    "protocols": ["Google Cast", "Apple AirPlay"],
-    "discovery": ["mDNS/DNS-SD", "Bonjour"],
-    "connection": ["TCP/IP", "HTTP"],
-    "streaming": ["RTP", "HTTP Live Streaming"],
-    "features": ["device_discovery", "session_management", "media_control", "status_monitoring"]
+    "protocols": [
+      "Google Cast",
+      "Apple AirPlay"
+    ],
+    "discovery": [
+      "mDNS/DNS-SD",
+      "Bonjour"
+    ],
+    "connection": [
+      "TCP/IP",
+      "HTTP"
+    ],
+    "streaming": [
+      "RTP",
+      "HTTP Live Streaming"
+    ],
+    "features": [
+      "device_discovery",
+      "session_management",
+      "media_control",
+      "status_monitoring"
+    ]
   },
   "device_identity": {
     "cast_device": {
-      "fields": ["device_id", "device_name", "device_type", "protocol"],
-      "capabilities": ["supported_codecs", "resolutions", "features"],
-      "status": ["online/offline", "busy/idle"],
-      "network": ["ip_address", "port", "protocol_version"]
+      "fields": [
+        "device_id",
+        "device_name",
+        "device_type",
+        "protocol"
+      ],
+      "capabilities": [
+        "supported_codecs",
+        "resolutions",
+        "features"
+      ],
+      "status": [
+        "online/offline",
+        "busy/idle"
+      ],
+      "network": [
+        "ip_address",
+        "port",
+        "protocol_version"
+      ]
     },
     "airplay_device": {
-      "fields": ["device_id", "device_name", "device_type", "protocol"],
-      "capabilities": ["supported_formats", "features"],
-      "status": ["online/offline", "busy/idle"],
-      "network": ["ip_address", "port", "protocol_version"]
+      "fields": [
+        "device_id",
+        "device_name",
+        "device_type",
+        "protocol"
+      ],
+      "capabilities": [
+        "supported_formats",
+        "features"
+      ],
+      "status": [
+        "online/offline",
+        "busy/idle"
+      ],
+      "network": [
+        "ip_address",
+        "port",
+        "protocol_version"
+      ]
     }
   },
   "session_state_management": {
-    "states": ["Idle", "Connecting", "Connected", "Playing", "Paused", "Buffering", "Error"],
+    "states": [
+      "Idle",
+      "Connecting",
+      "Connected",
+      "Playing",
+      "Paused",
+      "Buffering",
+      "Error"
+    ],
     "transitions": {
-      "start": "Idle → Connecting → Connected",
-      "play": "Connected → Playing",
-      "pause": "Playing → Paused",
-      "stop": "Any → Idle",
-      "error": "Any → Error"
+      "start": "Idle \u2192 Connecting \u2192 Connected",
+      "play": "Connected \u2192 Playing",
+      "pause": "Playing \u2192 Paused",
+      "stop": "Any \u2192 Idle",
+      "error": "Any \u2192 Error"
     }
   },
   "handoff_policy": {
@@ -88,21 +138,66 @@
     }
   },
   "decision_ledger_integration": {
-    "cast_decisions": ["Device Selection", "Session Start", "Quality Adaptation", "Handoff"],
-    "decision_logging": ["Timestamp", "Reason", "Outcome", "Impact"]
+    "cast_decisions": [
+      "Device Selection",
+      "Session Start",
+      "Quality Adaptation",
+      "Handoff"
+    ],
+    "decision_logging": [
+      "Timestamp",
+      "Reason",
+      "Outcome",
+      "Impact"
+    ]
   },
   "feasibility_assessment": {
-    "technical": ["Device Support", "Network", "Codec", "Bandwidth"],
-    "protocol": ["Cast Protocol", "AirPlay Protocol", "Version", "Features"]
+    "technical": [
+      "Device Support",
+      "Network",
+      "Codec",
+      "Bandwidth"
+    ],
+    "protocol": [
+      "Cast Protocol",
+      "AirPlay Protocol",
+      "Version",
+      "Features"
+    ]
   },
   "legal_protocol_review": {
-    "legal": ["Licensing", "DRM", "Terms", "Privacy"],
-    "protocol": ["Compatibility", "Security", "Performance", "Reliability"]
+    "legal": [
+      "Licensing",
+      "DRM",
+      "Terms",
+      "Privacy"
+    ],
+    "protocol": [
+      "Compatibility",
+      "Security",
+      "Performance",
+      "Reliability"
+    ]
   },
   "error_handling": {
-    "connection_errors": ["Timeout", "Refused", "Lost", "Failed"],
-    "streaming_errors": ["Buffering", "Quality", "Dropout", "Sync"],
-    "session_errors": ["Start", "Control", "End", "State"]
+    "connection_errors": [
+      "Timeout",
+      "Refused",
+      "Lost",
+      "Failed"
+    ],
+    "streaming_errors": [
+      "Buffering",
+      "Quality",
+      "Dropout",
+      "Sync"
+    ],
+    "session_errors": [
+      "Start",
+      "Control",
+      "End",
+      "State"
+    ]
   },
   "privacy_redaction": {
     "device_information_redaction": true,
@@ -120,9 +215,58 @@
     "total_test_cases": 12
   },
   "implementation_requirements": {
-    "cast_manager": ["Implement device discovery", "Handle session management", "Manage media control", "Handle errors"],
-    "device_manager": ["Implement device identity", "Handle device capabilities", "Manage device status", "Handle device events"],
-    "session_manager": ["Implement session state", "Handle session transitions", "Manage session persistence", "Handle session errors"],
-    "inspector": ["Implement cast inspection", "Collect session data", "Monitor performance", "Report errors"]
-  }
+    "cast_manager": [
+      "Implement device discovery",
+      "Handle session management",
+      "Manage media control",
+      "Handle errors"
+    ],
+    "device_manager": [
+      "Implement device identity",
+      "Handle device capabilities",
+      "Manage device status",
+      "Handle device events"
+    ],
+    "session_manager": [
+      "Implement session state",
+      "Handle session transitions",
+      "Manage session persistence",
+      "Handle session errors"
+    ],
+    "inspector": [
+      "Implement cast inspection",
+      "Collect session data",
+      "Monitor performance",
+      "Report errors"
+    ]
+  },
+  "timestamp_utc": "2026-06-26T01:20:00Z",
+  "completion_level": "p2-foundation-planning",
+  "environment": {},
+  "implementation": {},
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "task_family": "planning"
 }
