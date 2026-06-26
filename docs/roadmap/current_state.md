@@ -16,6 +16,7 @@ Updated: 2026-06-27
 - P2-LOCAL-REPAIR-DELTA-001 completed: LRD-001 through LRD-013 all DONE. Evidence in artifacts/p2/evidence/LRD-001.json through LRD-013.json. Planning documents in docs/roadmap/p2_local_repair_delta_*.md. Overall classification: CONTRACT_PASS (real FFmpeg foundation proven; downstream stages are correct stubs but cannot be RUNTIME_PASS without real hardware). Next task: SGF-001 Define p2-evidence-v8 schema.
 - Source Core Skeleton task book added as `SRC-CORE-SKELETON-001`. Execution card: `docs/roadmap/p2_source_core_skeleton_001_execution_card.md`. This is a delegated implementation-skeleton task and supersedes historical source-core planning for implementation details.
 - Source Runtime Foundation local_file V1.4 task book added as `LOCAL-FILE-SOURCE-RUNTIME-001`. Full canonical id: `KIVO-VIDEO-P2-SOURCE-RUNTIME-FOUNDATION-LOCAL-FILE-001`. Execution card: `docs/roadmap/p2_source_runtime_foundation_local_file_001_execution_card.md`. This is queued after `SRC-CORE-SKELETON-001` and is the first real `local_file` source runtime proof chain, not full P2/provider verification.
+- Remote Range Runtime Foundation HTTP/WebDAV V1.5-FINAL-R1 task book added as `REMOTE-RANGE-RUNTIME-HTTP-WEBDAV-001`. Full canonical id: `KIVO-VIDEO-P2-REMOTE-RANGE-RUNTIME-FOUNDATION-HTTP-WEBDAV-001`. Execution card: `docs/roadmap/p2_remote_range_runtime_http_webdav_001_execution_card.md`. This is queued after `LOCAL-FILE-SOURCE-RUNTIME-001` and is the remote byte-range foundation for HTTP Range plus WebDAV Range loopback runtime, not Emby/Alist/cloud/HLS/provider-all verification.
 - V10-014 lifecycle abort popup fixed: `kivo_lifecycle_test` now follows the real startup state-machine path and passes; full `ctest --preset vs-debug --output-on-failure --timeout 30` passes 74/74.
 - Natural family tree created in `docs/p0/core-architecture/natural_family_tree.md`.
 - First 12 P0 contract docs created.
@@ -60,3 +61,4 @@ Immediate next task:
 4. Build only canonical Source Core contracts/runtime skeleton and provider boundaries.
 5. Produce `artifacts/p2/evidence/SRC-CORE-SKELETON-001.json` as `CONTRACT_PASS`; do not report provider runtime proof or P2 completion.
 6. After `SRC-CORE-SKELETON-001` is complete, execute `LOCAL-FILE-SOURCE-RUNTIME-001` from `docs/roadmap/p2_source_runtime_foundation_local_file_001_execution_card.md`.
+7. After `LOCAL-FILE-SOURCE-RUNTIME-001` is complete, execute `REMOTE-RANGE-RUNTIME-HTTP-WEBDAV-001` from `docs/roadmap/p2_remote_range_runtime_http_webdav_001_execution_card.md`.

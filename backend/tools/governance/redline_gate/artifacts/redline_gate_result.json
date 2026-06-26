@@ -2,14 +2,51 @@
   "schema_version": "p2-redline-gate-result-v1",
   "task_id": "P2-REDLINE-GATE-FOUNDATION",
   "scan_mode": "all",
-  "classification": "PASS",
-  "files_scanned": 194,
-  "violations_count": 0,
-  "violations_by_rule": {},
-  "violations": [],
-  "schema_failures": [],
+  "classification": "FAIL",
+  "files_scanned": 203,
+  "violations_count": 3,
+  "violations_by_rule": {
+    "SCHEMA": 1,
+    "R8": 1,
+    "R4": 1
+  },
+  "violations": [
+    {
+      "rule_id": "SCHEMA",
+      "severity": "FAIL",
+      "file": "evidence/",
+      "field_path": "schema",
+      "message": "Schema gate failures on legacy evidence",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R8",
+      "severity": "FAIL",
+      "file": ".\\docs/roadmap\\backend_task_checklist.md",
+      "field_path": "content",
+      "message": "premature claim: 'P2 Complete'",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": ".\\docs/roadmap\\p2_source_runtime_foundation_local_file_001_execution_card.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    }
+  ],
+  "schema_failures": [
+    {
+      "file": ".\\artifacts/p2/evidence\\LOCAL-FILE-SOURCE-RUNTIME-001.json",
+      "errors": [
+        "missing field: runtime_mode",
+        "unknown runtime_environment_kind: 'local_file_temp_runtime'"
+      ]
+    }
+  ],
   "legacy_inventory": "backend/tools/governance/redline_gate/artifacts/legacy_evidence_violations.json",
   "allowed_claims": [],
   "forbidden_claims": [],
-  "timestamp_utc": "2026-06-26T02:28:01Z"
+  "timestamp_utc": "2026-06-26T18:00:11Z"
 }

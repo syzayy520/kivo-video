@@ -12,7 +12,7 @@ static std::string build_range_header(std::uint64_t start, std::uint64_t end) {
 // ── SessionStore ─────────────────────────────────────
 sc::SourceSessionId HttpRangeSessionStore::allocate_id() { std::lock_guard lk(m); return sc::SourceSessionId{next_id++}; }
 void HttpRangeSessionStore::insert(HttpRangeSessionRecord r) { auto id=r.session.session_id.value; std::lock_guard lk(m); records[id]=std::move(r); }
-std::optional<HttpRangeSessionRecord> HttpRangeSessionStore::snapshot(sc::SourceSessionId id) const { std::lock_guard lk(m); auto it=records.find(id.value); return it!=records.end()?std::optional(it->second):std::nullopt; }
+std::optional<HttpRangeSessionRecord> HttpRangeSessionStore::snapshot(sc::SourceSessionId id) const { std::lock_guard lk(m); auto it=records.find(id.value); if(it!=records.end()) return it->second; auto tit=tombstones.find(id.value); if(tit!=tombstones.end()) return tit->second; return std::nullopt; }
 void HttpRangeSessionStore::update_offset(sc::SourceSessionId id, std::uint64_t off) { std::lock_guard lk(m); auto it=records.find(id.value); if(it!=records.end()) it->second.current_offset=off; }
 void HttpRangeSessionStore::append_evidence(sc::SourceSessionId id, sc::SourceEvidenceItem item) { std::lock_guard lk(m); auto it=records.find(id.value); if(it!=records.end()) { item.sequence_number=static_cast<std::uint64_t>(it->second.evidence.items.size()+1); it->second.evidence.items.push_back(std::move(item)); } }
 sc::SourceError HttpRangeSessionStore::close_session(sc::SourceSessionId id) { std::lock_guard lk(m); auto tit=tombstones.find(id.value); if(tit!=tombstones.end()) return sc::SourceError::ok(); auto it=records.find(id.value); if(it==records.end()) return {sc::SourceErrorCode::session_not_found,""}; it->second.session.session_state=sc::SourceSessionState::closed; tombstones[id.value]=std::move(it->second); records.erase(it); return sc::SourceError::ok(); }
@@ -36,7 +36,7 @@ sc::SourceOpenResult HttpRangeProvider::open(const sc::SourceOpenRequest& req, H
         auto ce=parse_content_range(resp.headers["Content-Range"],pcr);
         if (ce==ContentRangeError::none && pcr.valid) {
             if (pcr.has_total) { has_range=true; clen=pcr.total; rpk=sc::RangeProofKind::seekable_known_length; }
-            else rpk=sc::RangeProofKind::range_observed_unknown_length_not_seekable;
+            else { has_range=true; clen=0; rpk=sc::RangeProofKind::range_observed_unknown_length_not_seekable; }
         }
     } else if (resp.status==416) {
         ParsedContentRange pcr;

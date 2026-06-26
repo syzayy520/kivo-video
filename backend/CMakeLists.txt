@@ -866,7 +866,7 @@ target_include_directories(kivo_video_provider_http_range PUBLIC ${CMAKE_CURRENT
 target_compile_options(kivo_video_provider_http_range PRIVATE /std:c++17)
 target_link_libraries(kivo_video_provider_http_range PUBLIC kivo_video_source_core_runtime)
 
-set(HR_TESTS open read seek close redaction direct_input basic_thread_safety)
+set(HR_TESTS open read seek close redaction direct_input basic_thread_safety empty_416 no_range unknown_length one_byte zero_read evidence schema)
 foreach(test_name ${HR_TESTS})
   add_executable(kivo_video_provider_http_range_${test_name}_test
     tests/providers/http/${test_name}_test.cpp
@@ -880,6 +880,30 @@ foreach(test_name ${HR_TESTS})
     COMMAND kivo_video_provider_http_range_${test_name}_test
   )
   set_tests_properties(kivo_video_provider_http_range_${test_name}_test PROPERTIES TIMEOUT 10)
+endforeach()
+
+# ─── WebDAV Bridge ───
+add_library(kivo_video_provider_webdav STATIC
+  src/providers/webdav/webdav_bridge.cpp
+)
+target_include_directories(kivo_video_provider_webdav PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_options(kivo_video_provider_webdav PRIVATE /std:c++17)
+target_link_libraries(kivo_video_provider_webdav PUBLIC kivo_video_provider_http_range)
+
+set(WD_TESTS open read seek close redaction direct_input)
+foreach(test_name ${WD_TESTS})
+  add_executable(kivo_video_provider_webdav_${test_name}_test
+    tests/providers/webdav/${test_name}_test.cpp
+  )
+  target_include_directories(kivo_video_provider_webdav_${test_name}_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/tests
+  )
+  target_compile_options(kivo_video_provider_webdav_${test_name}_test PRIVATE /std:c++17)
+  target_link_libraries(kivo_video_provider_webdav_${test_name}_test PRIVATE kivo_video_provider_webdav)
+  add_test(NAME kivo_video_provider_webdav_${test_name}_test
+    COMMAND kivo_video_provider_webdav_${test_name}_test
+  )
+  set_tests_properties(kivo_video_provider_webdav_${test_name}_test PROPERTIES TIMEOUT 10)
 endforeach()
 
 # ─── P2 Schema Gate Validator ───
