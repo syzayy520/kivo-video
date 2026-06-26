@@ -29,7 +29,13 @@ sc::SourceOpenResult HttpRangeProvider::open(const sc::SourceOpenRequest& req, H
     HttpTransportRequest probe; probe.method="GET"; probe.url=raw;
     probe.range_start=0; probe.range_end=0; probe.body_cap=65536;
     auto resp = transport(probe);
+    // Reject compressed/multipart/malformed early
+    if (resp.status==401||resp.status==403||resp.status==429||resp.status==503) return sc::SourceOpenResult::failure({sc::SourceErrorCode::internal_error,"auth/rate/unavailable"});
     bool has_range=false; std::uint64_t clen=0; sc::RangeProofKind rpk=sc::RangeProofKind::none;
+
+    if (resp.body_cap_hit || resp.status==499) { return sc::SourceOpenResult::failure({sc::SourceErrorCode::internal_error,"body cap/cancelled"}); }
+    if (resp.status==200) { rpk=sc::RangeProofKind::rejected_no_range; return sc::SourceOpenResult::failure({sc::SourceErrorCode::range_not_supported,"no range support"}); }
+    if (resp.status!=206&&resp.status!=416) return sc::SourceOpenResult::failure({sc::SourceErrorCode::internal_error,"unexpected status:"+std::to_string(resp.status)});
 
     if (resp.status==206) {
         ParsedContentRange pcr;

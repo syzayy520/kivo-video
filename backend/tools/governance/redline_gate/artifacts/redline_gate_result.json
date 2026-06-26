@@ -3,12 +3,12 @@
   "task_id": "P2-REDLINE-GATE-FOUNDATION",
   "scan_mode": "all",
   "classification": "FAIL",
-  "files_scanned": 203,
-  "violations_count": 3,
+  "files_scanned": 206,
+  "violations_count": 6,
   "violations_by_rule": {
     "SCHEMA": 1,
-    "R8": 1,
-    "R4": 1
+    "R8": 3,
+    "R4": 2
   },
   "violations": [
     {
@@ -22,7 +22,7 @@
     {
       "rule_id": "R8",
       "severity": "FAIL",
-      "file": ".\\docs/roadmap\\backend_task_checklist.md",
+      "file": "C:/kivo video\\docs/roadmap\\backend_task_checklist.md",
       "field_path": "content",
       "message": "premature claim: 'P2 Complete'",
       "evidence_excerpt_redacted": "[redacted]"
@@ -30,7 +30,31 @@
     {
       "rule_id": "R4",
       "severity": "FAIL",
-      "file": ".\\docs/roadmap\\p2_source_runtime_foundation_local_file_001_execution_card.md",
+      "file": "C:/kivo video\\docs/roadmap\\p2_remote_range_runtime_http_webdav_001_execution_card.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R8",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p2_remote_range_runtime_http_webdav_001_execution_card.md",
+      "field_path": "content",
+      "message": "premature claim: 'ALL PROVIDERS RUNTIME VERIFIED'",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R8",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p2_remote_range_runtime_http_webdav_001_execution_card.md",
+      "field_path": "content",
+      "message": "premature claim: 'P2 Complete'",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p2_source_runtime_foundation_local_file_001_execution_card.md",
       "field_path": "content",
       "message": "credential matched: C:\\Users\\",
       "evidence_excerpt_redacted": "[redacted]"
@@ -38,15 +62,38 @@
   ],
   "schema_failures": [
     {
-      "file": ".\\artifacts/p2/evidence\\LOCAL-FILE-SOURCE-RUNTIME-001.json",
+      "file": "C:/kivo video\\artifacts/p2/evidence\\LOCAL-FILE-SOURCE-RUNTIME-001.json",
       "errors": [
+        "missing field: runtime_mode"
+      ]
+    },
+    {
+      "file": "C:/kivo video\\artifacts/p2/evidence\\REMOTE-RANGE-RUNTIME-HTTP-WEBDAV-001.json",
+      "errors": [
+        "missing field: completion_level",
         "missing field: runtime_mode",
-        "unknown runtime_environment_kind: 'local_file_temp_runtime'"
+        "missing field: environment",
+        "missing field: media_identity",
+        "missing field: source_identity",
+        "missing field: extension_identity",
+        "missing field: capability_probe",
+        "missing field: direct_play_decision",
+        "missing field: direct_stream_decision",
+        "missing field: subtitle_snapshot",
+        "missing field: chapter_snapshot",
+        "missing field: playback_state_snapshot",
+        "missing field: inspector_snapshot",
+        "missing field: decision_ledger",
+        "missing field: errors",
+        "missing field: redline_scan",
+        "missing field: test_commands",
+        "missing field: artifacts",
+        "unknown runtime_environment_kind: 'deterministic_transport_fixture_runtime'"
       ]
     }
   ],
   "legacy_inventory": "backend/tools/governance/redline_gate/artifacts/legacy_evidence_violations.json",
   "allowed_claims": [],
   "forbidden_claims": [],
-  "timestamp_utc": "2026-06-26T18:00:11Z"
+  "timestamp_utc": "2026-06-26T19:56:59Z"
 }

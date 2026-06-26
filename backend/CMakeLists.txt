@@ -866,7 +866,7 @@ target_include_directories(kivo_video_provider_http_range PUBLIC ${CMAKE_CURRENT
 target_compile_options(kivo_video_provider_http_range PRIVATE /std:c++17)
 target_link_libraries(kivo_video_provider_http_range PUBLIC kivo_video_source_core_runtime)
 
-set(HR_TESTS open read seek close redaction direct_input basic_thread_safety empty_416 no_range unknown_length one_byte zero_read evidence schema)
+set(HR_TESTS open read seek close redaction direct_input basic_thread_safety empty_416 no_range unknown_length one_byte zero_read evidence schema redirect auth rate_limit compressed_range)
 foreach(test_name ${HR_TESTS})
   add_executable(kivo_video_provider_http_range_${test_name}_test
     tests/providers/http/${test_name}_test.cpp
