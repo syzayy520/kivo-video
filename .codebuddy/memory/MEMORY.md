@@ -3,8 +3,8 @@
 ## Project Overview
 - **Repository**: https://github.com/syzayy520/kivo-video
 - **Primary Branch**: kivo-video-p2-real-001-repair-ffmpeg-proof
-- **Current Focus**: P2 Remaining Coverage V8 Global Gates
-- **Next Task**: SGF-001 Define p2-evidence-v8 schema
+- **Current Focus**: P2 Local Runtime verified; next → P2-SCHEMA-GATE / P2-REDLINE-GATE / P2-SOURCE-CORE
+- **Next Task**: P2-SCHEMA-GATE or P2-REDLINE-GATE (NOT P3)
 
 ## Key Architecture Decisions
 1. **Iron Gate Rule**: conception → planning design → natural family tree → implementation → single file, single responsibility → no flat files
@@ -50,20 +50,17 @@
 
 ## Last Verification
 - **Branch**: kivo-video-p2-real-001-repair-ffmpeg-proof
-- **HEAD**: 3bcb011 (V8 execution sequence complete, all evidence files added)
+- **HEAD**: efb417c (P2 Local Runtime Final Verification)
 - **Remote**: Synced
-- **Tests**: 84/84 CTest PASS (FFmpeg ON build)
 - **Working Tree**: Clean
-- **V8 Gates**: V8-001 through V8-009 all DONE, evidence in artifacts/p2/evidence/
-- **LRD Progress**: LRD-001 through LRD-013 all DONE, evidence in artifacts/p2/evidence/
-- **SGF Progress**: SGF-001 through SGF-008 all DONE, evidence in artifacts/p2/evidence/
-- **RGF Progress**: RGF-001 through RGF-005 all DONE, evidence in artifacts/p2/evidence/
-- **Provider Foundations**: FMT-001, MID-001, SUB-001, SRC-001, NET-001, OBJ-001, WDA-001, MSV-001, CLD-001, IPTV-001, PST-001, ACP-001 all DONE
-- **Presentation Extensions**: CAST-001, PIP-001, CIN-001, TRK-001 all DONE
-- **Provider Matrix**: PMX-001, PMX-002 all DONE
-- **Final Gates**: PFFG-001, PFFG-002, APRV-001 all DONE
-- **Commit**: 3bcb011 chore(v8): add all V8 execution sequence evidence files and documentation
-- **Push**: PUSHED_SUCCESSFULLY to kivo-video-p2-real-001-repair-ffmpeg-proof
+- **CTest**: 84/84 PASS (FFmpeg ON, golden sample)
+- **Golden Sample**: kivo_h264_aac_35s_golden.mp4 (35s, H.264+AAC)
+- **E2E**: RUNTIME_PASS (640x360, 3 D3D11, WASAPI)
+- **Soak**: RUNTIME_PASS (35s, 10 D3D11, 3545 PCM)
+- **Gate**: No Debug Dialog PASS
+- **P2 Local Runtime**: RUNTIME_PASS
+- **local_file provider**: RUNTIME_PASS (only provider with RUNTIME_PASS)
+- **Push**: efb417c pushed to kivo-video-p2-real-001-repair-ffmpeg-proof
 
 ## V8 Execution Sequence Completion
 - **V8-001**: Branch / Workspace / Root Clean Gate - DONE
