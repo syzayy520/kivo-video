@@ -2,7 +2,7 @@
   "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
   "migrated_count": 51,
   "excluded_rgf_count": 6,
-  "timestamp_utc": "2026-06-26T08:50:24Z",
+  "timestamp_utc": "2026-06-26T09:20:03Z",
   "report": {
     "ACP-001": {
       "original_top_level_fields": [
@@ -57,7 +57,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -68,7 +68,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "APRV-001": {
@@ -124,7 +124,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -135,7 +135,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "CAST-001": {
@@ -195,7 +195,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -206,7 +206,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "CIN-001": {
@@ -264,7 +264,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -275,7 +275,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:30:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "CLD-001": {
@@ -333,7 +333,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -344,7 +344,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "FMT-001": {
@@ -384,7 +384,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -395,7 +395,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:18:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "IPTV-001": {
@@ -457,7 +457,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -468,7 +468,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "LRD-001": {
@@ -1042,7 +1042,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1053,7 +1053,7 @@
         "runtime_verified_timestamp": "2026-06-26T00:50:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "LRD-011": {
@@ -1089,7 +1089,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1100,7 +1100,7 @@
         "runtime_verified_timestamp": "2026-06-26T00:50:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "LRD-012": {
@@ -1136,7 +1136,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1147,7 +1147,7 @@
         "runtime_verified_timestamp": "2026-06-26T00:50:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "LRD-013": {
@@ -1185,7 +1185,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1196,7 +1196,7 @@
         "runtime_verified_timestamp": "2026-06-26T00:50:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "MID-001": {
@@ -1236,7 +1236,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1247,7 +1247,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "MSV-001": {
@@ -1302,7 +1302,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1313,7 +1313,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "NET-001": {
@@ -1355,7 +1355,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1366,7 +1366,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:26:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "OBJ-001": {
@@ -1408,7 +1408,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1419,7 +1419,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:28:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "PFFG-001": {
@@ -1473,7 +1473,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1484,7 +1484,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "PFFG-002": {
@@ -1536,7 +1536,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1547,7 +1547,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "PIP-001": {
@@ -1607,7 +1607,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1618,7 +1618,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:25:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "PMX-001": {
@@ -1670,7 +1670,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1681,7 +1681,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:40:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "PMX-002": {
@@ -1735,7 +1735,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1746,7 +1746,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "PST-001": {
@@ -1808,7 +1808,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1819,7 +1819,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "SGF-001": {
@@ -1861,7 +1861,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1872,7 +1872,7 @@
         "runtime_verified_timestamp": "2026-06-26T00:59:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "SGF-002": {
@@ -1910,7 +1910,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1921,7 +1921,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:00:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "SGF-003": {
@@ -1957,7 +1957,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -1968,7 +1968,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:01:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "SGF-004": {
@@ -2008,7 +2008,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -2019,7 +2019,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:02:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "SGF-005": {
@@ -2059,7 +2059,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -2070,7 +2070,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:03:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "SGF-006": {
@@ -2108,7 +2108,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -2119,7 +2119,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:04:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "SGF-007": {
@@ -2159,7 +2159,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -2170,7 +2170,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:05:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "SGF-008": {
@@ -2208,7 +2208,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -2219,7 +2219,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:06:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "SRC-001": {
@@ -2261,7 +2261,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -2272,7 +2272,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:24:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "SUB-001": {
@@ -2314,7 +2314,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -2325,7 +2325,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:22:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "TRK-001": {
@@ -2385,7 +2385,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -2396,7 +2396,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:35:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     },
     "V8-001": {
@@ -2829,7 +2829,7 @@
       },
       "mapped_values": {
         "status": "CONTRACT_PASS",
-        "runtime_verified": true,
+        "runtime_verified": false,
         "no_status_inflation": true,
         "runtime_environment_kind": {
           "from": "test_harness",
@@ -2840,7 +2840,7 @@
         "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
         "runtime_environment_kind": "test_harness",
         "environment": null,
-        "has_real_runtime_evidence": true
+        "has_real_runtime_evidence": false
       }
     }
   }

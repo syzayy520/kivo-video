@@ -3,7 +3,7 @@
   "task_id": "LRD-012",
   "task_family": "planning",
   "status": "CONTRACT_PASS",
-  "completion_level": "p2-runtime-verified",
+  "completion_level": "p2-foundation-planning",
   "runtime_mode": "regression",
   "runtime_environment_kind": "not_applicable",
   "environment": {},
@@ -38,9 +38,9 @@
   "test_commands": [],
   "artifacts": [],
   "requires_provider_matrix": false,
-  "runtime_verified": true,
+  "runtime_verified": false,
   "blocked_reason": null,
-  "timestamp_utc": "2026-06-26T08:50:19Z",
+  "timestamp_utc": "2026-06-26T09:20:03Z",
   "legacy_original": {
     "schema_version": "p2-evidence-v8",
     "task_id": "LRD-012",
@@ -161,7 +161,7 @@
   },
   "legacy_migration_audit": {
     "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
-    "migration_timestamp_utc": "2026-06-26T08:50:22Z",
+    "migration_timestamp_utc": "2026-06-26T09:20:03Z",
     "preserved_original_snapshot": true,
     "preserved_field_count": 9,
     "migrated_field_count": 33

@@ -317,7 +317,7 @@
   },
   "legacy_migration_audit": {
     "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
-    "migration_timestamp_utc": "2026-06-26T08:50:23Z",
+    "migration_timestamp_utc": "2026-06-26T09:20:03Z",
     "preserved_original_snapshot": true,
     "preserved_field_count": 10,
     "migrated_field_count": 33

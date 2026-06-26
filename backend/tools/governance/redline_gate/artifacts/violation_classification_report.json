@@ -1,28 +1,19 @@
 {
   "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
   "source_scan_result": ".\\backend/tools/governance/redline_gate/artifacts/redline_gate_result.json",
-  "total_violations": 38,
+  "total_violations": 37,
   "summary": {
     "real_violation_requires_remediation": 15,
-    "false_positive_negated_context": 22,
+    "false_positive_negated_context": 21,
     "false_positive_example_fixture": 1,
     "by_rule": {
-      "SCHEMA": 1,
       "R8": 36,
       "R4": 1
     }
   },
   "real_violation_count": 15,
-  "false_positive_count": 23,
+  "false_positive_count": 22,
   "classifications": [
-    {
-      "rule_id": "SCHEMA",
-      "file": "evidence",
-      "message": "Schema gate failures on legacy evidence",
-      "claim": "Schema gate failures on legacy evidence",
-      "classification": "false_positive_negated_context",
-      "context": "[file not found]"
-    },
     {
       "rule_id": "R8",
       "file": "artifacts\\p2\\evidence\\APRV-001.json",
@@ -320,5 +311,5 @@
       "context": " \"P2 COMPLETE\",         \"ALL PROVIDERS RUNTIME VERIFIED\",         \"P3 COMPLETE\",         \"HDR COMPLETE\",         \"ATMOS BITSTREAM COMPLETE\",         \"AIRPLAY PRODUCT COMPLETE\",         \"FOUNDATION COMPLETE without PFFG-001 and PFFG-002\"       ],       \"scan_result\": \"0 premature claims found in current evidence\",       \"ev"
     }
   ],
-  "timestamp_utc": "2026-06-26T09:12:05Z"
+  "timestamp_utc": "2026-06-26T09:21:05Z"
 }

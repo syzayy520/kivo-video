@@ -91,39 +91,56 @@ def infer_schema_version(original):
         return 'provider-runtime-matrix-v8'
     return 'p2-evidence-v8'
 
+# Real runtime environment kinds – only these qualify as actual hardware/service execution.
+REAL_RUNTIME_ENVIRONMENT_KINDS = {
+    'local_real_runtime',
+    'windows_device_runtime',
+    'real_external_service',
+    'real_external_account',
+    'real_external_device',
+    'controlled_real_protocol_server',
+}
+
 def has_real_runtime_evidence(original):
     """Check whether the original evidence has real runtime proof.
-    
-    Real runtime evidence requires at least one of:
-    - runtime_verified_timestamp with a non-empty actual timestamp value
-    - runtime_environment_kind that is not 'not_applicable'/'none'/'test_harness'
-    - environment dict with non-empty 'required' or 'available' keys
-    
-    Without these, RUNTIME_PASS status is a historical planning annotation only
-    and must be downgraded to CONTRACT_PASS at top level.
+
+    Real runtime evidence requires ALL of:
+    - runtime_environment_kind is a real runtime kind (not 'not_applicable'/'none'/'test_harness'/'mock'/'simulator')
+    - environment dict has non-empty runtime evidence (actual keys with real values)
+    - AND at least one of: artifacts[] or test_commands[] points to real test output
+
+    runtime_verified_timestamp ALONE is NOT real runtime evidence.
+    It is a historical planning annotation preserved only in
+    legacy_original/legacy_fields/implementation.legacy_*.
     """
-    # Check for actual runtime timestamp (not empty, not None)
-    rvt = original.get('runtime_verified_timestamp')
-    if rvt and isinstance(rvt, str) and rvt.strip() and rvt.strip() not in ('N/A', 'NONE', ''):
-        return True
-    
-    # Check runtime_environment_kind signals real execution
+    # --- Rule 1: runtime_environment_kind must be a real runtime kind ---
     rk = original.get('runtime_environment_kind', original.get('environment_kind', ''))
-    if rk and rk not in ('not_applicable', 'none', 'test_harness', '', 'N/A', 'NONE'):
-        return True
-    
-    # Check environment dict for real runtime markers
+    if not rk or rk not in REAL_RUNTIME_ENVIRONMENT_KINDS:
+        return False
+
+    # --- Rule 2: environment must contain real runtime evidence ---
     env = original.get('environment', {})
-    if isinstance(env, dict):
-        if env.get('required') or env.get('available') or env.get('runtime_host'):
-            return True
-    
-    # Check execution_timestamp is a real runtime timestamp (not planning-only)
-    et = original.get('execution_timestamp')
-    if et and isinstance(et, str) and et.strip():
-        # execution_timestamp alone is NOT sufficient - it often exists in planning docs
-        pass
-    
+    if not isinstance(env, dict) or not env:
+        return False
+    # Environment must have at least one concrete runtime marker
+    has_env_evidence = any(
+        v for v in env.values()
+        if v not in (None, '', [], {}, False)
+    )
+    if not has_env_evidence:
+        return False
+
+    # --- Rule 3: artifacts or test_commands must reference real runtime output ---
+    artifacts = original.get('artifacts', [])
+    test_commands = original.get('test_commands', [])
+    if isinstance(artifacts, list) and any(
+        a for a in artifacts
+        if isinstance(a, dict) and a.get('path')
+    ):
+        return True
+    if isinstance(test_commands, list) and any(tc for tc in test_commands if tc):
+        return True
+
     return False
 
 def classify_runtime_evidence_status(original):
