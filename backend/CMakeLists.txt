@@ -754,4 +754,8 @@ if(PYTHON_EXE)
     COMMAND ${PYTHON_EXE} "${CMAKE_SOURCE_DIR}/backend/tools/governance/schema_gate/validator/schema_gate_validator.py" --self-test
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
   )
+  add_test(NAME kivo_redline_gate_self_test
+    COMMAND ${PYTHON_EXE} "${CMAKE_SOURCE_DIR}/backend/tools/governance/redline_gate/redline_checker.py" --self-test
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  )
 endif()
