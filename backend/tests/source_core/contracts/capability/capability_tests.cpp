@@ -1,35 +1,23 @@
 #include "kivo/video/source_core/contracts/capability/source_capability_snapshot.hpp"
-
-#include <cassert>
-#include <cstdint>
+#include "source_core/test_helpers.hpp"
 
 using namespace kivo::video::source_core;
+using namespace kivo::video::source_core::test;
 
 int main() {
-    // Default capability uses typed states, not booleans
     SourceCapabilitySnapshot cap;
-    
-    // Defaults are unknown
-    assert(cap.seek == CapabilityState::unknown);
-    assert(cap.range_read == CapabilityState::unknown);
-    assert(cap.direct_play_candidate == CapabilityState::unknown);
-    
-    // Optionals are empty by default (unknown, not false)
-    assert(!cap.content_length_bytes.has_value());
-    assert(!cap.mime_type.has_value());
-    
-    // Set supported states
+    CHECK_EQ(cap.seek, CapabilityState::unknown);
+    CHECK_EQ(cap.range_read, CapabilityState::unknown);
+    CHECK_EQ(cap.direct_play_candidate, CapabilityState::unknown);
+    CHECK_TRUE(!cap.content_length_bytes.has_value());
+    CHECK_TRUE(!cap.mime_type.has_value());
+
     cap.seek = CapabilityState::supported;
     cap.range_read = CapabilityState::unsupported;
     cap.content_length_bytes = 12345;
-    
-    assert(cap.seek == CapabilityState::supported);
-    assert(cap.range_read == CapabilityState::unsupported);
-    assert(cap.content_length_bytes.value() == 12345);
-    
-    // Unknown is not supported
-    assert(CapabilityState::unknown != CapabilityState::supported);
-    assert(CapabilityState::unknown != CapabilityState::unsupported);
-    
+    CHECK_EQ(cap.seek, CapabilityState::supported);
+    CHECK_EQ(cap.range_read, CapabilityState::unsupported);
+    CHECK_EQ(cap.content_length_bytes.value(), 12345ULL);
+    CHECK_NEQ(CapabilityState::unknown, CapabilityState::supported);
     return 0;
 }

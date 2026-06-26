@@ -1,35 +1,38 @@
 #include "kivo/video/source_core/contracts/decision_input/direct_play_input.hpp"
 #include "kivo/video/source_core/contracts/decision_input/direct_stream_input.hpp"
 #include "kivo/video/source_core/contracts/decision_input/source_core_contract_version.hpp"
-
-#include <cassert>
+#include "source_core/test_helpers.hpp"
 
 using namespace kivo::video::source_core;
+using namespace kivo::video::source_core::test;
 
 int main() {
     // Contract version is 1
-    static_assert(kSourceCoreContractVersion == 1, "Contract version must be 1");
-    
-    // DirectPlayInput defaults
+    CHECK_TRUE(kSourceCoreContractVersion == 1);
+
+    // DirectPlayInput carries identity, capability, evidence
     DirectPlayInput dpi;
-    assert(dpi.contract_version == kSourceCoreContractVersion);
-    assert(dpi.seekable == CapabilityState::unknown);
-    assert(!dpi.content_length_bytes.has_value());
-    assert(!dpi.mime_type.has_value());
+    CHECK_EQ(dpi.contract_schema_version, kSourceCoreContractVersion);
+    CHECK_EQ(dpi.identity.id.value, 0ULL);
+    CHECK_EQ(dpi.capability.seek, CapabilityState::unknown);
+    CHECK_TRUE(dpi.evidence.is_contract_pass_only());
+    CHECK_TRUE(!dpi.evidence.has_runtime_pass());
+    CHECK_TRUE(!dpi.safe_metadata_hint.has_value());
     
-    // DirectStreamInput defaults
+    dpi.identity.id = SourceIdentityId{42};
+    dpi.capability.seek = CapabilityState::supported;
+    CHECK_EQ(dpi.identity.id.value, 42ULL);
+    CHECK_EQ(dpi.capability.seek, CapabilityState::supported);
+
+    // DirectStreamInput carries same evidence pack
     DirectStreamInput dsi;
-    assert(dsi.contract_version == kSourceCoreContractVersion);
-    assert(!dsi.transcode_hint.has_value());
-    assert(!dsi.bandwidth_estimate_bps.has_value());
+    CHECK_EQ(dsi.contract_schema_version, kSourceCoreContractVersion);
+    CHECK_EQ(dsi.identity.id.value, 0ULL);
+    CHECK_TRUE(dsi.evidence.is_contract_pass_only());
+    CHECK_TRUE(!dsi.evidence.has_runtime_pass());
+    CHECK_TRUE(!dsi.safe_metadata_hint.has_value());
     
-    // They are carriers, not decision engines
-    dpi.seekable = CapabilityState::supported;
-    dpi.content_length_bytes = 999;
-    assert(dpi.seekable == CapabilityState::supported);
-    
-    dsi.bandwidth_estimate_bps = 5000000;
-    assert(dsi.bandwidth_estimate_bps.value() == 5000000);
-    
+    dsi.identity.id = SourceIdentityId{99};
+    CHECK_EQ(dsi.identity.id.value, 99ULL);
     return 0;
 }

@@ -1,19 +1,15 @@
 #include "kivo/video/source_core/runtime/cancel/source_cancel_token.hpp"
-
-#include <cassert>
+#include "source_core/test_helpers.hpp"
 
 using namespace kivo::video::source_core;
+using namespace kivo::video::source_core::test;
 
 int main() {
-    // Default: not cancelled
     SourceCancelToken token;
-    assert(!token.is_cancelled());
-    assert(!token.cancelled);
-    
-    // Cancel
+    CHECK_TRUE(!token.is_cancelled());
+    CHECK_TRUE(!token.cancelled);
     token.cancel();
-    assert(token.is_cancelled());
-    assert(token.cancelled);
-    
+    CHECK_TRUE(token.is_cancelled());
+    CHECK_TRUE(token.cancelled);
     return 0;
 }

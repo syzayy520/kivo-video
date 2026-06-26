@@ -1,32 +1,24 @@
 #include "kivo/video/source_core/contracts/auth/source_auth.hpp"
-
-#include <cassert>
-#include <cstdint>
+#include "source_core/test_helpers.hpp"
 
 using namespace kivo::video::source_core;
+using namespace kivo::video::source_core::test;
 
 int main() {
-    // Default auth info
     SourceAuthInfo auth;
-    assert(auth.requirement == AuthRequirement::unknown);
-    assert(auth.kind == AuthKind::unknown);
-    
-    // SourceSecretRef is opaque, no credential values
+    CHECK_EQ(auth.requirement, AuthRequirement::unknown);
+    CHECK_EQ(auth.kind, AuthKind::unknown);
+
     SourceSecretRef secret{42};
-    assert(secret.opaque_id == 42);
-    
-    // Set auth requirements
+    CHECK_EQ(secret.opaque_id, 42ULL);
+
     auth.requirement = AuthRequirement::required;
     auth.kind = AuthKind::bearer_token;
     auth.secret = SourceSecretRef{100};
-    
-    assert(auth.requirement == AuthRequirement::required);
-    assert(auth.kind == AuthKind::bearer_token);
-    assert(auth.secret.opaque_id == 100);
-    
-    // Enum values are distinct
-    assert(AuthRequirement::not_required != AuthRequirement::required);
-    assert(AuthKind::basic != AuthKind::bearer_token);
-    
+    CHECK_EQ(auth.requirement, AuthRequirement::required);
+    CHECK_EQ(auth.kind, AuthKind::bearer_token);
+    CHECK_EQ(auth.secret.opaque_id, 100ULL);
+    CHECK_NEQ(AuthRequirement::not_required, AuthRequirement::required);
+    CHECK_NEQ(AuthKind::basic, AuthKind::bearer_token);
     return 0;
 }

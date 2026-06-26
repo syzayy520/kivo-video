@@ -1,37 +1,32 @@
 #include "kivo/video/source_core/runtime/open/source_open_request.hpp"
 #include "kivo/video/source_core/runtime/open/source_open_result.hpp"
-
-#include <cassert>
+#include "source_core/test_helpers.hpp"
 
 using namespace kivo::video::source_core;
+using namespace kivo::video::source_core::test;
 
 int main() {
-    // Open request with raw URI
     auto uri = SourceUri::from_raw("https://example.com/video.mp4");
     SourceOpenRequest req;
     req.uri = std::move(uri);
-    
-    // Open result strong wrapper: success holds SourceSession
-    SourceSession session;
-    session.id = SourceSessionId{1};
-    session.state = SourceSessionState::open;
-    
-    auto result = SourceOpenResult::success(session);
-    assert(result.is_success());
-    assert(!result.is_failure());
-    assert(result.session() != nullptr);
-    assert(result.session()->id.value == 1);
-    assert(result.session()->state == SourceSessionState::open);
-    assert(result.error() == nullptr);
-    
-    // Open result: failure holds SourceError
+
+    SourceSession s;
+    s.session_id = SourceSessionId{1};
+    s.session_state = SourceSessionState::open;
+    auto result = SourceOpenResult::success(s);
+    CHECK_TRUE(result.is_success());
+    CHECK_TRUE(!result.is_failure());
+    CHECK_TRUE(result.session_if_success() != nullptr);
+    CHECK_EQ(result.session_if_success()->session_id.value, 1ULL);
+    CHECK_EQ(result.session_if_success()->session_state, SourceSessionState::open);
+    CHECK_TRUE(result.error_if_failure() == nullptr);
+
     SourceError err{SourceErrorCode::auth_failed, "bad credentials"};
-    auto fail_result = SourceOpenResult::failure(err);
-    assert(fail_result.is_failure());
-    assert(!fail_result.is_success());
-    assert(fail_result.error() != nullptr);
-    assert(fail_result.error()->code == SourceErrorCode::auth_failed);
-    assert(fail_result.session() == nullptr);
-    
+    auto fr = SourceOpenResult::failure(err);
+    CHECK_TRUE(fr.is_failure());
+    CHECK_TRUE(!fr.is_success());
+    CHECK_TRUE(fr.error_if_failure() != nullptr);
+    CHECK_EQ(fr.error_if_failure()->code, SourceErrorCode::auth_failed);
+    CHECK_TRUE(fr.session_if_success() == nullptr);
     return 0;
 }

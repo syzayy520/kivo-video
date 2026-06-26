@@ -6,6 +6,6 @@ namespace kivo::video::source_core {
 
 /// Runtime-layer error alias. Reuses contract-layer SourceError.
 /// No exception-based business-control path.
-using SourceRuntimeError = SourceError;
+using SourceSessionError = SourceError;
 
 }  // namespace kivo::video::source_core

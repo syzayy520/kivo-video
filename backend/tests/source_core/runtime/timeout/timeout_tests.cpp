@@ -1,28 +1,20 @@
 #include "kivo/video/source_core/runtime/timeout/source_timeout.hpp"
-
-#include <cassert>
+#include "source_core/test_helpers.hpp"
 #include <limits>
 
 using namespace kivo::video::source_core;
+using namespace kivo::video::source_core::test;
 
 int main() {
-    // Default timeout
     SourceTimeout t;
-    assert(t.millis == 0);
-    assert(!t.is_infinite());
-    
-    // Finite timeout
+    CHECK_EQ(t.millis, 0ULL);
+    CHECK_TRUE(!t.is_infinite());
     t.millis = 5000;
-    assert(t.millis == 5000);
-    assert(!t.is_infinite());
-    
-    // Infinite timeout uses max uint64
+    CHECK_EQ(t.millis, 5000ULL);
+    CHECK_TRUE(!t.is_infinite());
     auto inf = SourceTimeout::infinite();
-    assert(inf == std::numeric_limits<std::uint64_t>::max());
-    
-    SourceTimeout ti;
-    ti.millis = SourceTimeout::infinite();
-    assert(ti.is_infinite());
-    
+    CHECK_EQ(inf, (std::numeric_limits<std::uint64_t>::max)());
+    t.millis = SourceTimeout::infinite();
+    CHECK_TRUE(t.is_infinite());
     return 0;
 }

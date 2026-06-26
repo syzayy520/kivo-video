@@ -1,27 +1,20 @@
 #include "kivo/video/source_core/contracts/error/source_error.hpp"
-
-#include <cassert>
+#include "source_core/test_helpers.hpp"
 
 using namespace kivo::video::source_core;
+using namespace kivo::video::source_core::test;
 
 int main() {
-    // Default error is OK
     SourceError err;
-    assert(err.is_ok());
-    assert(err.code == SourceErrorCode::none);
-    
-    // Error with code
-    SourceError not_found{SourceErrorCode::not_found, "resource missing"};
-    assert(!not_found.is_ok());
-    assert(not_found.code == SourceErrorCode::not_found);
-    
-    // Static OK utility
+    CHECK_TRUE(err.is_ok());
+    CHECK_EQ(err.code, SourceErrorCode::none);
+
+    SourceError nf{SourceErrorCode::not_found, "resource missing"};
+    CHECK_TRUE(!nf.is_ok());
+    CHECK_EQ(nf.code, SourceErrorCode::not_found);
+
     auto ok = SourceError::ok();
-    assert(ok.is_ok());
-    
-    // All error codes are distinct
-    assert(SourceErrorCode::none != SourceErrorCode::not_found);
-    assert(SourceErrorCode::timeout != SourceErrorCode::auth_failed);
-    
+    CHECK_TRUE(ok.is_ok());
+    CHECK_NEQ(SourceErrorCode::none, SourceErrorCode::not_found);
     return 0;
 }

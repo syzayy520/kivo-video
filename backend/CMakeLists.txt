@@ -780,9 +780,14 @@ foreach(test_family ${SC_CONTRACT_TESTS})
   )
   target_include_directories(kivo_video_source_core_contract_${test_family}_test PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests
   )
   target_compile_options(kivo_video_source_core_contract_${test_family}_test PRIVATE /std:c++17)
   target_link_libraries(kivo_video_source_core_contract_${test_family}_test PRIVATE kivo_video_source_core_contracts)
+  add_test(NAME kivo_video_source_core_contract_${test_family}_test
+    COMMAND kivo_video_source_core_contract_${test_family}_test
+  )
+  set_tests_properties(kivo_video_source_core_contract_${test_family}_test PROPERTIES TIMEOUT 10)
 endforeach()
 
 # Runtime tests — one executable per family
@@ -793,9 +798,14 @@ foreach(test_family ${SC_RUNTIME_TESTS})
   )
   target_include_directories(kivo_video_source_core_runtime_${test_family}_test PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests
   )
   target_compile_options(kivo_video_source_core_runtime_${test_family}_test PRIVATE /std:c++17)
   target_link_libraries(kivo_video_source_core_runtime_${test_family}_test PRIVATE kivo_video_source_core_runtime)
+  add_test(NAME kivo_video_source_core_runtime_${test_family}_test
+    COMMAND kivo_video_source_core_runtime_${test_family}_test
+  )
+  set_tests_properties(kivo_video_source_core_runtime_${test_family}_test PROPERTIES TIMEOUT 10)
 endforeach()
 
 # Provider placeholder INTERFACE targets (no runtime, no source files)

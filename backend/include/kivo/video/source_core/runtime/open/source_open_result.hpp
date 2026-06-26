@@ -7,8 +7,6 @@
 
 namespace kivo::video::source_core {
 
-/// Strong wrapper -- not a bare alias around a variant.
-/// Success holds SourceSession; failure holds SourceError.
 class SourceOpenResult {
 public:
     static SourceOpenResult success(SourceSession session) {
@@ -26,11 +24,11 @@ public:
     bool is_success() const { return std::holds_alternative<SourceSession>(data_); }
     bool is_failure() const { return std::holds_alternative<SourceError>(data_); }
 
-    const SourceSession* session() const {
+    const SourceSession* session_if_success() const {
         return std::get_if<SourceSession>(&data_);
     }
 
-    const SourceError* error() const {
+    const SourceError* error_if_failure() const {
         return std::get_if<SourceError>(&data_);
     }
 

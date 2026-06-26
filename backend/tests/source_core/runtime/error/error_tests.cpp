@@ -1,17 +1,14 @@
-#include "kivo/video/source_core/runtime/error/source_runtime_error.hpp"
-
-#include <cassert>
+#include "kivo/video/source_core/runtime/error/source_session_error.hpp"
+#include "source_core/test_helpers.hpp"
 
 using namespace kivo::video::source_core;
+using namespace kivo::video::source_core::test;
 
 int main() {
-    // Runtime error is same as contract error
-    SourceRuntimeError err{SourceErrorCode::timeout, "connection timed out"};
-    assert(!err.is_ok());
-    assert(err.code == SourceErrorCode::timeout);
-    
-    SourceRuntimeError ok = SourceRuntimeError::ok();
-    assert(ok.is_ok());
-    
+    SourceSessionError err{SourceErrorCode::timeout, "timed out"};
+    CHECK_TRUE(!err.is_ok());
+    CHECK_EQ(err.code, SourceErrorCode::timeout);
+    auto ok = SourceSessionError::ok();
+    CHECK_TRUE(ok.is_ok());
     return 0;
 }
