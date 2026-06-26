@@ -1,0 +1,4 @@
+#include "test_fixture.hpp"
+#include "source_core/test_helpers.hpp"
+using namespace kivo::video::source_core; using namespace kivo::video::source_core::test;
+int main(){auto fx=make_fixture(FixtureMode::weak_etag,6);ph::HttpRangeSessionStore s;auto o=ph::HttpRangeProvider::open(SourceOpenRequest{SourceUri::from_raw("http://x.com/f")},fx,s);CHECK_TRUE(o.is_success());auto fx2=make_fixture(FixtureMode::last_modified_only,6);ph::HttpRangeSessionStore s2;auto o2=ph::HttpRangeProvider::open(SourceOpenRequest{SourceUri::from_raw("http://x.com/g")},fx2,s2);CHECK_TRUE(o2.is_success());auto fx3=make_fixture(FixtureMode::length_only,6);ph::HttpRangeSessionStore s3;auto o3=ph::HttpRangeProvider::open(SourceOpenRequest{SourceUri::from_raw("http://x.com/h")},fx3,s3);CHECK_TRUE(o3.is_success());return 0;}
