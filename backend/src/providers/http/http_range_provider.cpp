@@ -42,13 +42,14 @@ sc::SourceOpenResult HttpRangeProvider::open(const sc::SourceOpenRequest& req, H
         auto ce=parse_content_range(resp.headers["Content-Range"],pcr);
         if (ce==ContentRangeError::none && pcr.valid) {
             if (pcr.has_total) { has_range=true; clen=pcr.total; rpk=sc::RangeProofKind::seekable_known_length; }
-            else { has_range=true; clen=0; rpk=sc::RangeProofKind::range_observed_unknown_length_not_seekable; }
+            else { return sc::SourceOpenResult::failure({sc::SourceErrorCode::range_not_supported,"unknown-length not seekable"}); }
         }
     } else if (resp.status==416) {
         ParsedContentRange pcr;
         parse_content_range(resp.headers["Content-Range"],pcr);
         if (pcr.has_total && pcr.total==0) { has_range=true; clen=0; rpk=sc::RangeProofKind::seekable_empty_source; }
-        else if (!pcr.has_total) { has_range=true; clen=0; rpk=sc::RangeProofKind::seekable_empty_source; }
+        else if (pcr.has_total && pcr.total==1) { return sc::SourceOpenResult::failure({sc::SourceErrorCode::range_not_supported,"probe nonconformant: bytes */1"}); }
+        else if (!pcr.has_total) { return sc::SourceOpenResult::failure({sc::SourceErrorCode::range_not_supported,"unknown total, not empty proof"}); }
     } else if (resp.status==200) {
         rpk=sc::RangeProofKind::rejected_no_range;
         return sc::SourceOpenResult::failure({sc::SourceErrorCode::invalid_request,"no range support"});
@@ -70,7 +71,7 @@ sc::SourceOpenResult HttpRangeProvider::open(const sc::SourceOpenRequest& req, H
 
     HttpRangeSessionRecord rec; rec.session=sess; rec.identity=identity; rec.capability=cap; rec.evidence=ev;
     rec.content_length=clen; rec.can_read=(rpk==sc::RangeProofKind::seekable_known_length); rec.redacted_url=url.safe_redacted();
-    rec.raw_url = ProviderInternalRemoteUri(raw);
+    rec.raw_url = ProviderInternalRemoteUri(raw).release_secure();
     store.insert(std::move(rec));
     return sc::SourceOpenResult::success(sess);
 }
@@ -84,11 +85,11 @@ sc::SourceReadResult HttpRangeProvider::read(const sc::SourceReadRequest& req, H
     if (req.length==0) { bool eof=rec.current_offset>=rec.content_length; return {0,eof,false,sc::SourceError::ok(),{}}; }
     if (req.length>kMaxReadChunkSize) return {0,false,false,{sc::SourceErrorCode::read_size_exceeded,""},{}};
     bool is_pos=req.offset.has_value();
-    std::uint64_t ro=is_pos?req.offset.value():rec.current_offset;
+    std::uint64_t ro=is_pos?*req.offset:rec.current_offset;
     if (ro>=rec.content_length) return {0,true,false,sc::SourceError::ok(),{}};
     std::uint64_t safe_len=std::min(req.length,rec.content_length-ro);
 
-    HttpTransportRequest hr; hr.method="GET"; hr.url=rec.redacted_url;
+    HttpTransportRequest hr; hr.method="GET"; hr.url=rec.raw_url;
     hr.range_start=ro; hr.range_end=ro+safe_len-1; hr.body_cap=safe_len+4096;
     auto resp=transport(hr);
     if (resp.status!=206) return {0,false,false,{sc::SourceErrorCode::internal_error,"read failed:"+std::to_string(resp.status)},{}};

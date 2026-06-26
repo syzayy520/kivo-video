@@ -16,7 +16,7 @@ int main() {
     // Verify raw_url populated before close
     auto pre = s.snapshot(id);
     CHECK_TRUE(pre.has_value());
-    CHECK_TRUE(!pre->raw_url.raw.empty());
+    CHECK_TRUE(!pre->raw_url.empty());
 
     // Close → tombstone_sensitive_clear
     ph::HttpRangeProvider::close(id, s);
@@ -24,18 +24,21 @@ int main() {
     // After close, tombstone should have raw_url cleared
     auto post = s.snapshot(id);
     CHECK_TRUE(post.has_value());
-    CHECK_TRUE(post->raw_url.raw.empty());
+    CHECK_TRUE(post->raw_url.empty());
 
     // But redacted_url (evidence-safe) still accessible
     CHECK_TRUE(!post->redacted_url.empty());
-    // Redacted URL must not contain raw path or query
     CHECK_TRUE(post->redacted_url.find("/secret.mp4") == std::string::npos);
 
-    // ProviderInternalRemoteUri destructor also calls secure_clear
+    // ProviderInternalRemoteUri is move-only with secure_clear
     {
         ph::ProviderInternalRemoteUri test_uri("sensitive_data_12345");
-        test_uri.secure_clear();
+        // Move-only proof
+        ph::ProviderInternalRemoteUri moved_uri(std::move(test_uri));
         CHECK_TRUE(test_uri.raw.empty());
+        CHECK_TRUE(!moved_uri.raw.empty());
+        moved_uri.secure_clear();
+        CHECK_TRUE(moved_uri.raw.empty());
     }
 
     std::cout << "TOMBSTONE_SENSITIVE_CLEAR_GATE: PASS" << std::endl;

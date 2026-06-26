@@ -16,17 +16,18 @@
 #include <cstring>
 namespace kivo::video::providers::http {
 
-// RR-023: Provider-private URL wrapper with defense-in-depth secure_clear
+// RR-023: Provider-private URL wrapper, move-only, defense-in-depth secure_clear
 struct ProviderInternalRemoteUri {
     std::string raw;
     ProviderInternalRemoteUri() = default;
     explicit ProviderInternalRemoteUri(std::string u) : raw(std::move(u)) {}
+    ProviderInternalRemoteUri(const ProviderInternalRemoteUri&) = delete;
+    ProviderInternalRemoteUri& operator=(const ProviderInternalRemoteUri&) = delete;
+    ProviderInternalRemoteUri(ProviderInternalRemoteUri&& o) noexcept : raw(std::move(o.raw)) {}
+    ProviderInternalRemoteUri& operator=(ProviderInternalRemoteUri&& o) noexcept { secure_clear(); raw=std::move(o.raw); return *this; }
     ~ProviderInternalRemoteUri() { secure_clear(); }
     void secure_clear() { if(!raw.empty()){ std::memset(raw.data(),0,raw.size()); raw.clear(); } }
-    ProviderInternalRemoteUri(const ProviderInternalRemoteUri& o) : raw(o.raw) {}
-    ProviderInternalRemoteUri& operator=(const ProviderInternalRemoteUri& o) { raw=o.raw; return *this; }
-    ProviderInternalRemoteUri(ProviderInternalRemoteUri&& o) noexcept : raw(std::move(o.raw)) {}
-    ProviderInternalRemoteUri& operator=(ProviderInternalRemoteUri&& o) noexcept { raw=std::move(o.raw); return *this; }
+    std::string release_secure() { std::string r=std::move(raw); return r; }
 };
 
 // RR-021: Redirect policy DTO
@@ -73,10 +74,10 @@ struct HttpRangeSessionRecord {
     source_core::SourceSession session; source_core::SourceIdentity identity;
     source_core::SourceCapabilitySnapshot capability; source_core::SourceEvidenceSnapshot evidence;
     std::uint64_t current_offset{0}; std::uint64_t content_length{0}; std::string redacted_url;
-    ProviderInternalRemoteUri raw_url;
+    std::string raw_url;
     bool can_read{false};
     bool is_open() const { return session.session_state == source_core::SourceSessionState::open; }
-    void tombstone_sensitive_clear() { raw_url.secure_clear(); }
+    void tombstone_sensitive_clear() { if(!raw_url.empty()){ std::memset(raw_url.data(),0,raw_url.size()); raw_url.clear(); } }
 };
 
 struct HttpRangeSessionStore {
