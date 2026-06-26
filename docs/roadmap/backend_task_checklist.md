@@ -465,7 +465,7 @@ Status legend:
 
 ## P2-SOURCE-CORE
 
-- DONE: SRC-CORE-PLANNING-001 P2 Source Core Comprehensive Planning. Evidence: `artifacts/p2/evidence/SRC-CORE-PLANNING-001.json`. Planning doc at `docs/roadmap/p2_source_core_planning_001.md`. 13 family subdirectories, 32 planned files, 20 contracts defined, 7 provider family boundaries. Family tree: identity/, provider_kind/, uri/, capability/, open/, read/, seek/, cache/, auth/, redaction/, error/, evidence/, decision_input/. Single-file responsibility table. Dependency direction plan. Redline rules (14). STATUS: CONTRACT_PASS (planning-only, no implementation).
+- DONE: SRC-CORE-PLANNING-001 P2 Source Core Comprehensive Planning. Evidence: `artifacts/p2/evidence/SRC-CORE-PLANNING-001.json`. Planning doc at `docs/roadmap/p2_source_core_planning_001.md`. 13 family subdirectories, 31 planned files, 25 contracts defined, 7 provider family boundaries. Family tree: identity/, provider_kind/, uri/, capability/, open/, read/, seek/, cache/, auth/, redaction/, error/, evidence/, decision_input/. Single-file responsibility table. Dependency direction plan. Redline rules (14). STATUS: CONTRACT_PASS (planning-only, no implementation).
 
 ## P2 Foundation Remaining Families
 

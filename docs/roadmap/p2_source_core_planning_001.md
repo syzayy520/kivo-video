@@ -149,8 +149,6 @@ backend/include/kivo/video/source_core/
 ├── decision_input/
 │   ├── direct_play_source_input.hpp # DirectPlaySourceInput
 │   └── direct_stream_source_input.hpp # DirectStreamSourceInput
-└── contract/
-    └── source_contract.hpp          # SourceContract (aggregation boundary)
 
 backend/src/source_core/
 ├── identity/          (mirror header structure)
@@ -242,9 +240,8 @@ backend/tests/source_core/
 | 29 | `evidence/source_evidence_error.hpp` | evidence | SourceEvidenceError: evidence generation failure | — | SourceEvidenceError | suppressed errors | error | 50 |
 | 30 | `decision_input/direct_play_source_input.hpp` | decision_input | DirectPlaySourceInput: container match + codec match + seekable | SourceEvidenceSnapshot | DirectPlaySourceInput | decision logic, player integration | evidence | 100 |
 | 31 | `decision_input/direct_stream_source_input.hpp` | decision_input | DirectStreamSourceInput: transcode hint + bandwidth + format | SourceEvidenceSnapshot | DirectStreamSourceInput | decision logic, transcoding selection | evidence | 100 |
-| 32 | `contract/source_contract.hpp` | contract | SourceContract: aggregation of all sub-contracts | sub-contracts | SourceContract | implementation logic | all families | 120 |
 
-**Total: 32 planned files across 13 families. Average ~75 lines per file.**
+**Total: 31 planned files across 13 families. Average ~76 lines per file.**
 
 ---
 
@@ -336,10 +333,10 @@ struct SourceIdentity {
 
 ```cpp
 enum class ProviderKind : uint8_t {
-    LOCAL_FILE, SMZ, NFS,
+    LOCAL_FILE, SMB, NFS,
     FTP, FTPS, SFTP,
     HTTP_FILE, HTTPS_FILE, HTTP_STREAM, HTTPS_STREAM,
-    WEBDAV, ALIST, EMZY, PLEX, JELLYFIN,
+    WEBDAV, ALIST, EMBY, PLEX, JELLYFIN,
     GOOGLE_DRIVE, ONEDRIVE,
     S3_OBJECT, MINIO_OBJECT,
     IPTV_M3U, HLS_LIVE,
@@ -563,8 +560,8 @@ defines contracts; providers implement them.
   "environment": {},
   "implementation": {
     "source_identity": "planning-only",
-    "family_tree": "13 subdirectories, 32 planned files",
-    "contracts_planned": 20,
+    "family_tree": "13 subdirectories, 31 planned files",
+    "contracts_planned": 25,
     "providers_boundary_defined": 7
   },
   "evidence_snapshot": {

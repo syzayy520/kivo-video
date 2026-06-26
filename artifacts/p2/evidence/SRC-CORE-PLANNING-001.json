@@ -10,8 +10,8 @@
   "implementation": {
     "source_identity": "planning-only",
     "family_tree_subdirectories": 13,
-    "planned_files": 32,
-    "contracts_planned": 20,
+    "planned_files": 31,
+    "contracts_planned": 25,
     "provider_families_boundary_defined": 7,
     "legacy_flat_directory_fix_targeted": true
   },
