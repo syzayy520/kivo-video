@@ -19,7 +19,7 @@ Python stdlib only.
 import json, os, glob, sys
 from datetime import datetime, timezone
 
-EXCLUDED = {'RGF-001','RGF-002','RGF-003','RGF-004','RGF-005'}
+EXCLUDED = {'RGF-001','RGF-002','RGF-003','RGF-004','RGF-005','LEM-001'}
 
 VALID_STATUSES = {"RUNTIME_PASS","CONTRACT_PASS","FAIL","BLOCKED_ENV","NOT_IMPLEMENTED","SKIPPED_TEST_ONLY"}
 VALID_RUNTIME_KINDS = {"local_real_runtime","windows_device_runtime","controlled_real_protocol_server","real_external_service","real_external_account","real_external_device","mock","unit_test","simulator","not_applicable"}
@@ -91,6 +91,55 @@ def infer_schema_version(original):
         return 'provider-runtime-matrix-v8'
     return 'p2-evidence-v8'
 
+def has_real_runtime_evidence(original):
+    """Check whether the original evidence has real runtime proof.
+    
+    Real runtime evidence requires at least one of:
+    - runtime_verified_timestamp with a non-empty actual timestamp value
+    - runtime_environment_kind that is not 'not_applicable'/'none'/'test_harness'
+    - environment dict with non-empty 'required' or 'available' keys
+    
+    Without these, RUNTIME_PASS status is a historical planning annotation only
+    and must be downgraded to CONTRACT_PASS at top level.
+    """
+    # Check for actual runtime timestamp (not empty, not None)
+    rvt = original.get('runtime_verified_timestamp')
+    if rvt and isinstance(rvt, str) and rvt.strip() and rvt.strip() not in ('N/A', 'NONE', ''):
+        return True
+    
+    # Check runtime_environment_kind signals real execution
+    rk = original.get('runtime_environment_kind', original.get('environment_kind', ''))
+    if rk and rk not in ('not_applicable', 'none', 'test_harness', '', 'N/A', 'NONE'):
+        return True
+    
+    # Check environment dict for real runtime markers
+    env = original.get('environment', {})
+    if isinstance(env, dict):
+        if env.get('required') or env.get('available') or env.get('runtime_host'):
+            return True
+    
+    # Check execution_timestamp is a real runtime timestamp (not planning-only)
+    et = original.get('execution_timestamp')
+    if et and isinstance(et, str) and et.strip():
+        # execution_timestamp alone is NOT sufficient - it often exists in planning docs
+        pass
+    
+    return False
+
+def classify_runtime_evidence_status(original):
+    """Determine whether the file has real runtime evidence.
+    
+    Returns (has_evidence, evidence_summary) tuple.
+    """
+    has = has_real_runtime_evidence(original)
+    summary = {
+        'runtime_verified_timestamp': original.get('runtime_verified_timestamp'),
+        'runtime_environment_kind': original.get('runtime_environment_kind', original.get('environment_kind')),
+        'environment': original.get('environment'),
+        'has_real_runtime_evidence': has,
+    }
+    return has, summary
+
 def normalize_status(original):
     candidates = [original.get('status'), original.get('evidence_status')]
     for c in candidates:
@@ -147,13 +196,26 @@ def migrate_file(path, report):
             new[field] = DEFAULTS[field]
 
     # 2. Status normalization and runtime_verified consistency
+    #   RULE: Top-level status/runtime_verified MUST be judged from real runtime evidence,
+    #   NOT from historical status. Historical status is preserved in legacy_original + legacy_fields.
+    has_evidence, evidence_summary = classify_runtime_evidence_status(original)
     status, orig_status, orig_evidence_status = normalize_status(original)
+    
+    # If historical status is RUNTIME_PASS but no real runtime evidence → downgrade to CONTRACT_PASS
+    if status == 'RUNTIME_PASS' and not has_evidence:
+        status = 'CONTRACT_PASS'
+        report[name]['mapped_values']['status_downgraded_from'] = 'RUNTIME_PASS'
+        report[name]['mapped_values']['status_downgraded_reason'] = 'no_real_runtime_evidence'
+    
     new['status'] = status
-    new['runtime_verified'] = (status == 'RUNTIME_PASS')
-    if status == 'RUNTIME_PASS':
+    # runtime_verified is ONLY True when real runtime evidence exists
+    new['runtime_verified'] = has_evidence
+    if has_evidence:
         new['completion_level'] = 'p2-runtime-verified'
     else:
         new['completion_level'] = 'p2-foundation-planning'
+    
+    report[name]['runtime_evidence_check'] = evidence_summary
 
     if orig_status is not None:
         report[name]['preserved_fields']['status'] = orig_status
@@ -161,6 +223,7 @@ def migrate_file(path, report):
         report[name]['preserved_fields']['evidence_status'] = orig_evidence_status
     report[name]['mapped_values']['status'] = status
     report[name]['mapped_values']['runtime_verified'] = new['runtime_verified']
+    report[name]['mapped_values']['no_status_inflation'] = True
 
     # 3. runtime_environment_kind normalization
     kind, orig_kind = normalize_runtime_kind(original)
@@ -231,7 +294,7 @@ def main():
     for path in sorted(glob.glob(os.path.join(evidence_dir, '*.json'))):
         name = os.path.basename(path).replace('.json', '')
         if name in EXCLUDED:
-            print(f'  SKIP (RGF): {name}')
+            print(f'  SKIP (EXCLUDED): {name}')
             continue
         migrate_file(path, report)
         migrated += 1

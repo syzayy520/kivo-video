@@ -20,4 +20,7 @@ install_ffmpeg*.bat
 vcpkg_*.txt
 vcpkg_out.txt
 
-backend/tools/governance/redline_gate/artifacts/
+backend/tools/governance/redline_gate/artifacts/*
+!backend/tools/governance/redline_gate/artifacts/legacy_evidence_field_retention_report.json
+!backend/tools/governance/redline_gate/artifacts/violation_classification_report.json
+!backend/tools/governance/redline_gate/artifacts/redline_gate_result.json

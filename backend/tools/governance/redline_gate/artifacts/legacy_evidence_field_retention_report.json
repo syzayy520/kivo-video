@@ -1,0 +1,2847 @@
+{
+  "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+  "migrated_count": 51,
+  "excluded_rgf_count": 6,
+  "timestamp_utc": "2026-06-26T08:50:24Z",
+  "report": {
+    "ACP-001": {
+      "original_top_level_fields": [
+        "audio_codec_inventory",
+        "blocked_reason",
+        "codec_capabilities",
+        "environment_available",
+        "environment_required",
+        "error_handling",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "metadata_handling",
+        "passthrough_eligibility",
+        "pcm_fallback_reasons",
+        "privacy_redaction",
+        "provider_matrix_impact",
+        "quality_assessment",
+        "routing_decision_logic",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "audio_codec_inventory": "moved to legacy_fields",
+        "codec_capabilities": "moved to legacy_fields",
+        "routing_decision_logic": "moved to legacy_fields",
+        "pcm_fallback_reasons": "moved to legacy_fields",
+        "passthrough_eligibility": "moved to legacy_fields",
+        "metadata_handling": "moved to legacy_fields",
+        "quality_assessment": "moved to legacy_fields",
+        "error_handling": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "APRV-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "current_gate_status",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "gate_dependencies",
+        "gate_integration",
+        "gate_output_structure",
+        "gate_purpose",
+        "gate_validation_process",
+        "gate_validation_rules",
+        "implementation_requirements",
+        "important_notes",
+        "integration_points",
+        "next_steps",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "gate_purpose": "moved to legacy_fields",
+        "gate_dependencies": "moved to legacy_fields",
+        "gate_validation_rules": "moved to legacy_fields",
+        "gate_output_structure": "moved to legacy_fields",
+        "gate_validation_process": "moved to legacy_fields",
+        "integration_points": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "current_gate_status": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "important_notes": "moved to legacy_fields",
+        "next_steps": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "CAST-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "cast_airplay_abstraction",
+        "decision_ledger_integration",
+        "device_identity",
+        "environment_available",
+        "environment_required",
+        "error_handling",
+        "evidence_file",
+        "family",
+        "feasibility_assessment",
+        "gate_integration",
+        "handoff_policy",
+        "implementation_requirements",
+        "inspector_integration",
+        "legal_protocol_review",
+        "local_cast_split",
+        "privacy_redaction",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "session_state_management",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "cast_airplay_abstraction": "moved to legacy_fields",
+        "device_identity": "moved to legacy_fields",
+        "session_state_management": "moved to legacy_fields",
+        "handoff_policy": "moved to legacy_fields",
+        "local_cast_split": "moved to legacy_fields",
+        "inspector_integration": "moved to legacy_fields",
+        "decision_ledger_integration": "moved to legacy_fields",
+        "feasibility_assessment": "moved to legacy_fields",
+        "legal_protocol_review": "moved to legacy_fields",
+        "error_handling": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "CIN-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "cinema_state_model",
+        "conflict_policy",
+        "dpi_handling",
+        "enter_exit_behavior",
+        "environment_available",
+        "environment_required",
+        "error_handling",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "multi_monitor_support",
+        "playback_continuity",
+        "privacy_redaction",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "safe_areas",
+        "schema_version",
+        "sleep_inhibit",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "cinema_state_model": "moved to legacy_fields",
+        "conflict_policy": "moved to legacy_fields",
+        "enter_exit_behavior": "moved to legacy_fields",
+        "safe_areas": "moved to legacy_fields",
+        "playback_continuity": "moved to legacy_fields",
+        "multi_monitor_support": "moved to legacy_fields",
+        "dpi_handling": "moved to legacy_fields",
+        "sleep_inhibit": "moved to legacy_fields",
+        "error_handling": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:30:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "CLD-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "caching_strategy",
+        "download_operations",
+        "environment_available",
+        "environment_required",
+        "error_handling",
+        "evidence_file",
+        "family",
+        "file_operations",
+        "gate_integration",
+        "implementation_requirements",
+        "link_management",
+        "oauth_flow",
+        "oauth_profiles",
+        "privacy_redaction",
+        "provider_matrix_impact",
+        "quota_rate_limits",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases",
+        "upload_operations"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "oauth_profiles": "moved to legacy_fields",
+        "oauth_flow": "moved to legacy_fields",
+        "file_operations": "moved to legacy_fields",
+        "download_operations": "moved to legacy_fields",
+        "upload_operations": "moved to legacy_fields",
+        "quota_rate_limits": "moved to legacy_fields",
+        "link_management": "moved to legacy_fields",
+        "caching_strategy": "moved to legacy_fields",
+        "error_handling": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "FMT-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "format_compatibility_matrix",
+        "gate_integration",
+        "implementation_requirements",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "format_compatibility_matrix": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:18:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "IPTV-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "channel_management",
+        "channel_switching",
+        "environment_available",
+        "environment_required",
+        "error_handling",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "hls_live_stream",
+        "hls_refresh_updates",
+        "implementation_requirements",
+        "live_seek_policy",
+        "playlist_formats",
+        "privacy_redaction",
+        "provider_matrix_impact",
+        "reconnection_strategy",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "segment_fetching",
+        "status",
+        "stream_handling",
+        "task_id",
+        "task_name",
+        "test_cases",
+        "xmltv_epg"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "playlist_formats": "moved to legacy_fields",
+        "hls_live_stream": "moved to legacy_fields",
+        "stream_handling": "moved to legacy_fields",
+        "xmltv_epg": "moved to legacy_fields",
+        "channel_management": "moved to legacy_fields",
+        "hls_refresh_updates": "moved to legacy_fields",
+        "segment_fetching": "moved to legacy_fields",
+        "reconnection_strategy": "moved to legacy_fields",
+        "channel_switching": "moved to legacy_fields",
+        "live_seek_policy": "moved to legacy_fields",
+        "error_handling": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "LRD-001": {
+      "original_top_level_fields": [
+        "allowed_files",
+        "anti_fake_proof_strategy",
+        "dependency_direction",
+        "evidence_schema_plan",
+        "evidence_status",
+        "execution_timestamp",
+        "final_report_rules",
+        "forbidden_files",
+        "goal",
+        "immediate_next_steps",
+        "next_task",
+        "planning_document_path",
+        "planning_document_sections",
+        "reason",
+        "redline_gate_plan",
+        "runtime_environment_risk",
+        "sample_availability_risk",
+        "self_check_checklist",
+        "single_file_responsibility_table",
+        "status",
+        "task_family",
+        "task_id",
+        "test_family_plan",
+        "v10_evidence_audit_summary"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "planning_document_path": "moved to legacy_fields",
+        "planning_document_sections": "moved to legacy_fields",
+        "v10_evidence_audit_summary": "moved to legacy_fields",
+        "allowed_files": "moved to legacy_fields",
+        "forbidden_files": "moved to legacy_fields",
+        "dependency_direction": "moved to legacy_fields",
+        "single_file_responsibility_table": "moved to legacy_fields",
+        "test_family_plan": "moved to legacy_fields",
+        "runtime_environment_risk": "moved to legacy_fields",
+        "sample_availability_risk": "moved to legacy_fields",
+        "anti_fake_proof_strategy": "moved to legacy_fields",
+        "evidence_schema_plan": "moved to legacy_fields",
+        "redline_gate_plan": "moved to legacy_fields",
+        "final_report_rules": "moved to legacy_fields",
+        "immediate_next_steps": "moved to legacy_fields",
+        "self_check_checklist": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "LRD-002": {
+      "original_top_level_fields": [
+        "anti_fake_gate",
+        "audit_document_path",
+        "audit_method",
+        "audit_scope",
+        "consistency_gaps",
+        "downgrade_decisions",
+        "evidence_status",
+        "execution_timestamp",
+        "findings",
+        "goal",
+        "next_task",
+        "reason",
+        "redline_gate",
+        "repair_cards_required",
+        "status",
+        "summary",
+        "task_family",
+        "task_id"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "RUNTIME_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "audit_document_path": "moved to legacy_fields",
+        "audit_method": "moved to legacy_fields",
+        "audit_scope": "moved to legacy_fields",
+        "findings": "moved to legacy_fields",
+        "summary": "moved to legacy_fields",
+        "downgrade_decisions": "moved to legacy_fields",
+        "repair_cards_required": "moved to legacy_fields",
+        "consistency_gaps": "moved to legacy_fields",
+        "anti_fake_gate": "moved to legacy_fields",
+        "redline_gate": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status_downgraded_from": "RUNTIME_PASS",
+        "status_downgraded_reason": "no_real_runtime_evidence",
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "LRD-003": {
+      "original_top_level_fields": [
+        "anti_fake_gate_requirements",
+        "audit_document_path",
+        "clean_workspace_gate",
+        "d3d11_device_context",
+        "d3d11_texture_upload",
+        "decision_ledger_requirements",
+        "environment_detection_plan",
+        "evidence_artifact_requirements",
+        "evidence_status",
+        "execution_timestamp",
+        "final_report_rules",
+        "goal",
+        "inspector_snapshot_requirements",
+        "next_task",
+        "reality_proof_requirements",
+        "reason",
+        "redline_gate_requirements",
+        "schema_gate_requirements",
+        "status",
+        "task_family",
+        "task_id",
+        "test_strategy",
+        "texture_proof_requirements"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "audit_document_path": "moved to legacy_fields",
+        "d3d11_device_context": "moved to legacy_fields",
+        "d3d11_texture_upload": "moved to legacy_fields",
+        "environment_detection_plan": "moved to legacy_fields",
+        "reality_proof_requirements": "moved to legacy_fields",
+        "texture_proof_requirements": "moved to legacy_fields",
+        "test_strategy": "moved to legacy_fields",
+        "inspector_snapshot_requirements": "moved to legacy_fields",
+        "decision_ledger_requirements": "moved to legacy_fields",
+        "evidence_artifact_requirements": "moved to legacy_fields",
+        "schema_gate_requirements": "moved to legacy_fields",
+        "redline_gate_requirements": "moved to legacy_fields",
+        "anti_fake_gate_requirements": "moved to legacy_fields",
+        "clean_workspace_gate": "moved to legacy_fields",
+        "final_report_rules": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "LRD-004": {
+      "original_top_level_fields": [
+        "anti_fake_gate_requirements",
+        "audit_document_path",
+        "clean_workspace_gate",
+        "current_status",
+        "decision_ledger_requirements",
+        "decoded_frame_structure",
+        "evidence_artifact_requirements",
+        "evidence_status",
+        "execution_timestamp",
+        "final_report_rules",
+        "goal",
+        "inspector_snapshot_requirements",
+        "next_task",
+        "reality_proof_requirements",
+        "reason",
+        "redline_gate_requirements",
+        "required_repair",
+        "schema_gate_requirements",
+        "status",
+        "task_family",
+        "task_id",
+        "test_strategy",
+        "upload_pipeline"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "audit_document_path": "moved to legacy_fields",
+        "decoded_frame_structure": "moved to legacy_fields",
+        "current_status": "moved to legacy_fields",
+        "required_repair": "moved to legacy_fields",
+        "upload_pipeline": "moved to legacy_fields",
+        "reality_proof_requirements": "moved to legacy_fields",
+        "test_strategy": "moved to legacy_fields",
+        "inspector_snapshot_requirements": "moved to legacy_fields",
+        "decision_ledger_requirements": "moved to legacy_fields",
+        "evidence_artifact_requirements": "moved to legacy_fields",
+        "schema_gate_requirements": "moved to legacy_fields",
+        "redline_gate_requirements": "moved to legacy_fields",
+        "anti_fake_gate_requirements": "moved to legacy_fields",
+        "clean_workspace_gate": "moved to legacy_fields",
+        "final_report_rules": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "LRD-005": {
+      "original_top_level_fields": [
+        "anti_fake_gate_requirements",
+        "audit_document_path",
+        "clean_workspace_gate",
+        "current_implementation",
+        "current_interface",
+        "current_test_coverage",
+        "decision_ledger_requirements",
+        "evidence_artifact_requirements",
+        "evidence_status",
+        "execution_timestamp",
+        "final_report_rules",
+        "goal",
+        "inspector_snapshot_requirements",
+        "next_task",
+        "reality_proof_requirements",
+        "reason",
+        "redline_gate_requirements",
+        "schema_gate_requirements",
+        "status",
+        "task_family",
+        "task_id",
+        "test_strategy"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "audit_document_path": "moved to legacy_fields",
+        "current_interface": "moved to legacy_fields",
+        "current_implementation": "moved to legacy_fields",
+        "current_test_coverage": "moved to legacy_fields",
+        "reality_proof_requirements": "moved to legacy_fields",
+        "test_strategy": "moved to legacy_fields",
+        "inspector_snapshot_requirements": "moved to legacy_fields",
+        "decision_ledger_requirements": "moved to legacy_fields",
+        "evidence_artifact_requirements": "moved to legacy_fields",
+        "schema_gate_requirements": "moved to legacy_fields",
+        "redline_gate_requirements": "moved to legacy_fields",
+        "anti_fake_gate_requirements": "moved to legacy_fields",
+        "clean_workspace_gate": "moved to legacy_fields",
+        "final_report_rules": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "LRD-006": {
+      "original_top_level_fields": [
+        "anti_fake_gate_requirements",
+        "audit_document_path",
+        "clean_workspace_gate",
+        "current_implementation",
+        "current_interface",
+        "current_test_coverage",
+        "decision_ledger_requirements",
+        "evidence_artifact_requirements",
+        "evidence_status",
+        "execution_timestamp",
+        "final_report_rules",
+        "goal",
+        "inspector_snapshot_requirements",
+        "next_task",
+        "reality_proof_requirements",
+        "reason",
+        "redline_gate_requirements",
+        "schema_gate_requirements",
+        "status",
+        "task_family",
+        "task_id",
+        "test_strategy"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "audit_document_path": "moved to legacy_fields",
+        "current_interface": "moved to legacy_fields",
+        "current_implementation": "moved to legacy_fields",
+        "current_test_coverage": "moved to legacy_fields",
+        "reality_proof_requirements": "moved to legacy_fields",
+        "test_strategy": "moved to legacy_fields",
+        "inspector_snapshot_requirements": "moved to legacy_fields",
+        "decision_ledger_requirements": "moved to legacy_fields",
+        "evidence_artifact_requirements": "moved to legacy_fields",
+        "schema_gate_requirements": "moved to legacy_fields",
+        "redline_gate_requirements": "moved to legacy_fields",
+        "anti_fake_gate_requirements": "moved to legacy_fields",
+        "clean_workspace_gate": "moved to legacy_fields",
+        "final_report_rules": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "LRD-007": {
+      "original_top_level_fields": [
+        "anti_fake_gate_requirements",
+        "audit_document_path",
+        "clean_workspace_gate",
+        "current_implementation",
+        "current_interface",
+        "current_internal_state",
+        "current_test_coverage",
+        "decision_ledger_requirements",
+        "evidence_artifact_requirements",
+        "evidence_status",
+        "execution_timestamp",
+        "final_report_rules",
+        "goal",
+        "inspector_snapshot_requirements",
+        "next_task",
+        "reality_proof_requirements",
+        "reason",
+        "redline_gate_requirements",
+        "schema_gate_requirements",
+        "status",
+        "task_family",
+        "task_id",
+        "test_strategy"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "audit_document_path": "moved to legacy_fields",
+        "current_interface": "moved to legacy_fields",
+        "current_internal_state": "moved to legacy_fields",
+        "current_implementation": "moved to legacy_fields",
+        "current_test_coverage": "moved to legacy_fields",
+        "reality_proof_requirements": "moved to legacy_fields",
+        "test_strategy": "moved to legacy_fields",
+        "inspector_snapshot_requirements": "moved to legacy_fields",
+        "decision_ledger_requirements": "moved to legacy_fields",
+        "evidence_artifact_requirements": "moved to legacy_fields",
+        "schema_gate_requirements": "moved to legacy_fields",
+        "redline_gate_requirements": "moved to legacy_fields",
+        "anti_fake_gate_requirements": "moved to legacy_fields",
+        "clean_workspace_gate": "moved to legacy_fields",
+        "final_report_rules": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "LRD-008": {
+      "original_top_level_fields": [
+        "anti_fake_gate_requirements",
+        "audit_document_path",
+        "clean_workspace_gate",
+        "current_implementation",
+        "decision_ledger_requirements",
+        "evidence_artifact_requirements",
+        "evidence_status",
+        "execution_timestamp",
+        "final_report_rules",
+        "goal",
+        "inspector_snapshot_requirements",
+        "next_task",
+        "reality_proof_requirements",
+        "reason",
+        "redline_gate_requirements",
+        "schema_gate_requirements",
+        "status",
+        "task_family",
+        "task_id",
+        "test_strategy"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "RUNTIME_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "audit_document_path": "moved to legacy_fields",
+        "current_implementation": "moved to legacy_fields",
+        "reality_proof_requirements": "moved to legacy_fields",
+        "test_strategy": "moved to legacy_fields",
+        "inspector_snapshot_requirements": "moved to legacy_fields",
+        "decision_ledger_requirements": "moved to legacy_fields",
+        "evidence_artifact_requirements": "moved to legacy_fields",
+        "schema_gate_requirements": "moved to legacy_fields",
+        "redline_gate_requirements": "moved to legacy_fields",
+        "anti_fake_gate_requirements": "moved to legacy_fields",
+        "clean_workspace_gate": "moved to legacy_fields",
+        "final_report_rules": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status_downgraded_from": "RUNTIME_PASS",
+        "status_downgraded_reason": "no_real_runtime_evidence",
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "LRD-009": {
+      "original_top_level_fields": [
+        "anti_fake_gate_requirements",
+        "audit_document_path",
+        "clean_workspace_gate",
+        "current_implementation",
+        "decision_ledger_requirements",
+        "evidence_artifact_requirements",
+        "evidence_status",
+        "execution_timestamp",
+        "final_report_rules",
+        "goal",
+        "inspector_snapshot_requirements",
+        "next_task",
+        "reality_proof_requirements",
+        "reason",
+        "redline_gate_requirements",
+        "schema_gate_requirements",
+        "status",
+        "task_family",
+        "task_id",
+        "test_strategy"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "audit_document_path": "moved to legacy_fields",
+        "current_implementation": "moved to legacy_fields",
+        "reality_proof_requirements": "moved to legacy_fields",
+        "test_strategy": "moved to legacy_fields",
+        "inspector_snapshot_requirements": "moved to legacy_fields",
+        "decision_ledger_requirements": "moved to legacy_fields",
+        "evidence_artifact_requirements": "moved to legacy_fields",
+        "schema_gate_requirements": "moved to legacy_fields",
+        "redline_gate_requirements": "moved to legacy_fields",
+        "anti_fake_gate_requirements": "moved to legacy_fields",
+        "clean_workspace_gate": "moved to legacy_fields",
+        "final_report_rules": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "LRD-010": {
+      "original_top_level_fields": [
+        "artifact_inventory",
+        "audit_summary",
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "audit_summary": "moved to legacy_fields",
+        "artifact_inventory": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T00:50:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "LRD-011": {
+      "original_top_level_fields": [
+        "audit_summary",
+        "blocked_reason",
+        "claim_details",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "audit_summary": "moved to legacy_fields",
+        "claim_details": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T00:50:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "LRD-012": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "provider_matrix_impact",
+        "regression_points",
+        "regression_summary",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "regression_summary": "moved to legacy_fields",
+        "regression_points": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T00:50:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "LRD-013": {
+      "original_top_level_fields": [
+        "allowed_next_steps",
+        "blocked_reason",
+        "classification",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "premature_claim_check",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "classification": "moved to legacy_fields",
+        "allowed_next_steps": "moved to legacy_fields",
+        "premature_claim_check": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T00:50:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "MID-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "media_identity_definition",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "media_identity_definition": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "MSV-001": {
+      "original_top_level_fields": [
+        "authentication",
+        "blocked_reason",
+        "discovery",
+        "environment_available",
+        "environment_required",
+        "error_handling",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "library_system",
+        "media_identity",
+        "playback_integration",
+        "privacy_redaction",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "server_profiles",
+        "status",
+        "streaming_capabilities",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "server_profiles": "moved to legacy_fields",
+        "discovery": "moved to legacy_fields",
+        "authentication": "moved to legacy_fields",
+        "library_system": "moved to legacy_fields",
+        "streaming_capabilities": "moved to legacy_fields",
+        "playback_integration": "moved to legacy_fields",
+        "error_handling": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "NET-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "network_file_sources_definition",
+        "privacy_redaction",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "network_file_sources_definition": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:26:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "OBJ-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "object_storage_definition",
+        "privacy_redaction",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "object_storage_definition": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:28:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "PFFG-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "current_gate_status",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "gate_dependencies",
+        "gate_integration",
+        "gate_output_structure",
+        "gate_purpose",
+        "gate_validation_process",
+        "gate_validation_rules",
+        "implementation_requirements",
+        "integration_points",
+        "next_steps",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "gate_purpose": "moved to legacy_fields",
+        "gate_dependencies": "moved to legacy_fields",
+        "gate_validation_rules": "moved to legacy_fields",
+        "gate_output_structure": "moved to legacy_fields",
+        "gate_validation_process": "moved to legacy_fields",
+        "integration_points": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "current_gate_status": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "next_steps": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "PFFG-002": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "current_report_status",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "integration_points",
+        "next_steps",
+        "provider_matrix_impact",
+        "report_dependencies",
+        "report_generation_process",
+        "report_purpose",
+        "report_structure",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "report_purpose": "moved to legacy_fields",
+        "report_dependencies": "moved to legacy_fields",
+        "report_structure": "moved to legacy_fields",
+        "report_generation_process": "moved to legacy_fields",
+        "integration_points": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "current_report_status": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "next_steps": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "PIP-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "dpi_handling",
+        "environment_available",
+        "environment_required",
+        "error_handling",
+        "error_handling_full",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "main_player_synchronization",
+        "mini_command_bridge",
+        "multi_monitor_support",
+        "pip_state_model",
+        "privacy_redaction",
+        "provider_matrix_impact",
+        "restore_behavior",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "surface_management",
+        "task_id",
+        "task_name",
+        "test_cases",
+        "window_management"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "pip_state_model": "moved to legacy_fields",
+        "surface_management": "moved to legacy_fields",
+        "main_player_synchronization": "moved to legacy_fields",
+        "mini_command_bridge": "moved to legacy_fields",
+        "window_management": "moved to legacy_fields",
+        "multi_monitor_support": "moved to legacy_fields",
+        "dpi_handling": "moved to legacy_fields",
+        "restore_behavior": "moved to legacy_fields",
+        "error_handling": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "error_handling_full": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:25:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "PMX-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "matrix_generation_rules",
+        "matrix_metadata",
+        "matrix_schema",
+        "matrix_usage",
+        "matrix_validation",
+        "provider_kinds",
+        "provider_list",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "matrix_schema": "moved to legacy_fields",
+        "provider_kinds": "moved to legacy_fields",
+        "provider_list": "moved to legacy_fields",
+        "matrix_generation_rules": "moved to legacy_fields",
+        "matrix_metadata": "moved to legacy_fields",
+        "matrix_validation": "moved to legacy_fields",
+        "matrix_usage": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:40:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "PMX-002": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "current_matrix_status",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "gate_output",
+        "gate_validation_process",
+        "honesty_gate_status",
+        "honesty_rules",
+        "implementation_requirements",
+        "integration_points",
+        "next_steps",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases",
+        "validation_checks"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "honesty_rules": "moved to legacy_fields",
+        "gate_validation_process": "moved to legacy_fields",
+        "validation_checks": "moved to legacy_fields",
+        "gate_output": "moved to legacy_fields",
+        "integration_points": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "current_matrix_status": "moved to legacy_fields",
+        "honesty_gate_status": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "next_steps": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "PST-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "error_handling",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "local_history",
+        "non_blocking_sync",
+        "playback_queue",
+        "playback_session_identity",
+        "privacy_redaction",
+        "progress_tracking",
+        "provider_matrix_impact",
+        "recent_playback",
+        "repeat_shuffle_modes",
+        "resume_point_management",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "state_persistence",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases",
+        "watched_threshold"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "playback_session_identity": "moved to legacy_fields",
+        "progress_tracking": "moved to legacy_fields",
+        "resume_point_management": "moved to legacy_fields",
+        "recent_playback": "moved to legacy_fields",
+        "playback_queue": "moved to legacy_fields",
+        "repeat_shuffle_modes": "moved to legacy_fields",
+        "watched_threshold": "moved to legacy_fields",
+        "local_history": "moved to legacy_fields",
+        "non_blocking_sync": "moved to legacy_fields",
+        "state_persistence": "moved to legacy_fields",
+        "error_handling": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "SGF-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "field_inventory",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_environment_kind_vocabulary",
+        "runtime_mode",
+        "runtime_mode_vocabulary",
+        "runtime_verified_timestamp",
+        "schema_definition",
+        "schema_version",
+        "status",
+        "status_vocabulary",
+        "task_id",
+        "task_name"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "schema_definition": "moved to legacy_fields",
+        "field_inventory": "moved to legacy_fields",
+        "status_vocabulary": "moved to legacy_fields",
+        "runtime_mode_vocabulary": "moved to legacy_fields",
+        "runtime_environment_kind_vocabulary": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T00:59:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "SGF-002": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "field_counts",
+        "info_object_inventory",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_definition",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "schema_definition": "moved to legacy_fields",
+        "info_object_inventory": "moved to legacy_fields",
+        "field_counts": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:00:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "SGF-003": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_definition",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "vocabulary_inventory"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "schema_definition": "moved to legacy_fields",
+        "vocabulary_inventory": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:01:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "SGF-004": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "extension_boundary_rules",
+        "extension_decision_inventory",
+        "family",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_definition",
+        "schema_version",
+        "stage_vocabulary",
+        "status",
+        "task_id",
+        "task_name"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "schema_definition": "moved to legacy_fields",
+        "extension_decision_inventory": "moved to legacy_fields",
+        "stage_vocabulary": "moved to legacy_fields",
+        "extension_boundary_rules": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:02:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "SGF-005": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "final_gate_requirements",
+        "matrix_generation_rules",
+        "provider_kind_inventory",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_definition",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "schema_definition": "moved to legacy_fields",
+        "provider_kind_inventory": "moved to legacy_fields",
+        "matrix_generation_rules": "moved to legacy_fields",
+        "final_gate_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:03:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "SGF-006": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "provider_matrix_impact",
+        "report_generation",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_validation_command",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "validation_output"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "schema_validation_command": "moved to legacy_fields",
+        "validation_output": "moved to legacy_fields",
+        "report_generation": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:04:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "SGF-007": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "negative_test_coverage",
+        "negative_test_definition",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name",
+        "test_execution"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "negative_test_definition": "moved to legacy_fields",
+        "negative_test_coverage": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_execution": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:05:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "SGF-008": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "evidence_reader_foundation",
+        "evidence_report_generation",
+        "family",
+        "implementation_requirements",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "task_id",
+        "task_name"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "evidence_reader_foundation": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields",
+        "evidence_report_generation": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:06:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "SRC-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "privacy_redaction",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "source_core_definition",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "source_core_definition": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:24:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "SUB-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "privacy_redaction",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "status",
+        "subtitle_chapter_definition",
+        "task_id",
+        "task_name",
+        "test_cases"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "subtitle_chapter_definition": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:22:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "TRK-001": {
+      "original_top_level_fields": [
+        "blocked_reason",
+        "conflict_policy",
+        "environment_available",
+        "environment_required",
+        "error_handling",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "identity_mapping",
+        "implementation_requirements",
+        "manual_match",
+        "oauth_profile",
+        "offline_queue",
+        "privacy_rules",
+        "progress_resume_sync",
+        "provider_matrix_impact",
+        "retry_strategy",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "scrobble_events",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases",
+        "watched_collection_tracking"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "oauth_profile": "moved to legacy_fields",
+        "identity_mapping": "moved to legacy_fields",
+        "manual_match": "moved to legacy_fields",
+        "watched_collection_tracking": "moved to legacy_fields",
+        "scrobble_events": "moved to legacy_fields",
+        "progress_resume_sync": "moved to legacy_fields",
+        "offline_queue": "moved to legacy_fields",
+        "retry_strategy": "moved to legacy_fields",
+        "privacy_rules": "moved to legacy_fields",
+        "conflict_policy": "moved to legacy_fields",
+        "error_handling": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:35:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    },
+    "V8-001": {
+      "original_top_level_fields": [
+        "branch",
+        "evidence_status",
+        "execution_timestamp",
+        "git_status_short",
+        "governance_script_result",
+        "head",
+        "next_task",
+        "pending_changes",
+        "reason",
+        "remote",
+        "root_files_cleaned",
+        "root_inventory",
+        "status",
+        "task_family",
+        "task_id",
+        "workspace_clean_after_cleanup"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "RUNTIME_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "branch": "moved to legacy_fields",
+        "head": "moved to legacy_fields",
+        "remote": "moved to legacy_fields",
+        "workspace_clean_after_cleanup": "moved to legacy_fields",
+        "root_files_cleaned": "moved to legacy_fields",
+        "root_inventory": "moved to legacy_fields",
+        "git_status_short": "moved to legacy_fields",
+        "pending_changes": "moved to legacy_fields",
+        "governance_script_result": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status_downgraded_from": "RUNTIME_PASS",
+        "status_downgraded_reason": "no_real_runtime_evidence",
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "V8-002": {
+      "original_top_level_fields": [
+        "audit_method",
+        "audit_scope",
+        "consistency_check",
+        "downgrade_decisions",
+        "evidence_status",
+        "execution_timestamp",
+        "findings",
+        "next_task",
+        "reason",
+        "status",
+        "summary",
+        "task_family",
+        "task_id"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "RUNTIME_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "audit_scope": "moved to legacy_fields",
+        "audit_method": "moved to legacy_fields",
+        "findings": "moved to legacy_fields",
+        "summary": "moved to legacy_fields",
+        "downgrade_decisions": "moved to legacy_fields",
+        "consistency_check": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status_downgraded_from": "RUNTIME_PASS",
+        "status_downgraded_reason": "no_real_runtime_evidence",
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "V8-003": {
+      "original_top_level_fields": [
+        "allowed_repair_scope",
+        "evidence_status",
+        "execution_timestamp",
+        "forbidden_actions",
+        "goal",
+        "next_task",
+        "protected_work",
+        "reason",
+        "status",
+        "task_family",
+        "task_id"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "RUNTIME_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "protected_work": "moved to legacy_fields",
+        "allowed_repair_scope": "moved to legacy_fields",
+        "forbidden_actions": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status_downgraded_from": "RUNTIME_PASS",
+        "status_downgraded_reason": "no_real_runtime_evidence",
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "V8-004": {
+      "original_top_level_fields": [
+        "dependency_graph",
+        "evidence_status",
+        "execution_timestamp",
+        "families_mapped",
+        "family_tree_path",
+        "goal",
+        "next_task",
+        "provider_families",
+        "reason",
+        "rules_enforced",
+        "status",
+        "task_family",
+        "task_id"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "family_tree_path": "moved to legacy_fields",
+        "families_mapped": "moved to legacy_fields",
+        "provider_families": "moved to legacy_fields",
+        "dependency_graph": "moved to legacy_fields",
+        "rules_enforced": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "V8-005": {
+      "original_top_level_fields": [
+        "allowed_claim_vocabulary",
+        "evidence_status",
+        "execution_timestamp",
+        "forbidden_claims_scanned",
+        "goal",
+        "next_task",
+        "reason",
+        "scan_results",
+        "status",
+        "task_family",
+        "task_id"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "forbidden_claims_scanned": "moved to legacy_fields",
+        "scan_results": "moved to legacy_fields",
+        "allowed_claim_vocabulary": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "V8-006": {
+      "original_top_level_fields": [
+        "evidence_status",
+        "execution_timestamp",
+        "goal",
+        "machine_check_result",
+        "next_task",
+        "non_standard_status_scan",
+        "reason",
+        "scan_results",
+        "status",
+        "summary",
+        "task_family",
+        "task_id",
+        "vocabulary"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "vocabulary": "moved to legacy_fields",
+        "scan_results": "moved to legacy_fields",
+        "non_standard_status_scan": "moved to legacy_fields",
+        "summary": "moved to legacy_fields",
+        "machine_check_result": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "V8-007": {
+      "original_top_level_fields": [
+        "artifact_root",
+        "evidence_path_audit",
+        "evidence_status",
+        "execution_timestamp",
+        "goal",
+        "next_task",
+        "path_rules",
+        "reason",
+        "root_evidence_audit",
+        "schema_version",
+        "status",
+        "task_family",
+        "task_id"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "artifact_root": "moved to legacy_fields",
+        "evidence_path_audit": "moved to legacy_fields",
+        "root_evidence_audit": "moved to legacy_fields",
+        "path_rules": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "V8-008": {
+      "original_top_level_fields": [
+        "allowed_claims",
+        "evidence_status",
+        "execution_timestamp",
+        "forbidden_claims",
+        "goal",
+        "matrix_path",
+        "next_task",
+        "provider_list",
+        "reason",
+        "runtime_semantics_rules",
+        "schema_definition",
+        "schema_version",
+        "status",
+        "task_family",
+        "task_id"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "schema_definition": "moved to legacy_fields",
+        "provider_list": "moved to legacy_fields",
+        "runtime_semantics_rules": "moved to legacy_fields",
+        "allowed_claims": "moved to legacy_fields",
+        "forbidden_claims": "moved to legacy_fields",
+        "matrix_path": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "V8-009": {
+      "original_top_level_fields": [
+        "current_v8_progress",
+        "dependency_list",
+        "evidence_status",
+        "execution_timestamp",
+        "final_gate_sequencing_rules",
+        "gating_rules",
+        "goal",
+        "next_task",
+        "premature_claim_detection",
+        "reason",
+        "schema_version",
+        "status",
+        "task_family",
+        "task_id"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "execution_timestamp": "moved to legacy_fields",
+        "goal": "moved to legacy_fields",
+        "final_gate_sequencing_rules": "moved to legacy_fields",
+        "dependency_list": "moved to legacy_fields",
+        "current_v8_progress": "moved to legacy_fields",
+        "premature_claim_detection": "moved to legacy_fields",
+        "gating_rules": "moved to legacy_fields",
+        "evidence_status": "moved to legacy_fields",
+        "reason": "moved to legacy_fields",
+        "next_task": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": false,
+        "no_status_inflation": true
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": null,
+        "runtime_environment_kind": null,
+        "environment": null,
+        "has_real_runtime_evidence": false
+      }
+    },
+    "WDA-001": {
+      "original_top_level_fields": [
+        "alist_protocol",
+        "blocked_reason",
+        "direct_link_management",
+        "environment_available",
+        "environment_required",
+        "evidence_file",
+        "family",
+        "gate_integration",
+        "implementation_requirements",
+        "privacy_redaction",
+        "provider_matrix_impact",
+        "runtime_environment_kind",
+        "runtime_mode",
+        "runtime_verified_timestamp",
+        "schema_version",
+        "source_health",
+        "status",
+        "task_id",
+        "task_name",
+        "test_cases",
+        "webdav_protocol"
+      ],
+      "preserved_as_legacy_original": true,
+      "preserved_fields": {
+        "status": "CONTRACT_PASS",
+        "task_name": "also in implementation.legacy_task_name",
+        "family": "also in implementation.legacy_family",
+        "environment_required": "moved to legacy_fields",
+        "environment_available": "moved to legacy_fields",
+        "runtime_verified_timestamp": "also in implementation.legacy_runtime_verified_timestamp",
+        "evidence_file": "moved to legacy_fields",
+        "provider_matrix_impact": "also in implementation.legacy_provider_matrix_impact",
+        "webdav_protocol": "moved to legacy_fields",
+        "alist_protocol": "moved to legacy_fields",
+        "source_health": "moved to legacy_fields",
+        "direct_link_management": "moved to legacy_fields",
+        "privacy_redaction": "moved to legacy_fields",
+        "gate_integration": "moved to legacy_fields",
+        "test_cases": "moved to legacy_fields",
+        "implementation_requirements": "moved to legacy_fields"
+      },
+      "mapped_values": {
+        "status": "CONTRACT_PASS",
+        "runtime_verified": true,
+        "no_status_inflation": true,
+        "runtime_environment_kind": {
+          "from": "test_harness",
+          "to": "not_applicable"
+        }
+      },
+      "runtime_evidence_check": {
+        "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+        "runtime_environment_kind": "test_harness",
+        "environment": null,
+        "has_real_runtime_evidence": true
+      }
+    }
+  }
+}
