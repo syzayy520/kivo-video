@@ -1,142 +1,11 @@
 {
+  "schema_version": "p2-evidence-v8",
   "task_id": "LRD-009",
   "task_family": "local_repair_delta/integration",
-  "execution_timestamp": "2026-06-26T01:40:00Z",
   "status": "CONTRACT_PASS",
-  "goal": "30s continuous local playback runtime over sample; no SoakSimulator, no repeated open/close fake soak",
-  "audit_document_path": "docs/roadmap/p2_local_repair_delta_009_micro_soak_runtime_audit.md",
-  "current_implementation": {
-    "test_file": "backend/tests/presenter/micro_soak_test.cpp",
-    "current_status": "CONTRACT_PASS (downgraded per V8-002 audit)",
-    "problem": "Uses SoakSimulator which is not real runtime soak"
-  },
-  "reality_proof_requirements": {
-    "real_30s_playback": "Must run real demux/decode pipeline for 30+ seconds",
-    "real_sample_file": "Must use actual H.264+AAC MP4 sample",
-    "real_ffmpeg_pipeline": "Must use real FFmpeg functions throughout",
-    "real_queue_tracking": "Must track actual queue sizes during playback",
-    "real_memory_tracking": "Must track actual memory allocations",
-    "real_unbounded_growth_detection": "Must detect actual memory leaks",
-    "real_metrics_collection": "Must use real counters from actual pipeline",
-    "no_soak_simulator": "Cannot use SoakSimulator class",
-    "no_fake_counters": "Must use real counters, not fake ones",
-    "no_repeated_open_close": "Must run continuous pipeline, not repeated open/close"
-  },
-  "test_strategy": {
-    "required_reality_tests": [
-      "30-Second Continuous Playback Test: Run real pipeline for 30+ seconds",
-      "Real Queue High-Water Test: Track actual queue sizes during playback",
-      "Real Memory Usage Test: Track actual memory allocations",
-      "Real Unbounded Growth Test: Detect actual memory leaks",
-      "Real Frame Count Test: Count actual decoded frames",
-      "Real Byte Count Test: Count actual bytes processed",
-      "Real Error Count Test: Count actual errors",
-      "Real Duration Test: Measure actual elapsed time"
-    ],
-    "test_requirements": [
-      "All tests must use real FFmpeg functions (not stubs)",
-      "Must run continuously for 30+ seconds",
-      "Must track real metrics from actual pipeline",
-      "Must handle device unavailable scenarios honestly"
-    ]
-  },
-  "inspector_snapshot_requirements": {
-    "soak_test_snapshot": "duration, queue_high_water, memory_usage, frame_counts, byte_counts, error_counts"
-  },
-  "decision_ledger_requirements": {
-    "soak_decision": "Input: sample_path; Output: success, duration, frames_decoded, bytes_processed"
-  },
-  "evidence_artifact_requirements": {
-    "evidence_file": "artifacts/p2/evidence/LRD-009.json",
-    "required_fields": [
-      "task_id",
-      "status",
-      "runtime_mode",
-      "runtime_environment",
-      "soak_test",
-      "duration",
-      "queue_high_water",
-      "memory_usage",
-      "frame_counts",
-      "byte_counts",
-      "error_counts",
-      "d3d11_status",
-      "wasapi_status",
-      "inspector_snapshot",
-      "decision_ledger",
-      "errors",
-      "redaction",
-      "schema_validation",
-      "anti_fake",
-      "redline"
-    ]
-  },
-  "schema_gate_requirements": {
-    "duration_required": "duration must be \u226530 seconds for RUNTIME_PASS",
-    "video_frames_decoded_required": "video_frames_decoded must be > 0 for RUNTIME_PASS",
-    "audio_frames_decoded_required": "audio_frames_decoded must be > 0 for RUNTIME_PASS",
-    "anti_fake_validation": "no SoakSimulator or fake counters"
-  },
-  "redline_gate_requirements": {
-    "forbidden_terms": [
-      "SoakSimulator",
-      "fake counters",
-      "repeated open/close",
-      "state machine simulation",
-      "interface contract only"
-    ],
-    "allowlist_terms": [
-      "real soak",
-      "continuous playback",
-      "real metrics",
-      "queue high water",
-      "memory usage",
-      "frame counts"
-    ]
-  },
-  "anti_fake_gate_requirements": {
-    "real_soak_runtime_proof": [
-      "Real 30+ second continuous playback",
-      "Real queue high water marks from actual pipeline",
-      "Real memory usage tracking from actual allocations",
-      "Real frame counts from actual decode operations",
-      "Real byte counts from actual data processing",
-      "Real error counts from actual failures"
-    ],
-    "forbidden_fake_proofs": [
-      "SoakSimulator class \u2192 CONTRACT_PASS only",
-      "fake counters \u2192 CONTRACT_PASS only",
-      "repeated open/close \u2192 CONTRACT_PASS only",
-      "state machine simulation \u2192 CONTRACT_PASS only"
-    ]
-  },
-  "clean_workspace_gate": {
-    "workspace_requirements": [
-      "No root-level soak outputs",
-      "No generated media files in source root",
-      "Evidence file in artifacts/p2/evidence/",
-      "Test outputs in backend/tests/presenter/"
-    ]
-  },
-  "final_report_rules": {
-    "classification_options": [
-      "RUNTIME_PASS: Real 30s continuous playback with real metrics",
-      "BLOCKED_ENV: Missing sample or FFmpeg",
-      "CONTRACT_PASS: Interface contract proven but not runtime",
-      "FAIL: Required proof missing or conflicting"
-    ],
-    "forbidden_claims": [
-      "Never claim real soak without real 30s playback",
-      "Never claim runtime PASS if BLOCKED_ENV",
-      "Never claim real metrics without real counters",
-      "Never claim queue high water without real tracking"
-    ]
-  },
-  "evidence_status": "CONTRACT_PASS",
-  "reason": "Micro soak runtime audit requires real 30s continuous playback without SoakSimulator. Current implementation uses SoakSimulator (CONTRACT_PASS). Real queue/memory tracking required for RUNTIME_PASS.",
-  "next_task": "LRD-010 Evidence Artifact Audit",
-  "timestamp_utc": "2026-06-26T00:00:00Z",
   "completion_level": "p2-foundation-planning",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable",
   "environment": {},
   "implementation": {},
   "media_input": {
@@ -164,6 +33,285 @@
   "requires_provider_matrix": false,
   "runtime_verified": false,
   "blocked_reason": "",
-  "runtime_mode": "planning_only",
-  "runtime_environment_kind": "not_applicable"
+  "timestamp_utc": "2026-06-26T01:40:00Z",
+  "legacy_original": {
+    "task_id": "LRD-009",
+    "task_family": "local_repair_delta/integration",
+    "execution_timestamp": "2026-06-26T01:40:00Z",
+    "status": "CONTRACT_PASS",
+    "goal": "30s continuous local playback runtime over sample; no SoakSimulator, no repeated open/close fake soak",
+    "audit_document_path": "docs/roadmap/p2_local_repair_delta_009_micro_soak_runtime_audit.md",
+    "current_implementation": {
+      "test_file": "backend/tests/presenter/micro_soak_test.cpp",
+      "current_status": "CONTRACT_PASS (downgraded per V8-002 audit)",
+      "problem": "Uses SoakSimulator which is not real runtime soak"
+    },
+    "reality_proof_requirements": {
+      "real_30s_playback": "Must run real demux/decode pipeline for 30+ seconds",
+      "real_sample_file": "Must use actual H.264+AAC MP4 sample",
+      "real_ffmpeg_pipeline": "Must use real FFmpeg functions throughout",
+      "real_queue_tracking": "Must track actual queue sizes during playback",
+      "real_memory_tracking": "Must track actual memory allocations",
+      "real_unbounded_growth_detection": "Must detect actual memory leaks",
+      "real_metrics_collection": "Must use real counters from actual pipeline",
+      "no_soak_simulator": "Cannot use SoakSimulator class",
+      "no_fake_counters": "Must use real counters, not fake ones",
+      "no_repeated_open_close": "Must run continuous pipeline, not repeated open/close"
+    },
+    "test_strategy": {
+      "required_reality_tests": [
+        "30-Second Continuous Playback Test: Run real pipeline for 30+ seconds",
+        "Real Queue High-Water Test: Track actual queue sizes during playback",
+        "Real Memory Usage Test: Track actual memory allocations",
+        "Real Unbounded Growth Test: Detect actual memory leaks",
+        "Real Frame Count Test: Count actual decoded frames",
+        "Real Byte Count Test: Count actual bytes processed",
+        "Real Error Count Test: Count actual errors",
+        "Real Duration Test: Measure actual elapsed time"
+      ],
+      "test_requirements": [
+        "All tests must use real FFmpeg functions (not stubs)",
+        "Must run continuously for 30+ seconds",
+        "Must track real metrics from actual pipeline",
+        "Must handle device unavailable scenarios honestly"
+      ]
+    },
+    "inspector_snapshot_requirements": {
+      "soak_test_snapshot": "duration, queue_high_water, memory_usage, frame_counts, byte_counts, error_counts"
+    },
+    "decision_ledger_requirements": {
+      "soak_decision": "Input: sample_path; Output: success, duration, frames_decoded, bytes_processed"
+    },
+    "evidence_artifact_requirements": {
+      "evidence_file": "artifacts/p2/evidence/LRD-009.json",
+      "required_fields": [
+        "task_id",
+        "status",
+        "runtime_mode",
+        "runtime_environment",
+        "soak_test",
+        "duration",
+        "queue_high_water",
+        "memory_usage",
+        "frame_counts",
+        "byte_counts",
+        "error_counts",
+        "d3d11_status",
+        "wasapi_status",
+        "inspector_snapshot",
+        "decision_ledger",
+        "errors",
+        "redaction",
+        "schema_validation",
+        "anti_fake",
+        "redline"
+      ]
+    },
+    "schema_gate_requirements": {
+      "duration_required": "duration must be \u226530 seconds for RUNTIME_PASS",
+      "video_frames_decoded_required": "video_frames_decoded must be > 0 for RUNTIME_PASS",
+      "audio_frames_decoded_required": "audio_frames_decoded must be > 0 for RUNTIME_PASS",
+      "anti_fake_validation": "no SoakSimulator or fake counters"
+    },
+    "redline_gate_requirements": {
+      "forbidden_terms": [
+        "SoakSimulator",
+        "fake counters",
+        "repeated open/close",
+        "state machine simulation",
+        "interface contract only"
+      ],
+      "allowlist_terms": [
+        "real soak",
+        "continuous playback",
+        "real metrics",
+        "queue high water",
+        "memory usage",
+        "frame counts"
+      ]
+    },
+    "anti_fake_gate_requirements": {
+      "real_soak_runtime_proof": [
+        "Real 30+ second continuous playback",
+        "Real queue high water marks from actual pipeline",
+        "Real memory usage tracking from actual allocations",
+        "Real frame counts from actual decode operations",
+        "Real byte counts from actual data processing",
+        "Real error counts from actual failures"
+      ],
+      "forbidden_fake_proofs": [
+        "SoakSimulator class \u2192 CONTRACT_PASS only",
+        "fake counters \u2192 CONTRACT_PASS only",
+        "repeated open/close \u2192 CONTRACT_PASS only",
+        "state machine simulation \u2192 CONTRACT_PASS only"
+      ]
+    },
+    "clean_workspace_gate": {
+      "workspace_requirements": [
+        "No root-level soak outputs",
+        "No generated media files in source root",
+        "Evidence file in artifacts/p2/evidence/",
+        "Test outputs in backend/tests/presenter/"
+      ]
+    },
+    "final_report_rules": {
+      "classification_options": [
+        "RUNTIME_PASS: Real 30s continuous playback with real metrics",
+        "BLOCKED_ENV: Missing sample or FFmpeg",
+        "CONTRACT_PASS: Interface contract proven but not runtime",
+        "FAIL: Required proof missing or conflicting"
+      ],
+      "forbidden_claims": [
+        "Never claim real soak without real 30s playback",
+        "Never claim runtime PASS if BLOCKED_ENV",
+        "Never claim real metrics without real counters",
+        "Never claim queue high water without real tracking"
+      ]
+    },
+    "evidence_status": "CONTRACT_PASS",
+    "reason": "Micro soak runtime audit requires real 30s continuous playback without SoakSimulator. Current implementation uses SoakSimulator (CONTRACT_PASS). Real queue/memory tracking required for RUNTIME_PASS.",
+    "next_task": "LRD-010 Evidence Artifact Audit"
+  },
+  "legacy_fields": {
+    "execution_timestamp": "2026-06-26T01:40:00Z",
+    "goal": "30s continuous local playback runtime over sample; no SoakSimulator, no repeated open/close fake soak",
+    "audit_document_path": "docs/roadmap/p2_local_repair_delta_009_micro_soak_runtime_audit.md",
+    "current_implementation": {
+      "test_file": "backend/tests/presenter/micro_soak_test.cpp",
+      "current_status": "CONTRACT_PASS (downgraded per V8-002 audit)",
+      "problem": "Uses SoakSimulator which is not real runtime soak"
+    },
+    "reality_proof_requirements": {
+      "real_30s_playback": "Must run real demux/decode pipeline for 30+ seconds",
+      "real_sample_file": "Must use actual H.264+AAC MP4 sample",
+      "real_ffmpeg_pipeline": "Must use real FFmpeg functions throughout",
+      "real_queue_tracking": "Must track actual queue sizes during playback",
+      "real_memory_tracking": "Must track actual memory allocations",
+      "real_unbounded_growth_detection": "Must detect actual memory leaks",
+      "real_metrics_collection": "Must use real counters from actual pipeline",
+      "no_soak_simulator": "Cannot use SoakSimulator class",
+      "no_fake_counters": "Must use real counters, not fake ones",
+      "no_repeated_open_close": "Must run continuous pipeline, not repeated open/close"
+    },
+    "test_strategy": {
+      "required_reality_tests": [
+        "30-Second Continuous Playback Test: Run real pipeline for 30+ seconds",
+        "Real Queue High-Water Test: Track actual queue sizes during playback",
+        "Real Memory Usage Test: Track actual memory allocations",
+        "Real Unbounded Growth Test: Detect actual memory leaks",
+        "Real Frame Count Test: Count actual decoded frames",
+        "Real Byte Count Test: Count actual bytes processed",
+        "Real Error Count Test: Count actual errors",
+        "Real Duration Test: Measure actual elapsed time"
+      ],
+      "test_requirements": [
+        "All tests must use real FFmpeg functions (not stubs)",
+        "Must run continuously for 30+ seconds",
+        "Must track real metrics from actual pipeline",
+        "Must handle device unavailable scenarios honestly"
+      ]
+    },
+    "inspector_snapshot_requirements": {
+      "soak_test_snapshot": "duration, queue_high_water, memory_usage, frame_counts, byte_counts, error_counts"
+    },
+    "decision_ledger_requirements": {
+      "soak_decision": "Input: sample_path; Output: success, duration, frames_decoded, bytes_processed"
+    },
+    "evidence_artifact_requirements": {
+      "evidence_file": "artifacts/p2/evidence/LRD-009.json",
+      "required_fields": [
+        "task_id",
+        "status",
+        "runtime_mode",
+        "runtime_environment",
+        "soak_test",
+        "duration",
+        "queue_high_water",
+        "memory_usage",
+        "frame_counts",
+        "byte_counts",
+        "error_counts",
+        "d3d11_status",
+        "wasapi_status",
+        "inspector_snapshot",
+        "decision_ledger",
+        "errors",
+        "redaction",
+        "schema_validation",
+        "anti_fake",
+        "redline"
+      ]
+    },
+    "schema_gate_requirements": {
+      "duration_required": "duration must be \u226530 seconds for RUNTIME_PASS",
+      "video_frames_decoded_required": "video_frames_decoded must be > 0 for RUNTIME_PASS",
+      "audio_frames_decoded_required": "audio_frames_decoded must be > 0 for RUNTIME_PASS",
+      "anti_fake_validation": "no SoakSimulator or fake counters"
+    },
+    "redline_gate_requirements": {
+      "forbidden_terms": [
+        "SoakSimulator",
+        "fake counters",
+        "repeated open/close",
+        "state machine simulation",
+        "interface contract only"
+      ],
+      "allowlist_terms": [
+        "real soak",
+        "continuous playback",
+        "real metrics",
+        "queue high water",
+        "memory usage",
+        "frame counts"
+      ]
+    },
+    "anti_fake_gate_requirements": {
+      "real_soak_runtime_proof": [
+        "Real 30+ second continuous playback",
+        "Real queue high water marks from actual pipeline",
+        "Real memory usage tracking from actual allocations",
+        "Real frame counts from actual decode operations",
+        "Real byte counts from actual data processing",
+        "Real error counts from actual failures"
+      ],
+      "forbidden_fake_proofs": [
+        "SoakSimulator class \u2192 CONTRACT_PASS only",
+        "fake counters \u2192 CONTRACT_PASS only",
+        "repeated open/close \u2192 CONTRACT_PASS only",
+        "state machine simulation \u2192 CONTRACT_PASS only"
+      ]
+    },
+    "clean_workspace_gate": {
+      "workspace_requirements": [
+        "No root-level soak outputs",
+        "No generated media files in source root",
+        "Evidence file in artifacts/p2/evidence/",
+        "Test outputs in backend/tests/presenter/"
+      ]
+    },
+    "final_report_rules": {
+      "classification_options": [
+        "RUNTIME_PASS: Real 30s continuous playback with real metrics",
+        "BLOCKED_ENV: Missing sample or FFmpeg",
+        "CONTRACT_PASS: Interface contract proven but not runtime",
+        "FAIL: Required proof missing or conflicting"
+      ],
+      "forbidden_claims": [
+        "Never claim real soak without real 30s playback",
+        "Never claim runtime PASS if BLOCKED_ENV",
+        "Never claim real metrics without real counters",
+        "Never claim queue high water without real tracking"
+      ]
+    },
+    "evidence_status": "CONTRACT_PASS",
+    "reason": "Micro soak runtime audit requires real 30s continuous playback without SoakSimulator. Current implementation uses SoakSimulator (CONTRACT_PASS). Real queue/memory tracking required for RUNTIME_PASS.",
+    "next_task": "LRD-010 Evidence Artifact Audit"
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 17,
+    "migrated_field_count": 33
+  }
 }

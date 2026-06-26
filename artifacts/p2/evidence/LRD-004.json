@@ -1,165 +1,11 @@
 {
+  "schema_version": "p2-evidence-v8",
   "task_id": "LRD-004",
   "task_family": "local repair delta/video",
-  "execution_timestamp": "2026-06-26T00:50:00Z",
   "status": "CONTRACT_PASS",
-  "goal": "upload real decoded frame data into D3D11 texture",
-  "audit_document_path": "docs/roadmap/p2_local_repair_delta_004_d3d11_upload_audit.md",
-  "decoded_frame_structure": {
-    "file": "backend/include/kivo/cinema_engine/decode_core/decoded_frame.hpp",
-    "fields": {
-      "frame_id": "string",
-      "stream_kind": "string (video/audio)",
-      "pts": "int64_t",
-      "dts": "int64_t",
-      "duration": "int64_t",
-      "width": "int32_t",
-      "height": "int32_t",
-      "pixel_format": "string (yuv420p, nv12, rgb24)",
-      "sample_rate": "int32_t",
-      "channels": "int32_t",
-      "sample_format": "string (s16, flt)",
-      "is_eof": "bool",
-      "frame_ref": "string",
-      "frame_data": "vector<uint8_t> (actual pixel/sample data)",
-      "linesize": "int32_t[4] (linesize/stride per plane)"
-    }
-  },
-  "current_status": "CONTRACT_PASS (stub implementation)",
-  "required_repair": "Real D3D11 texture upload with actual frame data",
-  "upload_pipeline": {
-    "steps": [
-      "DecodedFrame \u2192 YUV\u2192RGB/NV12 conversion",
-      "YUV\u2192RGB/NV12 \u2192 D3D11 Texture creation",
-      "D3D11 Texture \u2192 Data upload (UpdateSubresource/map/unmap)",
-      "D3D11 Texture \u2192 Upload verification"
-    ],
-    "format_handling": {
-      "yuv420p": "3 planes (Y, U, V) with separate linesizes",
-      "nv12": "2 planes (Y, UV interleaved)",
-      "rgb24": "1 plane (interleaved RGB)",
-      "other": "Conversion required"
-    }
-  },
-  "reality_proof_requirements": {
-    "real_frame_data": "frame_data must contain actual decoded pixels",
-    "real_linesize": "linesize[4] must match actual frame layout",
-    "real_dimensions": "width and height must match actual frame",
-    "real_pixel_format": "pixel_format must match actual format",
-    "real_texture_creation": "Real ID3D11Texture2D with correct dimensions/format",
-    "real_data_upload": "Real UpdateSubresource or map/unmap with actual frame data",
-    "real_upload_verification": "Confirm texture contains uploaded data"
-  },
-  "test_strategy": {
-    "required_reality_tests": [
-      "YUV420P Upload Test: Upload real YUV420P frame data",
-      "NV12 Upload Test: Upload real NV12 frame data",
-      "RGB24 Upload Test: Upload real RGB24 frame data",
-      "Format Conversion Test: YUV\u2192RGB conversion proof",
-      "Upload Verification Test: Verify texture contains uploaded data",
-      "Linesize Handling Test: Handle different linesize values"
-    ],
-    "evidence_requirements": [
-      "Real frame data in frame_data vector",
-      "Real linesize in linesize[4] array",
-      "Real texture metadata (width, height, format)",
-      "Real upload result (success/failure)",
-      "Real upload verification (data integrity)"
-    ]
-  },
-  "inspector_snapshot_requirements": {
-    "decoded_frame_upload_snapshot": "frame_id, pixel_format, width, height, frame_data_size, linesize, upload_success, texture_width, texture_height, texture_format, upload_method, upload_verification"
-  },
-  "decision_ledger_requirements": {
-    "upload_decision": "Input: frame_id, pixel_format, width, height, frame_data_size; Output: upload_success, texture_format, upload_method, upload_verification"
-  },
-  "evidence_artifact_requirements": {
-    "evidence_file": "artifacts/p2/evidence/LRD-004.json",
-    "required_fields": [
-      "task_id",
-      "status",
-      "decoded_frame",
-      "d3d11_texture_upload",
-      "format_conversion",
-      "inspector_snapshot",
-      "decision_ledger",
-      "schema_validation",
-      "anti_fake_assertions"
-    ]
-  },
-  "schema_gate_requirements": {
-    "real_frame_data_required": "frame_data_size > 0",
-    "real_linesize_required": "linesize values must match dimensions",
-    "upload_success_required": "upload_success must be true for RUNTIME_PASS",
-    "upload_verification_required": "upload_verification must be true",
-    "anti_fake_validation": "no empty texture or dummy frame"
-  },
-  "redline_gate_requirements": {
-    "forbidden_terms": [
-      "empty texture",
-      "dummy frame",
-      "placeholder data",
-      "stub upload",
-      "bool-only proof",
-      "log-only proof",
-      "interface contract only"
-    ],
-    "allowlist_terms": [
-      "real frame data",
-      "actual pixels",
-      "decoded frame",
-      "texture upload",
-      "UpdateSubresource",
-      "map/unmap",
-      "format conversion",
-      "YUV\u2192RGB",
-      "NV12",
-      "RUNTIME_PASS",
-      "BLOCKED_ENV"
-    ]
-  },
-  "anti_fake_gate_requirements": {
-    "real_upload_proof": [
-      "Real frame data: frame_data contains actual decoded pixels",
-      "Real linesize: linesize[4] matches actual frame layout",
-      "Real texture creation: Real ID3D11Texture2D creation",
-      "Real data upload: Real UpdateSubresource call",
-      "Real upload verification: Texture contains uploaded data"
-    ],
-    "forbidden_fake_proofs": [
-      "empty texture \u2192 CONTRACT_PASS only",
-      "dummy frame data \u2192 CONTRACT_PASS only",
-      "bool-only upload \u2192 insufficient proof",
-      "log-only upload \u2192 insufficient proof"
-    ]
-  },
-  "clean_workspace_gate": {
-    "workspace_requirements": [
-      "No root-level texture outputs",
-      "No generated texture files in source root",
-      "Evidence file in artifacts/p2/evidence/",
-      "Test outputs in backend/tests/video_upload/"
-    ]
-  },
-  "final_report_rules": {
-    "classification_options": [
-      "RUNTIME_PASS: Real decoded frame data uploaded to real D3D11 texture",
-      "BLOCKED_ENV: D3D11 environment unavailable, honest block",
-      "CONTRACT_PASS: Interface contract proven but not runtime",
-      "FAIL: Required proof missing or conflicting"
-    ],
-    "forbidden_claims": [
-      "Never claim real upload if empty texture",
-      "Never claim real upload if dummy frame",
-      "Never claim runtime PASS if BLOCKED_ENV",
-      "Never claim upload verification if not verified"
-    ]
-  },
-  "evidence_status": "CONTRACT_PASS",
-  "reason": "D3D11 real decoded frame upload planned. Current interface is stub implementation (CONTRACT_PASS). Real frame data upload with YUV420P/NV12/RGB24 formats required for RUNTIME_PASS. Format conversion and upload verification planned.",
-  "next_task": "LRD-005 Presenter Boundary Reality Audit",
-  "timestamp_utc": "2026-06-26T00:00:00Z",
   "completion_level": "p2-foundation-planning",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable",
   "environment": {},
   "implementation": {},
   "media_input": {
@@ -187,6 +33,331 @@
   "requires_provider_matrix": false,
   "runtime_verified": false,
   "blocked_reason": "",
-  "runtime_mode": "planning_only",
-  "runtime_environment_kind": "not_applicable"
+  "timestamp_utc": "2026-06-26T00:50:00Z",
+  "legacy_original": {
+    "task_id": "LRD-004",
+    "task_family": "local repair delta/video",
+    "execution_timestamp": "2026-06-26T00:50:00Z",
+    "status": "CONTRACT_PASS",
+    "goal": "upload real decoded frame data into D3D11 texture",
+    "audit_document_path": "docs/roadmap/p2_local_repair_delta_004_d3d11_upload_audit.md",
+    "decoded_frame_structure": {
+      "file": "backend/include/kivo/cinema_engine/decode_core/decoded_frame.hpp",
+      "fields": {
+        "frame_id": "string",
+        "stream_kind": "string (video/audio)",
+        "pts": "int64_t",
+        "dts": "int64_t",
+        "duration": "int64_t",
+        "width": "int32_t",
+        "height": "int32_t",
+        "pixel_format": "string (yuv420p, nv12, rgb24)",
+        "sample_rate": "int32_t",
+        "channels": "int32_t",
+        "sample_format": "string (s16, flt)",
+        "is_eof": "bool",
+        "frame_ref": "string",
+        "frame_data": "vector<uint8_t> (actual pixel/sample data)",
+        "linesize": "int32_t[4] (linesize/stride per plane)"
+      }
+    },
+    "current_status": "CONTRACT_PASS (stub implementation)",
+    "required_repair": "Real D3D11 texture upload with actual frame data",
+    "upload_pipeline": {
+      "steps": [
+        "DecodedFrame \u2192 YUV\u2192RGB/NV12 conversion",
+        "YUV\u2192RGB/NV12 \u2192 D3D11 Texture creation",
+        "D3D11 Texture \u2192 Data upload (UpdateSubresource/map/unmap)",
+        "D3D11 Texture \u2192 Upload verification"
+      ],
+      "format_handling": {
+        "yuv420p": "3 planes (Y, U, V) with separate linesizes",
+        "nv12": "2 planes (Y, UV interleaved)",
+        "rgb24": "1 plane (interleaved RGB)",
+        "other": "Conversion required"
+      }
+    },
+    "reality_proof_requirements": {
+      "real_frame_data": "frame_data must contain actual decoded pixels",
+      "real_linesize": "linesize[4] must match actual frame layout",
+      "real_dimensions": "width and height must match actual frame",
+      "real_pixel_format": "pixel_format must match actual format",
+      "real_texture_creation": "Real ID3D11Texture2D with correct dimensions/format",
+      "real_data_upload": "Real UpdateSubresource or map/unmap with actual frame data",
+      "real_upload_verification": "Confirm texture contains uploaded data"
+    },
+    "test_strategy": {
+      "required_reality_tests": [
+        "YUV420P Upload Test: Upload real YUV420P frame data",
+        "NV12 Upload Test: Upload real NV12 frame data",
+        "RGB24 Upload Test: Upload real RGB24 frame data",
+        "Format Conversion Test: YUV\u2192RGB conversion proof",
+        "Upload Verification Test: Verify texture contains uploaded data",
+        "Linesize Handling Test: Handle different linesize values"
+      ],
+      "evidence_requirements": [
+        "Real frame data in frame_data vector",
+        "Real linesize in linesize[4] array",
+        "Real texture metadata (width, height, format)",
+        "Real upload result (success/failure)",
+        "Real upload verification (data integrity)"
+      ]
+    },
+    "inspector_snapshot_requirements": {
+      "decoded_frame_upload_snapshot": "frame_id, pixel_format, width, height, frame_data_size, linesize, upload_success, texture_width, texture_height, texture_format, upload_method, upload_verification"
+    },
+    "decision_ledger_requirements": {
+      "upload_decision": "Input: frame_id, pixel_format, width, height, frame_data_size; Output: upload_success, texture_format, upload_method, upload_verification"
+    },
+    "evidence_artifact_requirements": {
+      "evidence_file": "artifacts/p2/evidence/LRD-004.json",
+      "required_fields": [
+        "task_id",
+        "status",
+        "decoded_frame",
+        "d3d11_texture_upload",
+        "format_conversion",
+        "inspector_snapshot",
+        "decision_ledger",
+        "schema_validation",
+        "anti_fake_assertions"
+      ]
+    },
+    "schema_gate_requirements": {
+      "real_frame_data_required": "frame_data_size > 0",
+      "real_linesize_required": "linesize values must match dimensions",
+      "upload_success_required": "upload_success must be true for RUNTIME_PASS",
+      "upload_verification_required": "upload_verification must be true",
+      "anti_fake_validation": "no empty texture or dummy frame"
+    },
+    "redline_gate_requirements": {
+      "forbidden_terms": [
+        "empty texture",
+        "dummy frame",
+        "placeholder data",
+        "stub upload",
+        "bool-only proof",
+        "log-only proof",
+        "interface contract only"
+      ],
+      "allowlist_terms": [
+        "real frame data",
+        "actual pixels",
+        "decoded frame",
+        "texture upload",
+        "UpdateSubresource",
+        "map/unmap",
+        "format conversion",
+        "YUV\u2192RGB",
+        "NV12",
+        "RUNTIME_PASS",
+        "BLOCKED_ENV"
+      ]
+    },
+    "anti_fake_gate_requirements": {
+      "real_upload_proof": [
+        "Real frame data: frame_data contains actual decoded pixels",
+        "Real linesize: linesize[4] matches actual frame layout",
+        "Real texture creation: Real ID3D11Texture2D creation",
+        "Real data upload: Real UpdateSubresource call",
+        "Real upload verification: Texture contains uploaded data"
+      ],
+      "forbidden_fake_proofs": [
+        "empty texture \u2192 CONTRACT_PASS only",
+        "dummy frame data \u2192 CONTRACT_PASS only",
+        "bool-only upload \u2192 insufficient proof",
+        "log-only upload \u2192 insufficient proof"
+      ]
+    },
+    "clean_workspace_gate": {
+      "workspace_requirements": [
+        "No root-level texture outputs",
+        "No generated texture files in source root",
+        "Evidence file in artifacts/p2/evidence/",
+        "Test outputs in backend/tests/video_upload/"
+      ]
+    },
+    "final_report_rules": {
+      "classification_options": [
+        "RUNTIME_PASS: Real decoded frame data uploaded to real D3D11 texture",
+        "BLOCKED_ENV: D3D11 environment unavailable, honest block",
+        "CONTRACT_PASS: Interface contract proven but not runtime",
+        "FAIL: Required proof missing or conflicting"
+      ],
+      "forbidden_claims": [
+        "Never claim real upload if empty texture",
+        "Never claim real upload if dummy frame",
+        "Never claim runtime PASS if BLOCKED_ENV",
+        "Never claim upload verification if not verified"
+      ]
+    },
+    "evidence_status": "CONTRACT_PASS",
+    "reason": "D3D11 real decoded frame upload planned. Current interface is stub implementation (CONTRACT_PASS). Real frame data upload with YUV420P/NV12/RGB24 formats required for RUNTIME_PASS. Format conversion and upload verification planned.",
+    "next_task": "LRD-005 Presenter Boundary Reality Audit"
+  },
+  "legacy_fields": {
+    "execution_timestamp": "2026-06-26T00:50:00Z",
+    "goal": "upload real decoded frame data into D3D11 texture",
+    "audit_document_path": "docs/roadmap/p2_local_repair_delta_004_d3d11_upload_audit.md",
+    "decoded_frame_structure": {
+      "file": "backend/include/kivo/cinema_engine/decode_core/decoded_frame.hpp",
+      "fields": {
+        "frame_id": "string",
+        "stream_kind": "string (video/audio)",
+        "pts": "int64_t",
+        "dts": "int64_t",
+        "duration": "int64_t",
+        "width": "int32_t",
+        "height": "int32_t",
+        "pixel_format": "string (yuv420p, nv12, rgb24)",
+        "sample_rate": "int32_t",
+        "channels": "int32_t",
+        "sample_format": "string (s16, flt)",
+        "is_eof": "bool",
+        "frame_ref": "string",
+        "frame_data": "vector<uint8_t> (actual pixel/sample data)",
+        "linesize": "int32_t[4] (linesize/stride per plane)"
+      }
+    },
+    "current_status": "CONTRACT_PASS (stub implementation)",
+    "required_repair": "Real D3D11 texture upload with actual frame data",
+    "upload_pipeline": {
+      "steps": [
+        "DecodedFrame \u2192 YUV\u2192RGB/NV12 conversion",
+        "YUV\u2192RGB/NV12 \u2192 D3D11 Texture creation",
+        "D3D11 Texture \u2192 Data upload (UpdateSubresource/map/unmap)",
+        "D3D11 Texture \u2192 Upload verification"
+      ],
+      "format_handling": {
+        "yuv420p": "3 planes (Y, U, V) with separate linesizes",
+        "nv12": "2 planes (Y, UV interleaved)",
+        "rgb24": "1 plane (interleaved RGB)",
+        "other": "Conversion required"
+      }
+    },
+    "reality_proof_requirements": {
+      "real_frame_data": "frame_data must contain actual decoded pixels",
+      "real_linesize": "linesize[4] must match actual frame layout",
+      "real_dimensions": "width and height must match actual frame",
+      "real_pixel_format": "pixel_format must match actual format",
+      "real_texture_creation": "Real ID3D11Texture2D with correct dimensions/format",
+      "real_data_upload": "Real UpdateSubresource or map/unmap with actual frame data",
+      "real_upload_verification": "Confirm texture contains uploaded data"
+    },
+    "test_strategy": {
+      "required_reality_tests": [
+        "YUV420P Upload Test: Upload real YUV420P frame data",
+        "NV12 Upload Test: Upload real NV12 frame data",
+        "RGB24 Upload Test: Upload real RGB24 frame data",
+        "Format Conversion Test: YUV\u2192RGB conversion proof",
+        "Upload Verification Test: Verify texture contains uploaded data",
+        "Linesize Handling Test: Handle different linesize values"
+      ],
+      "evidence_requirements": [
+        "Real frame data in frame_data vector",
+        "Real linesize in linesize[4] array",
+        "Real texture metadata (width, height, format)",
+        "Real upload result (success/failure)",
+        "Real upload verification (data integrity)"
+      ]
+    },
+    "inspector_snapshot_requirements": {
+      "decoded_frame_upload_snapshot": "frame_id, pixel_format, width, height, frame_data_size, linesize, upload_success, texture_width, texture_height, texture_format, upload_method, upload_verification"
+    },
+    "decision_ledger_requirements": {
+      "upload_decision": "Input: frame_id, pixel_format, width, height, frame_data_size; Output: upload_success, texture_format, upload_method, upload_verification"
+    },
+    "evidence_artifact_requirements": {
+      "evidence_file": "artifacts/p2/evidence/LRD-004.json",
+      "required_fields": [
+        "task_id",
+        "status",
+        "decoded_frame",
+        "d3d11_texture_upload",
+        "format_conversion",
+        "inspector_snapshot",
+        "decision_ledger",
+        "schema_validation",
+        "anti_fake_assertions"
+      ]
+    },
+    "schema_gate_requirements": {
+      "real_frame_data_required": "frame_data_size > 0",
+      "real_linesize_required": "linesize values must match dimensions",
+      "upload_success_required": "upload_success must be true for RUNTIME_PASS",
+      "upload_verification_required": "upload_verification must be true",
+      "anti_fake_validation": "no empty texture or dummy frame"
+    },
+    "redline_gate_requirements": {
+      "forbidden_terms": [
+        "empty texture",
+        "dummy frame",
+        "placeholder data",
+        "stub upload",
+        "bool-only proof",
+        "log-only proof",
+        "interface contract only"
+      ],
+      "allowlist_terms": [
+        "real frame data",
+        "actual pixels",
+        "decoded frame",
+        "texture upload",
+        "UpdateSubresource",
+        "map/unmap",
+        "format conversion",
+        "YUV\u2192RGB",
+        "NV12",
+        "RUNTIME_PASS",
+        "BLOCKED_ENV"
+      ]
+    },
+    "anti_fake_gate_requirements": {
+      "real_upload_proof": [
+        "Real frame data: frame_data contains actual decoded pixels",
+        "Real linesize: linesize[4] matches actual frame layout",
+        "Real texture creation: Real ID3D11Texture2D creation",
+        "Real data upload: Real UpdateSubresource call",
+        "Real upload verification: Texture contains uploaded data"
+      ],
+      "forbidden_fake_proofs": [
+        "empty texture \u2192 CONTRACT_PASS only",
+        "dummy frame data \u2192 CONTRACT_PASS only",
+        "bool-only upload \u2192 insufficient proof",
+        "log-only upload \u2192 insufficient proof"
+      ]
+    },
+    "clean_workspace_gate": {
+      "workspace_requirements": [
+        "No root-level texture outputs",
+        "No generated texture files in source root",
+        "Evidence file in artifacts/p2/evidence/",
+        "Test outputs in backend/tests/video_upload/"
+      ]
+    },
+    "final_report_rules": {
+      "classification_options": [
+        "RUNTIME_PASS: Real decoded frame data uploaded to real D3D11 texture",
+        "BLOCKED_ENV: D3D11 environment unavailable, honest block",
+        "CONTRACT_PASS: Interface contract proven but not runtime",
+        "FAIL: Required proof missing or conflicting"
+      ],
+      "forbidden_claims": [
+        "Never claim real upload if empty texture",
+        "Never claim real upload if dummy frame",
+        "Never claim runtime PASS if BLOCKED_ENV",
+        "Never claim upload verification if not verified"
+      ]
+    },
+    "evidence_status": "CONTRACT_PASS",
+    "reason": "D3D11 real decoded frame upload planned. Current interface is stub implementation (CONTRACT_PASS). Real frame data upload with YUV420P/NV12/RGB24 formats required for RUNTIME_PASS. Format conversion and upload verification planned.",
+    "next_task": "LRD-005 Presenter Boundary Reality Audit"
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 20,
+    "migrated_field_count": 33
+  }
 }

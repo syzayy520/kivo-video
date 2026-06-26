@@ -1,91 +1,208 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "PFFG-001",
+  "task_family": "planning",
   "status": "CONTRACT_PASS",
+  "completion_level": "p2-foundation-planning",
   "runtime_mode": "gate_validation",
   "runtime_environment_kind": "not_applicable",
-  "environment_required": false,
-  "environment_available": false,
-  "blocked_reason": "",
-  "evidence_file": "artifacts/p2/evidence/PFFG-001.json",
-  "gate_purpose": {
-    "description": "Final validation gate that reads all child evidence and provider matrix to determine if P2 Foundation is complete",
-    "validation_checkpoints": [
-      "Evidence Consistency: All claims match actual evidence",
-      "Provider Matrix Integrity: Provider runtime statuses are honest and complete",
-      "Schema Compliance: All evidence validates against required schemas",
-      "Redline Compliance: No forbidden terms or premature claims",
-      "Anti-fake Compliance: No stub/fake/simulator proof claimed as real runtime"
-    ]
+  "environment": {},
+  "implementation": {
+    "legacy_runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+    "legacy_provider_matrix_impact": {
+      "foundation_final_gate": "CONTRACT_PASS"
+    },
+    "legacy_task_name": "P2-FOUNDATION-FINAL-GATE-READER",
+    "legacy_family": "final_gate"
   },
-  "gate_dependencies": {
-    "required_child_evidence": {
-      "p2_1_local_playback": [
-        "P2-001A",
-        "P2-001B",
-        "P2-001C",
-        "P2-002",
-        "P2-003",
-        "P2-004",
-        "P2-005",
-        "P2-006",
-        "P2-007",
-        "P2-008",
-        "P2-009",
-        "P2-010",
-        "P2-011",
-        "P2-012",
-        "P2-013",
-        "P2-014",
-        "P2-015",
-        "P2-016",
-        "P2-017",
-        "P2-018",
-        "P2-019",
-        "P2-020",
-        "P2-021",
-        "P2-022"
-      ],
-      "p2_1_5_disc_bdmv": [
-        "P2-023",
-        "P2-024",
-        "P2-025",
-        "P2-026"
-      ],
-      "p2_2_remote_playback": [
-        "P2-027",
-        "P2-028",
-        "P2-029",
-        "P2-030",
-        "P2-031",
-        "P2-032",
-        "P2-033",
-        "P2-034",
-        "P2-035",
-        "P2-036",
-        "P2-037",
-        "P2-038"
-      ],
-      "p2_3_quality_recovery_inspector": [
-        "P2-039",
-        "P2-040",
-        "P2-041",
-        "P2-042",
-        "P2-043",
-        "P2-044",
-        "P2-045",
-        "P2-046",
-        "P2-047",
-        "P2-048",
-        "P2-049",
-        "P2-050",
-        "P2-051",
-        "P2-052",
-        "P2-053",
-        "P2-054",
-        "P2-055"
-      ],
-      "p2_remaining_coverage": {
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {},
+  "decision_ledger": {},
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {},
+  "redline_scan": {},
+  "test_commands": [],
+  "artifacts": [],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "blocked_reason": null,
+  "timestamp_utc": "2026-06-26T07:46:09Z",
+  "legacy_original": {
+    "schema_version": "p2-evidence-v8",
+    "task_id": "PFFG-001",
+    "task_name": "P2-FOUNDATION-FINAL-GATE-READER",
+    "family": "final_gate",
+    "status": "CONTRACT_PASS",
+    "runtime_mode": "gate_validation",
+    "runtime_environment_kind": "test_harness",
+    "environment_required": false,
+    "environment_available": false,
+    "blocked_reason": null,
+    "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+    "evidence_file": "artifacts/p2/evidence/PFFG-001.json",
+    "provider_matrix_impact": {
+      "foundation_final_gate": "CONTRACT_PASS"
+    },
+    "gate_purpose": {
+      "description": "Final validation gate that reads all child evidence and provider matrix to determine if P2 Foundation is complete",
+      "validation_checkpoints": [
+        "Evidence Consistency: All claims match actual evidence",
+        "Provider Matrix Integrity: Provider runtime statuses are honest and complete",
+        "Schema Compliance: All evidence validates against required schemas",
+        "Redline Compliance: No forbidden terms or premature claims",
+        "Anti-fake Compliance: No stub/fake/simulator proof claimed as real runtime"
+      ]
+    },
+    "gate_dependencies": {
+      "required_child_evidence": {
+        "p2_1_local_playback": [
+          "P2-001A",
+          "P2-001B",
+          "P2-001C",
+          "P2-002",
+          "P2-003",
+          "P2-004",
+          "P2-005",
+          "P2-006",
+          "P2-007",
+          "P2-008",
+          "P2-009",
+          "P2-010",
+          "P2-011",
+          "P2-012",
+          "P2-013",
+          "P2-014",
+          "P2-015",
+          "P2-016",
+          "P2-017",
+          "P2-018",
+          "P2-019",
+          "P2-020",
+          "P2-021",
+          "P2-022"
+        ],
+        "p2_1_5_disc_bdmv": [
+          "P2-023",
+          "P2-024",
+          "P2-025",
+          "P2-026"
+        ],
+        "p2_2_remote_playback": [
+          "P2-027",
+          "P2-028",
+          "P2-029",
+          "P2-030",
+          "P2-031",
+          "P2-032",
+          "P2-033",
+          "P2-034",
+          "P2-035",
+          "P2-036",
+          "P2-037",
+          "P2-038"
+        ],
+        "p2_3_quality_recovery_inspector": [
+          "P2-039",
+          "P2-040",
+          "P2-041",
+          "P2-042",
+          "P2-043",
+          "P2-044",
+          "P2-045",
+          "P2-046",
+          "P2-047",
+          "P2-048",
+          "P2-049",
+          "P2-050",
+          "P2-051",
+          "P2-052",
+          "P2-053",
+          "P2-054",
+          "P2-055"
+        ],
+        "p2_remaining_coverage": {
+          "local_repair_delta": [
+            "LRD-001",
+            "LRD-002",
+            "LRD-003",
+            "LRD-004",
+            "LRD-005",
+            "LRD-006",
+            "LRD-007",
+            "LRD-008",
+            "LRD-009",
+            "LRD-010",
+            "LRD-011",
+            "LRD-012",
+            "LRD-013"
+          ],
+          "schema_gate_foundation": [
+            "SGF-001",
+            "SGF-002",
+            "SGF-003",
+            "SGF-004",
+            "SGF-005",
+            "SGF-006",
+            "SGF-007",
+            "SGF-008"
+          ],
+          "redline_gate_foundation": [
+            "RGF-001",
+            "RGF-002",
+            "RGF-003",
+            "RGF-004",
+            "RGF-005"
+          ],
+          "foundation_families": [
+            "FMT-001",
+            "MID-001",
+            "SUB-001",
+            "SRC-001",
+            "NET-001",
+            "OBJ-001",
+            "WDA-001",
+            "MSV-001",
+            "CLD-001",
+            "IPTV-001",
+            "PST-001",
+            "ACP-001",
+            "CAST-001",
+            "PIP-001",
+            "CIN-001",
+            "TRK-001"
+          ],
+          "provider_matrix": [
+            "PMX-001",
+            "PMX-002"
+          ]
+        }
+      },
+      "required_gates_passed": {
+        "v8_global_gates": [
+          "V8-001",
+          "V8-002",
+          "V8-003",
+          "V8-004",
+          "V8-005",
+          "V8-006",
+          "V8-007",
+          "V8-008",
+          "V8-009"
+        ],
         "local_repair_delta": [
           "LRD-001",
           "LRD-002",
@@ -118,23 +235,481 @@
           "RGF-004",
           "RGF-005"
         ],
-        "foundation_families": [
-          "FMT-001",
-          "MID-001",
-          "SUB-001",
-          "SRC-001",
-          "NET-001",
-          "OBJ-001",
-          "WDA-001",
-          "MSV-001",
-          "CLD-001",
-          "IPTV-001",
-          "PST-001",
-          "ACP-001",
-          "CAST-001",
-          "PIP-001",
-          "CIN-001",
-          "TRK-001"
+        "provider_matrix": [
+          "PMX-001",
+          "PMX-002"
+        ]
+      }
+    },
+    "gate_validation_rules": {
+      "rule_1_evidence_completeness": {
+        "description": "All foundation family evidence files must exist and be valid",
+        "validation": [
+          "Scan all expected evidence file paths",
+          "Verify each evidence file exists",
+          "Validate evidence file is valid JSON",
+          "Validate evidence against p2-evidence-v8 schema",
+          "Check evidence timestamps are recent (within 30 days)"
+        ],
+        "failure_conditions": [
+          "Missing evidence file for any foundation task",
+          "Evidence file is not valid JSON",
+          "Evidence fails schema validation",
+          "Evidence timestamp older than 30 days"
+        ]
+      },
+      "rule_2_status_consistency": {
+        "description": "Evidence status must match checklist status and not conflict",
+        "validation": [
+          "Compare evidence status with checklist status",
+          "Verify no status conflicts between evidence and checklist",
+          "Check status vocabulary compliance (only V8 statuses allowed)",
+          "Verify no premature completion claims"
+        ],
+        "failure_conditions": [
+          "Evidence status differs from checklist status",
+          "Non-standard status vocabulary used",
+          "Premature completion claims found",
+          "Status conflict between evidence and source"
+        ]
+      },
+      "rule_3_provider_matrix_integrity": {
+        "description": "Provider Runtime Matrix must be complete and honest",
+        "validation": [
+          "Verify PMX-001 evidence exists (matrix generated)",
+          "Verify PMX-002 evidence exists (honesty gate passed)",
+          "Check matrix completeness (all providers listed)",
+          "Verify honest status assignments",
+          "Check no default RUNTIME_PASS"
+        ],
+        "failure_conditions": [
+          "PMX-001 evidence missing",
+          "PMX-002 evidence missing or gate failed",
+          "Matrix incomplete (missing providers)",
+          "Default RUNTIME_PASS assignments found",
+          "Environment mismatch detected"
+        ]
+      },
+      "rule_4_redline_compliance": {
+        "description": "No forbidden terms or premature claims in evidence or reports",
+        "validation": [
+          "Scan evidence files for 32 forbidden terms",
+          "Scan documentation for premature claims",
+          "Check claim vocabulary compliance",
+          "Verify no false completion claims"
+        ],
+        "failure_conditions": [
+          "Forbidden terms found in evidence",
+          "Premature completion claims",
+          "False claim vocabulary",
+          "Report/source conflicts"
+        ]
+      },
+      "rule_5_antifake_compliance": {
+        "description": "No stub/fake/simulator proof claimed as real runtime",
+        "validation": [
+          "Scan evidence for stub/fake/simulator mentions",
+          "Verify runtime proof requirements met",
+          "Check no state-only or log-only proof",
+          "Verify no test harness claimed as real environment"
+        ],
+        "failure_conditions": [
+          "Stub/fake/simulator proof claimed as RUNTIME_PASS",
+          "State-only or log-only proof",
+          "Test harness claimed as real environment",
+          "No real runtime evidence for RUNTIME_PASS claims"
+        ]
+      }
+    },
+    "gate_output_structure": {
+      "foundation_final_gate_result": {
+        "fields": [
+          "gate_passed",
+          "gate_timestamp",
+          "total_evidence_files_checked",
+          "evidence_files_passed",
+          "evidence_files_failed",
+          "evidence_results",
+          "provider_matrix_result",
+          "redline_result",
+          "antifake_result",
+          "gate_summary",
+          "remediation_required",
+          "foundation_complete_allowed"
+        ]
+      },
+      "evidence_file_result": {
+        "fields": [
+          "evidence_file",
+          "task_id",
+          "status",
+          "exists",
+          "valid_json",
+          "schema_valid",
+          "timestamp_recent",
+          "failure_reason"
+        ]
+      },
+      "provider_matrix_result": {
+        "fields": [
+          "matrix_generated",
+          "honesty_gate_passed",
+          "total_providers",
+          "runtime_pass_count",
+          "contract_pass_count",
+          "blocked_env_count",
+          "fail_count",
+          "not_implemented_count",
+          "matrix_complete",
+          "honest_assignments"
+        ]
+      },
+      "redline_compliance_result": {
+        "fields": [
+          "compliance_passed",
+          "forbidden_terms_found",
+          "forbidden_terms",
+          "premature_claims_found",
+          "premature_claims",
+          "claim_vocabulary_valid"
+        ]
+      },
+      "antifake_compliance_result": {
+        "fields": [
+          "compliance_passed",
+          "stub_fake_simulator_claims",
+          "fake_claims",
+          "state_only_claims",
+          "log_only_claims",
+          "test_harness_claims",
+          "real_runtime_proof_present"
+        ]
+      }
+    },
+    "gate_validation_process": {
+      "step_1_evidence_discovery": [
+        "Load Foundation Families: Load all foundation family definitions",
+        "Scan Evidence Paths: Scan all expected evidence file paths",
+        "Verify Evidence Existence: Check each evidence file exists",
+        "Load Evidence Content: Read and parse evidence files",
+        "Validate Evidence Schema: Validate against p2-evidence-v8 schema"
+      ],
+      "step_2_status_validation": [
+        "Compare with Checklist: Compare evidence status with checklist status",
+        "Check Status Vocabulary: Verify only V8 statuses used",
+        "Detect Conflicts: Identify status conflicts",
+        "Check Timestamps: Verify evidence timestamps are recent",
+        "Validate Completeness: Check all required fields present"
+      ],
+      "step_3_provider_matrix_validation": [
+        "Load Provider Matrix: Load PMX-001 evidence",
+        "Load Honesty Gate: Load PMX-002 evidence",
+        "Verify Matrix Generation: Check matrix generated successfully",
+        "Verify Honesty Gate: Check honesty gate passed",
+        "Validate Matrix Completeness: Check all providers listed",
+        "Validate Status Assignments: Check honest status assignments"
+      ],
+      "step_4_redline_compliance_check": [
+        "Scan Evidence Files: Scan all evidence for forbidden terms",
+        "Scan Documentation: Scan docs for premature claims",
+        "Check Claim Vocabulary: Verify claim vocabulary compliance",
+        "Detect Conflicts: Identify report/source conflicts",
+        "Validate Allowlist: Check allowlist compliance"
+      ],
+      "step_5_antifake_compliance_check": [
+        "Scan for Fake Claims: Scan evidence for stub/fake/simulator",
+        "Check Runtime Proof: Verify real runtime evidence present",
+        "Detect State-only Proof: Check for state-only or log-only proof",
+        "Verify Environment Claims: Check test harness not claimed as real",
+        "Validate Evidence Quality: Verify evidence quality meets requirements"
+      ],
+      "step_6_gate_decision": [
+        "Aggregate Results: Aggregate all validation results",
+        "Determine Gate Pass/Fail: Determine overall gate result",
+        "Identify Remediation: Identify required remediation actions",
+        "Generate Gate Summary: Generate gate summary report",
+        "Record Gate Decision: Record gate decision in evidence"
+      ]
+    },
+    "integration_points": {
+      "pffg_002_foundation_final_report": [
+        "Reads Foundation Final Gate Reader result",
+        "Generates final P2 Foundation completion report",
+        "Lists provider runtime gaps",
+        "Documents known limitations"
+      ],
+      "aprv_001_all_providers_runtime_verified_gate": [
+        "Requires Foundation Final Gate Reader passed",
+        "Requires no provider runtime gaps",
+        "Requires all providers RUNTIME_PASS",
+        "Requires post-foundation status"
+      ],
+      "inspector_integration": [
+        "Reports foundation gate status",
+        "Reports evidence validation results",
+        "Reports provider matrix status",
+        "Tracks gate history"
+      ],
+      "decision_ledger_integration": [
+        "Records foundation gate decision",
+        "Records evidence validation results",
+        "Records provider matrix validation",
+        "Records gate pass/fail"
+      ]
+    },
+    "test_cases": {
+      "positive_test_cases": [
+        "All foundation evidence files exist and valid",
+        "All evidence statuses match checklist statuses",
+        "Provider matrix generated and honesty gate passed",
+        "No forbidden terms found in evidence",
+        "No premature completion claims",
+        "No stub/fake/simulator proof claimed as runtime",
+        "All evidence timestamps recent",
+        "All evidence validates against schema",
+        "No status conflicts between evidence and source",
+        "Foundation complete claim allowed"
+      ],
+      "negative_test_cases": [
+        "Missing evidence file for foundation task",
+        "Evidence status conflicts with checklist status",
+        "Provider matrix not generated",
+        "Honesty gate failed",
+        "Forbidden terms found in evidence",
+        "Premature completion claims found",
+        "Stub/fake/simulator proof claimed as RUNTIME_PASS",
+        "Evidence timestamp older than 30 days",
+        "Evidence fails schema validation",
+        "Report/source conflict detected"
+      ],
+      "total_test_cases": 20
+    },
+    "current_gate_status": {
+      "gate_validation_status": "CONTRACT_PASS",
+      "evidence_files_checked": 0,
+      "evidence_files_passed": 0,
+      "evidence_files_failed": 0,
+      "foundation_complete_allowed": false,
+      "remediation_required": false
+    },
+    "implementation_requirements": {
+      "gate_components": [
+        "EvidenceDiscovery",
+        "StatusValidator",
+        "ProviderMatrixValidator",
+        "RedlineComplianceChecker",
+        "AntiFakeComplianceChecker",
+        "GateDecisionMaker",
+        "RemediationPlanner",
+        "GateReporter"
+      ],
+      "integration_points": [
+        "Evidence Storage",
+        "Provider Runtime Matrix",
+        "Inspector",
+        "DecisionLedger",
+        "ErrorMapping"
+      ]
+    },
+    "gate_integration": [
+      "PMX-001: Provider Runtime Matrix generated",
+      "PMX-002: Matrix Honesty Gate validates matrix",
+      "PFFG-001: Foundation Final Gate Reader reads all evidence",
+      "PFFG-002: Foundation Final Report generated",
+      "APRV-001: All Providers Runtime Verified Gate uses matrix"
+    ],
+    "next_steps": [
+      "PFFG-002: Foundation Final Report",
+      "APRV-001: All Providers Runtime Verified Gate"
+    ]
+  },
+  "legacy_fields": {
+    "task_name": "P2-FOUNDATION-FINAL-GATE-READER",
+    "family": "final_gate",
+    "environment_required": false,
+    "environment_available": false,
+    "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+    "evidence_file": "artifacts/p2/evidence/PFFG-001.json",
+    "provider_matrix_impact": {
+      "foundation_final_gate": "CONTRACT_PASS"
+    },
+    "gate_purpose": {
+      "description": "Final validation gate that reads all child evidence and provider matrix to determine if P2 Foundation is complete",
+      "validation_checkpoints": [
+        "Evidence Consistency: All claims match actual evidence",
+        "Provider Matrix Integrity: Provider runtime statuses are honest and complete",
+        "Schema Compliance: All evidence validates against required schemas",
+        "Redline Compliance: No forbidden terms or premature claims",
+        "Anti-fake Compliance: No stub/fake/simulator proof claimed as real runtime"
+      ]
+    },
+    "gate_dependencies": {
+      "required_child_evidence": {
+        "p2_1_local_playback": [
+          "P2-001A",
+          "P2-001B",
+          "P2-001C",
+          "P2-002",
+          "P2-003",
+          "P2-004",
+          "P2-005",
+          "P2-006",
+          "P2-007",
+          "P2-008",
+          "P2-009",
+          "P2-010",
+          "P2-011",
+          "P2-012",
+          "P2-013",
+          "P2-014",
+          "P2-015",
+          "P2-016",
+          "P2-017",
+          "P2-018",
+          "P2-019",
+          "P2-020",
+          "P2-021",
+          "P2-022"
+        ],
+        "p2_1_5_disc_bdmv": [
+          "P2-023",
+          "P2-024",
+          "P2-025",
+          "P2-026"
+        ],
+        "p2_2_remote_playback": [
+          "P2-027",
+          "P2-028",
+          "P2-029",
+          "P2-030",
+          "P2-031",
+          "P2-032",
+          "P2-033",
+          "P2-034",
+          "P2-035",
+          "P2-036",
+          "P2-037",
+          "P2-038"
+        ],
+        "p2_3_quality_recovery_inspector": [
+          "P2-039",
+          "P2-040",
+          "P2-041",
+          "P2-042",
+          "P2-043",
+          "P2-044",
+          "P2-045",
+          "P2-046",
+          "P2-047",
+          "P2-048",
+          "P2-049",
+          "P2-050",
+          "P2-051",
+          "P2-052",
+          "P2-053",
+          "P2-054",
+          "P2-055"
+        ],
+        "p2_remaining_coverage": {
+          "local_repair_delta": [
+            "LRD-001",
+            "LRD-002",
+            "LRD-003",
+            "LRD-004",
+            "LRD-005",
+            "LRD-006",
+            "LRD-007",
+            "LRD-008",
+            "LRD-009",
+            "LRD-010",
+            "LRD-011",
+            "LRD-012",
+            "LRD-013"
+          ],
+          "schema_gate_foundation": [
+            "SGF-001",
+            "SGF-002",
+            "SGF-003",
+            "SGF-004",
+            "SGF-005",
+            "SGF-006",
+            "SGF-007",
+            "SGF-008"
+          ],
+          "redline_gate_foundation": [
+            "RGF-001",
+            "RGF-002",
+            "RGF-003",
+            "RGF-004",
+            "RGF-005"
+          ],
+          "foundation_families": [
+            "FMT-001",
+            "MID-001",
+            "SUB-001",
+            "SRC-001",
+            "NET-001",
+            "OBJ-001",
+            "WDA-001",
+            "MSV-001",
+            "CLD-001",
+            "IPTV-001",
+            "PST-001",
+            "ACP-001",
+            "CAST-001",
+            "PIP-001",
+            "CIN-001",
+            "TRK-001"
+          ],
+          "provider_matrix": [
+            "PMX-001",
+            "PMX-002"
+          ]
+        }
+      },
+      "required_gates_passed": {
+        "v8_global_gates": [
+          "V8-001",
+          "V8-002",
+          "V8-003",
+          "V8-004",
+          "V8-005",
+          "V8-006",
+          "V8-007",
+          "V8-008",
+          "V8-009"
+        ],
+        "local_repair_delta": [
+          "LRD-001",
+          "LRD-002",
+          "LRD-003",
+          "LRD-004",
+          "LRD-005",
+          "LRD-006",
+          "LRD-007",
+          "LRD-008",
+          "LRD-009",
+          "LRD-010",
+          "LRD-011",
+          "LRD-012",
+          "LRD-013"
+        ],
+        "schema_gate_foundation": [
+          "SGF-001",
+          "SGF-002",
+          "SGF-003",
+          "SGF-004",
+          "SGF-005",
+          "SGF-006",
+          "SGF-007",
+          "SGF-008"
+        ],
+        "redline_gate_foundation": [
+          "RGF-001",
+          "RGF-002",
+          "RGF-003",
+          "RGF-004",
+          "RGF-005"
         ],
         "provider_matrix": [
           "PMX-001",
@@ -142,364 +717,293 @@
         ]
       }
     },
-    "required_gates_passed": {
-      "v8_global_gates": [
-        "V8-001",
-        "V8-002",
-        "V8-003",
-        "V8-004",
-        "V8-005",
-        "V8-006",
-        "V8-007",
-        "V8-008",
-        "V8-009"
+    "gate_validation_rules": {
+      "rule_1_evidence_completeness": {
+        "description": "All foundation family evidence files must exist and be valid",
+        "validation": [
+          "Scan all expected evidence file paths",
+          "Verify each evidence file exists",
+          "Validate evidence file is valid JSON",
+          "Validate evidence against p2-evidence-v8 schema",
+          "Check evidence timestamps are recent (within 30 days)"
+        ],
+        "failure_conditions": [
+          "Missing evidence file for any foundation task",
+          "Evidence file is not valid JSON",
+          "Evidence fails schema validation",
+          "Evidence timestamp older than 30 days"
+        ]
+      },
+      "rule_2_status_consistency": {
+        "description": "Evidence status must match checklist status and not conflict",
+        "validation": [
+          "Compare evidence status with checklist status",
+          "Verify no status conflicts between evidence and checklist",
+          "Check status vocabulary compliance (only V8 statuses allowed)",
+          "Verify no premature completion claims"
+        ],
+        "failure_conditions": [
+          "Evidence status differs from checklist status",
+          "Non-standard status vocabulary used",
+          "Premature completion claims found",
+          "Status conflict between evidence and source"
+        ]
+      },
+      "rule_3_provider_matrix_integrity": {
+        "description": "Provider Runtime Matrix must be complete and honest",
+        "validation": [
+          "Verify PMX-001 evidence exists (matrix generated)",
+          "Verify PMX-002 evidence exists (honesty gate passed)",
+          "Check matrix completeness (all providers listed)",
+          "Verify honest status assignments",
+          "Check no default RUNTIME_PASS"
+        ],
+        "failure_conditions": [
+          "PMX-001 evidence missing",
+          "PMX-002 evidence missing or gate failed",
+          "Matrix incomplete (missing providers)",
+          "Default RUNTIME_PASS assignments found",
+          "Environment mismatch detected"
+        ]
+      },
+      "rule_4_redline_compliance": {
+        "description": "No forbidden terms or premature claims in evidence or reports",
+        "validation": [
+          "Scan evidence files for 32 forbidden terms",
+          "Scan documentation for premature claims",
+          "Check claim vocabulary compliance",
+          "Verify no false completion claims"
+        ],
+        "failure_conditions": [
+          "Forbidden terms found in evidence",
+          "Premature completion claims",
+          "False claim vocabulary",
+          "Report/source conflicts"
+        ]
+      },
+      "rule_5_antifake_compliance": {
+        "description": "No stub/fake/simulator proof claimed as real runtime",
+        "validation": [
+          "Scan evidence for stub/fake/simulator mentions",
+          "Verify runtime proof requirements met",
+          "Check no state-only or log-only proof",
+          "Verify no test harness claimed as real environment"
+        ],
+        "failure_conditions": [
+          "Stub/fake/simulator proof claimed as RUNTIME_PASS",
+          "State-only or log-only proof",
+          "Test harness claimed as real environment",
+          "No real runtime evidence for RUNTIME_PASS claims"
+        ]
+      }
+    },
+    "gate_output_structure": {
+      "foundation_final_gate_result": {
+        "fields": [
+          "gate_passed",
+          "gate_timestamp",
+          "total_evidence_files_checked",
+          "evidence_files_passed",
+          "evidence_files_failed",
+          "evidence_results",
+          "provider_matrix_result",
+          "redline_result",
+          "antifake_result",
+          "gate_summary",
+          "remediation_required",
+          "foundation_complete_allowed"
+        ]
+      },
+      "evidence_file_result": {
+        "fields": [
+          "evidence_file",
+          "task_id",
+          "status",
+          "exists",
+          "valid_json",
+          "schema_valid",
+          "timestamp_recent",
+          "failure_reason"
+        ]
+      },
+      "provider_matrix_result": {
+        "fields": [
+          "matrix_generated",
+          "honesty_gate_passed",
+          "total_providers",
+          "runtime_pass_count",
+          "contract_pass_count",
+          "blocked_env_count",
+          "fail_count",
+          "not_implemented_count",
+          "matrix_complete",
+          "honest_assignments"
+        ]
+      },
+      "redline_compliance_result": {
+        "fields": [
+          "compliance_passed",
+          "forbidden_terms_found",
+          "forbidden_terms",
+          "premature_claims_found",
+          "premature_claims",
+          "claim_vocabulary_valid"
+        ]
+      },
+      "antifake_compliance_result": {
+        "fields": [
+          "compliance_passed",
+          "stub_fake_simulator_claims",
+          "fake_claims",
+          "state_only_claims",
+          "log_only_claims",
+          "test_harness_claims",
+          "real_runtime_proof_present"
+        ]
+      }
+    },
+    "gate_validation_process": {
+      "step_1_evidence_discovery": [
+        "Load Foundation Families: Load all foundation family definitions",
+        "Scan Evidence Paths: Scan all expected evidence file paths",
+        "Verify Evidence Existence: Check each evidence file exists",
+        "Load Evidence Content: Read and parse evidence files",
+        "Validate Evidence Schema: Validate against p2-evidence-v8 schema"
       ],
-      "local_repair_delta": [
-        "LRD-001",
-        "LRD-002",
-        "LRD-003",
-        "LRD-004",
-        "LRD-005",
-        "LRD-006",
-        "LRD-007",
-        "LRD-008",
-        "LRD-009",
-        "LRD-010",
-        "LRD-011",
-        "LRD-012",
-        "LRD-013"
+      "step_2_status_validation": [
+        "Compare with Checklist: Compare evidence status with checklist status",
+        "Check Status Vocabulary: Verify only V8 statuses used",
+        "Detect Conflicts: Identify status conflicts",
+        "Check Timestamps: Verify evidence timestamps are recent",
+        "Validate Completeness: Check all required fields present"
       ],
-      "schema_gate_foundation": [
-        "SGF-001",
-        "SGF-002",
-        "SGF-003",
-        "SGF-004",
-        "SGF-005",
-        "SGF-006",
-        "SGF-007",
-        "SGF-008"
+      "step_3_provider_matrix_validation": [
+        "Load Provider Matrix: Load PMX-001 evidence",
+        "Load Honesty Gate: Load PMX-002 evidence",
+        "Verify Matrix Generation: Check matrix generated successfully",
+        "Verify Honesty Gate: Check honesty gate passed",
+        "Validate Matrix Completeness: Check all providers listed",
+        "Validate Status Assignments: Check honest status assignments"
       ],
-      "redline_gate_foundation": [
-        "RGF-001",
-        "RGF-002",
-        "RGF-003",
-        "RGF-004",
-        "RGF-005"
+      "step_4_redline_compliance_check": [
+        "Scan Evidence Files: Scan all evidence for forbidden terms",
+        "Scan Documentation: Scan docs for premature claims",
+        "Check Claim Vocabulary: Verify claim vocabulary compliance",
+        "Detect Conflicts: Identify report/source conflicts",
+        "Validate Allowlist: Check allowlist compliance"
       ],
-      "provider_matrix": [
-        "PMX-001",
-        "PMX-002"
-      ]
-    }
-  },
-  "gate_validation_rules": {
-    "rule_1_evidence_completeness": {
-      "description": "All foundation family evidence files must exist and be valid",
-      "validation": [
-        "Scan all expected evidence file paths",
-        "Verify each evidence file exists",
-        "Validate evidence file is valid JSON",
-        "Validate evidence against p2-evidence-v8 schema",
-        "Check evidence timestamps are recent (within 30 days)"
+      "step_5_antifake_compliance_check": [
+        "Scan for Fake Claims: Scan evidence for stub/fake/simulator",
+        "Check Runtime Proof: Verify real runtime evidence present",
+        "Detect State-only Proof: Check for state-only or log-only proof",
+        "Verify Environment Claims: Check test harness not claimed as real",
+        "Validate Evidence Quality: Verify evidence quality meets requirements"
       ],
-      "failure_conditions": [
-        "Missing evidence file for any foundation task",
-        "Evidence file is not valid JSON",
-        "Evidence fails schema validation",
-        "Evidence timestamp older than 30 days"
+      "step_6_gate_decision": [
+        "Aggregate Results: Aggregate all validation results",
+        "Determine Gate Pass/Fail: Determine overall gate result",
+        "Identify Remediation: Identify required remediation actions",
+        "Generate Gate Summary: Generate gate summary report",
+        "Record Gate Decision: Record gate decision in evidence"
       ]
     },
-    "rule_2_status_consistency": {
-      "description": "Evidence status must match checklist status and not conflict",
-      "validation": [
-        "Compare evidence status with checklist status",
-        "Verify no status conflicts between evidence and checklist",
-        "Check status vocabulary compliance (only V8 statuses allowed)",
-        "Verify no premature completion claims"
+    "integration_points": {
+      "pffg_002_foundation_final_report": [
+        "Reads Foundation Final Gate Reader result",
+        "Generates final P2 Foundation completion report",
+        "Lists provider runtime gaps",
+        "Documents known limitations"
       ],
-      "failure_conditions": [
-        "Evidence status differs from checklist status",
-        "Non-standard status vocabulary used",
-        "Premature completion claims found",
-        "Status conflict between evidence and source"
+      "aprv_001_all_providers_runtime_verified_gate": [
+        "Requires Foundation Final Gate Reader passed",
+        "Requires no provider runtime gaps",
+        "Requires all providers RUNTIME_PASS",
+        "Requires post-foundation status"
+      ],
+      "inspector_integration": [
+        "Reports foundation gate status",
+        "Reports evidence validation results",
+        "Reports provider matrix status",
+        "Tracks gate history"
+      ],
+      "decision_ledger_integration": [
+        "Records foundation gate decision",
+        "Records evidence validation results",
+        "Records provider matrix validation",
+        "Records gate pass/fail"
       ]
     },
-    "rule_3_provider_matrix_integrity": {
-      "description": "Provider Runtime Matrix must be complete and honest",
-      "validation": [
-        "Verify PMX-001 evidence exists (matrix generated)",
-        "Verify PMX-002 evidence exists (honesty gate passed)",
-        "Check matrix completeness (all providers listed)",
-        "Verify honest status assignments",
-        "Check no default RUNTIME_PASS"
+    "test_cases": {
+      "positive_test_cases": [
+        "All foundation evidence files exist and valid",
+        "All evidence statuses match checklist statuses",
+        "Provider matrix generated and honesty gate passed",
+        "No forbidden terms found in evidence",
+        "No premature completion claims",
+        "No stub/fake/simulator proof claimed as runtime",
+        "All evidence timestamps recent",
+        "All evidence validates against schema",
+        "No status conflicts between evidence and source",
+        "Foundation complete claim allowed"
       ],
-      "failure_conditions": [
-        "PMX-001 evidence missing",
-        "PMX-002 evidence missing or gate failed",
-        "Matrix incomplete (missing providers)",
-        "Default RUNTIME_PASS assignments found",
-        "Environment mismatch detected"
-      ]
-    },
-    "rule_4_redline_compliance": {
-      "description": "No forbidden terms or premature claims in evidence or reports",
-      "validation": [
-        "Scan evidence files for 32 forbidden terms",
-        "Scan documentation for premature claims",
-        "Check claim vocabulary compliance",
-        "Verify no false completion claims"
-      ],
-      "failure_conditions": [
+      "negative_test_cases": [
+        "Missing evidence file for foundation task",
+        "Evidence status conflicts with checklist status",
+        "Provider matrix not generated",
+        "Honesty gate failed",
         "Forbidden terms found in evidence",
-        "Premature completion claims",
-        "False claim vocabulary",
-        "Report/source conflicts"
-      ]
-    },
-    "rule_5_antifake_compliance": {
-      "description": "No stub/fake/simulator proof claimed as real runtime",
-      "validation": [
-        "Scan evidence for stub/fake/simulator mentions",
-        "Verify runtime proof requirements met",
-        "Check no state-only or log-only proof",
-        "Verify no test harness claimed as real environment"
-      ],
-      "failure_conditions": [
+        "Premature completion claims found",
         "Stub/fake/simulator proof claimed as RUNTIME_PASS",
-        "State-only or log-only proof",
-        "Test harness claimed as real environment",
-        "No real runtime evidence for RUNTIME_PASS claims"
-      ]
-    }
-  },
-  "gate_output_structure": {
-    "foundation_final_gate_result": {
-      "fields": [
-        "gate_passed",
-        "gate_timestamp",
-        "total_evidence_files_checked",
-        "evidence_files_passed",
-        "evidence_files_failed",
-        "evidence_results",
-        "provider_matrix_result",
-        "redline_result",
-        "antifake_result",
-        "gate_summary",
-        "remediation_required",
-        "foundation_complete_allowed"
+        "Evidence timestamp older than 30 days",
+        "Evidence fails schema validation",
+        "Report/source conflict detected"
+      ],
+      "total_test_cases": 20
+    },
+    "current_gate_status": {
+      "gate_validation_status": "CONTRACT_PASS",
+      "evidence_files_checked": 0,
+      "evidence_files_passed": 0,
+      "evidence_files_failed": 0,
+      "foundation_complete_allowed": false,
+      "remediation_required": false
+    },
+    "implementation_requirements": {
+      "gate_components": [
+        "EvidenceDiscovery",
+        "StatusValidator",
+        "ProviderMatrixValidator",
+        "RedlineComplianceChecker",
+        "AntiFakeComplianceChecker",
+        "GateDecisionMaker",
+        "RemediationPlanner",
+        "GateReporter"
+      ],
+      "integration_points": [
+        "Evidence Storage",
+        "Provider Runtime Matrix",
+        "Inspector",
+        "DecisionLedger",
+        "ErrorMapping"
       ]
     },
-    "evidence_file_result": {
-      "fields": [
-        "evidence_file",
-        "task_id",
-        "status",
-        "exists",
-        "valid_json",
-        "schema_valid",
-        "timestamp_recent",
-        "failure_reason"
-      ]
-    },
-    "provider_matrix_result": {
-      "fields": [
-        "matrix_generated",
-        "honesty_gate_passed",
-        "total_providers",
-        "runtime_pass_count",
-        "contract_pass_count",
-        "blocked_env_count",
-        "fail_count",
-        "not_implemented_count",
-        "matrix_complete",
-        "honest_assignments"
-      ]
-    },
-    "redline_compliance_result": {
-      "fields": [
-        "compliance_passed",
-        "forbidden_terms_found",
-        "forbidden_terms",
-        "premature_claims_found",
-        "premature_claims",
-        "claim_vocabulary_valid"
-      ]
-    },
-    "antifake_compliance_result": {
-      "fields": [
-        "compliance_passed",
-        "stub_fake_simulator_claims",
-        "fake_claims",
-        "state_only_claims",
-        "log_only_claims",
-        "test_harness_claims",
-        "real_runtime_proof_present"
-      ]
-    }
-  },
-  "gate_validation_process": {
-    "step_1_evidence_discovery": [
-      "Load Foundation Families: Load all foundation family definitions",
-      "Scan Evidence Paths: Scan all expected evidence file paths",
-      "Verify Evidence Existence: Check each evidence file exists",
-      "Load Evidence Content: Read and parse evidence files",
-      "Validate Evidence Schema: Validate against p2-evidence-v8 schema"
+    "gate_integration": [
+      "PMX-001: Provider Runtime Matrix generated",
+      "PMX-002: Matrix Honesty Gate validates matrix",
+      "PFFG-001: Foundation Final Gate Reader reads all evidence",
+      "PFFG-002: Foundation Final Report generated",
+      "APRV-001: All Providers Runtime Verified Gate uses matrix"
     ],
-    "step_2_status_validation": [
-      "Compare with Checklist: Compare evidence status with checklist status",
-      "Check Status Vocabulary: Verify only V8 statuses used",
-      "Detect Conflicts: Identify status conflicts",
-      "Check Timestamps: Verify evidence timestamps are recent",
-      "Validate Completeness: Check all required fields present"
-    ],
-    "step_3_provider_matrix_validation": [
-      "Load Provider Matrix: Load PMX-001 evidence",
-      "Load Honesty Gate: Load PMX-002 evidence",
-      "Verify Matrix Generation: Check matrix generated successfully",
-      "Verify Honesty Gate: Check honesty gate passed",
-      "Validate Matrix Completeness: Check all providers listed",
-      "Validate Status Assignments: Check honest status assignments"
-    ],
-    "step_4_redline_compliance_check": [
-      "Scan Evidence Files: Scan all evidence for forbidden terms",
-      "Scan Documentation: Scan docs for premature claims",
-      "Check Claim Vocabulary: Verify claim vocabulary compliance",
-      "Detect Conflicts: Identify report/source conflicts",
-      "Validate Allowlist: Check allowlist compliance"
-    ],
-    "step_5_antifake_compliance_check": [
-      "Scan for Fake Claims: Scan evidence for stub/fake/simulator",
-      "Check Runtime Proof: Verify real runtime evidence present",
-      "Detect State-only Proof: Check for state-only or log-only proof",
-      "Verify Environment Claims: Check test harness not claimed as real",
-      "Validate Evidence Quality: Verify evidence quality meets requirements"
-    ],
-    "step_6_gate_decision": [
-      "Aggregate Results: Aggregate all validation results",
-      "Determine Gate Pass/Fail: Determine overall gate result",
-      "Identify Remediation: Identify required remediation actions",
-      "Generate Gate Summary: Generate gate summary report",
-      "Record Gate Decision: Record gate decision in evidence"
+    "next_steps": [
+      "PFFG-002: Foundation Final Report",
+      "APRV-001: All Providers Runtime Verified Gate"
     ]
   },
-  "integration_points": {
-    "pffg_002_foundation_final_report": [
-      "Reads Foundation Final Gate Reader result",
-      "Generates final P2 Foundation completion report",
-      "Lists provider runtime gaps",
-      "Documents known limitations"
-    ],
-    "aprv_001_all_providers_runtime_verified_gate": [
-      "Requires Foundation Final Gate Reader passed",
-      "Requires no provider runtime gaps",
-      "Requires all providers RUNTIME_PASS",
-      "Requires post-foundation status"
-    ],
-    "inspector_integration": [
-      "Reports foundation gate status",
-      "Reports evidence validation results",
-      "Reports provider matrix status",
-      "Tracks gate history"
-    ],
-    "decision_ledger_integration": [
-      "Records foundation gate decision",
-      "Records evidence validation results",
-      "Records provider matrix validation",
-      "Records gate pass/fail"
-    ]
-  },
-  "test_cases": {
-    "positive_test_cases": [
-      "All foundation evidence files exist and valid",
-      "All evidence statuses match checklist statuses",
-      "Provider matrix generated and honesty gate passed",
-      "No forbidden terms found in evidence",
-      "No premature completion claims",
-      "No stub/fake/simulator proof claimed as runtime",
-      "All evidence timestamps recent",
-      "All evidence validates against schema",
-      "No status conflicts between evidence and source",
-      "Foundation complete claim allowed"
-    ],
-    "negative_test_cases": [
-      "Missing evidence file for foundation task",
-      "Evidence status conflicts with checklist status",
-      "Provider matrix not generated",
-      "Honesty gate failed",
-      "Forbidden terms found in evidence",
-      "Premature completion claims found",
-      "Stub/fake/simulator proof claimed as RUNTIME_PASS",
-      "Evidence timestamp older than 30 days",
-      "Evidence fails schema validation",
-      "Report/source conflict detected"
-    ],
-    "total_test_cases": 20
-  },
-  "current_gate_status": {
-    "gate_validation_status": "CONTRACT_PASS",
-    "evidence_files_checked": 0,
-    "evidence_files_passed": 0,
-    "evidence_files_failed": 0,
-    "foundation_complete_allowed": false,
-    "remediation_required": false
-  },
-  "implementation_requirements": {
-    "gate_components": [
-      "EvidenceDiscovery",
-      "StatusValidator",
-      "ProviderMatrixValidator",
-      "RedlineComplianceChecker",
-      "AntiFakeComplianceChecker",
-      "GateDecisionMaker",
-      "RemediationPlanner",
-      "GateReporter"
-    ],
-    "integration_points": [
-      "Evidence Storage",
-      "Provider Runtime Matrix",
-      "Inspector",
-      "DecisionLedger",
-      "ErrorMapping"
-    ]
-  },
-  "gate_integration": [
-    "PMX-001: Provider Runtime Matrix generated",
-    "PMX-002: Matrix Honesty Gate validates matrix",
-    "PFFG-001: Foundation Final Gate Reader reads all evidence",
-    "PFFG-002: Foundation Final Report generated",
-    "APRV-001: All Providers Runtime Verified Gate uses matrix"
-  ],
-  "next_steps": [
-    "PFFG-002: Foundation Final Report",
-    "APRV-001: All Providers Runtime Verified Gate"
-  ],
-  "timestamp_utc": "2026-06-26T01:36:00Z",
-  "completion_level": "p2-foundation-planning",
-  "environment": {},
-  "implementation": {},
-  "media_input": {
-    "kind": "not_applicable"
-  },
-  "extension_input": {},
-  "media_identity": {},
-  "source_identity": {},
-  "extension_identity": {},
-  "capability_probe": {},
-  "direct_play_decision": {},
-  "direct_stream_decision": {},
-  "subtitle_snapshot": {},
-  "chapter_snapshot": {},
-  "playback_state_snapshot": {},
-  "inspector_snapshot": {},
-  "decision_ledger": {},
-  "errors": [],
-  "redaction_verified": true,
-  "schema_validated": true,
-  "anti_fake_checks": {},
-  "redline_scan": {},
-  "test_commands": [],
-  "artifacts": [],
-  "requires_provider_matrix": false,
-  "runtime_verified": false,
-  "task_family": "planning"
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 18,
+    "migrated_field_count": 33
+  }
 }

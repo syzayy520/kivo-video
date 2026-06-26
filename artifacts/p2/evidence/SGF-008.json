@@ -1,53 +1,20 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "SGF-008",
+  "task_family": "planning",
   "status": "CONTRACT_PASS",
+  "completion_level": "p2-foundation-planning",
   "runtime_mode": "schema",
   "runtime_environment_kind": "not_applicable",
-  "environment_required": false,
-  "environment_available": false,
-  "blocked_reason": "",
-  "evidence_file": "artifacts/p2/evidence/SGF-008.json",
-  "evidence_reader_foundation": {
-    "document_path": "docs/roadmap/p2_final_gate_evidence_reader_foundation.md",
-    "reader_interface": "EvidenceReader class",
-    "evidence_file_structure": "EvidenceFile struct",
-    "provider_matrix_structure": "ProviderMatrix struct",
-    "discovery_rules": "File pattern, validation, collection",
-    "reading_rules": "Status, runtime mode, environment kind extraction",
-    "consistency_rules": "Evidence/source, report/source, evidence/report consistency",
-    "validation_rules": "Schema, anti-fake, redaction validation",
-    "gate_integration": [
-      "PFFG-001: Foundation Final Gate Reader uses EvidenceReader",
-      "APRV-001: All Providers Runtime Verified Gate uses EvidenceReader"
-    ]
-  },
-  "implementation_requirements": {
-    "cpp_class": "kivo::governance::EvidenceReader",
-    "python_class": "EvidenceReader",
-    "test_file": "backend/tests/governance/evidence_reader_test.cpp"
-  },
-  "evidence_report_generation": {
-    "report_structure": "EvidenceReport struct",
-    "generation_rules": "Scan, validate, count, check compliance",
-    "report_fields": [
-      "generation_timestamp",
-      "generation_commit",
-      "total_evidence_files",
-      "valid_evidence_files",
-      "invalid_evidence_files",
-      "status_counts",
-      "runtime_mode_counts",
-      "environment_kind_counts",
-      "anti_fake_compliance",
-      "redaction_compliance",
-      "vocabulary_compliance"
-    ]
-  },
-  "timestamp_utc": "2026-06-26T01:06:00Z",
-  "completion_level": "p2-foundation-planning",
   "environment": {},
-  "implementation": {},
+  "implementation": {
+    "legacy_runtime_verified_timestamp": "2026-06-26T01:06:00Z",
+    "legacy_provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "legacy_task_name": "Final Gate Evidence Reader Foundation",
+    "legacy_family": "evidence_schema"
+  },
   "media_input": {
     "kind": "not_applicable"
   },
@@ -72,5 +39,113 @@
   "artifacts": [],
   "requires_provider_matrix": false,
   "runtime_verified": false,
-  "task_family": "planning"
+  "blocked_reason": null,
+  "timestamp_utc": "2026-06-26T07:46:09Z",
+  "legacy_original": {
+    "schema_version": "p2-evidence-v8",
+    "task_id": "SGF-008",
+    "task_name": "Final Gate Evidence Reader Foundation",
+    "family": "evidence_schema",
+    "status": "CONTRACT_PASS",
+    "runtime_mode": "schema",
+    "runtime_environment_kind": "test_harness",
+    "environment_required": false,
+    "environment_available": false,
+    "blocked_reason": null,
+    "runtime_verified_timestamp": "2026-06-26T01:06:00Z",
+    "evidence_file": "artifacts/p2/evidence/SGF-008.json",
+    "provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "evidence_reader_foundation": {
+      "document_path": "docs/roadmap/p2_final_gate_evidence_reader_foundation.md",
+      "reader_interface": "EvidenceReader class",
+      "evidence_file_structure": "EvidenceFile struct",
+      "provider_matrix_structure": "ProviderMatrix struct",
+      "discovery_rules": "File pattern, validation, collection",
+      "reading_rules": "Status, runtime mode, environment kind extraction",
+      "consistency_rules": "Evidence/source, report/source, evidence/report consistency",
+      "validation_rules": "Schema, anti-fake, redaction validation",
+      "gate_integration": [
+        "PFFG-001: Foundation Final Gate Reader uses EvidenceReader",
+        "APRV-001: All Providers Runtime Verified Gate uses EvidenceReader"
+      ]
+    },
+    "implementation_requirements": {
+      "cpp_class": "kivo::governance::EvidenceReader",
+      "python_class": "EvidenceReader",
+      "test_file": "backend/tests/governance/evidence_reader_test.cpp"
+    },
+    "evidence_report_generation": {
+      "report_structure": "EvidenceReport struct",
+      "generation_rules": "Scan, validate, count, check compliance",
+      "report_fields": [
+        "generation_timestamp",
+        "generation_commit",
+        "total_evidence_files",
+        "valid_evidence_files",
+        "invalid_evidence_files",
+        "status_counts",
+        "runtime_mode_counts",
+        "environment_kind_counts",
+        "anti_fake_compliance",
+        "redaction_compliance",
+        "vocabulary_compliance"
+      ]
+    }
+  },
+  "legacy_fields": {
+    "task_name": "Final Gate Evidence Reader Foundation",
+    "family": "evidence_schema",
+    "environment_required": false,
+    "environment_available": false,
+    "runtime_verified_timestamp": "2026-06-26T01:06:00Z",
+    "evidence_file": "artifacts/p2/evidence/SGF-008.json",
+    "provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "evidence_reader_foundation": {
+      "document_path": "docs/roadmap/p2_final_gate_evidence_reader_foundation.md",
+      "reader_interface": "EvidenceReader class",
+      "evidence_file_structure": "EvidenceFile struct",
+      "provider_matrix_structure": "ProviderMatrix struct",
+      "discovery_rules": "File pattern, validation, collection",
+      "reading_rules": "Status, runtime mode, environment kind extraction",
+      "consistency_rules": "Evidence/source, report/source, evidence/report consistency",
+      "validation_rules": "Schema, anti-fake, redaction validation",
+      "gate_integration": [
+        "PFFG-001: Foundation Final Gate Reader uses EvidenceReader",
+        "APRV-001: All Providers Runtime Verified Gate uses EvidenceReader"
+      ]
+    },
+    "implementation_requirements": {
+      "cpp_class": "kivo::governance::EvidenceReader",
+      "python_class": "EvidenceReader",
+      "test_file": "backend/tests/governance/evidence_reader_test.cpp"
+    },
+    "evidence_report_generation": {
+      "report_structure": "EvidenceReport struct",
+      "generation_rules": "Scan, validate, count, check compliance",
+      "report_fields": [
+        "generation_timestamp",
+        "generation_commit",
+        "total_evidence_files",
+        "valid_evidence_files",
+        "invalid_evidence_files",
+        "status_counts",
+        "runtime_mode_counts",
+        "environment_kind_counts",
+        "anti_fake_compliance",
+        "redaction_compliance",
+        "vocabulary_compliance"
+      ]
+    }
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 10,
+    "migrated_field_count": 33
+  }
 }

@@ -1,146 +1,11 @@
 {
+  "schema_version": "p2-evidence-v8",
   "task_id": "V8-002",
   "task_family": "governance",
-  "execution_timestamp": "2026-06-26T00:05:00Z",
   "status": "RUNTIME_PASS",
-  "audit_scope": "V10-007 through V10-028 DONE claims",
-  "audit_method": "line-level scan of backend_task_checklist.md for stub/simulator/placeholder/state-only keywords",
-  "findings": [
-    {
-      "item": "V10-007",
-      "status": "RUNTIME_PASS",
-      "reason": "Local Source Identity / Local Byte Stream Proof uses real file operations"
-    },
-    {
-      "item": "V10-008",
-      "status": "RUNTIME_PASS",
-      "reason": "FFmpeg Real Probe / Demux / Decode Preservation uses real FFmpeg SDK"
-    },
-    {
-      "item": "V10-009",
-      "status": "CONTRACT_PASS",
-      "reason": "D3D11 First Decoded Video Frame Upload: evidence mentions 'Stub implementation passes', not real D3D11 hardware. Interface contract proven, not runtime."
-    },
-    {
-      "item": "V10-010",
-      "status": "CONTRACT_PASS",
-      "reason": "Presenter Boundary First Frame: evidence mentions 'Stub implementation passes', not real presenter. Interface contract proven, not runtime."
-    },
-    {
-      "item": "V10-011",
-      "status": "CONTRACT_PASS",
-      "reason": "PCM Conversion And WASAPI Shared First Buffer: evidence mentions 'stub generates placeholder PCM data'. Interface contract proven, not real audio conversion."
-    },
-    {
-      "item": "V10-012",
-      "status": "RUNTIME_PASS",
-      "reason": "Master Clock First Loop And AV Sync Decision: real clock and AV sync logic, no fake fallback."
-    },
-    {
-      "item": "V10-013",
-      "status": "RUNTIME_PASS",
-      "reason": "Seek / Flush / Generation Isolation: real generation tracker and seek logic."
-    },
-    {
-      "item": "V10-014",
-      "status": "RUNTIME_PASS",
-      "reason": "Pause / Resume / Stop / Close Lifecycle: real 16-step startup state machine."
-    },
-    {
-      "item": "V10-015",
-      "status": "RUNTIME_PASS",
-      "reason": "Threading / COM / Device Ownership Proof: real thread IDs and ownership rules."
-    },
-    {
-      "item": "V10-016",
-      "status": "RUNTIME_PASS",
-      "reason": "Inspector / DecisionLedger / ErrorMapping Runtime Proof: real struct fields and assertions."
-    },
-    {
-      "item": "V10-017",
-      "status": "RUNTIME_PASS",
-      "reason": "Machine-Readable Evidence Schema: real JSON artifacts validated."
-    },
-    {
-      "item": "V10-018",
-      "status": "RUNTIME_PASS",
-      "reason": "Failure Injection Coverage: real failure injection across 10 pipeline stages."
-    },
-    {
-      "item": "V10-019",
-      "status": "RUNTIME_PASS",
-      "reason": "Sample Gate: real sample validation with boundary tests."
-    },
-    {
-      "item": "V10-020",
-      "status": "RUNTIME_PASS",
-      "reason": "Local Minimal Playback End-To-End Gate: real playback controller with 12 transitions."
-    },
-    {
-      "item": "V10-021",
-      "status": "CONTRACT_PASS",
-      "reason": "30s Local Playback Micro Soak Gate: evidence mentions 'SoakSimulator with QueueStats'. Simulator not real runtime soak."
-    },
-    {
-      "item": "V10-022",
-      "status": "RUNTIME_PASS",
-      "reason": "FFmpeg ON Verification: real FFmpeg linked, 84/84 CTest PASS."
-    },
-    {
-      "item": "V10-023",
-      "status": "RUNTIME_PASS",
-      "reason": "FFmpeg OFF Anti-Fake Verification: real anti-fake validation, 81/81 CTest PASS."
-    },
-    {
-      "item": "V10-024",
-      "status": "RUNTIME_PASS",
-      "reason": "Scope Leak Gate: no forbidden terms in runtime code."
-    },
-    {
-      "item": "V10-025",
-      "status": "RUNTIME_PASS",
-      "reason": "Privacy / Redaction Gate: no path/token leakage."
-    },
-    {
-      "item": "V10-026",
-      "status": "RUNTIME_PASS",
-      "reason": "CMake / Build Registration Gate: proper build registration."
-    },
-    {
-      "item": "V10-027",
-      "status": "RUNTIME_PASS",
-      "reason": "Final Report Generation: report consistent with evidence."
-    },
-    {
-      "item": "V10-028",
-      "status": "RUNTIME_PASS",
-      "reason": "Completion Classification Gate: classification consistent with audit."
-    }
-  ],
-  "summary": {
-    "total_items": 22,
-    "runtime_pass": 18,
-    "contract_pass": 4,
-    "fail": 0,
-    "blocked_env": 0,
-    "needs_repair": 0
-  },
-  "downgrade_decisions": [
-    "V10-009: D3D11 upload stub \u2192 CONTRACT_PASS (interface contract only)",
-    "V10-010: Presenter stub \u2192 CONTRACT_PASS (interface contract only)",
-    "V10-011: PCM stub \u2192 CONTRACT_PASS (interface contract only)",
-    "V10-021: SoakSimulator \u2192 CONTRACT_PASS (simulator not real runtime)"
-  ],
-  "consistency_check": {
-    "v10_final_report_alignment": "V10-027 report claims PASS_READY_FOR_REVIEW; audit finds 4 items are CONTRACT_PASS, not RUNTIME_PASS. Report should reflect mixed status.",
-    "required_artifacts": "V10 Required Artifacts subsection still has TODO items; V8 requires evidence/report consistency.",
-    "required_tests": "V10 Required Tests subsection still has TODO items; V8 requires evidence/report consistency."
-  },
-  "evidence_status": "RUNTIME_PASS",
-  "reason": "Audit completed, 4 V10 items downgraded to CONTRACT_PASS, 18 remain RUNTIME_PASS. No FAIL or NEEDS_REPAIR items. Consistency gaps identified in V10 report language.",
-  "next_task": "V8-003 No Duplicate Work Gate",
-  "timestamp_utc": "2026-06-26T00:00:00Z",
-  "completion_level": "p2-foundation-planning",
+  "completion_level": "p2-runtime-verified",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable",
   "environment": {},
   "implementation": {},
   "media_input": {
@@ -166,8 +31,295 @@
   "test_commands": [],
   "artifacts": [],
   "requires_provider_matrix": false,
-  "runtime_verified": false,
+  "runtime_verified": true,
   "blocked_reason": "",
-  "runtime_mode": "planning_only",
-  "runtime_environment_kind": "not_applicable"
+  "timestamp_utc": "2026-06-26T00:05:00Z",
+  "legacy_original": {
+    "task_id": "V8-002",
+    "task_family": "governance",
+    "execution_timestamp": "2026-06-26T00:05:00Z",
+    "status": "RUNTIME_PASS",
+    "audit_scope": "V10-007 through V10-028 DONE claims",
+    "audit_method": "line-level scan of backend_task_checklist.md for stub/simulator/placeholder/state-only keywords",
+    "findings": [
+      {
+        "item": "V10-007",
+        "status": "RUNTIME_PASS",
+        "reason": "Local Source Identity / Local Byte Stream Proof uses real file operations"
+      },
+      {
+        "item": "V10-008",
+        "status": "RUNTIME_PASS",
+        "reason": "FFmpeg Real Probe / Demux / Decode Preservation uses real FFmpeg SDK"
+      },
+      {
+        "item": "V10-009",
+        "status": "CONTRACT_PASS",
+        "reason": "D3D11 First Decoded Video Frame Upload: evidence mentions 'Stub implementation passes', not real D3D11 hardware. Interface contract proven, not runtime."
+      },
+      {
+        "item": "V10-010",
+        "status": "CONTRACT_PASS",
+        "reason": "Presenter Boundary First Frame: evidence mentions 'Stub implementation passes', not real presenter. Interface contract proven, not runtime."
+      },
+      {
+        "item": "V10-011",
+        "status": "CONTRACT_PASS",
+        "reason": "PCM Conversion And WASAPI Shared First Buffer: evidence mentions 'stub generates placeholder PCM data'. Interface contract proven, not real audio conversion."
+      },
+      {
+        "item": "V10-012",
+        "status": "RUNTIME_PASS",
+        "reason": "Master Clock First Loop And AV Sync Decision: real clock and AV sync logic, no fake fallback."
+      },
+      {
+        "item": "V10-013",
+        "status": "RUNTIME_PASS",
+        "reason": "Seek / Flush / Generation Isolation: real generation tracker and seek logic."
+      },
+      {
+        "item": "V10-014",
+        "status": "RUNTIME_PASS",
+        "reason": "Pause / Resume / Stop / Close Lifecycle: real 16-step startup state machine."
+      },
+      {
+        "item": "V10-015",
+        "status": "RUNTIME_PASS",
+        "reason": "Threading / COM / Device Ownership Proof: real thread IDs and ownership rules."
+      },
+      {
+        "item": "V10-016",
+        "status": "RUNTIME_PASS",
+        "reason": "Inspector / DecisionLedger / ErrorMapping Runtime Proof: real struct fields and assertions."
+      },
+      {
+        "item": "V10-017",
+        "status": "RUNTIME_PASS",
+        "reason": "Machine-Readable Evidence Schema: real JSON artifacts validated."
+      },
+      {
+        "item": "V10-018",
+        "status": "RUNTIME_PASS",
+        "reason": "Failure Injection Coverage: real failure injection across 10 pipeline stages."
+      },
+      {
+        "item": "V10-019",
+        "status": "RUNTIME_PASS",
+        "reason": "Sample Gate: real sample validation with boundary tests."
+      },
+      {
+        "item": "V10-020",
+        "status": "RUNTIME_PASS",
+        "reason": "Local Minimal Playback End-To-End Gate: real playback controller with 12 transitions."
+      },
+      {
+        "item": "V10-021",
+        "status": "CONTRACT_PASS",
+        "reason": "30s Local Playback Micro Soak Gate: evidence mentions 'SoakSimulator with QueueStats'. Simulator not real runtime soak."
+      },
+      {
+        "item": "V10-022",
+        "status": "RUNTIME_PASS",
+        "reason": "FFmpeg ON Verification: real FFmpeg linked, 84/84 CTest PASS."
+      },
+      {
+        "item": "V10-023",
+        "status": "RUNTIME_PASS",
+        "reason": "FFmpeg OFF Anti-Fake Verification: real anti-fake validation, 81/81 CTest PASS."
+      },
+      {
+        "item": "V10-024",
+        "status": "RUNTIME_PASS",
+        "reason": "Scope Leak Gate: no forbidden terms in runtime code."
+      },
+      {
+        "item": "V10-025",
+        "status": "RUNTIME_PASS",
+        "reason": "Privacy / Redaction Gate: no path/token leakage."
+      },
+      {
+        "item": "V10-026",
+        "status": "RUNTIME_PASS",
+        "reason": "CMake / Build Registration Gate: proper build registration."
+      },
+      {
+        "item": "V10-027",
+        "status": "RUNTIME_PASS",
+        "reason": "Final Report Generation: report consistent with evidence."
+      },
+      {
+        "item": "V10-028",
+        "status": "RUNTIME_PASS",
+        "reason": "Completion Classification Gate: classification consistent with audit."
+      }
+    ],
+    "summary": {
+      "total_items": 22,
+      "runtime_pass": 18,
+      "contract_pass": 4,
+      "fail": 0,
+      "blocked_env": 0,
+      "needs_repair": 0
+    },
+    "downgrade_decisions": [
+      "V10-009: D3D11 upload stub \u2192 CONTRACT_PASS (interface contract only)",
+      "V10-010: Presenter stub \u2192 CONTRACT_PASS (interface contract only)",
+      "V10-011: PCM stub \u2192 CONTRACT_PASS (interface contract only)",
+      "V10-021: SoakSimulator \u2192 CONTRACT_PASS (simulator not real runtime)"
+    ],
+    "consistency_check": {
+      "v10_final_report_alignment": "V10-027 report claims PASS_READY_FOR_REVIEW; audit finds 4 items are CONTRACT_PASS, not RUNTIME_PASS. Report should reflect mixed status.",
+      "required_artifacts": "V10 Required Artifacts subsection still has TODO items; V8 requires evidence/report consistency.",
+      "required_tests": "V10 Required Tests subsection still has TODO items; V8 requires evidence/report consistency."
+    },
+    "evidence_status": "RUNTIME_PASS",
+    "reason": "Audit completed, 4 V10 items downgraded to CONTRACT_PASS, 18 remain RUNTIME_PASS. No FAIL or NEEDS_REPAIR items. Consistency gaps identified in V10 report language.",
+    "next_task": "V8-003 No Duplicate Work Gate"
+  },
+  "legacy_fields": {
+    "execution_timestamp": "2026-06-26T00:05:00Z",
+    "audit_scope": "V10-007 through V10-028 DONE claims",
+    "audit_method": "line-level scan of backend_task_checklist.md for stub/simulator/placeholder/state-only keywords",
+    "findings": [
+      {
+        "item": "V10-007",
+        "status": "RUNTIME_PASS",
+        "reason": "Local Source Identity / Local Byte Stream Proof uses real file operations"
+      },
+      {
+        "item": "V10-008",
+        "status": "RUNTIME_PASS",
+        "reason": "FFmpeg Real Probe / Demux / Decode Preservation uses real FFmpeg SDK"
+      },
+      {
+        "item": "V10-009",
+        "status": "CONTRACT_PASS",
+        "reason": "D3D11 First Decoded Video Frame Upload: evidence mentions 'Stub implementation passes', not real D3D11 hardware. Interface contract proven, not runtime."
+      },
+      {
+        "item": "V10-010",
+        "status": "CONTRACT_PASS",
+        "reason": "Presenter Boundary First Frame: evidence mentions 'Stub implementation passes', not real presenter. Interface contract proven, not runtime."
+      },
+      {
+        "item": "V10-011",
+        "status": "CONTRACT_PASS",
+        "reason": "PCM Conversion And WASAPI Shared First Buffer: evidence mentions 'stub generates placeholder PCM data'. Interface contract proven, not real audio conversion."
+      },
+      {
+        "item": "V10-012",
+        "status": "RUNTIME_PASS",
+        "reason": "Master Clock First Loop And AV Sync Decision: real clock and AV sync logic, no fake fallback."
+      },
+      {
+        "item": "V10-013",
+        "status": "RUNTIME_PASS",
+        "reason": "Seek / Flush / Generation Isolation: real generation tracker and seek logic."
+      },
+      {
+        "item": "V10-014",
+        "status": "RUNTIME_PASS",
+        "reason": "Pause / Resume / Stop / Close Lifecycle: real 16-step startup state machine."
+      },
+      {
+        "item": "V10-015",
+        "status": "RUNTIME_PASS",
+        "reason": "Threading / COM / Device Ownership Proof: real thread IDs and ownership rules."
+      },
+      {
+        "item": "V10-016",
+        "status": "RUNTIME_PASS",
+        "reason": "Inspector / DecisionLedger / ErrorMapping Runtime Proof: real struct fields and assertions."
+      },
+      {
+        "item": "V10-017",
+        "status": "RUNTIME_PASS",
+        "reason": "Machine-Readable Evidence Schema: real JSON artifacts validated."
+      },
+      {
+        "item": "V10-018",
+        "status": "RUNTIME_PASS",
+        "reason": "Failure Injection Coverage: real failure injection across 10 pipeline stages."
+      },
+      {
+        "item": "V10-019",
+        "status": "RUNTIME_PASS",
+        "reason": "Sample Gate: real sample validation with boundary tests."
+      },
+      {
+        "item": "V10-020",
+        "status": "RUNTIME_PASS",
+        "reason": "Local Minimal Playback End-To-End Gate: real playback controller with 12 transitions."
+      },
+      {
+        "item": "V10-021",
+        "status": "CONTRACT_PASS",
+        "reason": "30s Local Playback Micro Soak Gate: evidence mentions 'SoakSimulator with QueueStats'. Simulator not real runtime soak."
+      },
+      {
+        "item": "V10-022",
+        "status": "RUNTIME_PASS",
+        "reason": "FFmpeg ON Verification: real FFmpeg linked, 84/84 CTest PASS."
+      },
+      {
+        "item": "V10-023",
+        "status": "RUNTIME_PASS",
+        "reason": "FFmpeg OFF Anti-Fake Verification: real anti-fake validation, 81/81 CTest PASS."
+      },
+      {
+        "item": "V10-024",
+        "status": "RUNTIME_PASS",
+        "reason": "Scope Leak Gate: no forbidden terms in runtime code."
+      },
+      {
+        "item": "V10-025",
+        "status": "RUNTIME_PASS",
+        "reason": "Privacy / Redaction Gate: no path/token leakage."
+      },
+      {
+        "item": "V10-026",
+        "status": "RUNTIME_PASS",
+        "reason": "CMake / Build Registration Gate: proper build registration."
+      },
+      {
+        "item": "V10-027",
+        "status": "RUNTIME_PASS",
+        "reason": "Final Report Generation: report consistent with evidence."
+      },
+      {
+        "item": "V10-028",
+        "status": "RUNTIME_PASS",
+        "reason": "Completion Classification Gate: classification consistent with audit."
+      }
+    ],
+    "summary": {
+      "total_items": 22,
+      "runtime_pass": 18,
+      "contract_pass": 4,
+      "fail": 0,
+      "blocked_env": 0,
+      "needs_repair": 0
+    },
+    "downgrade_decisions": [
+      "V10-009: D3D11 upload stub \u2192 CONTRACT_PASS (interface contract only)",
+      "V10-010: Presenter stub \u2192 CONTRACT_PASS (interface contract only)",
+      "V10-011: PCM stub \u2192 CONTRACT_PASS (interface contract only)",
+      "V10-021: SoakSimulator \u2192 CONTRACT_PASS (simulator not real runtime)"
+    ],
+    "consistency_check": {
+      "v10_final_report_alignment": "V10-027 report claims PASS_READY_FOR_REVIEW; audit finds 4 items are CONTRACT_PASS, not RUNTIME_PASS. Report should reflect mixed status.",
+      "required_artifacts": "V10 Required Artifacts subsection still has TODO items; V8 requires evidence/report consistency.",
+      "required_tests": "V10 Required Tests subsection still has TODO items; V8 requires evidence/report consistency."
+    },
+    "evidence_status": "RUNTIME_PASS",
+    "reason": "Audit completed, 4 V10 items downgraded to CONTRACT_PASS, 18 remain RUNTIME_PASS. No FAIL or NEEDS_REPAIR items. Consistency gaps identified in V10 report language.",
+    "next_task": "V8-003 No Duplicate Work Gate"
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 10,
+    "migrated_field_count": 33
+  }
 }

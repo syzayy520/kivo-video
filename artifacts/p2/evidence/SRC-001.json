@@ -1,255 +1,20 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "SRC-001",
+  "task_family": "planning",
   "status": "CONTRACT_PASS",
+  "completion_level": "p2-foundation-planning",
   "runtime_mode": "source_verification",
   "runtime_environment_kind": "not_applicable",
-  "environment_required": false,
-  "environment_available": false,
-  "blocked_reason": "",
-  "evidence_file": "artifacts/p2/evidence/SRC-001.json",
-  "source_core_definition": {
-    "document_path": "docs/roadmap/p2_source_core.md",
-    "source_identity_system": {
-      "source_identity": {
-        "purpose": "Unique identifier for media sources",
-        "fields": [
-          "source_id",
-          "source_type",
-          "created_at",
-          "session_count"
-        ],
-        "stability_rules": [
-          "Same source file produces same SourceIdentity",
-          "Different copies of same content produce different SourceIdentity",
-          "Source modifications produce new SourceIdentity"
-        ]
-      },
-      "media_source_kind": {
-        "purpose": "Classification of media source types",
-        "values": [
-          "LocalFile",
-          "NetworkFile",
-          "WebDAV",
-          "AList",
-          "MediaServer",
-          "CloudDrive",
-          "DiscImage",
-          "IPTV",
-          "Stream"
-        ]
-      },
-      "readable_byte_stream": {
-        "purpose": "Abstract interface for reading byte streams",
-        "operations": [
-          "read(offset, size)",
-          "seek(offset, whence)",
-          "tell()",
-          "size()",
-          "close()"
-        ],
-        "capabilities": [
-          "can_seek",
-          "can_read_range",
-          "can_read_multiple"
-        ]
-      }
-    },
-    "source_capabilities": {
-      "range_capabilities": {
-        "feature": "Range request support",
-        "fields": [
-          "supports_range",
-          "max_range_size",
-          "range_granularity"
-        ],
-        "use_cases": [
-          "Partial content download",
-          "Resumable downloads",
-          "Efficient large file access"
-        ]
-      },
-      "seek_capabilities": {
-        "feature": "Seeking support",
-        "fields": [
-          "supports_seek",
-          "seek_granularity",
-          "seek_precision"
-        ],
-        "use_cases": [
-          "Chapter navigation",
-          "Resume playback",
-          "Skip intro/outro"
-        ]
-      },
-      "credential_profile": {
-        "purpose": "Credential management for sources",
-        "fields": [
-          "credential_type",
-          "credential_storage",
-          "credential_rotation",
-          "redact_in_logs"
-        ],
-        "privacy_rules": [
-          "Never log credentials",
-          "Redact in Inspector snapshots",
-          "Secure storage required"
-        ]
-      },
-      "source_health": {
-        "purpose": "Monitor source availability and performance",
-        "fields": [
-          "health_status",
-          "latency_ms",
-          "bandwidth_mbps",
-          "error_count",
-          "last_error"
-        ],
-        "monitoring": [
-          "Periodic health checks",
-          "Error rate tracking",
-          "Performance monitoring"
-        ]
-      }
-    },
-    "direct_play_stream_decision": {
-      "direct_play_decision": {
-        "purpose": "Decide if source can be played directly",
-        "inputs": [
-          "source_capabilities",
-          "client_capabilities",
-          "network_conditions",
-          "content_requirements"
-        ],
-        "decision_logic": "if source_supports_all_codecs AND source_bandwidth\u8db3\u591f AND client_can_decode_all AND no_transcoding_required: DIRECT_PLAY else: DIRECT_STREAM_OR_TRANSCODE"
-      },
-      "direct_stream_decision": {
-        "purpose": "Decide if source can be streamed directly",
-        "inputs": [
-          "source_streaming_capabilities",
-          "network_stability",
-          "buffer_requirements",
-          "error_recovery_needs"
-        ],
-        "decision_logic": "if source_supports_streaming AND network_stable AND buffer_adequate AND error_recovery_possible: DIRECT_STREAM else: CACHE_OR_DOWNLOAD"
-      }
-    },
-    "cache_retry_reconnect": {
-      "cache_strategy": {
-        "purpose": "Cache remote content for performance",
-        "cache_types": [
-          "MemoryCache",
-          "DiskCache",
-          "HybridCache"
-        ],
-        "cache_policies": [
-          "LRU",
-          "LFU",
-          "TTL",
-          "SizeLimit"
-        ]
-      },
-      "retry_strategy": {
-        "purpose": "Handle transient failures",
-        "retry_policies": [
-          "ImmediateRetry",
-          "ExponentialBackoff",
-          "LinearBackoff",
-          "FixedDelay"
-        ],
-        "retry_limits": [
-          "max_retries",
-          "retry_timeout",
-          "retry_on"
-        ]
-      },
-      "reconnect_strategy": {
-        "purpose": "Reestablish broken connections",
-        "reconnect_policies": [
-          "AutoReconnect",
-          "ManualReconnect",
-          "SessionReconnect"
-        ],
-        "reconnect_conditions": [
-          "Connection timeout",
-          "Server error",
-          "Network interruption",
-          "Authentication failure"
-        ]
-      }
-    },
-    "inspector_integration": {
-      "source_inspector": {
-        "purpose": "Monitor source behavior during playback",
-        "fields": [
-          "source_identity",
-          "read_operations",
-          "seek_operations",
-          "error_operations",
-          "average_latency"
-        ]
-      },
-      "decision_ledger": {
-        "purpose": "Record source-related decisions",
-        "entry_types": [
-          "SourceSelection",
-          "DirectPlayDecision",
-          "CacheDecision",
-          "RetryDecision"
-        ]
-      },
-      "error_mapping": {
-        "purpose": "Map source errors to user-friendly messages",
-        "error_categories": [
-          "SourceNotFound",
-          "AccessDenied",
-          "NetworkError",
-          "ServerError",
-          "TimeoutError",
-          "CorruptedSource"
-        ]
-      }
-    }
-  },
-  "privacy_redaction": {
-    "source_path_redaction": "No full paths in source references",
-    "credential_redaction": "No tokens, passwords, or credentials",
-    "network_information_redaction": "No internal IP addresses or hostnames"
-  },
-  "gate_integration": [
-    "SRC-001: Source core system defined",
-    "PFFG-001: Foundation Final Gate Reader checks source core definitions",
-    "PMX-001: Provider Runtime Matrix includes source core support"
-  ],
-  "test_cases": {
-    "positive_test_cases": 6,
-    "negative_test_cases": 6,
-    "total_test_cases": 12
-  },
-  "implementation_requirements": {
-    "source_identity": [
-      "UUID v4 generation for stable identity",
-      "Identity persistence across sessions",
-      "Identity deduplication for same source",
-      "Identity versioning for source changes"
-    ],
-    "byte_stream": [
-      "Efficient range request handling",
-      "Concurrent read support",
-      "Seek operation optimization",
-      "Memory-efficient buffering"
-    ],
-    "capabilities": [
-      "Capability discovery from source",
-      "Capability matching with client",
-      "Capability caching for performance",
-      "Capability update on change"
-    ]
-  },
-  "timestamp_utc": "2026-06-26T01:24:00Z",
-  "completion_level": "p2-foundation-planning",
   "environment": {},
-  "implementation": {},
+  "implementation": {
+    "legacy_runtime_verified_timestamp": "2026-06-26T01:24:00Z",
+    "legacy_provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "legacy_task_name": "P2-SOURCE-CORE",
+    "legacy_family": "source_core"
+  },
   "media_input": {
     "kind": "not_applicable"
   },
@@ -274,5 +39,517 @@
   "artifacts": [],
   "requires_provider_matrix": false,
   "runtime_verified": false,
-  "task_family": "planning"
+  "blocked_reason": null,
+  "timestamp_utc": "2026-06-26T07:46:09Z",
+  "legacy_original": {
+    "schema_version": "p2-evidence-v8",
+    "task_id": "SRC-001",
+    "task_name": "P2-SOURCE-CORE",
+    "family": "source_core",
+    "status": "CONTRACT_PASS",
+    "runtime_mode": "source_verification",
+    "runtime_environment_kind": "test_harness",
+    "environment_required": false,
+    "environment_available": false,
+    "blocked_reason": null,
+    "runtime_verified_timestamp": "2026-06-26T01:24:00Z",
+    "evidence_file": "artifacts/p2/evidence/SRC-001.json",
+    "provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "source_core_definition": {
+      "document_path": "docs/roadmap/p2_source_core.md",
+      "source_identity_system": {
+        "source_identity": {
+          "purpose": "Unique identifier for media sources",
+          "fields": [
+            "source_id",
+            "source_type",
+            "created_at",
+            "session_count"
+          ],
+          "stability_rules": [
+            "Same source file produces same SourceIdentity",
+            "Different copies of same content produce different SourceIdentity",
+            "Source modifications produce new SourceIdentity"
+          ]
+        },
+        "media_source_kind": {
+          "purpose": "Classification of media source types",
+          "values": [
+            "LocalFile",
+            "NetworkFile",
+            "WebDAV",
+            "AList",
+            "MediaServer",
+            "CloudDrive",
+            "DiscImage",
+            "IPTV",
+            "Stream"
+          ]
+        },
+        "readable_byte_stream": {
+          "purpose": "Abstract interface for reading byte streams",
+          "operations": [
+            "read(offset, size)",
+            "seek(offset, whence)",
+            "tell()",
+            "size()",
+            "close()"
+          ],
+          "capabilities": [
+            "can_seek",
+            "can_read_range",
+            "can_read_multiple"
+          ]
+        }
+      },
+      "source_capabilities": {
+        "range_capabilities": {
+          "feature": "Range request support",
+          "fields": [
+            "supports_range",
+            "max_range_size",
+            "range_granularity"
+          ],
+          "use_cases": [
+            "Partial content download",
+            "Resumable downloads",
+            "Efficient large file access"
+          ]
+        },
+        "seek_capabilities": {
+          "feature": "Seeking support",
+          "fields": [
+            "supports_seek",
+            "seek_granularity",
+            "seek_precision"
+          ],
+          "use_cases": [
+            "Chapter navigation",
+            "Resume playback",
+            "Skip intro/outro"
+          ]
+        },
+        "credential_profile": {
+          "purpose": "Credential management for sources",
+          "fields": [
+            "credential_type",
+            "credential_storage",
+            "credential_rotation",
+            "redact_in_logs"
+          ],
+          "privacy_rules": [
+            "Never log credentials",
+            "Redact in Inspector snapshots",
+            "Secure storage required"
+          ]
+        },
+        "source_health": {
+          "purpose": "Monitor source availability and performance",
+          "fields": [
+            "health_status",
+            "latency_ms",
+            "bandwidth_mbps",
+            "error_count",
+            "last_error"
+          ],
+          "monitoring": [
+            "Periodic health checks",
+            "Error rate tracking",
+            "Performance monitoring"
+          ]
+        }
+      },
+      "direct_play_stream_decision": {
+        "direct_play_decision": {
+          "purpose": "Decide if source can be played directly",
+          "inputs": [
+            "source_capabilities",
+            "client_capabilities",
+            "network_conditions",
+            "content_requirements"
+          ],
+          "decision_logic": "if source_supports_all_codecs AND source_bandwidth\u8db3\u591f AND client_can_decode_all AND no_transcoding_required: DIRECT_PLAY else: DIRECT_STREAM_OR_TRANSCODE"
+        },
+        "direct_stream_decision": {
+          "purpose": "Decide if source can be streamed directly",
+          "inputs": [
+            "source_streaming_capabilities",
+            "network_stability",
+            "buffer_requirements",
+            "error_recovery_needs"
+          ],
+          "decision_logic": "if source_supports_streaming AND network_stable AND buffer_adequate AND error_recovery_possible: DIRECT_STREAM else: CACHE_OR_DOWNLOAD"
+        }
+      },
+      "cache_retry_reconnect": {
+        "cache_strategy": {
+          "purpose": "Cache remote content for performance",
+          "cache_types": [
+            "MemoryCache",
+            "DiskCache",
+            "HybridCache"
+          ],
+          "cache_policies": [
+            "LRU",
+            "LFU",
+            "TTL",
+            "SizeLimit"
+          ]
+        },
+        "retry_strategy": {
+          "purpose": "Handle transient failures",
+          "retry_policies": [
+            "ImmediateRetry",
+            "ExponentialBackoff",
+            "LinearBackoff",
+            "FixedDelay"
+          ],
+          "retry_limits": [
+            "max_retries",
+            "retry_timeout",
+            "retry_on"
+          ]
+        },
+        "reconnect_strategy": {
+          "purpose": "Reestablish broken connections",
+          "reconnect_policies": [
+            "AutoReconnect",
+            "ManualReconnect",
+            "SessionReconnect"
+          ],
+          "reconnect_conditions": [
+            "Connection timeout",
+            "Server error",
+            "Network interruption",
+            "Authentication failure"
+          ]
+        }
+      },
+      "inspector_integration": {
+        "source_inspector": {
+          "purpose": "Monitor source behavior during playback",
+          "fields": [
+            "source_identity",
+            "read_operations",
+            "seek_operations",
+            "error_operations",
+            "average_latency"
+          ]
+        },
+        "decision_ledger": {
+          "purpose": "Record source-related decisions",
+          "entry_types": [
+            "SourceSelection",
+            "DirectPlayDecision",
+            "CacheDecision",
+            "RetryDecision"
+          ]
+        },
+        "error_mapping": {
+          "purpose": "Map source errors to user-friendly messages",
+          "error_categories": [
+            "SourceNotFound",
+            "AccessDenied",
+            "NetworkError",
+            "ServerError",
+            "TimeoutError",
+            "CorruptedSource"
+          ]
+        }
+      }
+    },
+    "privacy_redaction": {
+      "source_path_redaction": "No full paths in source references",
+      "credential_redaction": "No tokens, passwords, or credentials",
+      "network_information_redaction": "No internal IP addresses or hostnames"
+    },
+    "gate_integration": [
+      "SRC-001: Source core system defined",
+      "PFFG-001: Foundation Final Gate Reader checks source core definitions",
+      "PMX-001: Provider Runtime Matrix includes source core support"
+    ],
+    "test_cases": {
+      "positive_test_cases": 6,
+      "negative_test_cases": 6,
+      "total_test_cases": 12
+    },
+    "implementation_requirements": {
+      "source_identity": [
+        "UUID v4 generation for stable identity",
+        "Identity persistence across sessions",
+        "Identity deduplication for same source",
+        "Identity versioning for source changes"
+      ],
+      "byte_stream": [
+        "Efficient range request handling",
+        "Concurrent read support",
+        "Seek operation optimization",
+        "Memory-efficient buffering"
+      ],
+      "capabilities": [
+        "Capability discovery from source",
+        "Capability matching with client",
+        "Capability caching for performance",
+        "Capability update on change"
+      ]
+    }
+  },
+  "legacy_fields": {
+    "task_name": "P2-SOURCE-CORE",
+    "family": "source_core",
+    "environment_required": false,
+    "environment_available": false,
+    "runtime_verified_timestamp": "2026-06-26T01:24:00Z",
+    "evidence_file": "artifacts/p2/evidence/SRC-001.json",
+    "provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "source_core_definition": {
+      "document_path": "docs/roadmap/p2_source_core.md",
+      "source_identity_system": {
+        "source_identity": {
+          "purpose": "Unique identifier for media sources",
+          "fields": [
+            "source_id",
+            "source_type",
+            "created_at",
+            "session_count"
+          ],
+          "stability_rules": [
+            "Same source file produces same SourceIdentity",
+            "Different copies of same content produce different SourceIdentity",
+            "Source modifications produce new SourceIdentity"
+          ]
+        },
+        "media_source_kind": {
+          "purpose": "Classification of media source types",
+          "values": [
+            "LocalFile",
+            "NetworkFile",
+            "WebDAV",
+            "AList",
+            "MediaServer",
+            "CloudDrive",
+            "DiscImage",
+            "IPTV",
+            "Stream"
+          ]
+        },
+        "readable_byte_stream": {
+          "purpose": "Abstract interface for reading byte streams",
+          "operations": [
+            "read(offset, size)",
+            "seek(offset, whence)",
+            "tell()",
+            "size()",
+            "close()"
+          ],
+          "capabilities": [
+            "can_seek",
+            "can_read_range",
+            "can_read_multiple"
+          ]
+        }
+      },
+      "source_capabilities": {
+        "range_capabilities": {
+          "feature": "Range request support",
+          "fields": [
+            "supports_range",
+            "max_range_size",
+            "range_granularity"
+          ],
+          "use_cases": [
+            "Partial content download",
+            "Resumable downloads",
+            "Efficient large file access"
+          ]
+        },
+        "seek_capabilities": {
+          "feature": "Seeking support",
+          "fields": [
+            "supports_seek",
+            "seek_granularity",
+            "seek_precision"
+          ],
+          "use_cases": [
+            "Chapter navigation",
+            "Resume playback",
+            "Skip intro/outro"
+          ]
+        },
+        "credential_profile": {
+          "purpose": "Credential management for sources",
+          "fields": [
+            "credential_type",
+            "credential_storage",
+            "credential_rotation",
+            "redact_in_logs"
+          ],
+          "privacy_rules": [
+            "Never log credentials",
+            "Redact in Inspector snapshots",
+            "Secure storage required"
+          ]
+        },
+        "source_health": {
+          "purpose": "Monitor source availability and performance",
+          "fields": [
+            "health_status",
+            "latency_ms",
+            "bandwidth_mbps",
+            "error_count",
+            "last_error"
+          ],
+          "monitoring": [
+            "Periodic health checks",
+            "Error rate tracking",
+            "Performance monitoring"
+          ]
+        }
+      },
+      "direct_play_stream_decision": {
+        "direct_play_decision": {
+          "purpose": "Decide if source can be played directly",
+          "inputs": [
+            "source_capabilities",
+            "client_capabilities",
+            "network_conditions",
+            "content_requirements"
+          ],
+          "decision_logic": "if source_supports_all_codecs AND source_bandwidth\u8db3\u591f AND client_can_decode_all AND no_transcoding_required: DIRECT_PLAY else: DIRECT_STREAM_OR_TRANSCODE"
+        },
+        "direct_stream_decision": {
+          "purpose": "Decide if source can be streamed directly",
+          "inputs": [
+            "source_streaming_capabilities",
+            "network_stability",
+            "buffer_requirements",
+            "error_recovery_needs"
+          ],
+          "decision_logic": "if source_supports_streaming AND network_stable AND buffer_adequate AND error_recovery_possible: DIRECT_STREAM else: CACHE_OR_DOWNLOAD"
+        }
+      },
+      "cache_retry_reconnect": {
+        "cache_strategy": {
+          "purpose": "Cache remote content for performance",
+          "cache_types": [
+            "MemoryCache",
+            "DiskCache",
+            "HybridCache"
+          ],
+          "cache_policies": [
+            "LRU",
+            "LFU",
+            "TTL",
+            "SizeLimit"
+          ]
+        },
+        "retry_strategy": {
+          "purpose": "Handle transient failures",
+          "retry_policies": [
+            "ImmediateRetry",
+            "ExponentialBackoff",
+            "LinearBackoff",
+            "FixedDelay"
+          ],
+          "retry_limits": [
+            "max_retries",
+            "retry_timeout",
+            "retry_on"
+          ]
+        },
+        "reconnect_strategy": {
+          "purpose": "Reestablish broken connections",
+          "reconnect_policies": [
+            "AutoReconnect",
+            "ManualReconnect",
+            "SessionReconnect"
+          ],
+          "reconnect_conditions": [
+            "Connection timeout",
+            "Server error",
+            "Network interruption",
+            "Authentication failure"
+          ]
+        }
+      },
+      "inspector_integration": {
+        "source_inspector": {
+          "purpose": "Monitor source behavior during playback",
+          "fields": [
+            "source_identity",
+            "read_operations",
+            "seek_operations",
+            "error_operations",
+            "average_latency"
+          ]
+        },
+        "decision_ledger": {
+          "purpose": "Record source-related decisions",
+          "entry_types": [
+            "SourceSelection",
+            "DirectPlayDecision",
+            "CacheDecision",
+            "RetryDecision"
+          ]
+        },
+        "error_mapping": {
+          "purpose": "Map source errors to user-friendly messages",
+          "error_categories": [
+            "SourceNotFound",
+            "AccessDenied",
+            "NetworkError",
+            "ServerError",
+            "TimeoutError",
+            "CorruptedSource"
+          ]
+        }
+      }
+    },
+    "privacy_redaction": {
+      "source_path_redaction": "No full paths in source references",
+      "credential_redaction": "No tokens, passwords, or credentials",
+      "network_information_redaction": "No internal IP addresses or hostnames"
+    },
+    "gate_integration": [
+      "SRC-001: Source core system defined",
+      "PFFG-001: Foundation Final Gate Reader checks source core definitions",
+      "PMX-001: Provider Runtime Matrix includes source core support"
+    ],
+    "test_cases": {
+      "positive_test_cases": 6,
+      "negative_test_cases": 6,
+      "total_test_cases": 12
+    },
+    "implementation_requirements": {
+      "source_identity": [
+        "UUID v4 generation for stable identity",
+        "Identity persistence across sessions",
+        "Identity deduplication for same source",
+        "Identity versioning for source changes"
+      ],
+      "byte_stream": [
+        "Efficient range request handling",
+        "Concurrent read support",
+        "Seek operation optimization",
+        "Memory-efficient buffering"
+      ],
+      "capabilities": [
+        "Capability discovery from source",
+        "Capability matching with client",
+        "Capability caching for performance",
+        "Capability update on change"
+      ]
+    }
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 12,
+    "migrated_field_count": 33
+  }
 }

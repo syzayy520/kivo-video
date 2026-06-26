@@ -1,65 +1,20 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "LRD-010",
+  "task_family": "planning",
   "status": "CONTRACT_PASS",
+  "completion_level": "p2-foundation-planning",
   "runtime_mode": "contract",
   "runtime_environment_kind": "not_applicable",
-  "environment_required": false,
-  "environment_available": false,
-  "blocked_reason": "",
-  "evidence_file": "artifacts/p2/evidence/LRD-010.json",
-  "audit_summary": {
-    "total_required_artifacts": 6,
-    "total_validated_in_test": 6,
-    "total_persisted_as_file": 1,
-    "persisted_file": "backend/tests/presenter/ffmpeg_off_antifake.json",
-    "validation_method": "kivo_evidence_schema_test (8 tests)",
-    "schema_correctness": "all 6 artifacts have all required fields",
-    "privacy_compliance": "no path/token/credential leakage",
-    "anti_fake_compliance": "evidence_contains_fake_as_real = false for all artifacts"
-  },
-  "artifact_inventory": [
-    {
-      "name": "playback_proof.json",
-      "fields": 9,
-      "status": "VALID",
-      "validation": "test 1"
-    },
-    {
-      "name": "inspector_snapshot.json",
-      "fields": 12,
-      "status": "VALID",
-      "validation": "test 2"
-    },
-    {
-      "name": "decision_ledger.json",
-      "fields": 7,
-      "status": "VALID",
-      "validation": "test 3"
-    },
-    {
-      "name": "micro_soak_metrics.json",
-      "fields": 10,
-      "status": "VALID",
-      "validation": "test 4"
-    },
-    {
-      "name": "ffmpeg_off_antifake.json",
-      "fields": 16,
-      "status": "VALID",
-      "validation": "test 5"
-    },
-    {
-      "name": "evidence_schema_validation.json",
-      "fields": 8,
-      "status": "VALID",
-      "validation": "test 6"
-    }
-  ],
-  "timestamp_utc": "2026-06-26T00:50:00Z",
-  "completion_level": "p2-foundation-planning",
   "environment": {},
-  "implementation": {},
+  "implementation": {
+    "legacy_runtime_verified_timestamp": "2026-06-26T00:50:00Z",
+    "legacy_provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "legacy_task_name": "Evidence Artifact Audit",
+    "legacy_family": "local_repair_delta/evidence"
+  },
   "media_input": {
     "kind": "not_applicable"
   },
@@ -84,5 +39,137 @@
   "artifacts": [],
   "requires_provider_matrix": false,
   "runtime_verified": false,
-  "task_family": "planning"
+  "blocked_reason": null,
+  "timestamp_utc": "2026-06-26T07:46:09Z",
+  "legacy_original": {
+    "schema_version": "p2-evidence-v8",
+    "task_id": "LRD-010",
+    "task_name": "Evidence Artifact Audit",
+    "family": "local_repair_delta/evidence",
+    "status": "CONTRACT_PASS",
+    "runtime_mode": "contract",
+    "runtime_environment_kind": "test_harness",
+    "environment_required": false,
+    "environment_available": false,
+    "blocked_reason": null,
+    "runtime_verified_timestamp": "2026-06-26T00:50:00Z",
+    "evidence_file": "artifacts/p2/evidence/LRD-010.json",
+    "provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "audit_summary": {
+      "total_required_artifacts": 6,
+      "total_validated_in_test": 6,
+      "total_persisted_as_file": 1,
+      "persisted_file": "backend/tests/presenter/ffmpeg_off_antifake.json",
+      "validation_method": "kivo_evidence_schema_test (8 tests)",
+      "schema_correctness": "all 6 artifacts have all required fields",
+      "privacy_compliance": "no path/token/credential leakage",
+      "anti_fake_compliance": "evidence_contains_fake_as_real = false for all artifacts"
+    },
+    "artifact_inventory": [
+      {
+        "name": "playback_proof.json",
+        "fields": 9,
+        "status": "VALID",
+        "validation": "test 1"
+      },
+      {
+        "name": "inspector_snapshot.json",
+        "fields": 12,
+        "status": "VALID",
+        "validation": "test 2"
+      },
+      {
+        "name": "decision_ledger.json",
+        "fields": 7,
+        "status": "VALID",
+        "validation": "test 3"
+      },
+      {
+        "name": "micro_soak_metrics.json",
+        "fields": 10,
+        "status": "VALID",
+        "validation": "test 4"
+      },
+      {
+        "name": "ffmpeg_off_antifake.json",
+        "fields": 16,
+        "status": "VALID",
+        "validation": "test 5"
+      },
+      {
+        "name": "evidence_schema_validation.json",
+        "fields": 8,
+        "status": "VALID",
+        "validation": "test 6"
+      }
+    ]
+  },
+  "legacy_fields": {
+    "task_name": "Evidence Artifact Audit",
+    "family": "local_repair_delta/evidence",
+    "environment_required": false,
+    "environment_available": false,
+    "runtime_verified_timestamp": "2026-06-26T00:50:00Z",
+    "evidence_file": "artifacts/p2/evidence/LRD-010.json",
+    "provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "audit_summary": {
+      "total_required_artifacts": 6,
+      "total_validated_in_test": 6,
+      "total_persisted_as_file": 1,
+      "persisted_file": "backend/tests/presenter/ffmpeg_off_antifake.json",
+      "validation_method": "kivo_evidence_schema_test (8 tests)",
+      "schema_correctness": "all 6 artifacts have all required fields",
+      "privacy_compliance": "no path/token/credential leakage",
+      "anti_fake_compliance": "evidence_contains_fake_as_real = false for all artifacts"
+    },
+    "artifact_inventory": [
+      {
+        "name": "playback_proof.json",
+        "fields": 9,
+        "status": "VALID",
+        "validation": "test 1"
+      },
+      {
+        "name": "inspector_snapshot.json",
+        "fields": 12,
+        "status": "VALID",
+        "validation": "test 2"
+      },
+      {
+        "name": "decision_ledger.json",
+        "fields": 7,
+        "status": "VALID",
+        "validation": "test 3"
+      },
+      {
+        "name": "micro_soak_metrics.json",
+        "fields": 10,
+        "status": "VALID",
+        "validation": "test 4"
+      },
+      {
+        "name": "ffmpeg_off_antifake.json",
+        "fields": 16,
+        "status": "VALID",
+        "validation": "test 5"
+      },
+      {
+        "name": "evidence_schema_validation.json",
+        "fields": 8,
+        "status": "VALID",
+        "validation": "test 6"
+      }
+    ]
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 9,
+    "migrated_field_count": 33
+  }
 }

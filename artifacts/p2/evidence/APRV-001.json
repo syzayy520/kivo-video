@@ -1,359 +1,20 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "APRV-001",
+  "task_family": "planning",
   "status": "CONTRACT_PASS",
+  "completion_level": "p2-foundation-planning",
   "runtime_mode": "runtime_verification",
   "runtime_environment_kind": "not_applicable",
-  "environment_required": false,
-  "environment_available": false,
-  "blocked_reason": "",
-  "evidence_file": "artifacts/p2/evidence/APRV-001.json",
-  "gate_purpose": {
-    "description": "Final post-foundation gate that verifies all providers have achieved RUNTIME_PASS status",
-    "gate_functions": [
-      "Post-Foundation Gate: Explicitly post-foundation, not part of foundation completion",
-      "Runtime Verification: Verifies all providers have real runtime proof",
-      "Gap Closure: Requires all provider runtime gaps to be resolved",
-      "Evidence Validation: Requires all provider evidence to be valid",
-      "Honest Status: Requires honest status assignments without exaggeration"
-    ]
-  },
-  "gate_dependencies": {
-    "required_pre_conditions": {
-      "pffg_001": "Foundation Final Gate Reader must PASS",
-      "pffg_002": "Foundation Final Report must be generated",
-      "all_provider_evidence": "All provider evidence must exist and be valid",
-      "provider_matrix": "Provider Runtime Matrix must be generated",
-      "matrix_honesty": "Matrix Honesty Gate must pass",
-      "no_runtime_gaps": "All provider runtime gaps must be resolved"
-    },
-    "required_evidence": {
-      "all_provider_evidence": "Evidence from all provider families",
-      "provider_runtime_matrix": "PMX-001 evidence",
-      "matrix_honesty_gate": "PMX-002 evidence",
-      "foundation_final_gate": "PFFG-001 evidence",
-      "foundation_final_report": "PFFG-002 evidence"
-    }
-  },
-  "gate_validation_rules": {
-    "rule_1_all_providers_runtime_pass": {
-      "description": "All providers must have RUNTIME_PASS status",
-      "validation": [
-        "Load Provider Runtime Matrix",
-        "Check each provider's runtime status",
-        "Verify all providers have RUNTIME_PASS status",
-        "Check no providers have non-RUNTIME_PASS status",
-        "Verify runtime status assignments are honest"
-      ],
-      "failure_conditions": [
-        "Any provider has non-RUNTIME_PASS status",
-        "Runtime status assignment is not honest",
-        "Provider matrix incomplete",
-        "Provider status conflicts with evidence"
-      ]
-    },
-    "rule_2_real_runtime_evidence": {
-      "description": "All RUNTIME_PASS providers must have real runtime evidence",
-      "validation": [
-        "Load evidence for each RUNTIME_PASS provider",
-        "Verify evidence contains real runtime proof",
-        "Check evidence is not stub/fake/simulator/state-only/log-only proof",
-        "Verify evidence timestamps are recent",
-        "Check evidence validates against schema"
-      ],
-      "failure_conditions": [
-        "RUNTIME_PASS without real runtime evidence",
-        "Stub/fake/simulator proof claimed as runtime",
-        "State-only or log-only proof",
-        "Evidence timestamp older than 30 days",
-        "Evidence fails schema validation"
-      ]
-    },
-    "rule_3_environment_availability": {
-      "description": "All providers must have required environment available",
-      "validation": [
-        "Check each provider's environment requirements",
-        "Verify environment is available for each provider",
-        "Check no providers have BLOCKED_ENV status",
-        "Verify environment claims are honest",
-        "Check no test harness claimed as real environment"
-      ],
-      "failure_conditions": [
-        "Any provider has BLOCKED_ENV status",
-        "Environment required but not available",
-        "Test harness claimed as real environment",
-        "Environment claims not honest"
-      ]
-    },
-    "rule_4_evidence_schema_compliance": {
-      "description": "All provider evidence must validate against p2-evidence-v8 schema",
-      "validation": [
-        "Load each provider's evidence file",
-        "Validate against p2-evidence-v8 schema",
-        "Check all required fields present",
-        "Verify evidence structure valid",
-        "Check evidence content valid"
-      ],
-      "failure_conditions": [
-        "Evidence fails schema validation",
-        "Required fields missing",
-        "Evidence structure invalid",
-        "Evidence content invalid"
-      ]
-    },
-    "rule_5_redline_compliance": {
-      "description": "No forbidden terms or premature claims in provider evidence",
-      "validation": [
-        "Scan provider evidence for 32 forbidden terms",
-        "Check no premature completion claims",
-        "Verify claim vocabulary compliance",
-        "Check no false runtime claims",
-        "Verify no report/source conflicts"
-      ],
-      "failure_conditions": [
-        "Forbidden terms found in evidence",
-        "Premature completion claims",
-        "False runtime claims",
-        "Report/source conflicts"
-      ]
-    },
-    "rule_6_antifake_compliance": {
-      "description": "No stub/fake/simulator proof claimed as real runtime",
-      "validation": [
-        "Scan evidence for stub/fake/simulator mentions",
-        "Verify real runtime evidence present",
-        "Check no state-only or log-only proof",
-        "Verify no test harness claimed as real environment",
-        "Check evidence quality meets requirements"
-      ],
-      "failure_conditions": [
-        "Stub/fake/simulator proof claimed as RUNTIME_PASS",
-        "State-only or log-only proof",
-        "Test harness claimed as real environment",
-        "No real runtime evidence for RUNTIME_PASS claims"
-      ]
-    }
-  },
-  "gate_output_structure": {
-    "all_providers_runtime_verified_gate_result": {
-      "fields": [
-        "gate_passed",
-        "gate_timestamp",
-        "total_providers_checked",
-        "providers_runtime_pass",
-        "providers_other_status",
-        "provider_results",
-        "provider_matrix_result",
-        "redline_result",
-        "antifake_result",
-        "gate_summary",
-        "remediation_required",
-        "all_providers_runtime_verified"
-      ]
-    },
-    "provider_result": {
-      "fields": [
-        "provider_id",
-        "provider_kind",
-        "runtime_status",
-        "evidence_file",
-        "evidence_exists",
-        "evidence_valid",
-        "runtime_proof_present",
-        "environment_available",
-        "failure_reason"
-      ]
-    },
-    "provider_matrix_result": {
-      "fields": [
-        "matrix_generated",
-        "honesty_gate_passed",
-        "total_providers",
-        "runtime_pass_count",
-        "contract_pass_count",
-        "blocked_env_count",
-        "fail_count",
-        "not_implemented_count",
-        "all_providers_runtime_pass"
-      ]
-    },
-    "redline_compliance_result": {
-      "fields": [
-        "compliance_passed",
-        "forbidden_terms_found",
-        "forbidden_terms",
-        "premature_claims_found",
-        "premature_claims",
-        "claim_vocabulary_valid"
-      ]
-    },
-    "antifake_compliance_result": {
-      "fields": [
-        "compliance_passed",
-        "stub_fake_simulator_claims",
-        "fake_claims",
-        "state_only_claims",
-        "log_only_claims",
-        "test_harness_claims",
-        "real_runtime_proof_present"
-      ]
-    }
-  },
-  "gate_validation_process": {
-    "step_1_pre_condition_validation": [
-      "Check Foundation Gates: Verify PFFG-001 and PFFG-002 passed",
-      "Load Provider Matrix: Load PMX-001 evidence",
-      "Load Honesty Gate: Load PMX-002 evidence",
-      "Verify Matrix Generation: Check matrix generated successfully",
-      "Verify Honesty Gate: Check honesty gate passed"
-    ],
-    "step_2_provider_status_validation": [
-      "Load All Provider Evidence: Load evidence for all providers",
-      "Check Runtime Status: Check each provider's runtime status",
-      "Verify RUNTIME_PASS: Verify all providers have RUNTIME_PASS",
-      "Check Status Conflicts: Check no status conflicts",
-      "Validate Status Assignments: Validate honest status assignments"
-    ],
-    "step_3_runtime_evidence_validation": [
-      "Load Evidence Content: Load evidence content for each provider",
-      "Check Real Runtime Proof: Check evidence contains real runtime proof",
-      "Verify No Fake Proof: Verify no stub/fake/simulator proof",
-      "Check Evidence Timestamps: Check evidence timestamps are recent",
-      "Validate Evidence Schema: Validate evidence against schema"
-    ],
-    "step_4_environment_validation": [
-      "Check Environment Requirements: Check each provider's environment requirements",
-      "Verify Environment Available: Verify environment is available",
-      "Check No BLOCKED_ENV: Check no providers have BLOCKED_ENV status",
-      "Validate Environment Claims: Validate environment claims are honest",
-      "Check No Test Harness Claims: Check no test harness claimed as real environment"
-    ],
-    "step_5_redline_compliance_check": [
-      "Scan Provider Evidence: Scan all provider evidence for forbidden terms",
-      "Check Premature Claims: Check for premature completion claims",
-      "Verify Claim Vocabulary: Verify claim vocabulary compliance",
-      "Check False Runtime Claims: Check for false runtime claims",
-      "Validate Report/Source Conflicts: Validate no report/source conflicts"
-    ],
-    "step_6_antifake_compliance_check": [
-      "Scan for Fake Claims: Scan evidence for stub/fake/simulator",
-      "Check Runtime Proof: Verify real runtime evidence present",
-      "Detect State-only Proof: Check for state-only or log-only proof",
-      "Verify Environment Claims: Check test harness not claimed as real",
-      "Validate Evidence Quality: Verify evidence quality meets requirements"
-    ],
-    "step_7_gate_decision": [
-      "Aggregate Results: Aggregate all validation results",
-      "Determine Gate Pass/Fail: Determine overall gate result",
-      "Identify Remediation: Identify required remediation actions",
-      "Generate Gate Summary: Generate gate summary report",
-      "Record Gate Decision: Record gate decision in evidence"
-    ]
-  },
-  "integration_points": {
-    "foundation_final_gate_reader": [
-      "Requires Foundation Final Gate Reader passed",
-      "Requires no provider runtime gaps in foundation",
-      "Requires foundation complete claim allowed"
-    ],
-    "foundation_final_report": [
-      "Reads Foundation Final Report",
-      "Requires report lists all provider runtime gaps",
-      "Requires report documents known limitations"
-    ],
-    "inspector_integration": [
-      "Reports all providers runtime verified gate status",
-      "Reports provider runtime verification results",
-      "Reports provider evidence validation",
-      "Tracks gate history"
-    ],
-    "decision_ledger_integration": [
-      "Records all providers runtime verified gate decision",
-      "Records provider runtime verification results",
-      "Records provider evidence validation",
-      "Records gate pass/fail"
-    ]
-  },
-  "test_cases": {
-    "positive_test_cases": [
-      "All providers have RUNTIME_PASS status",
-      "All providers have real runtime evidence",
-      "All providers have required environment available",
-      "All evidence validates against schema",
-      "No forbidden terms found in evidence",
-      "No premature completion claims",
-      "No stub/fake/simulator proof claimed as runtime",
-      "All evidence timestamps recent",
-      "No status conflicts between evidence and source",
-      "All providers runtime verified claim allowed"
-    ],
-    "negative_test_cases": [
-      "Any provider has non-RUNTIME_PASS status",
-      "Any provider lacks real runtime evidence",
-      "Any provider has BLOCKED_ENV status",
-      "Evidence fails schema validation",
-      "Forbidden terms found in evidence",
-      "Premature completion claims found",
-      "Stub/fake/simulator proof claimed as RUNTIME_PASS",
-      "Evidence timestamp older than 30 days",
-      "Status conflict between evidence and source",
-      "All providers runtime verified claim not allowed"
-    ],
-    "total_test_cases": 20
-  },
-  "current_gate_status": {
-    "gate_validation_status": "CONTRACT_PASS",
-    "providers_checked": 22,
-    "providers_runtime_pass": 0,
-    "providers_other_status": 22,
-    "all_providers_runtime_verified": false,
-    "remediation_required": true,
-    "honest_disclaimer": "This is a GATE DEFINITION (CONTRACT_PASS), NOT a runtime claim. All 22 providers currently lack real runtime proof. P2 Foundation (planning/docs/contracts) is COMPLETE. All Providers Runtime Verified is explicitly POST-FOUNDATION and requires each provider to achieve RUNTIME_PASS with real hardware/dependencies/accounts."
-  },
-  "implementation_requirements": {
-    "gate_components": [
-      "PreConditionValidator",
-      "ProviderStatusValidator",
-      "RuntimeEvidenceValidator",
-      "EnvironmentValidator",
-      "RedlineComplianceChecker",
-      "AntiFakeComplianceChecker",
-      "GateDecisionMaker",
-      "RemediationPlanner",
-      "GateReporter"
-    ],
-    "integration_points": [
-      "Provider Runtime Matrix",
-      "Evidence Storage",
-      "Inspector",
-      "DecisionLedger",
-      "ErrorMapping"
-    ]
-  },
-  "gate_integration": [
-    "PMX-001: Provider Runtime Matrix generated",
-    "PMX-002: Matrix Honesty Gate validates matrix",
-    "PFFG-001: Foundation Final Gate Reader reads all evidence",
-    "PFFG-002: Foundation Final Report generated",
-    "APRV-001: All Providers Runtime Verified Gate verifies all providers"
-  ],
-  "important_notes": {
-    "post_foundation_gate": "This gate is explicitly post-foundation. It is NOT part of P2 Foundation completion.",
-    "runtime_verification_required": "This gate requires real runtime verification, not just contract verification.",
-    "gap_closure_required": "This gate requires all provider runtime gaps to be resolved.",
-    "honest_status_required": "This gate requires honest status assignments. No exaggeration or false claims allowed.",
-    "static_json_is_not_runtime_proof": "Evidence JSON files in artifacts/p2/evidence/ are STATIC planning evidence (CONTRACT_PASS). They document what SHOULD be verified at runtime. They are NOT runtime proof. Real runtime evidence must be generated by CI/CD or local runners with real hardware/accounts/dependencies, and must be timestamped with actual test output."
-  },
-  "next_steps": [
-    "Provider Runtime Verification",
-    "Gap Resolution",
-    "Feature Completion",
-    "Quality Improvement"
-  ],
-  "timestamp_utc": "2026-06-26T01:36:00Z",
-  "completion_level": "p2-foundation-planning",
   "environment": {},
-  "implementation": {},
+  "implementation": {
+    "legacy_runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+    "legacy_provider_matrix_impact": {
+      "all_providers_runtime_verified_gate": "CONTRACT_PASS"
+    },
+    "legacy_task_name": "P2-ALL-PROVIDERS-RUNTIME-VERIFIED-GATE",
+    "legacy_family": "final_gate"
+  },
   "media_input": {
     "kind": "not_applicable"
   },
@@ -378,5 +39,725 @@
   "artifacts": [],
   "requires_provider_matrix": false,
   "runtime_verified": false,
-  "task_family": "planning"
+  "blocked_reason": null,
+  "timestamp_utc": "2026-06-26T07:46:09Z",
+  "legacy_original": {
+    "schema_version": "p2-evidence-v8",
+    "task_id": "APRV-001",
+    "task_name": "P2-ALL-PROVIDERS-RUNTIME-VERIFIED-GATE",
+    "family": "final_gate",
+    "status": "CONTRACT_PASS",
+    "runtime_mode": "runtime_verification",
+    "runtime_environment_kind": "test_harness",
+    "environment_required": false,
+    "environment_available": false,
+    "blocked_reason": null,
+    "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+    "evidence_file": "artifacts/p2/evidence/APRV-001.json",
+    "provider_matrix_impact": {
+      "all_providers_runtime_verified_gate": "CONTRACT_PASS"
+    },
+    "gate_purpose": {
+      "description": "Final post-foundation gate that verifies all providers have achieved RUNTIME_PASS status",
+      "gate_functions": [
+        "Post-Foundation Gate: Explicitly post-foundation, not part of foundation completion",
+        "Runtime Verification: Verifies all providers have real runtime proof",
+        "Gap Closure: Requires all provider runtime gaps to be resolved",
+        "Evidence Validation: Requires all provider evidence to be valid",
+        "Honest Status: Requires honest status assignments without exaggeration"
+      ]
+    },
+    "gate_dependencies": {
+      "required_pre_conditions": {
+        "pffg_001": "Foundation Final Gate Reader must PASS",
+        "pffg_002": "Foundation Final Report must be generated",
+        "all_provider_evidence": "All provider evidence must exist and be valid",
+        "provider_matrix": "Provider Runtime Matrix must be generated",
+        "matrix_honesty": "Matrix Honesty Gate must pass",
+        "no_runtime_gaps": "All provider runtime gaps must be resolved"
+      },
+      "required_evidence": {
+        "all_provider_evidence": "Evidence from all provider families",
+        "provider_runtime_matrix": "PMX-001 evidence",
+        "matrix_honesty_gate": "PMX-002 evidence",
+        "foundation_final_gate": "PFFG-001 evidence",
+        "foundation_final_report": "PFFG-002 evidence"
+      }
+    },
+    "gate_validation_rules": {
+      "rule_1_all_providers_runtime_pass": {
+        "description": "All providers must have RUNTIME_PASS status",
+        "validation": [
+          "Load Provider Runtime Matrix",
+          "Check each provider's runtime status",
+          "Verify all providers have RUNTIME_PASS status",
+          "Check no providers have non-RUNTIME_PASS status",
+          "Verify runtime status assignments are honest"
+        ],
+        "failure_conditions": [
+          "Any provider has non-RUNTIME_PASS status",
+          "Runtime status assignment is not honest",
+          "Provider matrix incomplete",
+          "Provider status conflicts with evidence"
+        ]
+      },
+      "rule_2_real_runtime_evidence": {
+        "description": "All RUNTIME_PASS providers must have real runtime evidence",
+        "validation": [
+          "Load evidence for each RUNTIME_PASS provider",
+          "Verify evidence contains real runtime proof",
+          "Check evidence is not stub/fake/simulator/state-only/log-only proof",
+          "Verify evidence timestamps are recent",
+          "Check evidence validates against schema"
+        ],
+        "failure_conditions": [
+          "RUNTIME_PASS without real runtime evidence",
+          "Stub/fake/simulator proof claimed as runtime",
+          "State-only or log-only proof",
+          "Evidence timestamp older than 30 days",
+          "Evidence fails schema validation"
+        ]
+      },
+      "rule_3_environment_availability": {
+        "description": "All providers must have required environment available",
+        "validation": [
+          "Check each provider's environment requirements",
+          "Verify environment is available for each provider",
+          "Check no providers have BLOCKED_ENV status",
+          "Verify environment claims are honest",
+          "Check no test harness claimed as real environment"
+        ],
+        "failure_conditions": [
+          "Any provider has BLOCKED_ENV status",
+          "Environment required but not available",
+          "Test harness claimed as real environment",
+          "Environment claims not honest"
+        ]
+      },
+      "rule_4_evidence_schema_compliance": {
+        "description": "All provider evidence must validate against p2-evidence-v8 schema",
+        "validation": [
+          "Load each provider's evidence file",
+          "Validate against p2-evidence-v8 schema",
+          "Check all required fields present",
+          "Verify evidence structure valid",
+          "Check evidence content valid"
+        ],
+        "failure_conditions": [
+          "Evidence fails schema validation",
+          "Required fields missing",
+          "Evidence structure invalid",
+          "Evidence content invalid"
+        ]
+      },
+      "rule_5_redline_compliance": {
+        "description": "No forbidden terms or premature claims in provider evidence",
+        "validation": [
+          "Scan provider evidence for 32 forbidden terms",
+          "Check no premature completion claims",
+          "Verify claim vocabulary compliance",
+          "Check no false runtime claims",
+          "Verify no report/source conflicts"
+        ],
+        "failure_conditions": [
+          "Forbidden terms found in evidence",
+          "Premature completion claims",
+          "False runtime claims",
+          "Report/source conflicts"
+        ]
+      },
+      "rule_6_antifake_compliance": {
+        "description": "No stub/fake/simulator proof claimed as real runtime",
+        "validation": [
+          "Scan evidence for stub/fake/simulator mentions",
+          "Verify real runtime evidence present",
+          "Check no state-only or log-only proof",
+          "Verify no test harness claimed as real environment",
+          "Check evidence quality meets requirements"
+        ],
+        "failure_conditions": [
+          "Stub/fake/simulator proof claimed as RUNTIME_PASS",
+          "State-only or log-only proof",
+          "Test harness claimed as real environment",
+          "No real runtime evidence for RUNTIME_PASS claims"
+        ]
+      }
+    },
+    "gate_output_structure": {
+      "all_providers_runtime_verified_gate_result": {
+        "fields": [
+          "gate_passed",
+          "gate_timestamp",
+          "total_providers_checked",
+          "providers_runtime_pass",
+          "providers_other_status",
+          "provider_results",
+          "provider_matrix_result",
+          "redline_result",
+          "antifake_result",
+          "gate_summary",
+          "remediation_required",
+          "all_providers_runtime_verified"
+        ]
+      },
+      "provider_result": {
+        "fields": [
+          "provider_id",
+          "provider_kind",
+          "runtime_status",
+          "evidence_file",
+          "evidence_exists",
+          "evidence_valid",
+          "runtime_proof_present",
+          "environment_available",
+          "failure_reason"
+        ]
+      },
+      "provider_matrix_result": {
+        "fields": [
+          "matrix_generated",
+          "honesty_gate_passed",
+          "total_providers",
+          "runtime_pass_count",
+          "contract_pass_count",
+          "blocked_env_count",
+          "fail_count",
+          "not_implemented_count",
+          "all_providers_runtime_pass"
+        ]
+      },
+      "redline_compliance_result": {
+        "fields": [
+          "compliance_passed",
+          "forbidden_terms_found",
+          "forbidden_terms",
+          "premature_claims_found",
+          "premature_claims",
+          "claim_vocabulary_valid"
+        ]
+      },
+      "antifake_compliance_result": {
+        "fields": [
+          "compliance_passed",
+          "stub_fake_simulator_claims",
+          "fake_claims",
+          "state_only_claims",
+          "log_only_claims",
+          "test_harness_claims",
+          "real_runtime_proof_present"
+        ]
+      }
+    },
+    "gate_validation_process": {
+      "step_1_pre_condition_validation": [
+        "Check Foundation Gates: Verify PFFG-001 and PFFG-002 passed",
+        "Load Provider Matrix: Load PMX-001 evidence",
+        "Load Honesty Gate: Load PMX-002 evidence",
+        "Verify Matrix Generation: Check matrix generated successfully",
+        "Verify Honesty Gate: Check honesty gate passed"
+      ],
+      "step_2_provider_status_validation": [
+        "Load All Provider Evidence: Load evidence for all providers",
+        "Check Runtime Status: Check each provider's runtime status",
+        "Verify RUNTIME_PASS: Verify all providers have RUNTIME_PASS",
+        "Check Status Conflicts: Check no status conflicts",
+        "Validate Status Assignments: Validate honest status assignments"
+      ],
+      "step_3_runtime_evidence_validation": [
+        "Load Evidence Content: Load evidence content for each provider",
+        "Check Real Runtime Proof: Check evidence contains real runtime proof",
+        "Verify No Fake Proof: Verify no stub/fake/simulator proof",
+        "Check Evidence Timestamps: Check evidence timestamps are recent",
+        "Validate Evidence Schema: Validate evidence against schema"
+      ],
+      "step_4_environment_validation": [
+        "Check Environment Requirements: Check each provider's environment requirements",
+        "Verify Environment Available: Verify environment is available",
+        "Check No BLOCKED_ENV: Check no providers have BLOCKED_ENV status",
+        "Validate Environment Claims: Validate environment claims are honest",
+        "Check No Test Harness Claims: Check no test harness claimed as real environment"
+      ],
+      "step_5_redline_compliance_check": [
+        "Scan Provider Evidence: Scan all provider evidence for forbidden terms",
+        "Check Premature Claims: Check for premature completion claims",
+        "Verify Claim Vocabulary: Verify claim vocabulary compliance",
+        "Check False Runtime Claims: Check for false runtime claims",
+        "Validate Report/Source Conflicts: Validate no report/source conflicts"
+      ],
+      "step_6_antifake_compliance_check": [
+        "Scan for Fake Claims: Scan evidence for stub/fake/simulator",
+        "Check Runtime Proof: Verify real runtime evidence present",
+        "Detect State-only Proof: Check for state-only or log-only proof",
+        "Verify Environment Claims: Check test harness not claimed as real",
+        "Validate Evidence Quality: Verify evidence quality meets requirements"
+      ],
+      "step_7_gate_decision": [
+        "Aggregate Results: Aggregate all validation results",
+        "Determine Gate Pass/Fail: Determine overall gate result",
+        "Identify Remediation: Identify required remediation actions",
+        "Generate Gate Summary: Generate gate summary report",
+        "Record Gate Decision: Record gate decision in evidence"
+      ]
+    },
+    "integration_points": {
+      "foundation_final_gate_reader": [
+        "Requires Foundation Final Gate Reader passed",
+        "Requires no provider runtime gaps in foundation",
+        "Requires foundation complete claim allowed"
+      ],
+      "foundation_final_report": [
+        "Reads Foundation Final Report",
+        "Requires report lists all provider runtime gaps",
+        "Requires report documents known limitations"
+      ],
+      "inspector_integration": [
+        "Reports all providers runtime verified gate status",
+        "Reports provider runtime verification results",
+        "Reports provider evidence validation",
+        "Tracks gate history"
+      ],
+      "decision_ledger_integration": [
+        "Records all providers runtime verified gate decision",
+        "Records provider runtime verification results",
+        "Records provider evidence validation",
+        "Records gate pass/fail"
+      ]
+    },
+    "test_cases": {
+      "positive_test_cases": [
+        "All providers have RUNTIME_PASS status",
+        "All providers have real runtime evidence",
+        "All providers have required environment available",
+        "All evidence validates against schema",
+        "No forbidden terms found in evidence",
+        "No premature completion claims",
+        "No stub/fake/simulator proof claimed as runtime",
+        "All evidence timestamps recent",
+        "No status conflicts between evidence and source",
+        "All providers runtime verified claim allowed"
+      ],
+      "negative_test_cases": [
+        "Any provider has non-RUNTIME_PASS status",
+        "Any provider lacks real runtime evidence",
+        "Any provider has BLOCKED_ENV status",
+        "Evidence fails schema validation",
+        "Forbidden terms found in evidence",
+        "Premature completion claims found",
+        "Stub/fake/simulator proof claimed as RUNTIME_PASS",
+        "Evidence timestamp older than 30 days",
+        "Status conflict between evidence and source",
+        "All providers runtime verified claim not allowed"
+      ],
+      "total_test_cases": 20
+    },
+    "current_gate_status": {
+      "gate_validation_status": "CONTRACT_PASS",
+      "providers_checked": 22,
+      "providers_runtime_pass": 0,
+      "providers_other_status": 22,
+      "all_providers_runtime_verified": false,
+      "remediation_required": true,
+      "honest_disclaimer": "This is a GATE DEFINITION (CONTRACT_PASS), NOT a runtime claim. All 22 providers currently lack real runtime proof. P2 Foundation (planning/docs/contracts) is COMPLETE. All Providers Runtime Verified is explicitly POST-FOUNDATION and requires each provider to achieve RUNTIME_PASS with real hardware/dependencies/accounts."
+    },
+    "implementation_requirements": {
+      "gate_components": [
+        "PreConditionValidator",
+        "ProviderStatusValidator",
+        "RuntimeEvidenceValidator",
+        "EnvironmentValidator",
+        "RedlineComplianceChecker",
+        "AntiFakeComplianceChecker",
+        "GateDecisionMaker",
+        "RemediationPlanner",
+        "GateReporter"
+      ],
+      "integration_points": [
+        "Provider Runtime Matrix",
+        "Evidence Storage",
+        "Inspector",
+        "DecisionLedger",
+        "ErrorMapping"
+      ]
+    },
+    "gate_integration": [
+      "PMX-001: Provider Runtime Matrix generated",
+      "PMX-002: Matrix Honesty Gate validates matrix",
+      "PFFG-001: Foundation Final Gate Reader reads all evidence",
+      "PFFG-002: Foundation Final Report generated",
+      "APRV-001: All Providers Runtime Verified Gate verifies all providers"
+    ],
+    "important_notes": {
+      "post_foundation_gate": "This gate is explicitly post-foundation. It is NOT part of P2 Foundation completion.",
+      "runtime_verification_required": "This gate requires real runtime verification, not just contract verification.",
+      "gap_closure_required": "This gate requires all provider runtime gaps to be resolved.",
+      "honest_status_required": "This gate requires honest status assignments. No exaggeration or false claims allowed.",
+      "static_json_is_not_runtime_proof": "Evidence JSON files in artifacts/p2/evidence/ are STATIC planning evidence (CONTRACT_PASS). They document what SHOULD be verified at runtime. They are NOT runtime proof. Real runtime evidence must be generated by CI/CD or local runners with real hardware/accounts/dependencies, and must be timestamped with actual test output."
+    },
+    "next_steps": [
+      "Provider Runtime Verification",
+      "Gap Resolution",
+      "Feature Completion",
+      "Quality Improvement"
+    ]
+  },
+  "legacy_fields": {
+    "task_name": "P2-ALL-PROVIDERS-RUNTIME-VERIFIED-GATE",
+    "family": "final_gate",
+    "environment_required": false,
+    "environment_available": false,
+    "runtime_verified_timestamp": "2026-06-26T01:36:00Z",
+    "evidence_file": "artifacts/p2/evidence/APRV-001.json",
+    "provider_matrix_impact": {
+      "all_providers_runtime_verified_gate": "CONTRACT_PASS"
+    },
+    "gate_purpose": {
+      "description": "Final post-foundation gate that verifies all providers have achieved RUNTIME_PASS status",
+      "gate_functions": [
+        "Post-Foundation Gate: Explicitly post-foundation, not part of foundation completion",
+        "Runtime Verification: Verifies all providers have real runtime proof",
+        "Gap Closure: Requires all provider runtime gaps to be resolved",
+        "Evidence Validation: Requires all provider evidence to be valid",
+        "Honest Status: Requires honest status assignments without exaggeration"
+      ]
+    },
+    "gate_dependencies": {
+      "required_pre_conditions": {
+        "pffg_001": "Foundation Final Gate Reader must PASS",
+        "pffg_002": "Foundation Final Report must be generated",
+        "all_provider_evidence": "All provider evidence must exist and be valid",
+        "provider_matrix": "Provider Runtime Matrix must be generated",
+        "matrix_honesty": "Matrix Honesty Gate must pass",
+        "no_runtime_gaps": "All provider runtime gaps must be resolved"
+      },
+      "required_evidence": {
+        "all_provider_evidence": "Evidence from all provider families",
+        "provider_runtime_matrix": "PMX-001 evidence",
+        "matrix_honesty_gate": "PMX-002 evidence",
+        "foundation_final_gate": "PFFG-001 evidence",
+        "foundation_final_report": "PFFG-002 evidence"
+      }
+    },
+    "gate_validation_rules": {
+      "rule_1_all_providers_runtime_pass": {
+        "description": "All providers must have RUNTIME_PASS status",
+        "validation": [
+          "Load Provider Runtime Matrix",
+          "Check each provider's runtime status",
+          "Verify all providers have RUNTIME_PASS status",
+          "Check no providers have non-RUNTIME_PASS status",
+          "Verify runtime status assignments are honest"
+        ],
+        "failure_conditions": [
+          "Any provider has non-RUNTIME_PASS status",
+          "Runtime status assignment is not honest",
+          "Provider matrix incomplete",
+          "Provider status conflicts with evidence"
+        ]
+      },
+      "rule_2_real_runtime_evidence": {
+        "description": "All RUNTIME_PASS providers must have real runtime evidence",
+        "validation": [
+          "Load evidence for each RUNTIME_PASS provider",
+          "Verify evidence contains real runtime proof",
+          "Check evidence is not stub/fake/simulator/state-only/log-only proof",
+          "Verify evidence timestamps are recent",
+          "Check evidence validates against schema"
+        ],
+        "failure_conditions": [
+          "RUNTIME_PASS without real runtime evidence",
+          "Stub/fake/simulator proof claimed as runtime",
+          "State-only or log-only proof",
+          "Evidence timestamp older than 30 days",
+          "Evidence fails schema validation"
+        ]
+      },
+      "rule_3_environment_availability": {
+        "description": "All providers must have required environment available",
+        "validation": [
+          "Check each provider's environment requirements",
+          "Verify environment is available for each provider",
+          "Check no providers have BLOCKED_ENV status",
+          "Verify environment claims are honest",
+          "Check no test harness claimed as real environment"
+        ],
+        "failure_conditions": [
+          "Any provider has BLOCKED_ENV status",
+          "Environment required but not available",
+          "Test harness claimed as real environment",
+          "Environment claims not honest"
+        ]
+      },
+      "rule_4_evidence_schema_compliance": {
+        "description": "All provider evidence must validate against p2-evidence-v8 schema",
+        "validation": [
+          "Load each provider's evidence file",
+          "Validate against p2-evidence-v8 schema",
+          "Check all required fields present",
+          "Verify evidence structure valid",
+          "Check evidence content valid"
+        ],
+        "failure_conditions": [
+          "Evidence fails schema validation",
+          "Required fields missing",
+          "Evidence structure invalid",
+          "Evidence content invalid"
+        ]
+      },
+      "rule_5_redline_compliance": {
+        "description": "No forbidden terms or premature claims in provider evidence",
+        "validation": [
+          "Scan provider evidence for 32 forbidden terms",
+          "Check no premature completion claims",
+          "Verify claim vocabulary compliance",
+          "Check no false runtime claims",
+          "Verify no report/source conflicts"
+        ],
+        "failure_conditions": [
+          "Forbidden terms found in evidence",
+          "Premature completion claims",
+          "False runtime claims",
+          "Report/source conflicts"
+        ]
+      },
+      "rule_6_antifake_compliance": {
+        "description": "No stub/fake/simulator proof claimed as real runtime",
+        "validation": [
+          "Scan evidence for stub/fake/simulator mentions",
+          "Verify real runtime evidence present",
+          "Check no state-only or log-only proof",
+          "Verify no test harness claimed as real environment",
+          "Check evidence quality meets requirements"
+        ],
+        "failure_conditions": [
+          "Stub/fake/simulator proof claimed as RUNTIME_PASS",
+          "State-only or log-only proof",
+          "Test harness claimed as real environment",
+          "No real runtime evidence for RUNTIME_PASS claims"
+        ]
+      }
+    },
+    "gate_output_structure": {
+      "all_providers_runtime_verified_gate_result": {
+        "fields": [
+          "gate_passed",
+          "gate_timestamp",
+          "total_providers_checked",
+          "providers_runtime_pass",
+          "providers_other_status",
+          "provider_results",
+          "provider_matrix_result",
+          "redline_result",
+          "antifake_result",
+          "gate_summary",
+          "remediation_required",
+          "all_providers_runtime_verified"
+        ]
+      },
+      "provider_result": {
+        "fields": [
+          "provider_id",
+          "provider_kind",
+          "runtime_status",
+          "evidence_file",
+          "evidence_exists",
+          "evidence_valid",
+          "runtime_proof_present",
+          "environment_available",
+          "failure_reason"
+        ]
+      },
+      "provider_matrix_result": {
+        "fields": [
+          "matrix_generated",
+          "honesty_gate_passed",
+          "total_providers",
+          "runtime_pass_count",
+          "contract_pass_count",
+          "blocked_env_count",
+          "fail_count",
+          "not_implemented_count",
+          "all_providers_runtime_pass"
+        ]
+      },
+      "redline_compliance_result": {
+        "fields": [
+          "compliance_passed",
+          "forbidden_terms_found",
+          "forbidden_terms",
+          "premature_claims_found",
+          "premature_claims",
+          "claim_vocabulary_valid"
+        ]
+      },
+      "antifake_compliance_result": {
+        "fields": [
+          "compliance_passed",
+          "stub_fake_simulator_claims",
+          "fake_claims",
+          "state_only_claims",
+          "log_only_claims",
+          "test_harness_claims",
+          "real_runtime_proof_present"
+        ]
+      }
+    },
+    "gate_validation_process": {
+      "step_1_pre_condition_validation": [
+        "Check Foundation Gates: Verify PFFG-001 and PFFG-002 passed",
+        "Load Provider Matrix: Load PMX-001 evidence",
+        "Load Honesty Gate: Load PMX-002 evidence",
+        "Verify Matrix Generation: Check matrix generated successfully",
+        "Verify Honesty Gate: Check honesty gate passed"
+      ],
+      "step_2_provider_status_validation": [
+        "Load All Provider Evidence: Load evidence for all providers",
+        "Check Runtime Status: Check each provider's runtime status",
+        "Verify RUNTIME_PASS: Verify all providers have RUNTIME_PASS",
+        "Check Status Conflicts: Check no status conflicts",
+        "Validate Status Assignments: Validate honest status assignments"
+      ],
+      "step_3_runtime_evidence_validation": [
+        "Load Evidence Content: Load evidence content for each provider",
+        "Check Real Runtime Proof: Check evidence contains real runtime proof",
+        "Verify No Fake Proof: Verify no stub/fake/simulator proof",
+        "Check Evidence Timestamps: Check evidence timestamps are recent",
+        "Validate Evidence Schema: Validate evidence against schema"
+      ],
+      "step_4_environment_validation": [
+        "Check Environment Requirements: Check each provider's environment requirements",
+        "Verify Environment Available: Verify environment is available",
+        "Check No BLOCKED_ENV: Check no providers have BLOCKED_ENV status",
+        "Validate Environment Claims: Validate environment claims are honest",
+        "Check No Test Harness Claims: Check no test harness claimed as real environment"
+      ],
+      "step_5_redline_compliance_check": [
+        "Scan Provider Evidence: Scan all provider evidence for forbidden terms",
+        "Check Premature Claims: Check for premature completion claims",
+        "Verify Claim Vocabulary: Verify claim vocabulary compliance",
+        "Check False Runtime Claims: Check for false runtime claims",
+        "Validate Report/Source Conflicts: Validate no report/source conflicts"
+      ],
+      "step_6_antifake_compliance_check": [
+        "Scan for Fake Claims: Scan evidence for stub/fake/simulator",
+        "Check Runtime Proof: Verify real runtime evidence present",
+        "Detect State-only Proof: Check for state-only or log-only proof",
+        "Verify Environment Claims: Check test harness not claimed as real",
+        "Validate Evidence Quality: Verify evidence quality meets requirements"
+      ],
+      "step_7_gate_decision": [
+        "Aggregate Results: Aggregate all validation results",
+        "Determine Gate Pass/Fail: Determine overall gate result",
+        "Identify Remediation: Identify required remediation actions",
+        "Generate Gate Summary: Generate gate summary report",
+        "Record Gate Decision: Record gate decision in evidence"
+      ]
+    },
+    "integration_points": {
+      "foundation_final_gate_reader": [
+        "Requires Foundation Final Gate Reader passed",
+        "Requires no provider runtime gaps in foundation",
+        "Requires foundation complete claim allowed"
+      ],
+      "foundation_final_report": [
+        "Reads Foundation Final Report",
+        "Requires report lists all provider runtime gaps",
+        "Requires report documents known limitations"
+      ],
+      "inspector_integration": [
+        "Reports all providers runtime verified gate status",
+        "Reports provider runtime verification results",
+        "Reports provider evidence validation",
+        "Tracks gate history"
+      ],
+      "decision_ledger_integration": [
+        "Records all providers runtime verified gate decision",
+        "Records provider runtime verification results",
+        "Records provider evidence validation",
+        "Records gate pass/fail"
+      ]
+    },
+    "test_cases": {
+      "positive_test_cases": [
+        "All providers have RUNTIME_PASS status",
+        "All providers have real runtime evidence",
+        "All providers have required environment available",
+        "All evidence validates against schema",
+        "No forbidden terms found in evidence",
+        "No premature completion claims",
+        "No stub/fake/simulator proof claimed as runtime",
+        "All evidence timestamps recent",
+        "No status conflicts between evidence and source",
+        "All providers runtime verified claim allowed"
+      ],
+      "negative_test_cases": [
+        "Any provider has non-RUNTIME_PASS status",
+        "Any provider lacks real runtime evidence",
+        "Any provider has BLOCKED_ENV status",
+        "Evidence fails schema validation",
+        "Forbidden terms found in evidence",
+        "Premature completion claims found",
+        "Stub/fake/simulator proof claimed as RUNTIME_PASS",
+        "Evidence timestamp older than 30 days",
+        "Status conflict between evidence and source",
+        "All providers runtime verified claim not allowed"
+      ],
+      "total_test_cases": 20
+    },
+    "current_gate_status": {
+      "gate_validation_status": "CONTRACT_PASS",
+      "providers_checked": 22,
+      "providers_runtime_pass": 0,
+      "providers_other_status": 22,
+      "all_providers_runtime_verified": false,
+      "remediation_required": true,
+      "honest_disclaimer": "This is a GATE DEFINITION (CONTRACT_PASS), NOT a runtime claim. All 22 providers currently lack real runtime proof. P2 Foundation (planning/docs/contracts) is COMPLETE. All Providers Runtime Verified is explicitly POST-FOUNDATION and requires each provider to achieve RUNTIME_PASS with real hardware/dependencies/accounts."
+    },
+    "implementation_requirements": {
+      "gate_components": [
+        "PreConditionValidator",
+        "ProviderStatusValidator",
+        "RuntimeEvidenceValidator",
+        "EnvironmentValidator",
+        "RedlineComplianceChecker",
+        "AntiFakeComplianceChecker",
+        "GateDecisionMaker",
+        "RemediationPlanner",
+        "GateReporter"
+      ],
+      "integration_points": [
+        "Provider Runtime Matrix",
+        "Evidence Storage",
+        "Inspector",
+        "DecisionLedger",
+        "ErrorMapping"
+      ]
+    },
+    "gate_integration": [
+      "PMX-001: Provider Runtime Matrix generated",
+      "PMX-002: Matrix Honesty Gate validates matrix",
+      "PFFG-001: Foundation Final Gate Reader reads all evidence",
+      "PFFG-002: Foundation Final Report generated",
+      "APRV-001: All Providers Runtime Verified Gate verifies all providers"
+    ],
+    "important_notes": {
+      "post_foundation_gate": "This gate is explicitly post-foundation. It is NOT part of P2 Foundation completion.",
+      "runtime_verification_required": "This gate requires real runtime verification, not just contract verification.",
+      "gap_closure_required": "This gate requires all provider runtime gaps to be resolved.",
+      "honest_status_required": "This gate requires honest status assignments. No exaggeration or false claims allowed.",
+      "static_json_is_not_runtime_proof": "Evidence JSON files in artifacts/p2/evidence/ are STATIC planning evidence (CONTRACT_PASS). They document what SHOULD be verified at runtime. They are NOT runtime proof. Real runtime evidence must be generated by CI/CD or local runners with real hardware/accounts/dependencies, and must be timestamped with actual test output."
+    },
+    "next_steps": [
+      "Provider Runtime Verification",
+      "Gap Resolution",
+      "Feature Completion",
+      "Quality Improvement"
+    ]
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 19,
+    "migrated_field_count": 33
+  }
 }

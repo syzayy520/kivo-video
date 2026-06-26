@@ -1,52 +1,11 @@
 {
+  "schema_version": "p2-evidence-v8",
   "task_id": "V8-001",
   "task_family": "governance",
-  "execution_timestamp": "2026-06-25T23:58:00Z",
   "status": "RUNTIME_PASS",
-  "branch": "kivo-video-p2-real-001-repair-ffmpeg-proof",
-  "head": "48bf8d0 fix: commit required adapter internals for reproducible build",
-  "remote": "origin https://github.com/syzayy520/kivo-video.git",
-  "workspace_clean_after_cleanup": true,
-  "root_files_cleaned": [
-    "build_output.txt",
-    "tmp/"
-  ],
-  "root_inventory": {
-    "allowed_files": [
-      "CMakeLists.txt",
-      "CMakePresets.json",
-      "README.md",
-      "vcpkg.json",
-      "AGENTS.md"
-    ],
-    "forbidden_files_removed": [
-      "build_output.txt"
-    ],
-    "forbidden_directories_removed": [
-      "tmp/"
-    ],
-    "temp_artifacts_cleaned": true
-  },
-  "git_status_short": " M .codebuddy/memory/2026-06-25.md\r\n M docs/roadmap/backend_task_checklist.md\r\n M docs/roadmap/current_state.md\r\n?? docs/roadmap/p2_remaining_coverage_v8_execution_cards.md",
-  "pending_changes": {
-    "modified_files": [
-      ".codebuddy/memory/2026-06-25.md",
-      "docs/roadmap/backend_task_checklist.md",
-      "docs/roadmap/current_state.md"
-    ],
-    "untracked_files": [
-      "docs/roadmap/p2_remaining_coverage_v8_execution_cards.md"
-    ]
-  },
-  "governance_script_result": {
-    "note": "No standalone governance script exists yet. V8-001 is the foundation for future governance.",
-    "recommended_next": "V8-002 will establish governance script foundation"
-  },
-  "evidence_status": "RUNTIME_PASS",
-  "reason": "Root temporary files removed, branch/HEAD/remote verified, workspace state documented, root hygiene achieved.",
-  "next_task": "V8-002",
-  "timestamp_utc": "2026-06-26T00:00:00Z",
-  "completion_level": "p2-foundation-planning",
+  "completion_level": "p2-runtime-verified",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable",
   "environment": {},
   "implementation": {},
   "media_input": {
@@ -72,8 +31,107 @@
   "test_commands": [],
   "artifacts": [],
   "requires_provider_matrix": false,
-  "runtime_verified": false,
+  "runtime_verified": true,
   "blocked_reason": "",
-  "runtime_mode": "planning_only",
-  "runtime_environment_kind": "not_applicable"
+  "timestamp_utc": "2026-06-25T23:58:00Z",
+  "legacy_original": {
+    "task_id": "V8-001",
+    "task_family": "governance",
+    "execution_timestamp": "2026-06-25T23:58:00Z",
+    "status": "RUNTIME_PASS",
+    "branch": "kivo-video-p2-real-001-repair-ffmpeg-proof",
+    "head": "48bf8d0 fix: commit required adapter internals for reproducible build",
+    "remote": "origin https://github.com/syzayy520/kivo-video.git",
+    "workspace_clean_after_cleanup": true,
+    "root_files_cleaned": [
+      "build_output.txt",
+      "tmp/"
+    ],
+    "root_inventory": {
+      "allowed_files": [
+        "CMakeLists.txt",
+        "CMakePresets.json",
+        "README.md",
+        "vcpkg.json",
+        "AGENTS.md"
+      ],
+      "forbidden_files_removed": [
+        "build_output.txt"
+      ],
+      "forbidden_directories_removed": [
+        "tmp/"
+      ],
+      "temp_artifacts_cleaned": true
+    },
+    "git_status_short": " M .codebuddy/memory/2026-06-25.md\r\n M docs/roadmap/backend_task_checklist.md\r\n M docs/roadmap/current_state.md\r\n?? docs/roadmap/p2_remaining_coverage_v8_execution_cards.md",
+    "pending_changes": {
+      "modified_files": [
+        ".codebuddy/memory/2026-06-25.md",
+        "docs/roadmap/backend_task_checklist.md",
+        "docs/roadmap/current_state.md"
+      ],
+      "untracked_files": [
+        "docs/roadmap/p2_remaining_coverage_v8_execution_cards.md"
+      ]
+    },
+    "governance_script_result": {
+      "note": "No standalone governance script exists yet. V8-001 is the foundation for future governance.",
+      "recommended_next": "V8-002 will establish governance script foundation"
+    },
+    "evidence_status": "RUNTIME_PASS",
+    "reason": "Root temporary files removed, branch/HEAD/remote verified, workspace state documented, root hygiene achieved.",
+    "next_task": "V8-002"
+  },
+  "legacy_fields": {
+    "execution_timestamp": "2026-06-25T23:58:00Z",
+    "branch": "kivo-video-p2-real-001-repair-ffmpeg-proof",
+    "head": "48bf8d0 fix: commit required adapter internals for reproducible build",
+    "remote": "origin https://github.com/syzayy520/kivo-video.git",
+    "workspace_clean_after_cleanup": true,
+    "root_files_cleaned": [
+      "build_output.txt",
+      "tmp/"
+    ],
+    "root_inventory": {
+      "allowed_files": [
+        "CMakeLists.txt",
+        "CMakePresets.json",
+        "README.md",
+        "vcpkg.json",
+        "AGENTS.md"
+      ],
+      "forbidden_files_removed": [
+        "build_output.txt"
+      ],
+      "forbidden_directories_removed": [
+        "tmp/"
+      ],
+      "temp_artifacts_cleaned": true
+    },
+    "git_status_short": " M .codebuddy/memory/2026-06-25.md\r\n M docs/roadmap/backend_task_checklist.md\r\n M docs/roadmap/current_state.md\r\n?? docs/roadmap/p2_remaining_coverage_v8_execution_cards.md",
+    "pending_changes": {
+      "modified_files": [
+        ".codebuddy/memory/2026-06-25.md",
+        "docs/roadmap/backend_task_checklist.md",
+        "docs/roadmap/current_state.md"
+      ],
+      "untracked_files": [
+        "docs/roadmap/p2_remaining_coverage_v8_execution_cards.md"
+      ]
+    },
+    "governance_script_result": {
+      "note": "No standalone governance script exists yet. V8-001 is the foundation for future governance.",
+      "recommended_next": "V8-002 will establish governance script foundation"
+    },
+    "evidence_status": "RUNTIME_PASS",
+    "reason": "Root temporary files removed, branch/HEAD/remote verified, workspace state documented, root hygiene achieved.",
+    "next_task": "V8-002"
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 13,
+    "migrated_field_count": 33
+  }
 }

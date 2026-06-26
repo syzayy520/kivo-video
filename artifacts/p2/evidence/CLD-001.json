@@ -1,228 +1,21 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "CLD-001",
+  "task_family": "planning",
   "status": "CONTRACT_PASS",
+  "completion_level": "p2-foundation-planning",
   "runtime_mode": "oauth_protocol_definition",
   "runtime_environment_kind": "not_applicable",
-  "environment_required": false,
-  "environment_available": false,
-  "blocked_reason": "",
-  "evidence_file": "artifacts/p2/evidence/CLD-001.json",
-  "oauth_profiles": {
-    "google_drive": {
-      "protocol": "OAuth 2.0",
-      "authentication": "OAuth 2.0 with refresh tokens",
-      "features": [
-        "file_listing",
-        "file_download",
-        "file_upload",
-        "quota_management"
-      ]
-    },
-    "onedrive": {
-      "protocol": "OAuth 2.0",
-      "authentication": "OAuth 2.0 with refresh tokens",
-      "features": [
-        "file_listing",
-        "file_download",
-        "file_upload",
-        "quota_management"
-      ]
-    }
-  },
-  "oauth_flow": {
-    "process": "Authorization code flow",
-    "steps": [
-      "Redirect user to authorization endpoint",
-      "User grants permission",
-      "Receive authorization code",
-      "Exchange code for access token",
-      "Refresh token when expired"
-    ],
-    "token_management": {
-      "access_token_lifetime_hours": 1,
-      "refresh_token_lifetime_days": 30,
-      "refresh_process": "automatic",
-      "revocation": "manual"
-    }
-  },
-  "file_operations": {
-    "listing": {
-      "methods": [
-        "list_directory"
-      ],
-      "pagination": "page_token_based",
-      "sorting": [
-        "name",
-        "modified_date",
-        "size"
-      ],
-      "filtering": [
-        "file_type",
-        "trashed_status"
-      ]
-    },
-    "metadata": {
-      "standard_fields": [
-        "id",
-        "name",
-        "size",
-        "modified_date",
-        "mime_type"
-      ],
-      "cloud_specific": [
-        "shared_status",
-        "permissions",
-        "version"
-      ],
-      "user_data": [
-        "starred_status",
-        "last_viewed_date"
-      ]
-    }
-  },
-  "download_operations": {
-    "url_resolution": {
-      "process": "Get temporary download URL",
-      "url_lifetime_hours": 24,
-      "parameters": [
-        "file_id",
-        "export_format"
-      ]
-    },
-    "range_requests": {
-      "support": true,
-      "use_cases": [
-        "partial_content_download",
-        "seeking"
-      ],
-      "limitations": "cloud_specific_chunk_sizes"
-    }
-  },
-  "upload_operations": {
-    "simple_upload": {
-      "size_limit_mb": 5,
-      "mime_type": "auto_detected",
-      "overwrite_option": true
-    },
-    "resumable_upload": {
-      "chunk_size_mb": 1,
-      "resume_capability": true,
-      "progress_tracking": true
-    }
-  },
-  "quota_rate_limits": {
-    "quota_management": {
-      "storage_quota": true,
-      "used_quota": true,
-      "file_quota": true,
-      "request_quota": true
-    },
-    "rate_limiting": {
-      "requests_per_second": "cloud_specific",
-      "burst_limits": true,
-      "retry_strategy": "exponential_backoff",
-      "error_handling": "429_too_many_requests"
-    }
-  },
-  "link_management": {
-    "generation": {
-      "process": "Generate shareable link",
-      "permissions": [
-        "view",
-        "comment",
-        "edit"
-      ],
-      "expiration": "optional",
-      "password_protection": "optional"
-    },
-    "refresh": {
-      "process": "Refresh expiring links",
-      "trigger": "link_expiration_within_threshold",
-      "method": "generate_new_link",
-      "validation": "verify_new_link_works"
-    }
-  },
-  "caching_strategy": {
-    "local_caching": {
-      "metadata_cache": true,
-      "content_cache": true,
-      "cache_expiration": "time_based",
-      "cache_invalidation": "on_file_change"
-    },
-    "cache_policy": {
-      "read_policy": "cache_first_network_fallback",
-      "write_policy": "write_through_write_back",
-      "eviction_policy": "lru_size_based",
-      "consistency": "strong_vs_eventual"
-    }
-  },
-  "error_handling": {
-    "authentication_errors": [
-      "invalid_token",
-      "insufficient_scope",
-      "rate_limiting",
-      "server_error"
-    ],
-    "file_errors": [
-      "not_found",
-      "permission_denied",
-      "quota_exceeded",
-      "conflict"
-    ],
-    "network_errors": [
-      "timeout",
-      "dns",
-      "ssl",
-      "proxy"
-    ]
-  },
-  "privacy_redaction": {
-    "token_redaction": true,
-    "file_path_redaction": true,
-    "email_redaction": true,
-    "quota_redaction": true
-  },
-  "gate_integration": [
-    "CLD-001: Cloud drive system defined",
-    "PFFG-001: Foundation Final Gate Reader checks cloud drive definitions",
-    "PMX-001: Provider Runtime Matrix includes cloud drive support"
-  ],
-  "test_cases": {
-    "positive_test_cases": 6,
-    "negative_test_cases": 6,
-    "total_test_cases": 12
-  },
-  "implementation_requirements": {
-    "oauth_client": [
-      "Implement OAuth flow",
-      "Handle token refresh",
-      "Manage token storage",
-      "Handle token revocation"
-    ],
-    "file_operations": [
-      "Implement file listing",
-      "Handle metadata",
-      "Support pagination",
-      "Handle sorting/filtering"
-    ],
-    "download_upload": [
-      "Implement download with range support",
-      "Handle resumable uploads",
-      "Track progress",
-      "Handle errors"
-    ],
-    "caching": [
-      "Implement metadata caching",
-      "Handle content caching",
-      "Manage cache expiration",
-      "Handle cache invalidation"
-    ]
-  },
-  "timestamp_utc": "2026-06-26T01:20:00Z",
-  "completion_level": "p2-foundation-planning",
   "environment": {},
-  "implementation": {},
+  "implementation": {
+    "legacy_runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+    "legacy_provider_matrix_impact": {
+      "google_drive": "CONTRACT_PASS",
+      "onedrive": "CONTRACT_PASS"
+    },
+    "legacy_task_name": "P2-CLOUD-DRIVE",
+    "legacy_family": "cloud_drive"
+  },
   "media_input": {
     "kind": "not_applicable"
   },
@@ -247,5 +40,465 @@
   "artifacts": [],
   "requires_provider_matrix": false,
   "runtime_verified": false,
-  "task_family": "planning"
+  "blocked_reason": null,
+  "timestamp_utc": "2026-06-26T07:46:09Z",
+  "legacy_original": {
+    "schema_version": "p2-evidence-v8",
+    "task_id": "CLD-001",
+    "task_name": "P2-CLOUD-DRIVE",
+    "family": "cloud_drive",
+    "status": "CONTRACT_PASS",
+    "runtime_mode": "oauth_protocol_definition",
+    "runtime_environment_kind": "test_harness",
+    "environment_required": false,
+    "environment_available": false,
+    "blocked_reason": null,
+    "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+    "evidence_file": "artifacts/p2/evidence/CLD-001.json",
+    "provider_matrix_impact": {
+      "google_drive": "CONTRACT_PASS",
+      "onedrive": "CONTRACT_PASS"
+    },
+    "oauth_profiles": {
+      "google_drive": {
+        "protocol": "OAuth 2.0",
+        "authentication": "OAuth 2.0 with refresh tokens",
+        "features": [
+          "file_listing",
+          "file_download",
+          "file_upload",
+          "quota_management"
+        ]
+      },
+      "onedrive": {
+        "protocol": "OAuth 2.0",
+        "authentication": "OAuth 2.0 with refresh tokens",
+        "features": [
+          "file_listing",
+          "file_download",
+          "file_upload",
+          "quota_management"
+        ]
+      }
+    },
+    "oauth_flow": {
+      "process": "Authorization code flow",
+      "steps": [
+        "Redirect user to authorization endpoint",
+        "User grants permission",
+        "Receive authorization code",
+        "Exchange code for access token",
+        "Refresh token when expired"
+      ],
+      "token_management": {
+        "access_token_lifetime_hours": 1,
+        "refresh_token_lifetime_days": 30,
+        "refresh_process": "automatic",
+        "revocation": "manual"
+      }
+    },
+    "file_operations": {
+      "listing": {
+        "methods": [
+          "list_directory"
+        ],
+        "pagination": "page_token_based",
+        "sorting": [
+          "name",
+          "modified_date",
+          "size"
+        ],
+        "filtering": [
+          "file_type",
+          "trashed_status"
+        ]
+      },
+      "metadata": {
+        "standard_fields": [
+          "id",
+          "name",
+          "size",
+          "modified_date",
+          "mime_type"
+        ],
+        "cloud_specific": [
+          "shared_status",
+          "permissions",
+          "version"
+        ],
+        "user_data": [
+          "starred_status",
+          "last_viewed_date"
+        ]
+      }
+    },
+    "download_operations": {
+      "url_resolution": {
+        "process": "Get temporary download URL",
+        "url_lifetime_hours": 24,
+        "parameters": [
+          "file_id",
+          "export_format"
+        ]
+      },
+      "range_requests": {
+        "support": true,
+        "use_cases": [
+          "partial_content_download",
+          "seeking"
+        ],
+        "limitations": "cloud_specific_chunk_sizes"
+      }
+    },
+    "upload_operations": {
+      "simple_upload": {
+        "size_limit_mb": 5,
+        "mime_type": "auto_detected",
+        "overwrite_option": true
+      },
+      "resumable_upload": {
+        "chunk_size_mb": 1,
+        "resume_capability": true,
+        "progress_tracking": true
+      }
+    },
+    "quota_rate_limits": {
+      "quota_management": {
+        "storage_quota": true,
+        "used_quota": true,
+        "file_quota": true,
+        "request_quota": true
+      },
+      "rate_limiting": {
+        "requests_per_second": "cloud_specific",
+        "burst_limits": true,
+        "retry_strategy": "exponential_backoff",
+        "error_handling": "429_too_many_requests"
+      }
+    },
+    "link_management": {
+      "generation": {
+        "process": "Generate shareable link",
+        "permissions": [
+          "view",
+          "comment",
+          "edit"
+        ],
+        "expiration": "optional",
+        "password_protection": "optional"
+      },
+      "refresh": {
+        "process": "Refresh expiring links",
+        "trigger": "link_expiration_within_threshold",
+        "method": "generate_new_link",
+        "validation": "verify_new_link_works"
+      }
+    },
+    "caching_strategy": {
+      "local_caching": {
+        "metadata_cache": true,
+        "content_cache": true,
+        "cache_expiration": "time_based",
+        "cache_invalidation": "on_file_change"
+      },
+      "cache_policy": {
+        "read_policy": "cache_first_network_fallback",
+        "write_policy": "write_through_write_back",
+        "eviction_policy": "lru_size_based",
+        "consistency": "strong_vs_eventual"
+      }
+    },
+    "error_handling": {
+      "authentication_errors": [
+        "invalid_token",
+        "insufficient_scope",
+        "rate_limiting",
+        "server_error"
+      ],
+      "file_errors": [
+        "not_found",
+        "permission_denied",
+        "quota_exceeded",
+        "conflict"
+      ],
+      "network_errors": [
+        "timeout",
+        "dns",
+        "ssl",
+        "proxy"
+      ]
+    },
+    "privacy_redaction": {
+      "token_redaction": true,
+      "file_path_redaction": true,
+      "email_redaction": true,
+      "quota_redaction": true
+    },
+    "gate_integration": [
+      "CLD-001: Cloud drive system defined",
+      "PFFG-001: Foundation Final Gate Reader checks cloud drive definitions",
+      "PMX-001: Provider Runtime Matrix includes cloud drive support"
+    ],
+    "test_cases": {
+      "positive_test_cases": 6,
+      "negative_test_cases": 6,
+      "total_test_cases": 12
+    },
+    "implementation_requirements": {
+      "oauth_client": [
+        "Implement OAuth flow",
+        "Handle token refresh",
+        "Manage token storage",
+        "Handle token revocation"
+      ],
+      "file_operations": [
+        "Implement file listing",
+        "Handle metadata",
+        "Support pagination",
+        "Handle sorting/filtering"
+      ],
+      "download_upload": [
+        "Implement download with range support",
+        "Handle resumable uploads",
+        "Track progress",
+        "Handle errors"
+      ],
+      "caching": [
+        "Implement metadata caching",
+        "Handle content caching",
+        "Manage cache expiration",
+        "Handle cache invalidation"
+      ]
+    }
+  },
+  "legacy_fields": {
+    "task_name": "P2-CLOUD-DRIVE",
+    "family": "cloud_drive",
+    "environment_required": false,
+    "environment_available": false,
+    "runtime_verified_timestamp": "2026-06-26T01:20:00Z",
+    "evidence_file": "artifacts/p2/evidence/CLD-001.json",
+    "provider_matrix_impact": {
+      "google_drive": "CONTRACT_PASS",
+      "onedrive": "CONTRACT_PASS"
+    },
+    "oauth_profiles": {
+      "google_drive": {
+        "protocol": "OAuth 2.0",
+        "authentication": "OAuth 2.0 with refresh tokens",
+        "features": [
+          "file_listing",
+          "file_download",
+          "file_upload",
+          "quota_management"
+        ]
+      },
+      "onedrive": {
+        "protocol": "OAuth 2.0",
+        "authentication": "OAuth 2.0 with refresh tokens",
+        "features": [
+          "file_listing",
+          "file_download",
+          "file_upload",
+          "quota_management"
+        ]
+      }
+    },
+    "oauth_flow": {
+      "process": "Authorization code flow",
+      "steps": [
+        "Redirect user to authorization endpoint",
+        "User grants permission",
+        "Receive authorization code",
+        "Exchange code for access token",
+        "Refresh token when expired"
+      ],
+      "token_management": {
+        "access_token_lifetime_hours": 1,
+        "refresh_token_lifetime_days": 30,
+        "refresh_process": "automatic",
+        "revocation": "manual"
+      }
+    },
+    "file_operations": {
+      "listing": {
+        "methods": [
+          "list_directory"
+        ],
+        "pagination": "page_token_based",
+        "sorting": [
+          "name",
+          "modified_date",
+          "size"
+        ],
+        "filtering": [
+          "file_type",
+          "trashed_status"
+        ]
+      },
+      "metadata": {
+        "standard_fields": [
+          "id",
+          "name",
+          "size",
+          "modified_date",
+          "mime_type"
+        ],
+        "cloud_specific": [
+          "shared_status",
+          "permissions",
+          "version"
+        ],
+        "user_data": [
+          "starred_status",
+          "last_viewed_date"
+        ]
+      }
+    },
+    "download_operations": {
+      "url_resolution": {
+        "process": "Get temporary download URL",
+        "url_lifetime_hours": 24,
+        "parameters": [
+          "file_id",
+          "export_format"
+        ]
+      },
+      "range_requests": {
+        "support": true,
+        "use_cases": [
+          "partial_content_download",
+          "seeking"
+        ],
+        "limitations": "cloud_specific_chunk_sizes"
+      }
+    },
+    "upload_operations": {
+      "simple_upload": {
+        "size_limit_mb": 5,
+        "mime_type": "auto_detected",
+        "overwrite_option": true
+      },
+      "resumable_upload": {
+        "chunk_size_mb": 1,
+        "resume_capability": true,
+        "progress_tracking": true
+      }
+    },
+    "quota_rate_limits": {
+      "quota_management": {
+        "storage_quota": true,
+        "used_quota": true,
+        "file_quota": true,
+        "request_quota": true
+      },
+      "rate_limiting": {
+        "requests_per_second": "cloud_specific",
+        "burst_limits": true,
+        "retry_strategy": "exponential_backoff",
+        "error_handling": "429_too_many_requests"
+      }
+    },
+    "link_management": {
+      "generation": {
+        "process": "Generate shareable link",
+        "permissions": [
+          "view",
+          "comment",
+          "edit"
+        ],
+        "expiration": "optional",
+        "password_protection": "optional"
+      },
+      "refresh": {
+        "process": "Refresh expiring links",
+        "trigger": "link_expiration_within_threshold",
+        "method": "generate_new_link",
+        "validation": "verify_new_link_works"
+      }
+    },
+    "caching_strategy": {
+      "local_caching": {
+        "metadata_cache": true,
+        "content_cache": true,
+        "cache_expiration": "time_based",
+        "cache_invalidation": "on_file_change"
+      },
+      "cache_policy": {
+        "read_policy": "cache_first_network_fallback",
+        "write_policy": "write_through_write_back",
+        "eviction_policy": "lru_size_based",
+        "consistency": "strong_vs_eventual"
+      }
+    },
+    "error_handling": {
+      "authentication_errors": [
+        "invalid_token",
+        "insufficient_scope",
+        "rate_limiting",
+        "server_error"
+      ],
+      "file_errors": [
+        "not_found",
+        "permission_denied",
+        "quota_exceeded",
+        "conflict"
+      ],
+      "network_errors": [
+        "timeout",
+        "dns",
+        "ssl",
+        "proxy"
+      ]
+    },
+    "privacy_redaction": {
+      "token_redaction": true,
+      "file_path_redaction": true,
+      "email_redaction": true,
+      "quota_redaction": true
+    },
+    "gate_integration": [
+      "CLD-001: Cloud drive system defined",
+      "PFFG-001: Foundation Final Gate Reader checks cloud drive definitions",
+      "PMX-001: Provider Runtime Matrix includes cloud drive support"
+    ],
+    "test_cases": {
+      "positive_test_cases": 6,
+      "negative_test_cases": 6,
+      "total_test_cases": 12
+    },
+    "implementation_requirements": {
+      "oauth_client": [
+        "Implement OAuth flow",
+        "Handle token refresh",
+        "Manage token storage",
+        "Handle token revocation"
+      ],
+      "file_operations": [
+        "Implement file listing",
+        "Handle metadata",
+        "Support pagination",
+        "Handle sorting/filtering"
+      ],
+      "download_upload": [
+        "Implement download with range support",
+        "Handle resumable uploads",
+        "Track progress",
+        "Handle errors"
+      ],
+      "caching": [
+        "Implement metadata caching",
+        "Handle content caching",
+        "Manage cache expiration",
+        "Handle cache invalidation"
+      ]
+    }
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 20,
+    "migrated_field_count": 33
+  }
 }

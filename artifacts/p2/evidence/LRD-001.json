@@ -1,275 +1,11 @@
 {
+  "schema_version": "p2-evidence-v8",
   "task_id": "LRD-001",
   "task_family": "local repair delta",
-  "execution_timestamp": "2026-06-26T00:35:00Z",
   "status": "CONTRACT_PASS",
-  "goal": "write the planning draft for local repair before code",
-  "planning_document_path": "docs/roadmap/p2_local_repair_delta_001_planning.md",
-  "planning_document_sections": [
-    "Current Tree Inventory",
-    "Current V10 Evidence Audit Plan",
-    "Allowed Files",
-    "Forbidden Files",
-    "Dependency Direction",
-    "Single-File Responsibility Table",
-    "Test Family Plan",
-    "Runtime Environment Risk",
-    "Sample Availability Risk",
-    "STOP/BLOCKED/FAILED Conditions",
-    "Anti-Fake Proof Strategy",
-    "Machine-Readable Evidence Plan",
-    "CMake Registration Plan",
-    "Scope Leak Scan Plan",
-    "Diff Base Plan",
-    "Threading/COM/Device Ownership Plan",
-    "Failure Injection Plan",
-    "Resource Release Proof Plan",
-    "Schema Gate Plan",
-    "Redline Gate Plan",
-    "Final Report Rules",
-    "Immediate Next Steps",
-    "Self-Check Checklist"
-  ],
-  "v10_evidence_audit_summary": {
-    "total_items": 22,
-    "runtime_pass": 18,
-    "contract_pass": 4,
-    "fail": 0,
-    "blocked_env": 0,
-    "needs_repair": 0,
-    "downgrade_decisions": [
-      "V10-009: D3D11 upload stub \u2192 CONTRACT_PASS (interface contract only)",
-      "V10-010: Presenter stub \u2192 CONTRACT_PASS (interface contract only)",
-      "V10-011: PCM stub \u2192 CONTRACT_PASS (interface contract only)",
-      "V10-021: SoakSimulator \u2192 CONTRACT_PASS (simulator not real runtime)"
-    ]
-  },
-  "allowed_files": {
-    "production": [
-      "backend/include/kivo/cinema_engine/video_upload/",
-      "backend/include/kivo/cinema_engine/audio_output/",
-      "backend/include/kivo/cinema_engine/presenter/",
-      "backend/include/kivo/cinema_engine/playback_core/",
-      "backend/include/kivo/cinema_engine/playback_inspector_core/",
-      "backend/include/kivo/cinema_engine/decision_ledger_core/"
-    ],
-    "test": [
-      "backend/tests/video_upload/",
-      "backend/tests/audio_output/",
-      "backend/tests/integration_local/",
-      "backend/tests/evidence/"
-    ],
-    "modified": [
-      "backend/src/video_upload/",
-      "backend/src/audio_output/",
-      "backend/src/presenter/",
-      "backend/CMakeLists.txt",
-      "CMakePresets.json"
-    ]
-  },
-  "forbidden_files": [
-    "P3 code (hardware decode, HDR output, exclusive audio, passthrough)",
-    "Remote code (WebDAV, AList, Emby, SMB, NFS, S3, IPTV)",
-    "UI code (Qt, QML, media library)",
-    "BDMV/ISO code",
-    "New fake service code",
-    "Root-level temporary outputs",
-    "Evidence files in source root"
-  ],
-  "dependency_direction": {
-    "video_upload": [
-      "decode",
-      "third_party_adapter"
-    ],
-    "audio_output": [
-      "decode",
-      "third_party_adapter"
-    ],
-    "presenter": [
-      "video_upload"
-    ],
-    "lifecycle": [
-      "graph",
-      "presenter",
-      "audio_output",
-      "inspector"
-    ],
-    "inspector": [
-      "all modules (read-only observer)"
-    ]
-  },
-  "single_file_responsibility_table": {
-    "d3d11_device_context.hpp": "D3D11 device/context lifecycle (opaque handle)",
-    "d3d11_texture_upload.hpp": "Texture creation + upload proof",
-    "decoded_video_frame_uploader.hpp": "Interface: upload DecodedFrame to GPU texture",
-    "yuv_rgb_conversion.hpp": "YUV\u2192RGB/NV12 pixel format conversion policy",
-    "decoded_audio_frame_converter.hpp": "DecodedFrame\u2192PCM format conversion",
-    "wasapi_shared_pcm_writer.hpp": "WASAPI shared mode PCM buffer write",
-    "presenter_boundary_shell.hpp": "Presenter boundary: receive texture, record proof",
-    "playback_session_controller.hpp": "Lifecycle: open\u2192play\u2192pause\u2192resume\u2192seek\u2192stop\u2192close",
-    "playback_inspector_snapshot.hpp": "Inspector snapshot: all key decisions",
-    "decision_ledger_entry.hpp": "Decision ledger: monotonic ordered decisions"
-  },
-  "test_family_plan": {
-    "existing_tests": [
-      "kivo_real_demux_decode_integration_test (RUNTIME_PASS)",
-      "kivo_d3d11_first_frame_test (CONTRACT_PASS)",
-      "kivo_presenter_boundary_first_frame_test (CONTRACT_PASS)",
-      "kivo_decoded_audio_frame_converter_test (CONTRACT_PASS)",
-      "kivo_wasapi_shared_pcm_writer_test (CONTRACT_PASS)",
-      "kivo_clock_av_sync_test (RUNTIME_PASS)",
-      "kivo_seek_flush_generation_test (RUNTIME_PASS)",
-      "kivo_lifecycle_test (RUNTIME_PASS)",
-      "kivo_local_playback_e2e_test (RUNTIME_PASS)",
-      "kivo_micro_soak_test (CONTRACT_PASS)",
-      "kivo_failure_injection_test (RUNTIME_PASS)"
-    ],
-    "new_tests_planned": [
-      "kivo_d3d11_reality_audit_test",
-      "kivo_presenter_reality_audit_test",
-      "kivo_pcm_reality_audit_test",
-      "kivo_wasapi_reality_audit_test",
-      "kivo_local_e2e_reality_audit_test",
-      "kivo_micro_soak_reality_audit_test"
-    ]
-  },
-  "runtime_environment_risk": {
-    "d3d11_device_unavailable": "Use WARP adapter as fallback; test must detect and report BLOCKED_ENV",
-    "wasapi_device_unavailable": "Use loopback or silence device; test must detect and report BLOCKED_ENV",
-    "ffmpeg_on_build_fails": "BLOCKED condition; do not proceed",
-    "no_real_sample_available": "BLOCKED condition; sample gate required",
-    "com_apartment_model_issues": "Use MTA for D3D11/WASAPI; document in threading plan"
-  },
-  "sample_availability_risk": {
-    "h264_aac_mp4_320x240_1s": "EXISTS at tests/real/test_sample.mp4",
-    "h264_aac_mp4_30s_for_soak": "NEEDED for LRD-009",
-    "h264_ac3_mkv_optional": "NOT YET for extended tests"
-  },
-  "anti_fake_proof_strategy": {
-    "required_proofs": [
-      "Real input: actual file bytes, actual compressed packets",
-      "Real runtime: actual D3D11 API call, actual WASAPI API call, actual PCM conversion",
-      "Real output: actual texture upload, actual PCM samples written",
-      "Real assertion: assert on output properties, not just success flag",
-      "Inspector evidence: Inspector snapshot records the real path",
-      "Scope proof: no forbidden terms in new code"
-    ],
-    "forbidden_substitutions": [
-      "stub \u2260 real D3D11 device",
-      "placeholder PCM \u2260 real audio conversion",
-      "SoakSimulator \u2260 real 30s soak",
-      "interface contract \u2260 runtime proof",
-      "log-only proof \u2260 real upload",
-      "bool-only proof \u2260 real texture"
-    ],
-    "v10_contract_pass_items_must_become_runtime_pass": [
-      "V10-009: D3D11 upload stub \u2192 real D3D11 upload (LRD-004)",
-      "V10-010: Presenter stub \u2192 real presenter boundary (LRD-005)",
-      "V10-011: PCM stub \u2192 real PCM conversion (LRD-006)",
-      "V10-021: SoakSimulator \u2192 real 30s soak (LRD-009)"
-    ]
-  },
-  "evidence_schema_plan": {
-    "required_artifacts": [
-      "playback_proof.json",
-      "inspector_snapshot.json",
-      "decision_ledger.json",
-      "micro_soak_metrics.json",
-      "ffmpeg_off_antifake.json",
-      "evidence_schema_validation.json"
-    ],
-    "new_artifacts_planned": [
-      "d3d11_reality_audit.json",
-      "presenter_reality_audit.json",
-      "pcm_reality_audit.json",
-      "wasapi_reality_audit.json",
-      "local_e2e_reality_audit.json",
-      "micro_soak_reality_audit.json"
-    ],
-    "artifact_path": "artifacts/p2/evidence/"
-  },
-  "redline_gate_plan": {
-    "redline_vocabulary": [
-      "fake/stub/simulate/simulator/dummy/mock-only",
-      "todo-pass/always-pass/state-only-pass",
-      "silent fallback/not implemented but pass",
-      "P3 false-complete/HDR complete/Atmos complete"
-    ],
-    "allowlist_rules": "Allow forbidden words only in Forbidden Scope, Known Limitations, Next Recommendation, or explicit CONTRACT_PASS explanation",
-    "scan_targets": [
-      "Source code and tests",
-      "Evidence JSON files",
-      "Inspector artifacts",
-      "DecisionLedger artifacts",
-      "Final report"
-    ]
-  },
-  "final_report_rules": {
-    "classification_options": [
-      "RUNTIME_PASS: All local runtime boundaries pass with real evidence",
-      "CONTRACT_PASS: Interface contracts proven but not runtime",
-      "FAIL: Required runtime proof missing or conflicting",
-      "BLOCKED_ENV: Environment unavailable (D3D11/WASAPI)"
-    ],
-    "report_requirements": [
-      "Branch: kivo-video-p2-real-001-repair-ffmpeg-proof",
-      "HEAD: commit hash after local repair",
-      "Remote: synced",
-      "Base: 79c2d38 (V8 completion)",
-      "Planning proof: this document",
-      "Runtime environment: MSVC, C++20, FFmpeg 7.1",
-      "Changed files by natural family",
-      "Real playback proof: CTest results",
-      "Machine-readable evidence: artifact listing",
-      "Verification: build/test/privacy/scope",
-      "Scope: in/out items",
-      "Known limitations",
-      "Next recommendation"
-    ],
-    "forbidden_claims": [
-      "Never claim P2 FOUNDATION COMPLETE",
-      "Never claim ALL PROVIDERS RUNTIME VERIFIED",
-      "Never claim P3/HDR/Atmos/remote completion",
-      "Never claim full playback closure without all providers"
-    ]
-  },
-  "immediate_next_steps": [
-    "Execute LRD-002: V10 Evidence Downgrade / Repair Audit",
-    "Execute LRD-003: D3D11 Device Reality Audit",
-    "Execute LRD-004: D3D11 Real Decoded Frame Upload",
-    "Execute LRD-005: Presenter Boundary Reality Audit",
-    "Execute LRD-006: PCM Converter Reality Audit",
-    "Execute LRD-007: WASAPI Shared Runtime Audit",
-    "Execute LRD-008: Local E2E Runtime Audit",
-    "Execute LRD-009: Micro Soak Runtime Audit",
-    "Execute LRD-010: Evidence Artifact Audit",
-    "Execute LRD-011: Final Report Consistency Audit",
-    "Execute LRD-012: Regression Protection",
-    "Execute LRD-013: Classification"
-  ],
-  "self_check_checklist": [
-    "Branch is kivo-video-p2-real-001-repair-ffmpeg-proof",
-    "Base is 79c2d38 (V8 completion)",
-    "No code changes outside local repair allowed files",
-    "No forbidden terms in new code",
-    "All new tests compile and pass",
-    "Real sample available for all tests",
-    "D3D11/WASAPI availability detected at runtime",
-    "Inspector records real path for every operation",
-    "DecisionLedger records no fake fallback",
-    "All resources released on close",
-    "FFmpeg ON build passes",
-    "FFmpeg OFF anti-fake passes",
-    "Machine-readable evidence generated",
-    "Final report classification correct",
-    "No premature P2 FOUNDATION COMPLETE claim",
-    "No premature ALL PROVIDERS RUNTIME VERIFIED claim"
-  ],
-  "evidence_status": "CONTRACT_PASS",
-  "reason": "Planning draft created with all required sections. No runtime code changes yet. Planning document exists at docs/roadmap/p2_local_repair_delta_001_planning.md. Evidence output at artifacts/p2/evidence/LRD-001.json.",
-  "next_task": "LRD-002 V10 Evidence Downgrade / Repair Audit",
-  "timestamp_utc": "2026-06-26T00:00:00Z",
   "completion_level": "p2-foundation-planning",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable",
   "environment": {},
   "implementation": {},
   "media_input": {
@@ -297,6 +33,551 @@
   "requires_provider_matrix": false,
   "runtime_verified": false,
   "blocked_reason": "",
-  "runtime_mode": "planning_only",
-  "runtime_environment_kind": "not_applicable"
+  "timestamp_utc": "2026-06-26T00:35:00Z",
+  "legacy_original": {
+    "task_id": "LRD-001",
+    "task_family": "local repair delta",
+    "execution_timestamp": "2026-06-26T00:35:00Z",
+    "status": "CONTRACT_PASS",
+    "goal": "write the planning draft for local repair before code",
+    "planning_document_path": "docs/roadmap/p2_local_repair_delta_001_planning.md",
+    "planning_document_sections": [
+      "Current Tree Inventory",
+      "Current V10 Evidence Audit Plan",
+      "Allowed Files",
+      "Forbidden Files",
+      "Dependency Direction",
+      "Single-File Responsibility Table",
+      "Test Family Plan",
+      "Runtime Environment Risk",
+      "Sample Availability Risk",
+      "STOP/BLOCKED/FAILED Conditions",
+      "Anti-Fake Proof Strategy",
+      "Machine-Readable Evidence Plan",
+      "CMake Registration Plan",
+      "Scope Leak Scan Plan",
+      "Diff Base Plan",
+      "Threading/COM/Device Ownership Plan",
+      "Failure Injection Plan",
+      "Resource Release Proof Plan",
+      "Schema Gate Plan",
+      "Redline Gate Plan",
+      "Final Report Rules",
+      "Immediate Next Steps",
+      "Self-Check Checklist"
+    ],
+    "v10_evidence_audit_summary": {
+      "total_items": 22,
+      "runtime_pass": 18,
+      "contract_pass": 4,
+      "fail": 0,
+      "blocked_env": 0,
+      "needs_repair": 0,
+      "downgrade_decisions": [
+        "V10-009: D3D11 upload stub \u2192 CONTRACT_PASS (interface contract only)",
+        "V10-010: Presenter stub \u2192 CONTRACT_PASS (interface contract only)",
+        "V10-011: PCM stub \u2192 CONTRACT_PASS (interface contract only)",
+        "V10-021: SoakSimulator \u2192 CONTRACT_PASS (simulator not real runtime)"
+      ]
+    },
+    "allowed_files": {
+      "production": [
+        "backend/include/kivo/cinema_engine/video_upload/",
+        "backend/include/kivo/cinema_engine/audio_output/",
+        "backend/include/kivo/cinema_engine/presenter/",
+        "backend/include/kivo/cinema_engine/playback_core/",
+        "backend/include/kivo/cinema_engine/playback_inspector_core/",
+        "backend/include/kivo/cinema_engine/decision_ledger_core/"
+      ],
+      "test": [
+        "backend/tests/video_upload/",
+        "backend/tests/audio_output/",
+        "backend/tests/integration_local/",
+        "backend/tests/evidence/"
+      ],
+      "modified": [
+        "backend/src/video_upload/",
+        "backend/src/audio_output/",
+        "backend/src/presenter/",
+        "backend/CMakeLists.txt",
+        "CMakePresets.json"
+      ]
+    },
+    "forbidden_files": [
+      "P3 code (hardware decode, HDR output, exclusive audio, passthrough)",
+      "Remote code (WebDAV, AList, Emby, SMB, NFS, S3, IPTV)",
+      "UI code (Qt, QML, media library)",
+      "BDMV/ISO code",
+      "New fake service code",
+      "Root-level temporary outputs",
+      "Evidence files in source root"
+    ],
+    "dependency_direction": {
+      "video_upload": [
+        "decode",
+        "third_party_adapter"
+      ],
+      "audio_output": [
+        "decode",
+        "third_party_adapter"
+      ],
+      "presenter": [
+        "video_upload"
+      ],
+      "lifecycle": [
+        "graph",
+        "presenter",
+        "audio_output",
+        "inspector"
+      ],
+      "inspector": [
+        "all modules (read-only observer)"
+      ]
+    },
+    "single_file_responsibility_table": {
+      "d3d11_device_context.hpp": "D3D11 device/context lifecycle (opaque handle)",
+      "d3d11_texture_upload.hpp": "Texture creation + upload proof",
+      "decoded_video_frame_uploader.hpp": "Interface: upload DecodedFrame to GPU texture",
+      "yuv_rgb_conversion.hpp": "YUV\u2192RGB/NV12 pixel format conversion policy",
+      "decoded_audio_frame_converter.hpp": "DecodedFrame\u2192PCM format conversion",
+      "wasapi_shared_pcm_writer.hpp": "WASAPI shared mode PCM buffer write",
+      "presenter_boundary_shell.hpp": "Presenter boundary: receive texture, record proof",
+      "playback_session_controller.hpp": "Lifecycle: open\u2192play\u2192pause\u2192resume\u2192seek\u2192stop\u2192close",
+      "playback_inspector_snapshot.hpp": "Inspector snapshot: all key decisions",
+      "decision_ledger_entry.hpp": "Decision ledger: monotonic ordered decisions"
+    },
+    "test_family_plan": {
+      "existing_tests": [
+        "kivo_real_demux_decode_integration_test (RUNTIME_PASS)",
+        "kivo_d3d11_first_frame_test (CONTRACT_PASS)",
+        "kivo_presenter_boundary_first_frame_test (CONTRACT_PASS)",
+        "kivo_decoded_audio_frame_converter_test (CONTRACT_PASS)",
+        "kivo_wasapi_shared_pcm_writer_test (CONTRACT_PASS)",
+        "kivo_clock_av_sync_test (RUNTIME_PASS)",
+        "kivo_seek_flush_generation_test (RUNTIME_PASS)",
+        "kivo_lifecycle_test (RUNTIME_PASS)",
+        "kivo_local_playback_e2e_test (RUNTIME_PASS)",
+        "kivo_micro_soak_test (CONTRACT_PASS)",
+        "kivo_failure_injection_test (RUNTIME_PASS)"
+      ],
+      "new_tests_planned": [
+        "kivo_d3d11_reality_audit_test",
+        "kivo_presenter_reality_audit_test",
+        "kivo_pcm_reality_audit_test",
+        "kivo_wasapi_reality_audit_test",
+        "kivo_local_e2e_reality_audit_test",
+        "kivo_micro_soak_reality_audit_test"
+      ]
+    },
+    "runtime_environment_risk": {
+      "d3d11_device_unavailable": "Use WARP adapter as fallback; test must detect and report BLOCKED_ENV",
+      "wasapi_device_unavailable": "Use loopback or silence device; test must detect and report BLOCKED_ENV",
+      "ffmpeg_on_build_fails": "BLOCKED condition; do not proceed",
+      "no_real_sample_available": "BLOCKED condition; sample gate required",
+      "com_apartment_model_issues": "Use MTA for D3D11/WASAPI; document in threading plan"
+    },
+    "sample_availability_risk": {
+      "h264_aac_mp4_320x240_1s": "EXISTS at tests/real/test_sample.mp4",
+      "h264_aac_mp4_30s_for_soak": "NEEDED for LRD-009",
+      "h264_ac3_mkv_optional": "NOT YET for extended tests"
+    },
+    "anti_fake_proof_strategy": {
+      "required_proofs": [
+        "Real input: actual file bytes, actual compressed packets",
+        "Real runtime: actual D3D11 API call, actual WASAPI API call, actual PCM conversion",
+        "Real output: actual texture upload, actual PCM samples written",
+        "Real assertion: assert on output properties, not just success flag",
+        "Inspector evidence: Inspector snapshot records the real path",
+        "Scope proof: no forbidden terms in new code"
+      ],
+      "forbidden_substitutions": [
+        "stub \u2260 real D3D11 device",
+        "placeholder PCM \u2260 real audio conversion",
+        "SoakSimulator \u2260 real 30s soak",
+        "interface contract \u2260 runtime proof",
+        "log-only proof \u2260 real upload",
+        "bool-only proof \u2260 real texture"
+      ],
+      "v10_contract_pass_items_must_become_runtime_pass": [
+        "V10-009: D3D11 upload stub \u2192 real D3D11 upload (LRD-004)",
+        "V10-010: Presenter stub \u2192 real presenter boundary (LRD-005)",
+        "V10-011: PCM stub \u2192 real PCM conversion (LRD-006)",
+        "V10-021: SoakSimulator \u2192 real 30s soak (LRD-009)"
+      ]
+    },
+    "evidence_schema_plan": {
+      "required_artifacts": [
+        "playback_proof.json",
+        "inspector_snapshot.json",
+        "decision_ledger.json",
+        "micro_soak_metrics.json",
+        "ffmpeg_off_antifake.json",
+        "evidence_schema_validation.json"
+      ],
+      "new_artifacts_planned": [
+        "d3d11_reality_audit.json",
+        "presenter_reality_audit.json",
+        "pcm_reality_audit.json",
+        "wasapi_reality_audit.json",
+        "local_e2e_reality_audit.json",
+        "micro_soak_reality_audit.json"
+      ],
+      "artifact_path": "artifacts/p2/evidence/"
+    },
+    "redline_gate_plan": {
+      "redline_vocabulary": [
+        "fake/stub/simulate/simulator/dummy/mock-only",
+        "todo-pass/always-pass/state-only-pass",
+        "silent fallback/not implemented but pass",
+        "P3 false-complete/HDR complete/Atmos complete"
+      ],
+      "allowlist_rules": "Allow forbidden words only in Forbidden Scope, Known Limitations, Next Recommendation, or explicit CONTRACT_PASS explanation",
+      "scan_targets": [
+        "Source code and tests",
+        "Evidence JSON files",
+        "Inspector artifacts",
+        "DecisionLedger artifacts",
+        "Final report"
+      ]
+    },
+    "final_report_rules": {
+      "classification_options": [
+        "RUNTIME_PASS: All local runtime boundaries pass with real evidence",
+        "CONTRACT_PASS: Interface contracts proven but not runtime",
+        "FAIL: Required runtime proof missing or conflicting",
+        "BLOCKED_ENV: Environment unavailable (D3D11/WASAPI)"
+      ],
+      "report_requirements": [
+        "Branch: kivo-video-p2-real-001-repair-ffmpeg-proof",
+        "HEAD: commit hash after local repair",
+        "Remote: synced",
+        "Base: 79c2d38 (V8 completion)",
+        "Planning proof: this document",
+        "Runtime environment: MSVC, C++20, FFmpeg 7.1",
+        "Changed files by natural family",
+        "Real playback proof: CTest results",
+        "Machine-readable evidence: artifact listing",
+        "Verification: build/test/privacy/scope",
+        "Scope: in/out items",
+        "Known limitations",
+        "Next recommendation"
+      ],
+      "forbidden_claims": [
+        "Never claim P2 FOUNDATION COMPLETE",
+        "Never claim ALL PROVIDERS RUNTIME VERIFIED",
+        "Never claim P3/HDR/Atmos/remote completion",
+        "Never claim full playback closure without all providers"
+      ]
+    },
+    "immediate_next_steps": [
+      "Execute LRD-002: V10 Evidence Downgrade / Repair Audit",
+      "Execute LRD-003: D3D11 Device Reality Audit",
+      "Execute LRD-004: D3D11 Real Decoded Frame Upload",
+      "Execute LRD-005: Presenter Boundary Reality Audit",
+      "Execute LRD-006: PCM Converter Reality Audit",
+      "Execute LRD-007: WASAPI Shared Runtime Audit",
+      "Execute LRD-008: Local E2E Runtime Audit",
+      "Execute LRD-009: Micro Soak Runtime Audit",
+      "Execute LRD-010: Evidence Artifact Audit",
+      "Execute LRD-011: Final Report Consistency Audit",
+      "Execute LRD-012: Regression Protection",
+      "Execute LRD-013: Classification"
+    ],
+    "self_check_checklist": [
+      "Branch is kivo-video-p2-real-001-repair-ffmpeg-proof",
+      "Base is 79c2d38 (V8 completion)",
+      "No code changes outside local repair allowed files",
+      "No forbidden terms in new code",
+      "All new tests compile and pass",
+      "Real sample available for all tests",
+      "D3D11/WASAPI availability detected at runtime",
+      "Inspector records real path for every operation",
+      "DecisionLedger records no fake fallback",
+      "All resources released on close",
+      "FFmpeg ON build passes",
+      "FFmpeg OFF anti-fake passes",
+      "Machine-readable evidence generated",
+      "Final report classification correct",
+      "No premature P2 FOUNDATION COMPLETE claim",
+      "No premature ALL PROVIDERS RUNTIME VERIFIED claim"
+    ],
+    "evidence_status": "CONTRACT_PASS",
+    "reason": "Planning draft created with all required sections. No runtime code changes yet. Planning document exists at docs/roadmap/p2_local_repair_delta_001_planning.md. Evidence output at artifacts/p2/evidence/LRD-001.json.",
+    "next_task": "LRD-002 V10 Evidence Downgrade / Repair Audit"
+  },
+  "legacy_fields": {
+    "execution_timestamp": "2026-06-26T00:35:00Z",
+    "goal": "write the planning draft for local repair before code",
+    "planning_document_path": "docs/roadmap/p2_local_repair_delta_001_planning.md",
+    "planning_document_sections": [
+      "Current Tree Inventory",
+      "Current V10 Evidence Audit Plan",
+      "Allowed Files",
+      "Forbidden Files",
+      "Dependency Direction",
+      "Single-File Responsibility Table",
+      "Test Family Plan",
+      "Runtime Environment Risk",
+      "Sample Availability Risk",
+      "STOP/BLOCKED/FAILED Conditions",
+      "Anti-Fake Proof Strategy",
+      "Machine-Readable Evidence Plan",
+      "CMake Registration Plan",
+      "Scope Leak Scan Plan",
+      "Diff Base Plan",
+      "Threading/COM/Device Ownership Plan",
+      "Failure Injection Plan",
+      "Resource Release Proof Plan",
+      "Schema Gate Plan",
+      "Redline Gate Plan",
+      "Final Report Rules",
+      "Immediate Next Steps",
+      "Self-Check Checklist"
+    ],
+    "v10_evidence_audit_summary": {
+      "total_items": 22,
+      "runtime_pass": 18,
+      "contract_pass": 4,
+      "fail": 0,
+      "blocked_env": 0,
+      "needs_repair": 0,
+      "downgrade_decisions": [
+        "V10-009: D3D11 upload stub \u2192 CONTRACT_PASS (interface contract only)",
+        "V10-010: Presenter stub \u2192 CONTRACT_PASS (interface contract only)",
+        "V10-011: PCM stub \u2192 CONTRACT_PASS (interface contract only)",
+        "V10-021: SoakSimulator \u2192 CONTRACT_PASS (simulator not real runtime)"
+      ]
+    },
+    "allowed_files": {
+      "production": [
+        "backend/include/kivo/cinema_engine/video_upload/",
+        "backend/include/kivo/cinema_engine/audio_output/",
+        "backend/include/kivo/cinema_engine/presenter/",
+        "backend/include/kivo/cinema_engine/playback_core/",
+        "backend/include/kivo/cinema_engine/playback_inspector_core/",
+        "backend/include/kivo/cinema_engine/decision_ledger_core/"
+      ],
+      "test": [
+        "backend/tests/video_upload/",
+        "backend/tests/audio_output/",
+        "backend/tests/integration_local/",
+        "backend/tests/evidence/"
+      ],
+      "modified": [
+        "backend/src/video_upload/",
+        "backend/src/audio_output/",
+        "backend/src/presenter/",
+        "backend/CMakeLists.txt",
+        "CMakePresets.json"
+      ]
+    },
+    "forbidden_files": [
+      "P3 code (hardware decode, HDR output, exclusive audio, passthrough)",
+      "Remote code (WebDAV, AList, Emby, SMB, NFS, S3, IPTV)",
+      "UI code (Qt, QML, media library)",
+      "BDMV/ISO code",
+      "New fake service code",
+      "Root-level temporary outputs",
+      "Evidence files in source root"
+    ],
+    "dependency_direction": {
+      "video_upload": [
+        "decode",
+        "third_party_adapter"
+      ],
+      "audio_output": [
+        "decode",
+        "third_party_adapter"
+      ],
+      "presenter": [
+        "video_upload"
+      ],
+      "lifecycle": [
+        "graph",
+        "presenter",
+        "audio_output",
+        "inspector"
+      ],
+      "inspector": [
+        "all modules (read-only observer)"
+      ]
+    },
+    "single_file_responsibility_table": {
+      "d3d11_device_context.hpp": "D3D11 device/context lifecycle (opaque handle)",
+      "d3d11_texture_upload.hpp": "Texture creation + upload proof",
+      "decoded_video_frame_uploader.hpp": "Interface: upload DecodedFrame to GPU texture",
+      "yuv_rgb_conversion.hpp": "YUV\u2192RGB/NV12 pixel format conversion policy",
+      "decoded_audio_frame_converter.hpp": "DecodedFrame\u2192PCM format conversion",
+      "wasapi_shared_pcm_writer.hpp": "WASAPI shared mode PCM buffer write",
+      "presenter_boundary_shell.hpp": "Presenter boundary: receive texture, record proof",
+      "playback_session_controller.hpp": "Lifecycle: open\u2192play\u2192pause\u2192resume\u2192seek\u2192stop\u2192close",
+      "playback_inspector_snapshot.hpp": "Inspector snapshot: all key decisions",
+      "decision_ledger_entry.hpp": "Decision ledger: monotonic ordered decisions"
+    },
+    "test_family_plan": {
+      "existing_tests": [
+        "kivo_real_demux_decode_integration_test (RUNTIME_PASS)",
+        "kivo_d3d11_first_frame_test (CONTRACT_PASS)",
+        "kivo_presenter_boundary_first_frame_test (CONTRACT_PASS)",
+        "kivo_decoded_audio_frame_converter_test (CONTRACT_PASS)",
+        "kivo_wasapi_shared_pcm_writer_test (CONTRACT_PASS)",
+        "kivo_clock_av_sync_test (RUNTIME_PASS)",
+        "kivo_seek_flush_generation_test (RUNTIME_PASS)",
+        "kivo_lifecycle_test (RUNTIME_PASS)",
+        "kivo_local_playback_e2e_test (RUNTIME_PASS)",
+        "kivo_micro_soak_test (CONTRACT_PASS)",
+        "kivo_failure_injection_test (RUNTIME_PASS)"
+      ],
+      "new_tests_planned": [
+        "kivo_d3d11_reality_audit_test",
+        "kivo_presenter_reality_audit_test",
+        "kivo_pcm_reality_audit_test",
+        "kivo_wasapi_reality_audit_test",
+        "kivo_local_e2e_reality_audit_test",
+        "kivo_micro_soak_reality_audit_test"
+      ]
+    },
+    "runtime_environment_risk": {
+      "d3d11_device_unavailable": "Use WARP adapter as fallback; test must detect and report BLOCKED_ENV",
+      "wasapi_device_unavailable": "Use loopback or silence device; test must detect and report BLOCKED_ENV",
+      "ffmpeg_on_build_fails": "BLOCKED condition; do not proceed",
+      "no_real_sample_available": "BLOCKED condition; sample gate required",
+      "com_apartment_model_issues": "Use MTA for D3D11/WASAPI; document in threading plan"
+    },
+    "sample_availability_risk": {
+      "h264_aac_mp4_320x240_1s": "EXISTS at tests/real/test_sample.mp4",
+      "h264_aac_mp4_30s_for_soak": "NEEDED for LRD-009",
+      "h264_ac3_mkv_optional": "NOT YET for extended tests"
+    },
+    "anti_fake_proof_strategy": {
+      "required_proofs": [
+        "Real input: actual file bytes, actual compressed packets",
+        "Real runtime: actual D3D11 API call, actual WASAPI API call, actual PCM conversion",
+        "Real output: actual texture upload, actual PCM samples written",
+        "Real assertion: assert on output properties, not just success flag",
+        "Inspector evidence: Inspector snapshot records the real path",
+        "Scope proof: no forbidden terms in new code"
+      ],
+      "forbidden_substitutions": [
+        "stub \u2260 real D3D11 device",
+        "placeholder PCM \u2260 real audio conversion",
+        "SoakSimulator \u2260 real 30s soak",
+        "interface contract \u2260 runtime proof",
+        "log-only proof \u2260 real upload",
+        "bool-only proof \u2260 real texture"
+      ],
+      "v10_contract_pass_items_must_become_runtime_pass": [
+        "V10-009: D3D11 upload stub \u2192 real D3D11 upload (LRD-004)",
+        "V10-010: Presenter stub \u2192 real presenter boundary (LRD-005)",
+        "V10-011: PCM stub \u2192 real PCM conversion (LRD-006)",
+        "V10-021: SoakSimulator \u2192 real 30s soak (LRD-009)"
+      ]
+    },
+    "evidence_schema_plan": {
+      "required_artifacts": [
+        "playback_proof.json",
+        "inspector_snapshot.json",
+        "decision_ledger.json",
+        "micro_soak_metrics.json",
+        "ffmpeg_off_antifake.json",
+        "evidence_schema_validation.json"
+      ],
+      "new_artifacts_planned": [
+        "d3d11_reality_audit.json",
+        "presenter_reality_audit.json",
+        "pcm_reality_audit.json",
+        "wasapi_reality_audit.json",
+        "local_e2e_reality_audit.json",
+        "micro_soak_reality_audit.json"
+      ],
+      "artifact_path": "artifacts/p2/evidence/"
+    },
+    "redline_gate_plan": {
+      "redline_vocabulary": [
+        "fake/stub/simulate/simulator/dummy/mock-only",
+        "todo-pass/always-pass/state-only-pass",
+        "silent fallback/not implemented but pass",
+        "P3 false-complete/HDR complete/Atmos complete"
+      ],
+      "allowlist_rules": "Allow forbidden words only in Forbidden Scope, Known Limitations, Next Recommendation, or explicit CONTRACT_PASS explanation",
+      "scan_targets": [
+        "Source code and tests",
+        "Evidence JSON files",
+        "Inspector artifacts",
+        "DecisionLedger artifacts",
+        "Final report"
+      ]
+    },
+    "final_report_rules": {
+      "classification_options": [
+        "RUNTIME_PASS: All local runtime boundaries pass with real evidence",
+        "CONTRACT_PASS: Interface contracts proven but not runtime",
+        "FAIL: Required runtime proof missing or conflicting",
+        "BLOCKED_ENV: Environment unavailable (D3D11/WASAPI)"
+      ],
+      "report_requirements": [
+        "Branch: kivo-video-p2-real-001-repair-ffmpeg-proof",
+        "HEAD: commit hash after local repair",
+        "Remote: synced",
+        "Base: 79c2d38 (V8 completion)",
+        "Planning proof: this document",
+        "Runtime environment: MSVC, C++20, FFmpeg 7.1",
+        "Changed files by natural family",
+        "Real playback proof: CTest results",
+        "Machine-readable evidence: artifact listing",
+        "Verification: build/test/privacy/scope",
+        "Scope: in/out items",
+        "Known limitations",
+        "Next recommendation"
+      ],
+      "forbidden_claims": [
+        "Never claim P2 FOUNDATION COMPLETE",
+        "Never claim ALL PROVIDERS RUNTIME VERIFIED",
+        "Never claim P3/HDR/Atmos/remote completion",
+        "Never claim full playback closure without all providers"
+      ]
+    },
+    "immediate_next_steps": [
+      "Execute LRD-002: V10 Evidence Downgrade / Repair Audit",
+      "Execute LRD-003: D3D11 Device Reality Audit",
+      "Execute LRD-004: D3D11 Real Decoded Frame Upload",
+      "Execute LRD-005: Presenter Boundary Reality Audit",
+      "Execute LRD-006: PCM Converter Reality Audit",
+      "Execute LRD-007: WASAPI Shared Runtime Audit",
+      "Execute LRD-008: Local E2E Runtime Audit",
+      "Execute LRD-009: Micro Soak Runtime Audit",
+      "Execute LRD-010: Evidence Artifact Audit",
+      "Execute LRD-011: Final Report Consistency Audit",
+      "Execute LRD-012: Regression Protection",
+      "Execute LRD-013: Classification"
+    ],
+    "self_check_checklist": [
+      "Branch is kivo-video-p2-real-001-repair-ffmpeg-proof",
+      "Base is 79c2d38 (V8 completion)",
+      "No code changes outside local repair allowed files",
+      "No forbidden terms in new code",
+      "All new tests compile and pass",
+      "Real sample available for all tests",
+      "D3D11/WASAPI availability detected at runtime",
+      "Inspector records real path for every operation",
+      "DecisionLedger records no fake fallback",
+      "All resources released on close",
+      "FFmpeg ON build passes",
+      "FFmpeg OFF anti-fake passes",
+      "Machine-readable evidence generated",
+      "Final report classification correct",
+      "No premature P2 FOUNDATION COMPLETE claim",
+      "No premature ALL PROVIDERS RUNTIME VERIFIED claim"
+    ],
+    "evidence_status": "CONTRACT_PASS",
+    "reason": "Planning draft created with all required sections. No runtime code changes yet. Planning document exists at docs/roadmap/p2_local_repair_delta_001_planning.md. Evidence output at artifacts/p2/evidence/LRD-001.json.",
+    "next_task": "LRD-002 V10 Evidence Downgrade / Repair Audit"
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 21,
+    "migrated_field_count": 33
+  }
 }

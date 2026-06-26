@@ -1,234 +1,20 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "FMT-001",
+  "task_family": "planning",
   "status": "CONTRACT_PASS",
+  "completion_level": "p2-foundation-planning",
   "runtime_mode": "format_verification",
   "runtime_environment_kind": "not_applicable",
-  "environment_required": false,
-  "environment_available": false,
-  "blocked_reason": "",
-  "evidence_file": "artifacts/p2/evidence/FMT-001.json",
-  "format_compatibility_matrix": {
-    "document_path": "docs/roadmap/p2_format_compat.md",
-    "container_formats": {
-      "mp4": {
-        "extensions": [
-          ".mp4",
-          ".m4v",
-          ".m4a",
-          ".3gp",
-          ".3g2"
-        ],
-        "video_codecs": [
-          "H.264",
-          "H.265/HEVC"
-        ],
-        "audio_codecs": [
-          "AAC",
-          "MP3",
-          "AC3",
-          "EAC3",
-          "FLAC"
-        ],
-        "runtime_status": "RUNTIME_PASS",
-        "sample_verification": "real_sample_available"
-      },
-      "mkv": {
-        "extensions": [
-          ".mkv",
-          ".webm"
-        ],
-        "video_codecs": [
-          "H.264",
-          "H.265/HEVC",
-          "VP8",
-          "VP9",
-          "AV1"
-        ],
-        "audio_codecs": [
-          "AAC",
-          "MP3",
-          "AC3",
-          "EAC3",
-          "FLAC",
-          "Opus"
-        ],
-        "runtime_status": "RUNTIME_PASS",
-        "sample_verification": "real_sample_available"
-      },
-      "avi": {
-        "extensions": [
-          ".avi"
-        ],
-        "video_codecs": [
-          "H.264",
-          "MPEG-4"
-        ],
-        "audio_codecs": [
-          "MP3",
-          "AC3"
-        ],
-        "runtime_status": "RUNTIME_PASS",
-        "sample_verification": "real_sample_available"
-      },
-      "mov": {
-        "extensions": [
-          ".mov"
-        ],
-        "video_codecs": [
-          "H.264",
-          "H.265/HEVC"
-        ],
-        "audio_codecs": [
-          "AAC",
-          "MP3",
-          "AC3"
-        ],
-        "runtime_status": "RUNTIME_PASS",
-        "sample_verification": "real_sample_available"
-      },
-      "ts": {
-        "extensions": [
-          ".ts",
-          ".m2ts"
-        ],
-        "video_codecs": [
-          "H.264",
-          "H.265/HEVC"
-        ],
-        "audio_codecs": [
-          "AAC",
-          "AC3",
-          "EAC3"
-        ],
-        "runtime_status": "RUNTIME_PASS",
-        "sample_verification": "real_sample_available"
-      },
-      "flv": {
-        "extensions": [
-          ".flv"
-        ],
-        "video_codecs": [
-          "H.264",
-          "VP6"
-        ],
-        "audio_codecs": [
-          "AAC",
-          "MP3"
-        ],
-        "runtime_status": "RUNTIME_PASS",
-        "sample_verification": "real_sample_available"
-      },
-      "wmv": {
-        "extensions": [
-          ".wmv"
-        ],
-        "video_codecs": [
-          "WMV9",
-          "VC-1"
-        ],
-        "audio_codecs": [
-          "WMA"
-        ],
-        "runtime_status": "RUNTIME_PASS",
-        "sample_verification": "real_sample_available"
-      },
-      "mpeg": {
-        "extensions": [
-          ".mpg",
-          ".mpeg"
-        ],
-        "video_codecs": [
-          "MPEG-1",
-          "MPEG-2"
-        ],
-        "audio_codecs": [
-          "MP2",
-          "MP3"
-        ],
-        "runtime_status": "RUNTIME_PASS",
-        "sample_verification": "real_sample_available"
-      },
-      "ogg": {
-        "extensions": [
-          ".ogv",
-          ".oga"
-        ],
-        "video_codecs": [
-          "Theora",
-          "VP8"
-        ],
-        "audio_codecs": [
-          "Vorbis",
-          "Opus"
-        ],
-        "runtime_status": "RUNTIME_PASS",
-        "sample_verification": "real_sample_available"
-      }
-    },
-    "sample_verification_status": {
-      "runtime_pass_count": 10,
-      "contract_pass_count": 7,
-      "not_implemented_count": 3,
-      "total_formats": 20
-    },
-    "sample_gap_list": {
-      "high_priority_gaps": [
-        "H.265/HEVC MP4 sample",
-        "VP8 MKV sample",
-        "VP9 MKV sample"
-      ],
-      "medium_priority_gaps": [
-        "AV1 MKV sample",
-        "EAC3 TS sample",
-        "Opus MKV sample"
-      ],
-      "low_priority_gaps": [
-        "FLAC MP4 sample",
-        "3GP H.264 sample",
-        "OGV VP8 sample"
-      ]
-    },
-    "verification_requirements": {
-      "runtime_verification": [
-        "Real sample must be present in test environment",
-        "Full playback pipeline must work (probe \u2192 demux \u2192 decode \u2192 render)",
-        "No stub or fake implementations allowed",
-        "Real FFmpeg must be used for probe/demux/decode"
-      ],
-      "contract_verification": [
-        "Format detection must work",
-        "Stream discovery must work",
-        "Codec identification must work",
-        "Basic metadata extraction must work"
-      ],
-      "sample_requirements": [
-        "Sample must be > 30 seconds duration",
-        "Sample must have both video and audio streams",
-        "Sample must be valid and playable",
-        "Sample must not be corrupted or damaged"
-      ]
-    }
-  },
-  "gate_integration": [
-    "FMT-001: Format compatibility matrix defined",
-    "PFFG-001: Foundation Final Gate Reader checks format compatibility matrix",
-    "PMX-001: Provider Runtime Matrix includes format compatibility status"
-  ],
-  "test_cases": {
-    "positive_test_cases": 6,
-    "negative_test_cases": 6,
-    "total_test_cases": 12
-  },
-  "implementation_requirements": {
-    "matrix_maintenance": "Update matrix when new formats are verified, new samples available, new codecs supported, verification status changes",
-    "sample_management": "Track sample availability, verification status, gaps, and quality",
-    "verification_tracking": "Track runtime verification status, contract verification status, sample verification status, gate integration status"
-  },
-  "timestamp_utc": "2026-06-26T01:18:00Z",
-  "completion_level": "p2-foundation-planning",
   "environment": {},
-  "implementation": {},
+  "implementation": {
+    "legacy_runtime_verified_timestamp": "2026-06-26T01:18:00Z",
+    "legacy_provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "legacy_task_name": "P2-FORMAT-COMPAT",
+    "legacy_family": "format_compat"
+  },
   "media_input": {
     "kind": "not_applicable"
   },
@@ -253,5 +39,475 @@
   "artifacts": [],
   "requires_provider_matrix": false,
   "runtime_verified": false,
-  "task_family": "planning"
+  "blocked_reason": null,
+  "timestamp_utc": "2026-06-26T07:46:09Z",
+  "legacy_original": {
+    "schema_version": "p2-evidence-v8",
+    "task_id": "FMT-001",
+    "task_name": "P2-FORMAT-COMPAT",
+    "family": "format_compat",
+    "status": "CONTRACT_PASS",
+    "runtime_mode": "format_verification",
+    "runtime_environment_kind": "test_harness",
+    "environment_required": false,
+    "environment_available": false,
+    "blocked_reason": null,
+    "runtime_verified_timestamp": "2026-06-26T01:18:00Z",
+    "evidence_file": "artifacts/p2/evidence/FMT-001.json",
+    "provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "format_compatibility_matrix": {
+      "document_path": "docs/roadmap/p2_format_compat.md",
+      "container_formats": {
+        "mp4": {
+          "extensions": [
+            ".mp4",
+            ".m4v",
+            ".m4a",
+            ".3gp",
+            ".3g2"
+          ],
+          "video_codecs": [
+            "H.264",
+            "H.265/HEVC"
+          ],
+          "audio_codecs": [
+            "AAC",
+            "MP3",
+            "AC3",
+            "EAC3",
+            "FLAC"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "mkv": {
+          "extensions": [
+            ".mkv",
+            ".webm"
+          ],
+          "video_codecs": [
+            "H.264",
+            "H.265/HEVC",
+            "VP8",
+            "VP9",
+            "AV1"
+          ],
+          "audio_codecs": [
+            "AAC",
+            "MP3",
+            "AC3",
+            "EAC3",
+            "FLAC",
+            "Opus"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "avi": {
+          "extensions": [
+            ".avi"
+          ],
+          "video_codecs": [
+            "H.264",
+            "MPEG-4"
+          ],
+          "audio_codecs": [
+            "MP3",
+            "AC3"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "mov": {
+          "extensions": [
+            ".mov"
+          ],
+          "video_codecs": [
+            "H.264",
+            "H.265/HEVC"
+          ],
+          "audio_codecs": [
+            "AAC",
+            "MP3",
+            "AC3"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "ts": {
+          "extensions": [
+            ".ts",
+            ".m2ts"
+          ],
+          "video_codecs": [
+            "H.264",
+            "H.265/HEVC"
+          ],
+          "audio_codecs": [
+            "AAC",
+            "AC3",
+            "EAC3"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "flv": {
+          "extensions": [
+            ".flv"
+          ],
+          "video_codecs": [
+            "H.264",
+            "VP6"
+          ],
+          "audio_codecs": [
+            "AAC",
+            "MP3"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "wmv": {
+          "extensions": [
+            ".wmv"
+          ],
+          "video_codecs": [
+            "WMV9",
+            "VC-1"
+          ],
+          "audio_codecs": [
+            "WMA"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "mpeg": {
+          "extensions": [
+            ".mpg",
+            ".mpeg"
+          ],
+          "video_codecs": [
+            "MPEG-1",
+            "MPEG-2"
+          ],
+          "audio_codecs": [
+            "MP2",
+            "MP3"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "ogg": {
+          "extensions": [
+            ".ogv",
+            ".oga"
+          ],
+          "video_codecs": [
+            "Theora",
+            "VP8"
+          ],
+          "audio_codecs": [
+            "Vorbis",
+            "Opus"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        }
+      },
+      "sample_verification_status": {
+        "runtime_pass_count": 10,
+        "contract_pass_count": 7,
+        "not_implemented_count": 3,
+        "total_formats": 20
+      },
+      "sample_gap_list": {
+        "high_priority_gaps": [
+          "H.265/HEVC MP4 sample",
+          "VP8 MKV sample",
+          "VP9 MKV sample"
+        ],
+        "medium_priority_gaps": [
+          "AV1 MKV sample",
+          "EAC3 TS sample",
+          "Opus MKV sample"
+        ],
+        "low_priority_gaps": [
+          "FLAC MP4 sample",
+          "3GP H.264 sample",
+          "OGV VP8 sample"
+        ]
+      },
+      "verification_requirements": {
+        "runtime_verification": [
+          "Real sample must be present in test environment",
+          "Full playback pipeline must work (probe \u2192 demux \u2192 decode \u2192 render)",
+          "No stub or fake implementations allowed",
+          "Real FFmpeg must be used for probe/demux/decode"
+        ],
+        "contract_verification": [
+          "Format detection must work",
+          "Stream discovery must work",
+          "Codec identification must work",
+          "Basic metadata extraction must work"
+        ],
+        "sample_requirements": [
+          "Sample must be > 30 seconds duration",
+          "Sample must have both video and audio streams",
+          "Sample must be valid and playable",
+          "Sample must not be corrupted or damaged"
+        ]
+      }
+    },
+    "gate_integration": [
+      "FMT-001: Format compatibility matrix defined",
+      "PFFG-001: Foundation Final Gate Reader checks format compatibility matrix",
+      "PMX-001: Provider Runtime Matrix includes format compatibility status"
+    ],
+    "test_cases": {
+      "positive_test_cases": 6,
+      "negative_test_cases": 6,
+      "total_test_cases": 12
+    },
+    "implementation_requirements": {
+      "matrix_maintenance": "Update matrix when new formats are verified, new samples available, new codecs supported, verification status changes",
+      "sample_management": "Track sample availability, verification status, gaps, and quality",
+      "verification_tracking": "Track runtime verification status, contract verification status, sample verification status, gate integration status"
+    }
+  },
+  "legacy_fields": {
+    "task_name": "P2-FORMAT-COMPAT",
+    "family": "format_compat",
+    "environment_required": false,
+    "environment_available": false,
+    "runtime_verified_timestamp": "2026-06-26T01:18:00Z",
+    "evidence_file": "artifacts/p2/evidence/FMT-001.json",
+    "provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "format_compatibility_matrix": {
+      "document_path": "docs/roadmap/p2_format_compat.md",
+      "container_formats": {
+        "mp4": {
+          "extensions": [
+            ".mp4",
+            ".m4v",
+            ".m4a",
+            ".3gp",
+            ".3g2"
+          ],
+          "video_codecs": [
+            "H.264",
+            "H.265/HEVC"
+          ],
+          "audio_codecs": [
+            "AAC",
+            "MP3",
+            "AC3",
+            "EAC3",
+            "FLAC"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "mkv": {
+          "extensions": [
+            ".mkv",
+            ".webm"
+          ],
+          "video_codecs": [
+            "H.264",
+            "H.265/HEVC",
+            "VP8",
+            "VP9",
+            "AV1"
+          ],
+          "audio_codecs": [
+            "AAC",
+            "MP3",
+            "AC3",
+            "EAC3",
+            "FLAC",
+            "Opus"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "avi": {
+          "extensions": [
+            ".avi"
+          ],
+          "video_codecs": [
+            "H.264",
+            "MPEG-4"
+          ],
+          "audio_codecs": [
+            "MP3",
+            "AC3"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "mov": {
+          "extensions": [
+            ".mov"
+          ],
+          "video_codecs": [
+            "H.264",
+            "H.265/HEVC"
+          ],
+          "audio_codecs": [
+            "AAC",
+            "MP3",
+            "AC3"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "ts": {
+          "extensions": [
+            ".ts",
+            ".m2ts"
+          ],
+          "video_codecs": [
+            "H.264",
+            "H.265/HEVC"
+          ],
+          "audio_codecs": [
+            "AAC",
+            "AC3",
+            "EAC3"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "flv": {
+          "extensions": [
+            ".flv"
+          ],
+          "video_codecs": [
+            "H.264",
+            "VP6"
+          ],
+          "audio_codecs": [
+            "AAC",
+            "MP3"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "wmv": {
+          "extensions": [
+            ".wmv"
+          ],
+          "video_codecs": [
+            "WMV9",
+            "VC-1"
+          ],
+          "audio_codecs": [
+            "WMA"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "mpeg": {
+          "extensions": [
+            ".mpg",
+            ".mpeg"
+          ],
+          "video_codecs": [
+            "MPEG-1",
+            "MPEG-2"
+          ],
+          "audio_codecs": [
+            "MP2",
+            "MP3"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        },
+        "ogg": {
+          "extensions": [
+            ".ogv",
+            ".oga"
+          ],
+          "video_codecs": [
+            "Theora",
+            "VP8"
+          ],
+          "audio_codecs": [
+            "Vorbis",
+            "Opus"
+          ],
+          "runtime_status": "RUNTIME_PASS",
+          "sample_verification": "real_sample_available"
+        }
+      },
+      "sample_verification_status": {
+        "runtime_pass_count": 10,
+        "contract_pass_count": 7,
+        "not_implemented_count": 3,
+        "total_formats": 20
+      },
+      "sample_gap_list": {
+        "high_priority_gaps": [
+          "H.265/HEVC MP4 sample",
+          "VP8 MKV sample",
+          "VP9 MKV sample"
+        ],
+        "medium_priority_gaps": [
+          "AV1 MKV sample",
+          "EAC3 TS sample",
+          "Opus MKV sample"
+        ],
+        "low_priority_gaps": [
+          "FLAC MP4 sample",
+          "3GP H.264 sample",
+          "OGV VP8 sample"
+        ]
+      },
+      "verification_requirements": {
+        "runtime_verification": [
+          "Real sample must be present in test environment",
+          "Full playback pipeline must work (probe \u2192 demux \u2192 decode \u2192 render)",
+          "No stub or fake implementations allowed",
+          "Real FFmpeg must be used for probe/demux/decode"
+        ],
+        "contract_verification": [
+          "Format detection must work",
+          "Stream discovery must work",
+          "Codec identification must work",
+          "Basic metadata extraction must work"
+        ],
+        "sample_requirements": [
+          "Sample must be > 30 seconds duration",
+          "Sample must have both video and audio streams",
+          "Sample must be valid and playable",
+          "Sample must not be corrupted or damaged"
+        ]
+      }
+    },
+    "gate_integration": [
+      "FMT-001: Format compatibility matrix defined",
+      "PFFG-001: Foundation Final Gate Reader checks format compatibility matrix",
+      "PMX-001: Provider Runtime Matrix includes format compatibility status"
+    ],
+    "test_cases": {
+      "positive_test_cases": 6,
+      "negative_test_cases": 6,
+      "total_test_cases": 12
+    },
+    "implementation_requirements": {
+      "matrix_maintenance": "Update matrix when new formats are verified, new samples available, new codecs supported, verification status changes",
+      "sample_management": "Track sample availability, verification status, gaps, and quality",
+      "verification_tracking": "Track runtime verification status, contract verification status, sample verification status, gate integration status"
+    }
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 11,
+    "migrated_field_count": 33
+  }
 }

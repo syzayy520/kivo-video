@@ -1,367 +1,20 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "PMX-001",
+  "task_family": "planning",
   "status": "CONTRACT_PASS",
+  "completion_level": "p2-foundation-planning",
   "runtime_mode": "matrix_generation",
   "runtime_environment_kind": "not_applicable",
-  "environment_required": false,
-  "environment_available": false,
-  "blocked_reason": "",
-  "evidence_file": "artifacts/p2/evidence/PMX-001.json",
-  "matrix_schema": {
-    "schema_version": "provider-runtime-matrix-v8",
-    "top_level_fields": [
-      "schema_version",
-      "generation_timestamp",
-      "generator_version",
-      "project_version",
-      "providers",
-      "metadata"
-    ],
-    "provider_entry_fields": [
-      "provider_id",
-      "provider_name",
-      "provider_kind",
-      "provider_version",
-      "contract_status",
-      "runtime_status",
-      "environment_kind",
-      "environment_required",
-      "environment_available",
-      "blocked_reason",
-      "runtime_verified_timestamp",
-      "evidence_file",
-      "capabilities",
-      "limitations",
-      "dependencies"
-    ],
-    "contract_statuses": [
-      "CONTRACT_PASS",
-      "NOT_IMPLEMENTED",
-      "FAIL",
-      "PARTIAL_IMPLEMENTATION"
-    ],
-    "runtime_statuses": [
-      "RUNTIME_PASS",
-      "CONTRACT_PASS",
-      "BLOCKED_ENV",
-      "FAIL",
-      "NOT_IMPLEMENTED",
-      "SKIPPED_TEST_ONLY"
-    ],
-    "environment_kinds": [
-      "TEST_HARNESS",
-      "LOCAL_HARDWARE",
-      "NETWORK_LOCAL",
-      "NETWORK_INTERNET",
-      "EXTERNAL_SERVICE",
-      "HYBRID"
-    ]
-  },
-  "provider_kinds": {
-    "local_playback": [
-      "local_file",
-      "disc_bdmv"
-    ],
-    "network_file": [
-      "smb",
-      "nfs",
-      "ftp",
-      "ftps",
-      "sftp",
-      "http_file",
-      "https_file",
-      "dlna_upnp"
-    ],
-    "object_storage": [
-      "s3_object",
-      "minio_object"
-    ],
-    "webdav_alist": [
-      "webdav",
-      "alist"
-    ],
-    "media_server": [
-      "emby",
-      "plex",
-      "jellyfin"
-    ],
-    "cloud_storage": [
-      "google_drive",
-      "onedrive"
-    ],
-    "live_streaming": [
-      "iptv_hls"
-    ],
-    "streaming_protocol": [
-      "airplay_cast"
-    ],
-    "integration": [
-      "trakt_api"
-    ]
-  },
-  "provider_list": {
-    "local_file": {
-      "kind": "local_file",
-      "environment": "LOCAL_HARDWARE",
-      "runtime": "Real FFmpeg, D3D11, WASAPI",
-      "status": "CONTRACT_PASS"
-    },
-    "disc_bdmv": {
-      "kind": "disc_bdmv",
-      "environment": "LOCAL_HARDWARE",
-      "runtime": "Real disc reading, BDMV parsing",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "smb": {
-      "kind": "smb",
-      "environment": "NETWORK_LOCAL",
-      "runtime": "SMB client, authentication",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "nfs": {
-      "kind": "nfs",
-      "environment": "NETWORK_LOCAL",
-      "runtime": "NFS client, mounting",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "ftp": {
-      "kind": "ftp",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "FTP client, authentication",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "ftps": {
-      "kind": "ftps",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "FTPS client, TLS",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "sftp": {
-      "kind": "sftp",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "SFTP client, SSH",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "http_file": {
-      "kind": "http_file",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "HTTP client, range requests",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "https_file": {
-      "kind": "https_file",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "HTTPS client, TLS",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "dlna_upnp": {
-      "kind": "dlna_upnp",
-      "environment": "NETWORK_LOCAL",
-      "runtime": "DLNA/UPnP discovery, streaming",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "s3_object": {
-      "kind": "s3_object",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "S3 client, authentication",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "minio_object": {
-      "kind": "minio_object",
-      "environment": "NETWORK_LOCAL",
-      "runtime": "MinIO client, authentication",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "webdav": {
-      "kind": "webdav",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "WebDAV client, PROPFIND/GET",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "alist": {
-      "kind": "alist",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "AList API, direct links",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "emby": {
-      "kind": "emby",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "Emby API, session management",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "plex": {
-      "kind": "plex",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "Plex API, session management",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "jellyfin": {
-      "kind": "jellyfin",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "Jellyfin API, session management",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "google_drive": {
-      "kind": "google_drive",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "Google Drive API, OAuth",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "onedrive": {
-      "kind": "onedrive",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "OneDrive API, OAuth",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "iptv_hls": {
-      "kind": "iptv_hls",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "HLS client, m3u8 parsing",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "airplay_cast": {
-      "kind": "airplay_cast",
-      "environment": "NETWORK_LOCAL",
-      "runtime": "Cast protocol, device discovery",
-      "status": "NOT_IMPLEMENTED"
-    },
-    "trakt_api": {
-      "kind": "trakt_api",
-      "environment": "NETWORK_INTERNET",
-      "runtime": "Trakt API, OAuth",
-      "status": "NOT_IMPLEMENTED"
-    }
-  },
-  "matrix_generation_rules": {
-    "generation_process": [
-      "Discovery",
-      "Contract Check",
-      "Environment Check",
-      "Runtime Verification",
-      "Evidence Collection",
-      "Status Assignment",
-      "Matrix Assembly",
-      "Validation"
-    ],
-    "status_assignment_rules": [
-      "Honest Status: Assign status based on actual verification",
-      "No Default PASS: Never default to RUNTIME_PASS",
-      "Environment Check: BLOCKED_ENV if environment unavailable",
-      "Evidence Required: Evidence required for RUNTIME_PASS",
-      "Contract Minimum: CONTRACT_PASS minimum for defined providers"
-    ],
-    "evidence_requirements": [
-      "Evidence File: Each provider must have evidence file",
-      "Schema Validation: Evidence must validate against schema",
-      "Timestamp: Evidence must have verification timestamp",
-      "Environment: Evidence must specify environment kind",
-      "Status Justification: Evidence must justify status assignment"
-    ]
-  },
-  "matrix_metadata": {
-    "fields": [
-      "generation_command",
-      "generator_version",
-      "project_version",
-      "branch",
-      "commit_hash",
-      "build_configuration",
-      "runtime_environment",
-      "verification_timestamp",
-      "total_providers",
-      "runtime_pass_count",
-      "contract_pass_count",
-      "blocked_env_count",
-      "fail_count",
-      "not_implemented_count"
-    ]
-  },
-  "matrix_validation": {
-    "validation_rules": [
-      "Completeness: All providers must be listed",
-      "Consistency: Status must be consistent with evidence",
-      "Accuracy: Status must accurately reflect verification",
-      "Timeliness: Timestamps must be recent",
-      "Evidence: All RUNTIME_PASS must have evidence"
-    ],
-    "validation_checks": [
-      "Schema Validation: Validate matrix against schema",
-      "Evidence Validation: Validate evidence files exist",
-      "Status Validation: Validate status assignments",
-      "Environment Validation: Validate environment requirements",
-      "Capability Validation: Validate capability claims"
-    ],
-    "validation_errors": [
-      "Missing Provider: Provider not listed in matrix",
-      "Missing Evidence: RUNTIME_PASS without evidence",
-      "Status Conflict: Status inconsistent with evidence",
-      "Environment Conflict: Environment requirement mismatch",
-      "Capability Conflict: Capability claim not supported"
-    ]
-  },
-  "matrix_usage": {
-    "matrix_consumers": [
-      "PFFG-001",
-      "PMX-002",
-      "APRV-001",
-      "Inspector",
-      "DecisionLedger"
-    ],
-    "matrix_queries": [
-      "Provider Status",
-      "Category Status",
-      "Environment Status",
-      "Capability Search",
-      "Blocked Providers"
-    ],
-    "matrix_updates": [
-      "Real-time Updates",
-      "Periodic Updates",
-      "Event-driven Updates",
-      "Manual Updates",
-      "Version Control"
-    ]
-  },
-  "implementation_requirements": {
-    "core_components": [
-      "ProviderDiscovery",
-      "ContractVerifier",
-      "EnvironmentChecker",
-      "RuntimeVerifier",
-      "EvidenceCollector",
-      "StatusAssigner",
-      "MatrixAssembler",
-      "MatrixValidator",
-      "MatrixGenerator",
-      "MatrixPersistence"
-    ],
-    "integration_points": [
-      "Provider Registry",
-      "Contract Registry",
-      "Environment Detection",
-      "Evidence Storage",
-      "Inspector",
-      "DecisionLedger",
-      "ErrorMapping"
-    ]
-  },
-  "gate_integration": [
-    "PMX-001: Provider Runtime Matrix generated",
-    "PMX-002: Matrix Honesty Gate validates matrix",
-    "PFFG-001: Foundation Final Gate Reader reads matrix",
-    "APRV-001: All Providers Runtime Verified Gate uses matrix"
-  ],
-  "test_cases": {
-    "positive_test_cases": 10,
-    "negative_test_cases": 10,
-    "total_test_cases": 20
-  },
-  "timestamp_utc": "2026-06-26T01:40:00Z",
-  "completion_level": "p2-foundation-planning",
   "environment": {},
-  "implementation": {},
+  "implementation": {
+    "legacy_runtime_verified_timestamp": "2026-06-26T01:40:00Z",
+    "legacy_provider_matrix_impact": {
+      "matrix_generation": "CONTRACT_PASS"
+    },
+    "legacy_task_name": "P2-PROVIDER-RUNTIME-MATRIX",
+    "legacy_family": "provider_matrix"
+  },
   "media_input": {
     "kind": "not_applicable"
   },
@@ -386,5 +39,741 @@
   "artifacts": [],
   "requires_provider_matrix": false,
   "runtime_verified": false,
-  "task_family": "planning"
+  "blocked_reason": null,
+  "timestamp_utc": "2026-06-26T07:46:09Z",
+  "legacy_original": {
+    "schema_version": "p2-evidence-v8",
+    "task_id": "PMX-001",
+    "task_name": "P2-PROVIDER-RUNTIME-MATRIX",
+    "family": "provider_matrix",
+    "status": "CONTRACT_PASS",
+    "runtime_mode": "matrix_generation",
+    "runtime_environment_kind": "test_harness",
+    "environment_required": false,
+    "environment_available": false,
+    "blocked_reason": null,
+    "runtime_verified_timestamp": "2026-06-26T01:40:00Z",
+    "evidence_file": "artifacts/p2/evidence/PMX-001.json",
+    "provider_matrix_impact": {
+      "matrix_generation": "CONTRACT_PASS"
+    },
+    "matrix_schema": {
+      "schema_version": "provider-runtime-matrix-v8",
+      "top_level_fields": [
+        "schema_version",
+        "generation_timestamp",
+        "generator_version",
+        "project_version",
+        "providers",
+        "metadata"
+      ],
+      "provider_entry_fields": [
+        "provider_id",
+        "provider_name",
+        "provider_kind",
+        "provider_version",
+        "contract_status",
+        "runtime_status",
+        "environment_kind",
+        "environment_required",
+        "environment_available",
+        "blocked_reason",
+        "runtime_verified_timestamp",
+        "evidence_file",
+        "capabilities",
+        "limitations",
+        "dependencies"
+      ],
+      "contract_statuses": [
+        "CONTRACT_PASS",
+        "NOT_IMPLEMENTED",
+        "FAIL",
+        "PARTIAL_IMPLEMENTATION"
+      ],
+      "runtime_statuses": [
+        "RUNTIME_PASS",
+        "CONTRACT_PASS",
+        "BLOCKED_ENV",
+        "FAIL",
+        "NOT_IMPLEMENTED",
+        "SKIPPED_TEST_ONLY"
+      ],
+      "environment_kinds": [
+        "TEST_HARNESS",
+        "LOCAL_HARDWARE",
+        "NETWORK_LOCAL",
+        "NETWORK_INTERNET",
+        "EXTERNAL_SERVICE",
+        "HYBRID"
+      ]
+    },
+    "provider_kinds": {
+      "local_playback": [
+        "local_file",
+        "disc_bdmv"
+      ],
+      "network_file": [
+        "smb",
+        "nfs",
+        "ftp",
+        "ftps",
+        "sftp",
+        "http_file",
+        "https_file",
+        "dlna_upnp"
+      ],
+      "object_storage": [
+        "s3_object",
+        "minio_object"
+      ],
+      "webdav_alist": [
+        "webdav",
+        "alist"
+      ],
+      "media_server": [
+        "emby",
+        "plex",
+        "jellyfin"
+      ],
+      "cloud_storage": [
+        "google_drive",
+        "onedrive"
+      ],
+      "live_streaming": [
+        "iptv_hls"
+      ],
+      "streaming_protocol": [
+        "airplay_cast"
+      ],
+      "integration": [
+        "trakt_api"
+      ]
+    },
+    "provider_list": {
+      "local_file": {
+        "kind": "local_file",
+        "environment": "LOCAL_HARDWARE",
+        "runtime": "Real FFmpeg, D3D11, WASAPI",
+        "status": "CONTRACT_PASS"
+      },
+      "disc_bdmv": {
+        "kind": "disc_bdmv",
+        "environment": "LOCAL_HARDWARE",
+        "runtime": "Real disc reading, BDMV parsing",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "smb": {
+        "kind": "smb",
+        "environment": "NETWORK_LOCAL",
+        "runtime": "SMB client, authentication",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "nfs": {
+        "kind": "nfs",
+        "environment": "NETWORK_LOCAL",
+        "runtime": "NFS client, mounting",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "ftp": {
+        "kind": "ftp",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "FTP client, authentication",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "ftps": {
+        "kind": "ftps",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "FTPS client, TLS",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "sftp": {
+        "kind": "sftp",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "SFTP client, SSH",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "http_file": {
+        "kind": "http_file",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "HTTP client, range requests",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "https_file": {
+        "kind": "https_file",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "HTTPS client, TLS",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "dlna_upnp": {
+        "kind": "dlna_upnp",
+        "environment": "NETWORK_LOCAL",
+        "runtime": "DLNA/UPnP discovery, streaming",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "s3_object": {
+        "kind": "s3_object",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "S3 client, authentication",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "minio_object": {
+        "kind": "minio_object",
+        "environment": "NETWORK_LOCAL",
+        "runtime": "MinIO client, authentication",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "webdav": {
+        "kind": "webdav",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "WebDAV client, PROPFIND/GET",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "alist": {
+        "kind": "alist",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "AList API, direct links",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "emby": {
+        "kind": "emby",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "Emby API, session management",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "plex": {
+        "kind": "plex",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "Plex API, session management",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "jellyfin": {
+        "kind": "jellyfin",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "Jellyfin API, session management",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "google_drive": {
+        "kind": "google_drive",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "Google Drive API, OAuth",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "onedrive": {
+        "kind": "onedrive",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "OneDrive API, OAuth",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "iptv_hls": {
+        "kind": "iptv_hls",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "HLS client, m3u8 parsing",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "airplay_cast": {
+        "kind": "airplay_cast",
+        "environment": "NETWORK_LOCAL",
+        "runtime": "Cast protocol, device discovery",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "trakt_api": {
+        "kind": "trakt_api",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "Trakt API, OAuth",
+        "status": "NOT_IMPLEMENTED"
+      }
+    },
+    "matrix_generation_rules": {
+      "generation_process": [
+        "Discovery",
+        "Contract Check",
+        "Environment Check",
+        "Runtime Verification",
+        "Evidence Collection",
+        "Status Assignment",
+        "Matrix Assembly",
+        "Validation"
+      ],
+      "status_assignment_rules": [
+        "Honest Status: Assign status based on actual verification",
+        "No Default PASS: Never default to RUNTIME_PASS",
+        "Environment Check: BLOCKED_ENV if environment unavailable",
+        "Evidence Required: Evidence required for RUNTIME_PASS",
+        "Contract Minimum: CONTRACT_PASS minimum for defined providers"
+      ],
+      "evidence_requirements": [
+        "Evidence File: Each provider must have evidence file",
+        "Schema Validation: Evidence must validate against schema",
+        "Timestamp: Evidence must have verification timestamp",
+        "Environment: Evidence must specify environment kind",
+        "Status Justification: Evidence must justify status assignment"
+      ]
+    },
+    "matrix_metadata": {
+      "fields": [
+        "generation_command",
+        "generator_version",
+        "project_version",
+        "branch",
+        "commit_hash",
+        "build_configuration",
+        "runtime_environment",
+        "verification_timestamp",
+        "total_providers",
+        "runtime_pass_count",
+        "contract_pass_count",
+        "blocked_env_count",
+        "fail_count",
+        "not_implemented_count"
+      ]
+    },
+    "matrix_validation": {
+      "validation_rules": [
+        "Completeness: All providers must be listed",
+        "Consistency: Status must be consistent with evidence",
+        "Accuracy: Status must accurately reflect verification",
+        "Timeliness: Timestamps must be recent",
+        "Evidence: All RUNTIME_PASS must have evidence"
+      ],
+      "validation_checks": [
+        "Schema Validation: Validate matrix against schema",
+        "Evidence Validation: Validate evidence files exist",
+        "Status Validation: Validate status assignments",
+        "Environment Validation: Validate environment requirements",
+        "Capability Validation: Validate capability claims"
+      ],
+      "validation_errors": [
+        "Missing Provider: Provider not listed in matrix",
+        "Missing Evidence: RUNTIME_PASS without evidence",
+        "Status Conflict: Status inconsistent with evidence",
+        "Environment Conflict: Environment requirement mismatch",
+        "Capability Conflict: Capability claim not supported"
+      ]
+    },
+    "matrix_usage": {
+      "matrix_consumers": [
+        "PFFG-001",
+        "PMX-002",
+        "APRV-001",
+        "Inspector",
+        "DecisionLedger"
+      ],
+      "matrix_queries": [
+        "Provider Status",
+        "Category Status",
+        "Environment Status",
+        "Capability Search",
+        "Blocked Providers"
+      ],
+      "matrix_updates": [
+        "Real-time Updates",
+        "Periodic Updates",
+        "Event-driven Updates",
+        "Manual Updates",
+        "Version Control"
+      ]
+    },
+    "implementation_requirements": {
+      "core_components": [
+        "ProviderDiscovery",
+        "ContractVerifier",
+        "EnvironmentChecker",
+        "RuntimeVerifier",
+        "EvidenceCollector",
+        "StatusAssigner",
+        "MatrixAssembler",
+        "MatrixValidator",
+        "MatrixGenerator",
+        "MatrixPersistence"
+      ],
+      "integration_points": [
+        "Provider Registry",
+        "Contract Registry",
+        "Environment Detection",
+        "Evidence Storage",
+        "Inspector",
+        "DecisionLedger",
+        "ErrorMapping"
+      ]
+    },
+    "gate_integration": [
+      "PMX-001: Provider Runtime Matrix generated",
+      "PMX-002: Matrix Honesty Gate validates matrix",
+      "PFFG-001: Foundation Final Gate Reader reads matrix",
+      "APRV-001: All Providers Runtime Verified Gate uses matrix"
+    ],
+    "test_cases": {
+      "positive_test_cases": 10,
+      "negative_test_cases": 10,
+      "total_test_cases": 20
+    }
+  },
+  "legacy_fields": {
+    "task_name": "P2-PROVIDER-RUNTIME-MATRIX",
+    "family": "provider_matrix",
+    "environment_required": false,
+    "environment_available": false,
+    "runtime_verified_timestamp": "2026-06-26T01:40:00Z",
+    "evidence_file": "artifacts/p2/evidence/PMX-001.json",
+    "provider_matrix_impact": {
+      "matrix_generation": "CONTRACT_PASS"
+    },
+    "matrix_schema": {
+      "schema_version": "provider-runtime-matrix-v8",
+      "top_level_fields": [
+        "schema_version",
+        "generation_timestamp",
+        "generator_version",
+        "project_version",
+        "providers",
+        "metadata"
+      ],
+      "provider_entry_fields": [
+        "provider_id",
+        "provider_name",
+        "provider_kind",
+        "provider_version",
+        "contract_status",
+        "runtime_status",
+        "environment_kind",
+        "environment_required",
+        "environment_available",
+        "blocked_reason",
+        "runtime_verified_timestamp",
+        "evidence_file",
+        "capabilities",
+        "limitations",
+        "dependencies"
+      ],
+      "contract_statuses": [
+        "CONTRACT_PASS",
+        "NOT_IMPLEMENTED",
+        "FAIL",
+        "PARTIAL_IMPLEMENTATION"
+      ],
+      "runtime_statuses": [
+        "RUNTIME_PASS",
+        "CONTRACT_PASS",
+        "BLOCKED_ENV",
+        "FAIL",
+        "NOT_IMPLEMENTED",
+        "SKIPPED_TEST_ONLY"
+      ],
+      "environment_kinds": [
+        "TEST_HARNESS",
+        "LOCAL_HARDWARE",
+        "NETWORK_LOCAL",
+        "NETWORK_INTERNET",
+        "EXTERNAL_SERVICE",
+        "HYBRID"
+      ]
+    },
+    "provider_kinds": {
+      "local_playback": [
+        "local_file",
+        "disc_bdmv"
+      ],
+      "network_file": [
+        "smb",
+        "nfs",
+        "ftp",
+        "ftps",
+        "sftp",
+        "http_file",
+        "https_file",
+        "dlna_upnp"
+      ],
+      "object_storage": [
+        "s3_object",
+        "minio_object"
+      ],
+      "webdav_alist": [
+        "webdav",
+        "alist"
+      ],
+      "media_server": [
+        "emby",
+        "plex",
+        "jellyfin"
+      ],
+      "cloud_storage": [
+        "google_drive",
+        "onedrive"
+      ],
+      "live_streaming": [
+        "iptv_hls"
+      ],
+      "streaming_protocol": [
+        "airplay_cast"
+      ],
+      "integration": [
+        "trakt_api"
+      ]
+    },
+    "provider_list": {
+      "local_file": {
+        "kind": "local_file",
+        "environment": "LOCAL_HARDWARE",
+        "runtime": "Real FFmpeg, D3D11, WASAPI",
+        "status": "CONTRACT_PASS"
+      },
+      "disc_bdmv": {
+        "kind": "disc_bdmv",
+        "environment": "LOCAL_HARDWARE",
+        "runtime": "Real disc reading, BDMV parsing",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "smb": {
+        "kind": "smb",
+        "environment": "NETWORK_LOCAL",
+        "runtime": "SMB client, authentication",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "nfs": {
+        "kind": "nfs",
+        "environment": "NETWORK_LOCAL",
+        "runtime": "NFS client, mounting",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "ftp": {
+        "kind": "ftp",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "FTP client, authentication",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "ftps": {
+        "kind": "ftps",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "FTPS client, TLS",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "sftp": {
+        "kind": "sftp",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "SFTP client, SSH",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "http_file": {
+        "kind": "http_file",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "HTTP client, range requests",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "https_file": {
+        "kind": "https_file",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "HTTPS client, TLS",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "dlna_upnp": {
+        "kind": "dlna_upnp",
+        "environment": "NETWORK_LOCAL",
+        "runtime": "DLNA/UPnP discovery, streaming",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "s3_object": {
+        "kind": "s3_object",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "S3 client, authentication",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "minio_object": {
+        "kind": "minio_object",
+        "environment": "NETWORK_LOCAL",
+        "runtime": "MinIO client, authentication",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "webdav": {
+        "kind": "webdav",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "WebDAV client, PROPFIND/GET",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "alist": {
+        "kind": "alist",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "AList API, direct links",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "emby": {
+        "kind": "emby",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "Emby API, session management",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "plex": {
+        "kind": "plex",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "Plex API, session management",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "jellyfin": {
+        "kind": "jellyfin",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "Jellyfin API, session management",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "google_drive": {
+        "kind": "google_drive",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "Google Drive API, OAuth",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "onedrive": {
+        "kind": "onedrive",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "OneDrive API, OAuth",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "iptv_hls": {
+        "kind": "iptv_hls",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "HLS client, m3u8 parsing",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "airplay_cast": {
+        "kind": "airplay_cast",
+        "environment": "NETWORK_LOCAL",
+        "runtime": "Cast protocol, device discovery",
+        "status": "NOT_IMPLEMENTED"
+      },
+      "trakt_api": {
+        "kind": "trakt_api",
+        "environment": "NETWORK_INTERNET",
+        "runtime": "Trakt API, OAuth",
+        "status": "NOT_IMPLEMENTED"
+      }
+    },
+    "matrix_generation_rules": {
+      "generation_process": [
+        "Discovery",
+        "Contract Check",
+        "Environment Check",
+        "Runtime Verification",
+        "Evidence Collection",
+        "Status Assignment",
+        "Matrix Assembly",
+        "Validation"
+      ],
+      "status_assignment_rules": [
+        "Honest Status: Assign status based on actual verification",
+        "No Default PASS: Never default to RUNTIME_PASS",
+        "Environment Check: BLOCKED_ENV if environment unavailable",
+        "Evidence Required: Evidence required for RUNTIME_PASS",
+        "Contract Minimum: CONTRACT_PASS minimum for defined providers"
+      ],
+      "evidence_requirements": [
+        "Evidence File: Each provider must have evidence file",
+        "Schema Validation: Evidence must validate against schema",
+        "Timestamp: Evidence must have verification timestamp",
+        "Environment: Evidence must specify environment kind",
+        "Status Justification: Evidence must justify status assignment"
+      ]
+    },
+    "matrix_metadata": {
+      "fields": [
+        "generation_command",
+        "generator_version",
+        "project_version",
+        "branch",
+        "commit_hash",
+        "build_configuration",
+        "runtime_environment",
+        "verification_timestamp",
+        "total_providers",
+        "runtime_pass_count",
+        "contract_pass_count",
+        "blocked_env_count",
+        "fail_count",
+        "not_implemented_count"
+      ]
+    },
+    "matrix_validation": {
+      "validation_rules": [
+        "Completeness: All providers must be listed",
+        "Consistency: Status must be consistent with evidence",
+        "Accuracy: Status must accurately reflect verification",
+        "Timeliness: Timestamps must be recent",
+        "Evidence: All RUNTIME_PASS must have evidence"
+      ],
+      "validation_checks": [
+        "Schema Validation: Validate matrix against schema",
+        "Evidence Validation: Validate evidence files exist",
+        "Status Validation: Validate status assignments",
+        "Environment Validation: Validate environment requirements",
+        "Capability Validation: Validate capability claims"
+      ],
+      "validation_errors": [
+        "Missing Provider: Provider not listed in matrix",
+        "Missing Evidence: RUNTIME_PASS without evidence",
+        "Status Conflict: Status inconsistent with evidence",
+        "Environment Conflict: Environment requirement mismatch",
+        "Capability Conflict: Capability claim not supported"
+      ]
+    },
+    "matrix_usage": {
+      "matrix_consumers": [
+        "PFFG-001",
+        "PMX-002",
+        "APRV-001",
+        "Inspector",
+        "DecisionLedger"
+      ],
+      "matrix_queries": [
+        "Provider Status",
+        "Category Status",
+        "Environment Status",
+        "Capability Search",
+        "Blocked Providers"
+      ],
+      "matrix_updates": [
+        "Real-time Updates",
+        "Periodic Updates",
+        "Event-driven Updates",
+        "Manual Updates",
+        "Version Control"
+      ]
+    },
+    "implementation_requirements": {
+      "core_components": [
+        "ProviderDiscovery",
+        "ContractVerifier",
+        "EnvironmentChecker",
+        "RuntimeVerifier",
+        "EvidenceCollector",
+        "StatusAssigner",
+        "MatrixAssembler",
+        "MatrixValidator",
+        "MatrixGenerator",
+        "MatrixPersistence"
+      ],
+      "integration_points": [
+        "Provider Registry",
+        "Contract Registry",
+        "Environment Detection",
+        "Evidence Storage",
+        "Inspector",
+        "DecisionLedger",
+        "ErrorMapping"
+      ]
+    },
+    "gate_integration": [
+      "PMX-001: Provider Runtime Matrix generated",
+      "PMX-002: Matrix Honesty Gate validates matrix",
+      "PFFG-001: Foundation Final Gate Reader reads matrix",
+      "APRV-001: All Providers Runtime Verified Gate uses matrix"
+    ],
+    "test_cases": {
+      "positive_test_cases": 10,
+      "negative_test_cases": 10,
+      "total_test_cases": 20
+    }
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 17,
+    "migrated_field_count": 33
+  }
 }

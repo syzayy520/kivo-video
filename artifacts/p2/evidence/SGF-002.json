@@ -1,53 +1,20 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "SGF-002",
+  "task_family": "planning",
   "status": "CONTRACT_PASS",
+  "completion_level": "p2-foundation-planning",
   "runtime_mode": "schema",
   "runtime_environment_kind": "not_applicable",
-  "environment_required": false,
-  "environment_available": false,
-  "blocked_reason": "",
-  "evidence_file": "artifacts/p2/evidence/SGF-002.json",
-  "schema_definition": {
-    "schema_name": "p2-inspector-v8",
-    "document_path": "docs/roadmap/p2_inspector_v8_schema.md",
-    "top_level_fields": 13,
-    "info_object_fields": 11,
-    "error_entry_fields": 7,
-    "validation_rules": 6
-  },
-  "info_object_inventory": [
-    "source_info",
-    "probe_info",
-    "demux_info",
-    "decode_info",
-    "presenter_info",
-    "audio_info",
-    "clock_info",
-    "seek_info",
-    "lifecycle_info",
-    "threading_info",
-    "provider_info",
-    "extension_info",
-    "errors"
-  ],
-  "field_counts": {
-    "source_info": 7,
-    "probe_info": 9,
-    "demux_info": 8,
-    "decode_info": 8,
-    "presenter_info": 7,
-    "audio_info": 8,
-    "clock_info": 7,
-    "seek_info": 6,
-    "lifecycle_info": 8,
-    "threading_info": 7,
-    "error_entry": 7
-  },
-  "timestamp_utc": "2026-06-26T01:00:00Z",
-  "completion_level": "p2-foundation-planning",
   "environment": {},
-  "implementation": {},
+  "implementation": {
+    "legacy_runtime_verified_timestamp": "2026-06-26T01:00:00Z",
+    "legacy_provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "legacy_task_name": "Define p2-inspector-v8 schema",
+    "legacy_family": "evidence_schema"
+  },
   "media_input": {
     "kind": "not_applicable"
   },
@@ -72,5 +39,113 @@
   "artifacts": [],
   "requires_provider_matrix": false,
   "runtime_verified": false,
-  "task_family": "planning"
+  "blocked_reason": null,
+  "timestamp_utc": "2026-06-26T07:46:09Z",
+  "legacy_original": {
+    "schema_version": "p2-evidence-v8",
+    "task_id": "SGF-002",
+    "task_name": "Define p2-inspector-v8 schema",
+    "family": "evidence_schema",
+    "status": "CONTRACT_PASS",
+    "runtime_mode": "schema",
+    "runtime_environment_kind": "test_harness",
+    "environment_required": false,
+    "environment_available": false,
+    "blocked_reason": null,
+    "runtime_verified_timestamp": "2026-06-26T01:00:00Z",
+    "evidence_file": "artifacts/p2/evidence/SGF-002.json",
+    "provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "schema_definition": {
+      "schema_name": "p2-inspector-v8",
+      "document_path": "docs/roadmap/p2_inspector_v8_schema.md",
+      "top_level_fields": 13,
+      "info_object_fields": 11,
+      "error_entry_fields": 7,
+      "validation_rules": 6
+    },
+    "info_object_inventory": [
+      "source_info",
+      "probe_info",
+      "demux_info",
+      "decode_info",
+      "presenter_info",
+      "audio_info",
+      "clock_info",
+      "seek_info",
+      "lifecycle_info",
+      "threading_info",
+      "provider_info",
+      "extension_info",
+      "errors"
+    ],
+    "field_counts": {
+      "source_info": 7,
+      "probe_info": 9,
+      "demux_info": 8,
+      "decode_info": 8,
+      "presenter_info": 7,
+      "audio_info": 8,
+      "clock_info": 7,
+      "seek_info": 6,
+      "lifecycle_info": 8,
+      "threading_info": 7,
+      "error_entry": 7
+    }
+  },
+  "legacy_fields": {
+    "task_name": "Define p2-inspector-v8 schema",
+    "family": "evidence_schema",
+    "environment_required": false,
+    "environment_available": false,
+    "runtime_verified_timestamp": "2026-06-26T01:00:00Z",
+    "evidence_file": "artifacts/p2/evidence/SGF-002.json",
+    "provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "schema_definition": {
+      "schema_name": "p2-inspector-v8",
+      "document_path": "docs/roadmap/p2_inspector_v8_schema.md",
+      "top_level_fields": 13,
+      "info_object_fields": 11,
+      "error_entry_fields": 7,
+      "validation_rules": 6
+    },
+    "info_object_inventory": [
+      "source_info",
+      "probe_info",
+      "demux_info",
+      "decode_info",
+      "presenter_info",
+      "audio_info",
+      "clock_info",
+      "seek_info",
+      "lifecycle_info",
+      "threading_info",
+      "provider_info",
+      "extension_info",
+      "errors"
+    ],
+    "field_counts": {
+      "source_info": 7,
+      "probe_info": 9,
+      "demux_info": 8,
+      "decode_info": 8,
+      "presenter_info": 7,
+      "audio_info": 8,
+      "clock_info": 7,
+      "seek_info": 6,
+      "lifecycle_info": 8,
+      "threading_info": 7,
+      "error_entry": 7
+    }
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 10,
+    "migrated_field_count": 33
+  }
 }

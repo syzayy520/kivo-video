@@ -1,265 +1,20 @@
 {
   "schema_version": "p2-evidence-v8",
   "task_id": "OBJ-001",
+  "task_family": "planning",
   "status": "CONTRACT_PASS",
+  "completion_level": "p2-foundation-planning",
   "runtime_mode": "object_storage_verification",
   "runtime_environment_kind": "not_applicable",
-  "environment_required": false,
-  "environment_available": false,
-  "blocked_reason": "",
-  "evidence_file": "artifacts/p2/evidence/OBJ-001.json",
-  "object_storage_definition": {
-    "document_path": "docs/roadmap/p2_object_storage.md",
-    "object_storage_types": {
-      "s3_compatible": {
-        "protocol": "AWS S3 API",
-        "use_cases": [
-          "Cloud storage",
-          "media archives"
-        ],
-        "authentication": [
-          "AWS Signature V4"
-        ],
-        "features": [
-          "Bucket/object operations",
-          "Range requests",
-          "Multipart uploads",
-          "Versioning"
-        ],
-        "capabilities": {
-          "supports_range": true,
-          "supports_seek": true,
-          "supports_streaming": true,
-          "max_concurrent_connections": 32
-        }
-      },
-      "minio": {
-        "protocol": "S3-compatible API",
-        "use_cases": [
-          "Self-hosted object storage"
-        ],
-        "authentication": [
-          "AWS Signature V4"
-        ],
-        "features": [
-          "S3-compatible API",
-          "Erasure coding",
-          "Versioning",
-          "Lifecycle policies"
-        ],
-        "capabilities": {
-          "supports_range": true,
-          "supports_seek": true,
-          "supports_streaming": true,
-          "max_concurrent_connections": 32
-        }
-      }
-    },
-    "endpoint_object_identity": {
-      "endpoint_identity": {
-        "fields": [
-          "endpoint_url",
-          "region",
-          "bucket_name",
-          "path_style"
-        ],
-        "redaction_rules": [
-          "No internal endpoints in logs",
-          "Redact endpoint URLs in Inspector"
-        ]
-      },
-      "object_identity": {
-        "fields": [
-          "object_key",
-          "object_size",
-          "object_etag",
-          "last_modified"
-        ],
-        "redaction_rules": [
-          "No full object paths in logs",
-          "Redact object keys in Inspector"
-        ]
-      }
-    },
-    "operations": {
-      "head_object": {
-        "purpose": "Get object metadata without downloading",
-        "response_headers": [
-          "Content-Length",
-          "Content-Type",
-          "ETag",
-          "Last-Modified"
-        ],
-        "use_cases": [
-          "Check object existence",
-          "Get object size",
-          "Verify object unchanged"
-        ]
-      },
-      "get_object": {
-        "purpose": "Download object or range",
-        "parameters": [
-          "Range",
-          "If-None-Match",
-          "If-Modified-Since"
-        ],
-        "use_cases": [
-          "Download full object",
-          "Download partial object",
-          "Conditional download"
-        ]
-      },
-      "range_requests": {
-        "purpose": "Download object in parts",
-        "range_format": "bytes=start-end",
-        "examples": [
-          "bytes=0-1023",
-          "bytes=1024-",
-          "bytes=-1024"
-        ],
-        "use_cases": [
-          "Resumable downloads",
-          "Partial content access",
-          "Parallel downloads"
-        ]
-      }
-    },
-    "metadata": {
-      "etag": {
-        "purpose": "Object integrity check",
-        "format": "MD5 hash or multipart ETag",
-        "use_cases": [
-          "Verify object unchanged",
-          "Cache validation",
-          "Upload verification"
-        ]
-      },
-      "last_modified": {
-        "purpose": "Object modification time",
-        "format": "ISO 8601 timestamp",
-        "use_cases": [
-          "Cache freshness",
-          "Change detection",
-          "Version comparison"
-        ]
-      },
-      "content_type": {
-        "purpose": "Object MIME type",
-        "format": "Standard MIME type",
-        "use_cases": [
-          "Content handling",
-          "Format detection",
-          "Player selection"
-        ]
-      }
-    },
-    "error_handling": {
-      "permission_errors": {
-        "error_types": [
-          "AccessDenied",
-          "Forbidden",
-          "InvalidAccessKey"
-        ],
-        "handling": [
-          "Check credentials",
-          "Verify permissions",
-          "Request access"
-        ]
-      },
-      "not_found_errors": {
-        "error_types": [
-          "NoSuchBucket",
-          "NoSuchKey",
-          "NotFound"
-        ],
-        "handling": [
-          "Verify bucket name",
-          "Verify object key",
-          "Check path"
-        ]
-      },
-      "throttling_errors": {
-        "error_types": [
-          "Throttling",
-          "RequestLimitExceeded",
-          "SlowDown"
-        ],
-        "handling": [
-          "Implement backoff",
-          "Reduce request rate",
-          "Use request queuing"
-        ]
-      },
-      "tls_errors": {
-        "error_types": [
-          "SSLHandshakeFailed",
-          "CertificateExpired",
-          "CertificateUntrusted"
-        ],
-        "handling": [
-          "Verify TLS version",
-          "Check certificate validity",
-          "Use trusted certificates"
-        ]
-      }
-    },
-    "credential_management": {
-      "access_key_secret_key": {
-        "storage": "Secure credential storage",
-        "rotation": "Periodic rotation",
-        "redaction": "Never log credentials"
-      },
-      "session_tokens": {
-        "purpose": "Temporary credentials",
-        "expiration": "Time-limited",
-        "refresh": "Automatic refresh"
-      },
-      "presigned_urls": {
-        "purpose": "Temporary access URLs",
-        "expiration": "Time-limited",
-        "redaction": "No URL logging"
-      }
-    }
-  },
-  "privacy_redaction": {
-    "endpoint_redaction": "No internal endpoints in logs",
-    "credential_redaction": "No access keys or secret keys",
-    "object_key_redaction": "No full object paths"
-  },
-  "gate_integration": [
-    "OBJ-001: Object storage system defined",
-    "PFFG-001: Foundation Final Gate Reader checks object storage definitions",
-    "PMX-001: Provider Runtime Matrix includes object storage support"
-  ],
-  "test_cases": {
-    "positive_test_cases": 6,
-    "negative_test_cases": 6,
-    "total_test_cases": 12
-  },
-  "implementation_requirements": {
-    "s3_client": [
-      "Implement S3 API operations",
-      "Handle authentication",
-      "Support range requests",
-      "Handle errors"
-    ],
-    "credential_management": [
-      "Secure credential storage",
-      "Credential rotation",
-      "Session token handling",
-      "Presigned URL generation"
-    ],
-    "error_handling": [
-      "Error classification",
-      "Retry logic",
-      "Backoff implementation",
-      "Error reporting"
-    ]
-  },
-  "timestamp_utc": "2026-06-26T01:28:00Z",
-  "completion_level": "p2-foundation-planning",
   "environment": {},
-  "implementation": {},
+  "implementation": {
+    "legacy_runtime_verified_timestamp": "2026-06-26T01:28:00Z",
+    "legacy_provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "legacy_task_name": "P2-OBJECT-STORAGE",
+    "legacy_family": "object_storage"
+  },
   "media_input": {
     "kind": "not_applicable"
   },
@@ -284,5 +39,537 @@
   "artifacts": [],
   "requires_provider_matrix": false,
   "runtime_verified": false,
-  "task_family": "planning"
+  "blocked_reason": null,
+  "timestamp_utc": "2026-06-26T07:46:09Z",
+  "legacy_original": {
+    "schema_version": "p2-evidence-v8",
+    "task_id": "OBJ-001",
+    "task_name": "P2-OBJECT-STORAGE",
+    "family": "object_storage",
+    "status": "CONTRACT_PASS",
+    "runtime_mode": "object_storage_verification",
+    "runtime_environment_kind": "test_harness",
+    "environment_required": false,
+    "environment_available": false,
+    "blocked_reason": null,
+    "runtime_verified_timestamp": "2026-06-26T01:28:00Z",
+    "evidence_file": "artifacts/p2/evidence/OBJ-001.json",
+    "provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "object_storage_definition": {
+      "document_path": "docs/roadmap/p2_object_storage.md",
+      "object_storage_types": {
+        "s3_compatible": {
+          "protocol": "AWS S3 API",
+          "use_cases": [
+            "Cloud storage",
+            "media archives"
+          ],
+          "authentication": [
+            "AWS Signature V4"
+          ],
+          "features": [
+            "Bucket/object operations",
+            "Range requests",
+            "Multipart uploads",
+            "Versioning"
+          ],
+          "capabilities": {
+            "supports_range": true,
+            "supports_seek": true,
+            "supports_streaming": true,
+            "max_concurrent_connections": 32
+          }
+        },
+        "minio": {
+          "protocol": "S3-compatible API",
+          "use_cases": [
+            "Self-hosted object storage"
+          ],
+          "authentication": [
+            "AWS Signature V4"
+          ],
+          "features": [
+            "S3-compatible API",
+            "Erasure coding",
+            "Versioning",
+            "Lifecycle policies"
+          ],
+          "capabilities": {
+            "supports_range": true,
+            "supports_seek": true,
+            "supports_streaming": true,
+            "max_concurrent_connections": 32
+          }
+        }
+      },
+      "endpoint_object_identity": {
+        "endpoint_identity": {
+          "fields": [
+            "endpoint_url",
+            "region",
+            "bucket_name",
+            "path_style"
+          ],
+          "redaction_rules": [
+            "No internal endpoints in logs",
+            "Redact endpoint URLs in Inspector"
+          ]
+        },
+        "object_identity": {
+          "fields": [
+            "object_key",
+            "object_size",
+            "object_etag",
+            "last_modified"
+          ],
+          "redaction_rules": [
+            "No full object paths in logs",
+            "Redact object keys in Inspector"
+          ]
+        }
+      },
+      "operations": {
+        "head_object": {
+          "purpose": "Get object metadata without downloading",
+          "response_headers": [
+            "Content-Length",
+            "Content-Type",
+            "ETag",
+            "Last-Modified"
+          ],
+          "use_cases": [
+            "Check object existence",
+            "Get object size",
+            "Verify object unchanged"
+          ]
+        },
+        "get_object": {
+          "purpose": "Download object or range",
+          "parameters": [
+            "Range",
+            "If-None-Match",
+            "If-Modified-Since"
+          ],
+          "use_cases": [
+            "Download full object",
+            "Download partial object",
+            "Conditional download"
+          ]
+        },
+        "range_requests": {
+          "purpose": "Download object in parts",
+          "range_format": "bytes=start-end",
+          "examples": [
+            "bytes=0-1023",
+            "bytes=1024-",
+            "bytes=-1024"
+          ],
+          "use_cases": [
+            "Resumable downloads",
+            "Partial content access",
+            "Parallel downloads"
+          ]
+        }
+      },
+      "metadata": {
+        "etag": {
+          "purpose": "Object integrity check",
+          "format": "MD5 hash or multipart ETag",
+          "use_cases": [
+            "Verify object unchanged",
+            "Cache validation",
+            "Upload verification"
+          ]
+        },
+        "last_modified": {
+          "purpose": "Object modification time",
+          "format": "ISO 8601 timestamp",
+          "use_cases": [
+            "Cache freshness",
+            "Change detection",
+            "Version comparison"
+          ]
+        },
+        "content_type": {
+          "purpose": "Object MIME type",
+          "format": "Standard MIME type",
+          "use_cases": [
+            "Content handling",
+            "Format detection",
+            "Player selection"
+          ]
+        }
+      },
+      "error_handling": {
+        "permission_errors": {
+          "error_types": [
+            "AccessDenied",
+            "Forbidden",
+            "InvalidAccessKey"
+          ],
+          "handling": [
+            "Check credentials",
+            "Verify permissions",
+            "Request access"
+          ]
+        },
+        "not_found_errors": {
+          "error_types": [
+            "NoSuchBucket",
+            "NoSuchKey",
+            "NotFound"
+          ],
+          "handling": [
+            "Verify bucket name",
+            "Verify object key",
+            "Check path"
+          ]
+        },
+        "throttling_errors": {
+          "error_types": [
+            "Throttling",
+            "RequestLimitExceeded",
+            "SlowDown"
+          ],
+          "handling": [
+            "Implement backoff",
+            "Reduce request rate",
+            "Use request queuing"
+          ]
+        },
+        "tls_errors": {
+          "error_types": [
+            "SSLHandshakeFailed",
+            "CertificateExpired",
+            "CertificateUntrusted"
+          ],
+          "handling": [
+            "Verify TLS version",
+            "Check certificate validity",
+            "Use trusted certificates"
+          ]
+        }
+      },
+      "credential_management": {
+        "access_key_secret_key": {
+          "storage": "Secure credential storage",
+          "rotation": "Periodic rotation",
+          "redaction": "Never log credentials"
+        },
+        "session_tokens": {
+          "purpose": "Temporary credentials",
+          "expiration": "Time-limited",
+          "refresh": "Automatic refresh"
+        },
+        "presigned_urls": {
+          "purpose": "Temporary access URLs",
+          "expiration": "Time-limited",
+          "redaction": "No URL logging"
+        }
+      }
+    },
+    "privacy_redaction": {
+      "endpoint_redaction": "No internal endpoints in logs",
+      "credential_redaction": "No access keys or secret keys",
+      "object_key_redaction": "No full object paths"
+    },
+    "gate_integration": [
+      "OBJ-001: Object storage system defined",
+      "PFFG-001: Foundation Final Gate Reader checks object storage definitions",
+      "PMX-001: Provider Runtime Matrix includes object storage support"
+    ],
+    "test_cases": {
+      "positive_test_cases": 6,
+      "negative_test_cases": 6,
+      "total_test_cases": 12
+    },
+    "implementation_requirements": {
+      "s3_client": [
+        "Implement S3 API operations",
+        "Handle authentication",
+        "Support range requests",
+        "Handle errors"
+      ],
+      "credential_management": [
+        "Secure credential storage",
+        "Credential rotation",
+        "Session token handling",
+        "Presigned URL generation"
+      ],
+      "error_handling": [
+        "Error classification",
+        "Retry logic",
+        "Backoff implementation",
+        "Error reporting"
+      ]
+    }
+  },
+  "legacy_fields": {
+    "task_name": "P2-OBJECT-STORAGE",
+    "family": "object_storage",
+    "environment_required": false,
+    "environment_available": false,
+    "runtime_verified_timestamp": "2026-06-26T01:28:00Z",
+    "evidence_file": "artifacts/p2/evidence/OBJ-001.json",
+    "provider_matrix_impact": {
+      "local_file": "CONTRACT_PASS"
+    },
+    "object_storage_definition": {
+      "document_path": "docs/roadmap/p2_object_storage.md",
+      "object_storage_types": {
+        "s3_compatible": {
+          "protocol": "AWS S3 API",
+          "use_cases": [
+            "Cloud storage",
+            "media archives"
+          ],
+          "authentication": [
+            "AWS Signature V4"
+          ],
+          "features": [
+            "Bucket/object operations",
+            "Range requests",
+            "Multipart uploads",
+            "Versioning"
+          ],
+          "capabilities": {
+            "supports_range": true,
+            "supports_seek": true,
+            "supports_streaming": true,
+            "max_concurrent_connections": 32
+          }
+        },
+        "minio": {
+          "protocol": "S3-compatible API",
+          "use_cases": [
+            "Self-hosted object storage"
+          ],
+          "authentication": [
+            "AWS Signature V4"
+          ],
+          "features": [
+            "S3-compatible API",
+            "Erasure coding",
+            "Versioning",
+            "Lifecycle policies"
+          ],
+          "capabilities": {
+            "supports_range": true,
+            "supports_seek": true,
+            "supports_streaming": true,
+            "max_concurrent_connections": 32
+          }
+        }
+      },
+      "endpoint_object_identity": {
+        "endpoint_identity": {
+          "fields": [
+            "endpoint_url",
+            "region",
+            "bucket_name",
+            "path_style"
+          ],
+          "redaction_rules": [
+            "No internal endpoints in logs",
+            "Redact endpoint URLs in Inspector"
+          ]
+        },
+        "object_identity": {
+          "fields": [
+            "object_key",
+            "object_size",
+            "object_etag",
+            "last_modified"
+          ],
+          "redaction_rules": [
+            "No full object paths in logs",
+            "Redact object keys in Inspector"
+          ]
+        }
+      },
+      "operations": {
+        "head_object": {
+          "purpose": "Get object metadata without downloading",
+          "response_headers": [
+            "Content-Length",
+            "Content-Type",
+            "ETag",
+            "Last-Modified"
+          ],
+          "use_cases": [
+            "Check object existence",
+            "Get object size",
+            "Verify object unchanged"
+          ]
+        },
+        "get_object": {
+          "purpose": "Download object or range",
+          "parameters": [
+            "Range",
+            "If-None-Match",
+            "If-Modified-Since"
+          ],
+          "use_cases": [
+            "Download full object",
+            "Download partial object",
+            "Conditional download"
+          ]
+        },
+        "range_requests": {
+          "purpose": "Download object in parts",
+          "range_format": "bytes=start-end",
+          "examples": [
+            "bytes=0-1023",
+            "bytes=1024-",
+            "bytes=-1024"
+          ],
+          "use_cases": [
+            "Resumable downloads",
+            "Partial content access",
+            "Parallel downloads"
+          ]
+        }
+      },
+      "metadata": {
+        "etag": {
+          "purpose": "Object integrity check",
+          "format": "MD5 hash or multipart ETag",
+          "use_cases": [
+            "Verify object unchanged",
+            "Cache validation",
+            "Upload verification"
+          ]
+        },
+        "last_modified": {
+          "purpose": "Object modification time",
+          "format": "ISO 8601 timestamp",
+          "use_cases": [
+            "Cache freshness",
+            "Change detection",
+            "Version comparison"
+          ]
+        },
+        "content_type": {
+          "purpose": "Object MIME type",
+          "format": "Standard MIME type",
+          "use_cases": [
+            "Content handling",
+            "Format detection",
+            "Player selection"
+          ]
+        }
+      },
+      "error_handling": {
+        "permission_errors": {
+          "error_types": [
+            "AccessDenied",
+            "Forbidden",
+            "InvalidAccessKey"
+          ],
+          "handling": [
+            "Check credentials",
+            "Verify permissions",
+            "Request access"
+          ]
+        },
+        "not_found_errors": {
+          "error_types": [
+            "NoSuchBucket",
+            "NoSuchKey",
+            "NotFound"
+          ],
+          "handling": [
+            "Verify bucket name",
+            "Verify object key",
+            "Check path"
+          ]
+        },
+        "throttling_errors": {
+          "error_types": [
+            "Throttling",
+            "RequestLimitExceeded",
+            "SlowDown"
+          ],
+          "handling": [
+            "Implement backoff",
+            "Reduce request rate",
+            "Use request queuing"
+          ]
+        },
+        "tls_errors": {
+          "error_types": [
+            "SSLHandshakeFailed",
+            "CertificateExpired",
+            "CertificateUntrusted"
+          ],
+          "handling": [
+            "Verify TLS version",
+            "Check certificate validity",
+            "Use trusted certificates"
+          ]
+        }
+      },
+      "credential_management": {
+        "access_key_secret_key": {
+          "storage": "Secure credential storage",
+          "rotation": "Periodic rotation",
+          "redaction": "Never log credentials"
+        },
+        "session_tokens": {
+          "purpose": "Temporary credentials",
+          "expiration": "Time-limited",
+          "refresh": "Automatic refresh"
+        },
+        "presigned_urls": {
+          "purpose": "Temporary access URLs",
+          "expiration": "Time-limited",
+          "redaction": "No URL logging"
+        }
+      }
+    },
+    "privacy_redaction": {
+      "endpoint_redaction": "No internal endpoints in logs",
+      "credential_redaction": "No access keys or secret keys",
+      "object_key_redaction": "No full object paths"
+    },
+    "gate_integration": [
+      "OBJ-001: Object storage system defined",
+      "PFFG-001: Foundation Final Gate Reader checks object storage definitions",
+      "PMX-001: Provider Runtime Matrix includes object storage support"
+    ],
+    "test_cases": {
+      "positive_test_cases": 6,
+      "negative_test_cases": 6,
+      "total_test_cases": 12
+    },
+    "implementation_requirements": {
+      "s3_client": [
+        "Implement S3 API operations",
+        "Handle authentication",
+        "Support range requests",
+        "Handle errors"
+      ],
+      "credential_management": [
+        "Secure credential storage",
+        "Credential rotation",
+        "Session token handling",
+        "Presigned URL generation"
+      ],
+      "error_handling": [
+        "Error classification",
+        "Retry logic",
+        "Backoff implementation",
+        "Error reporting"
+      ]
+    }
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 12,
+    "migrated_field_count": 33
+  }
 }

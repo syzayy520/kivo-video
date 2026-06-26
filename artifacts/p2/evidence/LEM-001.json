@@ -1,0 +1,103 @@
+{
+  "schema_version": "p2-evidence-v8",
+  "task_id": "LEM-001",
+  "task_family": "governance",
+  "status": "CONTRACT_PASS",
+  "completion_level": "p2-foundation-planning",
+  "runtime_mode": "audit",
+  "runtime_environment_kind": "not_applicable",
+  "environment": {
+    "required": false,
+    "available": false,
+    "description": "No runtime environment required for evidence migration audit"
+  },
+  "implementation": {
+    "migration_script": "backend/tools/governance/redline_gate/migrate_legacy_evidence_preserve.py",
+    "classification_script": "backend/tools/governance/redline_gate/classify_violations.py",
+    "field_retention_report": "backend/tools/governance/redline_gate/artifacts/legacy_evidence_field_retention_report.json",
+    "violation_classification_report": "backend/tools/governance/redline_gate/artifacts/violation_classification_report.json",
+    "redline_scan_result": "backend/tools/governance/redline_gate/artifacts/redline_gate_result.json",
+    "migrated_files_count": 51,
+    "excluded_rgf_files_count": 5,
+    "rgf_files_changed": 0
+  },
+  "media_input": {
+    "kind": "not_applicable"
+  },
+  "extension_input": {},
+  "media_identity": {},
+  "source_identity": {},
+  "extension_identity": {},
+  "capability_probe": {},
+  "direct_play_decision": {},
+  "direct_stream_decision": {},
+  "subtitle_snapshot": {},
+  "chapter_snapshot": {},
+  "playback_state_snapshot": {},
+  "inspector_snapshot": {
+    "legacy_fields_preserved": true,
+    "schema_validated_files": 51,
+    "rgf_files_unchanged": true,
+    "production_scan_classification": "FAIL_honest",
+    "real_violations": 27,
+    "false_positive_violations": 57
+  },
+  "decision_ledger": {
+    "decisions": [
+      {
+        "decision": "migrate_with_field_preservation",
+        "reason": "Owner required that historical fields not be deleted; migrate to legacy_original/legacy_fields/implementation.legacy_*"
+      },
+      {
+        "decision": "exclude_rgf_files",
+        "reason": "RGF-*.json files are forbidden to modify and must remain as historical redline gate definitions"
+      },
+      {
+        "decision": "keep_production_scan_fail",
+        "reason": "Redline gate must not be disguised as PASS; remaining violations are documented and classified"
+      }
+    ]
+  },
+  "errors": [],
+  "redaction_verified": true,
+  "schema_validated": true,
+  "anti_fake_checks": {
+    "no_deleted_fields": true,
+    "rgf_zero_changed": true,
+    "honest_fail_reported": true,
+    "no_status_inflation": true
+  },
+  "redline_scan": {
+    "self_test_status": "PASS",
+    "production_scan_status": "FAIL_honest",
+    "violations_total": 84,
+    "violations_real": 27,
+    "violations_false_positive": 57,
+    "forbidden_claims_found": [
+      "ALL PROVIDERS RUNTIME VERIFIED",
+      "P2 Foundation Complete",
+      "P2 Complete",
+      "P3 COMPLETE",
+      "HDR COMPLETE",
+      "ATMOS BITSTREAM COMPLETE",
+      "AIRPLAY PRODUCT COMPLETE"
+    ],
+    "note": "Violations are classified in violation_classification_report.json. RGF-*.json violations are historical and the files are immutable."
+  },
+  "test_commands": [
+    "python backend/tools/governance/redline_gate/redline_checker.py --self-test",
+    "python backend/tools/governance/redline_gate/redline_checker.py --root=. --scan=all",
+    "python backend/tools/governance/redline_gate/classify_violations.py .",
+    "python backend/tools/governance/schema_gate/validator/schema_gate_validator.py artifacts/p2/evidence"
+  ],
+  "artifacts": [
+    "backend/tools/governance/redline_gate/artifacts/legacy_evidence_field_retention_report.json",
+    "backend/tools/governance/redline_gate/artifacts/violation_classification_report.json",
+    "backend/tools/governance/redline_gate/artifacts/redline_gate_result.json",
+    "docs/roadmap/p2_legacy_evidence_migration_verify_001.md"
+  ],
+  "requires_provider_matrix": false,
+  "runtime_verified": false,
+  "blocked_reason": "",
+  "timestamp_utc": "2026-06-26T07:50:00Z"
+}

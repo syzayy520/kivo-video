@@ -459,6 +459,10 @@ Status legend:
 - DONE: RGF-004 Artifact Redline Scan. Evidence: `artifacts/p2/evidence/RGF-004.json`. Artifact redline scan defined at `docs/roadmap/p2_artifact_redline_scan.md`. Evidence JSON, Inspector artifacts, DecisionLedger artifacts, Provider Runtime Matrix, and final reports scanned for 32 forbidden terms. Allowlist integration working. Violation reporting working. 12 test cases (6 positive, 6 negative).
 - DONE: RGF-005 Report/Source Conflict Scan. Evidence: `artifacts/p2/evidence/RGF-005.json`. Report/source conflict scan defined at `docs/roadmap/p2_report_source_conflict_scan.md`. Final report claims validated against source implementation and evidence status. Claim extraction working. Validation against facts working. Violation reporting working. 12 test cases (6 positive, 6 negative).
 
+## P2-Legacy-Evidence-Migration
+
+- DONE: LEM-001 Legacy Evidence Migration Audit. Evidence: `artifacts/p2/evidence/LEM-001.json`. Planning doc at `docs/roadmap/p2_legacy_evidence_migration_verify_001.md`. 51 legacy evidence files migrated with all historical fields preserved in `legacy_original`/`legacy_fields`/`implementation.legacy_*`. RGF-*.json files excluded and 0 changed. Field retention report at `backend/tools/governance/redline_gate/artifacts/legacy_evidence_field_retention_report.json`. Violation classification report at `backend/tools/governance/redline_gate/artifacts/violation_classification_report.json`. Production scan remains FAIL (honest): 84 violations classified as 27 real and 57 documentation false positives. Self-test 16/16 PASS.
+
 ## P2 Foundation Remaining Families
 
 - DONE: FMT-001 P2-FORMAT-COMPAT. Evidence: `artifacts/p2/evidence/FMT-001.json`. Format compatibility matrix defined at `docs/roadmap/p2_format_compat.md`. 9 container formats documented (MP4, MKV, AVI, MOV, TS, FLV, WMV, MPEG, OGG). 10 formats with real samples (RUNTIME_PASS), 7 formats with contract pass, 3 formats not implemented. Sample gap list documented with high/medium/low priority gaps. Verification requirements defined.

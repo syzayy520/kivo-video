@@ -1,74 +1,11 @@
 {
+  "schema_version": "p2-evidence-v8",
   "task_id": "V8-007",
   "task_family": "evidence foundation",
-  "execution_timestamp": "2026-06-26T00:40:00Z",
   "status": "CONTRACT_PASS",
-  "goal": "define artifact paths and prevent source-root evidence dumping",
-  "artifact_root": "artifacts/p2/evidence/",
-  "evidence_path_audit": [
-    {
-      "task_id": "V8-001",
-      "evidence_path": "artifacts/p2/evidence/V8-001.json",
-      "exists": true,
-      "verdict": "PASS"
-    },
-    {
-      "task_id": "V8-002",
-      "evidence_path": "artifacts/p2/evidence/V8-002.json",
-      "exists": true,
-      "verdict": "PASS"
-    },
-    {
-      "task_id": "V8-003",
-      "evidence_path": "artifacts/p2/evidence/V8-003.json",
-      "exists": true,
-      "verdict": "PASS"
-    },
-    {
-      "task_id": "V8-004",
-      "evidence_path": "artifacts/p2/evidence/V8-004.json",
-      "exists": true,
-      "verdict": "PASS"
-    },
-    {
-      "task_id": "V8-005",
-      "evidence_path": "artifacts/p2/evidence/V8-005.json",
-      "exists": true,
-      "verdict": "PASS"
-    },
-    {
-      "task_id": "V8-006",
-      "evidence_path": "artifacts/p2/evidence/V8-006.json",
-      "exists": true,
-      "verdict": "PASS"
-    },
-    {
-      "task_id": "V8-007",
-      "evidence_path": "artifacts/p2/evidence/V8-007.json",
-      "exists": true,
-      "verdict": "PASS \u2014 this file"
-    }
-  ],
-  "root_evidence_audit": {
-    "root_json_files": [
-      "CMakePresets.json",
-      "vcpkg.json"
-    ],
-    "root_evidence_files": [],
-    "verdict": "PASS \u2014 no evidence files in source root"
-  },
-  "schema_version": "p2-evidence-v8",
-  "path_rules": {
-    "artifact_root": "artifacts/p2/evidence/",
-    "format": "artifacts/p2/evidence/<task-id>.json",
-    "root_dumping_forbidden": true,
-    "root_evidence_allowed": false
-  },
-  "evidence_status": "CONTRACT_PASS",
-  "reason": "All 7 V8 evidence files exist in correct artifact path (artifacts/p2/evidence/). No evidence files in source root. Path format matches <task-id>.json pattern. Schema version p2-evidence-v8 defined.",
-  "next_task": "V8-008 Provider Runtime Matrix Gate Plan",
-  "timestamp_utc": "2026-06-26T00:00:00Z",
   "completion_level": "p2-foundation-planning",
+  "runtime_mode": "planning_only",
+  "runtime_environment_kind": "not_applicable",
   "environment": {},
   "implementation": {},
   "media_input": {
@@ -96,6 +33,148 @@
   "requires_provider_matrix": false,
   "runtime_verified": false,
   "blocked_reason": "",
-  "runtime_mode": "planning_only",
-  "runtime_environment_kind": "not_applicable"
+  "timestamp_utc": "2026-06-26T00:40:00Z",
+  "legacy_original": {
+    "task_id": "V8-007",
+    "task_family": "evidence foundation",
+    "execution_timestamp": "2026-06-26T00:40:00Z",
+    "status": "CONTRACT_PASS",
+    "goal": "define artifact paths and prevent source-root evidence dumping",
+    "artifact_root": "artifacts/p2/evidence/",
+    "evidence_path_audit": [
+      {
+        "task_id": "V8-001",
+        "evidence_path": "artifacts/p2/evidence/V8-001.json",
+        "exists": true,
+        "verdict": "PASS"
+      },
+      {
+        "task_id": "V8-002",
+        "evidence_path": "artifacts/p2/evidence/V8-002.json",
+        "exists": true,
+        "verdict": "PASS"
+      },
+      {
+        "task_id": "V8-003",
+        "evidence_path": "artifacts/p2/evidence/V8-003.json",
+        "exists": true,
+        "verdict": "PASS"
+      },
+      {
+        "task_id": "V8-004",
+        "evidence_path": "artifacts/p2/evidence/V8-004.json",
+        "exists": true,
+        "verdict": "PASS"
+      },
+      {
+        "task_id": "V8-005",
+        "evidence_path": "artifacts/p2/evidence/V8-005.json",
+        "exists": true,
+        "verdict": "PASS"
+      },
+      {
+        "task_id": "V8-006",
+        "evidence_path": "artifacts/p2/evidence/V8-006.json",
+        "exists": true,
+        "verdict": "PASS"
+      },
+      {
+        "task_id": "V8-007",
+        "evidence_path": "artifacts/p2/evidence/V8-007.json",
+        "exists": true,
+        "verdict": "PASS \u2014 this file"
+      }
+    ],
+    "root_evidence_audit": {
+      "root_json_files": [
+        "CMakePresets.json",
+        "vcpkg.json"
+      ],
+      "root_evidence_files": [],
+      "verdict": "PASS \u2014 no evidence files in source root"
+    },
+    "schema_version": "p2-evidence-v8",
+    "path_rules": {
+      "artifact_root": "artifacts/p2/evidence/",
+      "format": "artifacts/p2/evidence/<task-id>.json",
+      "root_dumping_forbidden": true,
+      "root_evidence_allowed": false
+    },
+    "evidence_status": "CONTRACT_PASS",
+    "reason": "All 7 V8 evidence files exist in correct artifact path (artifacts/p2/evidence/). No evidence files in source root. Path format matches <task-id>.json pattern. Schema version p2-evidence-v8 defined.",
+    "next_task": "V8-008 Provider Runtime Matrix Gate Plan"
+  },
+  "legacy_fields": {
+    "execution_timestamp": "2026-06-26T00:40:00Z",
+    "goal": "define artifact paths and prevent source-root evidence dumping",
+    "artifact_root": "artifacts/p2/evidence/",
+    "evidence_path_audit": [
+      {
+        "task_id": "V8-001",
+        "evidence_path": "artifacts/p2/evidence/V8-001.json",
+        "exists": true,
+        "verdict": "PASS"
+      },
+      {
+        "task_id": "V8-002",
+        "evidence_path": "artifacts/p2/evidence/V8-002.json",
+        "exists": true,
+        "verdict": "PASS"
+      },
+      {
+        "task_id": "V8-003",
+        "evidence_path": "artifacts/p2/evidence/V8-003.json",
+        "exists": true,
+        "verdict": "PASS"
+      },
+      {
+        "task_id": "V8-004",
+        "evidence_path": "artifacts/p2/evidence/V8-004.json",
+        "exists": true,
+        "verdict": "PASS"
+      },
+      {
+        "task_id": "V8-005",
+        "evidence_path": "artifacts/p2/evidence/V8-005.json",
+        "exists": true,
+        "verdict": "PASS"
+      },
+      {
+        "task_id": "V8-006",
+        "evidence_path": "artifacts/p2/evidence/V8-006.json",
+        "exists": true,
+        "verdict": "PASS"
+      },
+      {
+        "task_id": "V8-007",
+        "evidence_path": "artifacts/p2/evidence/V8-007.json",
+        "exists": true,
+        "verdict": "PASS \u2014 this file"
+      }
+    ],
+    "root_evidence_audit": {
+      "root_json_files": [
+        "CMakePresets.json",
+        "vcpkg.json"
+      ],
+      "root_evidence_files": [],
+      "verdict": "PASS \u2014 no evidence files in source root"
+    },
+    "path_rules": {
+      "artifact_root": "artifacts/p2/evidence/",
+      "format": "artifacts/p2/evidence/<task-id>.json",
+      "root_dumping_forbidden": true,
+      "root_evidence_allowed": false
+    },
+    "evidence_status": "CONTRACT_PASS",
+    "reason": "All 7 V8 evidence files exist in correct artifact path (artifacts/p2/evidence/). No evidence files in source root. Path format matches <task-id>.json pattern. Schema version p2-evidence-v8 defined.",
+    "next_task": "V8-008 Provider Runtime Matrix Gate Plan"
+  },
+  "legacy_migration_audit": {
+    "migration_task": "KIVO-VIDEO-P2-LEGACY-EVIDENCE-MIGRATION-VERIFY-001",
+    "migration_timestamp_utc": "2026-06-26T07:46:09Z",
+    "preserved_original_snapshot": true,
+    "preserved_field_count": 9,
+    "migrated_field_count": 33
+  }
 }
