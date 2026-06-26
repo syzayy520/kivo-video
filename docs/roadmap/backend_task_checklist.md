@@ -463,6 +463,10 @@ Status legend:
 
 - DONE: LEM-001 Legacy Evidence Migration Audit. Evidence: `artifacts/p2/evidence/LEM-001.json`. Planning doc at `docs/roadmap/p2_legacy_evidence_migration_verify_001.md`. 51 legacy evidence files migrated with all historical fields preserved in `legacy_original`/`legacy_fields`/`implementation.legacy_*`. RGF-*.json files excluded and 0 changed. Field retention report at `backend/tools/governance/redline_gate/artifacts/legacy_evidence_field_retention_report.json`. Violation classification report at `backend/tools/governance/redline_gate/artifacts/violation_classification_report.json`. Production scan remains FAIL (honest): 84 violations classified as 27 real and 57 documentation false positives. Self-test 16/16 PASS.
 
+## P2-SOURCE-CORE
+
+- DONE: SRC-CORE-PLANNING-001 P2 Source Core Comprehensive Planning. Evidence: `artifacts/p2/evidence/SRC-CORE-PLANNING-001.json`. Planning doc at `docs/roadmap/p2_source_core_planning_001.md`. 13 family subdirectories, 32 planned files, 20 contracts defined, 7 provider family boundaries. Family tree: identity/, provider_kind/, uri/, capability/, open/, read/, seek/, cache/, auth/, redaction/, error/, evidence/, decision_input/. Single-file responsibility table. Dependency direction plan. Redline rules (14). STATUS: CONTRACT_PASS (planning-only, no implementation).
+
 ## P2 Foundation Remaining Families
 
 - DONE: FMT-001 P2-FORMAT-COMPAT. Evidence: `artifacts/p2/evidence/FMT-001.json`. Format compatibility matrix defined at `docs/roadmap/p2_format_compat.md`. 9 container formats documented (MP4, MKV, AVI, MOV, TS, FLV, WMV, MPEG, OGG). 10 formats with real samples (RUNTIME_PASS), 7 formats with contract pass, 3 formats not implemented. Sample gap list documented with high/medium/low priority gaps. Verification requirements defined.
