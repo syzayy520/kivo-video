@@ -890,7 +890,7 @@ target_include_directories(kivo_video_provider_webdav PUBLIC ${CMAKE_CURRENT_SOU
 target_compile_options(kivo_video_provider_webdav PRIVATE /std:c++17)
 target_link_libraries(kivo_video_provider_webdav PUBLIC kivo_video_provider_http_range)
 
-set(WD_TESTS open read seek close redaction direct_input)
+set(WD_TESTS open read seek close redaction direct_input propfind)
 foreach(test_name ${WD_TESTS})
   add_executable(kivo_video_provider_webdav_${test_name}_test
     tests/providers/webdav/${test_name}_test.cpp
