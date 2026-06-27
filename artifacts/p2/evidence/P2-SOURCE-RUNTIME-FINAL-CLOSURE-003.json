@@ -1,0 +1,44 @@
+{
+  "schema_version": "p2-evidence-v15",
+  "design_freeze_version": "V7-ULTIMATE-LOCAL-SAFE-ISOLATED-WORKTREE",
+  "task_id": "KIVO-VIDEO-P2-SOURCE-RUNTIME-FINAL-CLOSURE-003",
+  "task_family": "source_runtime",
+  "status": "RUNTIME_PASS",
+  "baseline_commits": {
+    "local_file": "c7f82900b0124ca91277fad97782999428a7a6bd",
+    "http_webdav_repair": "c90cfdc938cd21e6ecf6d62d1b088d0d0fe3b9a1"
+  },
+  "test_counts": { "total": 86, "passed": 86, "failed": 0 },
+  "evidence_hashes": {
+    "local_file": "ee3e4e92590deb0c00f9f2bdae60d61d23e3619a620f9ffc64cc33879c7b2e46",
+    "remote_range": "25cd589e60e0364ee56486a9b3ffa3edb539bb91cc84f07c802f8a60b6e4ec2e",
+    "hash_changed": false
+  },
+  "direct_exe": { "total": 15, "passed": 15, "timeout": 0, "debug_error": 0, "abort": 0, "secret_leak": 0 },
+  "evidence_schema_gate": "SCHEMA_DEGRADED",
+  "evidence_schema_detail": "VALIDATOR_UNSUPPORTED: p2-evidence-v15",
+  "redline_gate": "PASS",
+  "redline_detail": "self-test 16/16 PASS; full scan non-production hits only",
+  "forbidden_scan": { "provider_manager_source_manager": "CLEAN", "p3_pollution_http_webdav": "CLEAN" },
+  "placeholder_gate": "CLEAN",
+  "secret_gate": {
+    "raw_url": "none",
+    "authorization": "none",
+    "cookie": "none",
+    "bearer": "none",
+    "access_token": "none",
+    "signed_url": "none",
+    "windows_path": "non-secret worktree path only"
+  },
+  "webdav_not_verified": {
+    "href_exact_match": "not_verified",
+    "collection_rejection": "not_verified",
+    "malformed_xml_fail_closed": "not_verified",
+    "large_xml_body_cap": "not_verified"
+  },
+  "commit_model": "A",
+  "repair_commit_count": 0,
+  "closure_doc_commit_count": 1,
+  "expected_total_commits_from_c90cfdc": 1,
+  "final_commit_hash": "see external Final Report"
+}
