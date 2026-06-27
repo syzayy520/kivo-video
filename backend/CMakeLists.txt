@@ -964,3 +964,27 @@ if(PYTHON_EXE)
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
   )
 endif()
+
+# ─── P5A: Video Plane Contracts (INTERFACE library, 121+ headers) ───
+
+add_library(kivo_video_plane_contracts INTERFACE)
+target_include_directories(kivo_video_plane_contracts INTERFACE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_video_plane_contracts INTERFACE cxx_std_20)
+# P5A Link Rule 1: contracts links NOTHING
+# No target_link_libraries call — pure header-only contracts
+
+# ─── P5A: Video Plane Contract Tests ───
+
+add_executable(kivo_video_plane_contract_tests
+  tests/video_plane/p5a_contract_tests.cpp
+)
+target_include_directories(kivo_video_plane_contract_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_video_plane_contract_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_video_plane_contract_tests PRIVATE kivo_video_plane_contracts)
+
+add_test(NAME kivo_video_plane_contract_tests COMMAND kivo_video_plane_contract_tests)
+set_tests_properties(kivo_video_plane_contract_tests PROPERTIES TIMEOUT 30)
