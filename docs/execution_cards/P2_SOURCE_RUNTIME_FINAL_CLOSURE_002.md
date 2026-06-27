@@ -7,7 +7,10 @@
 **Push**: origin/kivo-video-p2-source-runtime-final-closure-002  
 **Original worktree**: c90cfdc, unchanged  
 **Closure worktree**: C:\kivo-video-p2-source-runtime-final-closure-002-worktree  
-**Commit model**: A (0 repair + 1 closure = 1 from c90cfdc)
+**Commit model**: C — 2 repair + 1 closure = 3 from c90cfdc
+- `301b829`: initial closure doc commit (evidence + execution card)
+- `df4e511`: direct-exe evidence repair commit (15-exe matrix with real names and log paths)
+- `e6e8829`: forbidden/placeholder/secret gate evidence repair commit
 
 ## Lineage
 
@@ -53,6 +56,12 @@
 Name mappings: `auth_redaction` → CMake target `http_range_auth_test`, `webdav_range_read` → CMake target `webdav_read_test`, `no_debug_dialog` → CMake target `no_debug_dialog_gate_test`.
 
 Working directory: `build/backend-p2-src-rt-closure-002-20260627-155122/backend/Debug`
+
+Stdout/stderr log files per exe: `_direct_exe_logs/{spec_name}.stdout.txt` and `_direct_exe_logs/{spec_name}.stderr.txt`
+
+## Secret Redaction Gate
+
+PASS — no raw URL, no Authorization, no Cookie, no Bearer, no access_token, no signed URL. Windows path appears only as non-secret closure worktree path.
 
 ## Evidence Schema
 
