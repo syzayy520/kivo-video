@@ -1073,3 +1073,17 @@ target_link_libraries(kivo_video_plane_d3d11va_p010_tests PRIVATE kivo_video_pla
 
 add_test(NAME kivo_video_plane_d3d11va_p010_tests COMMAND kivo_video_plane_d3d11va_p010_tests)
 set_tests_properties(kivo_video_plane_d3d11va_p010_tests PROPERTIES TIMEOUT 30)
+
+# --- P5H: Color/HDR/Protected Closure Tests ---
+
+add_executable(kivo_video_plane_color_hdr_protected_tests
+  tests/video_plane/p5h_color_hdr_protected_tests.cpp
+)
+target_include_directories(kivo_video_plane_color_hdr_protected_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_video_plane_color_hdr_protected_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_video_plane_color_hdr_protected_tests PRIVATE kivo_video_plane_contracts)
+
+add_test(NAME kivo_video_plane_color_hdr_protected_tests COMMAND kivo_video_plane_color_hdr_protected_tests)
+set_tests_properties(kivo_video_plane_color_hdr_protected_tests PROPERTIES TIMEOUT 30)
