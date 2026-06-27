@@ -59,15 +59,16 @@
     "large_xml_body_cap": "not_verified"
   },
   "commit_model": "C",
-  "repair_commit_count": 4,
+  "repair_commit_count": 5,
   "closure_doc_commit_count": 1,
-  "total_commits_from_c90cfdc": 5,
+  "total_commits_from_c90cfdc": 6,
   "commit_history": {
     "301b829": "initial closure doc commit (evidence + execution card)",
     "df4e511": "direct-exe evidence repair commit (15-exe matrix with real names and log paths)",
     "e6e8829": "forbidden/placeholder/secret gate evidence repair commit",
     "b22c2c3": "commit model / secret gate / direct exe log path evidence repair commit",
-    "107ddd4": "correct total_commits to 5, add 107ddd4 to history"
+    "107ddd4": "correct total_commits to 5",
+    "84160c1": "correct total_commits to 6"
   },
   "not_claimed": {
     "emby": "not_implemented",

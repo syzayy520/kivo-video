@@ -7,7 +7,7 @@
 **Push**: origin/kivo-video-p2-source-runtime-final-closure-002  
 **Original worktree**: c90cfdc, unchanged  
 **Closure worktree**: C:\kivo-video-p2-source-runtime-final-closure-002-worktree  
-**Commit model**: C — 4 repair + 1 closure = 5 from c90cfdc
+**Commit model**: C — 5 repair + 1 closure = 6 from c90cfdc
 - `301b829`: initial closure doc commit (evidence + execution card)
 - `df4e511`: direct-exe evidence repair commit (15-exe matrix with real names and log paths)
 - `e6e8829`: forbidden/placeholder/secret gate evidence repair commit
