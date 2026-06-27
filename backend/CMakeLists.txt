@@ -1087,3 +1087,17 @@ target_link_libraries(kivo_video_plane_color_hdr_protected_tests PRIVATE kivo_vi
 
 add_test(NAME kivo_video_plane_color_hdr_protected_tests COMMAND kivo_video_plane_color_hdr_protected_tests)
 set_tests_properties(kivo_video_plane_color_hdr_protected_tests PROPERTIES TIMEOUT 30)
+
+# --- P5S: Security Closure Tests ---
+
+add_executable(kivo_video_plane_security_closure_tests
+  tests/video_plane/p5s_security_closure_tests.cpp
+)
+target_include_directories(kivo_video_plane_security_closure_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_video_plane_security_closure_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_video_plane_security_closure_tests PRIVATE kivo_video_plane_contracts)
+
+add_test(NAME kivo_video_plane_security_closure_tests COMMAND kivo_video_plane_security_closure_tests)
+set_tests_properties(kivo_video_plane_security_closure_tests PROPERTIES TIMEOUT 30)
