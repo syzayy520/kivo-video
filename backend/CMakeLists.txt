@@ -1035,3 +1035,18 @@ if(PYTHON_EXE)
   )
   set_tests_properties(kivo_p3_architecture_guard_scan PROPERTIES TIMEOUT 15)
 endif()
+
+# ─── P4 Playback Control Plane ───
+add_library(kivo_p4_contracts INTERFACE)
+target_include_directories(kivo_p4_contracts INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_contracts INTERFACE cxx_std_20)
+
+# ─── P4 Primitives + Revision + State Tests ───
+add_executable(kivo_p4_primitives_revision_test
+  tests/playback/control_plane/primitives/p4_primitives_revision_tests.cpp
+)
+target_include_directories(kivo_p4_primitives_revision_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_primitives_revision_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p4_primitives_revision_test PRIVATE kivo_p4_contracts)
+add_test(NAME kivo_p4_primitives_revision_test COMMAND kivo_p4_primitives_revision_test)
+set_tests_properties(kivo_p4_primitives_revision_test PROPERTIES TIMEOUT 10)

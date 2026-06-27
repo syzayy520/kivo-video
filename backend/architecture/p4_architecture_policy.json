@@ -1,0 +1,49 @@
+{
+  "schema_version": "p4.architecture.policy.v1",
+  "layers": {
+    "primitives": {
+      "families": ["primitives", "rate"],
+      "may_depend_on": [],
+      "may_not_depend_on": ["handoff", "session", "state", "control", "command", "revision", "reader", "worker", "buffer", "backpressure", "memory", "timeline", "clock", "live", "track", "discontinuity", "feedback", "recovery", "lifetime", "quarantine", "idle", "runtime", "diagnostics", "concurrency", "events", "output_boundary", "evidence"]
+    },
+    "foundation": {
+      "families": ["handoff", "revision", "contracts"],
+      "may_depend_on": ["primitives"],
+      "may_not_depend_on": ["session", "state", "control", "command", "reader", "worker", "buffer", "backpressure", "memory", "timeline", "clock", "live", "track", "discontinuity", "feedback", "recovery", "lifetime", "quarantine", "idle", "runtime", "diagnostics", "events", "output_boundary"]
+    },
+    "core": {
+      "families": ["session", "state", "control", "command", "memory", "buffer", "reader", "worker"],
+      "may_depend_on": ["primitives", "foundation"],
+      "may_not_depend_on": ["timeline", "clock", "live", "track", "discontinuity", "feedback", "recovery", "lifetime", "quarantine", "idle", "runtime", "diagnostics", "events", "output_boundary", "evidence", "decoder", "renderer", "audio_output", "ffmpeg", "ui"]
+    },
+    "advanced": {
+      "families": ["timeline", "clock", "live", "backpressure", "track", "discontinuity", "feedback"],
+      "may_depend_on": ["primitives", "foundation", "core"],
+      "may_not_depend_on": ["recovery", "lifetime", "quarantine", "idle", "runtime", "diagnostics", "events", "output_boundary", "evidence", "decoder", "renderer", "audio_output", "ffmpeg", "ui"]
+    },
+    "resilience": {
+      "families": ["recovery", "lifetime", "quarantine", "idle"],
+      "may_depend_on": ["primitives", "foundation", "core", "advanced"],
+      "may_not_depend_on": ["runtime", "diagnostics", "events", "output_boundary", "evidence", "decoder", "renderer", "audio_output", "ffmpeg", "ui"]
+    },
+    "runtime": {
+      "families": ["runtime", "diagnostics", "concurrency", "events"],
+      "may_depend_on": ["primitives", "foundation", "core", "advanced", "resilience"],
+      "may_not_depend_on": ["output_boundary", "evidence", "decoder", "renderer", "audio_output", "ffmpeg", "ui"]
+    },
+    "output": {
+      "families": ["output_boundary", "evidence"],
+      "may_depend_on": ["primitives", "foundation", "core", "advanced", "resilience", "runtime"],
+      "may_not_depend_on": ["decoder", "renderer", "audio_output", "ffmpeg", "ui"]
+    }
+  },
+  "forbidden_dependencies": [
+    "P4 depends on decode/render/audio_output/ffmpeg/UI",
+    "P4 redefines P3 sealed types",
+    "tools are runtime dependencies",
+    "playback decision depends on provider implementation",
+    "reader modifies SessionState",
+    "callback invoked under internal lock"
+  ],
+  "dependency_linter_machine_checkable": true
+}
