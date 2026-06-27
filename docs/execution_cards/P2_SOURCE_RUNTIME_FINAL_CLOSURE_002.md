@@ -30,9 +30,29 @@
 
 ## Direct Exe
 
-All 15 required tests run and pass from Debug directory (CTest batch verified). Logs at _direct_exe_logs/. No timeout, debug error, abort, or secret leak.
+15 required tests, all PASS. Logs at `_direct_exe_logs/`.
 
-Required: local_file(read/evidence/direct_input/thread_safety), http(open/read/positioned_read/seek/source_changed/auth/direct_input), webdav(open/read/direct_input), no_debug_dialog
+| Spec Name | Actual Exe | Timeout | Exit | Log |
+|-----------|-----------|---------|------|-----|
+| kivo_video_provider_local_file_read_test | kivo_video_provider_local_file_read_test.exe | 10s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_local_file_evidence_test | kivo_video_provider_local_file_evidence_test.exe | 10s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_local_file_direct_input_test | kivo_video_provider_local_file_direct_input_test.exe | 10s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_local_file_basic_thread_safety_test | kivo_video_provider_local_file_basic_thread_safety_test.exe | 30s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_http_range_open_test | kivo_video_provider_http_range_open_test.exe | 20s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_http_range_read_test | kivo_video_provider_http_range_read_test.exe | 20s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_http_range_positioned_read_test | kivo_video_provider_http_range_positioned_read_test.exe | 20s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_http_range_seek_test | kivo_video_provider_http_range_seek_test.exe | 20s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_http_range_source_changed_test | kivo_video_provider_http_range_source_changed_test.exe | 20s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_http_range_auth_redaction_test | kivo_video_provider_http_range_auth_test.exe | 20s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_http_range_direct_input_test | kivo_video_provider_http_range_direct_input_test.exe | 20s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_webdav_open_test | kivo_video_provider_webdav_open_test.exe | 20s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_webdav_range_read_test | kivo_video_provider_webdav_read_test.exe | 20s | 0 | _direct_exe_logs/ |
+| kivo_video_provider_webdav_direct_input_test | kivo_video_provider_webdav_direct_input_test.exe | 20s | 0 | _direct_exe_logs/ |
+| kivo_video_no_debug_dialog_test | kivo_no_debug_dialog_gate_test.exe | 10s | 0 | _direct_exe_logs/ |
+
+Name mappings: `auth_redaction` → CMake target `http_range_auth_test`, `webdav_range_read` → CMake target `webdav_read_test`, `no_debug_dialog` → CMake target `no_debug_dialog_gate_test`.
+
+Working directory: `build/backend-p2-src-rt-closure-002-20260627-155122/backend/Debug`
 
 ## Evidence Schema
 

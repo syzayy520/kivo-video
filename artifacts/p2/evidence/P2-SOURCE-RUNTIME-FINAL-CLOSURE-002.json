@@ -35,7 +35,12 @@
     "timeout": 0,
     "debug_error_dialog": 0,
     "abort_popup": 0,
-    "secret_leak": 0
+    "secret_leak": 0,
+    "name_mappings": {
+      "auth_redaction": "http_range_auth_test",
+      "webdav_range_read": "webdav_read_test",
+      "no_debug_dialog": "no_debug_dialog_gate_test"
+    }
   },
   "evidence_schema_gate": "SCHEMA_DEGRADED",
   "evidence_schema_detail": "VALIDATOR_UNSUPPORTED: p2-evidence-v15 not supported by current validator; closure semantics in execution card",
