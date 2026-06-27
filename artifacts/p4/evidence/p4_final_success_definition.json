@@ -1,0 +1,26 @@
+{
+  "schema": "p4.final_success.v1",
+  "required_outputs": [
+    {"item": "session", "status": "PASS", "evidence": "PlaybackSessionHandle + SessionState adjacency"},
+    {"item": "command queue", "status": "PASS", "evidence": "CommandQueuePolicy + CommandSubmitStatus + PlaybackCommand"},
+    {"item": "state machine", "status": "PASS", "evidence": "SessionState 10-state adjacency matrix"},
+    {"item": "revision stamp", "status": "PASS", "evidence": "RevisionStamp + RevisionBarrier 7 kinds + RevisionValidator lock-free"},
+    {"item": "reader lifecycle", "status": "PASS", "evidence": "ReaderInstanceState + ReaderOrchestrator + ReaderWorker + ReaderReadResult matrix"},
+    {"item": "memory lease/freeze/publish", "status": "PASS", "evidence": "MutableMemoryBlock + ImmutableMemoryBlock + IReadBufferAllocator + ReadOnlyMemoryChain"},
+    {"item": "buffer item stream", "status": "PASS", "evidence": "BufferItem ordered stream + BufferEngine + BufferPushStatus matrix"},
+    {"item": "timeline state", "status": "PASS", "evidence": "PlaybackTimelineState + SourceTimelineState"},
+    {"item": "backpressure", "status": "PASS", "evidence": "BackpressureScheduler + AdaptiveBackpressure"},
+    {"item": "downstream feedback", "status": "PASS", "evidence": "DownstreamFeedbackQueue + DownstreamAck/Failure critical lane"},
+    {"item": "clock observation", "status": "PASS", "evidence": "ClockObservationSlot realtime-safe"},
+    {"item": "track switch fence", "status": "PASS", "evidence": "TrackSwitchFence + RequiredDownstreamAcks"},
+    {"item": "recovery", "status": "PASS", "evidence": "RecoveryContext + RecoveryBudget + AuthorizedFallback"},
+    {"item": "quarantine", "status": "PASS", "evidence": "QuarantinedReaderRecord + ShutdownGuard"},
+    {"item": "eventbus", "status": "PASS", "evidence": "SessionEvent + EventBusPolicy + EventDeliveryClass"},
+    {"item": "diagnostics", "status": "PASS", "evidence": "StableReasonCode + FixedWindowHistogram + SessionDiagnostics"},
+    {"item": "output boundary plans", "status": "PASS", "evidence": "VideoPipelineInputPlan + AudioPipelineInputPlan + SubtitlePipelineInputPlan"},
+    {"item": "execution card", "status": "PASS", "evidence": "p4_playback_control_plane_execution_card.md 78 gates"},
+    {"item": "closure evidence", "status": "PASS", "evidence": "P4-PLAYBACK-CONTROL-PLANE-V8-CLOSURE.json"}
+  ],
+  "evidence_traceability": "complete",
+  "status": "PASS"
+}

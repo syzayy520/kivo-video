@@ -1,0 +1,13 @@
+{
+  "schema": "p4.risk_control_boundary.v1",
+  "boundaries": [
+    {"family": "session", "rule": "P4 session manages session, NOT plays", "status": "PASS"},
+    {"family": "reader", "rule": "P4 reader reads bytes, NOT decodes", "status": "PASS"},
+    {"family": "buffer", "rule": "P4 buffer buffers items, NOT plays segment queue", "status": "PASS"},
+    {"family": "timeline", "rule": "P4 timeline tracks position, NOT owns decoded frame timestamp", "status": "PASS"},
+    {"family": "recovery", "rule": "P4 recovery recovers, NOT controls player", "status": "PASS"},
+    {"family": "eventbus", "rule": "P4 eventbus delivers events, NOT executes playback", "status": "PASS"}
+  ],
+  "violations": 0,
+  "status": "PASS"
+}

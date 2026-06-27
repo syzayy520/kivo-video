@@ -1,0 +1,49 @@
+{
+  "schema": "p4.closure.v8",
+  "task_id": "KIVO-VIDEO-P4-PLAYBACK-CONTROL-PLANE-DESIGN-LOCK-001-V8",
+  "commit_model": "Model A (multi-commit, no self-referential hash)",
+  "scope": {
+    "no_ui": true,
+    "no_decode": true,
+    "no_render": true,
+    "no_audio_output": true,
+    "no_drm_license": true
+  },
+  "required_check_matrix": {
+    "contract": {"status": "PASS", "tests": 153, "details": "8 test executables, all PASS"},
+    "behavior": {"status": "PASS", "tests": 25, "details": "behavior tests covering enum/type/boundary/stamp/propagation/matrix/policy/flush/boundary"},
+    "stress": {"status": "BLOCKED_RUNTIME", "details": "Requires runtime fake implementation (reader worker, buffer engine, event bus)"},
+    "soak": {"status": "BLOCKED_RUNTIME", "details": "P4G-065/066 require 5-15min and 4h soak with fake reader + controlled clock"},
+    "performance": {"status": "BLOCKED_RUNTIME", "details": "P4G-067 requires real P99 sampling with runtime"},
+    "architecture_guard": {"status": "PASS", "details": "Python scanner 0 violations, no forbidden tokens, no P3 redefinition, no root bucket"},
+    "evidence": {"status": "PASS", "details": "Golden evidence pack 14 entries, compatibility matrix, direct executable matrix"}
+  },
+  "closure_gate_results": {
+    "P4G-061": "PASS",
+    "P4G-062": "PASS",
+    "P4G-063": "PASS",
+    "P4G-064": "PASS",
+    "P4G-065": "BLOCKED_RUNTIME",
+    "P4G-066": "BLOCKED_RUNTIME",
+    "P4G-067": "BLOCKED_RUNTIME",
+    "P4G-068": "BLOCKED_RUNTIME",
+    "P4G-069": "PASS",
+    "P4G-070": "PASS",
+    "P4G-071": "PASS",
+    "P4G-072": "PASS",
+    "P4G-073": "PASS",
+    "P4G-074": "PASS",
+    "P4G-075": "PASS",
+    "P4G-076": "PASS",
+    "P4G-077": "PASS",
+    "P4G-078": "PASS"
+  },
+  "redaction_state": "sanitized",
+  "accepted_deferrals": [
+    {"gate": "P4G-065", "reason": "Soak smoke requires runtime fake implementation"},
+    {"gate": "P4G-066", "reason": "Full 4h soak requires runtime fake implementation"},
+    {"gate": "P4G-067", "reason": "Performance P99 requires runtime real sampling"},
+    {"gate": "P4G-068", "reason": "ASan/TSan stress requires runtime fake implementation"}
+  ],
+  "contains_current_commit_hash": false
+}

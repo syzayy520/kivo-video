@@ -1,0 +1,36 @@
+{
+  "schema": "p4.p5_p6_p7_handoff.v1",
+  "allowed_p4_to_p5": [
+    "VideoPipelineInputPlan",
+    "IMediaStreamPipeline",
+    "StreamLayoutHint",
+    "InterleaveProfile",
+    "P3ProbeEvidenceView",
+    "encoded stream"
+  ],
+  "allowed_p4_to_p6": [
+    "AudioPipelineInputPlan",
+    "IMediaStreamPipeline",
+    "PlaybackTimelineState",
+    "PlaybackRateRatio",
+    "ClockHandoverPolicy"
+  ],
+  "allowed_p4_to_p7": [
+    "SubtitlePipelineInputPlan",
+    "PlaybackTimelineState",
+    "SubtitleAvailability"
+  ],
+  "forbidden_p4_to_p5_p6_p7": [
+    "decoded frame",
+    "render surface",
+    "audio device",
+    "subtitle bitmap",
+    "UI event",
+    "DRM decrypted sample",
+    "segment scheduler",
+    "platform media session",
+    "AirPlay/Chromecast session"
+  ],
+  "violations": 0,
+  "status": "PASS"
+}
