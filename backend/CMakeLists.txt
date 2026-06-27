@@ -993,3 +993,29 @@ target_compile_features(kivo_p3_contracts_test PRIVATE cxx_std_20)
 target_link_libraries(kivo_p3_contracts_test PRIVATE kivo_p3_contracts)
 add_test(NAME kivo_p3_contracts_test COMMAND kivo_p3_contracts_test)
 set_tests_properties(kivo_p3_contracts_test PROPERTIES TIMEOUT 10)
+
+# ─── P3 Fake Provider Library ───
+add_library(kivo_p3_fake_providers STATIC
+  src/p3/providers/fake/fake_providers.cpp
+)
+target_include_directories(kivo_p3_fake_providers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_fake_providers PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_fake_providers PUBLIC kivo_p3_contracts)
+
+# ─── P3 Behavior Tests (FC-011/035/036/039/044/047/048/049/052/066/069/070) ───
+add_executable(kivo_p3_behavior_test tests/p3/behavior/p3_behavior_tests.cpp)
+target_include_directories(kivo_p3_behavior_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_behavior_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_behavior_test PRIVATE kivo_p3_fake_providers)
+add_test(NAME kivo_p3_behavior_test COMMAND kivo_p3_behavior_test)
+set_tests_properties(kivo_p3_behavior_test PROPERTIES TIMEOUT 15)
+
+# ─── P3 Architecture Guard Scanner Test ───
+find_program(PYTHON_EXE python)
+if(PYTHON_EXE)
+  add_test(NAME kivo_p3_architecture_guard_scan
+    COMMAND ${PYTHON_EXE} "${CMAKE_SOURCE_DIR}/backend/tools/p3/architecture_guard_scanner.py" --root=${CMAKE_SOURCE_DIR}
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  )
+  set_tests_properties(kivo_p3_architecture_guard_scan PROPERTIES TIMEOUT 15)
+endif()
