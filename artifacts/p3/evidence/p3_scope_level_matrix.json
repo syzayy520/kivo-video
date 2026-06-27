@@ -1,0 +1,61 @@
+{
+  "gate_id": "FC-003",
+  "gate_name": "Scope Level Gate",
+  "task_id": "P3-COMPLETE-LINE-V9",
+  "status": "CONTRACT_PASS",
+  "evidence_kind": "planning",
+  "scope_levels": {
+    "blocking_implementation": [
+      "ExecutionContext",
+      "SourceSession",
+      "IndependentRangeReader",
+      "ManifestSession",
+      "PlaylistSession",
+      "ProviderIntegration (HTTP, WebDAV, Emby, Jellyfin, Alist)",
+      "NetworkPolicy",
+      "MediaProbe",
+      "PlaybackDecision",
+      "PlaybackHandoff",
+      "GoldenEvidence",
+      "Closure"
+    ],
+    "fake_provider_foundation": [
+      "FakeEmby",
+      "FakeJellyfin",
+      "FakeAlist",
+      "FakeWebDAV",
+      "FakeHTTP",
+      "FakeHLS",
+      "FakeDASH",
+      "FakePlaylist"
+    ],
+    "contract_only_boundary": [
+      "CloudDrive (GoogleDrive, OneDrive)",
+      "SMB",
+      "UPnP/DLNA",
+      "SubtitleDownload",
+      "AudioHints",
+      "PlatformHints",
+      "LibraryScraper"
+    ],
+    "explicitly_not_implemented": [
+      "FTP",
+      "RTSP",
+      "RTMP",
+      "DRM license acquisition",
+      "DRM decryption",
+      "Transcoding",
+      "HDR tone mapping",
+      "Subtitle rendering",
+      "Audio output",
+      "Video rendering",
+      "UI",
+      "HLS/DASH segment playback queue",
+      "ABR scheduling",
+      "Persistent media cache",
+      "AirPlay/Chromecast/DLNA renderer"
+    ]
+  },
+  "all_items_have_level": true,
+  "stop_condition_check": "No scope item lacks a level assignment"
+}

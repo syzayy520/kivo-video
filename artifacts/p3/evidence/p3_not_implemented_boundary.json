@@ -1,0 +1,28 @@
+{
+  "gate_id": "FC-004",
+  "gate_name": "Explicit Not Implemented Gate",
+  "task_id": "P3-COMPLETE-LINE-V9",
+  "status": "CONTRACT_PASS",
+  "evidence_kind": "planning",
+  "p3_produces": [
+    "Contracts and evidence for later stages",
+    "Playback input candidates for P4",
+    "Handoff contracts for P4"
+  ],
+  "p3_does_not_implement": [
+    "UI or Qt pages",
+    "Video rendering (D3D11/DXGI/Vulkan)",
+    "Audio output (WASAPI)",
+    "HDR tone mapping",
+    "Subtitle rendering",
+    "Complete decode/demux pipeline",
+    "Transcoding",
+    "HLS/DASH segment playback queues",
+    "Real ABR scheduling",
+    "Persistent media cache or prefetch cache",
+    "DRM license acquisition or decryption",
+    "Full scraper clients",
+    "AirPlay/Chromecast/DLNA renderer playback"
+  ],
+  "stop_condition_check": "No P3 module imports or links to render/audio/UI/decode implementation. Boundary enforced by architecture guard (FC-079)."
+}

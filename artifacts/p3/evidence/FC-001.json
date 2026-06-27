@@ -1,0 +1,18 @@
+{
+  "gate_id": "FC-001",
+  "gate_name": "P3 Identity Gate",
+  "task_id": "P3-COMPLETE-LINE-V9",
+  "status": "CONTRACT_PASS",
+  "evidence_kind": "planning",
+  "p3_positioning_verified": true,
+  "p3_definition": "P3 is the production bridge from Source Runtime to Playback-Ready Input System. P3 is not P2 continuation. P3 is not playback core, renderer, decoder, audio output, UI, player timeline, segment scheduler.",
+  "p3_input": "P2 local_file runtime, P2 HTTP range runtime, P2 WebDAV range bridge",
+  "p3_output": "Playback-ready input candidates for P4 (safe, low-latency, evidence-backed, cancellable, async, layered, rankable, runtime-revisable, secure handoff-ready)",
+  "source_card": "docs/roadmap/p3_complete_line_v9_closure_ready_execution_card.md",
+  "forbidden_claims_verified_absent": [
+    "P3 is P2 continuation",
+    "P3 is playback core",
+    "decoder/render/audio/UI completion"
+  ],
+  "stop_condition_check": "No task names P3 work as a P2 child task"
+}
