@@ -1030,3 +1030,18 @@ target_link_libraries(kivo_video_plane_decoder_tests PRIVATE kivo_video_plane_co
 
 add_test(NAME kivo_video_plane_decoder_tests COMMAND kivo_video_plane_decoder_tests)
 set_tests_properties(kivo_video_plane_decoder_tests PROPERTIES TIMEOUT 30)
+
+# --- P5E: Software Decode / Timing Tests ---
+
+add_executable(kivo_video_plane_timing_tests
+  tests/video_plane/p5e_timing_tests.cpp
+)
+target_include_directories(kivo_video_plane_timing_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/tests/video_plane
+)
+target_compile_features(kivo_video_plane_timing_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_video_plane_timing_tests PRIVATE kivo_video_plane_contracts)
+
+add_test(NAME kivo_video_plane_timing_tests COMMAND kivo_video_plane_timing_tests)
+set_tests_properties(kivo_video_plane_timing_tests PROPERTIES TIMEOUT 30)
