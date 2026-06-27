@@ -1018,6 +1018,14 @@ target_link_libraries(kivo_p3_acceptance_test PRIVATE kivo_p3_fake_providers)
 add_test(NAME kivo_p3_acceptance_test COMMAND kivo_p3_acceptance_test)
 set_tests_properties(kivo_p3_acceptance_test PROPERTIES TIMEOUT 15)
 
+# ─── P3 Completion Tests (FC-012/026/027/031/032/037/040/041/050/054/058/059/061/063/067/071/072/075/089/090/092) ───
+add_executable(kivo_p3_completion_test tests/p3/completion/p3_completion_tests.cpp)
+target_include_directories(kivo_p3_completion_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_completion_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_completion_test PRIVATE kivo_p3_contracts)
+add_test(NAME kivo_p3_completion_test COMMAND kivo_p3_completion_test)
+set_tests_properties(kivo_p3_completion_test PROPERTIES TIMEOUT 15)
+
 # ─── P3 Architecture Guard Scanner Test ───
 find_program(PYTHON_EXE python)
 if(PYTHON_EXE)
