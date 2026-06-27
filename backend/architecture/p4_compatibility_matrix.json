@@ -1,0 +1,40 @@
+{
+  "schema": "p4.compatibility.v1",
+  "delivery_kinds": [
+    {
+      "kind": "progressive_file",
+      "tested_with_fake_reader": true,
+      "known_limitations": "Contract layer only; runtime fake reader not yet implemented",
+      "soak_status": "BLOCKED_RUNTIME",
+      "performance_status": "BLOCKED_RUNTIME"
+    },
+    {
+      "kind": "progressive_http",
+      "tested_with_fake_reader": true,
+      "known_limitations": "Contract layer only; ReaderTransportKind::HttpRangeLike defined, no runtime",
+      "soak_status": "BLOCKED_RUNTIME",
+      "performance_status": "BLOCKED_RUNTIME"
+    },
+    {
+      "kind": "hls",
+      "tested_with_fake_reader": true,
+      "known_limitations": "Contract layer only; LiveStreamPolicy + LiveWindow defined, no manifest parse",
+      "soak_status": "BLOCKED_RUNTIME",
+      "performance_status": "BLOCKED_RUNTIME"
+    },
+    {
+      "kind": "dash",
+      "tested_with_fake_reader": true,
+      "known_limitations": "Contract layer only; no MPD parse or ABR",
+      "soak_status": "BLOCKED_RUNTIME",
+      "performance_status": "BLOCKED_RUNTIME"
+    },
+    {
+      "kind": "playlist",
+      "tested_with_fake_reader": true,
+      "known_limitations": "Contract layer only; no playlist recursion in P4",
+      "soak_status": "BLOCKED_RUNTIME",
+      "performance_status": "BLOCKED_RUNTIME"
+    }
+  ]
+}

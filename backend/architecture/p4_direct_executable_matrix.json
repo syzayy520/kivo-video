@@ -1,0 +1,14 @@
+{
+  "schema": "p4.direct_executable.v1",
+  "executables": [
+    {"name": "kivo_p4_primitives_revision_test", "command": "kivo_p4_primitives_revision_test", "working_dir": "build/p4-m0/backend/Debug", "expected_result": "PASS", "evidence_output": "stdout", "closure_blocking": true, "timeout": 10},
+    {"name": "kivo_p4_revision_control_test", "command": "kivo_p4_revision_control_test", "working_dir": "build/p4-m0/backend/Debug", "expected_result": "PASS", "evidence_output": "stdout", "closure_blocking": true, "timeout": 10},
+    {"name": "kivo_p4_reader_memory_buffer_test", "command": "kivo_p4_reader_memory_buffer_test", "working_dir": "build/p4-m0/backend/Debug", "expected_result": "PASS", "evidence_output": "stdout", "closure_blocking": true, "timeout": 10},
+    {"name": "kivo_p4_feedback_clock_track_test", "command": "kivo_p4_feedback_clock_track_test", "working_dir": "build/p4-m0/backend/Debug", "expected_result": "PASS", "evidence_output": "stdout", "closure_blocking": true, "timeout": 10},
+    {"name": "kivo_p4_recovery_events_diagnostics_test", "command": "kivo_p4_recovery_events_diagnostics_test", "working_dir": "build/p4-m0/backend/Debug", "expected_result": "PASS", "evidence_output": "stdout", "closure_blocking": true, "timeout": 10},
+    {"name": "kivo_p4_output_boundary_test", "command": "kivo_p4_output_boundary_test", "working_dir": "build/p4-m0/backend/Debug", "expected_result": "PASS", "evidence_output": "stdout", "closure_blocking": true, "timeout": 10},
+    {"name": "kivo_p4_negative_compile_test", "command": "kivo_p4_negative_compile_test", "working_dir": "build/p4-m0/backend/Debug", "expected_result": "PASS", "evidence_output": "stdout", "closure_blocking": true, "timeout": 10},
+    {"name": "kivo_p4_behavior_test", "command": "kivo_p4_behavior_test", "working_dir": "build/p4-m0/backend/Debug", "expected_result": "PASS", "evidence_output": "stdout", "closure_blocking": true, "timeout": 10},
+    {"name": "architecture_guard_scanner", "command": "python backend/tools/p4/architecture_guard_scanner.py backend/include/kivo/playback/control_plane", "working_dir": ".", "expected_result": "PASS", "evidence_output": "json", "closure_blocking": true, "timeout": 30}
+  ]
+}

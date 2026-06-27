@@ -1,0 +1,23 @@
+{
+  "schema": "p4.golden_evidence.v1",
+  "description": "Sanitized offline golden evidence pack for P4 Playback Control Plane",
+  "entries": [
+    {"id": "session_create", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "PlaybackSessionHandle abstract interface"},
+    {"id": "handoff_import", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "P3PlaybackHandoffRef + PlaybackOpenEnvelope"},
+    {"id": "seek", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "SeekTarget + SeekResolution"},
+    {"id": "flush", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "FlushScopeKind + flush_scope_semantics table"},
+    {"id": "stop", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "CommandSubmitStatus stop semantics"},
+    {"id": "recovery", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "RecoveryContext + RecoveryBudget + AuthorizedFallback"},
+    {"id": "quarantine", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "QuarantinedReaderRecord + ShutdownGuard"},
+    {"id": "track_switch", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "TrackSwitchFence + RequiredDownstreamAcks"},
+    {"id": "revision_barrier", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "RevisionBarrier 7 kinds + commit semantics"},
+    {"id": "memory_lease", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "MutableMemoryBlock + ImmutableMemoryBlock + IReadBufferAllocator"},
+    {"id": "buffer_push", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "BufferEngine + BufferPushStatus matrix"},
+    {"id": "eventbus_delivery", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "SessionEvent + EventDeliveryClass + EventBusPolicy"},
+    {"id": "clock_observation", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "ClockObservationSlot realtime-safe interface"},
+    {"id": "closure", "kind": "contract", "status": "CONTRACT_PASS", "evidence": "P4 contract layer complete, 153+ tests, arch guard PASS"}
+  ],
+  "redaction_state": "sanitized",
+  "contains_raw_secrets": false,
+  "contains_current_commit_hash": false
+}
