@@ -1,10 +1,11 @@
 #pragma once
 
 #include <cstdint>
+#include "kivo/playback/control_plane/primitives/value_types.hpp"
 
 namespace kivo::playback::control_plane::revision {
 
-using kivo::playback::control_plane::primitives::U64;
+using primitives::U64;
 
 // ─── ID Types ───
 
