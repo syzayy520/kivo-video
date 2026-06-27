@@ -1010,6 +1010,14 @@ target_link_libraries(kivo_p3_behavior_test PRIVATE kivo_p3_fake_providers)
 add_test(NAME kivo_p3_behavior_test COMMAND kivo_p3_behavior_test)
 set_tests_properties(kivo_p3_behavior_test PROPERTIES TIMEOUT 15)
 
+# ─── P3 Acceptance Tests (FC-013/042/043/062/077/078/081/085/093/097/098/099/101) ───
+add_executable(kivo_p3_acceptance_test tests/p3/acceptance/p3_acceptance_tests.cpp)
+target_include_directories(kivo_p3_acceptance_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_acceptance_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_acceptance_test PRIVATE kivo_p3_fake_providers)
+add_test(NAME kivo_p3_acceptance_test COMMAND kivo_p3_acceptance_test)
+set_tests_properties(kivo_p3_acceptance_test PROPERTIES TIMEOUT 15)
+
 # ─── P3 Architecture Guard Scanner Test ───
 find_program(PYTHON_EXE python)
 if(PYTHON_EXE)

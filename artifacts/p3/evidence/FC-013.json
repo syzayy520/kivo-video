@@ -1,0 +1,30 @@
+{
+  "gate_id": "FC-013",
+  "gate_name": "P3-M2 Production Hardening Gate",
+  "task_id": "P3-COMPLETE-LINE-V9",
+  "status": "CONTRACT_PASS",
+  "evidence_kind": "behavior_tests",
+  "milestone": "P3-M2",
+  "contracts_implemented": [
+    "WebDavProductionHardening (P2 not_verified items honestly false)",
+    "HttpProductionTransport (identity encoding, 206/416/200/redirect/auth/redaction)",
+    "SubtitleDownloadBoundary + SubtitleStyleContract + SubtitleSyncContract + SubtitleBurnInDecision",
+    "DrmMetadata + DrmTrackDecision (clear fallback, track-level)",
+    "ObservabilityMetric + ObservabilityMetricsPolicy (no blocking, redacted)",
+    "PlaylistParsingResult + PlaylistRecursionResult + classify_playlist function",
+    "IntegrationHarnessConfig + FakeServerConfig + ControlledClock + CancellationBarrier"
+  ],
+  "tests_run": 24,
+  "tests_passed": 24,
+  "tests_failed": 0,
+  "p2_not_verified_items_status": {
+    "webdav_href_exact_match": "not_verified (honestly false in contract)",
+    "webdav_collection_rejection": "not_verified (honestly false in contract)",
+    "webdav_malformed_xml_fail_closed": "not_verified (honestly false in contract)",
+    "webdav_large_xml_body_cap": "not_verified (honestly false in contract)"
+  },
+  "deferred_to_p4": [
+    "soak_baseline (FC-083): requires P4 integration environment",
+    "performance_baseline (FC-084): requires P4 integration environment"
+  ]
+}
