@@ -59,9 +59,9 @@
     "large_xml_body_cap": "not_verified"
   },
   "commit_model": "C",
-  "repair_commit_count": 5,
+  "repair_commit_count": 6,
   "closure_doc_commit_count": 1,
-  "total_commits_from_c90cfdc": 6,
+  "total_commits_from_c90cfdc": 7,
   "commit_history": {
     "301b829": "initial closure doc commit (evidence + execution card)",
     "df4e511": "direct-exe evidence repair commit (15-exe matrix with real names and log paths)",
