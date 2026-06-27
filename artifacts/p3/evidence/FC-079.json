@@ -1,0 +1,38 @@
+{
+  "gate_id": "FC-079",
+  "gate_name": "Architecture Guard CI Gate",
+  "task_id": "P3-COMPLETE-LINE-V9",
+  "status": "CONTRACT_PASS",
+  "evidence_kind": "planning",
+  "policy_file": "backend/architecture/p3_architecture_policy.json",
+  "forbidden_patterns_verified_absent": [
+    "provider_manager",
+    "source_manager",
+    "god_provider",
+    "universal_provider",
+    "one_big_provider",
+    "monolithic p3.cpp"
+  ],
+  "forbidden_dependencies_verified": [
+    "playback_decision does not depend on provider implementation or ffmpeg",
+    "provider does not depend on media_probe/ffmpeg or renderer/decoder/audio output",
+    "session does not depend on renderer/decoder/audio output",
+    "platform_contracts does not call platform UI APIs",
+    "tools are not runtime dependencies"
+  ],
+  "forbidden_p3_outputs_verified_absent": [
+    "decoded frame",
+    "rendered frame",
+    "audio sample output",
+    "subtitle bitmap",
+    "UI state",
+    "playback timeline control",
+    "real transcoded media",
+    "persistent media cache artifact",
+    "DRM decrypted sample",
+    "HLS segment playback queue",
+    "DASH segment playback queue"
+  ],
+  "scanner_differentiates": true,
+  "machine_checkable": true
+}

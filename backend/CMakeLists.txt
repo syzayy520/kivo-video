@@ -985,3 +985,11 @@ target_compile_features(kivo_p3_source_model_platform_test PRIVATE cxx_std_20)
 target_link_libraries(kivo_p3_source_model_platform_test PRIVATE kivo_p3_contracts)
 add_test(NAME kivo_p3_source_model_platform_test COMMAND kivo_p3_source_model_platform_test)
 set_tests_properties(kivo_p3_source_model_platform_test PROPERTIES TIMEOUT 10)
+
+# ─── P3 Full Contracts Tests (M1: provider/sessions/security/delivery/probe/decision/handoff/evidence/unsupported) ───
+add_executable(kivo_p3_contracts_test tests/p3/contracts/p3_contracts_tests.cpp)
+target_include_directories(kivo_p3_contracts_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_contracts_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_contracts_test PRIVATE kivo_p3_contracts)
+add_test(NAME kivo_p3_contracts_test COMMAND kivo_p3_contracts_test)
+set_tests_properties(kivo_p3_contracts_test PROPERTIES TIMEOUT 10)
