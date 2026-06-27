@@ -1059,3 +1059,17 @@ target_link_libraries(kivo_video_plane_gpu_render_tests PRIVATE kivo_video_plane
 
 add_test(NAME kivo_video_plane_gpu_render_tests COMMAND kivo_video_plane_gpu_render_tests)
 set_tests_properties(kivo_video_plane_gpu_render_tests PROPERTIES TIMEOUT 30)
+
+# --- P5G: D3D11VA / P010 / GPU Tests ---
+
+add_executable(kivo_video_plane_d3d11va_p010_tests
+  tests/video_plane/p5g_d3d11va_p010_tests.cpp
+)
+target_include_directories(kivo_video_plane_d3d11va_p010_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_video_plane_d3d11va_p010_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_video_plane_d3d11va_p010_tests PRIVATE kivo_video_plane_contracts)
+
+add_test(NAME kivo_video_plane_d3d11va_p010_tests COMMAND kivo_video_plane_d3d11va_p010_tests)
+set_tests_properties(kivo_video_plane_d3d11va_p010_tests PROPERTIES TIMEOUT 30)
