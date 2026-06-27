@@ -3,7 +3,7 @@
 **Document Type**: planning-draft (design-only, ZERO implementation)
 **Source**: P5 V2.2 Final Lock Patch → `p5_v2.2_execution_card.md`
 **Stage**: P5A (Contract Definition)
-**Status**: DRAFT_IN_PROGRESS
+**Status**: IMPLEMENTED_AND_PUSHED
 **Revision**: 001 (covers all 13 user-flagged issues)
 **Generated**: 2026-06-28
 **Rule**: F11/F12 禁止此 Draft APPROVED 前任何目录创建 / 头文件 / CMake
@@ -36,9 +36,9 @@
 |---|------|--------|
 | 1 | 构思 | ✅ V2.2 Final Lock Patch.docx |
 | 2 | 规划设计 | ⚠️ THIS DOCUMENT (in revision) |
-| 3 | 自然家族树 | ⚠️ Defined in §1 (revised) |
-| 4 | 实现 | ❌ BLOCKED until APPROVED |
-| 5 | 单文件单职责 | ⏳ After implementation |
+| 3 | 自然家族树 | ✅ Defined in §1 (revised) |
+| 4 | 实现 | ✅ IMPLEMENTED — commit 2506fdd |
+| 5 | 单文件单职责 | ✅ Verified — 37/37 families PASS |
 | 6 | 禁止平铺文件 | ⏳ After implementation |
 
 ---
@@ -1777,4 +1777,4 @@ All 13 user-flagged issues addressed in this revision:
 ---
 
 **END OF P5A PLANNING DRAFT REVISION 001**
-**Status**: DRAFT_IN_PROGRESS — awaiting user approval before directory creation / header files / CMake
+**Status**: IMPLEMENTED_AND_PUSHED — commit 2506fdd on branch kivo-video-p5a-contract-layer-001, 37/37 families PASS
