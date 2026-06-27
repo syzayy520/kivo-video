@@ -1090,3 +1090,22 @@ target_compile_features(kivo_p4_recovery_events_diagnostics_test PRIVATE cxx_std
 target_link_libraries(kivo_p4_recovery_events_diagnostics_test PRIVATE kivo_p4_contracts)
 add_test(NAME kivo_p4_recovery_events_diagnostics_test COMMAND kivo_p4_recovery_events_diagnostics_test)
 set_tests_properties(kivo_p4_recovery_events_diagnostics_test PROPERTIES TIMEOUT 10)
+
+# ─── P4 Output Boundary + Negative Compile Tests ───
+add_executable(kivo_p4_output_boundary_test
+  tests/playback/control_plane/output_boundary/p4_output_boundary_tests.cpp
+)
+target_include_directories(kivo_p4_output_boundary_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_output_boundary_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p4_output_boundary_test PRIVATE kivo_p4_contracts)
+add_test(NAME kivo_p4_output_boundary_test COMMAND kivo_p4_output_boundary_test)
+set_tests_properties(kivo_p4_output_boundary_test PROPERTIES TIMEOUT 10)
+
+add_executable(kivo_p4_negative_compile_test
+  tests/playback/control_plane/compile_fail/p4_negative_compile_tests.cpp
+)
+target_include_directories(kivo_p4_negative_compile_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_negative_compile_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p4_negative_compile_test PRIVATE kivo_p4_contracts)
+add_test(NAME kivo_p4_negative_compile_test COMMAND kivo_p4_negative_compile_test)
+set_tests_properties(kivo_p4_negative_compile_test PROPERTIES TIMEOUT 10)

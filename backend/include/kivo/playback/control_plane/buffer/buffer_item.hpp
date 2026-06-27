@@ -6,6 +6,7 @@
 #include "kivo/playback/control_plane/buffer/stream_end_kind.hpp"
 #include "kivo/playback/control_plane/primitives/value_types.hpp"
 #include "kivo/playback/control_plane/primitives/time_types.hpp"
+#include "kivo/playback/control_plane/primitives/source_range.hpp"
 
 namespace kivo::playback::control_plane::buffer {
 

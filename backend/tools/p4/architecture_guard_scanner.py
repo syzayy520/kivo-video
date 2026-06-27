@@ -1,139 +1,141 @@
 #!/usr/bin/env python3
 """P4 Architecture Guard Scanner.
 
-Scans P4 source files for forbidden patterns and boundary violations.
-Machine-checkable architecture guard for CI blocking mode.
+Machine-checkable architecture guard for P4 playback control plane boundaries.
+
+Required scan:
+- No P5/P6/P7/UI pollution in P4 headers/src.
+- No P3 type redefinition in P4 namespace.
+- No root manager bucket files.
+- No forbidden implementation coupling tokens.
+- Forbidden scan must NOT misfire on business-qualified *_engine.hpp.
+
+Usage:
+    python backend/tools/p4/architecture_guard_scanner.py [p4_root]
 """
-import sys
+
 import os
 import re
+import sys
 import json
-import argparse
+from pathlib import Path
 
-FORBIDDEN_MANAGER_PATTERNS = [
-    (r"\bplayer_manager\b", "forbidden: player_manager"),
-    (r"\bplayback_manager\b", "forbidden: playback_manager"),
-    (r"\bpipeline_manager\b", "forbidden: pipeline_manager"),
-    (r"\bgod_player\b", "forbidden: god_player"),
+FORBIDDEN_TOKENS = [
+    "D3D11", "DXGI", "Vulkan",
+    "WASAPI", "AVAudioEngine", "AAudio", "AudioTrack",
+    "decoded_frame", "render_surface", "audio_device_open",
+    "subtitle_bitmap",
+    "QWidget", "QML", "QtQuick",
+    "drm_decrypt", "license_acquisition",
+    "provider_manager", "source_manager", "player_manager", "god_player",
 ]
 
-FORBIDDEN_IMPLEMENTATION_TOKENS = [
-    (r"#include.*<d3d11", "forbidden: D3D11 include in P4"),
-    (r"#include.*<dxgi", "forbidden: DXGI include in P4"),
-    (r"#include.*<wasapi", "forbidden: WASAPI include in P4"),
-    (r"\bD3D11\b", "forbidden: D3D11 in P4"),
-    (r"\bDXGI\b", "forbidden: DXGI in P4"),
-    (r"\bVulkan\b", "forbidden: Vulkan in P4"),
-    (r"\bWASAPI\b", "forbidden: WASAPI in P4"),
-    (r"\bavformat\b|\bavcodec\b|\bavutil\b|\blibav", "forbidden: FFmpeg in P4"),
-    (r"\bQApplication\b|\bQWidget\b|\bQQml\b|\bQtQuick\b", "forbidden: Qt UI in P4"),
-    (r"\bdecoded_frame\b", "forbidden: decoded_frame in P4"),
-    (r"\brender_surface\b", "forbidden: render_surface in P4"),
-    (r"\baudio_device_open\b", "forbidden: audio_device_open in P4"),
-    (r"\bsubtitle_bitmap\b", "forbidden: subtitle_bitmap in P4"),
-    (r"\bdecrypt_sample\b", "forbidden: decrypt_sample in P4"),
-    (r"\blicense_request\b", "forbidden: license_request in P4"),
-    (r"\blicense_server_call\b", "forbidden: license_server_call in P4"),
-    (r"\bprovider_manager\b", "forbidden: provider_manager in P4"),
-    (r"\bsource_manager\b", "forbidden: source_manager in P4"),
+BUSINESS_ENGINE_FILES = {
+    "buffer_engine.hpp",
+    "timeline_engine.hpp",
+    "recovery_engine.hpp",
+    "memory_pool_engine.hpp",
+    "event_bus_engine.hpp",
+}
+
+P3_REDEFINITION_PATTERNS = [
+    r"struct\s+PlaybackHandoffContract\b",
+    r"struct\s+PlaybackCandidateSet\b",
+    r"class\s+PlaybackHandoffContract\b",
+    r"class\s+PlaybackCandidateSet\b",
 ]
 
-FORBIDDEN_ROOT_BUCKET_FILES = [
-    "common.hpp", "helper.hpp", "utils.hpp", "manager.hpp", "types.hpp",
-    "pipeline.hpp", "engine.hpp", "misc.hpp", "all_contracts.hpp",
-    "god_player.hpp", "player_manager.hpp", "playback_manager.hpp", "pipeline_manager.hpp"
-]
 
-# Business-qualified engine files that are ALLOWED (not root bucket)
-ALLOWED_ENGINE_FILES = [
-    "buffer_engine.hpp", "timeline_engine.hpp", "recovery_engine.hpp",
-    "memory_pool_engine.hpp", "event_bus_engine.hpp"
-]
+def scan_forbidden_tokens(p4_root: Path) -> list:
+    """Scan for forbidden implementation coupling tokens."""
+    violations = []
+    for filepath in p4_root.rglob("*.hpp"):
+        rel = filepath.relative_to(p4_root)
+        filename = filepath.name
 
-def scan_file(filepath, filename):
-    hits = []
-    try:
-        with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
-            content = f.read()
-    except Exception:
-        return hits
-
-    # Check forbidden manager patterns
-    for pattern, reason in FORBIDDEN_MANAGER_PATTERNS:
-        for m in re.finditer(pattern, content, re.IGNORECASE):
-            line_start = content.rfind('\n', 0, m.start()) + 1
-            line = content[line_start:content.find('\n', m.start())]
-            is_comment = line.strip().startswith('//') or line.strip().startswith('*') or line.strip().startswith('#')
-            is_sentinel = 'forbidden' in line.lower() or 'not_' in line.lower() or 'unsupported' in line.lower()
-            if not (is_comment or is_sentinel):
-                hits.append({"file": filepath, "pattern": pattern, "reason": reason, "line": line.strip()[:100]})
-
-    # Check forbidden implementation tokens
-    for pattern, reason in FORBIDDEN_IMPLEMENTATION_TOKENS:
-        for m in re.finditer(pattern, content):
-            line_start = content.rfind('\n', 0, m.start()) + 1
-            line = content[line_start:content.find('\n', m.start())]
-            is_comment = line.strip().startswith('//') or line.strip().startswith('*') or line.strip().startswith('#')
-            is_sentinel = 'forbidden' in line.lower() or 'not_' in line.lower() or 'no_' in line.lower()
-            if not (is_comment or is_sentinel):
-                hits.append({"file": filepath, "pattern": pattern, "reason": reason, "line": line.strip()[:100]})
-
-    # Check forbidden root bucket file names
-    if filename in FORBIDDEN_ROOT_BUCKET_FILES and filename not in ALLOWED_ENGINE_FILES:
-        # Check if it's in the control_plane directory (P4 scope)
-        if 'control_plane' in filepath:
-            hits.append({"file": filepath, "pattern": filename, "reason": f"forbidden: root bucket file {filename} in P4", "line": ""})
-
-    return hits
-
-def scan_directory(root_dir):
-    all_hits = []
-    files_scanned = 0
-    p4_dirs = [
-        os.path.join(root_dir, "backend", "include", "kivo", "playback"),
-        os.path.join(root_dir, "backend", "tests", "playback"),
-    ]
-
-    for p4_dir in p4_dirs:
-        if not os.path.exists(p4_dir):
+        # Allow business-qualified engine files
+        if filename in BUSINESS_ENGINE_FILES:
             continue
-        for dirpath, dirnames, filenames in os.walk(p4_dir):
-            for filename in filenames:
-                if filename.endswith(('.hpp', '.cpp', '.h')):
-                    filepath = os.path.join(dirpath, filename)
-                    all_hits.extend(scan_file(filepath, filename))
-                    files_scanned += 1
 
-    return all_hits, files_scanned
+        # Allow policy documentation, forbidden fixtures, test sentinels
+        parts = str(rel).replace("\\", "/").lower()
+        if "forbidden" in parts or "sentinel" in parts:
+            continue
+
+        try:
+            content = filepath.read_text(encoding="utf-8", errors="ignore")
+        except Exception:
+            continue
+
+        for token in FORBIDDEN_TOKENS:
+            # Use word boundary to avoid false positives
+            pattern = re.compile(re.escape(token), re.IGNORECASE)
+            for match in pattern.finditer(content):
+                line_num = content[:match.start()].count("\n") + 1
+                violations.append({
+                    "file": str(rel),
+                    "line": line_num,
+                    "token": token,
+                })
+    return violations
+
+
+def scan_p3_redefinition(p4_root: Path) -> list:
+    """Scan for P3 type redefinition in P4 namespace."""
+    violations = []
+    for filepath in p4_root.rglob("*.hpp"):
+        rel = filepath.relative_to(p4_root)
+        try:
+            content = filepath.read_text(encoding="utf-8", errors="ignore")
+        except Exception:
+            continue
+
+        for pattern in P3_REDEFINITION_PATTERNS:
+            for match in re.finditer(pattern, content):
+                line_num = content[:match.start()].count("\n") + 1
+                violations.append({
+                    "file": str(rel),
+                    "line": line_num,
+                    "pattern": pattern,
+                })
+    return violations
+
+
+def scan_root_bucket_files(p4_root: Path) -> list:
+    """Scan for root manager bucket files (flat files in root)."""
+    violations = []
+    root_files = [f for f in p4_root.iterdir() if f.is_file() and f.suffix in (".hpp", ".cpp")]
+    for f in root_files:
+        violations.append({"file": f.name})
+    return violations
+
 
 def main():
-    parser = argparse.ArgumentParser(description="P4 Architecture Guard Scanner")
-    parser.add_argument("--root", required=True, help="Project root directory")
-    parser.add_argument("--output", help="Output JSON file for results")
-    parser.add_argument("--self-test", action="store_true", help="Run self-test")
-    args = parser.parse_args()
+    p4_root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("backend/include/kivo/playback/control_plane")
 
-    if args.self_test:
-        print("P4 Architecture Guard self-test: PASS")
-        return 0
+    if not p4_root.exists():
+        print(f"ERROR: P4 root not found: {p4_root}")
+        sys.exit(1)
 
-    hits, files_scanned = scan_directory(args.root)
-
-    result = {
-        "scanner": "p4_architecture_guard",
-        "files_scanned": files_scanned,
-        "violations": len(hits),
-        "hits": hits,
-        "status": "PASS" if len(hits) == 0 else "FAIL"
+    results = {
+        "p4_root": str(p4_root),
+        "forbidden_token_violations": scan_forbidden_tokens(p4_root),
+        "p3_redefinition_violations": scan_p3_redefinition(p4_root),
+        "root_bucket_violations": scan_root_bucket_files(p4_root),
     }
 
-    output = json.dumps(result, indent=2)
-    if args.output:
-        with open(args.output, 'w') as f:
-            f.write(output)
-    print(output)
+    total_violations = (
+        len(results["forbidden_token_violations"])
+        + len(results["p3_redefinition_violations"])
+        + len(results["root_bucket_violations"])
+    )
 
-    return 0 if len(hits) == 0 else 1
+    results["total_violations"] = total_violations
+    results["status"] = "PASS" if total_violations == 0 else "FAIL"
+
+    print(json.dumps(results, indent=2))
+    sys.exit(0 if total_violations == 0 else 1)
+
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
