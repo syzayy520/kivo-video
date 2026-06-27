@@ -1002,3 +1002,17 @@ target_link_libraries(kivo_video_plane_input_bridge_tests PRIVATE kivo_video_pla
 
 add_test(NAME kivo_video_plane_input_bridge_tests COMMAND kivo_video_plane_input_bridge_tests)
 set_tests_properties(kivo_video_plane_input_bridge_tests PROPERTIES TIMEOUT 30)
+
+# --- P5C: FFmpeg Demux Backend Tests ---
+
+add_executable(kivo_video_plane_ffmpeg_demux_tests
+  tests/video_plane/p5c_ffmpeg_demux_tests.cpp
+)
+target_include_directories(kivo_video_plane_ffmpeg_demux_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_video_plane_ffmpeg_demux_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_video_plane_ffmpeg_demux_tests PRIVATE kivo_video_plane_contracts)
+
+add_test(NAME kivo_video_plane_ffmpeg_demux_tests COMMAND kivo_video_plane_ffmpeg_demux_tests)
+set_tests_properties(kivo_video_plane_ffmpeg_demux_tests PROPERTIES TIMEOUT 30)
