@@ -1045,3 +1045,17 @@ target_link_libraries(kivo_video_plane_timing_tests PRIVATE kivo_video_plane_con
 
 add_test(NAME kivo_video_plane_timing_tests COMMAND kivo_video_plane_timing_tests)
 set_tests_properties(kivo_video_plane_timing_tests PROPERTIES TIMEOUT 30)
+
+# --- P5F: GPU Rendering Tests ---
+
+add_executable(kivo_video_plane_gpu_render_tests
+  tests/video_plane/p5f_gpu_render_tests.cpp
+)
+target_include_directories(kivo_video_plane_gpu_render_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_video_plane_gpu_render_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_video_plane_gpu_render_tests PRIVATE kivo_video_plane_contracts)
+
+add_test(NAME kivo_video_plane_gpu_render_tests COMMAND kivo_video_plane_gpu_render_tests)
+set_tests_properties(kivo_video_plane_gpu_render_tests PROPERTIES TIMEOUT 30)
