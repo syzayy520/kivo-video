@@ -59,9 +59,9 @@
     "large_xml_body_cap": "not_verified"
   },
   "commit_model": "C",
-  "repair_commit_count": 7,
+  "repair_commit_count": 8,
   "closure_doc_commit_count": 1,
-  "total_commits_from_c90cfdc": 8,
+  "total_commits_from_c90cfdc": 10,
   "not_claimed": {
     "emby": "not_implemented",
     "alist": "not_implemented",
