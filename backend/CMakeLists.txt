@@ -1060,3 +1060,13 @@ target_compile_features(kivo_p4_revision_control_test PRIVATE cxx_std_20)
 target_link_libraries(kivo_p4_revision_control_test PRIVATE kivo_p4_contracts)
 add_test(NAME kivo_p4_revision_control_test COMMAND kivo_p4_revision_control_test)
 set_tests_properties(kivo_p4_revision_control_test PROPERTIES TIMEOUT 10)
+
+# ─── P4 Reader / Memory / Buffer / StreamPull / Pipeline Tests ───
+add_executable(kivo_p4_reader_memory_buffer_test
+  tests/playback/control_plane/reader/p4_reader_memory_buffer_tests.cpp
+)
+target_include_directories(kivo_p4_reader_memory_buffer_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_reader_memory_buffer_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p4_reader_memory_buffer_test PRIVATE kivo_p4_contracts)
+add_test(NAME kivo_p4_reader_memory_buffer_test COMMAND kivo_p4_reader_memory_buffer_test)
+set_tests_properties(kivo_p4_reader_memory_buffer_test PROPERTIES TIMEOUT 10)
