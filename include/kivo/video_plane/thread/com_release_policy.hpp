@@ -9,7 +9,7 @@ struct ComReleasePolicy {
     bool defer_release{true};               // defer COM release to non-realtime thread
     uint32_t max_deferred_count{64};        // max deferred releases
     bool release_on_thread_exit{true};      // release all on thread exit
-    std::string release_thread_name;        // thread responsible for deferred release
+    std::string release_thread_name{"gpu_device_thread"}; // thread responsible for deferred release (rule 6: GpuDeviceThread or maintenance context)
     bool operator==(ComReleasePolicy const&) const = default;
 };
 

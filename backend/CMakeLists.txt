@@ -1016,3 +1016,17 @@ target_link_libraries(kivo_video_plane_ffmpeg_demux_tests PRIVATE kivo_video_pla
 
 add_test(NAME kivo_video_plane_ffmpeg_demux_tests COMMAND kivo_video_plane_ffmpeg_demux_tests)
 set_tests_properties(kivo_video_plane_ffmpeg_demux_tests PROPERTIES TIMEOUT 30)
+
+# --- P5D: Decoder Contract Tests ---
+
+add_executable(kivo_video_plane_decoder_tests
+  tests/video_plane/p5d_decoder_tests.cpp
+)
+target_include_directories(kivo_video_plane_decoder_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_video_plane_decoder_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_video_plane_decoder_tests PRIVATE kivo_video_plane_contracts)
+
+add_test(NAME kivo_video_plane_decoder_tests COMMAND kivo_video_plane_decoder_tests)
+set_tests_properties(kivo_video_plane_decoder_tests PROPERTIES TIMEOUT 30)
