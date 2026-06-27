@@ -62,6 +62,19 @@ SCHEMA_DEGRADED — current validator does not support p2-evidence-v15. Closure 
 
 Self-test: 16/16 PASS. Full scan: 207 files, 6 hits all in roadmap docs (non-production). No production pollution.
 
+## Forbidden Token Scan
+
+- provider_manager/source_manager: 0 hits in production (CLEAN)
+- P3 pollution (FFmpeg/D3D11/DXGI/WASAPI/demux/decoder/renderer/cache/prefetch/benchmark): 0 hits in provider HTTP/WebDAV directories (CLEAN)
+
+## Placeholder/Fabrication Gate
+
+Closure evidence P2-SOURCE-RUNTIME-FINAL-CLOSURE-002.json and execution card: 0 placeholder/TODO/TBD/fake-reference found (CLEAN)
+
+## Secret Redaction Gate
+
+Closure evidence and execution card: 0 raw URL, Authorization, Cookie, Bearer, access_token, signed URL, Windows path found (CLEAN)
+
 ## WebDAV not_verified
 
 - href exact-match: not_verified
