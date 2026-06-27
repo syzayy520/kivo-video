@@ -606,3 +606,31 @@ Execute `SRC-CORE-SKELETON-001` from `docs/roadmap/p2_source_core_skeleton_001_e
 5. Do not begin provider runtime verification until this skeleton task is complete or honestly failed.
 6. After the skeleton is complete, execute `LOCAL-FILE-SOURCE-RUNTIME-001` from `docs/roadmap/p2_source_runtime_foundation_local_file_001_execution_card.md`.
 7. After local_file runtime is complete, execute `REMOTE-RANGE-RUNTIME-HTTP-WEBDAV-001` from `docs/roadmap/p2_remote_range_runtime_http_webdav_001_execution_card.md`.
+
+## P2 Source Runtime Final Closure
+
+- DONE: P2-SOURCE-RUNTIME-FINAL-CLOSURE-001 (attempt 1) — REJECTED. Premature PASS on Direct Exe / no_debug_dialog not closed.
+- DONE: P2-SOURCE-RUNTIME-FINAL-CLOSURE-002 (attempt 2) — REJECTED. Commit count self-reference infinite loop + evidence/card mismatch.
+- DONE: P2-SOURCE-RUNTIME-FINAL-CLOSURE-003 (attempt 3, canonical) — PASSED.
+  - Branch: `kivo-video-p2-source-runtime-final-closure-003`
+  - HEAD: `9ac330a492c0449d5f738c447ad0ceb9238972ab`
+  - Base: `c90cfdc938cd21e6ecf6d62d1b088d0d0fe3b9a1`
+  - Evidence: `artifacts/p2/evidence/P2-SOURCE-RUNTIME-FINAL-CLOSURE-003.json`
+  - Card: `docs/execution_cards/P2_SOURCE_RUNTIME_FINAL_CLOSURE_003.md`
+  - Commit model: A (single closure commit, no self-referential hash)
+  - closure-001 and closure-002 are rejected historical attempts and must not be used as P3 dependency.
+
+P2 is closed. P2 source runtime baseline is locked. No more P2 source runtime expansion tasks.
+
+## P3 Complete Line V9 — Preflight Gate Repair
+
+- DONE: P3-COMPLETE-LINE-V9 preflight gate repair (FC-002 filename fix).
+  - Branch: `kivo-video-p3-preflight-gate-repair-001`
+  - Base: `9ac330a492c0449d5f738c447ad0ceb9238972ab` (closure-003)
+  - Execution card: `docs/roadmap/p3_complete_line_v9_closure_ready_execution_card.md`
+  - FC-002 corrected: `P2-SOURCE-RUNTIME-FINAL-CLOSURE-001` → `P2-SOURCE-RUNTIME-FINAL-CLOSURE-003`
+  - FC-002 canonical source: closure-003 / 9ac330a. closure-001/002 rejected.
+  - Scope: preflight repair ONLY. No P3 runtime implementation started.
+  - NOT P3 PASS. Awaiting user acceptance of preflight repair before FC-003+.
+
+P3 gate index: FC-001 through FC-101. These are P3's own gate numbers, distinct from P2 Final Closure FC-001..FC-038.

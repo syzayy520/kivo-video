@@ -51,14 +51,20 @@ Updated: 2026-06-27
 
 ## Next Work
 
-Follow `docs/roadmap/backend_task_checklist.md`.
+P2 Source Runtime is CLOSED. Baseline locked at closure-003 / `9ac330a492c0449d5f738c447ad0ceb9238972ab`.
 
-Immediate next task:
+- P2 final closure canonical source: closure-003 / `9ac330a492c0449d5f738c447ad0ceb9238972ab`
+- Branch: `kivo-video-p2-source-runtime-final-closure-003`
+- Evidence: `artifacts/p2/evidence/P2-SOURCE-RUNTIME-FINAL-CLOSURE-003.json`
+- Card: `docs/execution_cards/P2_SOURCE_RUNTIME_FINAL_CLOSURE_003.md`
+- closure-001 and closure-002 are rejected historical attempts. Must not be used as P3 dependency.
 
-1. Open `docs/roadmap/p2_source_core_skeleton_001_execution_card.md`.
-2. Execute `SRC-CORE-SKELETON-001` starting with SCS-001 Branch/Base/Clean Gate.
-3. Run Redline Baseline Gate before any skeleton files.
-4. Build only canonical Source Core contracts/runtime skeleton and provider boundaries.
-5. Produce `artifacts/p2/evidence/SRC-CORE-SKELETON-001.json` as `CONTRACT_PASS`; do not report provider runtime proof or P2 completion.
-6. After `SRC-CORE-SKELETON-001` is complete, execute `LOCAL-FILE-SOURCE-RUNTIME-001` from `docs/roadmap/p2_source_runtime_foundation_local_file_001_execution_card.md`.
-7. After `LOCAL-FILE-SOURCE-RUNTIME-001` is complete, execute `REMOTE-RANGE-RUNTIME-HTTP-WEBDAV-001` from `docs/roadmap/p2_remote_range_runtime_http_webdav_001_execution_card.md`.
+P3 preflight gate repair completed (FC-002 filename fix only):
+
+- Branch: `kivo-video-p3-preflight-gate-repair-001`
+- Execution card: `docs/roadmap/p3_complete_line_v9_closure_ready_execution_card.md`
+- FC-002 corrected to reference closure-003 evidence/card.
+- Scope: preflight repair ONLY. No P3 runtime implementation started.
+- NOT P3 PASS. Awaiting user acceptance of preflight repair.
+
+After user accepts preflight repair, next work is P3-COMPLETE-LINE-V9 starting from FC-003 (Scope Level Gate). Do NOT start FC-003+ until preflight is accepted.
