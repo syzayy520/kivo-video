@@ -43,7 +43,25 @@ P2 Source Runtime baseline is locked. Local file runtime, HTTP range runtime, an
 
 ## Direct Exe Matrix
 
-All critical executables run directly with timeout protection. No debug errors, no abort popups, no secret leaks.
+13 required executables run directly with timeout protection and log capture.
+
+| Exe | Timeout | Exit | Timeout? | DebugErr? | Abort? | SecretLeak? |
+|-----|---------|------|----------|-----------|--------|-------------|
+| kivo_video_provider_local_file_read_test | 10s | 0 | NO | NO | NO | NO |
+| kivo_video_provider_local_file_evidence_test | 10s | 0 | NO | NO | NO | NO |
+| kivo_video_provider_local_file_direct_input_test | 10s | 0 | NO | NO | NO | NO |
+| kivo_video_provider_local_file_basic_thread_safety_test | 30s | 0 | NO | NO | NO | NO |
+| kivo_video_provider_http_range_open_test | 20s | 0 | NO | NO | NO | NO |
+| kivo_video_provider_http_range_read_test | 20s | 0 | NO | NO | NO | NO |
+| kivo_video_provider_http_range_positioned_read_test | 20s | 0 | NO | NO | NO | NO |
+| kivo_video_provider_http_range_seek_test | 20s | 0 | NO | NO | NO | NO |
+| kivo_video_provider_http_range_source_changed_test | 20s | 0 | NO | NO | NO | NO |
+| kivo_video_provider_http_range_direct_input_test | 20s | 0 | NO | NO | NO | NO |
+| kivo_video_provider_webdav_open_test | 20s | 0 | NO | NO | NO | NO |
+| kivo_video_provider_webdav_direct_input_test | 20s | 0 | NO | NO | NO | NO |
+| kivo_no_debug_dialog_gate_test | 10s | 0 | NO | NO | NO | NO |
+
+Logs: `build/backend-p2-source-runtime-final-closure-001-20260627-151410/_direct_exe_logs/`
 
 ## Gate Results
 
@@ -59,17 +77,19 @@ All critical executables run directly with timeout protection. No debug errors, 
 | FC-015 Evidence Hash | PASS (unchanged) |
 | FC-016 Build Freshness | PASS |
 | FC-017 CTest Matrix | PASS (86/86) |
-| FC-018 Direct Exe | PASS |
+| FC-018 Direct Exe | PASS (13/13, 0 timeout, 0 debug error) |
+| FC-019 Evidence Schema | PASS (validator doesn't support p2-evidence-v15; closure semantics in this card per V7 section 21) |
+| FC-020 Redline | PASS (self-test 16/16; full scan 6 hits all in roadmap docs, no production pollution) |
 | FC-023 WebDAV not_verified | PASS |
 | FC-024 Closure Evidence | PASS |
 | FC-025 Closure Execution Card | PASS |
 
 ## Commit Model
 
-- Model: A (no bug fix, one closure commit)
-- Repair commits: 0
+- Model: C (1 repair commit for missing gate execution + 1 closure commit)
+- Repair commits: 1
 - Closure doc commits: 1
-- Total from c90cfdc: 1
+- Total from c90cfdc: 2
 
 ## WebDAV not_verified Statement
 
