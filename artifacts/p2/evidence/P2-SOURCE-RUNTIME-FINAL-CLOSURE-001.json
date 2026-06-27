@@ -1,0 +1,65 @@
+{
+  "schema_version": "p2-evidence-v15",
+  "design_freeze_version": "V7-ULTIMATE-LOCAL-SAFE-ISOLATED-WORKTREE",
+  "task_id": "KIVO-VIDEO-P2-SOURCE-RUNTIME-FINAL-CLOSURE-001",
+  "task_family": "source_runtime",
+  "status": "RUNTIME_PASS",
+  "runtime_verified": true,
+  "closure_scope": "P2 Source Runtime baseline only",
+  "baseline_commits": {
+    "local_file": "c7f82900b0124ca91277fad97782999428a7a6bd",
+    "http_webdav_repair": "c90cfdc938cd21e6ecf6d62d1b088d0d0fe3b9a1"
+  },
+  "test_counts": {
+    "local_file_provider": 12,
+    "http_range_provider": 39,
+    "webdav_bridge": 15,
+    "source_core_contracts": 9,
+    "source_core_runtime": 7,
+    "evidence_validator": 1,
+    "malicious_evidence": 1,
+    "redaction_sentinel": 1,
+    "no_debug_dialog": 1,
+    "total": 86,
+    "passed": 86,
+    "failed": 0
+  },
+  "evidence_hashes": {
+    "local_file_before": "ee3e4e92590deb0c00f9f2bdae60d61d23e3619a620f9ffc64cc33879c7b2e46",
+    "local_file_after": "ee3e4e92590deb0c00f9f2bdae60d61d23e3619a620f9ffc64cc33879c7b2e46",
+    "local_file_hash_changed": false,
+    "remote_range_before": "25cd589e60e0364ee56486a9b3ffa3edb539bb91cc84f07c802f8a60b6e4ec2e",
+    "remote_range_after": "25cd589e60e0364ee56486a9b3ffa3edb539bb91cc84f07c802f8a60b6e4ec2e",
+    "remote_range_hash_changed": false
+  },
+  "webdav_not_verified": {
+    "href_exact_match": "not_verified",
+    "collection_rejection": "not_verified",
+    "malformed_xml_fail_closed": "not_verified",
+    "large_xml_body_cap": "not_verified"
+  },
+  "not_claimed": {
+    "emby": "not_implemented",
+    "alist": "not_implemented",
+    "cloud_drive": "not_implemented",
+    "hls": "not_implemented",
+    "ffmpeg_probe": "not_claimed",
+    "production_internet_http_transport": "not_claimed",
+    "loopback_socket_runtime": "not_verified",
+    "production_transport_complete": "not_claimed",
+    "high_bitrate_performance": "not_claimed",
+    "nas_webdav_vendor_compatibility": "not_claimed",
+    "direct_play_final_decision": "not_claimed",
+    "direct_stream_final_decision": "not_claimed",
+    "p2_complete": "not_claimed_closes_source_runtime_only"
+  },
+  "commit_model": "A",
+  "repair_commit_count": 0,
+  "closure_doc_commit_count": 1,
+  "total_commits_from_c90cfdc": 1,
+  "no_provider_manager": true,
+  "no_source_manager": true,
+  "no_orphan_branch": true,
+  "build_dir": "build/backend-p2-source-runtime-final-closure-001-20260627-151410",
+  "closure_worktree": "C:\\kivo-video-p2-source-runtime-final-closure-001-worktree"
+}
