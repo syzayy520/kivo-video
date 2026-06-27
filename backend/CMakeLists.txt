@@ -964,3 +964,24 @@ if(PYTHON_EXE)
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
   )
 endif()
+
+# ─── P3 Contract Baseline (M0) ───
+add_library(kivo_p3_contracts INTERFACE)
+target_include_directories(kivo_p3_contracts INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_contracts INTERFACE cxx_std_20)
+
+# ─── P3 Execution Family Tests ───
+add_executable(kivo_p3_execution_family_test tests/p3/execution/execution_family_tests.cpp)
+target_include_directories(kivo_p3_execution_family_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_execution_family_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_execution_family_test PRIVATE kivo_p3_contracts)
+add_test(NAME kivo_p3_execution_family_test COMMAND kivo_p3_execution_family_test)
+set_tests_properties(kivo_p3_execution_family_test PROPERTIES TIMEOUT 10)
+
+# ─── P3 Source Model + Platform Contracts Tests ───
+add_executable(kivo_p3_source_model_platform_test tests/p3/source_model/source_model_platform_tests.cpp)
+target_include_directories(kivo_p3_source_model_platform_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_source_model_platform_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_source_model_platform_test PRIVATE kivo_p3_contracts)
+add_test(NAME kivo_p3_source_model_platform_test COMMAND kivo_p3_source_model_platform_test)
+set_tests_properties(kivo_p3_source_model_platform_test PROPERTIES TIMEOUT 10)
