@@ -1101,3 +1101,44 @@ target_link_libraries(kivo_video_plane_security_closure_tests PRIVATE kivo_video
 
 add_test(NAME kivo_video_plane_security_closure_tests COMMAND kivo_video_plane_security_closure_tests)
 set_tests_properties(kivo_video_plane_security_closure_tests PROPERTIES TIMEOUT 30)
+
+# ─── P6A: Audio Plane Contracts (INTERFACE library, 294 headers, 30 subdirs) ───
+# Per V2.0 §3.1: C++23 required. Per §5: public contracts link NOTHING.
+# Per §42: no /wasapi/ /ffmpeg/ /qt/ in public include path.
+
+add_library(kivo_audio_plane_contracts INTERFACE)
+target_include_directories(kivo_audio_plane_contracts INTERFACE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_audio_plane_contracts INTERFACE cxx_std_23)
+# P6A Link Rule: contracts links NOTHING (no WASAPI/FFmpeg/Qt/D3D11)
+# P6A does NOT depend on kivo_video_plane_contracts (P5) or kivo_cinema_engine (legacy)
+
+# ─── P6A: Audio Plane Contract Tests ───
+
+add_executable(kivo_audio_plane_contract_tests
+  tests/video/audio_plane/p6a_contract_tests.cpp
+)
+target_include_directories(kivo_audio_plane_contract_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/tests/video/audio_plane
+)
+target_compile_features(kivo_audio_plane_contract_tests PRIVATE cxx_std_23)
+target_link_libraries(kivo_audio_plane_contract_tests PRIVATE kivo_audio_plane_contracts)
+
+add_test(NAME kivo_audio_plane_contract_tests COMMAND kivo_audio_plane_contract_tests)
+set_tests_properties(kivo_audio_plane_contract_tests PROPERTIES TIMEOUT 30)
+
+# ─── P6A: Architecture Guard (PublicHeadersStrict mode, §42) ───
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+  add_test(NAME p6_audio_arch_guard_public_headers_strict
+    COMMAND ${Python3_EXECUTABLE}
+            ${CMAKE_SOURCE_DIR}/backend/tools/governance/p6_audio_arch_guard.py
+            --repo-root ${CMAKE_SOURCE_DIR}
+            --mode PublicHeadersStrict
+  )
+  set_tests_properties(p6_audio_arch_guard_public_headers_strict
+    PROPERTIES TIMEOUT 30
+  )
+endif()
