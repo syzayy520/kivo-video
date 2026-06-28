@@ -4,7 +4,7 @@
 **Source**: P6 Audio Media Plane Design Lock Candidate V2.0 (§2, §4.1, §5, §11, §12, §33)
 **Predecessors**: P6A Contract Layer (CLOSED), P6B Fake Runtime Bridge (CLOSED)
 **Stage**: P6C (FFmpeg Audio Decode Backend — real avcodec, isolated)
-**Status**: IMPLEMENTED_TESTS_PASS_GUARD_PASS_COMMIT_ALLOWED (awaiting closure report for CLOSED)
+**Status**: CLOSED (closure report: docs/roadmap/p6c_closure_report.md)
 **Generated**: 2026-06-28
 **Revision History**:
 - REV 000 (4485769): Initial draft

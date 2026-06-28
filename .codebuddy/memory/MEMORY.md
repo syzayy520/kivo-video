@@ -183,7 +183,7 @@ P5 is locked. P6 requires explicit user authorization.
 ## P6 Audio Media Plane Status (2026-06-29)
 - P6A Contract Layer: CLOSED (commit 3d50ec3, 298 headers, 44/44 gates PASS)
 - P6B Fake Runtime Bridge: CLOSED (commit 874a725, 22 headers, 22/22 exit criteria PASS)
-- P6C FFmpeg Decode Backend: IMPLEMENTED (uncommitted, 3/3 CTest PASS, 16/16 exit criteria PASS)
+- P6C FFmpeg Decode Backend: CLOSED (commit 9b5c334, 3/3 CTest PASS, 15 PASS + 1 DESIGNED E15 scope)
   - Real avcodec decode backend isolated in backend/src/video/audio_plane/decode/ffmpeg/
   - Guard updated: BackendPrivate mode allows P6C paths
   - FFmpeg SDK: C:/ffmpeg-sdk/ffmpeg-n7.1-latest-win64-gpl-shared-7.1
