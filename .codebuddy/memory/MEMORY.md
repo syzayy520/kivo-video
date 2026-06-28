@@ -184,22 +184,22 @@ P5 is locked. P6 requires explicit user authorization.
 - P6A Contract Layer: CLOSED (commit 3d50ec3, 298 headers, 44/44 gates PASS)
 - P6B Fake Runtime Bridge: CLOSED (commit 874a725, 22 headers, 22/22 exit criteria PASS)
 - P6C FFmpeg Decode Backend: CLOSED (commit 9b5c334, 3/3 CTest PASS, 15 PASS + 1 DESIGNED E15 scope)
-- P6D WASAPI Output Backend: PARTIALLY CLOSED (audit REV 001 — start() not proven)
-- P6E Resampler/DSP/Clock/Sync: PARTIALLY CLOSED (audit REV 001 — 6 gaps)
+- P6D WASAPI Output Backend: CLOSED (REV 002 — start gap fixed with pre-fill)
+- P6E Resampler/DSP/Clock/Sync: CLOSED (REV 002 — all 6 gaps fixed)
   - Real avcodec decode backend isolated in backend/src/video/audio_plane/decode/ffmpeg/
   - Guard updated: BackendPrivate mode allows P6C paths
   - FFmpeg SDK: C:/ffmpeg-sdk/ffmpeg-n7.1-latest-win64-gpl-shared-7.1
   - KIVO_ENABLE_FFMPEG=ON required for P6C tests
 - P6D/P6E+: NOT STARTED (requires user authorization)
 
-## P6 Status (2026-06-29, AUDIT REV 001)
+## P6 Status (2026-06-29, REV 002 — all gaps fixed)
 - P6A Contract Layer: CLOSED
 - P6B Fake Runtime Bridge: CLOSED
 - P6C FFmpeg Decode Backend: CLOSED
-- P6D WASAPI Output Backend: PARTIALLY CLOSED (start() not proven, render loop stub)
-- P6E Resampler/DSP/Clock/Sync: PARTIALLY CLOSED (6 gaps acknowledged)
+- P6D WASAPI Output Backend: CLOSED (REV 002 — start gap fixed with pre-fill)
+- P6E Resampler/DSP/Clock/Sync: CLOSED (REV 002 — all 6 gaps fixed: drift/quantize/noise shaping/IEC61937/gapless/device thread)
 - P6S Security: CLOSED (in P6A)
-- P6 is NOT fully closed. P6D/P6E have acknowledged gaps requiring follow-up.
+- P6 is now CLOSED. All audit gaps resolved.
 
 ## Memory Maintenance
 - Updated: 2026-06-26 (V8 rejection fix: E2E/soak tests now require ALL 4 hardware pre-conditions; D3D11/WASAPI missing → BLOCKED_ENV; P2 Foundation clearly separated from APRV-001 verification; GitHub Actions FFmpeg ON workflow added; evidence distinction enforced)

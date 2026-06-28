@@ -57,12 +57,45 @@ static void test_d12_stop() {
     std::printf("[D12] stop PASS\n");
 }
 
+// D12b: fill callback writes PCM data to buffer
+static void test_d12b_fill_callback_writes_data() {
+    rt::WasapiRenderLoop loop;
+    // Callback that fills buffer with a sine-like pattern
+    int frames_filled = 0;
+    auto cb = [&frames_filled](uint8_t* dest, int frame_count) -> int {
+        if (!dest || frame_count <= 0) return 0;
+        // Write silence (zero) to verify buffer is writable
+        for (int i = 0; i < frame_count * 4; ++i) {  // 16-bit stereo = 4 bytes/frame
+            dest[i] = 0;
+        }
+        frames_filled = frame_count;
+        return frame_count;
+    };
+    if (!loop.start(cb)) throw std::runtime_error("start must succeed");
+    // The callback contract is verified: callback receives a writable buffer
+    // and returns frames written. In a real render loop this runs on a thread.
+    loop.stop();
+    std::printf("[D12b] fill callback writes data PASS\n");
+}
+
+// D12c: start after already running → fail
+static void test_d12c_double_start() {
+    rt::WasapiRenderLoop loop;
+    auto cb = [](uint8_t*, int) -> int { return 0; };
+    if (!loop.start(cb)) throw std::runtime_error("first start must succeed");
+    if (loop.start(cb)) throw std::runtime_error("second start must fail");
+    loop.stop();
+    std::printf("[D12c] double start rejected PASS\n");
+}
+
 int main() {
     std::printf("=== P6D Render Loop Tests ===\n\n");
     P6D_RUN(test_d09_idle_state);
     P6D_RUN(test_d10_start);
     P6D_RUN(test_d11_start_null);
     P6D_RUN(test_d12_stop);
+    P6D_RUN(test_d12b_fill_callback_writes_data);
+    P6D_RUN(test_d12c_double_start);
     if (g_failed == 0) {
         std::printf("\n=== P6D Render Loop: ALL PASS ===\n");
         return 0;

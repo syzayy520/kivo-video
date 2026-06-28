@@ -2,6 +2,7 @@
 #include "video/audio_plane/output/wasapi/wasapi_output_backend.hpp"
 
 #include <new>
+#include <cstring>
 
 #include "video/audio_plane/output/wasapi/wasapi_output_lifecycle.hpp"
 #include "video/audio_plane/output/wasapi/wasapi_output_evidence_emitter.hpp"
@@ -104,6 +105,25 @@ kivo::Expected<AudioOutputOpenResult, OutputInitError> WasapiOutputBackend::init
     impl_->sample_rate = request.sample_rate_hz;
     impl_->channel_count = request.channel_count;
     impl_->bit_depth = request.bit_depth;
+
+    // Pre-fill the buffer with silence before Start().
+    // WASAPI requires at least one GetBuffer/ReleaseBuffer cycle before Start
+    // to avoid AUDCLNT_E_NOT_STOPPED or silent-output issues.
+    UINT32 buffer_frames = 0;
+    if (SUCCEEDED(client->GetBufferSize(&buffer_frames)) && buffer_frames > 0) {
+        UINT32 padding = 0;
+        client->GetCurrentPadding(&padding);
+        UINT32 frames_to_write = buffer_frames - padding;
+        if (frames_to_write > 0) {
+            BYTE* data = nullptr;
+            if (SUCCEEDED(render_client->GetBuffer(frames_to_write, &data)) && data) {
+                int bytes_per_frame = request.channel_count * request.bit_depth / 8;
+                std::memset(data, 0, static_cast<size_t>(frames_to_write) * bytes_per_frame);
+                render_client->ReleaseBuffer(frames_to_write, 0);
+            }
+        }
+    }
+
     impl_->state = AudioOutputBackendState::Ready;
 
     AudioOutputOpenResult result;

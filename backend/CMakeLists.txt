@@ -1363,3 +1363,18 @@ if(MSVC)
 endif()
 target_link_libraries(kivo_p6e_spsc_tests PRIVATE kivo_audio_plane_contracts)
 add_test(NAME kivo_p6e_spsc_tests COMMAND kivo_p6e_spsc_tests)
+
+# P6E Test 5: Gap fill (drift + quantize + noise shaping + passthrough + gapless + device thread)
+add_executable(kivo_p6e_gap_tests
+  tests/video/audio_plane/p6e_runtime_tests/gap_tests.cpp
+  src/video/audio_plane/runtime/dsp/quantize_processor.cpp
+  src/video/audio_plane/runtime/passthrough/iec61937_parser.cpp
+  src/video/audio_plane/runtime/device_thread/device_thread_runtime.cpp
+)
+target_include_directories(kivo_p6e_gap_tests PRIVATE ${KIVO_P6E_INCLUDES})
+target_compile_features(kivo_p6e_gap_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p6e_gap_tests PRIVATE /utf-8)
+endif()
+target_link_libraries(kivo_p6e_gap_tests PRIVATE kivo_audio_plane_contracts)
+add_test(NAME kivo_p6e_gap_tests COMMAND kivo_p6e_gap_tests)
