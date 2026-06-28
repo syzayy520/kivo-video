@@ -233,7 +233,7 @@ Pre-existing untracked (not P6C):
 
 **P6C CLOSED**
 
-- 16/16 exit criteria: 15 PASS + 1 DESIGNED (E15 scope constraint)
+- Exit criteria: 15 PASS + 1 DESIGNED scope constraint (E15)
 - 17/17 gates PASS
 - 3/3 CTest PASS
 - Architecture guard: 0 violations (both modes)
