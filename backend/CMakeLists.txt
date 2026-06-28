@@ -1142,3 +1142,6 @@ if(Python3_Interpreter_FOUND)
     PROPERTIES TIMEOUT 30
   )
 endif()
+
+# ─── P6G-039: P6A Negative Fixtures (compile-fail tests, §42/§44) ───
+add_subdirectory(tests/video/audio_plane/negative)
