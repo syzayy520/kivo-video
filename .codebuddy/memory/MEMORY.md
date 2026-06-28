@@ -191,5 +191,14 @@ P5 is locked. P6 requires explicit user authorization.
   - KIVO_ENABLE_FFMPEG=ON required for P6C tests
 - P6D/P6E+: NOT STARTED (requires user authorization)
 
+## P6 ALL STAGES COMPLETE (2026-06-29)
+- P6A Contract Layer: CLOSED
+- P6B Fake Runtime Bridge: CLOSED
+- P6C FFmpeg Decode Backend: CLOSED
+- P6D WASAPI Output Backend: CLOSED
+- P6E Resampler/DSP/Clock/Sync Runtime: CLOSED (4/4 CTest PASS, 11 PASS + 1 DESIGNED E10)
+- P6S Security: CLOSED (in P6A)
+- P6 is now FULLY CLOSED. No P6F/P6G/P6H defined.
+
 ## Memory Maintenance
 - Updated: 2026-06-26 (V8 rejection fix: E2E/soak tests now require ALL 4 hardware pre-conditions; D3D11/WASAPI missing → BLOCKED_ENV; P2 Foundation clearly separated from APRV-001 verification; GitHub Actions FFmpeg ON workflow added; evidence distinction enforced)

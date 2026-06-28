@@ -1306,3 +1306,60 @@ if(KIVO_ENABLE_WASAPI AND WIN32)
     add_test(NAME kivo_p6d_evidence_tests COMMAND kivo_p6d_evidence_tests)
     set_tests_properties(kivo_p6d_evidence_tests PROPERTIES TIMEOUT 60)
 endif()
+
+# ─── P6E: Resampler / DSP / Clock / Sync Runtime ───
+set(KIVO_P6E_INCLUDES
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+
+# P6E Test 1: Resampler
+add_executable(kivo_p6e_resampler_tests
+  tests/video/audio_plane/p6e_runtime_tests/resampler_tests.cpp
+  src/video/audio_plane/runtime/resampler/linear_resampler.cpp
+)
+target_include_directories(kivo_p6e_resampler_tests PRIVATE ${KIVO_P6E_INCLUDES})
+target_compile_features(kivo_p6e_resampler_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p6e_resampler_tests PRIVATE /utf-8)
+endif()
+target_link_libraries(kivo_p6e_resampler_tests PRIVATE kivo_audio_plane_contracts)
+add_test(NAME kivo_p6e_resampler_tests COMMAND kivo_p6e_resampler_tests)
+
+# P6E Test 2: DSP
+add_executable(kivo_p6e_dsp_tests
+  tests/video/audio_plane/p6e_runtime_tests/dsp_tests.cpp
+  src/video/audio_plane/runtime/dsp/dither_processor.cpp
+)
+target_include_directories(kivo_p6e_dsp_tests PRIVATE ${KIVO_P6E_INCLUDES})
+target_compile_features(kivo_p6e_dsp_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p6e_dsp_tests PRIVATE /utf-8)
+endif()
+target_link_libraries(kivo_p6e_dsp_tests PRIVATE kivo_audio_plane_contracts)
+add_test(NAME kivo_p6e_dsp_tests COMMAND kivo_p6e_dsp_tests)
+
+# P6E Test 3: Clock + Sync
+add_executable(kivo_p6e_clock_sync_tests
+  tests/video/audio_plane/p6e_runtime_tests/clock_sync_tests.cpp
+  src/video/audio_plane/runtime/clock/audio_clock.cpp
+)
+target_include_directories(kivo_p6e_clock_sync_tests PRIVATE ${KIVO_P6E_INCLUDES})
+target_compile_features(kivo_p6e_clock_sync_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p6e_clock_sync_tests PRIVATE /utf-8)
+endif()
+target_link_libraries(kivo_p6e_clock_sync_tests PRIVATE kivo_audio_plane_contracts)
+add_test(NAME kivo_p6e_clock_sync_tests COMMAND kivo_p6e_clock_sync_tests)
+
+# P6E Test 4: SPSC (header-only template, no .cpp needed)
+add_executable(kivo_p6e_spsc_tests
+  tests/video/audio_plane/p6e_runtime_tests/spsc_tests.cpp
+)
+target_include_directories(kivo_p6e_spsc_tests PRIVATE ${KIVO_P6E_INCLUDES})
+target_compile_features(kivo_p6e_spsc_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p6e_spsc_tests PRIVATE /utf-8)
+endif()
+target_link_libraries(kivo_p6e_spsc_tests PRIVATE kivo_audio_plane_contracts)
+add_test(NAME kivo_p6e_spsc_tests COMMAND kivo_p6e_spsc_tests)
