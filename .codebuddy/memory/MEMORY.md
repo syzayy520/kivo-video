@@ -101,5 +101,84 @@
 - **Requires**: Every provider with real runtime proof, not CONTRACT_PASS or static JSON
 - **Claim**: "APRV-001 final verification" is forbidden until every provider matrix entry is RUNTIME_PASS
 
+## Permanent Execution Discipline Rules (User-Mandated, 2026-06-27)
+
+These rules override any convenience defaults. Apply to ALL Kivo Video backend tasks.
+
+1. **Executor not architect**: Only execute per ticket. Do not free-architect, do not fabricate, do not skip gates.
+2. **Evidence only**: Every conclusion must come from real command output / git diff / test result / evidence. Without evidence, write only NOT_VERIFIED / BLOCKED / FAIL / SCHEMA_DEGRADED.
+3. **Local project safety first**: Default to isolated git worktree. Forbidden: reset, clean, force push, deleting source. Original worktree is read-only.
+4. **No premature PASS**: Never write PASS before a gate is actually run. Any gate failure = STOP immediately.
+5. **CTest honesty**: Record Total/Passed/Failed. Direct Exe cannot replace CTest. Each Direct Exe must record spec name / actual exe name / path / timeout / exit code / logs / name mapping.
+6. **Evidence/Card consistency**: evidence JSON and execution card MUST match (task id / commit model / repair count / total commits / schema gate / redline / WebDAV not_verified).
+7. **Commit count anti-trap**: Before committing, compute current_count + 1 = expected_count. Never chase your own SHA.
+8. **Schema Gate truth**: If validator unsupported, write SCHEMA_DEGRADED + VALIDATOR_UNSUPPORTED. Never write PASS.
+9. **Redline full scan**: Any hit must list path + classification. Only production pollution = FAIL.
+10. **Secret Gate honesty**: Tell the truth. Windows paths only write non-secret worktree paths.
+11. **WebDAV 4 items permanent not_verified**: href exact-match, collection rejection, malformed XML fail-closed, large XML body cap — stay not_verified unless dedicated verification evidence exists.
+12. **Failure = FAIL report**: On failure output FAIL report. Never continue writing "P2 closed" / "Ready for P3". Prefer STOP over fake PASS. Prefer failure report over fake closure.
+
+## P2 Source Runtime Closure Status (2026-06-27)
+
+- Trusted baseline HEAD: `c90cfdc938cd21e6ecf6d62d1b088d0d0fe3b9a1`
+- closure-001: REJECTED (premature PASS on Direct Exe/no_debug_dialog not closed)
+- closure-002: REJECTED (commit count self-reference infinite loop + evidence/card mismatch)
+- closure-003: PASSED at HEAD `9ac330a` (locked, do not modify) — Model A single commit, no self-referential hash
+- Current branch HEAD is back at `c90cfdc` (closure-003's 9ac330a is NOT on this branch's history line)
+- P2 closure is COMPLETE. Next phase is P3 only.
+
+## P3 DOCX Decomposition Strategy (2026-06-27)
+
+- P3 source DOCX: `C:/Users/Administrator/Downloads/Kivo Video P3 完整线路设计规划 v9 Closure-Ready Ultimate.docx`
+- User is having Codex decompose this DOCX into a numbered task checklist with gates.
+- I (CodeBuddy) will execute the checklist when ready.
+- Checklist requirements: each task needs unique ID, dependency chain, acceptance gate (name+command+pass condition), file allowlist, commit model, explicit not_verified boundaries.
+
+## P3 Final Baseline Lock (2026-06-27, User-Accepted)
+
+**P3 closed with accepted deferrals. P3 source/input bridge baseline locked. P4 requires explicit user authorization.**
+
+- Final branch: `kivo-video-p3-preflight-gate-repair-001`
+- Final HEAD: `791805e1378bbe675608c67cb01c40d9dd051ef9`
+- Closure evidence: `artifacts/p3/evidence/FC-095.json`
+- Closure report: `docs/roadmap/p3_complete_line_v9_closure_report.md`
+- Tests: 106/106 PASS
+- Architecture guard: 35 files / 0 violations / PASS
+- Forbidden token: 1 comment_sentinel / 0 production pollution / PASS
+- Accepted deferrals: FC-083 soak, FC-084 performance → P4
+- P2 WebDAV 4 not_verified items preserved
+
+**Forbidden rewrites:**
+- NOT P3 complete no-deferral
+- NOT P3 runtime performance PASS
+- NOT P3 soak PASS
+- NOT P4 started
+- NOT Ready for P4 without user authorization
+
+**P3 is locked. No more P3 modifications. P4 requires explicit user authorization.**
+
+## P5 Video Media Plane COMPLETE (2026-06-28)
+
+- Branch: kivo-video-p5a-contract-layer-001
+- Final HEAD: 2e346ae
+- CTest: 9/9 test suites PASS
+- Exit criteria: 132 PASS + 2 DEFERRED (H13 soak, H14 performance - BLOCKED_RUNTIME)
+
+P5 Stages:
+- P5A: Contract Definition (37/37 families) - DONE (commit 2506fdd)
+- P5B: P4 Input Bridge (11/11) - DONE (commit 443afa5)
+- P5C: FFmpeg Demux Backend (12/12) - DONE (commit 331b999)
+- P5D: Decoder Contract (9/9) - DONE (commit 20de985)
+- P5E: Software Decode / Timing (10/10) - DONE (commit 986b49c)
+- P5F: GPU Rendering (12/12) - DONE (commit 3494acd)
+- P5G: D3D11VA / P010 / GPU (13/13) - DONE (commit c7d7cf5)
+- P5H: Color/HDR/Protected Closure (15 PASS + 2 DEFERRED) - DONE (commit 488c483)
+- P5S: Security Closure (13/13) - DONE (commit 2e346ae)
+
+Key architecture: header-only fake runtimes, no production .cpp, no real FFmpeg/D3D11/WASAPI deps.
+All implementations use P5A contract types + fake runtime headers for testing.
+
+P5 is locked. P6 requires explicit user authorization.
+
 ## Memory Maintenance
 - Updated: 2026-06-26 (V8 rejection fix: E2E/soak tests now require ALL 4 hardware pre-conditions; D3D11/WASAPI missing → BLOCKED_ENV; P2 Foundation clearly separated from APRV-001 verification; GitHub Actions FFmpeg ON workflow added; evidence distinction enforced)
