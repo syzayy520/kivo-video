@@ -1145,3 +1145,29 @@ endif()
 
 # ─── P6G-039: P6A Negative Fixtures (compile-fail tests, §42/§44) ───
 add_subdirectory(tests/video/audio_plane/negative)
+
+# ─── P6B: Fake Runtime Tests (header-only fake runtime, links P6A contracts) ───
+set(P6B_TEST_SOURCES
+  import_bridge_tests
+  data_handle_tests
+  pool_tests
+  generation_tests
+  time_tests
+  evidence_tests
+  decode_tests
+  render_tests
+  passthrough_tests
+)
+foreach(src ${P6B_TEST_SOURCES})
+  add_executable(kivo_p6b_${src}
+    tests/video/audio_plane/p6b_runtime_tests/${src}.cpp
+  )
+  target_include_directories(kivo_p6b_${src} PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/backend/tests/video/audio_plane
+  )
+  target_compile_features(kivo_p6b_${src} PRIVATE cxx_std_23)
+  target_link_libraries(kivo_p6b_${src} PRIVATE kivo_audio_plane_contracts)
+  add_test(NAME kivo_p6b_${src} COMMAND kivo_p6b_${src})
+  set_tests_properties(kivo_p6b_${src} PROPERTIES TIMEOUT 30)
+endforeach()
