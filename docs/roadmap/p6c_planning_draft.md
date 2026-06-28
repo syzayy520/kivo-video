@@ -4,7 +4,7 @@
 **Source**: P6 Audio Media Plane Design Lock Candidate V2.0 (§2, §4.1, §5, §11, §12, §33)
 **Predecessors**: P6A Contract Layer (CLOSED), P6B Fake Runtime Bridge (CLOSED)
 **Stage**: P6C (FFmpeg Audio Decode Backend — real avcodec, isolated)
-**Status**: DRAFT_FOR_REVIEW (REV 001 — 6-item revision applied)
+**Status**: IMPLEMENTED_TESTS_PASS_GUARD_PASS_COMMIT_ALLOWED (awaiting closure report for CLOSED)
 **Generated**: 2026-06-28
 **Revision History**:
 - REV 000 (4485769): Initial draft
@@ -418,10 +418,12 @@ P6C creates **ZERO** public headers. All FFmpeg types are private:
   - **NOT used for**: P5 demux custom I/O, AVIOContext, file/network read callbacks, avformat interrupt
   - Callback scope: decode cancel + decode timeout. No other use cases permitted.
 
-**Scope boundary (CRITICAL)**:
+**Scope boundary (CRITICAL — avcodec-only)**:
 - P6C interrupt callback is set on `AVCodecContext` only (via `ctx->interrupt_callback`)
 - P6C does NOT create `AVIOContext`, does NOT set `AVFormatContext` interrupt callback
+- P6C does NOT implement AVFormatContext interrupt callback — P6C is avcodec-layer ONLY
 - P6C does NOT replace P5's demux I/O layer — P6C receives P6 owned packet bytes, never reads from source
+- Only decode cancel + decode timeout use cases are permitted for the interrupt callback
 
 ### 3.16 P6A/P6B State Model Mapping (CRITICAL)
 
@@ -530,7 +532,7 @@ All P6C lifecycle events MUST map back to P6A `AudioDecodeBackendState` (16-stat
 | E12 | FormatChanged detection + handling | §3.12 (C12) | ✅ DESIGNED |
 | E13 | Cancellation + supersede (handle release) | §3.13 (C13) | ✅ DESIGNED |
 | E14 | Flush + drain (avcodec_flush_buffers + NULL packet) | §3.14 (C14) | ✅ DESIGNED |
-| E15 | FFmpeg interrupt callback (decode cancel/timeout ONLY) | §3.15 (C15) | ✅ DESIGNED |
+| E15 | FFmpeg interrupt callback (decode cancel/timeout ONLY, avcodec-only — NO AVFormatContext interrupt) | §3.15 (C15) | ✅ DESIGNED |
 | E16 | P6A/P6B state model mapping (no new states/evidence kinds) | §3.16 (C16) | ✅ DESIGNED |
 
 **Coverage: 16/16 DESIGNED (0 NOT COVERED)**

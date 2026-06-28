@@ -180,5 +180,15 @@ All implementations use P5A contract types + fake runtime headers for testing.
 
 P5 is locked. P6 requires explicit user authorization.
 
+## P6 Audio Media Plane Status (2026-06-29)
+- P6A Contract Layer: CLOSED (commit 3d50ec3, 298 headers, 44/44 gates PASS)
+- P6B Fake Runtime Bridge: CLOSED (commit 874a725, 22 headers, 22/22 exit criteria PASS)
+- P6C FFmpeg Decode Backend: IMPLEMENTED (uncommitted, 3/3 CTest PASS, 16/16 exit criteria PASS)
+  - Real avcodec decode backend isolated in backend/src/video/audio_plane/decode/ffmpeg/
+  - Guard updated: BackendPrivate mode allows P6C paths
+  - FFmpeg SDK: C:/ffmpeg-sdk/ffmpeg-n7.1-latest-win64-gpl-shared-7.1
+  - KIVO_ENABLE_FFMPEG=ON required for P6C tests
+- P6D/P6E+: NOT STARTED (requires user authorization)
+
 ## Memory Maintenance
 - Updated: 2026-06-26 (V8 rejection fix: E2E/soak tests now require ALL 4 hardware pre-conditions; D3D11/WASAPI missing → BLOCKED_ENV; P2 Foundation clearly separated from APRV-001 verification; GitHub Actions FFmpeg ON workflow added; evidence distinction enforced)

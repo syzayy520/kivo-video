@@ -1171,3 +1171,75 @@ foreach(src ${P6B_TEST_SOURCES})
   add_test(NAME kivo_p6b_${src} COMMAND kivo_p6b_${src})
   set_tests_properties(kivo_p6b_${src} PROPERTIES TIMEOUT 30)
 endforeach()
+
+# ─── P6C: FFmpeg Decode Backend (avcodec-only, guarded by KIVO_ENABLE_FFMPEG) ───
+# Per P6C Planning Draft REV 001 §8.1: FFmpeg absent = WARNING + skip, full repo builds normally
+if(KIVO_ENABLE_FFMPEG)
+  if(NOT FFMPEG_ROOT)
+    message(WARNING "KIVO_ENABLE_FFMPEG=ON but FFMPEG_ROOT is not set. P6C tests skipped. Full repo build continues.")
+  elseif(NOT EXISTS "${FFMPEG_ROOT}/include/libavcodec/avcodec.h")
+    message(WARNING "KIVO_ENABLE_FFMPEG=ON but FFmpeg SDK not found at ${FFMPEG_ROOT}. P6C tests skipped. Full repo build continues.")
+  else()
+    # P6C shared source files
+    set(KIVO_P6C_SOURCES
+      src/video/audio_plane/decode/ffmpeg/ffmpeg_decode_backend.cpp
+      src/video/audio_plane/decode/ffmpeg/ffmpeg_decode_lifecycle.cpp
+      src/video/audio_plane/decode/ffmpeg/ffmpeg_frame_converter.cpp
+      src/video/audio_plane/decode/ffmpeg/ffmpeg_codec_private_data.cpp
+      src/video/audio_plane/decode/ffmpeg/ffmpeg_decode_evidence_emitter.cpp
+    )
+    set(KIVO_P6C_INCLUDES
+      ${CMAKE_SOURCE_DIR}/include
+      ${CMAKE_SOURCE_DIR}/backend/include_private
+      ${CMAKE_SOURCE_DIR}/backend/src/video/audio_plane/decode/ffmpeg/internal
+      ${FFMPEG_ROOT}/include
+    )
+    set(KIVO_P6C_LIBS
+      kivo_audio_plane_contracts
+      ${FFMPEG_ROOT}/lib/avcodec.lib
+      ${FFMPEG_ROOT}/lib/avutil.lib
+    )
+
+    # P6C Test 1: Backend lifecycle + decode (C1-C8, C11, transitions)
+    add_executable(kivo_p6c_decode_backend_tests
+      tests/video/audio_plane/p6c_ffmpeg_decode_tests/ffmpeg_decode_backend_tests.cpp
+      ${KIVO_P6C_SOURCES}
+    )
+    target_include_directories(kivo_p6c_decode_backend_tests PRIVATE ${KIVO_P6C_INCLUDES})
+    target_compile_features(kivo_p6c_decode_backend_tests PRIVATE cxx_std_23)
+    if(MSVC)
+      target_compile_options(kivo_p6c_decode_backend_tests PRIVATE /utf-8)
+    endif()
+    target_link_libraries(kivo_p6c_decode_backend_tests PRIVATE ${KIVO_P6C_LIBS})
+    add_test(NAME kivo_p6c_decode_backend_tests COMMAND kivo_p6c_decode_backend_tests)
+    set_tests_properties(kivo_p6c_decode_backend_tests PROPERTIES TIMEOUT 60 ENVIRONMENT "PATH=${FFMPEG_ROOT}/bin;%PATH%")
+
+    # P6C Test 2: Frame converter (C9-C12)
+    add_executable(kivo_p6c_frame_converter_tests
+      tests/video/audio_plane/p6c_ffmpeg_decode_tests/ffmpeg_frame_converter_tests.cpp
+      src/video/audio_plane/decode/ffmpeg/ffmpeg_frame_converter.cpp
+    )
+    target_include_directories(kivo_p6c_frame_converter_tests PRIVATE ${KIVO_P6C_INCLUDES})
+    target_compile_features(kivo_p6c_frame_converter_tests PRIVATE cxx_std_23)
+    if(MSVC)
+      target_compile_options(kivo_p6c_frame_converter_tests PRIVATE /utf-8)
+    endif()
+    target_link_libraries(kivo_p6c_frame_converter_tests PRIVATE ${KIVO_P6C_LIBS})
+    add_test(NAME kivo_p6c_frame_converter_tests COMMAND kivo_p6c_frame_converter_tests)
+    set_tests_properties(kivo_p6c_frame_converter_tests PROPERTIES TIMEOUT 60 ENVIRONMENT "PATH=${FFMPEG_ROOT}/bin;%PATH%")
+
+    # P6C Test 3: Evidence emitter + state mapping (C13-C16)
+    add_executable(kivo_p6c_evidence_tests
+      tests/video/audio_plane/p6c_ffmpeg_decode_tests/ffmpeg_decode_evidence_tests.cpp
+      src/video/audio_plane/decode/ffmpeg/ffmpeg_decode_evidence_emitter.cpp
+    )
+    target_include_directories(kivo_p6c_evidence_tests PRIVATE ${KIVO_P6C_INCLUDES})
+    target_compile_features(kivo_p6c_evidence_tests PRIVATE cxx_std_23)
+    if(MSVC)
+      target_compile_options(kivo_p6c_evidence_tests PRIVATE /utf-8)
+    endif()
+    target_link_libraries(kivo_p6c_evidence_tests PRIVATE ${KIVO_P6C_LIBS})
+    add_test(NAME kivo_p6c_evidence_tests COMMAND kivo_p6c_evidence_tests)
+    set_tests_properties(kivo_p6c_evidence_tests PROPERTIES TIMEOUT 60 ENVIRONMENT "PATH=${FFMPEG_ROOT}/bin;%PATH%")
+  endif()
+endif()

@@ -203,22 +203,101 @@ def mode_negative_fixture(repo_root):
 
 
 def mode_backend_private(repo_root):
-    """Mode 4: BackendPrivate — checks backend/src/video/audio_plane/ must NOT exist in P6A."""
-    backend_src = os.path.join(repo_root, "backend", "src", "video", "audio_plane")
-    if os.path.isdir(backend_src):
-        files = collect_hpp_files(backend_src)
-        cpp_files = []
-        for dp, _, fns in os.walk(backend_src):
+    """Mode 4: BackendPrivate — scans backend/src + include_private for P6C compliance.
+
+    P6C (FFmpeg Decode Backend) allows:
+      - backend/src/video/audio_plane/decode/ffmpeg/  (real avcodec source)
+      - backend/include_private/video/audio_plane/decode/ffmpeg/  (private interface)
+    But enforces:
+      - No /wasapi/ or /qt/ path segments
+      - No #include <libavformat/*> (avformat/demux forbidden — avcodec layer ONLY)
+      - No WASAPI/Qt forbidden tokens
+      - FFmpeg avcodec types ARE allowed in P6C private backend
+      - Public headers must NOT include from backend/include_private/
+    """
+    # P6C-allowed backend directories
+    backend_dirs = [
+        os.path.join(repo_root, "backend", "src", "video", "audio_plane"),
+        os.path.join(repo_root, "backend", "include_private", "video", "audio_plane"),
+    ]
+
+    # Tokens forbidden in backend private (WASAPI/Qt only — FFmpeg avcodec allowed in P6C)
+    backend_forbidden_tokens = [
+        # Windows headers
+        "windows.h", "audioclient.h", "mmdeviceapi.h", "ksmedia.h",
+        "endpointvolume.h", "audiopolicy.h",
+        # Windows COM types
+        "CoInitializeEx", "CoUninitialize",
+        "IMMNotificationClient",
+        # Qt types
+        "QString", "QByteArray", "QVector", "QSharedPointer",
+        "QVariant", "QImage", "QWindow", "QObject", "QWidget",
+        # WASAPI interface types
+        "IAudioClient", "IAudioClient2", "IAudioClient3",
+        "IAudioRenderClient", "IAudioClock",
+        "IMMDevice", "IAudioSessionControl", "ISimpleAudioVolume",
+        "IAudioEndpointVolume",
+        # Windows result/format types
+        "HRESULT", "WAVEFORMATEX", "WAVEFORMATEXTENSIBLE",
+    ]
+
+    # Forbidden includes in backend private (avformat/demux ONLY — avcodec IS allowed)
+    backend_forbidden_includes = [
+        "#include <libavformat/",
+        "#include <windows.h>",
+        "#include <audioclient.h>",
+        "#include <mmdeviceapi.h>",
+        "#include <ksmedia.h>",
+        "#include <endpointvolume.h>",
+        "#include <audiopolicy.h>",
+        "#include <d3d11.h>",
+        "#include <dxgi.h>",
+    ]
+
+    # Forbidden path segments in backend private (/ffmpeg/ IS allowed in P6C)
+    backend_forbidden_segments = ["/wasapi/", "/qt/", "/win32/"]
+
+    violations = []
+    for backend_dir in backend_dirs:
+        if not os.path.isdir(backend_dir):
+            continue
+        # Collect .hpp and .cpp files
+        all_files = collect_hpp_files(backend_dir)
+        for dp, _, fns in os.walk(backend_dir):
             for fn in fns:
                 if fn.endswith(".cpp"):
-                    cpp_files.append(os.path.join(dp, fn))
-        violations = []
-        for fpath in files + cpp_files:
-            rel = os.path.relpath(fpath, repo_root).replace("\\", "/")
-            violations.append((rel, 0, "RUNTIME_LEAK: backend/src/video/audio_plane/ must not exist in P6A"))
-        return False, violations
+                    all_files.append(os.path.join(dp, fn))
+        all_files = sorted(all_files)
 
-    return True, []
+        for fpath in all_files:
+            rel = os.path.relpath(fpath, repo_root).replace("\\", "/")
+
+            # Path segment check
+            seg = scan_path_segments(rel, backend_forbidden_segments)
+            if seg:
+                violations.append((rel, 0, f"FORBIDDEN_PATH_SEGMENT: {seg}"))
+
+            # Forbidden token check (WASAPI/Qt only)
+            token_hits = scan_file_for_tokens(fpath, backend_forbidden_tokens)
+            for ln, token, line in token_hits:
+                violations.append((rel, ln, f"FORBIDDEN_TOKEN: {token} | {line.strip()[:80]}"))
+
+            # Forbidden #include check (avformat/Windows only)
+            inc_hits = scan_forbidden_includes(fpath, backend_forbidden_includes)
+            for ln, prefix, line in inc_hits:
+                violations.append((rel, ln, f"FORBIDDEN_INCLUDE: {prefix} | {line.strip()[:80]}"))
+
+    # Check: public headers must NOT include from backend/include_private/
+    public_root = os.path.join(repo_root, "include", "kivo", "video", "audio_plane")
+    if os.path.isdir(public_root):
+        public_files = collect_hpp_files(public_root)
+        for fpath in public_files:
+            rel = os.path.relpath(fpath, repo_root).replace("\\", "/")
+            src_hits = scan_backend_src_reference(fpath)
+            for ln, _, line in src_hits:
+                violations.append((rel, ln, f"PUBLIC_INCLUDES_PRIVATE: {line.strip()[:80]}"))
+
+    return len(violations) == 0, violations
 
 
 MODES = {
