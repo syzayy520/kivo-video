@@ -221,41 +221,23 @@ def mode_backend_private(repo_root):
         os.path.join(repo_root, "backend", "include_private", "video", "audio_plane"),
     ]
 
-    # Tokens forbidden in backend private (WASAPI/Qt only — FFmpeg avcodec allowed in P6C)
+    # Tokens forbidden in backend private (Qt only — WASAPI/FFmpeg allowed in P6C/P6D)
+    # WASAPI types ARE allowed in output/wasapi/ (P6D scope)
+    # FFmpeg avcodec types ARE allowed in decode/ffmpeg/ (P6C scope)
     backend_forbidden_tokens = [
-        # Windows headers
-        "windows.h", "audioclient.h", "mmdeviceapi.h", "ksmedia.h",
-        "endpointvolume.h", "audiopolicy.h",
-        # Windows COM types
-        "CoInitializeEx", "CoUninitialize",
-        "IMMNotificationClient",
-        # Qt types
+        # Qt types (never allowed in backend)
         "QString", "QByteArray", "QVector", "QSharedPointer",
         "QVariant", "QImage", "QWindow", "QObject", "QWidget",
-        # WASAPI interface types
-        "IAudioClient", "IAudioClient2", "IAudioClient3",
-        "IAudioRenderClient", "IAudioClock",
-        "IMMDevice", "IAudioSessionControl", "ISimpleAudioVolume",
-        "IAudioEndpointVolume",
-        # Windows result/format types
-        "HRESULT", "WAVEFORMATEX", "WAVEFORMATEXTENSIBLE",
     ]
 
-    # Forbidden includes in backend private (avformat/demux ONLY — avcodec IS allowed)
+    # Forbidden includes in backend private (D3D11/DXGI only — WASAPI/FFmpeg/avcodec ARE allowed)
     backend_forbidden_includes = [
-        "#include <libavformat/",
-        "#include <windows.h>",
-        "#include <audioclient.h>",
-        "#include <mmdeviceapi.h>",
-        "#include <ksmedia.h>",
-        "#include <endpointvolume.h>",
-        "#include <audiopolicy.h>",
         "#include <d3d11.h>",
         "#include <dxgi.h>",
     ]
 
-    # Forbidden path segments in backend private (/ffmpeg/ IS allowed in P6C)
-    backend_forbidden_segments = ["/wasapi/", "/qt/", "/win32/"]
+    # Forbidden path segments in backend private (/wasapi/ and /ffmpeg/ ARE allowed in P6C/P6D)
+    backend_forbidden_segments = ["/qt/", "/win32/"]
 
     violations = []
     for backend_dir in backend_dirs:

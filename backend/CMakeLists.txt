@@ -1243,3 +1243,66 @@ if(KIVO_ENABLE_FFMPEG)
     set_tests_properties(kivo_p6c_evidence_tests PROPERTIES TIMEOUT 60 ENVIRONMENT "PATH=${FFMPEG_ROOT}/bin;%PATH%")
   endif()
 endif()
+
+# ─── P6D: WASAPI Output Backend (Windows-only, guarded by KIVO_ENABLE_WASAPI) ───
+if(KIVO_ENABLE_WASAPI AND WIN32)
+    set(KIVO_P6D_SOURCES
+      src/video/audio_plane/output/wasapi/wasapi_output_backend.cpp
+      src/video/audio_plane/output/wasapi/wasapi_output_lifecycle.cpp
+      src/video/audio_plane/output/wasapi/wasapi_device_enumerator.cpp
+      src/video/audio_plane/output/wasapi/wasapi_render_loop.cpp
+      src/video/audio_plane/output/wasapi/wasapi_output_evidence_emitter.cpp
+    )
+    set(KIVO_P6D_INCLUDES
+      ${CMAKE_SOURCE_DIR}/include
+      ${CMAKE_SOURCE_DIR}/backend/include_private
+      ${CMAKE_SOURCE_DIR}/backend/src/video/audio_plane/output/wasapi/internal
+    )
+    set(KIVO_P6D_LIBS
+      kivo_audio_plane_contracts
+      ole32
+      mmdevapi
+    )
+
+    # P6D Test 1: Backend lifecycle (D1-D8)
+    add_executable(kivo_p6d_backend_tests
+      tests/video/audio_plane/p6d_wasapi_output_tests/wasapi_output_backend_tests.cpp
+      ${KIVO_P6D_SOURCES}
+    )
+    target_include_directories(kivo_p6d_backend_tests PRIVATE ${KIVO_P6D_INCLUDES})
+    target_compile_features(kivo_p6d_backend_tests PRIVATE cxx_std_23)
+    if(MSVC)
+      target_compile_options(kivo_p6d_backend_tests PRIVATE /utf-8)
+    endif()
+    target_link_libraries(kivo_p6d_backend_tests PRIVATE ${KIVO_P6D_LIBS})
+    add_test(NAME kivo_p6d_backend_tests COMMAND kivo_p6d_backend_tests)
+    set_tests_properties(kivo_p6d_backend_tests PROPERTIES TIMEOUT 60)
+
+    # P6D Test 2: Render loop (D9-D12)
+    add_executable(kivo_p6d_render_loop_tests
+      tests/video/audio_plane/p6d_wasapi_output_tests/wasapi_render_loop_tests.cpp
+      src/video/audio_plane/output/wasapi/wasapi_render_loop.cpp
+    )
+    target_include_directories(kivo_p6d_render_loop_tests PRIVATE ${KIVO_P6D_INCLUDES})
+    target_compile_features(kivo_p6d_render_loop_tests PRIVATE cxx_std_23)
+    if(MSVC)
+      target_compile_options(kivo_p6d_render_loop_tests PRIVATE /utf-8)
+    endif()
+    target_link_libraries(kivo_p6d_render_loop_tests PRIVATE ${KIVO_P6D_LIBS})
+    add_test(NAME kivo_p6d_render_loop_tests COMMAND kivo_p6d_render_loop_tests)
+    set_tests_properties(kivo_p6d_render_loop_tests PROPERTIES TIMEOUT 60)
+
+    # P6D Test 3: Evidence emitter (D13-D15)
+    add_executable(kivo_p6d_evidence_tests
+      tests/video/audio_plane/p6d_wasapi_output_tests/wasapi_output_evidence_tests.cpp
+      src/video/audio_plane/output/wasapi/wasapi_output_evidence_emitter.cpp
+    )
+    target_include_directories(kivo_p6d_evidence_tests PRIVATE ${KIVO_P6D_INCLUDES})
+    target_compile_features(kivo_p6d_evidence_tests PRIVATE cxx_std_23)
+    if(MSVC)
+      target_compile_options(kivo_p6d_evidence_tests PRIVATE /utf-8)
+    endif()
+    target_link_libraries(kivo_p6d_evidence_tests PRIVATE ${KIVO_P6D_LIBS})
+    add_test(NAME kivo_p6d_evidence_tests COMMAND kivo_p6d_evidence_tests)
+    set_tests_properties(kivo_p6d_evidence_tests PROPERTIES TIMEOUT 60)
+endif()

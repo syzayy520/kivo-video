@@ -44,6 +44,17 @@
         "KIVO_ENABLE_REAL_MEDIA_TESTS": "ON",
         "FFMPEG_ROOT": "C:/ffmpeg-sdk/ffmpeg-n7.1-latest-win64-gpl-shared-7.1"
       }
+    },
+    {
+      "name": "vs-debug-wasapi",
+      "displayName": "Visual Studio Debug + WASAPI",
+      "generator": "Visual Studio 18 2026",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/vs-debug-wasapi",
+      "cacheVariables": {
+        "KIVO_ENABLE_FFMPEG": "OFF",
+        "KIVO_ENABLE_WASAPI": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -59,6 +70,11 @@
     {
       "name": "vs-debug-ffmpeg",
       "configurePreset": "vs-debug-ffmpeg",
+      "configuration": "Debug"
+    },
+    {
+      "name": "vs-debug-wasapi",
+      "configurePreset": "vs-debug-wasapi",
       "configuration": "Debug"
     }
   ],
@@ -81,6 +97,14 @@
     {
       "name": "vs-debug-ffmpeg",
       "configurePreset": "vs-debug-ffmpeg",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "vs-debug-wasapi",
+      "configurePreset": "vs-debug-wasapi",
       "configuration": "Debug",
       "output": {
         "outputOnFailure": true
