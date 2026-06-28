@@ -4,8 +4,11 @@
 **Source**: P6 Audio Media Plane Design Lock Candidate V2.0 (§2, §4.1, §5, §11, §12, §33)
 **Predecessors**: P6A Contract Layer (CLOSED), P6B Fake Runtime Bridge (CLOSED)
 **Stage**: P6C (FFmpeg Audio Decode Backend — real avcodec, isolated)
-**Status**: DRAFT_FOR_REVIEW
+**Status**: DRAFT_FOR_REVIEW (REV 001 — 6-item revision applied)
 **Generated**: 2026-06-28
+**Revision History**:
+- REV 000 (4485769): Initial draft
+- REV 001 (this): 6-item revision per user feedback (avcodec-only, no public leak, include_private isolation, KIVO_ENABLE_FFMPEG default, interrupt scope, state mapping)
 **Rule**: IRON GATE — 禁止此 Draft APPROVED 前任何 .hpp / .cpp / CMake 创建
 
 ---
@@ -48,7 +51,7 @@ P6C = **FFmpeg Audio Decode Backend** — 真实的 FFmpeg avcodec 音频解码�
 
 | # | Capability |
 |---|-----------|
-| 1 | Real FFmpeg avcodec 音频解码（`avcodec_send_packet` / `avcodec_receive_frame`） |
+| 1 | Real FFmpeg avcodec 音频解码（`avcodec_send_packet` / `avcodec_receive_frame`） — **avcodec layer ONLY**，禁止 AVFormatContext/avformat/demux/file/network open |
 | 2 | AVCodecContext 创建、配置、销毁（隔离在 backend private） |
 | 3 | AVFrame → P6 DecodedAudioFrame 转换（包含 planar→interleaved 如需要） |
 | 4 | Codec private data 传递给 avcodec（从 P6A AudioCodecPrivateDataRef） |
@@ -78,6 +81,8 @@ P6C = **FFmpeg Audio Decode Backend** — 真实的 FFmpeg avcodec 音频解码�
 | 13 | ❌ P6B runtime header modification（22 headers FROZEN） |
 | 14 | ❌ Public header 中暴露 FFmpeg 类型（AVFrame/AVPacket/AVCodecContext/AVCodecParameters/SwrContext） |
 | 15 | ❌ Public include path 包含 `/wasapi/` `/ffmpeg/` `/qt/` |
+| 16 | ❌ AVFormatContext / avformat_open_input / av_read_frame / demux（P6C = avcodec ONLY，demux 属于 P5） |
+| 17 | ❌ File open / network open / custom I/O via FFmpeg（P6C 接收 P6 owned packet bytes，不自行打开任何源） |
 
 ### 0.4 P6C Boundary (CRITICAL)
 
@@ -143,12 +148,13 @@ backend/
 | CMake targets | 1 new (kivo_p6c_ffmpeg_decode_tests) |
 | Namespace | kivo::video::audio_plane::backend::decode::ffmpeg |
 
-### 1.3 No Public Headers
+### 1.3 No Public Headers (CRITICAL — FFmpeg type isolation)
 
 P6C creates **ZERO** public headers. All FFmpeg types are private:
-- `AVCodecContext*`, `AVFrame*`, `AVPacket*` exist ONLY in `backend/src/.../internal/` and `backend/include_private/.../`
+- `AVCodecContext`, `AVFrame`, `AVPacket`, `AVCodecID`, `AVCodecParameters`, `AVSampleFormat` exist ONLY in `backend/src/.../internal/` and `backend/include_private/.../`
+- **Public include graph must NOT depend on `backend/include_private/`**: No file under `include/kivo/video/audio_plane/` may `#include` anything from `backend/include_private/`. The dependency direction is one-way: private → public (private consumes public contracts, never the reverse).
 - Public P6A contracts (`AudioDecodeBackendContract`, `DecodedAudioFrame`, etc.) are consumed, not modified
-- Architecture guard `BackendPrivate` mode scans `backend/src/video/audio_plane/` for forbidden path leaks
+- Architecture guard `BackendPrivate` mode scans `backend/src/video/audio_plane/` AND `backend/include_private/video/audio_plane/` for forbidden path leaks AND include-graph violations
 
 ---
 
@@ -400,16 +406,47 @@ P6C creates **ZERO** public headers. All FFmpeg types are private:
   - Transitions: Decoding → Draining → Ready
   - Timeout: `drain_timeout_ms` (default 3000ms)
 
-### 3.15 FFmpeg Interrupt Callback (C15)
+### 3.15 FFmpeg Interrupt Callback (C15) — decode cancel/timeout ONLY
 
-**Problem**: `avcodec_send_packet` / `avcodec_receive_frame` can block. Need interruptible.
+**Problem**: `avcodec_send_packet` / `avcodec_receive_frame` can block. Need interruptible for cancel/timeout.
 
 **P6C plan**:
 - `ffmpeg_decode_config.hpp` includes interrupt callback setup:
   - `set_interrupt_callback(AVCodecContext*, std::function<int()> cb)`
   - Callback returns 1 to abort blocking FFmpeg call
-  - Used by `cancel()` to abort in-flight decode
-  - Used by timeout monitoring to abort long-running decode
+  - **Used ONLY for**: `cancel()` (abort in-flight decode) + timeout monitoring (abort long-running decode)
+  - **NOT used for**: P5 demux custom I/O, AVIOContext, file/network read callbacks, avformat interrupt
+  - Callback scope: decode cancel + decode timeout. No other use cases permitted.
+
+**Scope boundary (CRITICAL)**:
+- P6C interrupt callback is set on `AVCodecContext` only (via `ctx->interrupt_callback`)
+- P6C does NOT create `AVIOContext`, does NOT set `AVFormatContext` interrupt callback
+- P6C does NOT replace P5's demux I/O layer — P6C receives P6 owned packet bytes, never reads from source
+
+### 3.16 P6A/P6B State Model Mapping (CRITICAL)
+
+All P6C lifecycle events MUST map back to P6A `AudioDecodeBackendState` (16-state enum) and P6B `FakeDecodeBackend` interface pattern. P6C does NOT invent new states or semantics.
+
+| P6C Event | P6A State Transition | P6B Fake Equivalent | Evidence Kind (P6A) |
+|-----------|----------------------|---------------------|---------------------|
+| `init()` success | NotCreated → Created → Opening → Ready | `FakeDecodeBackend::init()` | `DecodeEvidenceKind::InitOk` |
+| `init()` failure (recoverable) | Opening → FailedRecoverable | `transition_to(FailedRecoverable)` | `DecodeEvidenceKind::InitFailed` |
+| `init()` failure (fatal) | Opening → FailedFatal | `transition_to(FailedFatal)` | `DecodeEvidenceKind::InitFailed` |
+| `submit_packet()` success | Ready → Decoding | `FakeDecodeBackend::submit_packet()` | `DecodeEvidenceKind::DecodeOk` |
+| `submit_packet()` failure | stays in current state | returns `DecodeReject` | `DecodeEvidenceKind::DecodeFailed` |
+| `receive_frame()` WouldBlock | stays in Decoding | returns `DecodeStatus::WouldBlock` | (no evidence, normal) |
+| `receive_frame()` Eos | Decoding → Draining → Ready | returns `DecodeStatus::Eos` | `DecodeEvidenceKind::Drained` |
+| TimedOut | Any active → TimedOut | `FakeDecodeBackend::exceed_deadline()` + `is_timed_out()` | `DecodeEvidenceKind::TimedOut` |
+| TimedOut recovery | TimedOut → Resetting → Ready | `transition_to(Resetting)` → `transition_to(Ready)` | (no separate kind, InitOk on re-init) |
+| `flush()` | Decoding → Flushing → Ready | `FakeDecodeBackend::transition_to(Flushing)` | `DecodeEvidenceKind::Flushed` |
+| `drain()` | Decoding → Draining → Ready | `FakeDecodeBackend::transition_to(Draining)` | `DecodeEvidenceKind::Drained` |
+| FormatChanged detected | Decoding → FormatChanging | `FakeDecodeBackend::transition_to(FormatChanging)` | `DecodeEvidenceKind::FormatChanged` |
+| FormatChanged resolved | FormatChanging → Ready (rebuild) or → FailedFatal | `transition_to(Ready)` or `transition_to(FailedFatal)` | (InitOk on re-init) |
+| `cancel()` | Any → Closed | `FakeDecodeLifecycleController::cancel()` | (no separate kind, state=Closed) |
+| `supersede()` | Any → Superseded | `FakeDecodeLifecycleController::supersede()` | `DecodeEvidenceKind::Superseded` |
+| `close()` | Any → Closed | `FakeDecodeBackend::transition_to(Closed)` | (no separate kind, state=Closed) |
+
+**Rule**: P6C MUST use `AudioDecodeBackendState` enum values (from P6A `audio_decode_backend_lifecycle.hpp`) for all state transitions. P6C MUST NOT define new state enum values. P6C MUST use `DecodeEvidenceKind` enum values (from P6A `audio_decode_evidence.hpp`) for all evidence emission. P6C MUST NOT define new evidence kinds.
 
 ---
 
@@ -466,13 +503,16 @@ P6C creates **ZERO** public headers. All FFmpeg types are private:
 | F-13 | ❌ Public exposure of FFmpeg types (AVFrame/AVPacket/AVCodecContext/AVCodecParameters/SwrContext) |
 | F-14 | ❌ Codec private data in evidence/crash dump (P6A §33) |
 | F-15 | ❌ DRM key storage / DRM decrypt (P6 handles private data only, NOT DRM) |
+| F-16 | ❌ AVFormatContext / avformat_open_input / av_read_frame / any demux call (P6C = avcodec layer ONLY) |
+| F-17 | ❌ File open / network open / custom I/O via FFmpeg (P6C receives P6 owned packet bytes, never opens source) |
+| F-18 | ❌ `#include <libavformat/*>` in ANY P6C file (internal, private, source, or test) |
 | **Allow** | ✅ Private backend .cpp files ARE allowed (`backend/src/video/audio_plane/decode/ffmpeg/`) |
 | **Allow** | ✅ Private interface .hpp files ARE allowed (`backend/include_private/video/audio_plane/decode/ffmpeg/`) |
 | **Allow** | ✅ Test .cpp files ARE allowed (`backend/tests/video/audio_plane/p6c_ffmpeg_decode_tests/`) |
 
 ---
 
-## 6. P6C EXIT CRITERIA (15 ITEMS)
+## 6. P6C EXIT CRITERIA (16 ITEMS)
 
 | # | Criterion | Coverage | Status |
 |---|-----------|----------|--------|
@@ -490,9 +530,10 @@ P6C creates **ZERO** public headers. All FFmpeg types are private:
 | E12 | FormatChanged detection + handling | §3.12 (C12) | ✅ DESIGNED |
 | E13 | Cancellation + supersede (handle release) | §3.13 (C13) | ✅ DESIGNED |
 | E14 | Flush + drain (avcodec_flush_buffers + NULL packet) | §3.14 (C14) | ✅ DESIGNED |
-| E15 | FFmpeg interrupt callback (cancel blocking decode) | §3.15 (C15) | ✅ DESIGNED |
+| E15 | FFmpeg interrupt callback (decode cancel/timeout ONLY) | §3.15 (C15) | ✅ DESIGNED |
+| E16 | P6A/P6B state model mapping (no new states/evidence kinds) | §3.16 (C16) | ✅ DESIGNED |
 
-**Coverage: 15/15 DESIGNED (0 NOT COVERED)**
+**Coverage: 16/16 DESIGNED (0 NOT COVERED)**
 
 ---
 
@@ -507,52 +548,75 @@ P6C creates **ZERO** public headers. All FFmpeg types are private:
 ### 7.2 BackendPrivate Mode (MUST be extended for P6C)
 
 - Current: scans `backend/src/video/audio_plane/` (does not exist in P6A/P6B)
-- P6C creates: `backend/src/video/audio_plane/decode/ffmpeg/`
-- Guard MUST scan this directory for:
+- P6C creates: `backend/src/video/audio_plane/decode/ffmpeg/` + `backend/include_private/video/audio_plane/decode/ffmpeg/`
+- Guard MUST scan BOTH directories for:
   - Forbidden path segments: `/wasapi/`, `/qt/` (NOT `/ffmpeg/` — FFmpeg is allowed here)
+  - Forbidden includes: `#include <libavformat/*>` (avformat/demux forbidden, avcodec layer ONLY)
   - Public type leaks: FFmpeg types must NOT appear in `backend/include_private/` headers that are included by public contracts
-- **Guard extension plan**: `BackendPrivate` mode scan path includes `backend/src/video/audio_plane/` and `backend/include_private/video/audio_plane/`
+  - **Include-graph isolation**: No file under `include/kivo/video/audio_plane/` (public) may `#include` from `backend/include_private/`. Guard verifies one-way dependency: private → public only.
+- **Guard extension plan**: `BackendPrivate` mode scan path includes `backend/src/video/audio_plane/` and `backend/include_private/video/audio_plane/`, plus include-graph check on public headers
 
 ### 7.3 Forbidden Token Rules for P6C
 
-| Location | FFmpeg types allowed? | WASAPI/Qt types allowed? |
-|----------|----------------------|--------------------------|
-| `include/kivo/video/audio_plane/` (public) | ❌ NO | ❌ NO |
-| `backend/include_private/video/audio_plane/decode/ffmpeg/` (private interface) | ✅ YES (FFmpeg types in declarations) | ❌ NO |
-| `backend/src/video/audio_plane/decode/ffmpeg/internal/` (internal) | ✅ YES | ❌ NO |
-| `backend/src/video/audio_plane/decode/ffmpeg/` (source) | ✅ YES | ❌ NO |
-| `backend/tests/video/audio_plane/p6c_ffmpeg_decode_tests/` (tests) | ✅ YES | ❌ NO |
+| Location | FFmpeg avcodec types allowed? | FFmpeg avformat/demux allowed? | WASAPI/Qt types allowed? |
+|----------|------------------------------|-------------------------------|--------------------------|
+| `include/kivo/video/audio_plane/` (public) | ❌ NO (AVCodecContext/AVFrame/AVPacket/AVCodecID/AVCodecParameters/AVSampleFormat) | ❌ NO | ❌ NO |
+| `backend/include_private/video/audio_plane/decode/ffmpeg/` (private interface) | ✅ YES (avcodec types in declarations) | ❌ NO (no AVFormatContext/avformat includes) | ❌ NO |
+| `backend/src/video/audio_plane/decode/ffmpeg/internal/` (internal) | ✅ YES | ❌ NO (no avformat includes) | ❌ NO |
+| `backend/src/video/audio_plane/decode/ffmpeg/` (source) | ✅ YES | ❌ NO (no avformat includes) | ❌ NO |
+| `backend/tests/video/audio_plane/p6c_ffmpeg_decode_tests/` (tests) | ✅ YES | ❌ NO (no avformat includes) | ❌ NO |
+
+**Include-graph isolation rule**: No public header (`include/kivo/video/audio_plane/**/*.hpp`) may `#include` from `backend/include_private/`. Dependency direction: private → public (one-way).
 
 ---
 
 ## 8. CMake TARGET STRUCTURE
 
+### 8.1 KIVO_ENABLE_FFMPEG Default Behavior (CRITICAL)
+
+| Setting | Default | Behavior |
+|---------|---------|----------|
+| `KIVO_ENABLE_FFMPEG` | **OFF** | P6C target NOT created, no FFmpeg dependency, full repo builds normally |
+| `KIVO_ENABLE_FFMPEG=ON` + FFmpeg SDK found | ON | P6C target created, links avcodec+avutil, tests run |
+| `KIVO_ENABLE_FFMPEG=ON` + FFmpeg SDK NOT found | **WARNING + SKIP** | CMake emits `message(WARNING "KIVO_ENABLE_FFMPEG=ON but FFMPEG_ROOT not found, P6C tests skipped")`, P6C target NOT created, full repo continues building |
+
+**Rule**: FFmpeg 不存在时不能破坏全仓构建。P6C target 只在 `KIVO_ENABLE_FFMPEG=ON` AND `FFMPEG_ROOT` valid 时创建。否则 `if(KIVO_ENABLE_FFMPEG)` block 内部用 nested `if(FFMPEG_ROOT)` guard，找不到则 WARNING + skip。
+
+### 8.2 CMake Snippet
+
 ```cmake
-# P6C: FFmpeg Decode Backend Tests (guarded by KIVO_ENABLE_FFMPEG)
+# P6C: FFmpeg Decode Backend Tests (guarded by KIVO_ENABLE_FFMPEG + FFMPEG_ROOT)
 if(KIVO_ENABLE_FFMPEG)
-  add_executable(kivo_p6c_ffmpeg_decode_tests
-    tests/video/audio_plane/p6c_ffmpeg_decode_tests/ffmpeg_decode_backend_tests.cpp
-    tests/video/audio_plane/p6c_ffmpeg_decode_tests/ffmpeg_frame_converter_tests.cpp
-    tests/video/audio_plane/p6c_ffmpeg_decode_tests/ffmpeg_decode_evidence_tests.cpp
-    src/video/audio_plane/decode/ffmpeg/ffmpeg_decode_backend.cpp
-    src/video/audio_plane/decode/ffmpeg/ffmpeg_decode_lifecycle.cpp
-    src/video/audio_plane/decode/ffmpeg/ffmpeg_frame_converter.cpp
-    src/video/audio_plane/decode/ffmpeg/ffmpeg_codec_private_data.cpp
-    src/video/audio_plane/decode/ffmpeg/ffmpeg_decode_evidence_emitter.cpp
-  )
-  target_include_directories(kivo_p6c_ffmpeg_decode_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/backend/include_private
-    ${CMAKE_SOURCE_DIR}/backend/src/video/audio_plane/decode/ffmpeg/internal
-    ${FFMPEG_ROOT}/include
-  )
-  target_compile_features(kivo_p6c_ffmpeg_decode_tests PRIVATE cxx_std_23)
-  target_link_libraries(kivo_p6c_ffmpeg_decode_tests PRIVATE
-    kivo_audio_plane_contracts
-    avcodec avutil
-  )
-  add_test(NAME kivo_p6c_ffmpeg_decode_tests COMMAND kivo_p6c_ffmpeg_decode_tests)
-  set_tests_properties(kivo_p6c_ffmpeg_decode_tests PROPERTIES TIMEOUT 60)
+  if(NOT FFMPEG_ROOT)
+    message(WARNING "KIVO_ENABLE_FFMPEG=ON but FFMPEG_ROOT is not set. P6C tests skipped. Full repo build continues.")
+  elseif(NOT EXISTS "${FFMPEG_ROOT}/include/libavcodec/avcodec.h")
+    message(WARNING "KIVO_ENABLE_FFMPEG=ON but FFmpeg SDK not found at ${FFMPEG_ROOT}. P6C tests skipped. Full repo build continues.")
+  else()
+    add_executable(kivo_p6c_ffmpeg_decode_tests
+      tests/video/audio_plane/p6c_ffmpeg_decode_tests/ffmpeg_decode_backend_tests.cpp
+      tests/video/audio_plane/p6c_ffmpeg_decode_tests/ffmpeg_frame_converter_tests.cpp
+      tests/video/audio_plane/p6c_ffmpeg_decode_tests/ffmpeg_decode_evidence_tests.cpp
+      src/video/audio_plane/decode/ffmpeg/ffmpeg_decode_backend.cpp
+      src/video/audio_plane/decode/ffmpeg/ffmpeg_decode_lifecycle.cpp
+      src/video/audio_plane/decode/ffmpeg/ffmpeg_frame_converter.cpp
+      src/video/audio_plane/decode/ffmpeg/ffmpeg_codec_private_data.cpp
+      src/video/audio_plane/decode/ffmpeg/ffmpeg_decode_evidence_emitter.cpp
+    )
+    target_include_directories(kivo_p6c_ffmpeg_decode_tests PRIVATE
+      ${CMAKE_SOURCE_DIR}/include
+      ${CMAKE_SOURCE_DIR}/backend/include_private
+      ${CMAKE_SOURCE_DIR}/backend/src/video/audio_plane/decode/ffmpeg/internal
+      ${FFMPEG_ROOT}/include
+    )
+    target_compile_features(kivo_p6c_ffmpeg_decode_tests PRIVATE cxx_std_23)
+    target_link_libraries(kivo_p6c_ffmpeg_decode_tests PRIVATE
+      kivo_audio_plane_contracts
+      ${FFMPEG_ROOT}/lib/avcodec.lib
+      ${FFMPEG_ROOT}/lib/avutil.lib
+    )
+    add_test(NAME kivo_p6c_ffmpeg_decode_tests COMMAND kivo_p6c_ffmpeg_decode_tests)
+    set_tests_properties(kivo_p6c_ffmpeg_decode_tests PROPERTIES TIMEOUT 60)
+  endif()
 endif()
 ```
 
@@ -584,12 +648,12 @@ endif()
 | P6A contract layer closed? | ✅ 44/44 gates PASS, commit 3d50ec3 |
 | P6B fake runtime closed? | ✅ 22/22 exit criteria PASS, commit 874a725 |
 | V2.0 design lock confirmed? | ✅ USER CONFIRMED |
-| All 15 planning items covered? | ✅ 15/15 DESIGNED |
+| All 16 planning items covered? | ✅ 16/16 DESIGNED |
 | P6A contracts consumed (not modified)? | ✅ FROZEN |
 | P6B runtime consumed (not modified)? | ✅ FROZEN |
 | No forbidden scope creep? | ✅ NO WASAPI/resampler/DSP/passthrough |
 | All forbidden files listed? | ✅ 15 hard stops |
-| Exit criteria measurable? | ✅ 15 items, each mapped to C1-C15 |
+| Exit criteria measurable? | ✅ 16 items, each mapped to C1-C16 |
 | FFmpeg SDK available? | ✅ C:/ffmpeg-sdk/ffmpeg-n7.1-latest-win64-gpl-shared-7.1 |
 
 ### READY FOR P6C IMPLEMENTATION: YES ⚠️ CONDITIONAL
