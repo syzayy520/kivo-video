@@ -2,7 +2,7 @@
 
 **Document Type**: planning-draft
 **Stage**: P6E (Resampler / DSP / Clock / Sync Runtime — real implementations)
-**Status**: CLOSED (closure report: docs/roadmap/p6e_closure_report.md)
+**Status**: PARTIALLY CLOSED (audit REV 001 — 6 gaps acknowledged, see p6e_closure_report.md)
 **Generated**: 2026-06-29
 
 ---

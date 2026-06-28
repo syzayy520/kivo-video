@@ -4,7 +4,7 @@
 **Source**: P6 Audio Media Plane Design Lock Candidate V2.0 (§5, §13, §19, §25, §33)
 **Predecessors**: P6A Contract Layer (CLOSED), P6B Fake Runtime Bridge (CLOSED), P6C FFmpeg Decode Backend (CLOSED)
 **Stage**: P6D (WASAPI Output Backend — real IAudioClient, isolated)
-**Status**: CLOSED (closure report: docs/roadmap/p6d_closure_report.md)
+**Status**: PARTIALLY CLOSED (audit REV 001 — start test gap acknowledged, see p6d_closure_report.md)
 **Generated**: 2026-06-29
 **Rule**: IRON GATE — 禁止此 Draft APPROVED 前任何 .hpp / .cpp / CMake 创建
 
