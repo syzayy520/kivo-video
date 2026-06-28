@@ -4,9 +4,27 @@
 **Source**: P6 Audio Media Plane Design Lock Candidate V2.0
 **Predecessor**: P6A Contract Layer (CLOSED, commit 3d50ec3, 44/44 gates PASS)
 **Stage**: P6B (Fake Runtime Bridge — platform-neutral, no real WASAPI/FFmpeg)
-**Status**: DRAFT_FOR_REVIEW
+**Status**: DRAFT_FOR_REVIEW (REV 001 — 7-item revision applied)
 **Generated**: 2026-06-28
+**Revision History**:
+- REV 000 (606e281): Initial draft
+- REV 001 (this): 7-item revision per user feedback (workspace lock, dir count, platform-neutral arithmetic, honest SPSC, frozen contracts, guard coverage, fake adapter boundary)
 **Rule**: IRON GATE — 禁止此 Draft APPROVED 前任何 .hpp / .cpp / CMake 创建
+
+---
+
+## WORKSPACE LOCK
+
+| # | Rule |
+|---|------|
+| W1 | 唯一工作目录：`C:\kivo video` |
+| W2 | 禁止新建 worktree |
+| W3 | 禁止 clone 仓库到任何其他位置 |
+| W4 | 禁止在 `C:\kivo video` 之外的任何目录读写 P6B 相关文件 |
+| W5 | 所有 commit/push 必须在 `C:\kivo video` 本仓库 `kivo-video-p5a-contract-layer-001` 分支完成 |
+| W6 | 禁止外部目录作为 "临时" / "备份" / "参考" |
+
+**Violation handling**: 任何违反 WORKSPACE LOCK 的操作立即 STOP，不继续执行。
 
 ---
 
@@ -38,10 +56,10 @@ P6B = **P5 Audio Packet Import Bridge + Core Fake Runtime** — 平台无关的 
 | 3 | Fake packet pool runtime（preallocated ring allocator, cap enforcement） |
 | 4 | Fake frame pool runtime（preallocated ring allocator, recycle, pressure behavior） |
 | 5 | Fake generation/epoch runtime（monotonic counter + wrap detection） |
-| 6 | Fake audio PTS checked rescale runtime（overflow-safe via _mul128 intrinsic） |
+| 6 | Fake audio PTS checked rescale runtime（platform-neutral fake checked arithmetic, overflow detection） |
 | 7 | Fake evidence record runtime（基础 evidence 收集 + ID 生成） |
 | 8 | Fake decode backend lifecycle runtime（16-state machine, TimedOut closure） |
-| 9 | Fake SPSC render queue runtime（lock-free ring, strong typed result） |
+| 9 | Fake SPSC render queue runtime（deterministic fake, strong typed result, NOT production lock-free） |
 | 10 | Fake render packet runtime（noexcept move/destruct, pool-backed） |
 
 ### 0.3 P6B 禁止做
@@ -59,7 +77,7 @@ P6B = **P5 Audio Packet Import Bridge + Core Fake Runtime** — 平台无关的 
 | 9 | ❌ Qt / QML |
 | 10 | ❌ D3D11 / DXGI |
 | 11 | ❌ P4/P5/P8 file modification |
-| 12 | ❌ Public contract header modification（P6A contracts are FROZEN） |
+| 12 | ❌ Public contract header modification（P6A 298 contract headers are FROZEN — see §2.1） |
 
 ### 0.4 P6B vs P6A vs P6C/D Boundary
 
@@ -70,6 +88,21 @@ P6C (FUTURE):  FFmpeg decode backend (real avcodec, isolated in decode/ffmpeg/)
 P6D (FUTURE):  WASAPI output backend (real IAudioClient, isolated in output/wasapi/)
 P6E+ (FUTURE): Resampler / DSP / clock / sync / gapless runtime
 ```
+
+### 0.5 P6B Fake Adapter Boundary (CRITICAL)
+
+P6B contains fake adapters for decode, render, and passthrough. These are **NOT** P6C/P6D/P6E runtime:
+
+| P6B Fake Adapter | What it IS | What it is NOT |
+|------------------|-----------|----------------|
+| `runtime/decode/fake_decode_backend.hpp` | Fake 16-state lifecycle + deterministic frame generation (no real codec) | NOT P6C (P6C = real FFmpeg avcodec in `decode/ffmpeg/`) |
+| `runtime/decode/fake_decode_lifecycle_controller.hpp` | Fake transition validation (no real backend) | NOT P6C lifecycle controller |
+| `runtime/render/fake_spsc_render_queue.hpp` | Deterministic fake ring (NOT lock-free, `is_lock_free()=false`) | NOT P6E (P6E = real lock-free SPSC) |
+| `runtime/render/fake_render_packet_pool.hpp` | Fake preallocated pool (no real device thread) | NOT P6D render runtime |
+| `runtime/render/fake_device_remainder_slot.hpp` | Fake single-slot (no real AudioDeviceThread) | NOT P6D device runtime |
+| `runtime/passthrough/fake_passthrough_parser.hpp` | Fake deterministic payload (no real S/PDIF header extraction) | NOT P6E passthrough runtime |
+
+**Rule**: P6B fake adapters simulate state machines and data flow ONLY. They do NOT call any real backend API. Real FFmpeg decode (P6C), real WASAPI output (P6D), real resampler/DSP (P6E) are explicitly out of scope.
 
 ---
 
@@ -105,7 +138,7 @@ include/kivo/video/audio_plane/
 │   │   └── fake_epoch_manager.hpp             # FakeEpochManager (EngineEpoch reset, staleness check)
 │   │
 │   ├── time/                        # PTS checked rescale runtime
-│   │   ├── fake_checked_rescale.hpp           # FakeCheckedRescale (_mul128 overflow detection)
+│   │   ├── fake_checked_rescale.hpp           # FakeCheckedRescale (platform-neutral checked multiply, overflow detection)
 │   │   └── fake_pts_wrap_detector.hpp         # FakePtsWrapDetector (33-bit wrap, backward jump)
 │   │
 │   ├── evidence/                    # Evidence record runtime
@@ -117,7 +150,7 @@ include/kivo/video/audio_plane/
 │   │   └── fake_decode_lifecycle_controller.hpp # FakeDecodeLifecycleController (transitions, cancellation)
 │   │
 │   ├── render/                      # Fake SPSC queue + render packet
-│   │   ├── fake_spsc_render_queue.hpp         # FakeSpscRenderQueue (lock-free ring, strong result)
+│   │   ├── fake_spsc_render_queue.hpp         # FakeSpscRenderQueue (deterministic fake, NOT production lock-free, strong result)
 │   │   ├── fake_render_packet_pool.hpp        # FakeRenderPacketPool (preallocated, acquire/release)
 │   │   └── fake_device_remainder_slot.hpp     # FakeDeviceRemainderSlot (single slot, overwrite detection)
 │   │
@@ -149,7 +182,7 @@ backend/tests/video/audio_plane/
 
 | Category | Count |
 |----------|-------|
-| Runtime subdirectories | 8 (import_bridge, data, pool, generation, time, evidence, decode, render, passthrough) |
+| Runtime directories | 10 (1 root `runtime/` + 9 subdirs: import_bridge, data, pool, generation, time, evidence, decode, render, passthrough) |
 | Runtime headers | ~24 |
 | Test files | 9 |
 | CMake targets | 1 new (kivo_audio_plane_runtime_tests) |
@@ -159,9 +192,16 @@ backend/tests/video/audio_plane/
 
 ## 2. REPO INVENTORY (P6B-specific)
 
-### 2.1 P6A Contract Layer (FROZEN, consumed by P6B)
+### 2.1 P6A Contract Layer (FROZEN — 298 headers, consumed by P6B, NOT modifiable)
 
-| Directory | Headers | P6B Consumes |
+**FROZEN RULE**: P6A delivered 298 `.hpp` contract headers across 30 design subdirectories + 1 `foundation/` directory under `include/kivo/video/audio_plane/`. These headers are **FROZEN**:
+
+- P6B MUST NOT modify, delete, or rename any P6A contract header.
+- P6B MUST NOT add headers to any P6A contract subdirectory (boundary/, command/, platform/, output/, packet/, data/, decode/, passthrough/, frame/, render/, generation/, time/, clock/, sync/, seek/, gapless/, format/, conversion/, channel/, mix/, rate/, evidence/, capability/, security/, recovery/, advanced_format/, threading/, test_contract/, terminology/, version/, foundation/).
+- P6B runtime headers MUST be added ONLY under `include/kivo/video/audio_plane/runtime/` (new root).
+- If P6B discovers missing contract fields, STOP and request P6A contract amendment — do NOT patch in `runtime/`.
+
+| P6A Directory | Headers | P6B Consumes |
 |-----------|---------|--------------|
 | `boundary/` | 12 | P5AudioPacketImportView (27 fields), P5AudioPacketImportResult (12 values) |
 | `packet/` | 9 | AudioPacketImportView, AudioPacketImportResult, AudioPacketPoolContract |
@@ -213,6 +253,29 @@ target_compile_features(kivo_audio_plane_runtime_tests PRIVATE cxx_std_23)
 - NO link to WASAPI / FFmpeg / Qt / D3D11
 - NO link to `kivo_cinema_engine` (legacy)
 - NO link to `kivo_video_plane_contracts` (P5)
+
+### 2.4 Architecture Guard Coverage (P6B runtime headers MUST be guarded)
+
+The existing P6A architecture guard (`backend/tools/governance/p6_audio_arch_guard.py`) MUST be extended to cover P6B runtime headers. The guard has 4 modes (§42):
+
+| Mode | P6B Coverage Requirement |
+|------|--------------------------|
+| `PublicHeadersStrict` | MUST scan `include/kivo/video/audio_plane/runtime/**/*.hpp` — same forbidden token list as P6A contracts (no WASAPI/FFmpeg/Qt/Win32/COM types) |
+| `ArchitectureRuleDocs` | Unchanged (rule docs only) |
+| `NegativeFixture` | Unchanged (P6A negative fixtures) |
+| `BackendPrivate` | P6B does NOT create `backend/src/video/audio_plane/` — this mode remains scanning for forbidden private backend roots |
+
+**Guard extension plan (P6B implementation phase, NOT this draft)**:
+- `PublicHeadersStrict` mode scan path expanded from `include/kivo/video/audio_plane/*.hpp` (P6A contracts only) to also include `include/kivo/video/audio_plane/runtime/**/*.hpp` (P6B fake runtime).
+- P6B runtime headers MUST pass the same forbidden token scan as P6A contracts.
+- P6B runtime headers MUST NOT contain real WASAPI/FFmpeg/Qt/Win32/COM types (they are fake, platform-neutral).
+- CTest registration: `p6_audio_arch_guard_public_headers_strict` test (#181) MUST continue to PASS after P6B headers are added.
+
+**Forbidden in P6B runtime headers** (same as P6A contracts):
+- `IAudioClient`, `IAudioRenderClient`, `IMMDevice`, `HRESULT`, `WAVEFORMATEX`
+- `AVFrame`, `AVPacket`, `AVCodecContext`, `SwrContext`
+- `QString`, `QByteArray`, `QObject`
+- `#include <windows.h>`, `#include <audioclient.h>`, `#include <avcodec.h>`
 
 ---
 
@@ -366,7 +429,7 @@ target_compile_features(kivo_audio_plane_runtime_tests PRIVATE cxx_std_23)
 **P6B plan**:
 - `FakeCheckedRescale` in `runtime/time/fake_checked_rescale.hpp`:
   - `rescale(pts: int64_t, src_tb: AudioTimeBase, dst_tb: AudioTimeBase) → Expected<int64_t, TimestampOverflow>`
-  - Uses MSVC `_mul128` intrinsic for 128-bit multiply
+  - Platform-neutral fake checked arithmetic: detect overflow BEFORE multiply via pre-check (e.g., `a > INT64_MAX / b`), NO platform-specific intrinsics (`_mul128`, `__int128`)
   - Overflow → TimestampOverflow::MultiplyOverflow, fail safely
   - No long-term float accumulation
 
@@ -414,6 +477,7 @@ target_compile_features(kivo_audio_plane_runtime_tests PRIVATE cxx_std_23)
   - `receive_frame() → Expected<DecodedFrame, DecodeStatus>` (WouldBlock / TimedOut / Eos)
   - TimedOut state: deadline exceeded, no frames published after deadline
   - Fake decode: deterministic frame generation (no real FFmpeg)
+  - **This is a FAKE ADAPTER, NOT P6C**: No `avcodec_send_packet` / `avcodec_receive_frame` / `AVFrame` / `AVCodecContext`. Real FFmpeg decode is P6C scope (future, isolated in `decode/ffmpeg/`).
 
 ### 3.18 Fake Decode Lifecycle Controller (B18)
 
@@ -432,11 +496,13 @@ target_compile_features(kivo_audio_plane_runtime_tests PRIVATE cxx_std_23)
 
 **P6B plan**:
 - `FakeSpscRenderQueue` in `runtime/render/fake_spsc_render_queue.hpp`:
-  - Lock-free ring buffer (preallocated)
+  - Deterministic fake ring buffer (preallocated, single-threaded test use)
+  - **NOT production lock-free**: P6B fake does NOT claim `is_lock_free() == true`. Real lock-free SPSC deferred to P6E.
+  - **This is a FAKE ADAPTER, NOT P6E**: No real lock-free atomics / memory-order-optimized producer-consumer. Real lock-free SPSC is P6E scope (future).
   - `try_push(packet) → AudioSpscPushResult` (Pushed/Full/Closed/GenMismatch/InvalidPacket)
   - `try_pop(out) → AudioSpscPopResult` (Popped/Empty/Closed/GenMismatch)
-  - `is_lock_free() → bool` (must be true in production)
-  - Memory order: producer release, consumer acquire
+  - `is_lock_free() → bool` returns `false` in fake impl (honest; production guard expects `true` only in P6E)
+  - Memory order: producer release, consumer acquire (documented contract; fake uses seq_cst for simplicity)
   - Stale discard budget: max 64/event, max_event_cpu_budget_ns = min(25% device_period, cap)
 
 ### 3.20 Fake Render Packet Pool (B20)
@@ -472,6 +538,7 @@ target_compile_features(kivo_audio_plane_runtime_tests PRIVATE cxx_std_23)
   - Owned payload only (no borrowed span, verified by negative fixture P6G-039)
   - Fake: deterministic payload generation (no real S/PDIF header extraction)
   - Codec policy: AC3/EAC3/DTS/TrueHD mapping (fake, no real codec detection)
+  - **This is a FAKE ADAPTER, NOT P6E**: No real IEC61937 burst framing / S/PDIF header parsing. Real passthrough parse runtime is P6E scope (future).
 
 ---
 
@@ -573,8 +640,8 @@ target_compile_features(kivo_audio_plane_runtime_tests PRIVATE cxx_std_23)
 | # | Risk | Severity | Mitigation |
 |---|------|----------|-----------|
 | R1 | P6A contract types may be incomplete for runtime use | MEDIUM | P6B may discover missing fields. If so, STOP and request P6A contract amendment before proceeding. Do NOT modify P6A headers directly. |
-| R2 | Fake SPSC queue may not be truly lock-free on all platforms | LOW | P6B is fake runtime for testing. `is_lock_free()` returns true in fake impl. Real lock-free impl deferred to P6E. |
-| R3 | _mul128 intrinsic is MSVC-only | LOW | P6B targets Windows/MSVC only (per V2.0 §3.1). Non-MSVC path deferred. |
+| R2 | Fake SPSC queue is NOT production lock-free | LOW | P6B fake `is_lock_free()` returns `false` (honest). Real lock-free SPSC deferred to P6E. Architecture guard must NOT be weakened to accept `false` in production. |
+| R3 | Platform-neutral checked arithmetic may have edge cases | LOW | P6B uses pre-check overflow detection (divide-before-multiply). This is a fake; real high-performance checked rescale deferred to P6E. Edge cases covered by unit tests. |
 | R4 | 24 fake runtime headers may exceed single sprint capacity | LOW | Header-only fake runtime (no .cpp). Comparable to P5B's 8 headers. Can be done in ~3 implementation rounds. |
 | R5 | Fake decode backend 16-state machine is complex | MEDIUM | Start with minimal state transitions (NotCreated→Ready→Decoding→Closed). Add TimedOut/Draining/Flushing incrementally. |
 
@@ -610,7 +677,7 @@ target_compile_features(kivo_audio_plane_runtime_tests PRIVATE cxx_std_23)
 4. Create fake runtime headers in order:
    import_bridge → data → pool → generation → time → evidence → decode → render → passthrough
 5. Create test runners (9 files, B1-B22)
-6. Run Gate Review: compile + CTest + forbidden token scan + architecture guard
+6. Run Gate Review: compile + CTest + forbidden token scan + architecture guard (guard MUST cover P6B runtime headers — see §2.4)
 
 **Do NOT enter P6C/P6D. Do NOT enter P7/P8.**
 
