@@ -1,0 +1,34 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8A-006",
+  "stage": "P8A",
+  "status": "CONTRACT_PASS",
+  "source_design": "C:\\Users\\huyasi\\Downloads\\Kivo Video P8 Subtitle Plane Design V1.5.5.docx",
+  "commands": [
+    "Manual matrix check against docs/roadmap/p8_v1.5.5_execution_card.md",
+    "Manual corrective family check against docs/roadmap/p8a_planning_draft.md"
+  ],
+  "artifacts": [
+    "docs/roadmap/p8_exit_criteria_s1_s30_matrix.md"
+  ],
+  "coverage": [
+    "S1-S30 are mapped to gates.",
+    "C-001..C-005, G-001..G-015, A-001..A-005, I-001..I-003 are mapped to gates.",
+    "Corrective anti-monolith rule is mapped to P8A and P8G architecture guard."
+  ],
+  "allowed_files": [
+    "docs/roadmap/p8_exit_criteria_s1_s30_matrix.md",
+    "artifacts/p8/evidence/P8A-006.json"
+  ],
+  "forbidden_files_checked": [
+    "No unmapped V1.5.5 design group knowingly dropped",
+    "No PASS claimed for implementation behavior"
+  ],
+  "exit_criteria_covered": [
+    "S1-S30 planning coverage"
+  ],
+  "not_verified_boundaries": [
+    "Runtime/test pass evidence belongs to P8B-P8H"
+  ],
+  "stop_condition": false
+}

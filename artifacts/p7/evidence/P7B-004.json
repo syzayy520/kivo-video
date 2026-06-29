@@ -1,0 +1,58 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7B-004",
+  "stage": "P7B",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 11, 32, 38",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7B-004"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7B-004.json",
+    "include/kivo/video/playback_graph/playback_graph_state.hpp",
+    "include/kivo/video/playback_graph/playback_graph_error.hpp",
+    "include/kivo/video/playback_graph/generation_stamp.hpp",
+    "backend/tests/video/playback_graph/p7b_public_contract_tests.cpp"
+  ],
+  "commands": [
+    {
+      "command": "P7B public forbidden scan for UnsupportedPlaybackRate and catch-all dependency tokens",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "No UnsupportedPlaybackRate token and no forbidden dependency tokens found in public P7 headers."
+    },
+    {
+      "command": "ctest --preset vs-debug -R kivo_p7b_public_contract_tests --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Graph state, error, severity, and generation stamp public value contracts compiled and passed defaults."
+    }
+  ],
+  "contracts_locked": [
+    "PlaybackGraphState",
+    "PlaybackGraphError",
+    "CommandTerminalStatus",
+    "GraphEvidenceReason",
+    "ArchitectureGuardFailure",
+    "EvidenceSeverity",
+    "GenerationStampState",
+    "GenerationStamp"
+  ],
+  "allowed_operations_checked": [
+    "Layered error, evidence reason, architecture failure, and severity enums are separate",
+    "Graph states include NotCreated, transient transport states, recovery, failure, closing, and closed states"
+  ],
+  "forbidden_operations_checked": [
+    "No single catch-all error enum for user errors, evidence, and architecture failures",
+    "No UnsupportedPlaybackRate in P7 public errors",
+    "No generation wrap user-facing runtime error"
+  ],
+  "exit_criteria_covered": [
+    "G5 state/error public contract preliminary coverage",
+    "G43 severity/evidence taxonomy preliminary coverage"
+  ],
+  "not_verified_boundaries": [
+    "State transition legality is implemented and tested in P7C, not in P7B public headers"
+  ],
+  "stop_condition": false
+}

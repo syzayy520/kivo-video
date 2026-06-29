@@ -1,0 +1,66 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7D-008",
+  "stage": "P7D",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 section 20",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7D-008"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7D-008.json",
+    "backend/include_private/video/playback_graph/internal/hot_path_contract_guard.hpp",
+    "backend/tests/video/playback_graph/p7d_async_generation_tests.cpp"
+  ],
+  "commands": [
+    {
+      "command": "P7D hot path forbidden token scan",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P7D_HOT_PATH_FORBIDDEN_TOKEN_SCAN_OK"
+    },
+    {
+      "command": "ctest --preset vs-debug -R kivo_p7d_async_generation_tests --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "HotPathContractGuard tests passed for allocation, blocking, logging, mutable graph access, and non-hot-path allowance."
+    }
+  ],
+  "tests_covered": [
+    "Allocation attempt is rejected inside hot path",
+    "Blocking attempt is rejected inside hot path",
+    "Logging attempt is rejected inside hot path",
+    "Mutable graph access attempt is rejected inside hot path",
+    "Non-hot-path guard calls remain allowed"
+  ],
+  "static_scan_forbidden_tokens": [
+    "std::mutex",
+    "condition_variable",
+    "std::future",
+    ".wait(",
+    "wait_for",
+    "sleep_for",
+    "Sleep(",
+    "CreateFile",
+    "fopen",
+    "ofstream",
+    "ifstream",
+    "std::cout",
+    "qDebug",
+    "spdlog",
+    "fmt::",
+    "malloc(",
+    "calloc(",
+    "realloc(",
+    "operator new"
+  ],
+  "forbidden_operations_checked": [
+    "No dynamic allocation token in hot-path P7D runtime files",
+    "No mutex, condition_variable, future wait, sleep, file IO, network IO, logging, or string formatting token",
+    "No mutable graph access accepted by debug guard"
+  ],
+  "file_hashes": {
+    "backend/include_private/video/playback_graph/internal/hot_path_contract_guard.hpp": "20EDD720C983FB09F2A62AB166307C9D01F78B91616D942053991096D9C875E6"
+  },
+  "stop_condition": false
+}

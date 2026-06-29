@@ -1,0 +1,31 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8E-005",
+  "stage": "P8E",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 sections 21.2 and 21.3, S28",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8e_style_semantics_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/format/ass_semantics.cpp",
+    "backend/include_private/video/subtitle_plane/format/ass_semantics.hpp",
+    "backend/tests/video/subtitle_plane/format/p8e_style_semantics_tests.cpp"
+  ],
+  "result": "ASS BGR color, inverse alpha, alpha 0x80 conversion, malformed color evidence, and missing PlayRes normalized fallback are covered.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/format/**",
+    "backend/include_private/video/subtitle_plane/format/**",
+    "backend/tests/video/subtitle_plane/format/**"
+  ],
+  "forbidden_files_checked": [
+    "No video pixel size invented when PlayRes is missing",
+    "Malformed color is not silent success"
+  ],
+  "exit_criteria_covered": [
+    "S28",
+    "G-012"
+  ],
+  "not_verified_boundaries": [],
+  "stop_condition": false
+}

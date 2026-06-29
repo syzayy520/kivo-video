@@ -1,0 +1,37 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8E-009",
+  "stage": "P8E",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 sections 22.3 and 22.4, S23, S24, A-003, A-004",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8e_frame_lease_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/frame/frame_hot_path_guard.cpp",
+    "backend/src/video/subtitle_plane/frame/frame_lease_pool.cpp",
+    "backend/src/video/subtitle_plane/core/runtime_caps.cpp",
+    "backend/tests/video/subtitle_plane/frame/p8e_frame_lease_tests.cpp"
+  ],
+  "result": "EOS hold epsilon is read from runtime caps, within-epsilon frame build remains available, beyond-epsilon frame build returns timeline-temporarily-unavailable, default hazard retry cap remains 3, and simulated hazard exhaustion returns NotReady without blocking.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/frame/**",
+    "backend/src/video/subtitle_plane/core/runtime_caps.cpp",
+    "backend/tests/video/subtitle_plane/frame/**"
+  ],
+  "forbidden_files_checked": [
+    "No unrelated hardcoded epsilon",
+    "No infinite retry loop",
+    "No blocking wait on retry exhaustion"
+  ],
+  "exit_criteria_covered": [
+    "S23",
+    "S24",
+    "A-003",
+    "A-004"
+  ],
+  "not_verified_boundaries": [
+    "Snapshot acquire retry exhaustion continues in P8F/P8G"
+  ],
+  "stop_condition": false
+}

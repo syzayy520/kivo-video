@@ -1,0 +1,42 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7A-005",
+  "stage": "P7A",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 5, 33, 34, 35, 38",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7A-005"
+  ],
+  "commands": [
+    {
+      "command": "Created docs/roadmap/p7a_planning_draft.md",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Planning draft defines implementation baseline, dependency inventory, gap classifications, natural family tree, per-file responsibilities, allowed dependencies, forbidden dependencies, and no-omission matrix."
+    }
+  ],
+  "artifacts": [
+    "artifacts/p7/evidence/P7A-005.json",
+    "docs/roadmap/p7a_planning_draft.md"
+  ],
+  "allowed_files": [
+    "artifacts/p7/evidence/P7A-005.json",
+    "docs/roadmap/p7a_planning_draft.md"
+  ],
+  "forbidden_files_checked": [
+    "No P7 .hpp implementation files created before P7A-006",
+    "No P7 .cpp implementation files created before P7A-006",
+    "No CMake files modified before P7A-006",
+    "No locked P4/P5/P6 files modified"
+  ],
+  "exit_criteria_covered": [
+    "P7 natural family tree planned",
+    "P7 single-file single-responsibility table planned",
+    "P7 no-omission matrix planned"
+  ],
+  "not_verified_boundaries": [
+    "Final V1.9 to V1.9.1 carryover still has manual review rows",
+    "Implementation evidence starts at P7B"
+  ],
+  "stop_condition": false
+}

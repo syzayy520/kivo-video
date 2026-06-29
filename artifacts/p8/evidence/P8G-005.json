@@ -1,0 +1,26 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8G-005",
+  "stage": "P8G",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 sections 10, 15, 18, 19, and 27",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8g_deterministic_harness_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/tests/video/subtitle_plane/test_support/p8_fake_runtime.hpp",
+    "backend/tests/video/subtitle_plane/test_support/p8g_deterministic_harness_tests.cpp"
+  ],
+  "result": "Deterministic fake runtime harness PASS: fake reader, fake key provider, embedded stream, and API table run without media, renderer, Qt, FFmpeg, hardware, network, OCR, or AI runtime.",
+  "allowed_files": [
+    "backend/tests/video/subtitle_plane/test_support/**"
+  ],
+  "forbidden_files_checked": [
+    "No hardware/media/network requirement for contract tests"
+  ],
+  "exit_criteria_covered": [
+    "Deterministic fake runtime harness"
+  ],
+  "not_verified_boundaries": [],
+  "stop_condition": false
+}

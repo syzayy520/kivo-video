@@ -1,0 +1,30 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8G-008",
+  "stage": "P8G",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 section 27",
+  "commands": [
+    "Get-Content artifacts\\p8\\evidence\\P8A-003.json"
+  ],
+  "artifacts": [
+    "artifacts/p8/evidence/P8A-003.json",
+    "docs/design/p8/KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5.rule_manifest.yaml"
+  ],
+  "result": "Earlier V1.5.4/V1.5.3/V1.5.2 sources were not found during P8A. P8G preserves that as a not-verified boundary and does not fabricate carryover tests; all verified V1.5.5 required tests are represented in the manifest.",
+  "allowed_files": [
+    "artifacts/p8/evidence/P8G-008.json",
+    "docs/design/p8/**"
+  ],
+  "forbidden_files_checked": [
+    "No older required tests fabricated",
+    "No unverified memory treated as design truth"
+  ],
+  "exit_criteria_covered": [
+    "Earlier version carryover boundary"
+  ],
+  "not_verified_boundaries": [
+    "Earlier P8 source documents are unavailable in current local context"
+  ],
+  "stop_condition": false
+}

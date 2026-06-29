@@ -1,0 +1,33 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8B-006",
+  "stage": "P8B",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 sections 9..20",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8b_public_contract_tests\" --output-on-failure --timeout 30",
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8b_public_header_purist_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "include/kivo/video/subtitle_plane/privacy/subtitle_privacy.h",
+    "include/kivo/video/subtitle_plane/source/subtitle_source.h",
+    "include/kivo/video/subtitle_plane/format/subtitle_format.h",
+    "include/kivo/video/subtitle_plane/state/subtitle_plane_state.h",
+    "include/kivo/video/subtitle_plane/evidence/subtitle_evidence.h",
+    "include/kivo/video/subtitle_plane/metrics/subtitle_metrics.h",
+    "include/kivo/video/subtitle_plane/frame/subtitle_frame_lease.h",
+    "include/kivo/video/subtitle_plane/snapshot/subtitle_snapshot_blob.h",
+    "include/kivo/video/subtitle_plane/resource/subtitle_resource_token.h",
+    "include/kivo/video/subtitle_plane/cancel/subtitle_cancellation.h",
+    "include/kivo/video/subtitle_plane/observer/subtitle_observer.h",
+    "include/kivo/video/subtitle_plane/stream/subtitle_stream_end.h",
+    "include/kivo/video/subtitle_plane/config/subtitle_plane_config.h",
+    "include/kivo/video/subtitle_plane/request/subtitle_plane_requests.h"
+  ],
+  "result": "Referenced public C types for source, privacy, discovery, frame, snapshot, observer, cancellation, stream end, evidence, metrics, and requests are defined.",
+  "allowed_files": ["include/kivo/video/subtitle_plane/**"],
+  "forbidden_files_checked": ["No undefined public type in P8B tests", "No volatile cancellation pointer", "Callbacks use KIVO_P8_NOEXCEPT macro"],
+  "exit_criteria_covered": ["S10", "S11", "S12", "S13", "S14", "S15", "S16", "S17", "S18", "S19", "S20"],
+  "not_verified_boundaries": ["Runtime semantics belong to P8C-P8F"],
+  "stop_condition": false
+}

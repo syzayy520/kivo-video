@@ -1,0 +1,15 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8C-007",
+  "stage": "P8C",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 18",
+  "commands": ["ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8c_bootstrap_command_tests\" --output-on-failure --timeout 30"],
+  "artifacts": ["backend/src/video/subtitle_plane/threading/cancellation_poll.cpp", "include/kivo/video/subtitle_plane/cancel/subtitle_cancellation.h"],
+  "result": "Cancellation uses callback polling and frame build returns NotReady when callback reports cancellation.",
+  "allowed_files": ["backend/src/video/subtitle_plane/threading/cancellation_poll.cpp", "include/kivo/video/subtitle_plane/cancel/subtitle_cancellation.h"],
+  "forbidden_files_checked": ["No volatile uint32_t* cancellation contract"],
+  "exit_criteria_covered": ["S20"],
+  "not_verified_boundaries": ["Observer mutation rejection and thread-safety stress continue in P8F/P8G"],
+  "stop_condition": false
+}

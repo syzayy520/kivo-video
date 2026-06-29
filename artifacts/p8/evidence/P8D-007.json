@@ -1,0 +1,35 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8D-007",
+  "stage": "P8D",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 sections 9, 10, and 15",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8d_source_privacy_tests\" --output-on-failure --timeout 30",
+    "rg -n \"MD5|md5\" include\\kivo\\video\\subtitle_plane backend\\src\\video\\subtitle_plane backend\\include_private\\video\\subtitle_plane backend\\tests\\video\\subtitle_plane"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/source/source_api.cpp",
+    "backend/src/video/subtitle_plane/source/external_reader_lifecycle.cpp",
+    "backend/src/video/subtitle_plane/privacy/redacted_identity.cpp",
+    "backend/tests/video/subtitle_plane/source/p8d_source_privacy_tests.cpp"
+  ],
+  "result": "Source open failure maps to SubtitleSourceOpenFailed, source read failure maps to SubtitleSourceReadFailed, read failure still closes exactly once, and privacy redline has no MD5 hits.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/source/**",
+    "backend/src/video/subtitle_plane/privacy/**",
+    "backend/tests/video/subtitle_plane/source/**"
+  ],
+  "forbidden_files_checked": [
+    "No raw path evidence",
+    "No raw subtitle text evidence",
+    "No failure swallowed as empty subtitle success"
+  ],
+  "exit_criteria_covered": [
+    "Source error mapping"
+  ],
+  "not_verified_boundaries": [
+    "Evidence export aggregation and privacy mode policy continue in P8F-004/P8F-008"
+  ],
+  "stop_condition": false
+}

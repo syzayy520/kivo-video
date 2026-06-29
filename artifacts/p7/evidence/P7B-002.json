@@ -1,0 +1,67 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7B-002",
+  "stage": "P7B",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 6.1, 6.2, 6.6, 6.7, 12",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7B-002"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7B-002.json",
+    "include/kivo/video/playback_graph/playback_session.hpp",
+    "backend/tests/video/playback_graph/p7b_public_contract_tests.cpp"
+  ],
+  "commands": [
+    {
+      "command": "cmake --build --preset vs-debug --target kivo_video_playback_graph_tests --config Debug",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P7B public contract test target built successfully with static_assert coverage for all PlaybackSession public command signatures."
+    },
+    {
+      "command": "ctest --preset vs-debug -R kivo_p7b_public_contract_tests --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "1/1 P7B public contract tests passed."
+    }
+  ],
+  "api_contracts_locked": [
+    "open(const OpenRequest&) noexcept",
+    "start() noexcept",
+    "pause() noexcept",
+    "resume() noexcept",
+    "seek(const SeekRequest&) noexcept",
+    "switch_audio_track(const AudioTrackSwitchRequest&) noexcept",
+    "switch_video_track(const VideoTrackSwitchRequest&) noexcept",
+    "switch_av_track_set(const AvTrackSetSwitchRequest&) noexcept",
+    "close() noexcept",
+    "snapshot() const noexcept",
+    "query_command(PlaybackCommandId) const noexcept",
+    "subscribe_events(GraphObserverHandle) noexcept",
+    "unsubscribe(SubscriptionToken) noexcept",
+    "inject_system_event(const SystemEvent&) noexcept"
+  ],
+  "allowed_operations_checked": [
+    "Public API signatures and command/result types declared only",
+    "Compile-time contract test added without instantiating runtime implementation"
+  ],
+  "forbidden_operations_checked": [
+    "No public play() API",
+    "No playlist or next-item APIs",
+    "No future-like behavior in CommandToken"
+  ],
+  "file_hashes": {
+    "include/kivo/video/playback_graph/playback_session.hpp": "5C240D89794D48E7C739935F15F4BA94A44BC4FBCEB58E3F7E16DA83179579FD",
+    "backend/tests/video/playback_graph/p7b_public_contract_tests.cpp": "8D149F6A89ED6A4B7990B6526A31066EDA4EC8CD574C9BE614CCA15C911E31EA"
+  },
+  "exit_criteria_covered": [
+    "G1 public session facade exists",
+    "G2 command surface covers open/start/pause/resume/seek/track-switch/close",
+    "G3 command status is queryable through query_command"
+  ],
+  "not_verified_boundaries": [
+    "Command execution semantics and conflict behavior are P7C/P7E runtime gates"
+  ],
+  "stop_condition": false
+}

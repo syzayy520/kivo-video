@@ -1,0 +1,26 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7G-005",
+  "stage": "P7G",
+  "status": "CONTRACT_PASS",
+  "source_design": ["P7 V1.9.1 section 12", "docs/roadmap/p7_v1.9.1_execution_card.md P7G-005"],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7G-005.json",
+    "backend/tools/video/playback_graph/matrix_codegen/p7_matrix_codegen.py",
+    "docs/roadmap/p7_command_conflict_matrix.generated.md"
+  ],
+  "commands": [
+    {
+      "command": "bundled python backend/tools/video/playback_graph/matrix_codegen/p7_matrix_codegen.py",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Generated docs/roadmap/p7_command_conflict_matrix.generated.md from the matrix codegen source."
+    }
+  ],
+  "file_hashes": {
+    "backend/tools/video/playback_graph/matrix_codegen/p7_matrix_codegen.py": "E730872D433214BC68BCA978A4DFDD91100BC0297D59F4A816DBCD153322F6C5",
+    "docs/roadmap/p7_command_conflict_matrix.generated.md": "7EDC8E7267F0C8320E0CC36A01A3A57F727667D7E148F2ED8DDA19D30322303F"
+  },
+  "forbidden_operations_checked": ["Generated matrix output is not manually authored", "Runtime/docs/tests share the same listed command/state decisions for P7G verification"],
+  "stop_condition": false
+}

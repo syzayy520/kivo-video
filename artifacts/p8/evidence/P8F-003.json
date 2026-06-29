@@ -1,0 +1,31 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8F-003",
+  "stage": "P8F",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 sections 14.6 and 24; S26, I-002",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8f_snapshot_blob_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/snapshot/snapshot_blob_writer.cpp",
+    "backend/tests/video/subtitle_plane/snapshot/p8f_snapshot_blob_tests.cpp"
+  ],
+  "result": "Production writer and test use little-endian compile-time assertions, and copied snapshot blobs report KIVO_P8_SNAPSHOT_ENDIAN_LITTLE.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/snapshot/**",
+    "backend/tests/video/subtitle_plane/snapshot/**"
+  ],
+  "forbidden_files_checked": [
+    "No byte-swap support claimed for P8 P0",
+    "No undocumented host-endian blob"
+  ],
+  "exit_criteria_covered": [
+    "S26",
+    "I-002"
+  ],
+  "not_verified_boundaries": [
+    "Big-endian host behavior is compile-time unsupported in P8 P0"
+  ],
+  "stop_condition": false
+}

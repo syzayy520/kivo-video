@@ -1,0 +1,35 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8D-002",
+  "stage": "P8D",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 16 and S15",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8d_source_privacy_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "include/kivo/video/subtitle_plane/resource/subtitle_resource_token.h",
+    "backend/src/video/subtitle_plane/resource/resource_token_validation.cpp",
+    "backend/src/video/subtitle_plane/text/text_access_api.cpp",
+    "backend/tests/video/subtitle_plane/source/p8d_source_privacy_tests.cpp"
+  ],
+  "result": "FrameLease and SnapshotLease tokens reject non-zero irrelevant fields and require snapshot_revision.",
+  "allowed_files": [
+    "include/kivo/video/subtitle_plane/resource/**",
+    "backend/src/video/subtitle_plane/resource/**",
+    "backend/src/video/subtitle_plane/text/**",
+    "backend/tests/video/subtitle_plane/source/**"
+  ],
+  "forbidden_files_checked": [
+    "No catch-all token validator family",
+    "No unrelated token behavior in text/font APIs"
+  ],
+  "exit_criteria_covered": [
+    "S15",
+    "G-002"
+  ],
+  "not_verified_boundaries": [
+    "Malformed resource-token property stress continues in P8G-006"
+  ],
+  "stop_condition": false
+}

@@ -1,0 +1,31 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8F-001",
+  "stage": "P8F",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 sections 14.1, 14.2, and 25; S11",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8f_snapshot_blob_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "include/kivo/video/subtitle_plane/snapshot/subtitle_snapshot_blob.h",
+    "backend/src/video/subtitle_plane/snapshot/snapshot_lease_pool.cpp",
+    "backend/src/video/subtitle_plane/snapshot/snapshot_api.cpp",
+    "backend/tests/video/subtitle_plane/snapshot/p8f_snapshot_blob_tests.cpp"
+  ],
+  "result": "Snapshot lease lifecycle covers Ok, capacity error, Closed, invalid duplicate release, and late release after close without deadlock.",
+  "allowed_files": [
+    "include/kivo/video/subtitle_plane/snapshot/**",
+    "backend/src/video/subtitle_plane/snapshot/**",
+    "backend/tests/video/subtitle_plane/snapshot/**"
+  ],
+  "forbidden_files_checked": [
+    "SnapshotLease is not direct cue/text access",
+    "No deadlock on leaked snapshot lease"
+  ],
+  "exit_criteria_covered": [
+    "S11"
+  ],
+  "not_verified_boundaries": [],
+  "stop_condition": false
+}

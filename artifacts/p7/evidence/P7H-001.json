@@ -1,0 +1,13 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7H-001",
+  "stage": "P7H",
+  "status": "CONTRACT_PASS",
+  "commands": [
+    {"command": "cmake --preset vs-debug", "cwd": "C:/kivo video", "exit_code": 0, "summary": "Configured successfully with Visual Studio 18 2026 x64."},
+    {"command": "cmake --build --preset vs-debug --target kivo_video_playback_graph_tests --config Debug", "cwd": "C:/kivo video", "exit_code": 0, "summary": "P7 aggregate target built successfully."},
+    {"command": "ctest --preset vs-debug -R P7 test regex --output-on-failure", "cwd": "C:/kivo video", "exit_code": 0, "summary": "7/7 P7 tests passed."}
+  ],
+  "ctest": {"total": 7, "passed": 7, "failed": 0},
+  "stop_condition": false
+}

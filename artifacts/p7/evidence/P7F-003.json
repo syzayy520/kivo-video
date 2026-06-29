@@ -1,0 +1,28 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7F-003",
+  "stage": "P7F",
+  "status": "CONTRACT_PASS",
+  "source_design": ["P7 V1.9.1 section 31.1", "docs/roadmap/p7_v1.9.1_execution_card.md P7F-003"],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7F-003.json",
+    "backend/include_private/video/playback_graph/evidence/critical_proof_ring.hpp",
+    "backend/src/video/playback_graph/evidence/critical_proof_ring.cpp",
+    "backend/tests/video/playback_graph/p7f_snapshot_evidence_tests.cpp"
+  ],
+  "commands": [
+    {
+      "command": "ctest --preset vs-debug -R kivo_p7f_snapshot_evidence_tests --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Critical proof tests passed for close, recovery, fatal proof, reserved slots, and sink failure behavior."
+    }
+  ],
+  "tests_covered": ["in-memory critical proof ring", "reserved critical slots", "close proof", "recovery proof", "fatal proof", "persistent sink failure still preserves proof"],
+  "forbidden_operations_checked": ["No loss of final close/fatal proof when sink fails", "No hot path verbose evidence writes"],
+  "file_hashes": {
+    "backend/include_private/video/playback_graph/evidence/critical_proof_ring.hpp": "ADA91A297D4DBD29AE695C1FB5D70ABA90553C602858FFC1D85849A6E7A898EE",
+    "backend/src/video/playback_graph/evidence/critical_proof_ring.cpp": "427228D3855A10D8DA22670F13FBB3F9C4455A99EFCB07F4B072B364E5C925C9"
+  },
+  "stop_condition": false
+}

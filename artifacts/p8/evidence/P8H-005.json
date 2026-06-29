@@ -1,0 +1,48 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8H-005",
+  "stage": "P8H",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 delivery readiness gate",
+  "commands": [
+    "& 'C:\\Users\\huyasi\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd\\git.exe' -c safe.directory='C:/kivo video' diff --cached --name-only",
+    "& 'C:\\Users\\huyasi\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd\\git.exe' -c safe.directory='C:/kivo video' status --short"
+  ],
+  "artifacts": [
+    "P7 implementation/evidence paths",
+    "P8 implementation/evidence paths"
+  ],
+  "result": "P8 is ready for combined P7/P8 commit after final staged-scope review. Unrelated dirty workspace files must remain unstaged.",
+  "allowed_files": [
+    "CMakeLists.txt",
+    "backend/CMakeLists.txt",
+    "include/kivo/video/playback_graph/**",
+    "include/kivo/video/subtitle_plane/**",
+    "backend/include_private/video/playback_graph/**",
+    "backend/include_private/video/subtitle_plane/**",
+    "backend/src/video/playback_graph/**",
+    "backend/src/video/subtitle_plane/**",
+    "backend/tests/video/playback_graph/**",
+    "backend/tests/video/subtitle_plane/**",
+    "backend/tools/video/playback_graph/**",
+    "backend/tools/video/subtitle_plane/**",
+    "docs/design/**",
+    "docs/roadmap/p7*.md",
+    "docs/roadmap/p8*.md",
+    "artifacts/p7/**",
+    "artifacts/p8/**"
+  ],
+  "forbidden_files_checked": [
+    "Do not stage unrelated P6 WASAPI test changes",
+    "Do not stage governance redline artifact churn",
+    "Do not stage temp DOCX extraction directories",
+    "Do not stage CodeBuddy team runtime state"
+  ],
+  "exit_criteria_covered": [
+    "Combined P7/P8 delivery readiness"
+  ],
+  "not_verified_boundaries": [
+    "Git commit and push are performed after this evidence file is staged."
+  ],
+  "stop_condition": false
+}

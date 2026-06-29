@@ -1,0 +1,69 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7C-001",
+  "stage": "P7C",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 5.3, 5.4",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7C-001",
+    "docs/roadmap/p7a_planning_draft.md natural family tree"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7C-001.json",
+    "backend/include_private/video/playback_graph/session/",
+    "backend/include_private/video/playback_graph/state/",
+    "backend/include_private/video/playback_graph/command/",
+    "backend/include_private/video/playback_graph/p4_bridge/",
+    "backend/include_private/video/playback_graph/coordination/",
+    "backend/src/video/playback_graph/session/",
+    "backend/src/video/playback_graph/state/",
+    "backend/src/video/playback_graph/command/",
+    "backend/src/video/playback_graph/p4_bridge/",
+    "backend/src/video/playback_graph/coordination/"
+  ],
+  "commands": [
+    {
+      "command": "Get-ChildItem -Recurse backend/include_private/video/playback_graph, backend/src/video/playback_graph, backend/tests/video/playback_graph",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P7C runtime files exist under session, state, command, p4_bridge, and coordination semantic families."
+    },
+    {
+      "command": "P7C semantic directory scan for common/misc/utils/helpers/manager/all_in_one and premature P7D/P7E/P7F families",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P7C_FAMILY_DIRECTORY_SCAN_OK"
+    }
+  ],
+  "files_by_responsibility": {
+    "backend/src/video/playback_graph/session/playback_session_facade.cpp": "Public PlaybackSession PIMPL allocation, move, destruction, and delegation only",
+    "backend/src/video/playback_graph/session/playback_session_runtime.cpp": "Private session runtime composition and command dispatch only",
+    "backend/src/video/playback_graph/state/playback_graph_state_machine.cpp": "Graph state transition validation only",
+    "backend/src/video/playback_graph/command/command_lifetime_registry.cpp": "Command records, rollback, retention, sidecar lifecycle, tombstone queries only",
+    "backend/src/video/playback_graph/command/command_conflict_matrix.cpp": "Command conflict decision source of truth only",
+    "backend/src/video/playback_graph/command/pending_transport_intent.cpp": "Pending pause/resume collapse only",
+    "backend/src/video/playback_graph/p4_bridge/p4_state_sync_adapter.cpp": "P4 command id and playback revision boundary only",
+    "backend/src/video/playback_graph/coordination/recovery_replay_coordinator.cpp": "P7C recovery replay skeleton order and rollback paths only"
+  },
+  "design_corrections": [
+    "Added session/playback_session_facade.cpp because public facade definitions and private runtime composition are separate responsibilities.",
+    "Placed P7C recovery replay skeleton under coordination instead of recovery to avoid starting the later P7E recovery family before its gate."
+  ],
+  "allowed_operations_checked": [
+    "Added one-responsibility runtime files corresponding to approved P7C families",
+    "Converted kivo_video_playback_graph from P7B INTERFACE skeleton to P7C STATIC runtime target"
+  ],
+  "forbidden_operations_checked": [
+    "No empty placeholder files",
+    "No generic common/misc/utils/helpers/manager/all_in_one directories",
+    "No attachment/generation/events/realtime/resources/snapshot/observer/evidence/metrics/health runtime families created before later gates",
+    "No real decoder, renderer, audio output, provider, or subtitle implementation linked"
+  ],
+  "file_hashes": {
+    "backend/include_private/video/playback_graph/session/playback_session_runtime.hpp": "4F8962680471E3CC242066AEDC01C24200456FA63AA2D5257D54B4A3C547BE43",
+    "backend/src/video/playback_graph/session/playback_session_facade.cpp": "9EBBACB09D0EF36F7B011B7347F8B2FE497835035BEEAED91DE57589025934F5",
+    "backend/src/video/playback_graph/session/playback_session_runtime.cpp": "82F7D39CC7A888F3352C06DAD39C9EC4A43CE0DF62A8F17EADEEDE2E4981B28E",
+    "backend/CMakeLists.txt": "2FDE3D00ECD106E4C53EFFC5321CE73A9BFCF80C465DF78399EA632A6B5B710E"
+  },
+  "stop_condition": false
+}

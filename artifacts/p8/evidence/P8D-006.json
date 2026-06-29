@@ -1,0 +1,34 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8D-006",
+  "stage": "P8D",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 20 and S13",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8d_source_privacy_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "include/kivo/video/subtitle_plane/stream/subtitle_stream_end.h",
+    "backend/src/video/subtitle_plane/source/embedded_stream_end.cpp",
+    "backend/src/video/subtitle_plane/source/embedded_stream_api.cpp",
+    "backend/tests/video/subtitle_plane/source/p8d_source_privacy_tests.cpp"
+  ],
+  "result": "KivoEmbeddedSubtitleStreamEndRequest is fully defined; stale generation returns NoOp and increments generation_discard_count, EOS is accepted, and discontinuity increments packet_drop_count.",
+  "allowed_files": [
+    "include/kivo/video/subtitle_plane/stream/**",
+    "backend/src/video/subtitle_plane/source/**",
+    "backend/tests/video/subtitle_plane/source/**"
+  ],
+  "forbidden_files_checked": [
+    "No wait from build_frame",
+    "No parser-state mutation on stale generation"
+  ],
+  "exit_criteria_covered": [
+    "S13",
+    "G-015"
+  ],
+  "not_verified_boundaries": [
+    "EOS epsilon and hot-path hold policy continue in P8E-009"
+  ],
+  "stop_condition": false
+}

@@ -1,0 +1,82 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7B-001",
+  "stage": "P7B",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 5.1, 5.2, 6, 21, 35",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7B-001",
+    "docs/roadmap/p7a_planning_draft.md sections 5.1 and 6"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7B-001.json",
+    "include/kivo/video/playback_graph/all_public_headers.hpp",
+    "include/kivo/video/playback_graph/p7_api_version.hpp",
+    "include/kivo/video/playback_graph/playback_session.hpp",
+    "include/kivo/video/playback_graph/playback_session_snapshot.hpp",
+    "include/kivo/video/playback_graph/playback_graph_state.hpp",
+    "include/kivo/video/playback_graph/playback_graph_error.hpp",
+    "include/kivo/video/playback_graph/playback_graph_ids.hpp",
+    "include/kivo/video/playback_graph/command_token.hpp",
+    "include/kivo/video/playback_graph/command_lifecycle_snapshot.hpp",
+    "include/kivo/video/playback_graph/seek_request.hpp",
+    "include/kivo/video/playback_graph/track_switch_request.hpp",
+    "include/kivo/video/playback_graph/playback_graph_event.hpp",
+    "include/kivo/video/playback_graph/playback_graph_observer.hpp",
+    "include/kivo/video/playback_graph/generation_stamp.hpp",
+    "include/kivo/video/playback_graph/snapshot_query_result.hpp",
+    "include/kivo/video/playback_graph/playback_graph_policy.hpp"
+  ],
+  "commands": [
+    {
+      "command": "Get-ChildItem -Recurse -File include/kivo/video/playback_graph",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Found 16 P7 public headers under the approved semantic public family."
+    },
+    {
+      "command": "Select-String public headers for forbidden platform/provider/backend/test dependencies",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P7B_PUBLIC_FORBIDDEN_SCAN_OK"
+    }
+  ],
+  "public_header_hashes": {
+    "include/kivo/video/playback_graph/all_public_headers.hpp": "3C833DCF208D2F281DB1D6C0CF5CB589F8251C0F0C5B5B8CBEA9FFBC3ABB4514",
+    "include/kivo/video/playback_graph/command_lifecycle_snapshot.hpp": "EB1E0A8F5A751D64FA819AA183F954BCE9F4A637E04A936790A5786D71785F7C",
+    "include/kivo/video/playback_graph/command_token.hpp": "86EA55CB933B1438255605085D86F33D2696613CE94089713A0E45A5F3D4EAFF",
+    "include/kivo/video/playback_graph/generation_stamp.hpp": "ACD5D569581F05EA58382C18F9734A6158D23A90A8F8D3227ED03DEB6A8F960E",
+    "include/kivo/video/playback_graph/p7_api_version.hpp": "BC8C09EA4241C32D5789A8CB59474EE13242FB76E0FCBB5AE46C05B045F59FCF",
+    "include/kivo/video/playback_graph/playback_graph_error.hpp": "A258AC4176B4DA4533EC3D9EFD0E3E3F04E8A86D184E319D4641E7E59A6A9455",
+    "include/kivo/video/playback_graph/playback_graph_event.hpp": "992F34D1F12C62152551BF12C183C5DFDEF50D867D932481431BF75F35EBC394",
+    "include/kivo/video/playback_graph/playback_graph_ids.hpp": "BB70598AC399DE513300C37E22B2013033191B8AC28CA9F844887D25B1A77BE6",
+    "include/kivo/video/playback_graph/playback_graph_observer.hpp": "F8028A3E217693A5621BBD63408925534E84BEDC48F46306137F2B8560AAEC8A",
+    "include/kivo/video/playback_graph/playback_graph_policy.hpp": "F1C9A909FEE99060085A33D05255A25E73FFDB9CAABE90257E5D930B2BFC6A12",
+    "include/kivo/video/playback_graph/playback_graph_state.hpp": "9D9CC688F2C7C8CA4CD4AAFCCABFF741B1DCFF8A438ECDB56CA82B93F331AA49",
+    "include/kivo/video/playback_graph/playback_session.hpp": "5C240D89794D48E7C739935F15F4BA94A44BC4FBCEB58E3F7E16DA83179579FD",
+    "include/kivo/video/playback_graph/playback_session_snapshot.hpp": "8D2F4F556491C71A9FB2BD7765BED060F1504FD016F0DF0FD81221F844B02A3B",
+    "include/kivo/video/playback_graph/seek_request.hpp": "FD217363231DD3F0F847A2BB6FE472A7ABF533278EAC3945A9B62555C331BC94",
+    "include/kivo/video/playback_graph/snapshot_query_result.hpp": "668F61335951E21465B03DF4B9300F0A44322CD1020E54BB7DC7D449E997513A",
+    "include/kivo/video/playback_graph/track_switch_request.hpp": "23620D4CACC1CB38FC5253B2E583B3C671887487CA68AAD2162EF94EF6B52A29"
+  },
+  "allowed_operations_checked": [
+    "Public value types, enums, handles, and forward-safe facade declarations are under include/kivo/video/playback_graph",
+    "Public helper logic is limited to trivial value-type helpers such as CommandToken::accepted and SnapshotQueryResult::ok"
+  ],
+  "forbidden_operations_checked": [
+    "No public coordinator headers",
+    "No fake runtime or test support in public includes",
+    "No backend private includes",
+    "No Qt, FFmpeg, D3D, DXGI, WASAPI, provider, or subtitle runtime schema dependency"
+  ],
+  "exit_criteria_covered": [
+    "G27 public/private boundary preliminary coverage",
+    "G28 public headers live under the approved P7 public family",
+    "G60 target/public-surface readiness seed"
+  ],
+  "not_verified_boundaries": [
+    "P7 public ABI is source-level validated in P7B; binary ABI/package validation belongs to later release gates",
+    "P7B declares runtime facade signatures only; implementation begins in P7C"
+  ],
+  "stop_condition": false
+}

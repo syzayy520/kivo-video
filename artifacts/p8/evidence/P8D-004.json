@@ -1,0 +1,33 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8D-004",
+  "stage": "P8D",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 17 and S16",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8d_source_privacy_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/discovery/discovery_priority.cpp",
+    "backend/include_private/video/subtitle_plane/discovery/discovery_priority.hpp",
+    "backend/tests/video/subtitle_plane/source/p8d_source_privacy_tests.cpp"
+  ],
+  "result": "Discovery priority key honors user_prefers_external_over_embedded and uses redacted source_identity_hash as the tie-break input.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/discovery/**",
+    "backend/include_private/video/subtitle_plane/discovery/**",
+    "backend/tests/video/subtitle_plane/source/**"
+  ],
+  "forbidden_files_checked": [
+    "No raw path tie-break",
+    "No P7 discovery contract edit"
+  ],
+  "exit_criteria_covered": [
+    "S16",
+    "G-003"
+  ],
+  "not_verified_boundaries": [
+    "Full candidate-list ranking permutations continue in P8G-005/P8G-006 deterministic harness"
+  ],
+  "stop_condition": false
+}

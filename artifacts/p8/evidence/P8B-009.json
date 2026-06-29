@@ -1,0 +1,15 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8B-009",
+  "stage": "P8B",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 section 23",
+  "commands": ["ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8b_public_contract_tests\" --output-on-failure --timeout 30"],
+  "artifacts": ["backend/tests/video/subtitle_plane/abi/p8_public_contract_tests.cpp"],
+  "result": "Initial ABI layout assertions cover top-level public structs for size multiple, alignment, and required header offset checks.",
+  "allowed_files": ["backend/tests/video/subtitle_plane/abi/p8_public_contract_tests.cpp"],
+  "forbidden_files_checked": ["No compiler-specific packing introduced", "Top-level versioned structs keep header at offset 0"],
+  "exit_criteria_covered": ["S25"],
+  "not_verified_boundaries": ["Generated sizeof/offsetof manifest is completed in P8G-003"],
+  "stop_condition": false
+}

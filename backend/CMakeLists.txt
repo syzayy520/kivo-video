@@ -1378,3 +1378,358 @@ if(MSVC)
 endif()
 target_link_libraries(kivo_p6e_gap_tests PRIVATE kivo_audio_plane_contracts)
 add_test(NAME kivo_p6e_gap_tests COMMAND kivo_p6e_gap_tests)
+
+# --- P7: Playback Graph ---
+add_library(kivo_video_playback_graph STATIC
+  src/video/playback_graph/session/playback_session_facade.cpp
+  src/video/playback_graph/session/playback_session_runtime.cpp
+  src/video/playback_graph/state/playback_graph_state_machine.cpp
+  src/video/playback_graph/command/command_lifetime_registry.cpp
+  src/video/playback_graph/command/command_conflict_matrix.cpp
+  src/video/playback_graph/command/pending_transport_intent.cpp
+  src/video/playback_graph/p4_bridge/p4_state_sync_adapter.cpp
+  src/video/playback_graph/coordination/recovery_replay_coordinator.cpp
+  src/video/playback_graph/attachment/attachment_operation_registry.cpp
+  src/video/playback_graph/generation/generation_stamp_publisher.cpp
+  src/video/playback_graph/events/critical_event_mpsc_ring.cpp
+  src/video/playback_graph/coordination/buffering_predicates.cpp
+  src/video/playback_graph/coordination/seek_coordinator.cpp
+  src/video/playback_graph/resources/resource_retire_recycle.cpp
+  src/video/playback_graph/coordination/eos_drain_coordinator.cpp
+  src/video/playback_graph/coordination/track_switch_coordinator.cpp
+  src/video/playback_graph/recovery/recovery_replay_behavior.cpp
+  src/video/playback_graph/coordination/av_sync_micro_adjust.cpp
+  src/video/playback_graph/coordination/system_resume_coordinator.cpp
+  src/video/playback_graph/coordination/protected_content_policy.cpp
+  src/video/playback_graph/snapshot/snapshot_store.cpp
+  src/video/playback_graph/observer/observer_registry.cpp
+  src/video/playback_graph/evidence/critical_proof_ring.cpp
+  src/video/playback_graph/metrics/graph_metrics_budget.cpp
+  src/video/playback_graph/health/graph_health_monitor.cpp
+  src/video/playback_graph/evidence/privacy_salt_lifecycle.cpp
+  src/video/playback_graph/evidence/layered_error_taxonomy.cpp
+)
+target_include_directories(kivo_video_playback_graph
+  PUBLIC
+  ${CMAKE_SOURCE_DIR}/include
+  PRIVATE
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_video_playback_graph PUBLIC cxx_std_20)
+
+add_custom_target(kivo_video_playback_graph_contract_tool)
+add_custom_target(kivo_video_playback_graph_architecture_guard)
+
+add_executable(kivo_p7b_public_contract_tests
+  tests/video/playback_graph/p7b_public_contract_tests.cpp
+)
+target_include_directories(kivo_p7b_public_contract_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_p7b_public_contract_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p7b_public_contract_tests PRIVATE kivo_video_playback_graph)
+
+add_executable(kivo_p7c_command_state_tests
+  tests/video/playback_graph/p7c_command_state_tests.cpp
+)
+target_include_directories(kivo_p7c_command_state_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p7c_command_state_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p7c_command_state_tests PRIVATE kivo_video_playback_graph)
+
+add_executable(kivo_p7d_async_generation_tests
+  tests/video/playback_graph/p7d_async_generation_tests.cpp
+)
+target_include_directories(kivo_p7d_async_generation_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p7d_async_generation_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p7d_async_generation_tests PRIVATE kivo_video_playback_graph)
+
+add_executable(kivo_p7e_behavior_coordinator_tests
+  tests/video/playback_graph/p7e_behavior_coordinator_tests.cpp
+)
+target_include_directories(kivo_p7e_behavior_coordinator_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p7e_behavior_coordinator_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p7e_behavior_coordinator_tests PRIVATE kivo_video_playback_graph)
+
+add_executable(kivo_p7f_snapshot_evidence_tests
+  tests/video/playback_graph/p7f_snapshot_evidence_tests.cpp
+)
+target_include_directories(kivo_p7f_snapshot_evidence_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p7f_snapshot_evidence_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p7f_snapshot_evidence_tests PRIVATE kivo_video_playback_graph)
+
+add_executable(kivo_p7g_public_header_purist_tests
+  tests/video/playback_graph/p7g_public_header_purist_tests.cpp
+)
+target_include_directories(kivo_p7g_public_header_purist_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_p7g_public_header_purist_tests PRIVATE cxx_std_20)
+
+add_executable(kivo_p7g_deterministic_harness_tests
+  tests/video/playback_graph/p7g_deterministic_harness_tests.cpp
+)
+target_include_directories(kivo_p7g_deterministic_harness_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+  ${CMAKE_SOURCE_DIR}/backend/tests
+)
+target_compile_features(kivo_p7g_deterministic_harness_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p7g_deterministic_harness_tests PRIVATE kivo_video_playback_graph)
+
+add_custom_target(kivo_video_playback_graph_tests
+  DEPENDS
+    kivo_p7b_public_contract_tests
+    kivo_p7c_command_state_tests
+    kivo_p7d_async_generation_tests
+    kivo_p7e_behavior_coordinator_tests
+    kivo_p7f_snapshot_evidence_tests
+    kivo_p7g_public_header_purist_tests
+    kivo_p7g_deterministic_harness_tests
+)
+add_test(NAME kivo_p7b_public_contract_tests COMMAND kivo_p7b_public_contract_tests)
+set_tests_properties(kivo_p7b_public_contract_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p7c_command_state_tests COMMAND kivo_p7c_command_state_tests)
+set_tests_properties(kivo_p7c_command_state_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p7d_async_generation_tests COMMAND kivo_p7d_async_generation_tests)
+set_tests_properties(kivo_p7d_async_generation_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p7e_behavior_coordinator_tests COMMAND kivo_p7e_behavior_coordinator_tests)
+set_tests_properties(kivo_p7e_behavior_coordinator_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p7f_snapshot_evidence_tests COMMAND kivo_p7f_snapshot_evidence_tests)
+set_tests_properties(kivo_p7f_snapshot_evidence_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p7g_public_header_purist_tests COMMAND kivo_p7g_public_header_purist_tests)
+set_tests_properties(kivo_p7g_public_header_purist_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p7g_deterministic_harness_tests COMMAND kivo_p7g_deterministic_harness_tests)
+set_tests_properties(kivo_p7g_deterministic_harness_tests PROPERTIES TIMEOUT 30)
+
+# --- P8: Subtitle Plane public ABI ---
+add_library(kivo_video_subtitle_plane STATIC
+  src/video/subtitle_plane/abi/api_bootstrap.cpp
+  src/video/subtitle_plane/abi/api_table_builder.cpp
+  src/video/subtitle_plane/core/plane_lifecycle_api.cpp
+  src/video/subtitle_plane/core/plane_lifecycle_model.cpp
+  src/video/subtitle_plane/core/plane_store.cpp
+  src/video/subtitle_plane/core/runtime_caps.cpp
+  src/video/subtitle_plane/command/command_api.cpp
+  src/video/subtitle_plane/command/command_lifecycle.cpp
+  src/video/subtitle_plane/timeline/timeline_revision.cpp
+  src/video/subtitle_plane/threading/cancellation_poll.cpp
+  src/video/subtitle_plane/threading/close_tombstone_policy.cpp
+  src/video/subtitle_plane/discovery/discovery_api.cpp
+  src/video/subtitle_plane/source/source_api.cpp
+  src/video/subtitle_plane/source/source_descriptor_validation.cpp
+  src/video/subtitle_plane/source/external_reader_lifecycle.cpp
+  src/video/subtitle_plane/source/embedded_stream_api.cpp
+  src/video/subtitle_plane/source/embedded_stream_end.cpp
+  src/video/subtitle_plane/frame/frame_build_api.cpp
+  src/video/subtitle_plane/frame/frame_hot_path_guard.cpp
+  src/video/subtitle_plane/frame/frame_lease_pool.cpp
+  src/video/subtitle_plane/generation/generation_freshness.cpp
+  src/video/subtitle_plane/snapshot/snapshot_api.cpp
+  src/video/subtitle_plane/snapshot/snapshot_blob_writer.cpp
+  src/video/subtitle_plane/snapshot/snapshot_lease_pool.cpp
+  src/video/subtitle_plane/text/text_access_api.cpp
+  src/video/subtitle_plane/text/font_blob_store.cpp
+  src/video/subtitle_plane/text/text_buffer_store.cpp
+  src/video/subtitle_plane/observer/observer_api.cpp
+  src/video/subtitle_plane/observer/observer_registry.cpp
+  src/video/subtitle_plane/evidence/evidence_summary.cpp
+  src/video/subtitle_plane/metrics/metrics_api.cpp
+  src/video/subtitle_plane/privacy/privacy_api.cpp
+  src/video/subtitle_plane/privacy/privacy_redline_policy.cpp
+  src/video/subtitle_plane/privacy/redacted_identity.cpp
+  src/video/subtitle_plane/resource/resource_token_validation.cpp
+  src/video/subtitle_plane/discovery/discovery_priority.cpp
+  src/video/subtitle_plane/format/ass_semantics.cpp
+  src/video/subtitle_plane/format/format_track_classification.cpp
+  src/video/subtitle_plane/format/ssa_semantics.cpp
+  src/video/subtitle_plane/format/style_semantics_api.cpp
+  src/video/subtitle_plane/format/webvtt_semantics.cpp
+)
+target_include_directories(kivo_video_subtitle_plane
+  PUBLIC
+  ${CMAKE_SOURCE_DIR}/include
+  PRIVATE
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_video_subtitle_plane PUBLIC cxx_std_20)
+
+add_executable(kivo_p8b_c_header_compile_test
+  tests/video/subtitle_plane/abi/p8_c_header_compile_test.c
+)
+target_include_directories(kivo_p8b_c_header_compile_test PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+set_target_properties(kivo_p8b_c_header_compile_test PROPERTIES
+  C_STANDARD 11
+  C_STANDARD_REQUIRED ON
+)
+
+add_executable(kivo_p8b_public_contract_tests
+  tests/video/subtitle_plane/abi/p8_public_contract_tests.cpp
+)
+target_include_directories(kivo_p8b_public_contract_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_p8b_public_contract_tests PRIVATE cxx_std_20)
+
+add_executable(kivo_p8b_public_header_purist_tests
+  tests/video/subtitle_plane/abi/p8_public_header_purist_tests.cpp
+)
+target_include_directories(kivo_p8b_public_header_purist_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_definitions(kivo_p8b_public_header_purist_tests PRIVATE
+  KIVO_SOURCE_ROOT="${CMAKE_SOURCE_DIR}"
+)
+target_compile_features(kivo_p8b_public_header_purist_tests PRIVATE cxx_std_20)
+
+add_executable(kivo_p8c_bootstrap_command_tests
+  tests/video/subtitle_plane/core/p8c_bootstrap_command_tests.cpp
+)
+target_include_directories(kivo_p8c_bootstrap_command_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_p8c_bootstrap_command_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p8c_bootstrap_command_tests PRIVATE kivo_video_subtitle_plane)
+
+add_executable(kivo_p8d_source_privacy_tests
+  tests/video/subtitle_plane/source/p8d_source_privacy_tests.cpp
+)
+target_include_directories(kivo_p8d_source_privacy_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p8d_source_privacy_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p8d_source_privacy_tests PRIVATE kivo_video_subtitle_plane)
+
+add_executable(kivo_p8e_style_semantics_tests
+  tests/video/subtitle_plane/format/p8e_style_semantics_tests.cpp
+)
+target_include_directories(kivo_p8e_style_semantics_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p8e_style_semantics_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p8e_style_semantics_tests PRIVATE kivo_video_subtitle_plane)
+
+add_executable(kivo_p8e_frame_lease_tests
+  tests/video/subtitle_plane/frame/p8e_frame_lease_tests.cpp
+)
+target_include_directories(kivo_p8e_frame_lease_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p8e_frame_lease_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p8e_frame_lease_tests PRIVATE kivo_video_subtitle_plane)
+
+add_executable(kivo_p8e_generation_lifecycle_tests
+  tests/video/subtitle_plane/generation/p8e_generation_lifecycle_tests.cpp
+)
+target_include_directories(kivo_p8e_generation_lifecycle_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p8e_generation_lifecycle_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p8e_generation_lifecycle_tests PRIVATE kivo_video_subtitle_plane)
+
+add_executable(kivo_p8f_snapshot_blob_tests
+  tests/video/subtitle_plane/snapshot/p8f_snapshot_blob_tests.cpp
+)
+target_include_directories(kivo_p8f_snapshot_blob_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_p8f_snapshot_blob_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p8f_snapshot_blob_tests PRIVATE kivo_video_subtitle_plane)
+
+add_executable(kivo_p8f_observer_tests
+  tests/video/subtitle_plane/observer/p8f_observer_tests.cpp
+)
+target_include_directories(kivo_p8f_observer_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_p8f_observer_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p8f_observer_tests PRIVATE kivo_video_subtitle_plane)
+
+add_executable(kivo_p8f_text_font_privacy_tests
+  tests/video/subtitle_plane/text/p8f_text_font_privacy_tests.cpp
+)
+target_include_directories(kivo_p8f_text_font_privacy_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p8f_text_font_privacy_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p8f_text_font_privacy_tests PRIVATE kivo_video_subtitle_plane)
+
+add_executable(kivo_p8g_deterministic_harness_tests
+  tests/video/subtitle_plane/test_support/p8g_deterministic_harness_tests.cpp
+)
+target_include_directories(kivo_p8g_deterministic_harness_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/tests/video/subtitle_plane/test_support
+)
+target_compile_features(kivo_p8g_deterministic_harness_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p8g_deterministic_harness_tests PRIVATE kivo_video_subtitle_plane)
+
+add_executable(kivo_p8g_stress_property_tests
+  tests/video/subtitle_plane/test_support/p8g_stress_property_tests.cpp
+)
+target_include_directories(kivo_p8g_stress_property_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_p8g_stress_property_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p8g_stress_property_tests PRIVATE kivo_video_subtitle_plane)
+
+add_custom_target(kivo_video_subtitle_plane_tests
+  DEPENDS
+    kivo_p8b_c_header_compile_test
+    kivo_p8b_public_contract_tests
+    kivo_p8b_public_header_purist_tests
+    kivo_p8c_bootstrap_command_tests
+    kivo_p8d_source_privacy_tests
+    kivo_p8e_style_semantics_tests
+    kivo_p8e_frame_lease_tests
+    kivo_p8e_generation_lifecycle_tests
+    kivo_p8f_snapshot_blob_tests
+    kivo_p8f_observer_tests
+    kivo_p8f_text_font_privacy_tests
+    kivo_p8g_deterministic_harness_tests
+    kivo_p8g_stress_property_tests
+)
+add_test(NAME kivo_p8b_c_header_compile_test COMMAND kivo_p8b_c_header_compile_test)
+set_tests_properties(kivo_p8b_c_header_compile_test PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p8b_public_contract_tests COMMAND kivo_p8b_public_contract_tests)
+set_tests_properties(kivo_p8b_public_contract_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p8b_public_header_purist_tests COMMAND kivo_p8b_public_header_purist_tests)
+set_tests_properties(kivo_p8b_public_header_purist_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p8c_bootstrap_command_tests COMMAND kivo_p8c_bootstrap_command_tests)
+set_tests_properties(kivo_p8c_bootstrap_command_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p8d_source_privacy_tests COMMAND kivo_p8d_source_privacy_tests)
+set_tests_properties(kivo_p8d_source_privacy_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p8e_style_semantics_tests COMMAND kivo_p8e_style_semantics_tests)
+set_tests_properties(kivo_p8e_style_semantics_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p8e_frame_lease_tests COMMAND kivo_p8e_frame_lease_tests)
+set_tests_properties(kivo_p8e_frame_lease_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p8e_generation_lifecycle_tests COMMAND kivo_p8e_generation_lifecycle_tests)
+set_tests_properties(kivo_p8e_generation_lifecycle_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p8f_snapshot_blob_tests COMMAND kivo_p8f_snapshot_blob_tests)
+set_tests_properties(kivo_p8f_snapshot_blob_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p8f_observer_tests COMMAND kivo_p8f_observer_tests)
+set_tests_properties(kivo_p8f_observer_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p8f_text_font_privacy_tests COMMAND kivo_p8f_text_font_privacy_tests)
+set_tests_properties(kivo_p8f_text_font_privacy_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p8g_deterministic_harness_tests COMMAND kivo_p8g_deterministic_harness_tests)
+set_tests_properties(kivo_p8g_deterministic_harness_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p8g_stress_property_tests COMMAND kivo_p8g_stress_property_tests)
+set_tests_properties(kivo_p8g_stress_property_tests PROPERTIES TIMEOUT 30)

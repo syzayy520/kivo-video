@@ -1,0 +1,44 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8H-002",
+  "stage": "P8H",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 final redline, privacy, and frozen-surface gate; S2, S3, S20, S30",
+  "commands": [
+    "rg -n 'MD5|md5|provider[_-]?token|secret|password|https?://[^\\s]+\\?|C:\\\\Users\\\\huyasi\\\\Videos|raw subtitle|font name' include\\kivo\\video\\subtitle_plane backend\\src\\video\\subtitle_plane backend\\include_private\\video\\subtitle_plane backend\\tests\\video\\subtitle_plane",
+    "& 'C:\\Users\\huyasi\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe' backend\\tools\\video\\subtitle_plane\\c_header_purist\\p8_c_header_purist.py",
+    "& 'C:\\Users\\huyasi\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe' backend\\tools\\video\\subtitle_plane\\architecture_guard\\p8_natural_tree_guard.py",
+    "& 'C:\\Users\\huyasi\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd\\git.exe' -c safe.directory='C:/kivo video' status --short -- include/kivo/video/audio_plane include/kivo/video_plane backend/include/kivo/cinema_engine/subtitle_core include/kivo/video/playback_graph"
+  ],
+  "artifacts": [
+    "include\\kivo\\video\\subtitle_plane\\**",
+    "backend\\src\\video\\subtitle_plane\\**",
+    "backend\\include_private\\video\\subtitle_plane\\**",
+    "backend\\tools\\video\\subtitle_plane\\architecture_guard\\p8_natural_tree_guard.py",
+    "backend\\tools\\video\\subtitle_plane\\c_header_purist\\p8_c_header_purist.py"
+  ],
+  "result": "Final redline scan produced no matches; public C header purist PASS; natural-tree guard PASS with max file length 127 lines. Frozen public-surface status shows only the intentional P7 playback_graph addition.",
+  "allowed_files": [
+    "include/kivo/video/playback_graph/**",
+    "include/kivo/video/subtitle_plane/**",
+    "backend/src/video/playback_graph/**",
+    "backend/src/video/subtitle_plane/**",
+    "backend/include_private/video/playback_graph/**",
+    "backend/include_private/video/subtitle_plane/**"
+  ],
+  "forbidden_files_checked": [
+    "P4/P5/P6 frozen public headers",
+    "Secrets and provider tokens",
+    "Raw subtitle text in evidence paths",
+    "Bare noexcept and std:: in C ABI headers",
+    "Monolithic P8 implementation files"
+  ],
+  "exit_criteria_covered": [
+    "S2",
+    "S3",
+    "S20",
+    "S30"
+  ],
+  "not_verified_boundaries": [],
+  "stop_condition": false
+}

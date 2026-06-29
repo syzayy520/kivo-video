@@ -1,0 +1,36 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8A-004",
+  "stage": "P8A",
+  "status": "CONTRACT_PASS",
+  "source_design": "C:\\Users\\huyasi\\Downloads\\Kivo Video P8 Subtitle Plane Design V1.5.5.docx",
+  "commands": [
+    "rg --files -g '*P8*' -g '*p8*' -g '*Subtitle*' -g '*subtitle*' -g '*P7*' -g '*p7*'",
+    "Get-ChildItem include\\kivo\\video -Recurse -File",
+    "Get-ChildItem backend -Recurse -Directory | ? FullName -match 'subtitle|playback_graph'"
+  ],
+  "artifacts": [
+    "docs/roadmap/p8a_planning_draft.md"
+  ],
+  "boundary_inventory": [
+    "P7 exists under include/kivo/video/playback_graph, backend/include_private/video/playback_graph, backend/src/video/playback_graph, backend/tests/video/playback_graph, backend/tools/video/playback_graph.",
+    "Existing legacy subtitle stubs exist under backend/include/kivo/cinema_engine/subtitle_core and backend/src/subtitle_core.",
+    "P6 exposes P6-to-P8 boundary summaries under include/kivo/video/audio_plane/boundary and version.",
+    "P5 exposes P8-readable capability snapshots under include/kivo/video_plane/capability."
+  ],
+  "allowed_files": [
+    "P8-owned docs/evidence only in this gate"
+  ],
+  "forbidden_files_checked": [
+    "No P4/P5/P6/P7 public contract modified by P8A",
+    "No P7 implementation modified",
+    "No legacy subtitle_core modified"
+  ],
+  "exit_criteria_covered": [
+    "S30"
+  ],
+  "not_verified_boundaries": [
+    "Runtime adapter behavior is deferred to implementation gates"
+  ],
+  "stop_condition": false
+}

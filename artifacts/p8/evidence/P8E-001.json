@@ -1,0 +1,32 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8E-001",
+  "stage": "P8E",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 12",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8e_generation_lifecycle_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "include/kivo/video/subtitle_plane/state/subtitle_plane_state.h",
+    "backend/src/video/subtitle_plane/core/plane_lifecycle_model.cpp",
+    "backend/tests/video/subtitle_plane/generation/p8e_generation_lifecycle_tests.cpp"
+  ],
+  "result": "Lifecycle model maps created, parsing, ready, seeking, recovering, closed, and failed states to explicit timeline availability and restricts frame build to ready/active/paused/EOS states.",
+  "allowed_files": [
+    "include/kivo/video/subtitle_plane/state/**",
+    "backend/src/video/subtitle_plane/core/**",
+    "backend/tests/video/subtitle_plane/generation/**"
+  ],
+  "forbidden_files_checked": [
+    "No state collapse into a generic state",
+    "TimelineNotStarted is not fatal"
+  ],
+  "exit_criteria_covered": [
+    "Plane lifecycle state model"
+  ],
+  "not_verified_boundaries": [
+    "No UI state presentation is owned by P8"
+  ],
+  "stop_condition": false
+}

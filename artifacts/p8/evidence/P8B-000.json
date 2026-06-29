@@ -1,0 +1,68 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8B-000",
+  "stage": "P8B",
+  "status": "CONTRACT_PASS",
+  "source_design": "C:\\Users\\huyasi\\Downloads\\Kivo Video P8 Subtitle Plane Design V1.5.5.docx",
+  "purpose": "Corrective natural-tree guard before continuing P8B implementation.",
+  "commands": [
+    "Get-ChildItem include\\kivo\\video\\subtitle_plane -Recurse -File",
+    "Get-ChildItem include\\kivo\\video\\subtitle_plane -File",
+    "Get-ChildItem include\\kivo\\video\\subtitle_plane -Directory",
+    "Get-Content docs\\roadmap\\p8a_planning_draft.md | Select-String 'include/kivo/video/subtitle_plane'"
+  ],
+  "artifacts": [
+    "docs/roadmap/p8a_planning_draft.md"
+  ],
+  "tree_check": {
+    "root_files_under_include_kivo_video_subtitle_plane": 0,
+    "semantic_family_directories": [
+      "api",
+      "cancel",
+      "command",
+      "config",
+      "error",
+      "evidence",
+      "format",
+      "foundation",
+      "frame",
+      "generation",
+      "input",
+      "metrics",
+      "observer",
+      "privacy",
+      "request",
+      "resource",
+      "snapshot",
+      "source",
+      "state",
+      "stream",
+      "types"
+    ],
+    "current_public_header_file_count": 10,
+    "largest_current_public_header_lines": 67
+  },
+  "allowed_files": [
+    "include/kivo/video/subtitle_plane/foundation/*.h",
+    "include/kivo/video/subtitle_plane/types/*.h",
+    "include/kivo/video/subtitle_plane/input/*.h",
+    "include/kivo/video/subtitle_plane/generation/*.h",
+    "include/kivo/video/subtitle_plane/error/*.h",
+    "include/kivo/video/subtitle_plane/command/*.h",
+    "remaining P8A-approved semantic public header families"
+  ],
+  "forbidden_files_checked": [
+    "No public P8 files directly under include/kivo/video/subtitle_plane",
+    "No common/misc/utils/helpers/shared P8 family",
+    "No monolithic public ABI header",
+    "No public header over the P8A line guard"
+  ],
+  "exit_criteria_covered": [
+    "P8A corrective natural tree enforcement before P8B continuation"
+  ],
+  "not_verified_boundaries": [
+    "P8B public ABI is not complete yet",
+    "C header compile and forbidden token scans still belong to P8B-008/P8G-002"
+  ],
+  "stop_condition": false
+}

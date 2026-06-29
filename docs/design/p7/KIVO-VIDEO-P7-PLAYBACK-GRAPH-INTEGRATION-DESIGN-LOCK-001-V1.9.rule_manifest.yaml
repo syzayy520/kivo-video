@@ -1,0 +1,265 @@
+schema: "kivo-video-p7-rule-manifest-v1"
+manifest_id: "KIVO-VIDEO-P7-V1.9-RULE-MANIFEST"
+created_at: "2026-06-29T01:03:34Z"
+source_docx: "C:/Users/huyasi/Downloads/Kivo Video P7 Playback Graph Integration Design V1.9.docx"
+baseline_markdown: "docs/design/p7/KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.md"
+source_sha256: "B85D3B4C200445A46469AD4600B97BD0BB409F0DA7D3679BA1E0E44F87529FD8"
+paragraph_count: 1108
+implementation_note: "V1.9 is a historical carryover baseline only; V1.9.1 remains the implementation baseline."
+rules:
+  - id: "V1.9-0"
+    paragraph: 5
+    source_rule: "0"
+    title: "最终执行口令"
+  - id: "V1.9-1"
+    paragraph: 15
+    source_rule: "1"
+    title: "Merge Integrity Gate"
+  - id: "V1.9-2"
+    paragraph: 21
+    source_rule: "2"
+    title: "Platform / Toolchain / Language Baseline"
+  - id: "V1.9-3"
+    paragraph: 36
+    source_rule: "3"
+    title: "Scope / Non-goals"
+  - id: "V1.9-4"
+    paragraph: 43
+    source_rule: "4"
+    title: "Terminology"
+  - id: "V1.9-5"
+    paragraph: 49
+    source_rule: "5"
+    title: "Pre-flight Checks"
+  - id: "V1.9-1"
+    paragraph: 54
+    source_rule: "1"
+    title: "当前 repo 必须是 {KIVO_VIDEO_ROOT} 或项目明确登记的真实根目录。2. 当前分支必须是 P7 专用分支。3. 工作区必须 clean。4. 禁止在 main/master 直接施工。5. 禁止夹带 P8/P9/P10 文件。"
+  - id: "V1.9-6"
+    paragraph: 59
+    source_rule: "6"
+    title: "Contract Gap Handling / Registry"
+  - id: "V1.9-1"
+    paragraph: 103
+    source_rule: "1"
+    title: "STOP。2. 写 Contract Gap Registry。3. 输出 Contract Gap Report。4. 不允许在 P7 偷补真实 P2/P3/P4/P5/P6 能力。"
+  - id: "V1.9-7"
+    paragraph: 107
+    source_rule: "7"
+    title: "Natural Family Tree"
+  - id: "V1.9-1"
+    paragraph: 122
+    source_rule: "1"
+    title: "单一职责优先于机械行数。2. public header 可以通过主题子结构体拆分，不允许 _part1/_part2。3. 超过 soft limit 必须在 Final Report 解释原因。4. 超过 hard limit 必须拆分。5. 禁止 misc/common/utils/helpers/manager/all_in_one。"
+  - id: "V1.9-8"
+    paragraph: 123
+    source_rule: "8"
+    title: "Policy / Tuning / Safety Validation"
+  - id: "V1.9-1"
+    paragraph: 158
+    source_rule: "1"
+    title: "禁止 wall-clock sleep。2. 所有 timestamp 由 FakeClock 提供。3. invalid tuning 必须 reject，不允许 clamp。4. evidence full mode。"
+  - id: "V1.9-9"
+    paragraph: 159
+    source_rule: "9"
+    title: "Hot Path Contract"
+  - id: "V1.9-10"
+    paragraph: 233
+    source_rule: "10"
+    title: "P4 Bridge / Command Intent"
+  - id: "V1.9-1"
+    paragraph: 241
+    source_rule: "1"
+    title: "验证 P4 command/revision/state transition 语义。2. 验证 generation_stamp 与 expected_revision 的逻辑一致性。3. 返回 P4 分配的 PlaybackRevision。4. 返回 P4 PlaybackState。5. 返回 typed failure。"
+  - id: "V1.9-1"
+    paragraph: 243
+    source_rule: "1"
+    title: "查询 P5/P6 queue。2. 查询 source 状态。3. 查询真实 audio/video clock。4. 等待 attachment。5. 判断底层设备是否真实 ready。6. 做 IO。7. 做 blocking wait。8. 分配 P7 资源。"
+  - id: "V1.9-11"
+    paragraph: 256
+    source_rule: "11"
+    title: "PlaybackSession API / AsyncResult"
+  - id: "V1.9-1"
+    paragraph: 266
+    source_rule: "1"
+    title: "GraphEventSink / observer event。2. CommandCompleted event。3. CommandFailed event。4. snapshot polling。"
+  - id: "V1.9-1"
+    paragraph: 273
+    source_rule: "1"
+    title: "CommandCompleted。2. CommandFailed。3. CommandCancelled。4. CancelledByClose。5. PlaybackSession destruction。"
+  - id: "V1.9-1"
+    paragraph: 275
+    source_rule: "1"
+    title: "Completion event 到达时如果 command_id 已不存在，忽略该 event。2. 必须 emit LateCommandCompletionDiscarded evidence。3. late event 不得复活 command。4. late event 不得访问已销毁 AsyncResult record。"
+  - id: "V1.9-12"
+    paragraph: 287
+    source_rule: "12"
+    title: "PlaybackGraph State Machine"
+  - id: "V1.9-1"
+    paragraph: 306
+    source_rule: "1"
+    title: "直接跳 Closed。2. 访问已 invalid 的 P5/P6 attachment。3. 强行 flush 已 fatal 的 pipeline。4. double free。"
+  - id: "V1.9-1"
+    paragraph: 315
+    source_rule: "1"
+    title: "保持 pause_intent_pending。2. 等待 Rebuffering 完成或等待 attachment event。3. 不阻塞 GraphOwnerThread。"
+  - id: "V1.9-13"
+    paragraph: 331
+    source_rule: "13"
+    title: "Command Conflict Matrix"
+  - id: "V1.9-1"
+    paragraph: 337
+    source_rule: "1"
+    title: "runtime conflict resolver。2. full matrix unit tests。3. documentation table。"
+  - id: "V1.9-14"
+    paragraph: 580
+    source_rule: "14"
+    title: "Pending Command Queue / Replay"
+  - id: "V1.9-15"
+    paragraph: 593
+    source_rule: "15"
+    title: "Async Attachment Contract"
+  - id: "V1.9-1"
+    paragraph: 626
+    source_rule: "1"
+    title: "不得做 IO。2. 不得等待 decoder/render/output 线程。3. 不得等待 GraphOwnerThread。4. 允许读取原子计数或 immutable snapshot。5. 如果 P5/P6 无法保证 bounded snapshot，必须改为 async QueueSnapshotEvent。"
+  - id: "V1.9-16"
+    paragraph: 627
+    source_rule: "16"
+    title: "GenerationStamp / Seqlock"
+  - id: "V1.9-1"
+    paragraph: 648
+    source_rule: "1"
+    title: "tuple_id 单调递增。2. stream_stamp_id per-session + per-stream kind 单调递增。3. 禁止 hash。4. hot path 只比较 GenerationStamp。5. hot path 不访问 GenerationTupleRegistry。"
+  - id: "V1.9-1"
+    paragraph: 683
+    source_rule: "1"
+    title: "EvidenceBuildThread 读取 observed_stamp.tuple_id。2. 读取 expected_stamp_snapshot_id。3. 展开 mismatch 字段。4. 生成完整 StaleDiscard evidence。5. tuple 已清理时生成 StaleDiscardEvidencePartial。"
+  - id: "V1.9-17"
+    paragraph: 689
+    source_rule: "17"
+    title: "Critical Event Contract"
+  - id: "V1.9-1"
+    paragraph: 694
+    source_rule: "1"
+    title: "fetch_and(~consumed_mask, memory_order_acq_rel)，只清除已消费 bit。2. VersionedCriticalEventSlot，每个 slot 包含 sequence/version。3. CriticalEventRing，每个 event 有 monotonic sequence。"
+  - id: "V1.9-18"
+    paragraph: 710
+    source_rule: "18"
+    title: "C++ Memory Order Contract"
+  - id: "V1.9-19"
+    paragraph: 725
+    source_rule: "19"
+    title: "Exception Safety Contract"
+  - id: "V1.9-1"
+    paragraph: 728
+    source_rule: "1"
+    title: "noexcept。2. 返回 Result<T, PlaybackGraphError> 或 AsyncResult。3. 不抛异常。4. 不跨 module boundary 传播 C++ exception。"
+  - id: "V1.9-1"
+    paragraph: 730
+    source_rule: "1"
+    title: "Hot path 不分配，因此不产生 bad_alloc。2. Non-hot path 若分配失败，返回 OutOfMemory typed error。3. noexcept 函数内部不得让异常逃逸。4. 如果第三方调用可能抛异常，必须捕获并转换为 typed error。"
+  - id: "V1.9-20"
+    paragraph: 733
+    source_rule: "20"
+    title: "ABI Boundary Contract"
+  - id: "V1.9-1"
+    paragraph: 737
+    source_rule: "1"
+    title: "不跨 DLL 暴露 STL 容器。2. 不跨 DLL 传播 C++ exception。3. GenerationStamp 必须保持标准布局。4. public enum 必须显式指定 underlying type。5. public struct 不包含虚函数。6. ABI version 必须进入 capability/evidence。"
+  - id: "V1.9-21"
+    paragraph: 742
+    source_rule: "21"
+    title: "Logging Boundary"
+  - id: "V1.9-1"
+    paragraph: 749
+    source_rule: "1"
+    title: "写入 preallocated compact event。2. GraphOwnerThread 或 EvidenceBuildThread 后续转换为 evidence/log。3. DebugDeterministicPreset 下由 fake sink 收集。"
+  - id: "V1.9-22"
+    paragraph: 750
+    source_rule: "22"
+    title: "Performance Budget"
+  - id: "V1.9-1"
+    paragraph: 765
+    source_rule: "1"
+    title: "emit PerformanceBudgetExceeded evidence。2. increment performance_budget_exceeded_count。3. DebugDeterministicPreset 下可使测试 fail。"
+  - id: "V1.9-23"
+    paragraph: 766
+    source_rule: "23"
+    title: "Seek / Flushing / Resource Retire"
+  - id: "V1.9-1"
+    paragraph: 790
+    source_rule: "1"
+    title: "Emit SeekPhaseTimeout evidence，包含 phase、duration、operation_key。2. 进入 domain-specific recovery。3. 不回滚已完成 phase。4. 不复用 timed out operation_id。5. late completion 按 tombstone 处理。"
+  - id: "V1.9-1"
+    paragraph: 795
+    source_rule: "1"
+    title: "旧资源已标记 retired。2. 旧资源已进入 GraphResourceRetireQueue。3. 后台 recycle 可继续进行。"
+  - id: "V1.9-24"
+    paragraph: 812
+    source_rule: "24"
+    title: "Drain / EOS"
+  - id: "V1.9-25"
+    paragraph: 827
+    source_rule: "25"
+    title: "Rebuild Granularity Matrix"
+  - id: "V1.9-26"
+    paragraph: 977
+    source_rule: "26"
+    title: "Physical Resource Retire / Recycle"
+  - id: "V1.9-27"
+    paragraph: 988
+    source_rule: "27"
+    title: "Recovery / Health Observation"
+  - id: "V1.9-28"
+    paragraph: 1002
+    source_rule: "28"
+    title: "System Suspend / Resume / Source Reconnect"
+  - id: "V1.9-29"
+    paragraph: 1015
+    source_rule: "29"
+    title: "Evidence / Metrics / Close Flush Order"
+  - id: "V1.9-30"
+    paragraph: 1028
+    source_rule: "30"
+    title: "Privacy Redaction"
+  - id: "V1.9-31"
+    paragraph: 1034
+    source_rule: "31"
+    title: "P5 / P6 Attachment Contract"
+  - id: "V1.9-32"
+    paragraph: 1050
+    source_rule: "32"
+    title: "Error Model"
+  - id: "V1.9-33"
+    paragraph: 1053
+    source_rule: "33"
+    title: "Architecture Guard"
+  - id: "V1.9-34"
+    paragraph: 1069
+    source_rule: "34"
+    title: "Tests / Fake Harness"
+  - id: "V1.9-1"
+    paragraph: 1073
+    source_rule: "1"
+    title: "创建全新 PlaybackSession。2. 创建全新 FakeClock。3. 创建全新 ManualEventPump。4. 创建全新 fake attachments。5. 不共享 mutable global state。6. 不依赖测试顺序。7. 不使用 sleep。"
+  - id: "V1.9-35"
+    paragraph: 1078
+    source_rule: "35"
+    title: "STOP Conditions"
+  - id: "V1.9-36"
+    paragraph: 1082
+    source_rule: "36"
+    title: "Exit Criteria"
+  - id: "V1.9-37"
+    paragraph: 1085
+    source_rule: "37"
+    title: "Final Report 要求"
+  - id: "V1.9-38"
+    paragraph: 1088
+    source_rule: "38"
+    title: "P7 不碰的后续内容"
+  - id: "V1.9-39"
+    paragraph: 1105
+    source_rule: "39"
+    title: "最终交付结论"

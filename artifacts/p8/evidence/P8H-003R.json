@@ -1,0 +1,2641 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8H-003R",
+  "stage": "P8H",
+  "status": "CONTRACT_PASS",
+  "source_design": "C:\\Users\\huyasi\\Downloads\\Kivo Video P8 Subtitle Plane Design V1.5.5.docx",
+  "source_sha256": "9AC07D575468533312CB403CED5CD368372F2DC248CC5232F3B492B8F72B4197",
+  "paragraph_count": 276,
+  "nonempty_paragraphs_checked": 276,
+  "sections_checked": "0..31",
+  "manifest": "docs\\design\\p8\\KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5.rule_manifest.yaml",
+  "report": "docs\\roadmap\\p8_source_reconciliation.md",
+  "missing_manifest_markers": [],
+  "missing_section_heading_numbers": [],
+  "paragraph_reconciliation": [
+    {
+      "paragraph": 1,
+      "sha256": "bae48b521bc988917911bc3360520ef0d94da3eae5a9559352dee3fc83ff5c63",
+      "excerpt": "Kivo Video P8 Subtitle Plane 终极设计书 V1.5.5",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 2,
+      "sha256": "c69c6c7b0ed48fdeb3babbe14b77ad42b61a6be96ab521335663d0f1b4821a28",
+      "excerpt": "Task ID: KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 3,
+      "sha256": "baca1d868348f155c7e385b0c041bd6b13de2678eaba8bf6f46d93d4b84cbaee",
+      "excerpt": "Document Type: architecture-design / implementation-baseline / c-header-closure / c-abi-purist-closure / no-noexcept-in-c-header / bootstrap-status-lock / api-p",
+      "mapping": [
+        "P8C bootstrap/function table",
+        "P8D/P8F privacy",
+        "P8E ASS semantics",
+        "P8F observer"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 4,
+      "sha256": "32459c4b7e3f0dd2dedcb1b2601d8fd08fd5ac14f4b574fb5485253c06c693d7",
+      "excerpt": "Status: FINAL_DESIGN_BASELINE_CANDIDATE_FOR_P8A_IMPLEMENTATION_PLANNING",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 5,
+      "sha256": "01e589b21cc152b77db006bc4e662b5024c5c29e9f7d0fc8ab54cbd2bd393e10",
+      "excerpt": "0. 最终执行口令",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 6,
+      "sha256": "1dab2cfa2814e9c78771bd3153921f1405f38f024336dc83f83676950e1c3915",
+      "excerpt": "P8 = Subtitle Plane Core。",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 7,
+      "sha256": "400c8bedf0157f05cfcb738b707e1259ab477e6235052f94464b49d17b65afb8",
+      "excerpt": "P8 public ABI 必须能作为 纯 C header 被 C 编译器包含。 P8 不允许把 C++ ABI、Qt、FFmpeg、Win32 renderer、STL 容器、C++ exception/noexcept 直接暴露到 C ABI。",
+      "mapping": [
+        "P8B public C ABI",
+        "normative rule checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 8,
+      "sha256": "ba67efefec37cc85193431191407a44591f01041e7e2e28246b950e465b4c72d",
+      "excerpt": "V1.5.5 的目标不是扩功能，而是完成最后一层：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 9,
+      "sha256": "1f90ccec48983ce329a9e032f72463c86b9a6dcedf78d1f0cc73519542d75ccd",
+      "excerpt": "text id=\"p8v155-final-goal\" True C ABI header closure all referenced public C types closure bootstrap/version negotiation closure source reader vtable version c",
+      "mapping": [
+        "P8B public C ABI",
+        "P8C bootstrap/function table",
+        "P8D source reader",
+        "P8D/P8F privacy",
+        "P8E ASS semantics",
+        "P8F snapshot blob",
+        "P8F observer",
+        "P8G ABI layout guard"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 10,
+      "sha256": "06ac569debe03beb61153f7103bd8ecf8efe01afb184675de65aba97ee3c4704",
+      "excerpt": "V1.5.5 继承 V1.5.4 的所有非冲突内容。 凡本版与 V1.5.4 冲突，以 V1.5.5 为准。",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 11,
+      "sha256": "042f8cea2ec9ddf26f5a71d51e04fc602a3b28ab18255fc90d367e80c6288165",
+      "excerpt": "1. V1.5.5 修正总表",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 12,
+      "sha256": "7e374955b7d898ccdcb146e45e9c22e917ef4edd40999b0df9348fd607a61b93",
+      "excerpt": "本版修复以下遗漏：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 13,
+      "sha256": "da35d9fd75e071cfabf48318ad502535549293c5274f8495bce8ba4dd12c70db",
+      "excerpt": "text id=\"p8v155-fixes\" C-001: 定义 KIVO_P8_API_V1_REQUIRED_PREFIX_SIZE。 C-002: C ABI header 中不再直接写 noexcept。 C-003: source reader / observer / executor callback 中",
+      "mapping": [
+        "C-series public C ABI closure",
+        "G-series contract gap closure",
+        "A-series ambiguity closure",
+        "I-series implementation guard closure",
+        "P8B public C ABI",
+        "P8D source reader",
+        "P8D source vtable",
+        "P8D/P8F resource token",
+        "P8D/P8F privacy",
+        "P8D discovery",
+        "P8E SSA semantics",
+        "P8E ASS semantics",
+        "P8E WebVTT semantics",
+        "P8E frame lease",
+        "P8F snapshot blob",
+        "P8F observer",
+        "P8G ABI layout guard"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 14,
+      "sha256": "54891df0dfaa585d00521bb2819a55adaf65daff2ce85e3441769ab72334c7e6",
+      "excerpt": "2. Public C Header 基线",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 15,
+      "sha256": "7ab4a1717d8a87424c4205e4c4124e5d673c874a09e9aeda94c75f2fcd28e3fb",
+      "excerpt": "2.1 Header include",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 16,
+      "sha256": "93ccc57da8f2e6e731ffc895947473d3dcacf2142dda44533fd5283797db19ea",
+      "excerpt": "P8 C ABI header 只允许：",
+      "mapping": [
+        "P8B public C ABI"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 17,
+      "sha256": "7728b4aa07f607496f2bc8e958f386e431ee58595c7308b4ac73c3e5373e9c95",
+      "excerpt": "c id=\"p8v155-include\" #include <stdint.h> #include <stddef.h>",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 18,
+      "sha256": "2c2c9fd2dc2f6d5ed8b0c97338c432ef60a3406710ab1ed448202a7dbda03289",
+      "excerpt": "不使用 <stdbool.h> 作为 ABI 返回值基础。 跨语言 ABI 统一使用 uint32_t status / bool-like value。",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 19,
+      "sha256": "afd3699a9eb954b41b96f1d6cc5945f9a0a8cdbdaf1290848c03da9a8558d142",
+      "excerpt": "2.2 Noexcept 宏",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 20,
+      "sha256": "90e34f7d673d67addddfe0d0e64a663ac3df67ded0804639d7807ce96cd160a7",
+      "excerpt": "C ABI header 不得直接写 C++ noexcept。 允许统一宏：",
+      "mapping": [
+        "P8B public C ABI",
+        "normative rule checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 21,
+      "sha256": "4b5547c429b773daac669f35d8471537e30a2723603e21fd88631477d40e236b",
+      "excerpt": "c id=\"p8v155-noexcept\" #ifdef __cplusplus #define KIVO_P8_NOEXCEPT noexcept #else #define KIVO_P8_NOEXCEPT #endif",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 22,
+      "sha256": "ec91fb2dfd35e2dc4e91dc4333751c54bc06f435904704e245cb3656ee55283d",
+      "excerpt": "所有 public function / callback signature 使用 KIVO_P8_NOEXCEPT，不得直接写裸 noexcept。",
+      "mapping": [
+        "normative rule checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 23,
+      "sha256": "6b7fa52f96c06d5166564bee119e2f7302a73e223fe5d2f927076594590a6e3e",
+      "excerpt": "2.3 Calling convention / export",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 24,
+      "sha256": "cfd96b069c01330a4705aeb47690cd1ed7f1f7fcb6a534cb8acc88c41dfc1dbd",
+      "excerpt": "```c id=“p8v155-call-export” #if defined(_WIN32) #define KIVO_P8_CALL __cdecl #if defined(KIVO_P8_BUILD_DLL) #define KIVO_P8_EXPORT __declspec(dllexport) #else ",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 25,
+      "sha256": "357fe01497ae094a6a5d455f5edee08a777ea382e7a08ff07412e779db74abb5",
+      "excerpt": "#ifdef __cplusplus extern “C” { #endif",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 26,
+      "sha256": "75d5301099ddb62b7a424475aeff3d2a5ca84dbff9d9e58a5ed71b87c6426fc4",
+      "excerpt": "typedef struct KivoSubtitlePlaneHandle KivoSubtitlePlaneHandle;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 27,
+      "sha256": "a0147ced04b8b321fbb3b0a14454087748dd7208d9cf6bc61b08df49ddb92ef0",
+      "excerpt": "#ifdef __cplusplus } #endif",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 28,
+      "sha256": "616e6e47f4aeec9a4371cba487bf0446b3c2d6f02302905b56632afe1077ef10",
+      "excerpt": "## 2.4 Forbidden C ABI tokens  ```text id=\"p8v155-forbidden-c-header\" std:: std::uint32_t std::uint64_t std::size_t bool as ABI return type enum class noexcept ",
+      "mapping": [
+        "P8B public C ABI",
+        "P8E ASS semantics",
+        "section heading/context",
+        "normative rule checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 29,
+      "sha256": "35faf7c2f3a88e646b04bb047a2c2ed3a99b2622d3b42a4ddc635d22191c52fb",
+      "excerpt": "3. ABI Version / Status / Struct Header",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 30,
+      "sha256": "fec686847632f66690ca60a59ae33efdd274eb069713f12461eaf119792acc4d",
+      "excerpt": "3.1 Version constants",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 31,
+      "sha256": "962e83671d12c94f11574abab7f87f05b70bcfd021f226998d9c97bd839313e1",
+      "excerpt": "c id=\"p8v155-version\" #define KIVO_P8_ABI_MAJOR 1u #define KIVO_P8_ABI_MINOR 5u #define KIVO_P8_ABI_PATCH 5u #define KIVO_P8_ABI_REVISION 155u",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 32,
+      "sha256": "c13d9eded2388a2018411a9f6903de0bb43996b38da2898068db3c143e6e9802",
+      "excerpt": "3.2 API status",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 33,
+      "sha256": "a57fed5d4904469f765e101e5490e8d5e258058873d4d24df5385428b45ddb31",
+      "excerpt": "Bootstrap 不再返回 bool，返回明确 status。",
+      "mapping": [
+        "P8C bootstrap/function table"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 34,
+      "sha256": "077694f58a2752731d127dfa12a478bab7d27c948627150bd8b5d6ab6cb96922",
+      "excerpt": "c id=\"p8v155-api-status\" typedef enum KivoP8ApiStatus {     KivoP8ApiStatus_Ok = 0,     KivoP8ApiStatus_NullPointer = 1,     KivoP8ApiStatus_ApiTableTooSmall = ",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 35,
+      "sha256": "14dec291104e67fe2a586a0c802d92949eb474b2b12393c432a0f063ff6a9a32",
+      "excerpt": "3.3 Callback status",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 36,
+      "sha256": "e8d68c0338cfe5ceded94ec948b11a7f4e264d11263bc4863b7e074c0a907bf7",
+      "excerpt": "所有外部 callback/vtable 返回统一 status。",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 37,
+      "sha256": "78c9af383ae1d8a30b355fa815895f0b18148f05ad7b433364826c8dcb61b7fd",
+      "excerpt": "c id=\"p8v155-callback-status\" typedef enum KivoP8CallbackStatus {     KivoP8CallbackStatus_Ok = 0,     KivoP8CallbackStatus_Failed = 1,     KivoP8CallbackStatus",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 38,
+      "sha256": "d839512819f5300f23583e4a95a43cef9ce8e1860de0e39426a63e9e6b49848f",
+      "excerpt": "3.4 ABI struct header",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 39,
+      "sha256": "1eb62363aa6bea155cf787ade3f93cc2b3d0909d2e5231470e264a4933400e08",
+      "excerpt": "c id=\"p8v155-abi-header\" typedef struct KivoP8AbiHeader {     uint32_t struct_size;     uint16_t struct_version;     uint16_t flags; } KivoP8AbiHeader;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 40,
+      "sha256": "3808c4af0e57b9b8c42b4bf087fbc8458878096451aad9ac03fcda653fd2d703",
+      "excerpt": "Rules：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 41,
+      "sha256": "6f16920d49618e462f236848729d2c9d064bad8839a20485bc50c8e9291d88b3",
+      "excerpt": "text id=\"p8v155-abi-header-rules\" 1. 所有跨 DLL 顶层 request/config/result/descriptor/vtable/function-table struct 必须以 KivoP8AbiHeader 开头。 2. 调用方必须填写 struct_size = s",
+      "mapping": [
+        "P8B public C ABI",
+        "normative rule checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 42,
+      "sha256": "dd6f1d363ccd557c985fbd8a46d864b60685ab19e9f19e5c76fffb2efa1700e1",
+      "excerpt": "4. API Bootstrap",
+      "mapping": [
+        "P8C bootstrap/function table",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 43,
+      "sha256": "aeb626081d5c43fc86be10f9080b616b3edd6aa6d30ca080ca6c4b4e5356fce1",
+      "excerpt": "4.1 Required prefix size",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 44,
+      "sha256": "ae0298605a9bea3e69878d0c32b8dd17921c53e8a987614445cea19bc2eb33f5",
+      "excerpt": "KivoSubtitlePlaneApiV1 的 required prefix 定义为：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 45,
+      "sha256": "b0767b254476765487be32b0dfdfe788945354c141c2e004b040ea1936482b80",
+      "excerpt": "text id=\"p8v155-prefix-semantic\" required prefix = KivoP8AbiHeader + abi_major + abi_minor + abi_patch + abi_revision",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 46,
+      "sha256": "ee6dee6476fd383830ef2a8410157f4a9237d0921c7f86b3a3ebb86eb1a17386",
+      "excerpt": "宏定义：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 47,
+      "sha256": "15bbed33ad1b8db92acfe99973280f4b0ba9e79016cda975f19ebbd2183a96c8",
+      "excerpt": "c id=\"p8v155-prefix-macro\" #define KIVO_P8_API_V1_REQUIRED_PREFIX_SIZE \\     ((uint32_t)(sizeof(KivoP8AbiHeader) + (4u * sizeof(uint32_t))))",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 48,
+      "sha256": "b1ba844dfe2a17098cad41936f5f86838cba78fdd5250dd69dfde5a33dca7d32",
+      "excerpt": "实现可额外使用 offsetof(KivoSubtitlePlaneApiV1, create) 做静态一致性检查。",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 49,
+      "sha256": "fe6c67a9edbce92a5ffc277cdbfc2714bbda5bd19b022f23b1d6ea7fb3ea7041",
+      "excerpt": "4.2 Bootstrap function",
+      "mapping": [
+        "P8C bootstrap/function table",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 50,
+      "sha256": "4ce2b468d2c7f74dd23c469b4db47d9fe22016f73475b8f0a3803c595d6f8c75",
+      "excerpt": "```c id=“p8v155-bootstrap” typedef struct KivoSubtitlePlaneApiV1 KivoSubtitlePlaneApiV1;",
+      "mapping": [
+        "P8C bootstrap/function table"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 51,
+      "sha256": "6317996615911132042b51da34e1d2f0841538738e76cbec8eb461830670e8af",
+      "excerpt": "KIVO_P8_EXPORT KivoP8ApiStatus KIVO_P8_CALL kivo_subtitle_plane_get_api_v1( uint32_t requested_abi_revision, KivoSubtitlePlaneApiV1* out_api, uint32_t out_api_s",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 52,
+      "sha256": "9ac5bfdb982912173435e514f5f9f32edb8ea91a30555cbe9249d0a2a3460f43",
+      "excerpt": "Rules：  ```text id=\"p8v155-bootstrap-rules\" 1. out_api == NULL -> KivoP8ApiStatus_NullPointer。 2. out_api_size < KIVO_P8_API_V1_REQUIRED_PREFIX_SIZE -> ApiTable",
+      "mapping": [
+        "P8C bootstrap/function table"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 53,
+      "sha256": "9eb893569c1c00ef4b56ca7ffd562fb39e5315dc5821fd6edaa18c91019f4aea",
+      "excerpt": "5. Core Scalar Types",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 54,
+      "sha256": "937ebc08f73c860f961ad233a132081c731cee6c2b8062d003432b7fcc0d8597",
+      "excerpt": "5.1 Time / Revision / Epoch",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 55,
+      "sha256": "f780f8f8a5dadd6fdbaee7c587b2ce6d64b85575510017fb6b64fa51c83d14e8",
+      "excerpt": "```c id=“p8v155-core-time” typedef struct KivoSubtitleTime { int64_t microseconds; } KivoSubtitleTime;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 56,
+      "sha256": "50889fe57bafb7bb82dd73e471c5ffd99fca51e561df9a4afef1c3b3145d9825",
+      "excerpt": "typedef struct KivoSubtitleDelayOffset { int64_t microseconds; } KivoSubtitleDelayOffset;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 57,
+      "sha256": "ea3f660d90a4adb6d9fbad919634f36b10b06d462301e66597f8c0853747754c",
+      "excerpt": "typedef struct KivoSubtitleSeekEpoch { uint64_t value; } KivoSubtitleSeekEpoch;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 58,
+      "sha256": "77a282e3d25a14a618bd110a52dade5883b3f0dfa9ce3dcf4879b0369dac0acb",
+      "excerpt": "typedef struct KivoP8PlaybackRevision { uint64_t value; } KivoP8PlaybackRevision;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 59,
+      "sha256": "cb01c00fdbc946a03a57ace5cfef2a1df3739ca922c6dc889d8e2e8de8abc8e7",
+      "excerpt": "typedef struct KivoP8GraphSnapshotRevision { uint64_t value; } KivoP8GraphSnapshotRevision;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 60,
+      "sha256": "0d63679d1cc55b4ed5144db858c2137883f41edefefaadb978e9c66a15ae3d1d",
+      "excerpt": "Rules：  ```text id=\"p8v155-time-rules\" KivoSubtitleTime.microseconds == INT64_MIN means invalid public time. KivoSubtitleDelayOffset range = [-24h, +24h]. KivoP",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 61,
+      "sha256": "2ae11f4294a34df5b782dc2443f7fc6335d9f52b6a8ed5e6b71f8228617ff242",
+      "excerpt": "5.2 ID types",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 62,
+      "sha256": "a59fb2b9b66263afd5dde14fdef073d3a179010b860ca5da7f5149ddecb31433",
+      "excerpt": "c id=\"p8v155-ids\" typedef struct KivoSubtitleCommandId { uint64_t value; } KivoSubtitleCommandId; typedef struct KivoSubtitleCorrelationId { uint64_t value; } K",
+      "mapping": [
+        "P8D discovery",
+        "P8F snapshot lease",
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 63,
+      "sha256": "3808c4af0e57b9b8c42b4bf087fbc8458878096451aad9ac03fcda653fd2d703",
+      "excerpt": "Rules：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 64,
+      "sha256": "4eb503698adcc5cb4cc141a4575bbae5d46624ceb9455a4f62bfaf0e66f32896",
+      "excerpt": "text id=\"p8v155-id-rules\" 1. value == 0 means invalid. 2. 0 is never a valid allocated ID. 3. Caller must not invent internal IDs except by receiving them from ",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 65,
+      "sha256": "9d21c3a9226355915822871908314259623ffec848b90415fbb27b792d3681a4",
+      "excerpt": "6. Error / Result / Command",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 66,
+      "sha256": "9d5ac83200fcf55dc065cee05d09ebc543b0eb1d135c32afd15bb19cd2efb6f4",
+      "excerpt": "6.1 Result status",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 67,
+      "sha256": "b5a713e1bf97090037e590c00ccd5660cf79d5c03ddf7501fe5faec331521caf",
+      "excerpt": "c id=\"p8v155-result-status\" typedef enum KivoSubtitleResultStatus {     KivoSubtitleResultStatus_Ok = 0,     KivoSubtitleResultStatus_Error = 1,     KivoSubtitl",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 68,
+      "sha256": "1581131d7d439869e8a1ea71ddfba5a6cb635c1be85cf2b54a0d7b633f017839",
+      "excerpt": "6.2 Plane error",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 69,
+      "sha256": "10be7b1b6a9a34c0dc2b8b3e0173c4185ab4d0bd45f5daf25508b34b095af6e2",
+      "excerpt": "```c id=“p8v155-plane-error” typedef enum KivoSubtitlePlaneError { KivoSubtitlePlaneError_None = 0,",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 70,
+      "sha256": "2876c22e5b6b8da375b96b8a6ed0d2df7f7e682a09c4800fc71039184df8b2da",
+      "excerpt": "KivoSubtitlePlaneError_NullPointer, KivoSubtitlePlaneError_InvalidArgument, KivoSubtitlePlaneError_MalformedInput, KivoSubtitlePlaneError_IllegalEnumValue, Kivo",
+      "mapping": [
+        "P8D discovery",
+        "P8E frame lease",
+        "P8F snapshot lease"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 71,
+      "sha256": "6134a5c3e377215a7bceb2c42caa8af4d26bf1c00bd7b8f03cf3862bb1b41e15",
+      "excerpt": "} KivoSubtitlePlaneError;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 72,
+      "sha256": "5cf3179e1ef54ae37df27437e15cbf81fabae77a4f234e008d1fcea642b1ec5c",
+      "excerpt": "## 6.3 Command token  ```c id=\"p8v155-command-token\" typedef enum KivoSubtitleCommandImmediateStatus {     KivoSubtitleCommandImmediateStatus_Accepted = 0,     ",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 73,
+      "sha256": "3808c4af0e57b9b8c42b4bf087fbc8458878096451aad9ac03fcda653fd2d703",
+      "excerpt": "Rules：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 74,
+      "sha256": "d930cf24a6618fd3f26762844fb01ab8c34c55db04d2c18a0cf78fc2397ce2cc",
+      "excerpt": "text id=\"p8v155-command-token-rules\" 1. command_id is extracted from KivoSubtitleCommandToken.command_id. 2. command_id.value == 0 means rejected before command",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 75,
+      "sha256": "a6eb07a6068d7ddc847a2891ce3785d41709c225432411d5ec19393c35c0c82b",
+      "excerpt": "6.4 Command lifecycle",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 76,
+      "sha256": "ba3e908d743cc5345b755a0f756c6a9a8b60e7db26c785b73e5c94414ea323e0",
+      "excerpt": "```c id=“p8v155-command-lifecycle” typedef enum KivoSubtitleCommandLifecycleState { KivoSubtitleCommandLifecycleState_Unknown = 0, KivoSubtitleCommandLifecycleS",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 77,
+      "sha256": "de2a1e2b0ba89d40e057888b882b949879d5cf0643bf8d023d97f1098561b099",
+      "excerpt": "typedef struct KivoSubtitleCommandLifecycleSnapshot { KivoSubtitleCommandId command_id; KivoSubtitleCorrelationId correlation_id; KivoSubtitleCommandLifecycleSt",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 78,
+      "sha256": "c06e4e276aad7d37bc8c32ed4971f6948378b3225e13d44b0521256f76cd650e",
+      "excerpt": "---  # 7. Byte / String Input Types  ## 7.1 Input string  ```c id=\"p8v155-input-string\" typedef struct KivoSubtitleInputStringView {     const uint8_t* utf8;   ",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 79,
+      "sha256": "3808c4af0e57b9b8c42b4bf087fbc8458878096451aad9ac03fcda653fd2d703",
+      "excerpt": "Rules：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 80,
+      "sha256": "e7d7d1745d61defdff31bcbc03f0840735d5e0f8ae1145dab41b1823a4d7a768",
+      "excerpt": "text id=\"p8v155-input-string-rules\" 1. Valid only during current call. 2. P8 copies if retained. 3. Not NUL-terminated unless caller includes NUL in utf8_bytes.",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 81,
+      "sha256": "2237a83c86581e5b0177398b48247e670e72dc4228ffb2bf07a2406d8f88950e",
+      "excerpt": "7.2 Input bytes",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 82,
+      "sha256": "8013b1bdd3c3f9851e44eff608ccc9bf34dde8bbacab0256d357d79500313545",
+      "excerpt": "统一名称只允许：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 83,
+      "sha256": "74dfeb91b753ef5490d62717eb111e7a20375ba29b6ab2e562305e7ce6403bfb",
+      "excerpt": "c id=\"p8v155-input-bytes\" typedef struct KivoSubtitleInputBytesView {     const uint8_t* data;     uint64_t bytes; } KivoSubtitleInputBytesView;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 84,
+      "sha256": "92f98a3ff600120c6d33cc51a8f4db997f0578167d56165b563f8ffe2fc331dc",
+      "excerpt": "禁止再出现：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 85,
+      "sha256": "1604fe46c0e877ac5727213cc11b753a0f14c26be032127c25d33ce8c27c9ee8",
+      "excerpt": "text id=\"p8v155-forbidden-input-name\" KivoInputBytesView",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 86,
+      "sha256": "d7ffa00102eca9cb6598037672bba81b54d29e0320db6e4074258db54f5d850c",
+      "excerpt": "7.3 Mutable byte span",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 87,
+      "sha256": "41162ed766a5127dc77868b68c21a0bb69c23cf21de459d18a4f8e4c91d342fd",
+      "excerpt": "c id=\"p8v155-mutable-span\" typedef struct KivoMutableByteSpan {     uint8_t* data;     uint64_t bytes; } KivoMutableByteSpan;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 88,
+      "sha256": "3808c4af0e57b9b8c42b4bf087fbc8458878096451aad9ac03fcda653fd2d703",
+      "excerpt": "Rules：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 89,
+      "sha256": "b99b71c7430efa9ffeffa3e23f4e6a8b8d3e6a534461af24e4cef9ccb8b636bb",
+      "excerpt": "text id=\"p8v155-mutable-span-rules\" 1. data == NULL && bytes == 0 allowed only for explicit size-query capable APIs. 2. data == NULL && bytes > 0 -> MalformedIn",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 90,
+      "sha256": "286e31a5f7578b0a445dc5c0ed4f37e88827acfd216b7f8ffa604ee8950d8fff",
+      "excerpt": "8. Generation Types",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 91,
+      "sha256": "229930ed3ea86c91256b1b257e327513b2e123b79b09688239ea15b7ce0fd758",
+      "excerpt": "8.1 Content generation",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 92,
+      "sha256": "767cadccf22fbe89f3e49bf38702d35366a4daa9d2ac49ad9d03321c2c16f982",
+      "excerpt": "c id=\"p8v155-content-generation\" typedef struct KivoSubtitleContentGeneration {     uint64_t source_generation;     uint64_t track_generation;     uint64_t pars",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 93,
+      "sha256": "67e52021c20368587a68e7ab9996bb7822f5393aaab31fc3a98d47bbe7608be4",
+      "excerpt": "8.2 Packet generation",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 94,
+      "sha256": "6e3557f4fd032fdc084ef1416c2c3a3da8acc23548b8833cb2cacface0c741bf",
+      "excerpt": "c id=\"p8v155-packet-generation\" typedef struct KivoSubtitlePacketGeneration {     uint64_t source_generation;     uint64_t track_generation;     KivoSubtitleSee",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 95,
+      "sha256": "e9b97df84e6bc006d517ca4260611325f721e490760cbdac4f21d41cb52b0938",
+      "excerpt": "8.3 Timeline generation",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 96,
+      "sha256": "8699d6189695b6f502f39def66268ed930c02225b7962ee46f762e66cebb40fb",
+      "excerpt": "c id=\"p8v155-timeline-generation\" typedef struct KivoSubtitleTimelineGeneration {     KivoSubtitleSeekEpoch seek_epoch;     uint64_t delay_epoch;     KivoP8Play",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 97,
+      "sha256": "701dca2fb538c65b825d411e330d3a1957cd291eb97ca101a8779489f38c53b4",
+      "excerpt": "8.4 Frame generation",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 98,
+      "sha256": "e9213583c4b120c5a4721c7e367ed4a52bf824a644ce490d324c9963e8a77e4c",
+      "excerpt": "c id=\"p8v155-frame-generation\" typedef struct KivoSubtitleFrameGeneration {     KivoSubtitleContentGeneration content;     KivoSubtitleTimelineGeneration timeli",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 99,
+      "sha256": "3808c4af0e57b9b8c42b4bf087fbc8458878096451aad9ac03fcda653fd2d703",
+      "excerpt": "Rules：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 100,
+      "sha256": "cc015eaeb35e537139db3df67d34b657d6b29b8613927902e4a5bbf162eceb92",
+      "excerpt": "text id=\"p8v155-generation-rules\" 1. delay_epoch never invalidates parsed cues. 2. seek_epoch never invalidates static external cue index. 3. embedded packets a",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 101,
+      "sha256": "a8e95104d2b776575f1e8527d0cdea8b073fd2d07cd18917188e56f2f7ede2ea",
+      "excerpt": "9. Source / Redacted Identity / Hash",
+      "mapping": [
+        "P8D/P8F privacy",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 102,
+      "sha256": "9dba369ea788d613f442f4d83188a00ad7e030bfb74476ca58a157cdbc74e82e",
+      "excerpt": "9.1 Hash algorithm",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 103,
+      "sha256": "9af2ab928321bfa7c354fdd5fff3ae701c6fc73dd70a7feb83ac5e07f788225a",
+      "excerpt": "c id=\"p8v155-hash-algo\" typedef enum KivoSubtitleHashAlgorithm {     KivoSubtitleHashAlgorithm_None = 0,     KivoSubtitleHashAlgorithm_SipHash24_64 = 1,     Kiv",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 104,
+      "sha256": "3808c4af0e57b9b8c42b4bf087fbc8458878096451aad9ac03fcda653fd2d703",
+      "excerpt": "Rules：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 105,
+      "sha256": "191049407478e3e181ecfec8131f98879a799d60f1372b1516a75162914b49d9",
+      "excerpt": "text id=\"p8v155-hash-rules\" 1. Diagnostic identity hash must use keyed algorithm. 2. Unkeyed hash allowed only deterministic fake/test or local non-exported fon",
+      "mapping": [
+        "P8D/P8F privacy"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 106,
+      "sha256": "a1c951fe82ff00731f32843e83c3e3b134abcc7b1027e1fc0e687404f58371b5",
+      "excerpt": "9.2 Hash key provider",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 107,
+      "sha256": "475330a0223b565fbf485d748cd2daef59748ea08b3ff76ce5b929418e870457",
+      "excerpt": "```c id=“p8v155-hash-key” typedef struct KivoSubtitleHashKeyProvider { KivoP8AbiHeader header; void* user_data;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 108,
+      "sha256": "87879b7733599a646d874a0abe9bfa351e98d0f9aab0e2fc4774d22d04e50750",
+      "excerpt": "KivoP8CallbackStatus (KIVO_P8_CALL *get_key)(     void* user_data,     uint64_t key_id,     uint8_t* out_key,     uint64_t out_key_capacity,     uint64_t* out_k",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 109,
+      "sha256": "26fecd7d9df1b2ebaf2253b7ad91bff64828be2136af025bf072e539b0b0029c",
+      "excerpt": "} KivoSubtitleHashKeyProvider;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 110,
+      "sha256": "e0e86958e2bb6abfec40fac8ce7c2abe627bd122fbeb5a3757c5d3daef0f564e",
+      "excerpt": "## 9.3 Privacy policy  ```c id=\"p8v155-privacy\" typedef enum KivoSubtitlePrivacyMode {     KivoSubtitlePrivacyMode_Strict = 0,     KivoSubtitlePrivacyMode_Diagn",
+      "mapping": [
+        "P8D/P8F privacy",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 111,
+      "sha256": "5c722444acdf3f7a770f3dfdd1317b527aa32544ea5374dd16d1c6bad08e4d1a",
+      "excerpt": "Flags：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 112,
+      "sha256": "d54fd5f49ddee5a623ff68f801a68ebe3bd7e1358b4c8dd6ec7bec91b537f6d8",
+      "excerpt": "text id=\"p8v155-privacy-flags\" bit 0 = redact_raw_paths bit 1 = redact_raw_subtitle_text bit 2 = redact_font_names_in_evidence bit 3 = redact_url_query bit 4 = ",
+      "mapping": [
+        "P8D/P8F privacy",
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 113,
+      "sha256": "65b804313f12d9b817be2da620c9e3bdfc5c7f8ffe383c5abf0e9e0a00dd95d4",
+      "excerpt": "9.4 Redacted source identity",
+      "mapping": [
+        "P8D/P8F privacy",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 114,
+      "sha256": "21eee5e4919a18db1205f281a6fc5adef6505d2c6ddf4a61ab92d0b2fab68ba8",
+      "excerpt": "```c id=“p8v155-redacted” typedef enum KivoRedactedSourceKind { KivoRedactedSourceKind_Unknown = 0, KivoRedactedSourceKind_LocalFile = 1, KivoRedactedSourceKind",
+      "mapping": [
+        "P8D/P8F privacy"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 115,
+      "sha256": "bc1f250cb4b1b61ea657c53f79e563950a9b25ee3f9a572c8a40d31a1ef2899e",
+      "excerpt": "typedef struct KivoRedactedSourceIdentity { KivoRedactedSourceKind kind; uint64_t source_identity_hash; uint64_t basename_hash; uint64_t content_fingerprint_has",
+      "mapping": [
+        "P8D/P8F privacy"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 116,
+      "sha256": "975222d95e884b4b3d41d02248393c3f968a36b6ce19995bf4291bb9a4e9bfe2",
+      "excerpt": "Flags：  ```text id=\"p8v155-redacted-flags\" bit 0 = has_content_fingerprint bit 1 = hash_key_id_present",
+      "mapping": [
+        "P8D/P8F privacy"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 117,
+      "sha256": "60a5e4ccd8ad955a63456a539df99e92bab20399ba75603ea2c74be8853c4b27",
+      "excerpt": "10. Source Reader Contract",
+      "mapping": [
+        "P8D source reader",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 118,
+      "sha256": "fb3f2fe245c6794ae4f7dd48dff0e1e51e95cd430707245bf6a9141fcca060bb",
+      "excerpt": "10.1 Source handle / seek origin",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 119,
+      "sha256": "c378423901d9d48f3de074fa3857209f001d463a27def5d98669e3768dceda64",
+      "excerpt": "```c id=“p8v155-source-handle” typedef struct KivoSubtitleSourceHandle { uint64_t value; } KivoSubtitleSourceHandle;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 120,
+      "sha256": "a478d2dbc31ce9c1805d8d27c58441fb389eae9c4e1742d8009409c8f8f62fdc",
+      "excerpt": "typedef enum KivoSubtitleSeekOrigin { KivoSubtitleSeekOrigin_Begin = 0, KivoSubtitleSeekOrigin_Current = 1, KivoSubtitleSeekOrigin_End = 2 } KivoSubtitleSeekOri",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 121,
+      "sha256": "83411f9e6b74f5230e5865d6340f232801bc7486b08ee82f37aac49f99688812",
+      "excerpt": "## 10.2 Source kind  ```c id=\"p8v155-source-kind\" typedef enum KivoSubtitleSourceKind {     KivoSubtitleSourceKind_Unknown = 0,     KivoSubtitleSourceKind_FileP",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 122,
+      "sha256": "cfed9f2f8783e75e40254e405e12e0335544a49108792c8a8148b55c1f15ce31",
+      "excerpt": "10.3 Source vtable",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 123,
+      "sha256": "6e43f0768c56ccdedbe0d438c3e600959bffe9230990d77e416ab0855b438e98",
+      "excerpt": "KivoSubtitleExternalSourceVTable is V1 frozen and versioned through KivoP8AbiHeader.",
+      "mapping": [
+        "P8D source vtable"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 124,
+      "sha256": "314fc718709c24c5b02bbd25fdd2d6a78fe858977bdb0aea10ef851ab412d4af",
+      "excerpt": "```c id=“p8v155-source-vtable” typedef struct KivoSubtitleExternalSourceVTable { KivoP8AbiHeader header; void* user_data;",
+      "mapping": [
+        "P8D source vtable"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 125,
+      "sha256": "6f889cab4cf01883ac29cc12956c27cc57076f59966ee51786bc2908e3523537",
+      "excerpt": "KivoP8CallbackStatus (KIVO_P8_CALL *open)(     void* user_data,     const struct KivoSubtitleSourceDescriptor* source,     KivoSubtitleSourceHandle* out_handle ",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 126,
+      "sha256": "480f1ea03cf0fffbb302c981790179ce6463ea55a769d50034bbb1e76cea0849",
+      "excerpt": "} KivoSubtitleExternalSourceVTable;",
+      "mapping": [
+        "P8D source vtable"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 127,
+      "sha256": "4817ca9a188e0df744b7de7ed13ba190cbb039caf3dac5c205e216bb70dbf7b9",
+      "excerpt": "Rules：  ```text id=\"p8v155-source-vtable-rules\" 1. V1 required callbacks for Reader/ProviderByteStream: open/read/close. 2. seek/tell may be NULL only if source",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 128,
+      "sha256": "56ce11014f41ffc8a0a2b9418c2d8454a5664d472959ec958c245f53e9f91899",
+      "excerpt": "10.4 Source descriptor",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 129,
+      "sha256": "e526ea23f1e6fa5e76a24722706af7599ec6a54fef005ec69bb3657dfdc77310",
+      "excerpt": "```c id=“p8v155-source-desc” typedef struct KivoSubtitleSourceDescriptor { KivoP8AbiHeader header; KivoSubtitleSourceKind kind; KivoSubtitleSourceId source_id;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 130,
+      "sha256": "c71dd46f51a2760c634b54cf846868eb9665793764cd8c989c20618905b3cfe0",
+      "excerpt": "KivoSubtitleInputStringView file_path_utf8; KivoSubtitleInputBytesView memory_bytes;  KivoSubtitleExternalSourceVTable reader;  KivoRedactedSourceIdentity redac",
+      "mapping": [
+        "P8D source vtable",
+        "P8D/P8F privacy"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 131,
+      "sha256": "6432bff364ea5a5c03b8c7d7e0ce9ef86a2616a496881d8d34d9c66a84587bf4",
+      "excerpt": "} KivoSubtitleSourceDescriptor;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 132,
+      "sha256": "d4d7cd475b5afe3cade0146f14aa5e24f57694fd2483beab14163b3a92976670",
+      "excerpt": "Flags：  ```text id=\"p8v155-source-flags\" bit 0 = seekable bit 1 = reader_callbacks_thread_safe bit 2 = file_access_allowed bit 3 = memory_must_copy_immediately",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 133,
+      "sha256": "3808c4af0e57b9b8c42b4bf087fbc8458878096451aad9ac03fcda653fd2d703",
+      "excerpt": "Rules：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 134,
+      "sha256": "f5130f616921246f09fa8021b328b744482a0a4f4fd710887f2346f8ba7e3866",
+      "excerpt": "```text id=“p8v155-source-rules” FilePathUtf8: file_path_utf8 valid only during call. raw path never enters evidence. P8 may open only when file access feature ",
+      "mapping": [
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 135,
+      "sha256": "4ce57ebe597e137de97c1cb4f3ead218ad81d4c28320172be6ed450a597148b4",
+      "excerpt": "MemoryBytes: memory_bytes valid only during call. P8 copies before async parse.",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 136,
+      "sha256": "00cf6be4084e7c6cb4c4f3ee86a66348a9e3d3619c43d3c320a1dcd3f738ff31",
+      "excerpt": "Reader/ProviderByteStream: P8 owns handle after open success. P8 closes handle exactly once. cancel may race with read; source vtable must tolerate cancel durin",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 137,
+      "sha256": "ff6cec420cb85c16ab0dceb31057e553cf2977b34f0aae47d5b9b1f134e1d4c2",
+      "excerpt": "---  # 11. Format / Track / Embedded Types  ## 11.1 Format  ```c id=\"p8v155-format\" typedef enum KivoSubtitleFormat {     KivoSubtitleFormat_Unknown = 0,     Ki",
+      "mapping": [
+        "P8E SSA semantics",
+        "P8E ASS semantics",
+        "P8E WebVTT semantics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 138,
+      "sha256": "65b5269ff673ba5e6a943b310f4b605274e538be9bbb2ce4fadaaff78aed6a74",
+      "excerpt": "11.2 Track kind",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 139,
+      "sha256": "2ce7f68c18a0a8367ef39155e8d5541500551adcdd2bfb332bf9c3b8feec5ae0",
+      "excerpt": "c id=\"p8v155-track-kind\" typedef enum KivoSubtitleTrackKind {     KivoSubtitleTrackKind_ExternalFile = 0,     KivoSubtitleTrackKind_ExternalMemory = 1,     Kivo",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 140,
+      "sha256": "3f2103312b623f47d93cf97c54a5550da88b467e897c39be1a59dde7cdbfdafc",
+      "excerpt": "11.3 Embedded codec kind",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 141,
+      "sha256": "253c49464ab5b9fd82afe4bdd4c0fbca58be648d33dc3ff09a426a6abbd866a5",
+      "excerpt": "c id=\"p8v155-embedded-codec\" typedef enum KivoSubtitleEmbeddedCodecKind {     KivoSubtitleEmbeddedCodec_Unknown = 0,     KivoSubtitleEmbeddedCodec_MatroskaSrt =",
+      "mapping": [
+        "P8E ASS semantics",
+        "P8E WebVTT semantics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 142,
+      "sha256": "c3411d8f9066860b7600cf092e453d6c40750ec8b23920ca830cf70369d67b22",
+      "excerpt": "12. Plane State / Timeline",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 143,
+      "sha256": "9e790f854dc394f2476202f7a6f6e8e1131cc64bbfc35d8699aa145a4926cd7e",
+      "excerpt": "12.1 Plane state",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 144,
+      "sha256": "5ce7fb82b8717944ca39a98ab31d38b56aeff4b69921c897d1105d9de51ec2ed",
+      "excerpt": "c id=\"p8v155-plane-state\" typedef enum KivoSubtitlePlaneState {     KivoSubtitlePlaneState_NotCreated = 0,     KivoSubtitlePlaneState_Created = 1,     KivoSubti",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 145,
+      "sha256": "58269880f950aeb6aea4d06affa14133f84c88c53bbc7e499f5ad4b260ace162",
+      "excerpt": "12.2 Timeline availability",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 146,
+      "sha256": "5f8930e80d4ada33a7426cc439fed940fbe5a8f900d483d683aaaa1a54ae7e1c",
+      "excerpt": "c id=\"p8v155-timeline-availability\" typedef enum KivoSubtitleTimelineAvailability {     KivoSubtitleTimelineAvailability_Available = 0,     KivoSubtitleTimeline",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 147,
+      "sha256": "ea6adfa9b5cc85495a2457376f301f6958a08523e463d6397ef487fcc6886f0e",
+      "excerpt": "12.3 Revision equality",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 148,
+      "sha256": "90aad64c603a17e110140a261035aff649d18d755a9936c38fe953e3f99c4e75",
+      "excerpt": "```text id=“p8v155-revision-equal” request revision == latest state revision: not a conflict. build_frame proceeds using request playback_time and matching stat",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 149,
+      "sha256": "b917cf1f62d40941a3b3201e794add40f94e751fc831e543aa7c47d39e951870",
+      "excerpt": "request revision < latest: stale request; emit TimelineInconsistent evidence.",
+      "mapping": [
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 150,
+      "sha256": "efbcd6e1c241bb35749d628382e7e9c0390a4c04667310240ed70587a0993f41",
+      "excerpt": "request revision > latest: allowed if request carries newer graph/playback revision from P7 adapter; P8 updates diagnostics but does not mutate state from build",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 151,
+      "sha256": "33a4d84be4c51dabb9cfef5c3a1ab227ff6bf0767944430c1d01450053c49b3e",
+      "excerpt": "---  # 13. Frame Lease  ## 13.1 Status  ```c id=\"p8v155-frame-lease-status\" typedef enum KivoSubtitleFrameLeaseStatus {     KivoSubtitleFrameLeaseStatus_Ok = 0,",
+      "mapping": [
+        "P8E frame lease"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 152,
+      "sha256": "a397d77f9bff8e5e154cc5caa7484f321b3fb2c87ce012cbe58ea4adcca7f99b",
+      "excerpt": "13.2 Frame lease struct",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 153,
+      "sha256": "016067d8a14775daa45633cc7ce9ecf58de7e55734ee8160b6916816a6115744",
+      "excerpt": "c id=\"p8v155-frame-lease\" typedef struct KivoSubtitleFrameLease {     KivoSubtitleFrameId frame_id;     KivoSubtitleSnapshotRevision snapshot_revision;     Kivo",
+      "mapping": [
+        "P8E frame lease"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 154,
+      "sha256": "3808c4af0e57b9b8c42b4bf087fbc8458878096451aad9ac03fcda653fd2d703",
+      "excerpt": "Rules：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 155,
+      "sha256": "a36dc674312c5c063184f1ba7bbc05f79e08e05a731c17abe8d9bbb2b930b1ad",
+      "excerpt": "text id=\"p8v155-frame-lease-rules\" 1. frame is an opaque pointer to KivoSubtitleFrame layout defined in frame header. 2. lease_id == 0 means no release required",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 156,
+      "sha256": "7714819357d15d8ab745a50ec6b50355225c11e1aadc8c61b1386be6c8098200",
+      "excerpt": "14. Snapshot Lease / Snapshot Blob",
+      "mapping": [
+        "P8F snapshot blob",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 157,
+      "sha256": "530b78c7f5a0e2ed3d2b36265f7b8a2a852997e29117ff1bb5ffed3a5a3bb4ae",
+      "excerpt": "14.1 Snapshot lease status",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 158,
+      "sha256": "b9c7ba15219f922baa162439648e956076ab74796c0cc17ef2d4d630aee7886e",
+      "excerpt": "c id=\"p8v155-snapshot-lease-status\" typedef enum KivoSubtitleSnapshotLeaseStatus {     KivoSubtitleSnapshotLeaseStatus_Ok = 0,     KivoSubtitleSnapshotLeaseStat",
+      "mapping": [
+        "P8F snapshot lease"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 159,
+      "sha256": "156a2e2f1c77788d5cf3abddd2a4a2e580161baf1150102b1db1e12787039bd7",
+      "excerpt": "14.2 Snapshot lease",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 160,
+      "sha256": "d0f138caa7c0ae10183b78ea612d1401e265483472f95f3d63061e6335fe764d",
+      "excerpt": "c id=\"p8v155-snapshot-lease\" typedef struct KivoSubtitleSnapshotLease {     KivoSubtitleSnapshotLeaseId snapshot_lease_id;     uint64_t snapshot_lease_generatio",
+      "mapping": [
+        "P8F snapshot lease"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 161,
+      "sha256": "c577034ed21db2dd5f67248cd4e05ddd294b7faa41318b818d088e42efb7f19b",
+      "excerpt": "14.3 Snapshot blob constants",
+      "mapping": [
+        "P8F snapshot blob",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 162,
+      "sha256": "9a828ac53c2f77ed06af125b53d6e8fb8c7debfa3f5f1609f128ee9192192cef",
+      "excerpt": "c id=\"p8v155-snapshot-constants\" #define KIVO_P8_SNAPSHOT_BLOB_MAGIC 0x50385342u /* 'P8SB' */ #define KIVO_P8_SNAPSHOT_ENDIAN_LITTLE 1u #define KIVO_P8_SNAPSHOT",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 163,
+      "sha256": "3fd356a91a83e46ba3ab453e978fadba7854033667b6b56548757d0d3904106c",
+      "excerpt": "14.4 Snapshot section kind",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 164,
+      "sha256": "bc941766ba155d61781e6e3b3f8f98c6bea964ef5241ab1d49fd7e1e6542127d",
+      "excerpt": "c id=\"p8v155-snapshot-section-kind\" typedef enum KivoSubtitleSnapshotSectionKind {     KivoSubtitleSnapshotSection_None = 0,     KivoSubtitleSnapshotSection_Tra",
+      "mapping": [
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 165,
+      "sha256": "3808c4af0e57b9b8c42b4bf087fbc8458878096451aad9ac03fcda653fd2d703",
+      "excerpt": "Rules：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 166,
+      "sha256": "571f57b0f6655b043c1990cd53b9d8762d50509f251eab247ade9787fef4b864",
+      "excerpt": "text id=\"p8v155-snapshot-section-rules\" 1. Metrics are inline in KivoSubtitleSnapshotBlobHeader, not a section. 2. Selected track is inline in header. 3. String",
+      "mapping": [
+        "P8E frame lease",
+        "P8F snapshot lease",
+        "P8F snapshot blob",
+        "P8F metrics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 167,
+      "sha256": "b41eaf6ef9eda18f114f8b59808d7e1800146019ecd3878f22a85842ae5a7185",
+      "excerpt": "14.5 Snapshot blob header",
+      "mapping": [
+        "P8F snapshot blob",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 168,
+      "sha256": "c254d6df6ae83840353ccddaf445eb415eb9a4df4a176418fdc3d354c0b9e314",
+      "excerpt": "```c id=“p8v155-snapshot-header” typedef struct KivoSubtitleSnapshotBlobHeader { uint32_t magic; uint16_t endian; uint16_t header_size;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 169,
+      "sha256": "30a95fe5b0662440d565c2505684d65db9e121eb5d86e87825d0276d522bba5e",
+      "excerpt": "uint32_t abi_major; uint32_t blob_revision;  uint64_t total_bytes; uint64_t section_count; uint64_t section_table_offset;  KivoSubtitlePlaneState state; KivoSub",
+      "mapping": [
+        "P8F metrics",
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 170,
+      "sha256": "a5fc040321ef6c65c6483ca3064591de20849d15b551acb53bef00cd7ea6d78b",
+      "excerpt": "} KivoSubtitleSnapshotBlobHeader;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 171,
+      "sha256": "11897474b0b6360b084ce42323d193c1aa9c21454b04387533f7dd9b09773412",
+      "excerpt": "## 14.6 Snapshot section  ```c id=\"p8v155-snapshot-section\" typedef struct KivoSubtitleSnapshotBlobSection {     uint32_t kind;     uint32_t element_size;     u",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 172,
+      "sha256": "9080688854399205044adb0715e901c16ca206fe1bb96b12e42e97abefe26bb1",
+      "excerpt": "Endian rule：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 173,
+      "sha256": "d155a05e6683bf09d7cb7a6f8fb9e899c66d6583b4e2ee7d681d9341ffb5581a",
+      "excerpt": "text id=\"p8v155-endian\" P8 P0 baseline is Windows x64 little-endian. P8 copy_snapshot always emits little-endian blob. Big-endian host is unsupported in P8 P0 a",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 174,
+      "sha256": "40a3133cba177bd79690333eed5f388085afd70d5c0f79144f4e64843ddd0d00",
+      "excerpt": "Close/lease rule：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 175,
+      "sha256": "e4b2c4540e7ff22394081030b60139c7da976341df05c839771bd4ac3fe7d8e2",
+      "excerpt": "text id=\"p8v155-snapshot-close\" 1. snapshot_active_lease_capacity default = 32. 2. close waits snapshot_lease_close_timeout_ms default = 2000. 3. after timeout,",
+      "mapping": [
+        "P8F snapshot lease"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 176,
+      "sha256": "ec92ae958f1eb591ff6f0abaa196a3f04b285a19bd16e3cb8095c588d2b21cab",
+      "excerpt": "15. Evidence / Metrics",
+      "mapping": [
+        "P8F metrics",
+        "P8F evidence",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 177,
+      "sha256": "70772624fcf17639f5f587da7c3ebaf75980d890aee5d240acb4931608474b06",
+      "excerpt": "15.1 Evidence severity",
+      "mapping": [
+        "P8F evidence",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 178,
+      "sha256": "357b199548d61b7b3e7777f6a98994c9301c72afaa8a2646f6356d4df07f9679",
+      "excerpt": "c id=\"p8v155-evidence-severity\" typedef enum KivoSubtitleEvidenceSeverity {     KivoSubtitleEvidenceSeverity_Info = 0,     KivoSubtitleEvidenceSeverity_Warning ",
+      "mapping": [
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 179,
+      "sha256": "4f7ebedf291b09f5fe35ad05a3db7e95f19bda2c994b28662fba5a435e039a3b",
+      "excerpt": "15.2 Evidence reason additions",
+      "mapping": [
+        "P8F evidence",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 180,
+      "sha256": "161a3b3ec15b4a9cb71ae1757d2fd3762f5cbe865bba29510edb5368db3e8314",
+      "excerpt": "```c id=“p8v155-evidence-reason” typedef enum KivoSubtitleEvidenceReason { KivoSubtitleEvidenceReason_None = 0,",
+      "mapping": [
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 181,
+      "sha256": "1ec1da8987fe65943ea04213f47749d3ecc84d388249409b533f73b3c2de261c",
+      "excerpt": "KivoSubtitleEvidenceReason_NotReady, KivoSubtitleEvidenceReason_TimelineInconsistent, KivoSubtitleEvidenceReason_InvalidLanguageTag, KivoSubtitleEvidenceReason_",
+      "mapping": [
+        "P8D/P8F privacy",
+        "P8D discovery",
+        "P8E ASS semantics",
+        "P8E WebVTT semantics",
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 182,
+      "sha256": "f3343e40e343d8da8bb702306b5cadfd4fcd2713eae53eb0de473ea17c8610d9",
+      "excerpt": "} KivoSubtitleEvidenceReason;",
+      "mapping": [
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 183,
+      "sha256": "a2e1be4ab1dbf79a0eb919015c83be6467410bb742bffb863531fe9b3b30fdc5",
+      "excerpt": "## 15.3 Evidence summary  ```c id=\"p8v155-evidence-summary\" typedef struct KivoSubtitleEvidenceSummary {     KivoSubtitleEvidenceId primary_evidence_id;     Kiv",
+      "mapping": [
+        "P8F evidence",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 184,
+      "sha256": "d26ba10ffc2cd0bcfb5b8591787b4d4d63e0d7b26ede7628f91f414b1764c430",
+      "excerpt": "15.4 Metrics snapshot",
+      "mapping": [
+        "P8F metrics",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 185,
+      "sha256": "980ef6566b89d1f61b9d4d861cd089ffb5f1848fcdaf336f1982b4e40b2488ab",
+      "excerpt": "```c id=“p8v155-metrics” typedef struct KivoSubtitleMetricsSnapshot { uint64_t cue_count; uint64_t skipped_cue_count; uint64_t repaired_cue_count; uint64_t unsu",
+      "mapping": [
+        "P8F metrics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 186,
+      "sha256": "c898dc500ad13baa0f5d34de104ad8887c17971ac5d03a4f8f486447a50b811c",
+      "excerpt": "uint64_t packet_queue_depth; uint64_t packet_queue_bytes; uint64_t peak_packet_queue_bytes; uint64_t packet_drop_count;  uint64_t visible_cue_count; uint64_t vi",
+      "mapping": [
+        "P8F observer",
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 187,
+      "sha256": "a51977950483f8a3e9db9ca5c7f214336803bc3a393c596788daead1a246f4f7",
+      "excerpt": "} KivoSubtitleMetricsSnapshot;",
+      "mapping": [
+        "P8F metrics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 188,
+      "sha256": "e58eb8aa69c74421e22b2e9cc61060204444e1ddfd69196aebb20ea79c36011b",
+      "excerpt": "---  # 16. ResourceAccessToken  ```c id=\"p8v155-resource-token\" typedef enum KivoSubtitleResourceAccessKind {     KivoSubtitleResourceAccessKind_None = 0,     K",
+      "mapping": [
+        "P8D/P8F resource token",
+        "P8E frame lease",
+        "P8F snapshot lease"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 189,
+      "sha256": "3808c4af0e57b9b8c42b4bf087fbc8458878096451aad9ac03fcda653fd2d703",
+      "excerpt": "Rules：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 190,
+      "sha256": "8a56661bc5b43767a3a060872351803e634cc870597b685c589969fcbb6bdaad",
+      "excerpt": "```text id=“p8v155-resource-rules” FrameLease token: kind = FrameLease lease_id = frame_lease.lease_id lease_generation = frame_lease.lease_generation snapshot_",
+      "mapping": [
+        "P8E frame lease"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 191,
+      "sha256": "846dfa7f1fd5deaa1b023b975f7ab17ec663d4d49583f348e283d76b62a7ca49",
+      "excerpt": "SnapshotLease token: kind = SnapshotLease snapshot_lease_id = snapshot_lease.snapshot_lease_id snapshot_lease_generation = snapshot_lease.snapshot_lease_generat",
+      "mapping": [
+        "P8F snapshot lease"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 192,
+      "sha256": "69ed48baf9b8a79c3459031547193d32e861ec4502cdeb9ba5d75a9763b8cfb4",
+      "excerpt": "snapshot_revision is required for both token kinds. Only the other-kind ID/generation fields must be zero. Non-zero irrelevant ID/generation fields -> Malformed",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 193,
+      "sha256": "b03d6347a588b64b7e1e6dcdc214436a83a4595f325078f750e7f6ef7aa5d2a0",
+      "excerpt": "---  # 17. Discovery API Additions  ## 17.1 Begin request flags  ```text id=\"p8v155-discovery-flags\" KivoSubtitleDiscoveryBeginRequest.flags: bit 0 = allow_cand",
+      "mapping": [
+        "P8D discovery"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 194,
+      "sha256": "0973cfd32b0652469c3272a7d8ccb61242bb422cb10765e18192cc4a9198957c",
+      "excerpt": "17.2 Priority rule fix",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 195,
+      "sha256": "7a7e944ece903b6baff06ca60c8686de23ac1dd714de1d42dd6e50ef60bb16c9",
+      "excerpt": "text id=\"p8v155-discovery-priority\" 1. user_added first. 2. forced match when prefer_forced. 3. exact language match. 4. default_suffix when prefer_default. 5. ",
+      "mapping": [
+        "P8D discovery"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 196,
+      "sha256": "ddd40e10d6abe1a1d2f548bed29e930c1d755a09cf99853db593b183679a7a3a",
+      "excerpt": "18. Cancellation View",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 197,
+      "sha256": "4841bc737b7f2910335c961c2b1e72df01100550e4eb84428587b105fdf8ac96",
+      "excerpt": "volatile uint32_t* is forbidden as cross-thread synchronization contract.",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 198,
+      "sha256": "c24c9cbeaedc0f9c4d560df1dcdbeb34cbc80693cd5aa4206d4d60cf621ffe95",
+      "excerpt": "```c id=“p8v155-cancel-view” typedef struct KivoSubtitleCancellationView { uint64_t operation_id; void* user_data;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 199,
+      "sha256": "01e90076b9e58340c744bd45ba1c7d9d33c0cafa67cfe100caf80b7756985063",
+      "excerpt": "KivoP8CallbackStatus (KIVO_P8_CALL *is_cancelled)(     void* user_data,     uint64_t operation_id,     uint32_t* out_cancelled ) KIVO_P8_NOEXCEPT;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 200,
+      "sha256": "a29f27ba9767ad45a68559410ee1dc6ca4bdddb679ff89b9ea6b1594f81fd13f",
+      "excerpt": "} KivoSubtitleCancellationView;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 201,
+      "sha256": "a8ea342e571f1e01b855add1a43ad132a20381cbbd8c6fcaf3fc7f47bfd7551f",
+      "excerpt": "Rules：  ```text id=\"p8v155-cancel-rules\" 1. out_cancelled == NULL -> InvalidArgument. 2. is_cancelled may be called from worker thread. 3. callback must be thre",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 202,
+      "sha256": "4ee7cca4c1824d83f47428ee2cef0c2b518d3853a18b47b73ca89989199c6611",
+      "excerpt": "19. Observer Callbacks",
+      "mapping": [
+        "P8F observer",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 203,
+      "sha256": "99e8f3c3d6df7bb03e875f2022cd3be2d8a92db51d5dd9e991ed9d3af4375419",
+      "excerpt": "```c id=“p8v155-observer” typedef struct KivoSubtitleEvent KivoSubtitleEvent;",
+      "mapping": [
+        "P8F observer"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 204,
+      "sha256": "5312ceac71416d988f3896860fe913bc0f33784b431adf4c829673a1ef200c9d",
+      "excerpt": "typedef struct KivoSubtitleObserverCallbacks { KivoP8AbiHeader header;",
+      "mapping": [
+        "P8F observer"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 205,
+      "sha256": "6368b32c94b82f86500d268285574f74d4bb6cda9a3dfac723611e76a165d4db",
+      "excerpt": "void (KIVO_P8_CALL *on_event)(     void* user_data,     const KivoSubtitleEvent* event ) KIVO_P8_NOEXCEPT;",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 206,
+      "sha256": "6675e0ee58cbcf7c233ed2593618d4577eb6bd36bca596781a1b7e08302b2342",
+      "excerpt": "} KivoSubtitleObserverCallbacks;",
+      "mapping": [
+        "P8F observer"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 207,
+      "sha256": "ddec266c19f069ec116f2e98a2564da40f0b41e911ee22acd6acedf78a9a898f",
+      "excerpt": "Rules：  ```text id=\"p8v155-observer-rules\" 1. callbacks == NULL or callbacks->on_event == NULL -> subscribe returns invalid token. 2. Observer callback must not",
+      "mapping": [
+        "P8F observer"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 208,
+      "sha256": "a48f01eab0e9b13c1bc90f542b263ab1498e1a2f07f65eef4df8cb5df53fede9",
+      "excerpt": "20. Embedded Stream End Request",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 209,
+      "sha256": "2a9ed592dd493dfd32766132210170b00153c5c753f7dc3d271bf52ae6a2dfe7",
+      "excerpt": "c id=\"p8v155-stream-end\" typedef struct KivoEmbeddedSubtitleStreamEndRequest {     KivoP8AbiHeader header;     KivoSubtitleTrackId track_id;     KivoSubtitlePac",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 210,
+      "sha256": "5c722444acdf3f7a770f3dfdd1317b527aa32544ea5374dd16d1c6bad08e4d1a",
+      "excerpt": "Flags：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 211,
+      "sha256": "e7abc2404afbc451778154f121a00b442089ced49b6ae0fc003ae484a4c640c5",
+      "excerpt": "text id=\"p8v155-stream-end-flags\" bit 0 = eos bit 1 = source_discontinuity bit 2 = parser_drain_requested",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 212,
+      "sha256": "3808c4af0e57b9b8c42b4bf087fbc8458878096451aad9ac03fcda653fd2d703",
+      "excerpt": "Rules：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 213,
+      "sha256": "6b079de2d6fd3f6e700999c842a5faff711d809018ff1dc433ec7e225e0ccc52",
+      "excerpt": "text id=\"p8v155-stream-end-rules\" 1. stream end with eos marks embedded stream EOS for matching packet_generation. 2. stale generation -> ignored with evidence.",
+      "mapping": [
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 214,
+      "sha256": "54923e4e0fbb07d19b019fcd01d1f6d2fd4cda8fcffaa279f329f0b0c9338de2",
+      "excerpt": "21. ASS / SSA / WebVTT Closure",
+      "mapping": [
+        "P8E SSA semantics",
+        "P8E ASS semantics",
+        "P8E WebVTT semantics",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 215,
+      "sha256": "66ed78f51ed2239bddd03bdca341685f07744dfaf61019563083b9c775ce22a7",
+      "excerpt": "21.1 SSA",
+      "mapping": [
+        "P8E SSA semantics",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 216,
+      "sha256": "15a8eee2ba010bd99c84aa4a2ef066698edb782cd9dca1f6856a55d13dcab6f4",
+      "excerpt": "text id=\"p8v155-ssa\" SSA v4.00 uses SSA style/dialogue grammar. ASS-specific tags absent in SSA are ignored/unsupported with evidence. SSA line breaks follow AS",
+      "mapping": [
+        "P8E SSA semantics",
+        "P8E ASS semantics",
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 217,
+      "sha256": "91f80fb624ebb495986f005fc7e9ce196445e1dc6a5329d95ce29968d90ff758",
+      "excerpt": "21.2 ASS color / alpha",
+      "mapping": [
+        "P8E ASS semantics",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 218,
+      "sha256": "40d05fd43518f408f498da024633bc348b31e9346b944bbfad20d507db60ec1b",
+      "excerpt": "```text id=“p8v155-ass-color” ASS color is BGR. quals \\1c. \\1c primary. \\2c secondary. \\3c outline. \\4c shadow.",
+      "mapping": [
+        "P8E ASS semantics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 219,
+      "sha256": "e9a6a2052a88f346c868a996fdcfa2a714a3b49ce268d236f5c077971effdc76",
+      "excerpt": "ASS alpha is inverse: 00 = opaque. FF = transparent.",
+      "mapping": [
+        "P8E ASS semantics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 220,
+      "sha256": "e8192545a62656c00a72406765ae4bf209f53752c305c048f25c638715a6c99e",
+      "excerpt": "applies to all channels unless channel-specific alpha overrides. \\1a/\\2a/\\3a/\\4a override matching channel. Inline override wins over style default. Malformed c",
+      "mapping": [
+        "P8E ASS semantics",
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 221,
+      "sha256": "44b0f7e10586e752c50766323c94fc621edf8f92a4242d71ed86dbc9f2a546cd",
+      "excerpt": "## 21.3 ASS PlayRes missing  ```text id=\"p8v155-playres\" If PlayResX/Y missing: 1. P8 uses NormalizedFallback. 2. P8 does not invent video pixel size. 3. emits ",
+      "mapping": [
+        "P8E ASS semantics",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 222,
+      "sha256": "240a11e22e52951be870eba36502c1192d3732e1a073e1ce94925de08c67af06",
+      "excerpt": "21.4 WebVTT cue settings",
+      "mapping": [
+        "P8E WebVTT semantics",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 223,
+      "sha256": "3556c439e013c4ebc48bd2f886244bcd96b1244915fc9577385a6cd25c272792",
+      "excerpt": "```text id=“p8v155-webvtt-settings” line: maps to line position metadata. percent uses 0.0..100.0 WebVttPercent.",
+      "mapping": [
+        "P8E WebVTT semantics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 224,
+      "sha256": "acf3f467d60f9792354c4f7055d8ba446bd8404dedf509b617dfc0ea0bf30ac8",
+      "excerpt": "position: maps to x/anchor metadata.",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 225,
+      "sha256": "97320de0f3de13da2e6316b2f7294495697b38cc3188cac63c6bd080d168898b",
+      "excerpt": "size: maps to width percent.",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 226,
+      "sha256": "0d726206f3e51bf794122389d56863b56f22049407fcb69327724af4d427ab8e",
+      "excerpt": "align: maps to horizontal alignment.",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 227,
+      "sha256": "f3d946234b4e398f93d8a54328b34e68791ac05ec4d26f3b4abb4a7859315e6d",
+      "excerpt": "vertical: stored as metadata/unsupported evidence in P8 P0.",
+      "mapping": [
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 228,
+      "sha256": "c7b9907402abf5624e59d744156b515297a10ce2d749be07344c8d505231465f",
+      "excerpt": "region: maps to SubtitleRegion if valid.",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 229,
+      "sha256": "deb74d46bbdd5a18dd99c1c3702d8f97b27a68389c12eafa1d7d72a64fc78fc5",
+      "excerpt": "snap-to-lines: stored as metadata flag; P9 decides final layout.",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 230,
+      "sha256": "8f2ae935a4d01d2c99e3db5032e837706b388e2b59bf75cf5e368ce3e7f6502d",
+      "excerpt": "---  # 22. Ambiguity Closures  ## 22.1 UINT64_MAX cap  ```text id=\"p8v155-uint64max-cap\" cap == UINT64_MAX:   return MalformedInput / InvalidCapValue. P8 P0 doe",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 231,
+      "sha256": "c6d000462b093527b2a2830b844a278c0e22baa2738f2c88c46de0c105cfc6b4",
+      "excerpt": "22.2 Late packet before timeline",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 232,
+      "sha256": "577f5b255551abe1e67ca5736a8fc011e1fa4deb94a1e42dde8430cfb9757641",
+      "excerpt": "text id=\"p8v155-late-cold-start\" If no valid timeline state has been received:   P8 must not late-drop embedded packets by playback time.   P8 may queue within ",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 233,
+      "sha256": "6e32732fdc97d98618d26eb90d9c1e1a2ec1459bc73a14a9d0b731b79da53c96",
+      "excerpt": "22.3 EOS epsilon",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 234,
+      "sha256": "984ab763abc7dd7cc36e17fb2b4cc204c2c653680f11453857205644a4b65ba6",
+      "excerpt": "text id=\"p8v155-eos-epsilon\" EOS hold epsilon = subtitle_time_compare_epsilon_us from runtime caps. If frame_duration_hint exists, effective epsilon may be clam",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 235,
+      "sha256": "ac84e2d9048630fea59babc8ec66c354dbfbb9d2fc0afa3f08c30662dfdf4820",
+      "excerpt": "22.4 Hazard retry bound",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 236,
+      "sha256": "a5de332a41660ccafe215e334d807d15ab4dee2338a6c1d7e6240260b24f2ee7",
+      "excerpt": "text id=\"p8v155-hazard-bound\" rcu_hazard_acquire_max_retries = 3 default. If retries exhausted:   build_frame returns TemporarilyUnavailable/Error by policy.   ",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 237,
+      "sha256": "287bc48f5c051e89c003d0c86713619f9bc3eb73d0dc55fa7b0c6c73aa6226f9",
+      "excerpt": "23. ABI Layout Gate",
+      "mapping": [
+        "P8G ABI layout guard",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 238,
+      "sha256": "a52058fc2dd0109ee02adca70d3dd3609937a0203501bdb34f7d70b1afd2cca1",
+      "excerpt": "All public C ABI structs must have layout tests.",
+      "mapping": [
+        "P8B public C ABI"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 239,
+      "sha256": "25b1c969b1912e56876d934cfa891279c3744b2e2fc14c60c2a756c9eac4a37a",
+      "excerpt": "Required checks：",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 240,
+      "sha256": "fa3ec51000359faaf03e5c0dd185c9ec7d9c83d05299b8ad3e5821c5937476a7",
+      "excerpt": "text id=\"p8v155-layout-gate\" 1. sizeof(struct) % 8 == 0 for all cross-DLL top-level structs. 2. _Alignof(struct) >= 8 where supported or explicitly documented n",
+      "mapping": [
+        "P8G ABI layout guard"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 241,
+      "sha256": "dda12ff60749d9a38008d4c81f8cddbbcfda04bf817a88f5c41df5eb2eb9c5d7",
+      "excerpt": "If a small wrapper struct naturally has 8-byte size but lower formal alignment:",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 242,
+      "sha256": "cf6589ea3145270f09820be6b4d573e220331957ca53932a1b1bbd61979e6ceb",
+      "excerpt": "text id=\"p8v155-small-align\" Allowed only if: 1. it contains one uint64_t field, or 2. ABI layout test records size/offset, 3. it is passed by value only where ",
+      "mapping": [
+        "P8E ASS semantics",
+        "P8G ABI layout guard"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 243,
+      "sha256": "999f73125d004ca27d46a8de34147784230ad90e6fc5bec577c2df629e10474e",
+      "excerpt": "24. Snapshot Blob Endian Responsibility",
+      "mapping": [
+        "P8F snapshot blob",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 244,
+      "sha256": "e290b1ac2801ebcc645835ef464d990458f13009341b9baa2988ed888a6430c5",
+      "excerpt": "text id=\"p8v155-endian-responsibility\" 1. P8 P0 target is Windows x64 little-endian. 2. copy_snapshot emits little-endian blob. 3. Big-endian host unsupported. ",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 245,
+      "sha256": "51341962096532e1518d6ebaa457cbcea131f4f9654c0c09cb07931f62a2d468",
+      "excerpt": "25. Snapshot / Frame Lease Close Policy",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 246,
+      "sha256": "f286e94d7eb025116cfa6f6d783fa4646c626bafa788f334c90db080930be2bf",
+      "excerpt": "text id=\"p8v155-close-lease-policy\" 1. close waits frame leases up to subtitle_frame_lease_close_timeout_ms. 2. close waits snapshot leases up to snapshot_lease",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 247,
+      "sha256": "e66d020ef541723c6ebb3da47552fc0c756eec3a43c775788cc5e2ef833ea6ee",
+      "excerpt": "26. Function Table V1",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 248,
+      "sha256": "9081e9e0aefb129960c1af95d6b35d89af0d9ad4e4042e22b29f7218f397dd26",
+      "excerpt": "The V1 function table from V1.5.4 remains, with these mandatory changes:",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 249,
+      "sha256": "750b648a5a7fa0f6dd99c592a696048f32408661609a800196e716c5e8f19df0",
+      "excerpt": "text id=\"p8v155-function-table-delta\" 1. All bare noexcept replaced by KIVO_P8_NOEXCEPT. 2. All bool returns replaced by KivoP8ApiStatus or KivoP8CallbackStatus",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 250,
+      "sha256": "d02a0e88890c653f66de51d0f89888746ab49f4e7406f4c395760ff423ebe16c",
+      "excerpt": "27. Required Tests V1.5.5",
+      "mapping": [
+        "P8G/P8H required tests",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 251,
+      "sha256": "f5ea06fa9a11dc9879a9c2f3a7fbf14a02d5f574fb62aa4ea28bfeec4ccc168d",
+      "excerpt": "```text id=“p8v155-tests” c_header_compiles_as_c c_header_no_bare_noexcept c_header_no_std_namespace bootstrap_returns_status_not_bool api_required_prefix_size_",
+      "mapping": [
+        "P8C bootstrap/function table"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 252,
+      "sha256": "80be7258ce2404b94c37c6761b6890fec3245453b85dad587f10f96cad2376b0",
+      "excerpt": "mutable_byte_span_defined input_bytes_view_name_unified no_kivo_input_bytes_view_token all_referenced_public_types_defined frame_lease_defined snapshot_lease_de",
+      "mapping": [
+        "P8F observer"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 253,
+      "sha256": "81aa73ad5f4272d699a67e8f020de3e9a2cd729720e8d1fa0b55fc0595173436",
+      "excerpt": "external_source_vtable_has_abi_header external_source_vtable_no_bare_noexcept source_reader_cancel_close_race resource_access_token_irrelevant_fields discovery_",
+      "mapping": [
+        "P8D discovery",
+        "P8F metrics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 254,
+      "sha256": "fc83c7bd868a5fce524a37a1a8157ec80da4b5533a2bb46f2a554b553ca44e7e",
+      "excerpt": "privacy_hash_algorithm_config redacted_source_identity_defined source_identity_hash_deterministic hash_key_provider_defined",
+      "mapping": [
+        "P8D/P8F privacy"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 255,
+      "sha256": "7c341f189981bf68599d9689f41e35c27a24d957a747769d712af12ba8ff124c",
+      "excerpt": "cancellation_callback_no_volatile cancellation_callback_thread_safe uint64max_cap_rejected late_packet_no_timeline_not_dropped eos_epsilon_from_runtime_caps haz",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 256,
+      "sha256": "c445003a8ff3806c0e78bc85ab687085cfc226f7f83ab4af2ecd4a7ad750a904",
+      "excerpt": "abi_layout_static_asserts_all_public_structs sizeof_offset_public_structs small_wrapper_layout_exceptions_documented close_tombstones_frame_and_snapshot_leases ",
+      "mapping": [
+        "P8E ASS semantics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 257,
+      "sha256": "edcc3a0db01600e664df64b99c159d2350c11cf2b9b394600c89f69f6a983470",
+      "excerpt": "ssa_behavior_defined ass_color_alpha_conversion ass_playres_missing_fallback webvtt_cue_settings_mapping",
+      "mapping": [
+        "P8E SSA semantics",
+        "P8E ASS semantics",
+        "P8E WebVTT semantics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 258,
+      "sha256": "5505851aa39609291ad17fb2d16f9cfc939ae6bfe16adcace1b993f6deedfc54",
+      "excerpt": "All V1.5.4 / V1.5.3 / V1.5.2 tests remain required.  ---  # 28. Exit Criteria V1.5.5  ```text id=\"p8v155-exit\" S1   C header compiles as pure C. S2   No bare no",
+      "mapping": [
+        "S1-S30 exit criteria",
+        "P8B public C ABI",
+        "P8C bootstrap/function table",
+        "P8D/P8F resource token",
+        "P8D/P8F privacy",
+        "P8D discovery",
+        "P8E SSA semantics",
+        "P8E ASS semantics",
+        "P8E WebVTT semantics",
+        "P8E frame lease",
+        "P8F snapshot lease",
+        "P8F observer",
+        "P8F metrics",
+        "P8G ABI layout guard"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 259,
+      "sha256": "ffe27b6691330a3bceaf4d75e0064ead01b0dacb39b6e4010f0317cafd888ea0",
+      "excerpt": "29. Final Report Requirements",
+      "mapping": [
+        "P8H final report",
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 260,
+      "sha256": "22e194db58c3856215736336db9007d1ab8127f43535cd16681a9405977bd6d1",
+      "excerpt": "P8A / implementation final report must include:",
+      "mapping": [
+        "P8H final report"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 261,
+      "sha256": "2b533d424f29748c071de7dc6cae93004f0cc4e2d8f65ce367239deddcce4a87",
+      "excerpt": "```text id=“p8v155-report” branch baseline_commit final_head remote_head changed_files",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 262,
+      "sha256": "aa1ff255aff46c5775cd2816b203efca3b0987f3cc571db27fc4342d4028ca87",
+      "excerpt": "public_c_header_list cpp_wrapper_header_list_if_any private_runtime_files private_test_support_files",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 263,
+      "sha256": "3f4ac30a33068283daa193ae8b6ee6b353194f3bf23a1052bd2299b344cd63da",
+      "excerpt": "C header compile result no-bare-noexcept scan result no-std-namespace scan result forbidden token scan result bootstrap symbol result api required prefix size t",
+      "mapping": [
+        "S1-S30 exit criteria",
+        "P8C bootstrap/function table",
+        "P8D/P8F privacy",
+        "P8E SSA semantics",
+        "P8E ASS semantics",
+        "P8E WebVTT semantics",
+        "P8F snapshot blob",
+        "P8F observer",
+        "P8F evidence",
+        "P8G ABI layout guard"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 264,
+      "sha256": "9688d0e47f3b61af07bbe9064ac2d862566ff7b9358a8aaa470431fd347b85d2",
+      "excerpt": "---  # 30. Closure Definition  V1.5.5 can be considered the P8 design baseline only when:  ```text id=\"p8v155-closure\" 1. All V1.5.5 exit criteria are represent",
+      "mapping": [
+        "P8B public C ABI",
+        "P8D/P8F privacy",
+        "P8F snapshot blob",
+        "P8F observer"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 265,
+      "sha256": "113d3076256760e7dea6b46dce254255c1704ab54d08f90591cd212e8d485d36",
+      "excerpt": "Implementation completion state:",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 266,
+      "sha256": "60ab0aff74db8d419b94df9dc7a8dfa9fd1b1f939db0354345d8df3450457b9a",
+      "excerpt": "text id=\"p8v155-final-state\" Subtitle Plane CLOSED. Ready for P9 Player Runtime Shell / Qt Adapter.",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 267,
+      "sha256": "efbcdc3545d8a858c5e86fa76aaee389ca5da54e44cfb4f9c644967e27cd6e25",
+      "excerpt": "31. Final Delivery Statement",
+      "mapping": [
+        "section heading/context"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 268,
+      "sha256": "f1b294b4a1fa84a7ce71a94d3587b1a2f12abe63f6495ec7313901ef6a970ac2",
+      "excerpt": "P8 implementation completed from this design must be able to state:",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 269,
+      "sha256": "38b85f4121704073981e3ad04840898fc92c05a163009413d75aec29ea8ac960",
+      "excerpt": "```text id=“p8v155-final-statement” Kivo Video P8 Subtitle Plane exposes a pure C ABI.",
+      "mapping": [
+        "P8B public C ABI"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 270,
+      "sha256": "acf1ab472fef901290a65caa20a5d41f842633d6f62c724ef879f888befdb0d0",
+      "excerpt": "The public C header compiles in a C compiler. No bare noexcept appears in the C ABI header. No std:: namespace appears in the C ABI header. The bootstrap API re",
+      "mapping": [
+        "P8B public C ABI",
+        "P8C bootstrap/function table"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 271,
+      "sha256": "1eab977283e63edca69b2749554b82fdd04d2be7b4f737d1cb7a721f8b934223",
+      "excerpt": "All referenced public C types are fully defined. KivoMutableByteSpan is defined. KivoSubtitleInputBytesView is the only input bytes view name. FrameLease, Snaps",
+      "mapping": [
+        "P8D/P8F privacy",
+        "P8E frame lease",
+        "P8F snapshot lease",
+        "P8F observer",
+        "P8F metrics",
+        "P8F evidence"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 272,
+      "sha256": "44fd7753834128936a47305523a7cbc50899454f8ab634ba8d759311ecd25f70",
+      "excerpt": "Source reader vtable is versioned. Observer callback table is versioned. Cancellation uses callback-based polling, not volatile pointer. ResourceAccessToken rul",
+      "mapping": [
+        "P8D source reader",
+        "P8D/P8F resource token",
+        "P8D discovery",
+        "P8F snapshot blob",
+        "P8F observer",
+        "P8F metrics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 273,
+      "sha256": "cc19e9ef49291895d343f7b57b3c618988f8adb89429fe612a2bf0a5ed7ef12f",
+      "excerpt": "Privacy hash algorithm and key provider are defined. source_identity_hash, basename_hash, and content_fingerprint_hash have deterministic rules. UINT64_MAX caps",
+      "mapping": [
+        "P8D/P8F privacy"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 274,
+      "sha256": "89d8b6f19a0084527838cce2add6548146e74401f1f06ec7317aa3bfd7583b9b",
+      "excerpt": "SSA behavior, ASS color/alpha, ASS PlayRes missing fallback, and WebVTT cue settings are defined.",
+      "mapping": [
+        "P8E SSA semantics",
+        "P8E ASS semantics",
+        "P8E WebVTT semantics"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 275,
+      "sha256": "6a2f9afa87dce7c716cc69fa04c7db2a7da64164fe48659de75cb4605e986108",
+      "excerpt": "Public headers contain no Qt/FFmpeg/Win32 renderer types and no forbidden C++ ABI types. Frame path contains no mutex/shared_mutex/blocking wait. No P4/P5/P6/P7",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    },
+    {
+      "paragraph": 276,
+      "sha256": "c11bf4232b3c2b26abfe7e889ef8e13005f0333673f0ad8f3d15015fb4d0fdad",
+      "excerpt": "END OF KIVO VIDEO P8 SUBTITLE PLANE DESIGN V1.5.5",
+      "mapping": [
+        "context paragraph checked"
+      ],
+      "status": "CHECKED"
+    }
+  ],
+  "allowed_files": [
+    "artifacts/p8/evidence/P8H-003R.json",
+    "docs/roadmap/p8_source_reconciliation.md"
+  ],
+  "forbidden_files_checked": [
+    "No submission before DOCX reconciliation",
+    "No execution-card-only coverage claim",
+    "No generic PASS for unmapped design text"
+  ],
+  "exit_criteria_covered": [
+    "P8H-003R"
+  ],
+  "not_verified_boundaries": [
+    "Earlier V1.5.4/V1.5.3/V1.5.2 source documents remain unavailable per P8A-003"
+  ],
+  "stop_condition": false
+}

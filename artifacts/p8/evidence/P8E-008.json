@@ -1,0 +1,37 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8E-008",
+  "stage": "P8E",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 sections 22.4, 25, and 31",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8e_frame_lease_tests\" --output-on-failure --timeout 30",
+    "rg -n \"std::mutex|std::shared_mutex|condition_variable|\\.wait\\(|WaitFor|Sleep\\(|CreateFile|ReadFile|WriteFile|blocking\" backend\\src\\video\\subtitle_plane\\frame backend\\include_private\\video\\subtitle_plane\\frame backend\\tests\\video\\subtitle_plane\\frame"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/frame/frame_build_api.cpp",
+    "backend/src/video/subtitle_plane/frame/frame_hot_path_guard.cpp",
+    "backend/src/video/subtitle_plane/frame/frame_lease_pool.cpp",
+    "backend/tests/video/subtitle_plane/frame/p8e_frame_lease_tests.cpp"
+  ],
+  "result": "Frame hot path uses bounded state checks and fixed-slot lease accounting; contention simulation returns NotReady, and blocking primitive scan has no matches.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/frame/**",
+    "backend/include_private/video/subtitle_plane/frame/**",
+    "backend/tests/video/subtitle_plane/frame/**"
+  ],
+  "forbidden_files_checked": [
+    "std::mutex",
+    "std::shared_mutex",
+    "condition_variable wait",
+    "Win32 blocking waits",
+    "blocking I/O"
+  ],
+  "exit_criteria_covered": [
+    "Frame hot path non-blocking"
+  ],
+  "not_verified_boundaries": [
+    "Broader race/property stress continues in P8G-006"
+  ],
+  "stop_condition": false
+}

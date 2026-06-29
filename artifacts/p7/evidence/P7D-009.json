@@ -1,0 +1,56 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7D-009",
+  "stage": "P7D",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 15..20, 38",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7D-009"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7D-009.json",
+    "docs/roadmap/p7d_closure_report.md"
+  ],
+  "commands": [
+    {
+      "command": "cmake --build --preset vs-debug --target kivo_video_playback_graph_tests --config Debug",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P7 aggregate test target built successfully with P7D sources."
+    },
+    {
+      "command": "ctest --preset vs-debug -R \"kivo_p7(b_public_contract|c_command_state|d_async_generation)_tests\" --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "3/3 P7B-P7D tests passed."
+    },
+    {
+      "command": "P7D hot path and atomic/ring forbidden token scans",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P7D_HOT_PATH_FORBIDDEN_TOKEN_SCAN_OK and P7D_ATOMIC_RING_FORBIDDEN_SCAN_OK."
+    }
+  ],
+  "gate_results": [
+    "P7D-001 CONTRACT_PASS",
+    "P7D-002 CONTRACT_PASS",
+    "P7D-003 CONTRACT_PASS",
+    "P7D-004 CONTRACT_PASS",
+    "P7D-005 CONTRACT_PASS",
+    "P7D-006 CONTRACT_PASS",
+    "P7D-007 CONTRACT_PASS",
+    "P7D-008 CONTRACT_PASS"
+  ],
+  "exit_criteria_covered": [
+    "G11-G15 async operation identity/completion/timeout foundation",
+    "G23-G26 generation, critical ring, realtime slot, hot-path guard foundation",
+    "G35 fake foundation for later behavior coordinators",
+    "G45-G46 hot-path and evidence-loss preliminary coverage"
+  ],
+  "not_verified_boundaries": [
+    "P7D does not claim playback behavior completion before P7E",
+    "P7D does not integrate real P5/P6 attachments",
+    "P7D does not implement snapshot observer/evidence sink final behavior before P7F"
+  ],
+  "stop_condition": false
+}

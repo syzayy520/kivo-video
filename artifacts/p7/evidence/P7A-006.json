@@ -1,0 +1,40 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7A-006",
+  "stage": "P7A",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7A-006",
+    "user authorization in current thread"
+  ],
+  "commands": [
+    {
+      "command": "User instruction",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "User instructed Codex to continue gate-by-gate, not stop before full P7 completion, and to make professional corrections when design details are unreasonable while preserving the strongest-player quality target."
+    }
+  ],
+  "artifacts": [
+    "artifacts/p7/evidence/P7A-006.json"
+  ],
+  "allowed_files": [
+    "artifacts/p7/evidence/P7A-006.json"
+  ],
+  "forbidden_files_checked": [
+    "No implementation files created before this authorization evidence",
+    "No external workspace used for implementation"
+  ],
+  "exit_criteria_covered": [
+    "P7B implementation authorized after P7A evidence"
+  ],
+  "not_verified_boundaries": [
+    "Authorization does not waive evidence, tests, no-omission, or iron-gate requirements"
+  ],
+  "stop_condition": false,
+  "authorization_scope": [
+    "Proceed through P7A-P7H in C:/kivo video",
+    "Correct design issues only with evidence and documented rationale",
+    "Do not deliver until P7 is fully complete and verified"
+  ]
+}

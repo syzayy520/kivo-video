@@ -1,0 +1,35 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8H-001",
+  "stage": "P8H",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 final delivery gate; S1 and S29",
+  "commands": [
+    "cmake --build --preset vs-debug --target kivo_video_subtitle_plane_tests -- /m",
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p(7|8).*\" --output-on-failure --timeout 60"
+  ],
+  "artifacts": [
+    "build\\vs-debug\\backend",
+    "backend\\tests\\video\\playback_graph\\**",
+    "backend\\tests\\video\\subtitle_plane\\**"
+  ],
+  "result": "Build PASS and accumulated P7/P8 CTest PASS: 20/20 tests passed.",
+  "allowed_files": [
+    "backend/tests/video/playback_graph/**",
+    "backend/tests/video/subtitle_plane/**",
+    "backend/src/video/playback_graph/**",
+    "backend/src/video/subtitle_plane/**",
+    "include/kivo/video/playback_graph/**",
+    "include/kivo/video/subtitle_plane/**"
+  ],
+  "forbidden_files_checked": [
+    "No test-only executable substituted for CTest",
+    "No PASS claimed before command execution"
+  ],
+  "exit_criteria_covered": [
+    "S1",
+    "S29"
+  ],
+  "not_verified_boundaries": [],
+  "stop_condition": false
+}

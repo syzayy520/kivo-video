@@ -1,0 +1,15 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8C-002",
+  "stage": "P8C",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 4",
+  "commands": ["ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8c_bootstrap_command_tests\" --output-on-failure --timeout 30"],
+  "artifacts": ["backend/src/video/subtitle_plane/abi/api_bootstrap.cpp", "backend/tests/video/subtitle_plane/core/p8c_bootstrap_command_tests.cpp"],
+  "result": "Bootstrap returns KivoP8ApiStatus and handles null out_api, too-small prefix, unsupported revision, and success.",
+  "allowed_files": ["backend/src/video/subtitle_plane/abi/api_bootstrap.cpp"],
+  "forbidden_files_checked": ["No bool bootstrap return"],
+  "exit_criteria_covered": ["S4", "S5"],
+  "not_verified_boundaries": ["Unsupported big-endian host is not locally reproducible on Windows x64"],
+  "stop_condition": false
+}

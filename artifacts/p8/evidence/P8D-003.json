@@ -1,0 +1,36 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8D-003",
+  "stage": "P8D",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 9.3, section 15, S19, G-010, A-005",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8d_source_privacy_tests\" --output-on-failure --timeout 30",
+    "rg -n \"MD5|md5\" include\\kivo\\video\\subtitle_plane backend\\src\\video\\subtitle_plane backend\\include_private\\video\\subtitle_plane backend\\tests\\video\\subtitle_plane"
+  ],
+  "artifacts": [
+    "include/kivo/video/subtitle_plane/privacy/subtitle_privacy.h",
+    "backend/src/video/subtitle_plane/privacy/redacted_identity.cpp",
+    "backend/tests/video/subtitle_plane/source/p8d_source_privacy_tests.cpp"
+  ],
+  "result": "Redacted source identity calls the configured key provider for keyed policies, is deterministic for the same key, changes with a different key, returns Failed when the key provider fails, and the MD5 redline scan has no matches.",
+  "allowed_files": [
+    "include/kivo/video/subtitle_plane/privacy/**",
+    "backend/src/video/subtitle_plane/privacy/**",
+    "backend/tests/video/subtitle_plane/source/**"
+  ],
+  "forbidden_files_checked": [
+    "No raw subtitle text evidence",
+    "No provider token evidence",
+    "No MD5 reference"
+  ],
+  "exit_criteria_covered": [
+    "S19",
+    "G-010",
+    "A-005"
+  ],
+  "not_verified_boundaries": [
+    "Export privacy evidence redline and privacy mode export policy continue in P8F-008"
+  ],
+  "stop_condition": false
+}

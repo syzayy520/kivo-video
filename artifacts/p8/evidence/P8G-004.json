@@ -1,0 +1,31 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8G-004",
+  "stage": "P8G",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 27; S4, S5, S6, S7",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8(b|c)_.*\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/tests/video/subtitle_plane/abi/p8_c_header_compile_test.c",
+    "backend/tests/video/subtitle_plane/abi/p8_public_contract_tests.cpp",
+    "backend/tests/video/subtitle_plane/core/p8c_bootstrap_command_tests.cpp"
+  ],
+  "result": "Bootstrap/function-table required tests PASS: pure C header compile, status-returning bootstrap, required prefix size, prefix-too-small/null/unsupported revision behavior, and all required V1 function pointers non-null.",
+  "allowed_files": [
+    "backend/tests/video/subtitle_plane/abi/**",
+    "backend/tests/video/subtitle_plane/core/**"
+  ],
+  "forbidden_files_checked": [
+    "No direct exe substituted for CTest"
+  ],
+  "exit_criteria_covered": [
+    "S4",
+    "S5",
+    "S6",
+    "S7"
+  ],
+  "not_verified_boundaries": [],
+  "stop_condition": false
+}

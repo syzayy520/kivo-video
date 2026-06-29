@@ -1,0 +1,15 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8B-007",
+  "stage": "P8B",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 section 26",
+  "commands": ["ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8b_public_contract_tests\" --output-on-failure --timeout 30"],
+  "artifacts": ["include/kivo/video/subtitle_plane/api/subtitle_plane_api_v1.h"],
+  "result": "KivoSubtitlePlaneApiV1 begins with KivoP8AbiHeader and declares all required V1 function pointers plus required prefix size.",
+  "allowed_files": ["include/kivo/video/subtitle_plane/api/subtitle_plane_api_v1.h"],
+  "forbidden_files_checked": ["No bool-return bootstrap", "No nullable semantics claimed for required V1 pointers"],
+  "exit_criteria_covered": ["S6", "S7"],
+  "not_verified_boundaries": ["Function pointer population belongs to P8C"],
+  "stop_condition": false
+}

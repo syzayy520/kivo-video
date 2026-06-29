@@ -1,0 +1,39 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8A-001",
+  "stage": "P8A",
+  "status": "CONTRACT_PASS",
+  "source_design": "C:\\Users\\huyasi\\Downloads\\Kivo Video P8 Subtitle Plane Design V1.5.5.docx",
+  "commands": [
+    "git -c safe.directory='C:/kivo video' branch --show-current",
+    "git -c safe.directory='C:/kivo video' rev-parse HEAD",
+    "git -c safe.directory='C:/kivo video' remote -v",
+    "git -c safe.directory='C:/kivo video' status --short"
+  ],
+  "artifacts": [
+    "docs/roadmap/p8_v1.5.5_execution_card.md",
+    "docs/roadmap/p8a_planning_draft.md"
+  ],
+  "observed_branch": "kivo-video-p5a-contract-layer-001",
+  "observed_head": "48504f7fab93ec67c31de7e2571897a1375b0f26",
+  "observed_remote": "https://github.com/syzayy520/kivo-video.git",
+  "dirty_state_note": "Pre-existing P7/P6 changes are present and must not be reverted; P8 planning files are new.",
+  "allowed_files": [
+    "artifacts/p8/evidence/P8A-*.json",
+    "docs/roadmap/p8*.md",
+    "docs/design/p8/*"
+  ],
+  "forbidden_files_checked": [
+    "No git reset",
+    "No git clean",
+    "No checkout/revert of user or P7 files",
+    "No P8 implementation files retained after corrective rollback"
+  ],
+  "exit_criteria_covered": [
+    "P8A preflight"
+  ],
+  "not_verified_boundaries": [
+    "Full P8 implementation not started in this gate"
+  ],
+  "stop_condition": false
+}

@@ -1,0 +1,21 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8B-008",
+  "stage": "P8B",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 sections 2, 27",
+  "commands": [
+    "cmake --build --preset vs-debug --target kivo_video_subtitle_plane_tests -- /m",
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8b_.*\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/tests/video/subtitle_plane/abi/p8_c_header_compile_test.c",
+    "backend/tests/video/subtitle_plane/abi/p8_public_header_purist_tests.cpp"
+  ],
+  "result": "CTest 3/3 PASS; public C header compiled as C and purist forbidden-token scan passed.",
+  "allowed_files": ["backend/tests/video/subtitle_plane/abi/*", "include/kivo/video/subtitle_plane/**"],
+  "forbidden_files_checked": ["no bare noexcept", "no std::", "no Qt token", "no FFmpeg token", "no Win32 renderer token", "no KivoInputBytesView"],
+  "exit_criteria_covered": ["S1", "S2", "S3", "S9"],
+  "not_verified_boundaries": ["Full P8 runtime CTest belongs to later gates"],
+  "stop_condition": false
+}

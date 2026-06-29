@@ -1,0 +1,45 @@
+schema_version: 1
+created_at: "2026-06-29T00:00:00Z"
+task_id: "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1"
+public_headers:
+  - include/kivo/video/playback_graph/all_public_headers.hpp
+  - include/kivo/video/playback_graph/command_lifecycle_snapshot.hpp
+  - include/kivo/video/playback_graph/command_token.hpp
+  - include/kivo/video/playback_graph/generation_stamp.hpp
+  - include/kivo/video/playback_graph/p7_api_version.hpp
+  - include/kivo/video/playback_graph/playback_graph_error.hpp
+  - include/kivo/video/playback_graph/playback_graph_event.hpp
+  - include/kivo/video/playback_graph/playback_graph_ids.hpp
+  - include/kivo/video/playback_graph/playback_graph_observer.hpp
+  - include/kivo/video/playback_graph/playback_graph_policy.hpp
+  - include/kivo/video/playback_graph/playback_graph_state.hpp
+  - include/kivo/video/playback_graph/playback_session.hpp
+  - include/kivo/video/playback_graph/playback_session_snapshot.hpp
+  - include/kivo/video/playback_graph/seek_request.hpp
+  - include/kivo/video/playback_graph/snapshot_query_result.hpp
+  - include/kivo/video/playback_graph/track_switch_request.hpp
+private_header_roots:
+  - backend/include_private/video/playback_graph
+runtime_source_roots:
+  - backend/src/video/playback_graph
+fake_test_roots:
+  - backend/tests/video/playback_graph
+forbidden_public_tokens:
+  - Qt
+  - QString
+  - QObject
+  - avcodec
+  - avformat
+  - d3d11
+  - dxgi
+  - audioclient
+  - mmdeviceapi
+  - backend/include_private
+  - std::future
+  - condition_variable
+  - UnsupportedPlaybackRate
+expected_cmake_targets:
+  - kivo_video_playback_graph
+  - kivo_video_playback_graph_tests
+  - kivo_video_playback_graph_contract_tool
+  - kivo_video_playback_graph_architecture_guard

@@ -1,0 +1,33 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8F-006",
+  "stage": "P8F",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 sections 14.6 and 25; S27, I-003",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8f_snapshot_blob_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/threading/close_tombstone_policy.cpp",
+    "backend/src/video/subtitle_plane/frame/frame_lease_pool.cpp",
+    "backend/src/video/subtitle_plane/snapshot/snapshot_lease_pool.cpp",
+    "backend/tests/video/subtitle_plane/snapshot/p8f_snapshot_blob_tests.cpp"
+  ],
+  "result": "Close applies bounded tombstone accounting for active frame and snapshot leases, leaked lease counts are retained as non-sensitive metadata, and late release after close is safe.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/threading/**",
+    "backend/src/video/subtitle_plane/frame/**",
+    "backend/src/video/subtitle_plane/snapshot/**",
+    "backend/tests/video/subtitle_plane/snapshot/**"
+  ],
+  "forbidden_files_checked": [
+    "No indefinite close wait",
+    "No sensitive data retained in tombstone metadata"
+  ],
+  "exit_criteria_covered": [
+    "S27",
+    "I-003"
+  ],
+  "not_verified_boundaries": [],
+  "stop_condition": false
+}

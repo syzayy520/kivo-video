@@ -1,0 +1,15 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8C-005",
+  "stage": "P8C",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 12.3",
+  "commands": ["ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8c_bootstrap_command_tests\" --output-on-failure --timeout 30"],
+  "artifacts": ["backend/src/video/subtitle_plane/timeline/timeline_revision.cpp", "backend/src/video/subtitle_plane/frame/frame_build_api.cpp"],
+  "result": "Frame build detects stale playback revision as timeline inconsistent; equal/newer handling remains non-mutating shell.",
+  "allowed_files": ["backend/src/video/subtitle_plane/timeline/**", "backend/src/video/subtitle_plane/frame/frame_build_api.cpp"],
+  "forbidden_files_checked": ["No direct public dependency on P7 C++ types"],
+  "exit_criteria_covered": ["G-014"],
+  "not_verified_boundaries": ["Full timeline behavior continues in P8E"],
+  "stop_condition": false
+}

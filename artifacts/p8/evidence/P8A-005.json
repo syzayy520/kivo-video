@@ -1,0 +1,35 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8A-005",
+  "stage": "P8A",
+  "status": "CONTRACT_PASS",
+  "source_design": "C:\\Users\\huyasi\\Downloads\\Kivo Video P8 Subtitle Plane Design V1.5.5.docx",
+  "commands": [
+    "Get-Content docs\\roadmap\\p8a_planning_draft.md",
+    "Get-ChildItem include\\kivo\\video\\subtitle_plane,backend\\src\\video\\subtitle_plane,backend\\include_private\\video\\subtitle_plane -Recurse -File"
+  ],
+  "artifacts": [
+    "docs/roadmap/p8a_planning_draft.md"
+  ],
+  "corrective_decision": [
+    "Rejected monolithic public ABI header shape.",
+    "Rejected monolithic runtime source shape.",
+    "Locked natural C ABI header family and private runtime family before restarting implementation."
+  ],
+  "allowed_files": [
+    "docs/roadmap/p8a_planning_draft.md"
+  ],
+  "forbidden_files_checked": [
+    "No retained product P8 header/source files after corrective rollback",
+    "No common/misc/utils/helpers/shared P8 family planned",
+    "No root-level P8 files planned"
+  ],
+  "exit_criteria_covered": [
+    "Natural family tree",
+    "Single file single responsibility"
+  ],
+  "not_verified_boundaries": [
+    "Implementation files will be checked again after P8B/P8C"
+  ],
+  "stop_condition": false
+}

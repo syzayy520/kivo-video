@@ -1,0 +1,59 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7A-003R",
+  "stage": "P7A",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 section 2.1 Baseline manifest",
+    "P7 V1.9.1 section 38 G52",
+    "docs/roadmap/p7a_baseline_repair_gate.md",
+    "docs/roadmap/p7a_baseline_replacement_decision.md"
+  ],
+  "commands": [
+    {
+      "command": "Reviewed artifacts/p7/evidence/P7A-003.json",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "The original baseline search remains FAIL with stop_condition=true. Required V1.9 files were not found."
+    },
+    {
+      "command": "User instruction",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "User asked what the missing files are for, whether Codex can fill them, and requested professional decision-making."
+    }
+  ],
+  "artifacts": [
+    "artifacts/p7/evidence/P7A-003.json",
+    "artifacts/p7/evidence/P7A-003R.json",
+    "docs/roadmap/p7a_baseline_repair_gate.md",
+    "docs/roadmap/p7a_baseline_replacement_decision.md"
+  ],
+  "allowed_files": [
+    "artifacts/p7/evidence/P7A-003R.json",
+    "docs/roadmap/p7a_baseline_repair_gate.md",
+    "docs/roadmap/p7a_baseline_replacement_decision.md"
+  ],
+  "forbidden_files_checked": [
+    "No V1.9 baseline content fabricated",
+    "No placeholder docs/design/p7 baseline files created",
+    "No implementation files created by this repair decision",
+    "No CMake files modified by this repair decision"
+  ],
+  "exit_criteria_covered": [
+    "G52: accepted design-history deferral, not PASS"
+  ],
+  "not_verified_boundaries": [
+    "V1.9 carryover audit remains NOT_VERIFIED",
+    "v1_9_doc_hash_sha256 remains NOT_VERIFIED",
+    "v1_9_rule_manifest_hash_sha256 remains NOT_VERIFIED",
+    "Strict V1.9 -> V1.9.1 superset proof remains NOT_VERIFIED"
+  ],
+  "stop_condition": false,
+  "decision": {
+    "implementation_baseline": ".codex/Kivo Video P7 Playback Graph Integration Design V1.9.1.docx",
+    "implementation_baseline_sha256": "9A52A8B2C14F08F5D804771759B32520B991D7D19963A0DE49B238505D4ED05F",
+    "g52_handling": "accepted_design_history_deferral",
+    "resume_gate": "P7A-004"
+  }
+}

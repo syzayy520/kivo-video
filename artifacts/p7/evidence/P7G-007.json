@@ -1,0 +1,31 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7G-007",
+  "stage": "P7G",
+  "status": "CONTRACT_PASS",
+  "source_design": ["P7 V1.9.1 section 36", "docs/roadmap/p7_v1.9.1_execution_card.md P7G-007"],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7G-007.json",
+    "backend/tests/video/playback_graph/test_support/fake_clock.hpp",
+    "backend/tests/video/playback_graph/test_support/manual_event_pump.hpp",
+    "backend/tests/video/playback_graph/test_support/fake_attachments.hpp",
+    "backend/tests/video/playback_graph/p7g_deterministic_harness_tests.cpp"
+  ],
+  "commands": [
+    {
+      "command": "ctest --preset vs-debug -R kivo_p7g_deterministic_harness_tests --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Deterministic fake harness test passed with seed 1701, manual event pump trace, fake attachment command trace, and conflict matrix replay."
+    }
+  ],
+  "deterministic_seed": 1701,
+  "file_hashes": {
+    "backend/tests/video/playback_graph/test_support/fake_clock.hpp": "8A848B2171A4525654DD93C904D83601855FFE50CDDB14994C4569F51A275328",
+    "backend/tests/video/playback_graph/test_support/manual_event_pump.hpp": "6F7FFD074633570B6E666936379A8EFDE63DE0CE38D04996C5FD05BCB4C52F79",
+    "backend/tests/video/playback_graph/test_support/fake_attachments.hpp": "D6F2167191572551077F7202FD428E90B3644166A04FE3F99ACE0ECC662D53CC",
+    "backend/tests/video/playback_graph/p7g_deterministic_harness_tests.cpp": "E0556F40D89FBDF8457637F5926008398ECAA2E92B12B97567CA7AD50B17ECFF"
+  },
+  "forbidden_operations_checked": ["No session state reused across behavior tests", "No fuzz evidence without seed", "No hardware/runtime claim from fake tests"],
+  "stop_condition": false
+}

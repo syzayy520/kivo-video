@@ -1,0 +1,33 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8G-007",
+  "stage": "P8G",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 sections 0, 28, and 31; S30",
+  "commands": [
+    "& 'C:\\Users\\huyasi\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe' backend\\tools\\video\\subtitle_plane\\architecture_guard\\p8_natural_tree_guard.py",
+    "& 'C:\\Users\\huyasi\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd\\git.exe' -c safe.directory='C:/kivo video' status --short -- include/kivo/video/audio_plane include/kivo/video_plane backend/include/kivo/cinema_engine/subtitle_core include/kivo/video/playback_graph"
+  ],
+  "artifacts": [
+    "backend/tools/video/subtitle_plane/architecture_guard/p8_natural_tree_guard.py"
+  ],
+  "result": "Architecture guard PASS: P8 public/private families are under subtitle_plane, no dumping-ground family, max P8 product/public file 127 lines. Frozen-boundary status shows only include/kivo/video/playback_graph as P7 phase output; P8 additions are in subtitle_plane.",
+  "allowed_files": [
+    "backend/tools/video/subtitle_plane/architecture_guard/**",
+    "include/kivo/video/subtitle_plane/**",
+    "backend/src/video/subtitle_plane/**",
+    "backend/include_private/video/subtitle_plane/**"
+  ],
+  "forbidden_files_checked": [
+    "No P8 root-level source file",
+    "No public ABI dependency on private runtime",
+    "No P4/P5/P6 public contract edit from P8"
+  ],
+  "exit_criteria_covered": [
+    "S30"
+  ],
+  "not_verified_boundaries": [
+    "P7 playback_graph files are intentionally retained for the combined P7+P8 commit"
+  ],
+  "stop_condition": false
+}

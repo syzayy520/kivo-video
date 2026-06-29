@@ -1,0 +1,38 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8G-002",
+  "stage": "P8G",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 sections 2, 7, 18, and 27; S2, S3, S9, S20",
+  "commands": [
+    "& 'C:\\Users\\huyasi\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe' backend\\tools\\video\\subtitle_plane\\c_header_purist\\p8_c_header_purist.py",
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8b_public_header_purist_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/tools/video/subtitle_plane/c_header_purist/p8_c_header_purist.py",
+    "backend/tests/video/subtitle_plane/abi/p8_public_header_purist_tests.cpp",
+    "include/kivo/video/subtitle_plane/**"
+  ],
+  "result": "Public C header purist tool and CTest scanner PASS: no std::, bare noexcept, C++ ABI tokens, Qt/FFmpeg/Win32 renderer tokens, KivoInputBytesView, or volatile cancellation pointer.",
+  "allowed_files": [
+    "backend/tools/video/subtitle_plane/c_header_purist/**",
+    "backend/tests/video/subtitle_plane/abi/**",
+    "include/kivo/video/subtitle_plane/**"
+  ],
+  "forbidden_files_checked": [
+    "std::",
+    "noexcept",
+    "Qt",
+    "FFmpeg",
+    "Win32 renderer",
+    "volatile cancellation pointer"
+  ],
+  "exit_criteria_covered": [
+    "S2",
+    "S3",
+    "S9",
+    "S20"
+  ],
+  "not_verified_boundaries": [],
+  "stop_condition": false
+}

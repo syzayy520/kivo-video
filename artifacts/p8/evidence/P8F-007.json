@@ -1,0 +1,32 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8F-007",
+  "stage": "P8F",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 sections 5, 14.4, and 15; S18, G-013",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8f_text_font_privacy_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/text/text_buffer_store.cpp",
+    "backend/src/video/subtitle_plane/text/font_blob_store.cpp",
+    "backend/src/video/subtitle_plane/text/text_access_api.cpp",
+    "backend/tests/video/subtitle_plane/text/p8f_text_font_privacy_tests.cpp"
+  ],
+  "result": "FrameLease resource token allows cue text copy by TextBufferId with required-size and buffer-too-small behavior; SnapshotLease resource token allows FontBlobId copy; cross-token access is rejected and snapshot blob does not embed text buffers.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/text/**",
+    "backend/tests/video/subtitle_plane/text/**"
+  ],
+  "forbidden_files_checked": [
+    "No text buffers embedded in snapshot blob",
+    "SnapshotLease does not expose cue text",
+    "No raw font names in evidence"
+  ],
+  "exit_criteria_covered": [
+    "S18",
+    "G-013"
+  ],
+  "not_verified_boundaries": [],
+  "stop_condition": false
+}

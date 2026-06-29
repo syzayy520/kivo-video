@@ -1,0 +1,15 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8B-005",
+  "stage": "P8B",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 section 7",
+  "commands": ["ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8b_public_header_purist_tests\" --output-on-failure --timeout 30"],
+  "artifacts": ["include/kivo/video/subtitle_plane/input/subtitle_input_views.h"],
+  "result": "KivoSubtitleInputStringView, KivoSubtitleInputBytesView, and KivoMutableByteSpan are defined; forbidden KivoInputBytesView token scan passed.",
+  "allowed_files": ["include/kivo/video/subtitle_plane/input/*.h"],
+  "forbidden_files_checked": ["No KivoInputBytesView token", "No size_t byte-count fields"],
+  "exit_criteria_covered": ["S8", "S9"],
+  "not_verified_boundaries": ["Runtime input lifetime validation belongs to P8D"],
+  "stop_condition": false
+}

@@ -1,0 +1,34 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8E-007",
+  "stage": "P8E",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 13, S11, G-005",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8e_frame_lease_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "include/kivo/video/subtitle_plane/frame/subtitle_frame_lease.h",
+    "backend/src/video/subtitle_plane/frame/frame_lease_pool.cpp",
+    "backend/src/video/subtitle_plane/frame/frame_build_api.cpp",
+    "backend/tests/video/subtitle_plane/frame/p8e_frame_lease_tests.cpp"
+  ],
+  "result": "Frame lease build covers Empty, Ok, PoolExhausted, Closed, zero no-release, duplicate release rejection, and opaque frame pointer release without dereference.",
+  "allowed_files": [
+    "include/kivo/video/subtitle_plane/frame/**",
+    "backend/src/video/subtitle_plane/frame/**",
+    "backend/tests/video/subtitle_plane/frame/**"
+  ],
+  "forbidden_files_checked": [
+    "No dereference of opaque frame pointer in release",
+    "No indefinite frame lease acquisition block"
+  ],
+  "exit_criteria_covered": [
+    "S11",
+    "G-005"
+  ],
+  "not_verified_boundaries": [
+    "SnapshotLease lifecycle is P8F-001"
+  ],
+  "stop_condition": false
+}

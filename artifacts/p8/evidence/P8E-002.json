@@ -1,0 +1,36 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8E-002",
+  "stage": "P8E",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 sections 6, 11, 15, and 21",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8e_style_semantics_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/format/style_semantics_api.cpp",
+    "backend/src/video/subtitle_plane/format/ass_semantics.cpp",
+    "backend/src/video/subtitle_plane/format/ssa_semantics.cpp",
+    "backend/src/video/subtitle_plane/format/webvtt_semantics.cpp",
+    "backend/tests/video/subtitle_plane/format/p8e_style_semantics_tests.cpp"
+  ],
+  "result": "Deterministic P8 parser-semantics path rejects malformed input views, unsupported bitmap format classification, malformed ASS color, SSA executable/ASS-only tags, and unsupported WebVTT region metadata.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/format/**",
+    "backend/tests/video/subtitle_plane/format/**"
+  ],
+  "forbidden_files_checked": [
+    "No online subtitle search",
+    "No OCR",
+    "No AI subtitle runtime",
+    "No renderer responsibility"
+  ],
+  "exit_criteria_covered": [
+    "Parser semantic validation",
+    "S28 partial support"
+  ],
+  "not_verified_boundaries": [
+    "Full media decoder integration is outside P8; P8 owns deterministic subtitle-plane semantics and evidence"
+  ],
+  "stop_condition": false
+}

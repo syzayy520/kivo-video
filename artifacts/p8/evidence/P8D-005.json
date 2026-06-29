@@ -1,0 +1,34 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8D-005",
+  "stage": "P8D",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 11",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8d_source_privacy_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "include/kivo/video/subtitle_plane/format/subtitle_format.h",
+    "backend/src/video/subtitle_plane/format/format_track_classification.cpp",
+    "backend/include_private/video/subtitle_plane/format/format_track_classification.hpp",
+    "backend/tests/video/subtitle_plane/source/p8d_source_privacy_tests.cpp"
+  ],
+  "result": "Text formats SRT/ASS/SSA/WebVTT, bitmap formats PGS/VobSub/DVBSub, MP4 WebVTT, Matroska SRT/ASS/UTF8 text, MOV text unsupported, and text/bitmap track-kind boundaries are covered.",
+  "allowed_files": [
+    "include/kivo/video/subtitle_plane/format/**",
+    "backend/src/video/subtitle_plane/format/**",
+    "backend/include_private/video/subtitle_plane/format/**",
+    "backend/tests/video/subtitle_plane/source/**"
+  ],
+  "forbidden_files_checked": [
+    "No bitmap subtitle renderer added in P8",
+    "No FFmpeg type leakage into public ABI"
+  ],
+  "exit_criteria_covered": [
+    "G-012 partial format taxonomy coverage"
+  ],
+  "not_verified_boundaries": [
+    "SSA/ASS/WebVTT parser semantics are P8E-004 through P8E-006"
+  ],
+  "stop_condition": false
+}

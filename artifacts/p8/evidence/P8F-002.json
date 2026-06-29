@@ -1,0 +1,35 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8F-002",
+  "stage": "P8F",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 sections 14.3, 14.4, 14.5, and 14.6; S17, S18, G-004",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8f_snapshot_blob_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/snapshot/snapshot_blob_writer.cpp",
+    "backend/include_private/video/subtitle_plane/snapshot/snapshot_blob_writer.hpp",
+    "backend/tests/video/subtitle_plane/snapshot/p8f_snapshot_blob_tests.cpp"
+  ],
+  "result": "Snapshot copy emits P8SB magic, revision, alignment-compatible header, total bytes, four section entries, inline metrics, and no embedded string table or text buffer.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/snapshot/**",
+    "backend/include_private/video/subtitle_plane/snapshot/**",
+    "backend/tests/video/subtitle_plane/snapshot/**"
+  ],
+  "forbidden_files_checked": [
+    "No string table embedded",
+    "No text buffers embedded",
+    "No host-endian ambiguous blob claim"
+  ],
+  "exit_criteria_covered": [
+    "S17",
+    "S18",
+    "G-004"
+  ],
+  "not_verified_boundaries": [
+    "Snapshot text/font access remains external through resource tokens and is covered by P8F-007"
+  ],
+  "stop_condition": false
+}

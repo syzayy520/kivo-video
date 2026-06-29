@@ -1,0 +1,58 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7A-001",
+  "stage": "P7A",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 section 2.2",
+    "P7 V1.9.1 section 39",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7A-001"
+  ],
+  "commands": [
+    {
+      "command": "git -c safe.directory='C:/kivo video' status --short",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Workspace is dirty before P7 implementation. Existing modified files: backend/tests/video/audio_plane/p6d_wasapi_output_tests/wasapi_output_backend_tests.cpp; backend/tools/governance/redline_gate/artifacts/redline_gate_result.json. Existing untracked items include .codebuddy/teams/, the P7 V1.9.1 source DOCX, tmp_* readonly artifacts, and the P7 execution card created before this gate."
+    },
+    {
+      "command": "git -c safe.directory='C:/kivo video' branch --show-current",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Current branch: kivo-video-p5a-contract-layer-001"
+    },
+    {
+      "command": "git -c safe.directory='C:/kivo video' rev-parse HEAD",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Initial HEAD: 48504f7fab93ec67c31de7e2571897a1375b0f26"
+    },
+    {
+      "command": "git -c safe.directory='C:/kivo video' branch -r; git -c safe.directory='C:/kivo video' show-ref refs/remotes/origin/main; git -c safe.directory='C:/kivo video' merge-base HEAD origin/main",
+      "cwd": "C:/kivo video",
+      "exit_code": 1,
+      "summary": "Remote origin/main exists at 7718d67be98f6ee32837ffc89fd5eb24f481329a, but merge-base HEAD origin/main returned exit code 1. Baseline commit is not established by merge-base in this checkout."
+    }
+  ],
+  "artifacts": [
+    "artifacts/p7/evidence/P7A-001.json"
+  ],
+  "allowed_files": [
+    "artifacts/p7/evidence/P7A-001.json"
+  ],
+  "forbidden_files_checked": [
+    "No source files modified by this gate",
+    "No CMake files modified by this gate",
+    "No new worktree or clone created"
+  ],
+  "exit_criteria_covered": [],
+  "not_verified_boundaries": [
+    "baseline_commit remains NOT_VERIFIED because git merge-base HEAD origin/main failed",
+    "pre-existing dirty files are not classified as P7 changes"
+  ],
+  "stop_condition": false,
+  "notes": [
+    "P7 implementation must not stage or revert pre-existing dirty files.",
+    "C:/kivo video remains the only working directory."
+  ]
+}

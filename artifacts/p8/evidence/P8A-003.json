@@ -1,0 +1,33 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8A-003",
+  "stage": "P8A",
+  "status": "CONTRACT_PASS",
+  "source_design": "C:\\Users\\huyasi\\Downloads\\Kivo Video P8 Subtitle Plane Design V1.5.5.docx",
+  "commands": [
+    "rg -n \"P8|V1\\.5\\.4|V1\\.5\\.3|V1\\.5\\.2|Subtitle Plane|subtitle plane\" .codex .codebuddy docs include backend tests -g '!build/**' -g '!vcpkg_installed/**'"
+  ],
+  "artifacts": [
+    "docs/roadmap/p8a_planning_draft.md"
+  ],
+  "baseline_findings": [
+    "No verified P8 V1.5.4/V1.5.3/V1.5.2 source document was found in the workspace search.",
+    "V1.5.5 explicitly lists the required V1.5.5 tests and says earlier tests remain required, but earlier source text is unavailable.",
+    "Implementation will use V1.5.5 as the latest authoritative source and keep earlier-version carryover as a not-verified boundary rather than fabricating content."
+  ],
+  "allowed_files": [
+    "artifacts/p8/evidence/P8A-003.json",
+    "docs/roadmap/p8a_planning_draft.md"
+  ],
+  "forbidden_files_checked": [
+    "No V1.5.4/V1.5.3/V1.5.2 content fabricated",
+    "No older document substituted for V1.5.5"
+  ],
+  "exit_criteria_covered": [
+    "Carryover baseline decision"
+  ],
+  "not_verified_boundaries": [
+    "Earlier P8 source documents are not available in current local context"
+  ],
+  "stop_condition": false
+}

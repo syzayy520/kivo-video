@@ -1,0 +1,66 @@
+task_id: KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5
+source: Kivo Video P8 Subtitle Plane Design V1.5.5.docx
+abi_revision: 155
+criteria:
+  - {id: S1, gate: P8B-008, evidence: artifacts/p8/evidence/P8B-008.json}
+  - {id: S2, gate: P8G-002, evidence: artifacts/p8/evidence/P8G-002.json}
+  - {id: S3, gate: P8G-002, evidence: artifacts/p8/evidence/P8G-002.json}
+  - {id: S4, gate: P8G-004, evidence: artifacts/p8/evidence/P8G-004.json}
+  - {id: S5, gate: P8G-004, evidence: artifacts/p8/evidence/P8G-004.json}
+  - {id: S6, gate: P8G-004, evidence: artifacts/p8/evidence/P8G-004.json}
+  - {id: S7, gate: P8G-004, evidence: artifacts/p8/evidence/P8G-004.json}
+  - {id: S8, gate: P8B-005, evidence: artifacts/p8/evidence/P8B-005.json}
+  - {id: S9, gate: P8G-002, evidence: artifacts/p8/evidence/P8G-002.json}
+  - {id: S10, gate: P8G-001, evidence: artifacts/p8/evidence/P8G-001.json}
+  - {id: S11, gate: P8F-001, evidence: artifacts/p8/evidence/P8F-001.json}
+  - {id: S12, gate: P8F-005, evidence: artifacts/p8/evidence/P8F-005.json}
+  - {id: S13, gate: P8D-006, evidence: artifacts/p8/evidence/P8D-006.json}
+  - {id: S14, gate: P8D-001, evidence: artifacts/p8/evidence/P8D-001.json}
+  - {id: S15, gate: P8D-002, evidence: artifacts/p8/evidence/P8D-002.json}
+  - {id: S16, gate: P8D-004, evidence: artifacts/p8/evidence/P8D-004.json}
+  - {id: S17, gate: P8F-002, evidence: artifacts/p8/evidence/P8F-002.json}
+  - {id: S18, gate: P8F-007, evidence: artifacts/p8/evidence/P8F-007.json}
+  - {id: S19, gate: P8F-008, evidence: artifacts/p8/evidence/P8F-008.json}
+  - {id: S20, gate: P8C-007, evidence: artifacts/p8/evidence/P8C-007.json}
+  - {id: S21, gate: P8C-006, evidence: artifacts/p8/evidence/P8C-006.json}
+  - {id: S22, gate: P8E-003, evidence: artifacts/p8/evidence/P8E-003.json}
+  - {id: S23, gate: P8E-009, evidence: artifacts/p8/evidence/P8E-009.json}
+  - {id: S24, gate: P8E-009, evidence: artifacts/p8/evidence/P8E-009.json}
+  - {id: S25, gate: P8G-003, evidence: artifacts/p8/evidence/P8G-003.json}
+  - {id: S26, gate: P8F-003, evidence: artifacts/p8/evidence/P8F-003.json}
+  - {id: S27, gate: P8F-006, evidence: artifacts/p8/evidence/P8F-006.json}
+  - {id: S28, gate: P8E-006, evidence: artifacts/p8/evidence/P8E-006.json}
+  - {id: S29, gate: P8H-001, evidence: artifacts/p8/evidence/P8H-001.json}
+  - {id: S30, gate: P8H-002, evidence: artifacts/p8/evidence/P8H-002.json}
+design_deltas:
+  - C-001
+  - C-002
+  - C-003
+  - C-004
+  - C-005
+  - G-001
+  - G-002
+  - G-003
+  - G-004
+  - G-005
+  - G-006
+  - G-007
+  - G-008
+  - G-009
+  - G-010
+  - G-011
+  - G-012
+  - G-013
+  - G-014
+  - G-015
+  - A-001
+  - A-002
+  - A-003
+  - A-004
+  - A-005
+  - I-001
+  - I-002
+  - I-003
+carryover_boundary:
+  earlier_sources: not_found_in_workspace
+  evidence: artifacts/p8/evidence/P8A-003.json

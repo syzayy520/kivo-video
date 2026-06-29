@@ -1,0 +1,53 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7B-005",
+  "stage": "P7B",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 5.5, 14, 24, 26",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7B-005"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7B-005.json",
+    "include/kivo/video/playback_graph/seek_request.hpp",
+    "include/kivo/video/playback_graph/track_switch_request.hpp",
+    "include/kivo/video/playback_graph/playback_graph_event.hpp",
+    "backend/tests/video/playback_graph/p7b_public_contract_tests.cpp"
+  ],
+  "commands": [
+    {
+      "command": "ctest --preset vs-debug -R kivo_p7b_public_contract_tests --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "SeekRequest, track-switch requests, AV atomicity default, and PlaybackGraphEvent availability passed public contract test."
+    }
+  ],
+  "contracts_locked": [
+    "SeekRequest",
+    "SeekKind",
+    "AudioTrackSwitchRequest",
+    "VideoTrackSwitchRequest",
+    "AvTrackSetSwitchRequest",
+    "TrackSwitchAtomicity",
+    "PlaybackGraphEvent",
+    "PlaybackGraphEventKind",
+    "SystemEvent",
+    "SystemEventKind"
+  ],
+  "allowed_operations_checked": [
+    "Request/result/event value shapes only",
+    "Track-switch requests reserve a 64-bit opaque subtitle slot without defining subtitle schema"
+  ],
+  "forbidden_operations_checked": [
+    "No subtitle timeline/stamp/anchor schema",
+    "No subtitle parser or renderer",
+    "No backend seek or track-switch implementation in P7B"
+  ],
+  "exit_criteria_covered": [
+    "G39 seek/track-switch public request surface preliminary coverage"
+  ],
+  "not_verified_boundaries": [
+    "Same-track no-op behavior and atomic commit semantics require P7E coordinator tests"
+  ],
+  "stop_condition": false
+}

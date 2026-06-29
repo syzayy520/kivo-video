@@ -1,0 +1,58 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7B-006",
+  "stage": "P7B",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 21.1, 21.3, 21.4",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7B-006"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7B-006.json",
+    "include/kivo/video/playback_graph/playback_session_snapshot.hpp",
+    "include/kivo/video/playback_graph/snapshot_query_result.hpp",
+    "include/kivo/video/playback_graph/playback_graph_observer.hpp",
+    "include/kivo/video/playback_graph/playback_graph_ids.hpp"
+  ],
+  "commands": [
+    {
+      "command": "ctest --preset vs-debug -R kivo_p7b_public_contract_tests --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Snapshot value defaults, typed SnapshotQueryResult default success, and observer/subscription types compiled in the public contract test."
+    },
+    {
+      "command": "P7B public forbidden scan for backend private and unbounded observer/snapshot dependency tokens",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "No backend private includes or forbidden platform/provider dependencies found."
+    }
+  ],
+  "contracts_locked": [
+    "PlaybackSessionSnapshot by value",
+    "SnapshotQueryResult<T> typed value result",
+    "AudioQueueSnapshot",
+    "VideoQueueSnapshot",
+    "ClockSnapshot",
+    "GraphObserverHandle",
+    "GraphObserverCallback",
+    "SubscriptionToken",
+    "ObserverDeliveryPolicy"
+  ],
+  "allowed_operations_checked": [
+    "Snapshot and query results are bounded public value contracts",
+    "Observer callback is C-style function pointer with opaque user data"
+  ],
+  "forbidden_operations_checked": [
+    "No dangling snapshot pointer contract",
+    "No unbounded STL string in observer callback ABI",
+    "No observer delivery implementation on GraphOwnerThread or hot path in P7B"
+  ],
+  "exit_criteria_covered": [
+    "G44 observer/snapshot ABI preliminary coverage"
+  ],
+  "not_verified_boundaries": [
+    "Observer delivery threading and snapshot production semantics are P7F runtime gates"
+  ],
+  "stop_condition": false
+}

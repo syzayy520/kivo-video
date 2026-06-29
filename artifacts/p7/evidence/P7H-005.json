@@ -1,0 +1,17 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7H-005",
+  "stage": "P7H",
+  "status": "CONTRACT_PASS",
+  "git_status_summary": [
+    "M backend/CMakeLists.txt",
+    "pre-existing: M backend/tests/video/audio_plane/p6d_wasapi_output_tests/wasapi_output_backend_tests.cpp",
+    "pre-existing: M backend/tools/governance/redline_gate/artifacts/redline_gate_result.json",
+    "P7 new roots under artifacts/p7, backend/include_private/video/playback_graph, backend/src/video/playback_graph, backend/tests/video/playback_graph, backend/tools/video/playback_graph, docs/design/p7, docs/roadmap, include/kivo/video/playback_graph"
+  ],
+  "staged_files": [],
+  "expected_commit_count_model": "one P7 commit is possible if user requests commit; no commit was requested in this gate",
+  "final_commit_sha": null,
+  "forbidden_operations_checked": ["No unrelated existing dirty files staged", "No force push", "No commit used as gate evidence"],
+  "stop_condition": false
+}

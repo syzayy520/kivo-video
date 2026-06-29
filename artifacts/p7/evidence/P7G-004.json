@@ -1,0 +1,28 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7G-004",
+  "stage": "P7G",
+  "status": "CONTRACT_PASS",
+  "source_design": ["P7 V1.9.1 section 35", "docs/roadmap/p7_v1.9.1_execution_card.md P7G-004"],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7G-004.json",
+    "backend/tools/video/playback_graph/architecture_guard/exception_manifest.yaml",
+    "backend/tools/video/playback_graph/architecture_guard/p7_arch_guard.py",
+    "artifacts/p7/tooling/p7_arch_guard_report.json"
+  ],
+  "commands": [
+    {
+      "command": "bundled python backend/tools/video/playback_graph/architecture_guard/p7_arch_guard.py",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Architecture guard report generated with public_header_purity=true, public_hits=[], private_bad_family_names=[], public_exception_count=0."
+    }
+  ],
+  "file_hashes": {
+    "backend/tools/video/playback_graph/architecture_guard/exception_manifest.yaml": "8894873880C3E310CF32884019A25D5F5B07DDA78F201B9AE1B74AA563C6158C",
+    "backend/tools/video/playback_graph/architecture_guard/p7_arch_guard.py": "3AE6A20D8D00EE2F2349DF088100169E8490AF282D90116929D9FC02A9C204A7",
+    "artifacts/p7/tooling/p7_arch_guard_report.json": "14B0091466C00C7CA214A94EE1FE13C09CBFD670964986C5460D7F5B5D560D66"
+  },
+  "forbidden_operations_checked": ["No public include exceptions", "No Qt/FFmpeg/D3D/WASAPI/provider/subtitle runtime dependencies in public include"],
+  "stop_condition": false
+}

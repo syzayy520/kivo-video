@@ -1,0 +1,31 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8A-002",
+  "stage": "P8A",
+  "status": "CONTRACT_PASS",
+  "source_design": "C:\\Users\\huyasi\\Downloads\\Kivo Video P8 Subtitle Plane Design V1.5.5.docx",
+  "commands": [
+    "Get-FileHash -LiteralPath 'C:\\Users\\huyasi\\Downloads\\Kivo Video P8 Subtitle Plane Design V1.5.5.docx' -Algorithm SHA256",
+    "Python zipfile+xml extraction of word/document.xml"
+  ],
+  "artifacts": [
+    "docs/roadmap/p8_v1.5.5_execution_card.md"
+  ],
+  "source_sha256": "9AC07D575468533312CB403CED5CD368372F2DC248CC5232F3B492B8F72B4197",
+  "source_status": "FINAL_DESIGN_BASELINE_CANDIDATE_FOR_P8A_IMPLEMENTATION_PLANNING",
+  "extracted_paragraph_count": 276,
+  "allowed_files": [
+    "artifacts/p8/evidence/P8A-002.json"
+  ],
+  "forbidden_files_checked": [
+    "DOCX was not edited",
+    "No older P8 document substituted for V1.5.5"
+  ],
+  "exit_criteria_covered": [
+    "P8 V1.5.5 source lock"
+  ],
+  "not_verified_boundaries": [
+    "DOCX visual layout is not relevant to this implementation gate"
+  ],
+  "stop_condition": false
+}

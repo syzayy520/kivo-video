@@ -1,0 +1,31 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8E-004",
+  "stage": "P8E",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 21.1 and S28",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8e_style_semantics_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/format/ssa_semantics.cpp",
+    "backend/include_private/video/subtitle_plane/format/ssa_semantics.hpp",
+    "backend/tests/video/subtitle_plane/format/p8e_style_semantics_tests.cpp"
+  ],
+  "result": "SSA semantics preserve explicit \\N line breaks and reject ASS-specific position/move/fade tags with executable/script-semantics evidence.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/format/**",
+    "backend/include_private/video/subtitle_plane/format/**",
+    "backend/tests/video/subtitle_plane/format/**"
+  ],
+  "forbidden_files_checked": [
+    "SSA is not treated as fully equivalent to ASS",
+    "Executable/script semantics are not silently accepted"
+  ],
+  "exit_criteria_covered": [
+    "S28",
+    "G-012"
+  ],
+  "not_verified_boundaries": [],
+  "stop_condition": false
+}

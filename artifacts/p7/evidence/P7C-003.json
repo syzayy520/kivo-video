@@ -1,0 +1,43 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7C-003",
+  "stage": "P7C",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 6.6, 6.7",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7C-003"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7C-003.json",
+    "backend/src/video/playback_graph/session/playback_session_runtime.cpp",
+    "backend/src/video/playback_graph/session/playback_session_facade.cpp",
+    "backend/tests/video/playback_graph/p7c_command_state_tests.cpp"
+  ],
+  "commands": [
+    {
+      "command": "ctest --preset vs-debug -R kivo_p7c_command_state_tests --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Open/start flow passed: open reaches Ready, start from Ready reaches Starting, resume from Ready rejects InvalidState."
+    }
+  ],
+  "tests_covered": [
+    "open with source_id creates graph resources and reaches Ready",
+    "start from Ready accepts and enters Starting",
+    "resume from Ready rejects InvalidState, proving start is not resume",
+    "no public play API remains present from P7B signature lock",
+    "invalid source open returns typed SourceOpenFailed"
+  ],
+  "allowed_operations_checked": [
+    "Implemented command acceptance path and dispatch for open/start/pause/resume/seek/track-switch/close/system-event public facade"
+  ],
+  "forbidden_operations_checked": [
+    "Open is not playback start",
+    "Start is not resume",
+    "No UI play semantics added"
+  ],
+  "design_corrections": [
+    "P7C does not perform same-track no-op for track switching because the public P7B request currently carries target track id only, not current track context. Same-track no-op must close in P7E when the coordinator owns current track state."
+  ],
+  "stop_condition": false
+}

@@ -1,0 +1,31 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8G-001",
+  "stage": "P8G",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 sections 27, 28, and 30",
+  "commands": [
+    "& 'C:\\Users\\huyasi\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe' backend\\tools\\video\\subtitle_plane\\matrix_codegen\\p8_manifest_check.py"
+  ],
+  "artifacts": [
+    "docs/design/p8/KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5.rule_manifest.yaml",
+    "backend/tools/video/subtitle_plane/matrix_codegen/p8_manifest_check.py",
+    "docs/roadmap/p8_exit_criteria_s1_s30_matrix.md"
+  ],
+  "result": "Manifest check PASS: S1-S30 and required C/G/A/I design IDs are mapped to gates and evidence targets.",
+  "allowed_files": [
+    "docs/design/p8/**",
+    "backend/tools/video/subtitle_plane/matrix_codegen/**",
+    "docs/roadmap/p8_exit_criteria_s1_s30_matrix.md"
+  ],
+  "forbidden_files_checked": [
+    "No manual-only closure without machine-readable manifest"
+  ],
+  "exit_criteria_covered": [
+    "S10"
+  ],
+  "not_verified_boundaries": [
+    "Final S1-S30 status closure is repeated in P8H-003 after source DOCX reconciliation"
+  ],
+  "stop_condition": false
+}

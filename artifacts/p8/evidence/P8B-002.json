@@ -1,0 +1,20 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8B-002",
+  "stage": "P8B",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 sections 3, 4",
+  "commands": ["ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8b_.*\" --output-on-failure --timeout 30"],
+  "artifacts": [
+    "include/kivo/video/subtitle_plane/foundation/p8_version.h",
+    "include/kivo/video/subtitle_plane/foundation/p8_status.h",
+    "include/kivo/video/subtitle_plane/foundation/p8_abi_header.h",
+    "include/kivo/video/subtitle_plane/api/subtitle_plane_api_v1.h"
+  ],
+  "result": "ABI version 1.5.5 revision 155, KivoP8ApiStatus, KivoP8AbiHeader, bootstrap declaration, and required prefix constant are defined.",
+  "allowed_files": ["include/kivo/video/subtitle_plane/foundation/*.h", "include/kivo/video/subtitle_plane/api/*.h"],
+  "forbidden_files_checked": ["Bootstrap does not return bool", "No size_t byte-count ABI fields introduced"],
+  "exit_criteria_covered": ["S4", "S5"],
+  "not_verified_boundaries": ["Bootstrap implementation belongs to P8C"],
+  "stop_condition": false
+}

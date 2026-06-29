@@ -1,0 +1,35 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8H-003",
+  "stage": "P8H",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 final S1-S30 closure and source-doc reconciliation gate",
+  "commands": [
+    "& 'C:\\Users\\huyasi\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe' backend\\tools\\video\\subtitle_plane\\matrix_codegen\\p8_manifest_check.py",
+    "& 'C:\\Users\\huyasi\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe' backend\\tools\\video\\subtitle_plane\\matrix_codegen\\p8_docx_reconcile.py 'C:\\Users\\huyasi\\Downloads\\Kivo Video P8 Subtitle Plane Design V1.5.5.docx'",
+    "& 'C:\\Users\\huyasi\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe' -c \"import json, pathlib; p=pathlib.Path('artifacts/p8/evidence/P8H-003R.json'); d=json.loads(p.read_text(encoding='utf-8')); assert d['status']=='CONTRACT_PASS'; assert d['paragraph_count']==276; assert d['missing_manifest_markers']==[]; assert d['missing_section_heading_numbers']==[]; print('python_json_ok', d['status'], d['paragraph_count'], d['missing_manifest_markers'])\""
+  ],
+  "artifacts": [
+    "docs\\design\\p8\\KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5.rule_manifest.yaml",
+    "docs\\roadmap\\p8_exit_criteria_s1_s30_matrix.md",
+    "docs\\roadmap\\p8_source_reconciliation.md",
+    "artifacts\\p8\\evidence\\P8H-003R.json"
+  ],
+  "result": "Manifest check PASS, original DOCX reconciliation PASS, 276 nonempty paragraphs checked, section headings 0..31 recognized, no missing manifest markers, and S1-S30 matrix closed.",
+  "allowed_files": [
+    "docs/design/p8/**",
+    "docs/roadmap/p8_*.md",
+    "artifacts/p8/evidence/P8H-003R.json"
+  ],
+  "forbidden_files_checked": [
+    "No paragraph-level reconciliation omitted",
+    "No S1-S30 NOT_IMPLEMENTED status remains"
+  ],
+  "exit_criteria_covered": [
+    "S1-S30"
+  ],
+  "not_verified_boundaries": [
+    "DOCX visual rendering was attempted but blocked by local render dependencies; text/OOXML paragraph reconciliation is the authoritative P8H source-doc gate."
+  ],
+  "stop_condition": false
+}

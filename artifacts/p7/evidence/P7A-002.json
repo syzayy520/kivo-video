@@ -1,0 +1,46 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7A-002",
+  "stage": "P7A",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 1, 38, 39",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7A-002"
+  ],
+  "commands": [
+    {
+      "command": "Get-FileHash -Algorithm SHA256 -LiteralPath 'C:/kivo video/.codex/Kivo Video P7 Playback Graph Integration Design V1.9.1.docx'",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "SHA256: 9A52A8B2C14F08F5D804771759B32520B991D7D19963A0DE49B238505D4ED05F"
+    },
+    {
+      "command": "Bundled Python zipfile + xml.etree.ElementTree extraction of word/document.xml",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Extracted 549 non-empty paragraphs. First paragraph: Kivo Video P7 Playback Graph Integration 设计书 V1.9.1. Last paragraph: END OF KIVO VIDEO P7 PLAYBACK GRAPH INTEGRATION DESIGN V1.9.1."
+    }
+  ],
+  "artifacts": [
+    "artifacts/p7/evidence/P7A-002.json",
+    ".codex/Kivo Video P7 Playback Graph Integration Design V1.9.1.docx"
+  ],
+  "allowed_files": [
+    "artifacts/p7/evidence/P7A-002.json"
+  ],
+  "forbidden_files_checked": [
+    "Source DOCX was read-only for this gate",
+    "No implementation files created",
+    "No CMake files modified"
+  ],
+  "exit_criteria_covered": [
+    "G52 source document hash prerequisite for V1.9.1 source only"
+  ],
+  "not_verified_boundaries": [
+    "This gate verifies the V1.9.1 DOCX only; it does not verify the required V1.9 baseline manifest."
+  ],
+  "stop_condition": false,
+  "notes": [
+    "Extraction method used only local workspace source and bundled Python runtime."
+  ]
+}

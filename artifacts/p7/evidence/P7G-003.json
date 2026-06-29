@@ -1,0 +1,27 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7G-003",
+  "stage": "P7G",
+  "status": "CONTRACT_PASS",
+  "source_design": ["P7 V1.9.1 sections 34, 39", "docs/roadmap/p7_v1.9.1_execution_card.md P7G-003"],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7G-003.json",
+    "backend/tools/video/playback_graph/contract_header_diff/p7_contract_header_diff.py",
+    "artifacts/p7/tooling/p7_header_diff_report.json"
+  ],
+  "commands": [
+    {
+      "command": "bundled python backend/tools/video/playback_graph/contract_header_diff/p7_contract_header_diff.py",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Header diff report generated: expected_count=16, actual_count=16, missing=[], extra=[], private_header_count=29, fake_test_header_count=3."
+    }
+  ],
+  "diff_summary": {"expected_count": 16, "actual_count": 16, "missing": [], "extra": []},
+  "file_hashes": {
+    "backend/tools/video/playback_graph/contract_header_diff/p7_contract_header_diff.py": "302291A02E2C272D5CA234C557B90F1D2AE6281BBC5F6F57D3DDA5C0F318FB3E",
+    "artifacts/p7/tooling/p7_header_diff_report.json": "04D955F896F50CA63F8CCD90051E00DA7310D7C689D30F7EAEFC47972BF61D22"
+  },
+  "forbidden_operations_checked": ["Tool returns nonzero on mismatch", "Diff compares public, private, and fake/test header counts"],
+  "stop_condition": false
+}

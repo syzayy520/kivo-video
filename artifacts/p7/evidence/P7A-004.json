@@ -1,0 +1,96 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7A-004",
+  "stage": "P7A",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 4, 5, 9, 15, 21, 33, 34",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7A-004",
+    "artifacts/p7/evidence/P7A-003R.json"
+  ],
+  "commands": [
+    {
+      "command": "rg --files backend/include/kivo/cinema_engine filtered by playback_core/graph_core/engine_api/session/source/capability/disc",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P3/P4 legacy cinema engine surfaces exist under backend/include/kivo/cinema_engine. Key areas include engine_api, playback_core, graph_core, session_core, playback_plan_core, playback_inspector_core, source_core, capability_core, and disc_core."
+    },
+    {
+      "command": "rg --files include/kivo/video_plane filtered by output_boundary/queue/state_monitor/input_bridge/gpu_render/timing/timebase/failure/recovery/evidence/thread/protected",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P5 video plane public contract surfaces exist under include/kivo/video_plane. Key areas include output_boundary, input_bridge, timing, queue, GPU render, protected content/output, recovery, failure, evidence, and thread."
+    },
+    {
+      "command": "rg --files include/kivo/video/audio_plane backend/include_private/video/audio_plane filtered by boundary/clock/render/platform/runtime/output/decode/capability/recovery/gapless/passthrough/rate/channel/evidence/frame/conversion",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P6 audio plane public/private surfaces exist. Public P6 contract headers live under include/kivo/video/audio_plane. Private real runtime headers live under backend/include_private/video/audio_plane. Real P6 runtime sources live under backend/src/video/audio_plane."
+    },
+    {
+      "command": "Bundled Python count of P3/P4, P5, P6 roots",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Counts: backend/include/kivo/cinema_engine 276 headers in 51 dirs; include/kivo/video_plane 219 headers in 44 dirs; include/kivo/video/audio_plane 320 headers in 40 dirs; backend/include_private/video/audio_plane 21 headers in 10 dirs; backend/src/video/audio_plane 30 files in 9 dirs."
+    },
+    {
+      "command": "Get-Content engine_command.hpp playback_state.hpp graph_runtime_state.hpp audio_packet_boundary_item.hpp p5_audio_packet_import_view.hpp audio_clock_snapshot.hpp p6_capability_snapshot.hpp",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Observed boundary facts: P4/engine EngineCommand uses std::string command_id and EngineCommandKind Open/Play/Pause/Seek/Recover/Close; PlaybackState has Ready/Playing/Paused/Seeking/Buffering/SwitchingTrack/Recovering/Draining/Ended/Failed/Closed; GraphRuntimeState has graph_generation; P5 output_boundary AudioPacketBoundaryItem is compact and string-based; P6 P5AudioPacketImportView has 27 fields; P6 AudioClockSnapshot and P6CapabilitySnapshot are typed value contracts."
+    },
+    {
+      "command": "Get-Content backend/CMakeLists.txt and rg CMake P5/P6 targets",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "CMake pattern: P5/P6 contract libraries are INTERFACE libraries under root include; tests are executable targets added in backend/CMakeLists.txt; P6 uses C++23 and has architecture guard test. No separate backend/tests/CMakeLists.txt exists."
+    }
+  ],
+  "artifacts": [
+    "artifacts/p7/evidence/P7A-004.json"
+  ],
+  "allowed_files": [
+    "artifacts/p7/evidence/P7A-004.json"
+  ],
+  "forbidden_files_checked": [
+    "No P4/P5/P6 headers modified",
+    "No source files modified",
+    "No CMake files modified",
+    "No P7 implementation files created"
+  ],
+  "exit_criteria_covered": [
+    "G28 planning input: public include minimized",
+    "G30 planning input: gap levels identified",
+    "G42 planning input: P5/P6 snapshot query typed result targets identified",
+    "G49 planning input: contract manifest dependency roots identified",
+    "G59 planning input: architecture exception roots identified"
+  ],
+  "gap_classification": [
+    {
+      "gap": "P4 lacks typed PlaybackCommandId and PlaybackRevision in current public headers; EngineCommand uses std::string command_id and no typed revision.",
+      "classification": "SoftBlockingGap",
+      "blocking_minimal_fake_e2e": false,
+      "blocking_real_backend": true,
+      "blocking_public_api": false,
+      "planned_handling": "P7 defines strong PlaybackCommandId, PlaybackRevision, GraphSnapshotRevision, and GenerationStamp. P4StateSyncAdapter isolates legacy P4 command_id/revision absence without modifying P4 locked files."
+    },
+    {
+      "gap": "V1.9 carryover baseline absent.",
+      "classification": "AcceptedDesignHistoryDeferral",
+      "blocking_minimal_fake_e2e": false,
+      "blocking_real_backend": false,
+      "blocking_public_api": false,
+      "planned_handling": "Use P7 V1.9.1 DOCX as authoritative implementation baseline; retain NOT_VERIFIED reporting for V1.9 carryover."
+    }
+  ],
+  "not_verified_boundaries": [
+    "Real P4 PlaybackRevision semantics remain NOT_VERIFIED because current P4 has no typed revision contract.",
+    "P5/P6 real runtime integration remains NOT_VERIFIED until P7 fake integration and later real adapter gates run.",
+    "V1.9 carryover remains NOT_VERIFIED by P7A-003R decision."
+  ],
+  "stop_condition": false,
+  "notes": [
+    "P7 can proceed to planning with adapter isolation and no modification to locked P4/P5/P6 files.",
+    "C:/kivo video remains the only working directory."
+  ]
+}

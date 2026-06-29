@@ -1,0 +1,36 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8F-008",
+  "stage": "P8F",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 sections 9.3, 15, and 31; S19, G-010",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8f_text_font_privacy_tests\" --output-on-failure --timeout 30",
+    "rg -n 'MD5|md5|provider[_-]?token|secret|password|https?://[^\\s]+\\?|C:\\\\Users\\\\huyasi\\\\Videos|raw subtitle|font name' include\\kivo\\video\\subtitle_plane backend\\src\\video\\subtitle_plane backend\\include_private\\video\\subtitle_plane"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/privacy/privacy_redline_policy.cpp",
+    "backend/tests/video/subtitle_plane/text/p8f_text_font_privacy_tests.cpp"
+  ],
+  "result": "Strict and DiagnosticRedacted privacy modes are export-safe, DiagnosticVerboseLocalOnly is not export-safe, and the production privacy redline scan has no matches after classifying resource_access_token as a legitimate non-provider token false positive.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/privacy/**",
+    "backend/tests/video/subtitle_plane/text/**"
+  ],
+  "forbidden_files_checked": [
+    "Raw media paths",
+    "URL query strings",
+    "Provider tokens",
+    "MD5",
+    "Raw subtitle evidence",
+    "Unredacted font names"
+  ],
+  "exit_criteria_covered": [
+    "S19",
+    "G-010"
+  ],
+  "not_verified_boundaries": [
+    "Final repository-wide redline scan repeats in P8H-002"
+  ],
+  "stop_condition": false
+}

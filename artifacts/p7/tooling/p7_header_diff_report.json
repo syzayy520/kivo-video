@@ -1,0 +1,8 @@
+{
+  "expected_count": 16,
+  "actual_count": 16,
+  "missing": [],
+  "extra": [],
+  "private_header_count": 29,
+  "fake_test_header_count": 3
+}

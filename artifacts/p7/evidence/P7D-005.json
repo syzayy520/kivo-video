@@ -1,0 +1,53 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7D-005",
+  "stage": "P7D",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 3.3, 17",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7D-005"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7D-005.json",
+    "backend/include_private/video/playback_graph/generation/generation_stamp_publisher.hpp",
+    "backend/src/video/playback_graph/generation/generation_stamp_publisher.cpp",
+    "backend/tests/video/playback_graph/p7d_async_generation_tests.cpp"
+  ],
+  "commands": [
+    {
+      "command": "ctest --preset vs-debug -R kivo_p7d_async_generation_tests --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "GenerationStampPublisher tests passed for PendingBarrier, Active, Retired, unstable read, max attempts, and hot-path active-only acceptance."
+    },
+    {
+      "command": "P7D atomic forbidden scan for atomic<GenerationStamp>, atomic<GenerationTuple>, atomic<__int128>",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P7D_ATOMIC_RING_FORBIDDEN_SCAN_OK"
+    }
+  ],
+  "tests_covered": [
+    "Odd writer sequence produces unstable read",
+    "Reader attempts exactly max_attempt_count before unstable result",
+    "PendingBarrier is rejected for hot path",
+    "Active is accepted for hot path",
+    "Retired is rejected for hot path",
+    "Lock-free uint64 static_assert is present"
+  ],
+  "allowed_operations_checked": [
+    "Uses exactly three atomic<uint64_t> fields for sequence, tuple id, and encoded stream/state"
+  ],
+  "forbidden_operations_checked": [
+    "No atomic<GenerationStamp>",
+    "No atomic<GenerationTuple>",
+    "No atomic<__int128>",
+    "No off-by-one retry semantics detected by tests",
+    "No PendingBarrier or Retired hot-path acceptance"
+  ],
+  "file_hashes": {
+    "backend/include_private/video/playback_graph/generation/generation_stamp_publisher.hpp": "4408C4598AFCF01A99D488C3B60D48D780A3BF916DAAEBFD5691F50E77FB5BA3",
+    "backend/src/video/playback_graph/generation/generation_stamp_publisher.cpp": "7CE4E96A16A69B4BC19F0A0B66C4F5C6B8619602C8D4FAAF40620E550E4992DB"
+  },
+  "stop_condition": false
+}

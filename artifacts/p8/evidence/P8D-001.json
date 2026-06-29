@@ -1,0 +1,36 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8D-001",
+  "stage": "P8D",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 10 and S14",
+  "commands": [
+    "cmake --build --preset vs-debug --target kivo_video_subtitle_plane_tests -- /m",
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8(b|c|d)_.*\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "include/kivo/video/subtitle_plane/source/subtitle_source.h",
+    "backend/src/video/subtitle_plane/source/source_descriptor_validation.cpp",
+    "backend/src/video/subtitle_plane/source/external_reader_lifecycle.cpp",
+    "backend/tests/video/subtitle_plane/source/p8d_source_privacy_tests.cpp"
+  ],
+  "result": "Source descriptor validation covers FilePathUtf8, MemoryBytes, Reader, ProviderByteStream, EmbeddedTrack, invalid pointer/length combinations, and external reader open/read/cancel/close lifecycle.",
+  "allowed_files": [
+    "include/kivo/video/subtitle_plane/source/**",
+    "backend/src/video/subtitle_plane/source/**",
+    "backend/tests/video/subtitle_plane/source/**"
+  ],
+  "forbidden_files_checked": [
+    "No P4/P5/P6/P7 public contract edit",
+    "No public C++ ABI dependency",
+    "No raw path evidence artifact"
+  ],
+  "exit_criteria_covered": [
+    "S14",
+    "G-001"
+  ],
+  "not_verified_boundaries": [
+    "Multi-thread stress for cancel/read/close remains assigned to P8G-006 bounded race tests"
+  ],
+  "stop_condition": false
+}

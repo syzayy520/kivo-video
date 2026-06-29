@@ -1,0 +1,21 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8B-001",
+  "stage": "P8B",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 sections 2, 28",
+  "commands": [
+    "python backend/tools/video/subtitle_plane/architecture_guard/p8_natural_tree_guard.py",
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8b_.*\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "include/kivo/video/subtitle_plane/foundation/p8_export.h",
+    "include/kivo/video/subtitle_plane/kivo_subtitle_plane.h"
+  ],
+  "result": "Public ABI is split into semantic C header families; umbrella header is 6 lines; largest public header is 98 lines.",
+  "allowed_files": ["include/kivo/video/subtitle_plane/**"],
+  "forbidden_files_checked": ["No monolithic public ABI header", "No root-level public P8 file except umbrella", "No bare noexcept token"],
+  "exit_criteria_covered": ["S1", "S2", "S3"],
+  "not_verified_boundaries": ["Runtime behavior starts in P8C"],
+  "stop_condition": false
+}

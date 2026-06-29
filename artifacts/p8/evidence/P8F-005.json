@@ -1,0 +1,34 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8F-005",
+  "stage": "P8F",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 19; S12, G-007, G-008",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8f_observer_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "include/kivo/video/subtitle_plane/observer/subtitle_observer.h",
+    "backend/src/video/subtitle_plane/observer/observer_registry.cpp",
+    "backend/src/video/subtitle_plane/observer/observer_api.cpp",
+    "backend/tests/video/subtitle_plane/observer/p8f_observer_tests.cpp"
+  ],
+  "result": "ObserverCallbacks and SubscriptionToken are fully wired: null callbacks invalid, duplicate subscribe records overflow, embedded-stream event delivers on_event, mutating API is rejected during callback, and unsubscribe inside callback prevents later delivery.",
+  "allowed_files": [
+    "include/kivo/video/subtitle_plane/observer/**",
+    "backend/src/video/subtitle_plane/observer/**",
+    "backend/tests/video/subtitle_plane/observer/**"
+  ],
+  "forbidden_files_checked": [
+    "No mutating API accepted from observer callback",
+    "No deadlock on unsubscribe inside callback",
+    "No blocking observer delivery"
+  ],
+  "exit_criteria_covered": [
+    "S12",
+    "G-007",
+    "G-008"
+  ],
+  "not_verified_boundaries": [],
+  "stop_condition": false
+}

@@ -1,0 +1,13 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7H-002",
+  "stage": "P7H",
+  "status": "CONTRACT_PASS",
+  "commands": [
+    {"command": "Case-sensitive redline scan over P7 public/private/source files", "cwd": "C:/kivo video", "exit_code": 0, "summary": "P7H_REDLINE_SCAN_OK"},
+    {"command": "Initial broad redline scan", "cwd": "C:/kivo video", "exit_code": 0, "summary": "Broad scan produced false positives because case-insensitive UI matched uint-style tokens; refined scan is authoritative."}
+  ],
+  "scan_patterns": ["decoder implementation", "renderer implementation", "audio output backend", "provider implementation", "Qt/QML", "subtitle parser", "subtitle renderer", "subtitle runtime", "playlist orchestration", "next episode", "product-grade P10", "P10 SLA", "DRM decrypt", "key storage"],
+  "classification": {"production_pollution": 0, "doc_non_goal": 0, "test_sentinel": 0, "known_false_positive": 1},
+  "stop_condition": false
+}

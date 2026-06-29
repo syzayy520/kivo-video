@@ -1,0 +1,35 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8F-004",
+  "stage": "P8F",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 15",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8f_(snapshot_blob|observer|text_font_privacy)_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/evidence/evidence_summary.cpp",
+    "backend/src/video/subtitle_plane/metrics/metrics_api.cpp",
+    "backend/tests/video/subtitle_plane/snapshot/p8f_snapshot_blob_tests.cpp",
+    "backend/tests/video/subtitle_plane/observer/p8f_observer_tests.cpp",
+    "backend/tests/video/subtitle_plane/text/p8f_text_font_privacy_tests.cpp"
+  ],
+  "result": "Evidence summary is recorded from source/embedded events, observer overflow is counted, packet/text/font/lease/leak metrics are backed by plane state and surfaced through get_metrics and snapshot blobs.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/evidence/**",
+    "backend/src/video/subtitle_plane/metrics/**",
+    "backend/tests/video/subtitle_plane/**/p8f_*.cpp"
+  ],
+  "forbidden_files_checked": [
+    "No raw private data in evidence summary",
+    "Metrics are backed by PlaneStateRecord",
+    "Reasons are not collapsed only into ContractGap"
+  ],
+  "exit_criteria_covered": [
+    "S18"
+  ],
+  "not_verified_boundaries": [
+    "Large-scale evidence ring overflow stress continues in P8G-006"
+  ],
+  "stop_condition": false
+}

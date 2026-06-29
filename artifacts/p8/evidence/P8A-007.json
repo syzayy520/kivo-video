@@ -1,0 +1,34 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8A-007",
+  "stage": "P8A",
+  "status": "CONTRACT_PASS",
+  "source_design": "C:\\Users\\huyasi\\Downloads\\Kivo Video P8 Subtitle Plane Design V1.5.5.docx",
+  "commands": [
+    "User instruction: old rules, perfect landing, do not deliver before landing; push P7 and P8 together when complete.",
+    "User correction: enforce long-term memory, natural family tree, single-file single-responsibility, no 700+/1000+ files."
+  ],
+  "artifacts": [
+    "docs/roadmap/p8a_planning_draft.md",
+    "docs/roadmap/p8a_closure_report.md",
+    "C:\\Users\\huyasi\\.codex\\memories\\extensions\\ad_hoc\\notes\\2026-06-29T08-36-41-kivo-video-codebuddy-memory-bridge.md",
+    "C:\\Users\\huyasi\\.codex\\memories\\extensions\\ad_hoc\\notes\\2026-06-29-kivo-video-codebuddy-iron-gates.md",
+    "C:\\Users\\huyasi\\.codex\\memories\\extensions\\ad_hoc\\notes\\2026-06-29-kivo-video-preimplementation-memory-check.md"
+  ],
+  "authorization": "P8B_ALLOWED_ONLY_WITH_CORRECTIVE_NATURAL_TREE",
+  "allowed_files": [
+    "P8B files named in docs/roadmap/p8a_planning_draft.md only"
+  ],
+  "forbidden_files_checked": [
+    "Monolithic public ABI header forbidden",
+    "Monolithic runtime source forbidden",
+    "No implementation retained before corrected P8A closure"
+  ],
+  "exit_criteria_covered": [
+    "P8B authorization after P8A correction"
+  ],
+  "not_verified_boundaries": [
+    "P8B implementation not started after corrective reset"
+  ],
+  "stop_condition": false
+}

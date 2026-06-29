@@ -1,0 +1,32 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "hard_blocking_gap_count": 0,
+  "ready_for_minimal_fake_e2e": true,
+  "ready_for_real_backend": false,
+  "gaps": [
+    {
+      "id": "P7-GAP-P4-REVISION-SEMANTICS",
+      "level": "SoftBlockingGap",
+      "blocking_minimal_fake_e2e": false,
+      "blocking_real_backend": true,
+      "blocking_public_api": false,
+      "evidence": "P7C P4StateSyncAdapter fake boundary is implemented; real P4 semantic ownership remains adapter integration work."
+    },
+    {
+      "id": "P7-GAP-P5-P6-REAL-ATTACHMENTS",
+      "level": "SoftBlockingGap",
+      "blocking_minimal_fake_e2e": false,
+      "blocking_real_backend": true,
+      "blocking_public_api": false,
+      "evidence": "P7D/P7E fake async and behavior coordinators exist; real P5/P6 completion shape is not claimed."
+    },
+    {
+      "id": "P7-GAP-P10-SLA",
+      "level": "DeferredProductGap",
+      "blocking_minimal_fake_e2e": false,
+      "blocking_real_backend": false,
+      "blocking_public_api": false,
+      "evidence": "No product-grade P10 performance SLA is claimed by P7."
+    }
+  ]
+}

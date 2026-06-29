@@ -1,0 +1,36 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8H-004",
+  "stage": "P8H",
+  "status": "CONTRACT_PASS",
+  "source_design": "P8 V1.5.5 final closure report gate",
+  "commands": [
+    "Manual cross-check of docs\\roadmap\\p8_final_closure_report.md against P8A-P8H evidence files"
+  ],
+  "artifacts": [
+    "docs\\roadmap\\p8_final_closure_report.md",
+    "docs\\roadmap\\p8a_closure_report.md",
+    "docs\\roadmap\\p8b_closure_report.md",
+    "docs\\roadmap\\p8c_closure_report.md",
+    "docs\\roadmap\\p8d_closure_report.md",
+    "docs\\roadmap\\p8e_closure_report.md",
+    "docs\\roadmap\\p8f_closure_report.md",
+    "docs\\roadmap\\p8g_closure_report.md"
+  ],
+  "result": "Final closure report records implemented scope, evidence chain, validation commands, source reconciliation, frozen-surface boundary, known environment limitation, and commit readiness.",
+  "allowed_files": [
+    "docs/roadmap/p8*_closure_report.md",
+    "artifacts/p8/evidence/P8H-*.json"
+  ],
+  "forbidden_files_checked": [
+    "No final report without P8H-001..P8H-003 evidence",
+    "No PASS for local DOCX visual render"
+  ],
+  "exit_criteria_covered": [
+    "P8 final report"
+  ],
+  "not_verified_boundaries": [
+    "DOCX visual rendering remains BLOCKED_ENV and is not claimed as PASS."
+  ],
+  "stop_condition": false
+}

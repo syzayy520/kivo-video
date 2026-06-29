@@ -1,0 +1,32 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7F-007",
+  "stage": "P7F",
+  "status": "CONTRACT_PASS",
+  "source_design": ["P7 V1.9.1 sections 21, 31, 32, 38", "docs/roadmap/p7_v1.9.1_execution_card.md P7F-007"],
+  "evidence_target": ["artifacts/p7/evidence/P7F-007.json", "docs/roadmap/p7f_closure_report.md"],
+  "commands": [
+    {
+      "command": "cmake --build --preset vs-debug --target kivo_video_playback_graph_tests --config Debug",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P7 aggregate target built successfully with P7F sources."
+    },
+    {
+      "command": "ctest --preset vs-debug -R \"kivo_p7(b_public_contract|c_command_state|d_async_generation|e_behavior_coordinator|f_snapshot_evidence)_tests\" --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "5/5 P7B-P7F tests passed."
+    },
+    {
+      "command": "P7F privacy/error/observer static scan",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P7F_PRIVACY_ERROR_OBSERVER_SCAN_OK"
+    }
+  ],
+  "gate_results": ["P7F-001 CONTRACT_PASS", "P7F-002 CONTRACT_PASS", "P7F-003 CONTRACT_PASS", "P7F-004 CONTRACT_PASS", "P7F-005 CONTRACT_PASS", "P7F-006 CONTRACT_PASS"],
+  "exit_criteria_covered": ["G27", "G38-G44", "G55"],
+  "not_verified_boundaries": ["Final P7 remains pending until P7G tooling and P7H final validation complete"],
+  "stop_condition": false
+}

@@ -1,0 +1,47 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7C-008",
+  "stage": "P7C",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 13, 27",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7C-008"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7C-008.json",
+    "backend/include_private/video/playback_graph/command/pending_transport_intent.hpp",
+    "backend/src/video/playback_graph/command/pending_transport_intent.cpp",
+    "backend/include_private/video/playback_graph/coordination/recovery_replay_coordinator.hpp",
+    "backend/src/video/playback_graph/coordination/recovery_replay_coordinator.cpp",
+    "backend/tests/video/playback_graph/p7c_command_state_tests.cpp"
+  ],
+  "commands": [
+    {
+      "command": "ctest --preset vs-debug -R kivo_p7c_command_state_tests --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Pending transport and recovery replay skeleton tests passed."
+    }
+  ],
+  "tests_covered": [
+    "Latest pause/resume intent wins",
+    "Close clears pending intent",
+    "Recovery replay order is seek -> transport -> track switch",
+    "Replay validation failure rolls back and stops later replay"
+  ],
+  "allowed_operations_checked": [
+    "Transaction interfaces and fake behavior skeleton implemented without real backend side effects"
+  ],
+  "forbidden_operations_checked": [
+    "No independent queued pause and resume intents",
+    "No replay without rollback path",
+    "No continuation after failed validation"
+  ],
+  "file_hashes": {
+    "backend/include_private/video/playback_graph/command/pending_transport_intent.hpp": "2E0BB7C1DDDCF67F3FA34542C7C3833D178333D53DB68997D4BDBCBFD9ED956E",
+    "backend/src/video/playback_graph/command/pending_transport_intent.cpp": "70E5B5DD995D9C307CAD66BDC854B3E8FB86F7721429D4A81BDBEFF730DC8176",
+    "backend/include_private/video/playback_graph/coordination/recovery_replay_coordinator.hpp": "72B4E7327817441AD9D183C7862331D9A75845AE5FD5166F7367354A9675FB3B",
+    "backend/src/video/playback_graph/coordination/recovery_replay_coordinator.cpp": "CB1371C09B38DB94FC8264BBCA288A6C2CB4807AFD680A62C093D4541C4F04CD"
+  },
+  "stop_condition": false
+}

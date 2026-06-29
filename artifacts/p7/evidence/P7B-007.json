@@ -1,0 +1,65 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7B-007",
+  "stage": "P7B",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 3.4, 35, 38 G60",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7B-007"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7B-007.json",
+    "backend/CMakeLists.txt",
+    "target kivo_video_playback_graph",
+    "target kivo_video_playback_graph_tests",
+    "target kivo_video_playback_graph_contract_tool",
+    "target kivo_video_playback_graph_architecture_guard"
+  ],
+  "commands": [
+    {
+      "command": "cmake --preset vs-debug",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Visual Studio Debug configuration generated successfully."
+    },
+    {
+      "command": "cmake --build --preset vs-debug --target kivo_video_playback_graph_tests --config Debug",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "P7B aggregate test target built successfully."
+    },
+    {
+      "command": "cmake --preset ninja-debug",
+      "cwd": "C:/kivo video",
+      "exit_code": 1,
+      "summary": "Ninja configure was blocked by local toolchain environment before project code generation: CMAKE_MT-NOTFOUND and rc manifest tool failure during compiler try-compile."
+    }
+  ],
+  "targets": [
+    "kivo_video_playback_graph",
+    "kivo_video_playback_graph_tests",
+    "kivo_video_playback_graph_contract_tool",
+    "kivo_video_playback_graph_architecture_guard",
+    "kivo_p7b_public_contract_tests"
+  ],
+  "file_hashes": {
+    "backend/CMakeLists.txt": "4F9E6169C8357FEC3873471C353B84099A55442E0CADEEA52BB4D07DB796313D"
+  },
+  "allowed_operations_checked": [
+    "P7B target skeleton added without runtime sources",
+    "kivo_video_playback_graph is INTERFACE during P7B and is expected to become a runtime library in P7C",
+    "Compile-only public contract test target added"
+  ],
+  "forbidden_operations_checked": [
+    "No Qt, FFmpeg, D3D, WASAPI, provider, subtitle runtime, or fake implementation linked into P7 public API",
+    "Contract and architecture guard targets are not linked into the product public API"
+  ],
+  "exit_criteria_covered": [
+    "G60 preliminary CMake target coverage"
+  ],
+  "not_verified_boundaries": [
+    "Ninja preset remains BLOCKED_ENV by rc/mt local toolchain setup; VS Debug preset is the accepted local validation path for this P7B closure",
+    "Runtime source target conversion belongs to P7C"
+  ],
+  "stop_condition": false
+}

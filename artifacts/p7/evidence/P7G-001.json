@@ -1,0 +1,21 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7G-001",
+  "stage": "P7G",
+  "status": "CONTRACT_PASS",
+  "source_design": ["P7 V1.9.1 section 34", "docs/roadmap/p7_v1.9.1_execution_card.md P7G-001"],
+  "evidence_target": ["artifacts/p7/evidence/P7G-001.json", "backend/tools/video/playback_graph/contract_manifest.yaml"],
+  "commands": [
+    {
+      "command": "Read backend/tools/video/playback_graph/contract_manifest.yaml",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Manifest has ISO-8601 created_at, 16 expected public headers, private/runtime/fake roots, forbidden public tokens, and expected CMake targets."
+    }
+  ],
+  "file_hashes": {
+    "backend/tools/video/playback_graph/contract_manifest.yaml": "15B33FA9E97EC0AFBED2691C54F66661B99215E150C8C2343C53791E57A86BCE"
+  },
+  "forbidden_operations_checked": ["No hard-coded ad hoc header list outside manifest for P7G header diff", "created_at is ISO-8601"],
+  "stop_condition": false
+}

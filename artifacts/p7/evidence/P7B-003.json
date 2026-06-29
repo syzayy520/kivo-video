@@ -1,0 +1,57 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7B-003",
+  "stage": "P7B",
+  "status": "CONTRACT_PASS",
+  "source_design": [
+    "P7 V1.9.1 sections 6.3, 6.4, 6.5",
+    "docs/roadmap/p7_v1.9.1_execution_card.md P7B-003"
+  ],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7B-003.json",
+    "include/kivo/video/playback_graph/playback_graph_ids.hpp",
+    "include/kivo/video/playback_graph/command_token.hpp",
+    "include/kivo/video/playback_graph/command_lifecycle_snapshot.hpp",
+    "backend/tests/video/playback_graph/p7b_public_contract_tests.cpp"
+  ],
+  "commands": [
+    {
+      "command": "P7B public forbidden scan for std::future, condition_variable, wait, blocking_result",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "No blocking token/lifecycle API tokens found in P7 public headers."
+    },
+    {
+      "command": "ctest --preset vs-debug -R kivo_p7b_public_contract_tests --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "CommandToken value semantics and CommandLifecycleSnapshot defaults passed contract test."
+    }
+  ],
+  "contracts_locked": [
+    "PlaybackCommandId",
+    "GraphCorrelationId",
+    "PlaybackRevision",
+    "GraphSnapshotRevision",
+    "CommandToken",
+    "CommandLifecycleSnapshot",
+    "CommandLifecycleState",
+    "CommandTerminalStatus"
+  ],
+  "allowed_operations_checked": [
+    "Token is a non-owning value returned by command APIs",
+    "Lifecycle state is queryable through PlaybackSession::query_command"
+  ],
+  "forbidden_operations_checked": [
+    "No get/wait/blocking_result/future/condition_variable public token behavior",
+    "No hidden command record ownership by CommandToken"
+  ],
+  "exit_criteria_covered": [
+    "G3 nonblocking command token preliminary coverage",
+    "G4 command lifecycle query surface preliminary coverage"
+  ],
+  "not_verified_boundaries": [
+    "Lifecycle retention windows, tombstones, and late completion handling are P7C/P7D gates"
+  ],
+  "stop_condition": false
+}

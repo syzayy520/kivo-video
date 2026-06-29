@@ -1,0 +1,15 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8C-006",
+  "stage": "P8C",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 22.1",
+  "commands": ["ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8c_bootstrap_command_tests\" --output-on-failure --timeout 30"],
+  "artifacts": ["backend/src/video/subtitle_plane/core/runtime_caps.cpp"],
+  "result": "UINT64_MAX cap is rejected by create_plane runtime cap merge.",
+  "allowed_files": ["backend/src/video/subtitle_plane/core/runtime_caps.cpp"],
+  "forbidden_files_checked": ["No unlimited cap behavior"],
+  "exit_criteria_covered": ["S21", "A-001"],
+  "not_verified_boundaries": ["Cap-specific allocation pressure tests continue later"],
+  "stop_condition": false
+}

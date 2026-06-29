@@ -1,0 +1,31 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7G-002",
+  "stage": "P7G",
+  "status": "CONTRACT_PASS",
+  "source_design": ["P7 V1.9.1 sections 33, 37", "docs/roadmap/p7_v1.9.1_execution_card.md P7G-002"],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7G-002.json",
+    "backend/tools/video/playback_graph/contract_gap_scanner/p7_contract_gap_scanner.py",
+    "artifacts/p7/tooling/p7_contract_gap_report.json"
+  ],
+  "commands": [
+    {
+      "command": "bundled python backend/tools/video/playback_graph/contract_gap_scanner/p7_contract_gap_scanner.py",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Gap report generated with hard_blocking_gap_count=0, ready_for_minimal_fake_e2e=true, ready_for_real_backend=false."
+    }
+  ],
+  "gap_summary": {
+    "hard_blocking_gap_count": 0,
+    "ready_for_minimal_fake_e2e": true,
+    "ready_for_real_backend": false
+  },
+  "file_hashes": {
+    "backend/tools/video/playback_graph/contract_gap_scanner/p7_contract_gap_scanner.py": "761B0D7157C0A079BBED1E5753A56D2B3AF722575244407296729102D2D6FFD1",
+    "artifacts/p7/tooling/p7_contract_gap_report.json": "C4A797497F552DE504E43DBDC85FED191153F9B9536EAD0E234285E352439F72"
+  },
+  "forbidden_operations_checked": ["No HardBlockingGap hidden as TODO", "Ready is not reported for real backend while SoftBlockingGap remains"],
+  "stop_condition": false
+}

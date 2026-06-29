@@ -1,0 +1,30 @@
+{
+  "task_id": "KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9.1",
+  "gate_id": "P7G-006",
+  "stage": "P7G",
+  "status": "CONTRACT_PASS",
+  "source_design": ["P7 V1.9.1 sections 20, 35", "docs/roadmap/p7_v1.9.1_execution_card.md P7G-006"],
+  "evidence_target": [
+    "artifacts/p7/evidence/P7G-006.json",
+    "backend/tests/video/playback_graph/p7g_public_header_purist_tests.cpp"
+  ],
+  "commands": [
+    {
+      "command": "cmake --build --preset vs-debug --target kivo_video_playback_graph_tests --config Debug",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Public header purist target built with only the public include path and no backend private include path."
+    },
+    {
+      "command": "ctest --preset vs-debug -R kivo_p7g_public_header_purist_tests --output-on-failure",
+      "cwd": "C:/kivo video",
+      "exit_code": 0,
+      "summary": "Public header purist test passed."
+    }
+  ],
+  "file_hashes": {
+    "backend/tests/video/playback_graph/p7g_public_header_purist_tests.cpp": "BDCB4AC97BD9873449263007289C92F9A0BEAFAF665CA7A1B718285420644AE7"
+  },
+  "forbidden_operations_checked": ["No test macro needed for public headers", "No backend test include path", "No fake/test support leaking into public headers", "Hot path static gates already pass P7D token scan"],
+  "stop_condition": false
+}

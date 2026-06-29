@@ -1,0 +1,31 @@
+{
+  "task_id": "KIVO-VIDEO-P8-SUBTITLE-PLANE-DESIGN-LOCK-001-V1.5.5",
+  "gate_id": "P8E-006",
+  "stage": "P8E",
+  "status": "RUNTIME_PASS",
+  "source_design": "P8 V1.5.5 section 21.4 and S28",
+  "commands": [
+    "ctest --test-dir build\\vs-debug\\backend -C Debug -R \"kivo_p8e_style_semantics_tests\" --output-on-failure --timeout 30"
+  ],
+  "artifacts": [
+    "backend/src/video/subtitle_plane/format/webvtt_semantics.cpp",
+    "backend/include_private/video/subtitle_plane/format/webvtt_semantics.hpp",
+    "backend/tests/video/subtitle_plane/format/p8e_style_semantics_tests.cpp"
+  ],
+  "result": "WebVTT line, position, size/align, vertical, and snap-to-lines metadata flags are recorded; unsupported region settings emit explicit unsupported evidence.",
+  "allowed_files": [
+    "backend/src/video/subtitle_plane/format/**",
+    "backend/include_private/video/subtitle_plane/format/**",
+    "backend/tests/video/subtitle_plane/format/**"
+  ],
+  "forbidden_files_checked": [
+    "No renderer layout implementation in P8",
+    "Cue settings are not dropped silently"
+  ],
+  "exit_criteria_covered": [
+    "S28",
+    "G-012"
+  ],
+  "not_verified_boundaries": [],
+  "stop_condition": false
+}
