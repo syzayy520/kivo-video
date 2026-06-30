@@ -32,8 +32,10 @@ namespace {
     }
     if (ready.connections.playback_session != AdapterConnectionStatus::ConnectedToP7 ||
         ready.connections.timeline != AdapterConnectionStatus::ConnectedToP7 ||
-        ready.connections.audio_track_switch != AdapterConnectionStatus::ConnectedToP7 ||
-        ready.connections.subtitle_tracks != AdapterConnectionStatus::NotConnectedToP7) {
+        ready.connections.subtitle_tracks != AdapterConnectionStatus::ConnectedToP7 ||
+        ready.connections.subtitle_frame != AdapterConnectionStatus::NotConnectedToP7 ||
+        ready.connections.audio_volume != AdapterConnectionStatus::ConnectedToP7 ||
+        ready.connections.user_settings_policy != AdapterConnectionStatus::ConnectedToP7) {
         return false;
     }
     if (ready.duration_ms != 42 * 60000 || ready.position_ms != 0) {
@@ -58,7 +60,7 @@ namespace {
     return adapter.release_surface().accepted();
 }
 
-[[nodiscard]] bool verify_transport_and_timeline_commands() {
+[[nodiscard]] bool verify_transport_stop_and_timeline() {
     PlayerRuntimeAdapter transport{};
     if (!transport.open_media_id(7).accepted()) {
         return false;
@@ -68,6 +70,17 @@ namespace {
     }
     const auto playing = transport.snapshot();
     if (playing.playback_state != RuntimePlaybackState::Playing || !playing.is_playing) {
+        return false;
+    }
+
+    if (!transport.stop().accepted()) {
+        return false;
+    }
+    const auto stopped = transport.snapshot();
+    if (stopped.playback_state != RuntimePlaybackState::Ready || stopped.is_playing) {
+        return false;
+    }
+    if (!transport.play().accepted()) {
         return false;
     }
 
@@ -92,12 +105,58 @@ namespace {
         return false;
     }
     const auto backward = negative_seek.step_backward(10000);
-    if (backward.status != AdapterCommandStatus::RejectedByP7 ||
-        backward.p7_error != PlaybackGraphError::InvalidSeekTarget) {
+    return backward.status == AdapterCommandStatus::RejectedByP7 &&
+           backward.p7_error == PlaybackGraphError::InvalidSeekTarget;
+}
+
+[[nodiscard]] bool verify_subtitle_and_audio_p0() {
+    PlayerRuntimeAdapter adapter{};
+    if (!adapter.open_media_id(10).accepted() || !adapter.play().accepted()) {
         return false;
     }
 
-    return is_missing(negative_seek.stop(), AdapterMissingP7Api::StopWithoutClose);
+    if (!adapter.select_subtitle_track(4).accepted()) {
+        return false;
+    }
+    const auto with_subtitle = adapter.snapshot();
+    if (!with_subtitle.subtitle_enabled || with_subtitle.selected_subtitle_track != 4 ||
+        with_subtitle.connections.subtitle_tracks != AdapterConnectionStatus::ConnectedToP7 ||
+        with_subtitle.connections.subtitle_frame != AdapterConnectionStatus::NotConnectedToP7) {
+        return false;
+    }
+
+    if (!adapter.set_subtitle_delay(120).accepted()) {
+        return false;
+    }
+    if (adapter.snapshot().subtitle_delay_ms != 120) {
+        return false;
+    }
+
+    if (!adapter.disable_subtitle().accepted()) {
+        return false;
+    }
+    if (adapter.snapshot().subtitle_enabled) {
+        return false;
+    }
+
+    if (!adapter.set_volume(0.5).accepted() || !adapter.set_muted(true).accepted()) {
+        return false;
+    }
+    const auto audio = adapter.snapshot();
+    if (audio.volume != 0.5 || !audio.muted ||
+        audio.connections.audio_volume != AdapterConnectionStatus::ConnectedToP7) {
+        return false;
+    }
+
+    if (!adapter.select_audio_device("default").accepted()) {
+        return false;
+    }
+    if (adapter.snapshot().connections.audio_device != AdapterConnectionStatus::ConnectedToP7) {
+        return false;
+    }
+
+    return adapter.set_audio_delay(-80).accepted() &&
+           adapter.snapshot().audio_delay_ms == -80;
 }
 
 [[nodiscard]] bool verify_track_boundaries() {
@@ -118,33 +177,55 @@ namespace {
         return false;
     }
 
-    if (!is_missing(adapter.select_subtitle_track(4),
-                    AdapterMissingP7Api::SubtitleTrackSwitch)) {
+    const auto subtitle = adapter.select_subtitle_track(4);
+    return subtitle.status == AdapterCommandStatus::RejectedByP7 &&
+           subtitle.p7_error == PlaybackGraphError::InvalidState;
+}
+
+[[nodiscard]] bool verify_settings_policy_p1() {
+    PlayerRuntimeAdapter adapter{};
+    if (!adapter.open_media_id(13).accepted()) {
         return false;
     }
-    return is_missing(adapter.disable_subtitle(), AdapterMissingP7Api::SubtitleTrackSwitch);
+
+    if (!adapter.set_aspect_mode(AdapterAspectMode::Fit).accepted() ||
+        !adapter.set_scale_mode(AdapterScaleMode::Fill).accepted() ||
+        !adapter.set_tone_mapping_mode(AdapterToneMappingMode::Auto).accepted() ||
+        !adapter.set_deinterlace_mode(AdapterDeinterlaceMode::Off).accepted() ||
+        !adapter.set_playback_speed(1.25).accepted() ||
+        !adapter.set_subtitle_size(1.1).accepted()) {
+        return false;
+    }
+
+    return adapter.snapshot().connections.user_settings_policy ==
+           AdapterConnectionStatus::ConnectedToP7;
 }
 
 [[nodiscard]] bool verify_shortcut_name_bridge() {
     PlayerRuntimeAdapter adapter{};
-    if (!adapter.open_media_id(12).accepted()) {
+    if (!adapter.open_media_id(12).accepted() || !adapter.play().accepted()) {
+        return false;
+    }
+    if (!adapter.select_subtitle_track(1).accepted()) {
         return false;
     }
     if (!adapter.handle_shortcut_name("togglePlayPause").accepted()) {
         return false;
     }
-    if (!adapter.handle_shortcut_name("playPause").accepted()) {
+    if (!adapter.handle_shortcut_name("volumeUp").accepted()) {
         return false;
     }
-    if (!is_missing(adapter.handle_shortcut_name("subtitle"),
-                    AdapterMissingP7Api::SubtitleTrackSwitch)) {
+    if (!adapter.handle_shortcut_name("subtitle").accepted()) {
+        return false;
+    }
+    if (adapter.snapshot().subtitle_enabled) {
         return false;
     }
     return is_missing(adapter.handle_shortcut_name("audioTrack"),
                       AdapterMissingP7Api::TrackInventory);
 }
 
-[[nodiscard]] bool verify_missing_p7_connection_groups() {
+[[nodiscard]] bool verify_remaining_not_connected() {
     PlayerRuntimeAdapter adapter{};
     if (!adapter.open_media_id(11).accepted()) {
         return false;
@@ -161,39 +242,11 @@ namespace {
         !is_missing(adapter.set_auto_play_next(true), AdapterMissingP7Api::Playlist)) {
         return false;
     }
-    if (!adapter.handle_shortcut(AdapterShortcutAction::TogglePlayPause).accepted()) {
+    if (!is_missing(adapter.handle_shortcut(AdapterShortcutAction::ToggleFullscreen),
+                    AdapterMissingP7Api::FullscreenWindowScreen)) {
         return false;
     }
-    if (!is_missing(adapter.handle_shortcut(AdapterShortcutAction::VolumeUp),
-                    AdapterMissingP7Api::AudioVolume) ||
-        !is_missing(adapter.handle_shortcut(AdapterShortcutAction::ToggleFullscreen),
-                    AdapterMissingP7Api::FullscreenWindowScreen) ||
-        !is_missing(adapter.handle_shortcut(AdapterShortcutAction::Subtitle),
-                    AdapterMissingP7Api::SubtitleTrackSwitch) ||
-        !is_missing(adapter.handle_shortcut(AdapterShortcutAction::AudioTrack),
-                    AdapterMissingP7Api::TrackInventory)) {
-        return false;
-    }
-    if (!is_missing(adapter.set_subtitle_size(1.1), AdapterMissingP7Api::UserSettingsPolicy) ||
-        !is_missing(adapter.set_subtitle_delay(120), AdapterMissingP7Api::UserSettingsPolicy) ||
-        !is_missing(adapter.set_audio_delay(-80), AdapterMissingP7Api::UserSettingsPolicy) ||
-        !is_missing(adapter.set_aspect_mode(AdapterAspectMode::Fit),
-                    AdapterMissingP7Api::UserSettingsPolicy) ||
-        !is_missing(adapter.set_tone_mapping_mode(AdapterToneMappingMode::Auto),
-                    AdapterMissingP7Api::UserSettingsPolicy) ||
-        !is_missing(adapter.set_playback_speed(1.25),
-                    AdapterMissingP7Api::UserSettingsPolicy)) {
-        return false;
-    }
-    if (!is_missing(adapter.set_volume(0.5), AdapterMissingP7Api::AudioVolume) ||
-        !is_missing(adapter.set_muted(true), AdapterMissingP7Api::AudioVolume) ||
-        !is_missing(adapter.select_audio_device("default"), AdapterMissingP7Api::AudioDevice)) {
-        return false;
-    }
-    if (!adapter.reopen().accepted()) {
-        return false;
-    }
-    if (!adapter.copy_diagnostics().accepted()) {
+    if (!adapter.reopen().accepted() || !adapter.copy_diagnostics().accepted()) {
         return false;
     }
 
@@ -208,17 +261,23 @@ int main() {
     if (!verify_lifecycle_snapshot()) {
         return 1;
     }
-    if (!verify_transport_and_timeline_commands()) {
+    if (!verify_transport_stop_and_timeline()) {
         return 2;
     }
-    if (!verify_track_boundaries()) {
+    if (!verify_subtitle_and_audio_p0()) {
         return 3;
     }
-    if (!verify_shortcut_name_bridge()) {
+    if (!verify_track_boundaries()) {
         return 4;
     }
-    if (!verify_missing_p7_connection_groups()) {
+    if (!verify_settings_policy_p1()) {
         return 5;
+    }
+    if (!verify_shortcut_name_bridge()) {
+        return 6;
+    }
+    if (!verify_remaining_not_connected()) {
+        return 7;
     }
     return 0;
 }

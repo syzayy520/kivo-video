@@ -62,7 +62,9 @@ public:
     [[nodiscard]] AdapterCommandResult set_subtitle_delay(std::int64_t delay_ms) noexcept;
     [[nodiscard]] AdapterCommandResult set_audio_delay(std::int64_t delay_ms) noexcept;
     [[nodiscard]] AdapterCommandResult set_aspect_mode(AdapterAspectMode mode) noexcept;
+    [[nodiscard]] AdapterCommandResult set_scale_mode(AdapterScaleMode mode) noexcept;
     [[nodiscard]] AdapterCommandResult set_tone_mapping_mode(AdapterToneMappingMode mode) noexcept;
+    [[nodiscard]] AdapterCommandResult set_deinterlace_mode(AdapterDeinterlaceMode mode) noexcept;
     [[nodiscard]] AdapterCommandResult set_playback_speed(double speed) noexcept;
 
     [[nodiscard]] AdapterCommandResult retry() noexcept;

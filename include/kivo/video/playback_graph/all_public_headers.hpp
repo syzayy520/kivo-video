@@ -2,6 +2,8 @@
 
 #include "kivo/video/playback_graph/binding/video_surface_binding.hpp"
 #include "kivo/video/playback_graph/clock/playback_timeline_snapshot.hpp"
+#include "kivo/video/playback_graph/command/audio_output_policy_request.hpp"
+#include "kivo/video/playback_graph/command/playback_settings_policy_request.hpp"
 #include "kivo/video/playback_graph/command_lifecycle_snapshot.hpp"
 #include "kivo/video/playback_graph/command_token.hpp"
 #include "kivo/video/playback_graph/generation_stamp.hpp"
@@ -17,5 +19,6 @@
 #include "kivo/video/playback_graph/playback_session_snapshot.hpp"
 #include "kivo/video/playback_graph/recovery/recovery_action_request.hpp"
 #include "kivo/video/playback_graph/seek_request.hpp"
+#include "kivo/video/playback_graph/subtitle/subtitle_snapshot.hpp"
 #include "kivo/video/playback_graph/snapshot_query_result.hpp"
 #include "kivo/video/playback_graph/track_switch_request.hpp"

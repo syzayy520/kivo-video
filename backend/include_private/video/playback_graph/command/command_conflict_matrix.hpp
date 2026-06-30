@@ -17,6 +17,12 @@ enum class GraphCommandKind {
     SwitchVideoTrack,
     SwitchAvTrackSet,
     Close,
+    Stop,
+    SwitchSubtitleTrack,
+    DisableSubtitle,
+    SetSubtitleDelay,
+    SetAudioOutputPolicy,
+    SetPlaybackSettingsPolicy,
     InjectSystemEvent,
     RecoveryReplay
 };

@@ -87,6 +87,84 @@ CommandToken PlaybackSession::switch_av_track_set(const AvTrackSetSwitchRequest&
     return runtime == nullptr ? allocation_failure_token() : runtime->switch_av_track_set(request);
 }
 
+CommandToken PlaybackSession::switch_subtitle_track(
+    const SubtitleTrackSwitchRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token()
+                              : runtime->switch_subtitle_track(request);
+}
+
+CommandToken PlaybackSession::disable_subtitle() noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->disable_subtitle();
+}
+
+CommandToken PlaybackSession::stop() noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->stop();
+}
+
+CommandToken PlaybackSession::set_subtitle_delay(const SubtitleDelayRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->set_subtitle_delay(request);
+}
+
+CommandToken PlaybackSession::set_audio_volume(const AudioVolumeRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->set_audio_volume(request);
+}
+
+CommandToken PlaybackSession::set_audio_muted(const AudioMuteRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->set_audio_muted(request);
+}
+
+CommandToken PlaybackSession::select_audio_output_device(
+    const AudioDeviceSelectRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token()
+                              : runtime->select_audio_output_device(request);
+}
+
+CommandToken PlaybackSession::set_audio_delay(const AudioDelayRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->set_audio_delay(request);
+}
+
+CommandToken PlaybackSession::set_aspect_mode(const PlaybackAspectModeRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->set_aspect_mode(request);
+}
+
+CommandToken PlaybackSession::set_scale_mode(const PlaybackScaleModeRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->set_scale_mode(request);
+}
+
+CommandToken PlaybackSession::set_tone_mapping_mode(
+    const PlaybackToneMappingModeRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token()
+                              : runtime->set_tone_mapping_mode(request);
+}
+
+CommandToken PlaybackSession::set_deinterlace_mode(
+    const PlaybackDeinterlaceModeRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token()
+                              : runtime->set_deinterlace_mode(request);
+}
+
+CommandToken PlaybackSession::set_playback_speed(const PlaybackSpeedRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->set_playback_speed(request);
+}
+
+CommandToken PlaybackSession::set_subtitle_size(const SubtitleSizeRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->set_subtitle_size(request);
+}
+
 CommandToken PlaybackSession::close() noexcept {
     auto* runtime = as_runtime(impl_);
     return runtime == nullptr ? allocation_failure_token() : runtime->close();
@@ -153,6 +231,22 @@ SnapshotQueryResult<VideoQueueSnapshot> PlaybackSession::query_video_queue() con
     const auto* runtime = as_runtime(impl_);
     return runtime == nullptr ? SnapshotQueryResult<VideoQueueSnapshot>{}
                               : runtime->query_video_queue();
+}
+
+SubtitleSnapshot PlaybackSession::query_subtitle() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? SubtitleSnapshot{} : runtime->query_subtitle();
+}
+
+AudioOutputPolicySnapshot PlaybackSession::query_audio_output_policy() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? AudioOutputPolicySnapshot{} : runtime->query_audio_output_policy();
+}
+
+PlaybackSettingsPolicySnapshot PlaybackSession::query_playback_settings_policy() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? PlaybackSettingsPolicySnapshot{}
+                            : runtime->query_playback_settings_policy();
 }
 
 CommandLifecycleSnapshot PlaybackSession::query_command(PlaybackCommandId id) const noexcept {

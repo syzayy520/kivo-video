@@ -1,5 +1,8 @@
 #include "kivo/video/player_runtime_adapter/player_runtime_adapter.hpp"
 
+#include <algorithm>
+#include <cstring>
+
 #include "kivo/video/playback_graph/seek_request.hpp"
 #include "kivo/video/playback_graph/track_switch_request.hpp"
 #include "video/player_runtime_adapter/p7_bridge/p7_command_result.hpp"
@@ -31,6 +34,69 @@ namespace {
     request.kind = playback_graph::SeekKind::Relative;
     request.target_timeline_ms = delta_ms;
     return request;
+}
+
+[[nodiscard]] playback_graph::PlaybackAspectMode to_p7_aspect(AdapterAspectMode mode) noexcept {
+    switch (mode) {
+        case AdapterAspectMode::Fit:
+            return playback_graph::PlaybackAspectMode::Fit;
+        case AdapterAspectMode::Fill:
+            return playback_graph::PlaybackAspectMode::Fill;
+        case AdapterAspectMode::Stretch:
+            return playback_graph::PlaybackAspectMode::Stretch;
+        case AdapterAspectMode::Original:
+            return playback_graph::PlaybackAspectMode::Original;
+    }
+    return playback_graph::PlaybackAspectMode::Fit;
+}
+
+[[nodiscard]] playback_graph::PlaybackScaleMode to_p7_scale(AdapterScaleMode mode) noexcept {
+    switch (mode) {
+        case AdapterScaleMode::Auto:
+            return playback_graph::PlaybackScaleMode::Auto;
+        case AdapterScaleMode::Fit:
+            return playback_graph::PlaybackScaleMode::Fit;
+        case AdapterScaleMode::Fill:
+            return playback_graph::PlaybackScaleMode::Fill;
+    }
+    return playback_graph::PlaybackScaleMode::Auto;
+}
+
+[[nodiscard]] playback_graph::PlaybackToneMappingMode to_p7_tone(
+    AdapterToneMappingMode mode) noexcept {
+    switch (mode) {
+        case AdapterToneMappingMode::Auto:
+            return playback_graph::PlaybackToneMappingMode::Auto;
+        case AdapterToneMappingMode::Off:
+            return playback_graph::PlaybackToneMappingMode::Off;
+        case AdapterToneMappingMode::Sdr:
+            return playback_graph::PlaybackToneMappingMode::Sdr;
+        case AdapterToneMappingMode::HdrPassthrough:
+            return playback_graph::PlaybackToneMappingMode::HdrPassthrough;
+    }
+    return playback_graph::PlaybackToneMappingMode::Auto;
+}
+
+[[nodiscard]] playback_graph::PlaybackDeinterlaceMode to_p7_deinterlace(
+    AdapterDeinterlaceMode mode) noexcept {
+    switch (mode) {
+        case AdapterDeinterlaceMode::Auto:
+            return playback_graph::PlaybackDeinterlaceMode::Auto;
+        case AdapterDeinterlaceMode::Off:
+            return playback_graph::PlaybackDeinterlaceMode::Off;
+        case AdapterDeinterlaceMode::On:
+            return playback_graph::PlaybackDeinterlaceMode::On;
+    }
+    return playback_graph::PlaybackDeinterlaceMode::Auto;
+}
+
+void copy_device_id(playback_graph::AudioDeviceSelectRequest& request,
+                    std::string_view device_id) noexcept {
+    const auto length = std::min(device_id.size(), sizeof(request.device_id) - 1);
+    if (length > 0) {
+        std::memcpy(request.device_id, device_id.data(), length);
+    }
+    request.device_id[length] = '\0';
 }
 
 }  // namespace
@@ -106,7 +172,7 @@ AdapterCommandResult PlayerRuntimeAdapter::step_backward(std::int64_t step_ms) n
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::stop() noexcept {
-    return runtime::missing_p7_api(AdapterMissingP7Api::StopWithoutClose);
+    return runtime::command_result_from_p7(session_.stop());
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::select_video_track(std::uint64_t track_id) noexcept {
@@ -122,27 +188,31 @@ AdapterCommandResult PlayerRuntimeAdapter::select_audio_track(std::uint64_t trac
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::select_subtitle_track(std::uint64_t track_id) noexcept {
-    (void)track_id;
-    return runtime::missing_p7_api(AdapterMissingP7Api::SubtitleTrackSwitch);
+    playback_graph::SubtitleTrackSwitchRequest request{};
+    request.track_id = track_id;
+    return runtime::command_result_from_p7(session_.switch_subtitle_track(request));
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::disable_subtitle() noexcept {
-    return runtime::missing_p7_api(AdapterMissingP7Api::SubtitleTrackSwitch);
+    return runtime::command_result_from_p7(session_.disable_subtitle());
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::set_volume(double value) noexcept {
-    (void)value;
-    return runtime::missing_p7_api(AdapterMissingP7Api::AudioVolume);
+    playback_graph::AudioVolumeRequest request{};
+    request.volume = value;
+    return runtime::command_result_from_p7(session_.set_audio_volume(request));
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::set_muted(bool muted) noexcept {
-    (void)muted;
-    return runtime::missing_p7_api(AdapterMissingP7Api::AudioVolume);
+    playback_graph::AudioMuteRequest request{};
+    request.muted = muted;
+    return runtime::command_result_from_p7(session_.set_audio_muted(request));
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::select_audio_device(std::string_view device_id) noexcept {
-    (void)device_id;
-    return runtime::missing_p7_api(AdapterMissingP7Api::AudioDevice);
+    playback_graph::AudioDeviceSelectRequest request{};
+    copy_device_id(request, device_id);
+    return runtime::command_result_from_p7(session_.select_audio_output_device(request));
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::enter_fullscreen() noexcept {
@@ -217,15 +287,24 @@ AdapterCommandResult PlayerRuntimeAdapter::handle_shortcut(AdapterShortcutAction
             return step_backward(10000);
         case AdapterShortcutAction::SeekForward:
             return step_forward(10000);
-        case AdapterShortcutAction::VolumeUp:
-        case AdapterShortcutAction::VolumeDown:
+        case AdapterShortcutAction::VolumeUp: {
+            const auto current = snapshot();
+            return set_volume(std::min(1.0, current.volume + 0.1));
+        }
+        case AdapterShortcutAction::VolumeDown: {
+            const auto current = snapshot();
+            return set_volume(std::max(0.0, current.volume - 0.1));
+        }
         case AdapterShortcutAction::ToggleMute:
-            return runtime::missing_p7_api(AdapterMissingP7Api::AudioVolume);
+            return set_muted(!snapshot().muted);
         case AdapterShortcutAction::ToggleFullscreen:
         case AdapterShortcutAction::ExitFullscreen:
             return runtime::missing_p7_api(AdapterMissingP7Api::FullscreenWindowScreen);
         case AdapterShortcutAction::Subtitle:
-            return runtime::missing_p7_api(AdapterMissingP7Api::SubtitleTrackSwitch);
+            if (snapshot().subtitle_enabled) {
+                return disable_subtitle();
+            }
+            return runtime::missing_p7_api(AdapterMissingP7Api::TrackInventory);
         case AdapterShortcutAction::AudioTrack:
             return runtime::missing_p7_api(AdapterMissingP7Api::TrackInventory);
     }
@@ -234,33 +313,51 @@ AdapterCommandResult PlayerRuntimeAdapter::handle_shortcut(AdapterShortcutAction
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::set_subtitle_size(double scale) noexcept {
-    (void)scale;
-    return runtime::missing_p7_api(AdapterMissingP7Api::UserSettingsPolicy);
+    playback_graph::SubtitleSizeRequest request{};
+    request.scale = scale;
+    return runtime::command_result_from_p7(session_.set_subtitle_size(request));
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::set_subtitle_delay(std::int64_t delay_ms) noexcept {
-    (void)delay_ms;
-    return runtime::missing_p7_api(AdapterMissingP7Api::UserSettingsPolicy);
+    playback_graph::SubtitleDelayRequest request{};
+    request.delay_ms = delay_ms;
+    return runtime::command_result_from_p7(session_.set_subtitle_delay(request));
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::set_audio_delay(std::int64_t delay_ms) noexcept {
-    (void)delay_ms;
-    return runtime::missing_p7_api(AdapterMissingP7Api::UserSettingsPolicy);
+    playback_graph::AudioDelayRequest request{};
+    request.delay_ms = delay_ms;
+    return runtime::command_result_from_p7(session_.set_audio_delay(request));
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::set_aspect_mode(AdapterAspectMode mode) noexcept {
-    (void)mode;
-    return runtime::missing_p7_api(AdapterMissingP7Api::UserSettingsPolicy);
+    playback_graph::PlaybackAspectModeRequest request{};
+    request.mode = to_p7_aspect(mode);
+    return runtime::command_result_from_p7(session_.set_aspect_mode(request));
+}
+
+AdapterCommandResult PlayerRuntimeAdapter::set_scale_mode(AdapterScaleMode mode) noexcept {
+    playback_graph::PlaybackScaleModeRequest request{};
+    request.mode = to_p7_scale(mode);
+    return runtime::command_result_from_p7(session_.set_scale_mode(request));
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::set_tone_mapping_mode(AdapterToneMappingMode mode) noexcept {
-    (void)mode;
-    return runtime::missing_p7_api(AdapterMissingP7Api::UserSettingsPolicy);
+    playback_graph::PlaybackToneMappingModeRequest request{};
+    request.mode = to_p7_tone(mode);
+    return runtime::command_result_from_p7(session_.set_tone_mapping_mode(request));
+}
+
+AdapterCommandResult PlayerRuntimeAdapter::set_deinterlace_mode(AdapterDeinterlaceMode mode) noexcept {
+    playback_graph::PlaybackDeinterlaceModeRequest request{};
+    request.mode = to_p7_deinterlace(mode);
+    return runtime::command_result_from_p7(session_.set_deinterlace_mode(request));
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::set_playback_speed(double speed) noexcept {
-    (void)speed;
-    return runtime::missing_p7_api(AdapterMissingP7Api::UserSettingsPolicy);
+    playback_graph::PlaybackSpeedRequest request{};
+    request.speed = speed;
+    return runtime::command_result_from_p7(session_.set_playback_speed(request));
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::retry() noexcept {

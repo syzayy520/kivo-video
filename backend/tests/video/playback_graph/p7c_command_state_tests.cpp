@@ -119,7 +119,7 @@ namespace {
     }
 
     const auto start_token = session.start();
-    return start_token.accepted() && session.snapshot().state == PlaybackGraphState::Starting;
+    return start_token.accepted() && session.snapshot().state == PlaybackGraphState::Playing;
 }
 
 [[nodiscard]] bool verify_command_transaction_rollbacks() {
@@ -281,6 +281,23 @@ namespace {
            failed.error == PlaybackGraphError::RecoveryFailed;
 }
 
+[[nodiscard]] bool verify_stop_preserves_open_session() {
+    PlaybackSession session{};
+    OpenRequest open{};
+    open.source_id = 15;
+    if (!session.open(open).accepted() || !session.start().accepted()) {
+        return false;
+    }
+    if (!session.stop().accepted()) {
+        return false;
+    }
+    if (session.snapshot().state != PlaybackGraphState::Ready ||
+        session.snapshot().closed) {
+        return false;
+    }
+    return session.start().accepted();
+}
+
 }  // namespace
 
 int main() {
@@ -307,6 +324,9 @@ int main() {
     }
     if (!expect(verify_pending_and_replay())) {
         return 8;
+    }
+    if (!expect(verify_stop_preserves_open_session())) {
+        return 9;
     }
     return 0;
 }

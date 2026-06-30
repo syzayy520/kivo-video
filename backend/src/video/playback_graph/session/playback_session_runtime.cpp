@@ -1,6 +1,7 @@
 #include "video/playback_graph/session/playback_session_runtime.hpp"
 
 #include <algorithm>
+#include <cstring>
 
 namespace kivo::video::playback_graph::runtime {
 namespace {
@@ -43,6 +44,8 @@ CommandToken PlaybackSessionRuntime::open(const OpenRequest& request) noexcept {
     position_ms_ = 0;
     last_seek_target_ms_ = 0;
     seek_in_progress_ = false;
+    policy_state_valid_ = true;
+    settings_policy_.valid = true;
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();
     return token;
@@ -153,6 +156,199 @@ CommandToken PlaybackSessionRuntime::switch_av_track_set(
     return token;
 }
 
+CommandToken PlaybackSessionRuntime::switch_subtitle_track(
+    const SubtitleTrackSwitchRequest& request) noexcept {
+    if (request.track_id == 0) {
+        return reject(PlaybackGraphError::InvalidCommand);
+    }
+    const auto token = accept_command(GraphCommandKind::SwitchSubtitleTrack, true);
+    if (!token.accepted()) {
+        return token;
+    }
+    state_machine_.transition_to(PlaybackGraphState::TrackSwitching);
+    subtitle_track_id_ = request.track_id;
+    subtitle_enabled_ = true;
+    state_machine_.transition_to(PlaybackGraphState::Playing);
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::disable_subtitle() noexcept {
+    const auto token = accept_command(GraphCommandKind::DisableSubtitle, true);
+    if (!token.accepted()) {
+        return token;
+    }
+    subtitle_enabled_ = false;
+    subtitle_track_id_ = 0;
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::stop() noexcept {
+    const auto token = accept_command(GraphCommandKind::Stop, true);
+    if (!token.accepted()) {
+        return token;
+    }
+    pending_transport_intent_.clear_for_close();
+    const auto current_state = state_machine_.state();
+    if (current_state == PlaybackGraphState::Seeking) {
+        state_machine_.transition_to(PlaybackGraphState::Ready);
+    } else {
+        state_machine_.transition_to(PlaybackGraphState::TrackSwitching);
+        state_machine_.transition_to(PlaybackGraphState::Ready);
+    }
+    seek_in_progress_ = false;
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::set_subtitle_delay(const SubtitleDelayRequest& request) noexcept {
+    const auto token = accept_command(GraphCommandKind::SetSubtitleDelay, false);
+    if (!token.accepted()) {
+        return token;
+    }
+    subtitle_delay_ms_ = request.delay_ms;
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::set_audio_volume(const AudioVolumeRequest& request) noexcept {
+    if (request.volume < 0.0 || request.volume > 1.0) {
+        return reject(PlaybackGraphError::InvalidCommand);
+    }
+    const auto token = accept_command(GraphCommandKind::SetAudioOutputPolicy, false);
+    if (!token.accepted()) {
+        return token;
+    }
+    audio_volume_ = request.volume;
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::set_audio_muted(const AudioMuteRequest& request) noexcept {
+    const auto token = accept_command(GraphCommandKind::SetAudioOutputPolicy, false);
+    if (!token.accepted()) {
+        return token;
+    }
+    audio_muted_ = request.muted;
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::select_audio_output_device(
+    const AudioDeviceSelectRequest& request) noexcept {
+    if (request.device_id[0] == '\0') {
+        return reject(PlaybackGraphError::InvalidCommand);
+    }
+    const auto token = accept_command(GraphCommandKind::SetAudioOutputPolicy, false);
+    if (!token.accepted()) {
+        return token;
+    }
+    std::strncpy(audio_device_id_, request.device_id, sizeof(audio_device_id_) - 1);
+    audio_device_id_[sizeof(audio_device_id_) - 1] = '\0';
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::set_audio_delay(const AudioDelayRequest& request) noexcept {
+    const auto token = accept_command(GraphCommandKind::SetAudioOutputPolicy, false);
+    if (!token.accepted()) {
+        return token;
+    }
+    audio_delay_ms_ = request.delay_ms;
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::set_aspect_mode(
+    const PlaybackAspectModeRequest& request) noexcept {
+    const auto token = accept_command(GraphCommandKind::SetPlaybackSettingsPolicy, false);
+    if (!token.accepted()) {
+        return token;
+    }
+    settings_policy_.aspect = request.mode;
+    settings_policy_.valid = policy_state_valid_;
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::set_scale_mode(const PlaybackScaleModeRequest& request) noexcept {
+    const auto token = accept_command(GraphCommandKind::SetPlaybackSettingsPolicy, false);
+    if (!token.accepted()) {
+        return token;
+    }
+    settings_policy_.scale = request.mode;
+    settings_policy_.valid = policy_state_valid_;
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::set_tone_mapping_mode(
+    const PlaybackToneMappingModeRequest& request) noexcept {
+    const auto token = accept_command(GraphCommandKind::SetPlaybackSettingsPolicy, false);
+    if (!token.accepted()) {
+        return token;
+    }
+    settings_policy_.tone_mapping = request.mode;
+    settings_policy_.valid = policy_state_valid_;
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::set_deinterlace_mode(
+    const PlaybackDeinterlaceModeRequest& request) noexcept {
+    const auto token = accept_command(GraphCommandKind::SetPlaybackSettingsPolicy, false);
+    if (!token.accepted()) {
+        return token;
+    }
+    settings_policy_.deinterlace = request.mode;
+    settings_policy_.valid = policy_state_valid_;
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::set_playback_speed(const PlaybackSpeedRequest& request) noexcept {
+    if (request.speed <= 0.0) {
+        return reject(PlaybackGraphError::InvalidCommand);
+    }
+    const auto token = accept_command(GraphCommandKind::SetPlaybackSettingsPolicy, false);
+    if (!token.accepted()) {
+        return token;
+    }
+    settings_policy_.playback_speed = request.speed;
+    settings_policy_.valid = policy_state_valid_;
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
+CommandToken PlaybackSessionRuntime::set_subtitle_size(const SubtitleSizeRequest& request) noexcept {
+    if (request.scale <= 0.0) {
+        return reject(PlaybackGraphError::InvalidCommand);
+    }
+    const auto token = accept_command(GraphCommandKind::SetPlaybackSettingsPolicy, false);
+    if (!token.accepted()) {
+        return token;
+    }
+    settings_policy_.subtitle_size = request.scale;
+    settings_policy_.valid = policy_state_valid_;
+    complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
+    publish_current_snapshot();
+    return token;
+}
+
 CommandToken PlaybackSessionRuntime::close() noexcept {
     pending_transport_intent_.clear_for_close();
     const auto token = accept_command(GraphCommandKind::Close, false);
@@ -166,6 +362,10 @@ CommandToken PlaybackSessionRuntime::close() noexcept {
     duration_ms_ = 0;
     position_ms_ = 0;
     seek_in_progress_ = false;
+    policy_state_valid_ = false;
+    settings_policy_.valid = false;
+    subtitle_track_id_ = 0;
+    subtitle_enabled_ = false;
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();
     return token;
@@ -330,6 +530,41 @@ SnapshotQueryResult<AudioQueueSnapshot> PlaybackSessionRuntime::query_audio_queu
 
 SnapshotQueryResult<VideoQueueSnapshot> PlaybackSessionRuntime::query_video_queue() const noexcept {
     return snapshot_store_.query_video_queue();
+}
+
+SubtitleSnapshot PlaybackSessionRuntime::query_subtitle() const noexcept {
+    SubtitleSnapshot subtitle{};
+    if (!policy_state_valid_) {
+        return subtitle;
+    }
+    subtitle.selected_track_id = subtitle_track_id_;
+    subtitle.enabled = subtitle_enabled_;
+    subtitle.delay_ms = subtitle_delay_ms_;
+    subtitle.frame_available = false;
+    subtitle.valid = true;
+    return subtitle;
+}
+
+AudioOutputPolicySnapshot PlaybackSessionRuntime::query_audio_output_policy() const noexcept {
+    AudioOutputPolicySnapshot policy{};
+    if (!policy_state_valid_) {
+        return policy;
+    }
+    policy.volume = audio_volume_;
+    policy.muted = audio_muted_;
+    std::strncpy(policy.device_id, audio_device_id_, sizeof(policy.device_id) - 1);
+    policy.device_id[sizeof(policy.device_id) - 1] = '\0';
+    policy.delay_ms = audio_delay_ms_;
+    policy.valid = true;
+    return policy;
+}
+
+PlaybackSettingsPolicySnapshot PlaybackSessionRuntime::query_playback_settings_policy()
+    const noexcept {
+    if (!policy_state_valid_) {
+        return PlaybackSettingsPolicySnapshot{};
+    }
+    return settings_policy_;
 }
 
 PlaybackSessionSnapshot PlaybackSessionRuntime::snapshot() const noexcept {

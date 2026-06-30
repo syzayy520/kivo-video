@@ -4,6 +4,8 @@
 
 #include "kivo/video/playback_graph/binding/video_surface_binding.hpp"
 #include "kivo/video/playback_graph/clock/playback_timeline_snapshot.hpp"
+#include "kivo/video/playback_graph/command/audio_output_policy_request.hpp"
+#include "kivo/video/playback_graph/command/playback_settings_policy_request.hpp"
 #include "kivo/video/playback_graph/command_lifecycle_snapshot.hpp"
 #include "kivo/video/playback_graph/command_token.hpp"
 #include "kivo/video/playback_graph/evidence/diagnostics_summary.hpp"
@@ -15,6 +17,7 @@
 #include "kivo/video/playback_graph/recovery/recovery_action_request.hpp"
 #include "kivo/video/playback_graph/seek_request.hpp"
 #include "kivo/video/playback_graph/snapshot_query_result.hpp"
+#include "kivo/video/playback_graph/subtitle/subtitle_snapshot.hpp"
 #include "kivo/video/playback_graph/track_switch_request.hpp"
 
 namespace kivo::video::playback_graph {
@@ -46,6 +49,20 @@ public:
     CommandToken switch_audio_track(const AudioTrackSwitchRequest& request) noexcept;
     CommandToken switch_video_track(const VideoTrackSwitchRequest& request) noexcept;
     CommandToken switch_av_track_set(const AvTrackSetSwitchRequest& request) noexcept;
+    CommandToken switch_subtitle_track(const SubtitleTrackSwitchRequest& request) noexcept;
+    CommandToken disable_subtitle() noexcept;
+    CommandToken stop() noexcept;
+    CommandToken set_subtitle_delay(const SubtitleDelayRequest& request) noexcept;
+    CommandToken set_audio_volume(const AudioVolumeRequest& request) noexcept;
+    CommandToken set_audio_muted(const AudioMuteRequest& request) noexcept;
+    CommandToken select_audio_output_device(const AudioDeviceSelectRequest& request) noexcept;
+    CommandToken set_audio_delay(const AudioDelayRequest& request) noexcept;
+    CommandToken set_aspect_mode(const PlaybackAspectModeRequest& request) noexcept;
+    CommandToken set_scale_mode(const PlaybackScaleModeRequest& request) noexcept;
+    CommandToken set_tone_mapping_mode(const PlaybackToneMappingModeRequest& request) noexcept;
+    CommandToken set_deinterlace_mode(const PlaybackDeinterlaceModeRequest& request) noexcept;
+    CommandToken set_playback_speed(const PlaybackSpeedRequest& request) noexcept;
+    CommandToken set_subtitle_size(const SubtitleSizeRequest& request) noexcept;
     CommandToken close() noexcept;
     CommandToken attach_video_surface(const VideoSurfaceBindingRequest& request) noexcept;
     CommandToken detach_video_surface() noexcept;
@@ -59,6 +76,9 @@ public:
     SnapshotQueryResult<ClockSnapshot> query_clock() const noexcept;
     SnapshotQueryResult<AudioQueueSnapshot> query_audio_queue() const noexcept;
     SnapshotQueryResult<VideoQueueSnapshot> query_video_queue() const noexcept;
+    SubtitleSnapshot query_subtitle() const noexcept;
+    AudioOutputPolicySnapshot query_audio_output_policy() const noexcept;
+    PlaybackSettingsPolicySnapshot query_playback_settings_policy() const noexcept;
     CommandLifecycleSnapshot query_command(PlaybackCommandId id) const noexcept;
     SubscriptionToken subscribe_events(GraphObserverHandle observer) noexcept;
     void unsubscribe(SubscriptionToken token) noexcept;

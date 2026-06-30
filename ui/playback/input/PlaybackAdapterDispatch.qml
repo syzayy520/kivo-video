@@ -92,7 +92,11 @@ QtObject {
             muted: raw.muted !== undefined ? raw.muted : false,
             subtitlePrimary: raw.subtitlePrimary || raw.subtitle_primary || "",
             subtitleSecondary: raw.subtitleSecondary || raw.subtitle_secondary || "",
-            subtitleEnabled: raw.subtitleEnabled !== undefined ? raw.subtitleEnabled : false
+            subtitleEnabled: raw.subtitleEnabled !== undefined ? raw.subtitleEnabled
+                              : (raw.subtitle_enabled !== undefined ? raw.subtitle_enabled : false),
+            subtitleDelayMs: raw.subtitleDelayMs !== undefined ? raw.subtitleDelayMs
+                             : (raw.subtitle_delay_ms || 0),
+            audioDelayMs: raw.audioDelayMs !== undefined ? raw.audioDelayMs : (raw.audio_delay_ms || 0)
         }
     }
 }

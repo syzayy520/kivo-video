@@ -68,6 +68,18 @@ enum class AdapterToneMappingMode {
     HdrPassthrough
 };
 
+enum class AdapterScaleMode {
+    Auto,
+    Fit,
+    Fill
+};
+
+enum class AdapterDeinterlaceMode {
+    Auto,
+    Off,
+    On
+};
+
 struct AdapterOpenRequest {
     std::uint64_t source_id{0};
     std::uint64_t initial_audio_track_id{0};

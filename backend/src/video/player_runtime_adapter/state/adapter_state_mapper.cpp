@@ -98,6 +98,9 @@ AdapterSnapshot map_snapshot(const playback_graph::PlaybackSession& session,
     const auto timeline = session.query_timeline();
     const auto video_surface = session.query_video_surface();
     const auto diagnostics = session.query_diagnostics_summary();
+    const auto subtitle = session.query_subtitle();
+    const auto audio_policy = session.query_audio_output_policy();
+    const auto settings_policy = session.query_playback_settings_policy();
 
     AdapterSnapshot snapshot{};
     snapshot.p7_snapshot = p7_snapshot;
@@ -138,6 +141,30 @@ AdapterSnapshot map_snapshot(const playback_graph::PlaybackSession& session,
 
     if (diagnostics.valid) {
         snapshot.connections.recovery_actions = AdapterConnectionStatus::ConnectedToP7;
+    }
+
+    if (subtitle.valid) {
+        snapshot.selected_subtitle_track = subtitle.selected_track_id;
+        snapshot.subtitle_enabled = subtitle.enabled;
+        snapshot.subtitle_delay_ms = subtitle.delay_ms;
+        snapshot.connections.subtitle_tracks = AdapterConnectionStatus::ConnectedToP7;
+        if (subtitle.frame_available) {
+            snapshot.connections.subtitle_frame = AdapterConnectionStatus::ConnectedToP7;
+        }
+    }
+
+    if (audio_policy.valid) {
+        snapshot.volume = audio_policy.volume;
+        snapshot.muted = audio_policy.muted;
+        snapshot.audio_delay_ms = audio_policy.delay_ms;
+        snapshot.connections.audio_volume = AdapterConnectionStatus::ConnectedToP7;
+        if (audio_policy.device_id[0] != '\0') {
+            snapshot.connections.audio_device = AdapterConnectionStatus::ConnectedToP7;
+        }
+    }
+
+    if (settings_policy.valid) {
+        snapshot.connections.user_settings_policy = AdapterConnectionStatus::ConnectedToP7;
     }
 
     return snapshot;

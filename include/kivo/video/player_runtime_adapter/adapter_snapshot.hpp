@@ -57,7 +57,12 @@ struct AdapterSnapshot {
 
     double volume{1.0};
     bool muted{false};
+    std::int64_t audio_delay_ms{0};
     bool auto_play_next{false};
+
+    std::uint64_t selected_subtitle_track{0};
+    bool subtitle_enabled{false};
+    std::int64_t subtitle_delay_ms{0};
 };
 
 }  // namespace kivo::video::player_runtime_adapter

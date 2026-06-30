@@ -23,4 +23,8 @@ struct AvTrackSetSwitchRequest {
     TrackSwitchAtomicity atomicity{TrackSwitchAtomicity::AtomicAllOrNothing};
 };
 
+struct SubtitleTrackSwitchRequest {
+    std::uint64_t track_id{0};
+};
+
 }  // namespace kivo::video::playback_graph

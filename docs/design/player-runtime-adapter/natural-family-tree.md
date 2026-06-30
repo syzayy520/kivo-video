@@ -37,22 +37,23 @@ decode queues, device threads, generation stamps, epochs, or demux/runtime inter
    reopen, and release surface call P7 public APIs.
 3. Timeline: position, duration, and buffered ranges come from P7 `query_timeline` and queue
    snapshots; adapter marks timeline/buffered connections `ConnectedToP7` when valid.
-4. Subtitle overlay and subtitle tracks: exposed by adapter contract; current P7 public API
-   has no subtitle frame or subtitle track switch, so adapter reports `NotConnectedToP7`.
-5. Audio volume/device: exposed by adapter contract; current P7 public API has no P6
-   volume/device command, so adapter reports `NotConnectedToP7`.
-6. Quality/HDR/settings: exposed by adapter contract; policy commands report
-   `NotConnectedToP7` until P7 publishes them.
+4. Subtitle tracks/delay: `select_subtitle_track`, `disable_subtitle`, and `set_subtitle_delay`
+   call P7 coordination commands. `subtitle_frame` stays `NotConnectedToP7` until P7 exposes a
+   real P8-backed frame lease; adapter does not fabricate cue text.
+5. Audio volume/mute/device/delay: adapter commands call P7 `SetAudioOutputPolicy` fake contract;
+   this is not a real P6/WASAPI bridge.
+6. Playback settings policy: aspect/scale/tone/deinterlace/speed/subtitle-size call P7 policy
+   commands and appear in adapter snapshot when valid.
 7. Error/recovery/evidence: adapter reflects P7 snapshot error state; `reopen` and
    `copy_diagnostics` use P7 recovery/evidence queries. `retry` requires Failed state.
-8. Open/close lifecycle: `open`, `close`, and `releaseSurface` are adapter-owned entry
+8. Stop transport: `stop()` calls P7 `Stop` and returns session to `Ready` without `close()`.
+9. Open/close lifecycle: `open`, `close`, and `releaseSurface` are adapter-owned entry
    points; page exit must call close and release surface through the adapter.
-9. Fullscreen/window/screen: adapter exposes commands; current P7 public API has no screen
-   or viewport policy notification, so adapter reports `NotConnectedToP7`.
 10. Buffering/loading/rebuffer: adapter maps P7 graph states into opening/buffering fields.
-11. Playlist/next episode: adapter exposes commands; current P7 scope has no playlist or
-   EOS next orchestration, so adapter reports `NotConnectedToP7`.
-12. Input shortcuts: QML sends shortcut intent to adapter. Adapter dispatches only through
-   P7-backed commands or returns typed `NotConnectedToP7`.
-13. User settings overlay: subtitle size/delay, audio delay, aspect, tone mapping, and
-   speed are adapter commands; current P7 public API is missing the policy endpoints.
+11. Playlist/next episode: P7 closure excludes playlist orchestration; adapter keeps typed
+    `NotConnectedToP7`.
+12. Fullscreen/screen policy: UI/window concern; adapter keeps typed `NotConnectedToP7`.
+13. Track inventory cycle shortcuts: no P7 public inventory yet; audio cycle and subtitle
+    enable-cycle remain `NotConnectedToP7` except subtitle disable when already enabled.
+14. Input shortcuts: QML sends shortcut intent to adapter. Adapter dispatches through P7-backed
+    commands or returns typed `NotConnectedToP7`.

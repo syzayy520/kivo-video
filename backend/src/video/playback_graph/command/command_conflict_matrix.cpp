@@ -11,7 +11,7 @@ struct MatrixRule {
     CommandConflictDecision decision;
 };
 
-constexpr std::array<MatrixRule, 11> kRules{{
+constexpr std::array<MatrixRule, 20> kRules{{
     {GraphCommandKind::Open, PlaybackGraphState::NotCreated, CommandConflictDecision::Accept},
     {GraphCommandKind::Open, PlaybackGraphState::BuildFailed, CommandConflictDecision::Accept},
     {GraphCommandKind::Start, PlaybackGraphState::Ready, CommandConflictDecision::Accept},
@@ -23,6 +23,15 @@ constexpr std::array<MatrixRule, 11> kRules{{
     {GraphCommandKind::Seek, PlaybackGraphState::Paused, CommandConflictDecision::Accept},
     {GraphCommandKind::SwitchAudioTrack, PlaybackGraphState::Playing, CommandConflictDecision::Accept},
     {GraphCommandKind::SwitchVideoTrack, PlaybackGraphState::Playing, CommandConflictDecision::Accept},
+    {GraphCommandKind::SwitchSubtitleTrack, PlaybackGraphState::Playing, CommandConflictDecision::Accept},
+    {GraphCommandKind::SwitchSubtitleTrack, PlaybackGraphState::Paused, CommandConflictDecision::Accept},
+    {GraphCommandKind::DisableSubtitle, PlaybackGraphState::Playing, CommandConflictDecision::Accept},
+    {GraphCommandKind::DisableSubtitle, PlaybackGraphState::Paused, CommandConflictDecision::Accept},
+    {GraphCommandKind::Stop, PlaybackGraphState::Playing, CommandConflictDecision::Accept},
+    {GraphCommandKind::Stop, PlaybackGraphState::Paused, CommandConflictDecision::Accept},
+    {GraphCommandKind::Stop, PlaybackGraphState::Seeking, CommandConflictDecision::Accept},
+    {GraphCommandKind::SetSubtitleDelay, PlaybackGraphState::Playing, CommandConflictDecision::Accept},
+    {GraphCommandKind::SetAudioOutputPolicy, PlaybackGraphState::Playing, CommandConflictDecision::Accept},
 }};
 
 [[nodiscard]] bool is_closed_state(PlaybackGraphState state) noexcept {
@@ -69,6 +78,21 @@ CommandConflictResult resolve_command_conflict(GraphCommandKind command,
     if (command == GraphCommandKind::RecoveryReplay && state == PlaybackGraphState::Recovering) {
         return from_decision(CommandConflictDecision::Accept);
     }
+    if (command == GraphCommandKind::SetPlaybackSettingsPolicy &&
+        (state == PlaybackGraphState::Ready || state == PlaybackGraphState::Playing ||
+         state == PlaybackGraphState::Paused)) {
+        return from_decision(CommandConflictDecision::Accept);
+    }
+    if (command == GraphCommandKind::SetAudioOutputPolicy &&
+        (state == PlaybackGraphState::Ready || state == PlaybackGraphState::Playing ||
+         state == PlaybackGraphState::Paused)) {
+        return from_decision(CommandConflictDecision::Accept);
+    }
+    if (command == GraphCommandKind::SetSubtitleDelay &&
+        (state == PlaybackGraphState::Ready || state == PlaybackGraphState::Playing ||
+         state == PlaybackGraphState::Paused)) {
+        return from_decision(CommandConflictDecision::Accept);
+    }
 
     for (const auto& rule : kRules) {
         if (rule.command == command && rule.state == state) {
@@ -99,6 +123,18 @@ const char* command_kind_name(GraphCommandKind command) noexcept {
             return "SwitchAvTrackSet";
         case GraphCommandKind::Close:
             return "Close";
+        case GraphCommandKind::Stop:
+            return "Stop";
+        case GraphCommandKind::SwitchSubtitleTrack:
+            return "SwitchSubtitleTrack";
+        case GraphCommandKind::DisableSubtitle:
+            return "DisableSubtitle";
+        case GraphCommandKind::SetSubtitleDelay:
+            return "SetSubtitleDelay";
+        case GraphCommandKind::SetAudioOutputPolicy:
+            return "SetAudioOutputPolicy";
+        case GraphCommandKind::SetPlaybackSettingsPolicy:
+            return "SetPlaybackSettingsPolicy";
         case GraphCommandKind::InjectSystemEvent:
             return "InjectSystemEvent";
         case GraphCommandKind::RecoveryReplay:

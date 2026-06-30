@@ -27,6 +27,24 @@ public:
     [[nodiscard]] CommandToken switch_audio_track(const AudioTrackSwitchRequest& request) noexcept;
     [[nodiscard]] CommandToken switch_video_track(const VideoTrackSwitchRequest& request) noexcept;
     [[nodiscard]] CommandToken switch_av_track_set(const AvTrackSetSwitchRequest& request) noexcept;
+    [[nodiscard]] CommandToken switch_subtitle_track(
+        const SubtitleTrackSwitchRequest& request) noexcept;
+    [[nodiscard]] CommandToken disable_subtitle() noexcept;
+    [[nodiscard]] CommandToken stop() noexcept;
+    [[nodiscard]] CommandToken set_subtitle_delay(const SubtitleDelayRequest& request) noexcept;
+    [[nodiscard]] CommandToken set_audio_volume(const AudioVolumeRequest& request) noexcept;
+    [[nodiscard]] CommandToken set_audio_muted(const AudioMuteRequest& request) noexcept;
+    [[nodiscard]] CommandToken select_audio_output_device(
+        const AudioDeviceSelectRequest& request) noexcept;
+    [[nodiscard]] CommandToken set_audio_delay(const AudioDelayRequest& request) noexcept;
+    [[nodiscard]] CommandToken set_aspect_mode(const PlaybackAspectModeRequest& request) noexcept;
+    [[nodiscard]] CommandToken set_scale_mode(const PlaybackScaleModeRequest& request) noexcept;
+    [[nodiscard]] CommandToken set_tone_mapping_mode(
+        const PlaybackToneMappingModeRequest& request) noexcept;
+    [[nodiscard]] CommandToken set_deinterlace_mode(
+        const PlaybackDeinterlaceModeRequest& request) noexcept;
+    [[nodiscard]] CommandToken set_playback_speed(const PlaybackSpeedRequest& request) noexcept;
+    [[nodiscard]] CommandToken set_subtitle_size(const SubtitleSizeRequest& request) noexcept;
     [[nodiscard]] CommandToken close() noexcept;
     [[nodiscard]] CommandToken attach_video_surface(
         const VideoSurfaceBindingRequest& request) noexcept;
@@ -42,6 +60,9 @@ public:
     [[nodiscard]] SnapshotQueryResult<ClockSnapshot> query_clock() const noexcept;
     [[nodiscard]] SnapshotQueryResult<AudioQueueSnapshot> query_audio_queue() const noexcept;
     [[nodiscard]] SnapshotQueryResult<VideoQueueSnapshot> query_video_queue() const noexcept;
+    [[nodiscard]] SubtitleSnapshot query_subtitle() const noexcept;
+    [[nodiscard]] AudioOutputPolicySnapshot query_audio_output_policy() const noexcept;
+    [[nodiscard]] PlaybackSettingsPolicySnapshot query_playback_settings_policy() const noexcept;
     [[nodiscard]] CommandLifecycleSnapshot query_command(PlaybackCommandId id) const noexcept;
     [[nodiscard]] SubscriptionToken subscribe_events(GraphObserverHandle observer) noexcept;
     void unsubscribe(SubscriptionToken token) noexcept;
@@ -73,6 +94,15 @@ private:
     std::int64_t last_seek_target_ms_{0};
     bool seek_in_progress_{false};
     VideoSurfaceSnapshot video_surface_{};
+    std::uint64_t subtitle_track_id_{0};
+    bool subtitle_enabled_{false};
+    std::int64_t subtitle_delay_ms_{0};
+    double audio_volume_{1.0};
+    bool audio_muted_{false};
+    char audio_device_id_[64]{};
+    std::int64_t audio_delay_ms_{0};
+    PlaybackSettingsPolicySnapshot settings_policy_{};
+    bool policy_state_valid_{false};
 };
 
 }  // namespace kivo::video::playback_graph::runtime
