@@ -72,52 +72,37 @@ FocusScope {
         id: adapterDispatch
     }
 
-    function dispatchRuntimeCommand(methodName, args, actionName) {
-        var result = adapterDispatch.dispatchCommand(root.runtimeAdapter, methodName, args, actionName)
-        root.playbackActionRequested(result.ok ? result.actionName : ("adapterMissing:" + result.actionName))
-        if (result.ok)
-            Qt.callLater(root.refreshAdapterSnapshot)
+    PlaybackSnapshotBinding {
+        id: snapshotBinding
+        runtimeAdapter: root.runtimeAdapter
+        target: root
+        dispatch: adapterDispatch
+        skipRefresh: root.timelineDragging
+    }
+
+    function reportDispatchResult(result, fallbackActionName) {
+        root.playbackActionRequested(result.ok ? result.actionName
+                                               : ("adapterMissing:" + fallbackActionName))
         return result.ok
+    }
+
+    function dispatchRuntimeCommand(methodName, args, actionName) {
+        return reportDispatchResult(
+            adapterDispatch.dispatchRuntimeCommand(root.runtimeAdapter, methodName, args,
+                                                   actionName, snapshotBinding),
+            actionName)
     }
 
     function dispatchOpenMediaId(mediaId, actionName) {
-        var result = adapterDispatch.openMediaId(root.runtimeAdapter, mediaId, actionName)
-        root.playbackActionRequested(result.ok ? result.actionName : ("adapterMissing:" + result.actionName))
-        if (result.ok)
-            Qt.callLater(root.refreshAdapterSnapshot)
-        return result.ok
+        return reportDispatchResult(
+            adapterDispatch.openMediaId(root.runtimeAdapter, mediaId, actionName, snapshotBinding),
+            actionName)
     }
 
     function dispatchShortcut(rawName) {
-        var result = adapterDispatch.dispatchShortcut(root.runtimeAdapter, rawName)
-        root.playbackActionRequested(result.ok ? result.actionName : ("adapterMissing:" + result.actionName))
-        if (result.ok)
-            Qt.callLater(root.refreshAdapterSnapshot)
-        return result.ok
-    }
-
-    function refreshAdapterSnapshot() {
-        if (!root.runtimeAdapter || root.timelineDragging)
-            return
-
-        var raw = adapterDispatch.pullSnapshot(root.runtimeAdapter)
-        var snap = adapterDispatch.normalizeSnapshot(raw)
-        if (!snap || snap.closed)
-            return
-
-        root.currentTimeMs = snap.positionMs
-        root.durationMs = snap.durationMs
-        root.buffered = snap.buffered
-        root.isPaused = snap.isPaused
-        root.isBuffering = snap.isBuffering
-        root.isRecovering = snap.isRecovering
-        root.hasError = snap.hasError
-        root.volume = snap.volume
-        root.isMuted = snap.muted
-        root.subtitlePrimary = snap.subtitlePrimary
-        root.subtitleSecondary = snap.subtitleSecondary
-        root.subtitleEnabled = snap.subtitleEnabled
-        root.subtitleDelayMs = snap.subtitleDelayMs
+        return reportDispatchResult(
+            adapterDispatch.dispatchShortcut(root.runtimeAdapter, rawName, snapshotBinding),
+            rawName)
     }
 
     function requestFullscreenThroughAdapter() {
@@ -328,37 +313,10 @@ FocusScope {
     onHasErrorChanged: if (hasError) overlay.stateModel.setError()
     onIsPausedChanged: overlay.stateModel.setPaused(isPaused)
 
-    Timer {
-        interval: 250
-        running: root.runtimeAdapter !== null
-        repeat: true
-        onTriggered: root.refreshAdapterSnapshot()
-    }
-
-    Connections {
-        target: root.runtimeAdapter
-        ignoreUnknownSignals: true
-        function onSnapshotChanged() {
-            root.refreshAdapterSnapshot()
-        }
-    }
-
-    onRuntimeAdapterChanged: {
-        if (runtimeAdapter)
-            Qt.callLater(root.refreshAdapterSnapshot)
-    }
-
-    onTimelineDraggingChanged: {
-        if (!timelineDragging)
-            Qt.callLater(root.refreshAdapterSnapshot)
-    }
-
     Component.onCompleted: {
         if (root.isPaused)
             overlay.stateModel.setPaused(true)
         forceActiveFocus()
-        if (root.runtimeAdapter)
-            root.refreshAdapterSnapshot()
     }
 
     Component.onDestruction: {
