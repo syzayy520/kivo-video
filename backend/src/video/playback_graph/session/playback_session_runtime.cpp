@@ -34,6 +34,7 @@ CommandToken PlaybackSessionRuntime::open(const OpenRequest& request) noexcept {
     seek_in_progress_ = false;
     policy_state_valid_ = true;
     settings_policy_.valid = true;
+    initialize_track_inventory(request.source_id);
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();
     return token;
@@ -180,6 +181,7 @@ CommandToken PlaybackSessionRuntime::close() noexcept {
     settings_policy_.valid = false;
     subtitle_track_id_ = 0;
     subtitle_enabled_ = false;
+    clear_track_inventory();
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();
     return token;

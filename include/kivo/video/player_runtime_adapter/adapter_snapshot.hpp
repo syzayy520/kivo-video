@@ -60,8 +60,10 @@ struct AdapterSnapshot {
     std::int64_t audio_delay_ms{0};
     bool auto_play_next{false};
 
+    std::uint64_t selected_audio_track{0};
     std::uint64_t selected_subtitle_track{0};
     bool subtitle_enabled{false};
+    bool subtitle_frame_available{false};
     std::int64_t subtitle_delay_ms{0};
 
     AdapterAspectMode aspect_mode{AdapterAspectMode::Fit};

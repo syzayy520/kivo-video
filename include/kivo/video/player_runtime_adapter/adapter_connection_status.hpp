@@ -4,6 +4,8 @@ namespace kivo::video::player_runtime_adapter {
 
 enum class AdapterConnectionStatus {
     ConnectedToP7,
+    TypedContractOnly,
+    NotConnectedToP8Runtime,
     NotConnectedToP7
 };
 

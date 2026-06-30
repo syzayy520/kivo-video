@@ -1,5 +1,8 @@
 #include "video/player_runtime_adapter/state/adapter_state_mapper.hpp"
 
+#include "video/player_runtime_adapter/state/adapter_subtitle_frame_mapper.hpp"
+#include "video/player_runtime_adapter/state/adapter_track_inventory_mapper.hpp"
+
 namespace kivo::video::player_runtime_adapter::runtime {
 namespace {
 
@@ -157,6 +160,8 @@ AdapterSnapshot map_snapshot(const playback_graph::PlaybackSession& session,
     const auto video_surface = session.query_video_surface();
     const auto diagnostics = session.query_diagnostics_summary();
     const auto subtitle = session.query_subtitle();
+    const auto subtitle_frame = session.query_subtitle_frame();
+    const auto track_inventory = session.query_track_inventory();
     const auto audio_policy = session.query_audio_output_policy();
     const auto settings_policy = session.query_playback_settings_policy();
 
@@ -206,10 +211,10 @@ AdapterSnapshot map_snapshot(const playback_graph::PlaybackSession& session,
         snapshot.subtitle_enabled = subtitle.enabled;
         snapshot.subtitle_delay_ms = subtitle.delay_ms;
         snapshot.connections.subtitle_tracks = AdapterConnectionStatus::ConnectedToP7;
-        if (subtitle.frame_available) {
-            snapshot.connections.subtitle_frame = AdapterConnectionStatus::ConnectedToP7;
-        }
     }
+
+    apply_track_inventory(snapshot, track_inventory);
+    apply_subtitle_frame(snapshot, subtitle_frame);
 
     if (audio_policy.valid) {
         snapshot.volume = audio_policy.volume;

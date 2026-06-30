@@ -32,8 +32,9 @@ namespace {
     }
     if (ready.connections.playback_session != AdapterConnectionStatus::ConnectedToP7 ||
         ready.connections.timeline != AdapterConnectionStatus::ConnectedToP7 ||
+        ready.connections.track_inventory != AdapterConnectionStatus::ConnectedToP7 ||
         ready.connections.subtitle_tracks != AdapterConnectionStatus::ConnectedToP7 ||
-        ready.connections.subtitle_frame != AdapterConnectionStatus::NotConnectedToP7 ||
+        ready.connections.subtitle_frame != AdapterConnectionStatus::NotConnectedToP8Runtime ||
         ready.connections.audio_volume != AdapterConnectionStatus::ConnectedToP7 ||
         ready.connections.user_settings_policy != AdapterConnectionStatus::ConnectedToP7) {
         return false;
@@ -133,7 +134,7 @@ namespace {
     const auto with_subtitle = adapter.snapshot();
     if (!with_subtitle.subtitle_enabled || with_subtitle.selected_subtitle_track != 4 ||
         with_subtitle.connections.subtitle_tracks != AdapterConnectionStatus::ConnectedToP7 ||
-        with_subtitle.connections.subtitle_frame != AdapterConnectionStatus::NotConnectedToP7) {
+        with_subtitle.connections.subtitle_frame != AdapterConnectionStatus::NotConnectedToP8Runtime) {
         return false;
     }
 
@@ -238,8 +239,40 @@ namespace {
     if (adapter.snapshot().subtitle_enabled) {
         return false;
     }
-    return is_missing(adapter.handle_shortcut_name("audioTrack"),
-                      AdapterMissingP7Api::TrackInventory);
+    return adapter.handle_shortcut_name("audioTrack").accepted();
+}
+
+[[nodiscard]] bool verify_track_inventory_and_diagnostics_closure() {
+    PlayerRuntimeAdapter adapter{};
+    if (!adapter.open_media_id(15).accepted() || !adapter.play().accepted()) {
+        return false;
+    }
+
+    const auto inventory = adapter.snapshot();
+    if (inventory.connections.track_inventory != AdapterConnectionStatus::ConnectedToP7 ||
+        inventory.selected_audio_track != 1 ||
+        inventory.connections.subtitle_frame != AdapterConnectionStatus::NotConnectedToP8Runtime ||
+        inventory.subtitle_frame_available) {
+        return false;
+    }
+
+    if (!adapter.handle_shortcut(AdapterShortcutAction::Subtitle).accepted()) {
+        return false;
+    }
+    if (!adapter.snapshot().subtitle_enabled) {
+        return false;
+    }
+
+    if (!adapter.copy_diagnostics().accepted()) {
+        return false;
+    }
+    if (!adapter.close().accepted()) {
+        return false;
+    }
+
+    const auto invalid_copy = adapter.copy_diagnostics();
+    return invalid_copy.status == AdapterCommandStatus::RejectedByP7 &&
+           invalid_copy.p7_error == PlaybackGraphError::ClosedGraph;
 }
 
 [[nodiscard]] bool verify_remaining_not_connected() {
@@ -293,8 +326,11 @@ int main() {
     if (!verify_shortcut_name_bridge()) {
         return 6;
     }
-    if (!verify_remaining_not_connected()) {
+    if (!verify_track_inventory_and_diagnostics_closure()) {
         return 7;
+    }
+    if (!verify_remaining_not_connected()) {
+        return 8;
     }
     return 0;
 }

@@ -17,7 +17,9 @@
 #include "kivo/video/playback_graph/recovery/recovery_action_request.hpp"
 #include "kivo/video/playback_graph/seek_request.hpp"
 #include "kivo/video/playback_graph/snapshot_query_result.hpp"
+#include "kivo/video/playback_graph/subtitle/subtitle_frame_snapshot.hpp"
 #include "kivo/video/playback_graph/subtitle/subtitle_snapshot.hpp"
+#include "kivo/video/playback_graph/track/track_inventory_snapshot.hpp"
 #include "kivo/video/playback_graph/track_switch_request.hpp"
 
 namespace kivo::video::playback_graph {
@@ -69,6 +71,8 @@ public:
     CommandToken release_video_surface() noexcept;
     CommandToken retry(const RecoveryActionRequest& request) noexcept;
     CommandToken reopen(const RecoveryActionRequest& request) noexcept;
+    CommandToken cycle_subtitle_track() noexcept;
+    CommandToken cycle_audio_track() noexcept;
     PlaybackSessionSnapshot snapshot() const noexcept;
     PlaybackTimelineSnapshot query_timeline() const noexcept;
     VideoSurfaceSnapshot query_video_surface() const noexcept;
@@ -77,6 +81,8 @@ public:
     SnapshotQueryResult<AudioQueueSnapshot> query_audio_queue() const noexcept;
     SnapshotQueryResult<VideoQueueSnapshot> query_video_queue() const noexcept;
     SubtitleSnapshot query_subtitle() const noexcept;
+    SubtitleFrameSnapshot query_subtitle_frame() const noexcept;
+    TrackInventorySnapshot query_track_inventory() const noexcept;
     AudioOutputPolicySnapshot query_audio_output_policy() const noexcept;
     PlaybackSettingsPolicySnapshot query_playback_settings_policy() const noexcept;
     CommandLifecycleSnapshot query_command(PlaybackCommandId id) const noexcept;

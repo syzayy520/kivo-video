@@ -304,9 +304,9 @@ AdapterCommandResult PlayerRuntimeAdapter::handle_shortcut(AdapterShortcutAction
             if (snapshot().subtitle_enabled) {
                 return disable_subtitle();
             }
-            return runtime::missing_p7_api(AdapterMissingP7Api::TrackInventory);
+            return runtime::command_result_from_p7(session_.cycle_subtitle_track());
         case AdapterShortcutAction::AudioTrack:
-            return runtime::missing_p7_api(AdapterMissingP7Api::TrackInventory);
+            return runtime::command_result_from_p7(session_.cycle_audio_track());
     }
 
     return runtime::missing_p7_api(AdapterMissingP7Api::UserSettingsPolicy);
@@ -375,7 +375,14 @@ AdapterCommandResult PlayerRuntimeAdapter::reopen() noexcept {
 AdapterCommandResult PlayerRuntimeAdapter::copy_diagnostics() noexcept {
     const auto summary = session_.query_diagnostics_summary();
     if (!summary.valid) {
-        return runtime::missing_p7_api(AdapterMissingP7Api::DiagnosticsClipboard);
+        AdapterCommandResult result{};
+        result.status = AdapterCommandStatus::RejectedByP7;
+        if (summary.invalid_reason == playback_graph::DiagnosticsInvalidReason::GraphClosed) {
+            result.p7_error = playback_graph::PlaybackGraphError::ClosedGraph;
+        } else {
+            result.p7_error = playback_graph::PlaybackGraphError::InvalidState;
+        }
+        return result;
     }
     AdapterCommandResult result{};
     result.status = AdapterCommandStatus::Accepted;

@@ -24,7 +24,9 @@ enum class GraphCommandKind {
     SetAudioOutputPolicy,
     SetPlaybackSettingsPolicy,
     InjectSystemEvent,
-    RecoveryReplay
+    RecoveryReplay,
+    CycleSubtitleTrack,
+    CycleAudioTrack
 };
 
 enum class CommandConflictDecision {

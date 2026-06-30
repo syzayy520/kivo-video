@@ -298,6 +298,55 @@ namespace {
     return session.start().accepted();
 }
 
+[[nodiscard]] bool verify_track_inventory_typed_contract() {
+    PlaybackSession session{};
+    OpenRequest open{};
+    open.source_id = 20;
+    if (!session.open(open).accepted()) {
+        return false;
+    }
+
+    const auto inventory = session.query_track_inventory();
+    if (!inventory.valid || inventory.audio_track_count != 3 ||
+        inventory.subtitle_track_count != 4) {
+        return false;
+    }
+    if (!session.cycle_subtitle_track().accepted()) {
+        return false;
+    }
+    const auto subtitle = session.query_subtitle();
+    if (!subtitle.enabled || subtitle.selected_track_id != 1) {
+        return false;
+    }
+    if (!session.cycle_audio_track().accepted()) {
+        return false;
+    }
+    return session.query_track_inventory().selected_audio_track_id == 2;
+}
+
+[[nodiscard]] bool verify_subtitle_frame_typed_contract() {
+    PlaybackSession session{};
+    OpenRequest open{};
+    open.source_id = 21;
+    if (!session.open(open).accepted()) {
+        return false;
+    }
+    const auto frame = session.query_subtitle_frame();
+    return frame.valid && !frame.frame_available;
+}
+
+[[nodiscard]] bool verify_diagnostics_invalid_closed() {
+    PlaybackSession session{};
+    OpenRequest open{};
+    open.source_id = 22;
+    if (!session.open(open).accepted() || !session.close().accepted()) {
+        return false;
+    }
+    const auto summary = session.query_diagnostics_summary();
+    return !summary.valid &&
+           summary.invalid_reason == DiagnosticsInvalidReason::GraphClosed;
+}
+
 }  // namespace
 
 int main() {
@@ -327,6 +376,15 @@ int main() {
     }
     if (!expect(verify_stop_preserves_open_session())) {
         return 9;
+    }
+    if (!expect(verify_track_inventory_typed_contract())) {
+        return 10;
+    }
+    if (!expect(verify_subtitle_frame_typed_contract())) {
+        return 11;
+    }
+    if (!expect(verify_diagnostics_invalid_closed())) {
+        return 12;
     }
     return 0;
 }

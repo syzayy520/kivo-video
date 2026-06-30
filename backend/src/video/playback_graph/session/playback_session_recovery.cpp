@@ -71,7 +71,18 @@ DiagnosticsSummary PlaybackSessionRuntime::query_diagnostics_summary() const noe
     summary.dropped_critical_event_count = session_snapshot.dropped_critical_event_count;
     summary.late_event_discard_count = session_snapshot.late_event_discard_count;
     summary.closed = session_snapshot.closed;
+
+    if (session_snapshot.closed) {
+        summary.invalid_reason = DiagnosticsInvalidReason::GraphClosed;
+        return summary;
+    }
+    if (session_snapshot.state == PlaybackGraphState::NotCreated) {
+        summary.invalid_reason = DiagnosticsInvalidReason::SessionNotReady;
+        return summary;
+    }
+
     summary.valid = true;
+    summary.invalid_reason = DiagnosticsInvalidReason::None;
     return summary;
 }
 

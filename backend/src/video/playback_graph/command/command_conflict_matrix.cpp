@@ -93,6 +93,16 @@ CommandConflictResult resolve_command_conflict(GraphCommandKind command,
          state == PlaybackGraphState::Paused)) {
         return from_decision(CommandConflictDecision::Accept);
     }
+    if (command == GraphCommandKind::CycleSubtitleTrack &&
+        (state == PlaybackGraphState::Ready || state == PlaybackGraphState::Playing ||
+         state == PlaybackGraphState::Paused)) {
+        return from_decision(CommandConflictDecision::Accept);
+    }
+    if (command == GraphCommandKind::CycleAudioTrack &&
+        (state == PlaybackGraphState::Ready || state == PlaybackGraphState::Playing ||
+         state == PlaybackGraphState::Paused)) {
+        return from_decision(CommandConflictDecision::Accept);
+    }
 
     for (const auto& rule : kRules) {
         if (rule.command == command && rule.state == state) {
@@ -139,6 +149,10 @@ const char* command_kind_name(GraphCommandKind command) noexcept {
             return "InjectSystemEvent";
         case GraphCommandKind::RecoveryReplay:
             return "RecoveryReplay";
+        case GraphCommandKind::CycleSubtitleTrack:
+            return "CycleSubtitleTrack";
+        case GraphCommandKind::CycleAudioTrack:
+            return "CycleAudioTrack";
     }
     return "Unknown";
 }

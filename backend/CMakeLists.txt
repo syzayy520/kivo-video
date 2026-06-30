@@ -1391,6 +1391,8 @@ add_library(kivo_video_playback_graph STATIC
   src/video/playback_graph/session/playback_session_recovery.cpp
   src/video/playback_graph/session/playback_session_command_query.cpp
   src/video/playback_graph/session/playback_session_clock_sync.cpp
+  src/video/playback_graph/session/playback_session_track_inventory.cpp
+  src/video/playback_graph/session/playback_session_subtitle_frame.cpp
   src/video/playback_graph/state/playback_graph_state_machine.cpp
   src/video/playback_graph/command/command_lifetime_registry.cpp
   src/video/playback_graph/command/command_conflict_matrix.cpp
@@ -1526,6 +1528,8 @@ add_library(kivo_video_player_runtime_adapter STATIC
   src/video/player_runtime_adapter/core/player_runtime_adapter.cpp
   src/video/player_runtime_adapter/p7_bridge/p7_command_result.cpp
   src/video/player_runtime_adapter/state/adapter_state_mapper.cpp
+  src/video/player_runtime_adapter/state/adapter_track_inventory_mapper.cpp
+  src/video/player_runtime_adapter/state/adapter_subtitle_frame_mapper.cpp
 )
 target_include_directories(kivo_video_player_runtime_adapter
   PUBLIC

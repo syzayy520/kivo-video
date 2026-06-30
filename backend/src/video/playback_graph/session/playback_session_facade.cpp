@@ -196,6 +196,16 @@ CommandToken PlaybackSession::reopen(const RecoveryActionRequest& request) noexc
     return runtime == nullptr ? allocation_failure_token() : runtime->reopen(request);
 }
 
+CommandToken PlaybackSession::cycle_subtitle_track() noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->cycle_subtitle_track();
+}
+
+CommandToken PlaybackSession::cycle_audio_track() noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->cycle_audio_track();
+}
+
 PlaybackSessionSnapshot PlaybackSession::snapshot() const noexcept {
     const auto* runtime = as_runtime(impl_);
     return runtime == nullptr ? PlaybackSessionSnapshot{} : runtime->snapshot();
@@ -236,6 +246,16 @@ SnapshotQueryResult<VideoQueueSnapshot> PlaybackSession::query_video_queue() con
 SubtitleSnapshot PlaybackSession::query_subtitle() const noexcept {
     const auto* runtime = as_runtime(impl_);
     return runtime == nullptr ? SubtitleSnapshot{} : runtime->query_subtitle();
+}
+
+SubtitleFrameSnapshot PlaybackSession::query_subtitle_frame() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? SubtitleFrameSnapshot{} : runtime->query_subtitle_frame();
+}
+
+TrackInventorySnapshot PlaybackSession::query_track_inventory() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? TrackInventorySnapshot{} : runtime->query_track_inventory();
 }
 
 AudioOutputPolicySnapshot PlaybackSession::query_audio_output_policy() const noexcept {

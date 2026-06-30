@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "kivo/video/playback_graph/diagnostics/diagnostics_copy_contract.hpp"
 #include "kivo/video/playback_graph/playback_graph_error.hpp"
 #include "kivo/video/playback_graph/playback_graph_state.hpp"
 
@@ -15,6 +16,7 @@ struct DiagnosticsSummary {
     std::uint32_t late_event_discard_count{0};
     bool closed{false};
     bool valid{false};
+    DiagnosticsInvalidReason invalid_reason{DiagnosticsInvalidReason::None};
 };
 
 }  // namespace kivo::video::playback_graph

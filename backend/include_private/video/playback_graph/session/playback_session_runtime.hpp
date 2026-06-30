@@ -6,6 +6,8 @@
 #include "kivo/video/playback_graph/playback_graph_policy.hpp"
 #include "kivo/video/playback_graph/playback_session.hpp"
 #include "kivo/video/playback_graph/playback_session_snapshot.hpp"
+#include "kivo/video/playback_graph/subtitle/subtitle_frame_snapshot.hpp"
+#include "kivo/video/playback_graph/track/track_inventory_snapshot.hpp"
 #include "video/playback_graph/command/command_lifetime_registry.hpp"
 #include "video/playback_graph/command/pending_transport_intent.hpp"
 #include "video/playback_graph/coordination/recovery_replay_coordinator.hpp"
@@ -52,6 +54,8 @@ public:
     [[nodiscard]] CommandToken release_video_surface() noexcept;
     [[nodiscard]] CommandToken retry(const RecoveryActionRequest& request) noexcept;
     [[nodiscard]] CommandToken reopen(const RecoveryActionRequest& request) noexcept;
+    [[nodiscard]] CommandToken cycle_subtitle_track() noexcept;
+    [[nodiscard]] CommandToken cycle_audio_track() noexcept;
 
     [[nodiscard]] PlaybackSessionSnapshot snapshot() const noexcept;
     [[nodiscard]] PlaybackTimelineSnapshot query_timeline() const noexcept;
@@ -61,6 +65,8 @@ public:
     [[nodiscard]] SnapshotQueryResult<AudioQueueSnapshot> query_audio_queue() const noexcept;
     [[nodiscard]] SnapshotQueryResult<VideoQueueSnapshot> query_video_queue() const noexcept;
     [[nodiscard]] SubtitleSnapshot query_subtitle() const noexcept;
+    [[nodiscard]] SubtitleFrameSnapshot query_subtitle_frame() const noexcept;
+    [[nodiscard]] TrackInventorySnapshot query_track_inventory() const noexcept;
     [[nodiscard]] AudioOutputPolicySnapshot query_audio_output_policy() const noexcept;
     [[nodiscard]] PlaybackSettingsPolicySnapshot query_playback_settings_policy() const noexcept;
     [[nodiscard]] CommandLifecycleSnapshot query_command(PlaybackCommandId id) const noexcept;
@@ -77,6 +83,8 @@ private:
                               PlaybackGraphError error) noexcept;
     void publish_current_snapshot() noexcept;
     void sync_clock_store() noexcept;
+    void initialize_track_inventory(std::uint64_t source_id) noexcept;
+    void clear_track_inventory() noexcept;
 
     PlaybackGraphPolicy policy_{};
     PlaybackSessionId session_id_{1};
@@ -94,8 +102,16 @@ private:
     std::int64_t last_seek_target_ms_{0};
     bool seek_in_progress_{false};
     VideoSurfaceSnapshot video_surface_{};
+    std::uint64_t audio_track_id_{1};
+    std::uint64_t video_track_id_{1};
     std::uint64_t subtitle_track_id_{0};
     bool subtitle_enabled_{false};
+    std::uint64_t inventory_audio_ids_[TrackInventorySnapshot::kMaxTracks]{};
+    std::size_t inventory_audio_count_{0};
+    std::uint64_t inventory_subtitle_ids_[TrackInventorySnapshot::kMaxTracks]{};
+    std::size_t inventory_subtitle_count_{0};
+    std::uint64_t inventory_video_ids_[TrackInventorySnapshot::kMaxTracks]{};
+    std::size_t inventory_video_count_{0};
     std::int64_t subtitle_delay_ms_{0};
     double audio_volume_{1.0};
     bool audio_muted_{false};
