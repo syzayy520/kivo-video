@@ -3,8 +3,66 @@
 namespace kivo::video::player_runtime_adapter::runtime {
 namespace {
 
+using playback_graph::PlaybackAspectMode;
+using playback_graph::PlaybackDeinterlaceMode;
 using playback_graph::PlaybackGraphState;
+using playback_graph::PlaybackScaleMode;
+using playback_graph::PlaybackToneMappingMode;
 using playback_graph::VideoRenderAttachmentState;
+
+[[nodiscard]] AdapterAspectMode map_aspect_mode(PlaybackAspectMode mode) noexcept {
+    switch (mode) {
+        case PlaybackAspectMode::Fit:
+            return AdapterAspectMode::Fit;
+        case PlaybackAspectMode::Fill:
+            return AdapterAspectMode::Fill;
+        case PlaybackAspectMode::Stretch:
+            return AdapterAspectMode::Stretch;
+        case PlaybackAspectMode::Original:
+            return AdapterAspectMode::Original;
+    }
+    return AdapterAspectMode::Fit;
+}
+
+[[nodiscard]] AdapterScaleMode map_scale_mode(PlaybackScaleMode mode) noexcept {
+    switch (mode) {
+        case PlaybackScaleMode::Auto:
+            return AdapterScaleMode::Auto;
+        case PlaybackScaleMode::Fit:
+            return AdapterScaleMode::Fit;
+        case PlaybackScaleMode::Fill:
+            return AdapterScaleMode::Fill;
+    }
+    return AdapterScaleMode::Auto;
+}
+
+[[nodiscard]] AdapterToneMappingMode map_tone_mapping_mode(
+    PlaybackToneMappingMode mode) noexcept {
+    switch (mode) {
+        case PlaybackToneMappingMode::Auto:
+            return AdapterToneMappingMode::Auto;
+        case PlaybackToneMappingMode::Off:
+            return AdapterToneMappingMode::Off;
+        case PlaybackToneMappingMode::Sdr:
+            return AdapterToneMappingMode::Sdr;
+        case PlaybackToneMappingMode::HdrPassthrough:
+            return AdapterToneMappingMode::HdrPassthrough;
+    }
+    return AdapterToneMappingMode::Auto;
+}
+
+[[nodiscard]] AdapterDeinterlaceMode map_deinterlace_mode(
+    PlaybackDeinterlaceMode mode) noexcept {
+    switch (mode) {
+        case PlaybackDeinterlaceMode::Auto:
+            return AdapterDeinterlaceMode::Auto;
+        case PlaybackDeinterlaceMode::Off:
+            return AdapterDeinterlaceMode::Off;
+        case PlaybackDeinterlaceMode::On:
+            return AdapterDeinterlaceMode::On;
+    }
+    return AdapterDeinterlaceMode::Auto;
+}
 
 [[nodiscard]] RenderState map_render_state(VideoRenderAttachmentState state) noexcept {
     switch (state) {
@@ -164,6 +222,12 @@ AdapterSnapshot map_snapshot(const playback_graph::PlaybackSession& session,
     }
 
     if (settings_policy.valid) {
+        snapshot.aspect_mode = map_aspect_mode(settings_policy.aspect);
+        snapshot.scale_mode = map_scale_mode(settings_policy.scale);
+        snapshot.tone_mapping_mode = map_tone_mapping_mode(settings_policy.tone_mapping);
+        snapshot.deinterlace_mode = map_deinterlace_mode(settings_policy.deinterlace);
+        snapshot.playback_speed = settings_policy.playback_speed;
+        snapshot.subtitle_size = settings_policy.subtitle_size;
         snapshot.connections.user_settings_policy = AdapterConnectionStatus::ConnectedToP7;
     }
 

@@ -84,6 +84,18 @@ namespace {
         return false;
     }
 
+    if (!transport.close().accepted()) {
+        return false;
+    }
+    const auto closed = transport.snapshot();
+    if (!closed.closed || closed.playback_state != RuntimePlaybackState::Closed) {
+        return false;
+    }
+    const auto play_after_close = transport.play();
+    if (play_after_close.status != AdapterCommandStatus::RejectedByP7) {
+        return false;
+    }
+
     PlayerRuntimeAdapter timeline{};
     if (!timeline.open_media_id(8).accepted()) {
         return false;
@@ -197,8 +209,13 @@ namespace {
         return false;
     }
 
-    return adapter.snapshot().connections.user_settings_policy ==
-           AdapterConnectionStatus::ConnectedToP7;
+    const auto settings = adapter.snapshot();
+    return settings.connections.user_settings_policy == AdapterConnectionStatus::ConnectedToP7 &&
+           settings.aspect_mode == AdapterAspectMode::Fit &&
+           settings.scale_mode == AdapterScaleMode::Fill &&
+           settings.tone_mapping_mode == AdapterToneMappingMode::Auto &&
+           settings.deinterlace_mode == AdapterDeinterlaceMode::Off &&
+           settings.playback_speed == 1.25 && settings.subtitle_size == 1.1;
 }
 
 [[nodiscard]] bool verify_shortcut_name_bridge() {

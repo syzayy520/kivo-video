@@ -21,6 +21,7 @@ Item {
     property string versionLabel: ""
     property string currentEpisode: ""
     property string selectedSubtitle: ""
+    property int subtitleDelayMs: 0
     property var subtitleOptions: []
     property var audioTrackOptions: []
     property var episodeOptions: []
@@ -152,6 +153,7 @@ Item {
         anchors.bottomMargin: 18
         open: overlayState.activeSheet === "subtitle"
         selectedSubtitle: root.selectedSubtitle
+        subtitleDelayMs: root.subtitleDelayMs
         subtitleOptions: root.subtitleOptions
         z: 30
         onCloseRequested: overlayState.closeSheet()

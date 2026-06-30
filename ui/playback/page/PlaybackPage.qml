@@ -16,6 +16,7 @@ FocusScope {
     property string subtitlePrimary: ""
     property string subtitleSecondary: ""
     property bool subtitleEnabled: false
+    property int subtitleDelayMs: 0
     property string audioTrackLabel: ""
     property string versionLabel: ""
     property string currentEpisode: ""
@@ -116,6 +117,7 @@ FocusScope {
         root.subtitlePrimary = snap.subtitlePrimary
         root.subtitleSecondary = snap.subtitleSecondary
         root.subtitleEnabled = snap.subtitleEnabled
+        root.subtitleDelayMs = snap.subtitleDelayMs
     }
 
     function requestFullscreenThroughAdapter() {
@@ -188,6 +190,7 @@ FocusScope {
         versionLabel: root.versionLabel
         currentEpisode: root.currentEpisode
         selectedSubtitle: root.selectedSubtitle
+        subtitleDelayMs: root.subtitleDelayMs
         subtitleOptions: root.subtitleOptions
         audioTrackOptions: root.audioTrackOptions
         episodeOptions: root.episodeOptions

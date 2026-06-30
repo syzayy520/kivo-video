@@ -63,6 +63,13 @@ struct AdapterSnapshot {
     std::uint64_t selected_subtitle_track{0};
     bool subtitle_enabled{false};
     std::int64_t subtitle_delay_ms{0};
+
+    AdapterAspectMode aspect_mode{AdapterAspectMode::Fit};
+    AdapterScaleMode scale_mode{AdapterScaleMode::Auto};
+    AdapterToneMappingMode tone_mapping_mode{AdapterToneMappingMode::Auto};
+    AdapterDeinterlaceMode deinterlace_mode{AdapterDeinterlaceMode::Auto};
+    double playback_speed{1.0};
+    double subtitle_size{1.0};
 };
 
 }  // namespace kivo::video::player_runtime_adapter
