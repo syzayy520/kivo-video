@@ -1,0 +1,13 @@
+{
+  "task": "KIVO-VIDEO-P9-PLAYBACK-SHELL-UI-OPEN-EVIDENCE-001",
+  "classification": "PASS_UI_OPEN_SCREENSHOT",
+  "command": "kivo_video_playback_shell.exe --ui-open-evidence artifacts/p9/evidence",
+  "qml_entry": "qrc:/kivo/ui/shell/PlaybackShellRoot.qml",
+  "playback_page": "ui/playback/page/PlaybackPage.qml",
+  "window_title": "Kivo Video Playback",
+  "window_size": "1280x720",
+  "screenshot_path": "artifacts/p9/evidence/ui_open_screenshot.png",
+  "screenshot_exists": true,
+  "exit_method": "normal_quit_after_auto_close_timer",
+  "residual_process": false
+}

@@ -5,3 +5,4 @@ project(KivoVideo LANGUAGES C CXX)
 enable_testing()
 
 add_subdirectory(backend)
+add_subdirectory(ui)

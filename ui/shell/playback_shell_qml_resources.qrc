@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/kivo/ui/shell">
+        <file>PlaybackShellRoot.qml</file>
+    </qresource>
+</RCC>

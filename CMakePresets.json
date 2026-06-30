@@ -30,7 +30,9 @@
       "binaryDir": "${sourceDir}/build/vs-debug",
       "cacheVariables": {
         "KIVO_ENABLE_FFMPEG": "OFF",
-        "KIVO_ENABLE_REAL_MEDIA_TESTS": "OFF"
+        "KIVO_ENABLE_REAL_MEDIA_TESTS": "OFF",
+        "KIVO_ENABLE_PLAYBACK_SHELL": "ON",
+        "KIVO_QT_ROOT": "C:/tmp/KivoMusicQt_ascii_lyrics_normalizer/.qt/6.8.3/msvc2022_64"
       }
     },
     {
