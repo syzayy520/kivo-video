@@ -1,0 +1,36 @@
+<RCC>
+    <qresource prefix="/kivo/ui/playback">
+        <file>page/PlaybackPage.qml</file>
+        <file>page/VideoLayer.qml</file>
+        <file>input/PlaybackAdapterDispatch.qml</file>
+        <file>input/PlaybackSnapshotBinding.qml</file>
+        <file>input/PlaybackInputController.qml</file>
+        <file>input/PlaybackShortcutMap.qml</file>
+        <file>overlay/PlaybackOverlay.qml</file>
+        <file>overlay/PlaybackToolControls.qml</file>
+        <file>overlay/PlaybackTimeline.qml</file>
+        <file>overlay/TopGradientOverlay.qml</file>
+        <file>overlay/BottomGradientOverlay.qml</file>
+        <file>overlay/SubtitleOverlay.qml</file>
+        <file>overlay/TopInfoOverlay.qml</file>
+        <file>overlay/TransportControls.qml</file>
+        <file>overlay/StatusOverlay.qml</file>
+        <file>overlay/BottomControlOverlay.qml</file>
+        <file>overlay/VolumeInlineControl.qml</file>
+        <file>sheets/PlaybackSheet.qml</file>
+        <file>sheets/EpisodeSheet.qml</file>
+        <file>sheets/AudioTrackSheet.qml</file>
+        <file>sheets/VersionSheet.qml</file>
+        <file>sheets/SubtitleSheet.qml</file>
+        <file>sheets/MorePlaybackSheet.qml</file>
+        <file>controls/PlaybackIconButton.qml</file>
+        <file>controls/PlaybackIconSet.qml</file>
+        <file>controls/PlaybackTextButton.qml</file>
+        <file>controls/PlaybackTooltip.qml</file>
+        <file>menu/PlaybackContextMenu.qml</file>
+        <file>states/PlaybackOverlayTimer.qml</file>
+        <file>states/PlaybackOverlayState.qml</file>
+        <file>theme/qmldir</file>
+        <file>theme/PlaybackTypography.qml</file>
+    </qresource>
+</RCC>

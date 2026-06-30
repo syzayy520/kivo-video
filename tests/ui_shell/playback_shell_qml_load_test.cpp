@@ -1,5 +1,4 @@
 #include <QCoreApplication>
-#include <QDir>
 #include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QQmlComponent>
@@ -9,24 +8,6 @@
 #include "playback_shell_qml_registration.hpp"
 #include "playback_shell_qt_platform_bootstrap.hpp"
 
-namespace {
-
-[[nodiscard]] QString resolve_source_root() {
-    const QString app_dir = QCoreApplication::applicationDirPath();
-    QDir dir(app_dir);
-    for (int depth = 0; depth < 8; ++depth) {
-        if (dir.exists("ui/playback/page/PlaybackPage.qml")) {
-            return dir.absolutePath();
-        }
-        if (!dir.cdUp()) {
-            break;
-        }
-    }
-    return QStringLiteral("C:/kivo video");
-}
-
-}  // namespace
-
 int main(int argc, char* argv[]) {
     kivo::ui::shell::bootstrap_qt_platform_paths(argv[0]);
     qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -34,7 +15,7 @@ int main(int argc, char* argv[]) {
 
     QQmlApplicationEngine engine;
     const auto registration =
-        kivo::ui::shell::configure_playback_shell_engine(engine, resolve_source_root());
+        kivo::ui::shell::configure_playback_shell_engine(engine, QString{});
     if (!registration.ok) {
         return 1;
     }
@@ -53,7 +34,8 @@ int main(int argc, char* argv[]) {
         return 2;
     }
 
-    if (!registration.playback_page_url.contains(QStringLiteral("PlaybackPage.qml"))) {
+    if (!registration.playback_page_url.startsWith(QStringLiteral("qrc:"))
+        || !registration.playback_page_url.contains(QStringLiteral("PlaybackPage.qml"))) {
         return 4;
     }
 

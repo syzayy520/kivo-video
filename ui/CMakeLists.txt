@@ -32,6 +32,7 @@ add_executable(kivo_video_playback_shell
   shell/playback_shell_snapshot_mapper.cpp
   shell/playback_shell_qml_registration.cpp
   shell/playback_shell_qml_resources.qrc
+  playback/playback_qml_resources.qrc
 )
 
 target_include_directories(kivo_video_playback_shell PRIVATE
@@ -55,6 +56,7 @@ add_executable(kivo_playback_shell_qml_load_test
   ${CMAKE_SOURCE_DIR}/tests/ui_shell/playback_shell_qml_load_test.cpp
   shell/playback_shell_qml_registration.cpp
   shell/playback_shell_qml_resources.qrc
+  playback/playback_qml_resources.qrc
 )
 target_include_directories(kivo_playback_shell_qml_load_test PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/shell
