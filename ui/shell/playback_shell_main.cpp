@@ -14,6 +14,7 @@
 #include <QUrl>
 
 #include "playback_shell_qml_registration.hpp"
+#include "playback_shell_qt_platform_bootstrap.hpp"
 #include "playback_shell_runtime_context.hpp"
 
 namespace {
@@ -88,7 +89,16 @@ void schedule_ui_open_evidence(QQuickWindow* const window, const UiOpenEvidenceO
 }  // namespace
 
 int main(int argc, char* argv[]) {
+    kivo::ui::shell::bootstrap_qt_platform_paths(argv[0]);
     QGuiApplication app(argc, argv);
+
+    if (qEnvironmentVariableIsSet("QT_DEBUG_PLUGINS") ||
+        qEnvironmentVariableIsSet("KIVO_SHELL_QT_DIAG")) {
+        qInfo().noquote() << "KIVO exe_dir=" << QCoreApplication::applicationDirPath();
+        qInfo().noquote() << "KIVO library_paths=" << QCoreApplication::libraryPaths();
+        qInfo().noquote() << "KIVO PATH=" << qgetenv("PATH");
+        qInfo().noquote() << "KIVO QT_PLUGIN_PATH=" << qgetenv("QT_PLUGIN_PATH");
+    }
     QCoreApplication::setApplicationName(QStringLiteral("kivo_video_playback_shell"));
     QCoreApplication::setOrganizationName(QStringLiteral("KivoVideo"));
 

@@ -19,6 +19,9 @@ if(NOT Qt6_FOUND)
   return()
 endif()
 
+include("${CMAKE_SOURCE_DIR}/cmake/qt_runtime_deploy.cmake")
+kivo_log_qt_runtime_paths()
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
@@ -46,6 +49,8 @@ target_link_libraries(kivo_video_playback_shell PRIVATE
   kivo_video_player_runtime_adapter
 )
 
+kivo_add_qt_runtime_deploy(kivo_video_playback_shell)
+
 add_executable(kivo_playback_shell_qml_load_test
   ${CMAKE_SOURCE_DIR}/tests/ui_shell/playback_shell_qml_load_test.cpp
   shell/playback_shell_qml_registration.cpp
@@ -61,5 +66,7 @@ target_link_libraries(kivo_playback_shell_qml_load_test PRIVATE
   Qt6::Qml
   Qt6::Quick
 )
-add_test(NAME kivo_playback_shell_qml_load_test COMMAND kivo_playback_shell_qml_load_test)
-set_tests_properties(kivo_playback_shell_qml_load_test PROPERTIES TIMEOUT 30)
+
+kivo_add_qt_runtime_deploy(kivo_playback_shell_qml_load_test)
+
+kivo_add_qt_runtime_test(kivo_playback_shell_qml_load_test kivo_playback_shell_qml_load_test)

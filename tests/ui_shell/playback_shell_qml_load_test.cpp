@@ -1,13 +1,13 @@
 #include <QCoreApplication>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QQmlComponent>
-#include <QQmlEngine>
 #include <QQmlApplicationEngine>
-#include <QQuickWindow>
 #include <QUrl>
 
 #include "playback_shell_qml_registration.hpp"
+#include "playback_shell_qt_platform_bootstrap.hpp"
 
 namespace {
 
@@ -28,6 +28,7 @@ namespace {
 }  // namespace
 
 int main(int argc, char* argv[]) {
+    kivo::ui::shell::bootstrap_qt_platform_paths(argv[0]);
     qputenv("QT_QPA_PLATFORM", "offscreen");
     QGuiApplication app(argc, argv);
 
@@ -40,19 +41,16 @@ int main(int argc, char* argv[]) {
 
     QQmlComponent shell_component(
         &engine, QUrl(QStringLiteral("qrc:/kivo/ui/shell/PlaybackShellRoot.qml")));
+    QElapsedTimer load_timer;
+    load_timer.start();
+    while (shell_component.isLoading() && load_timer.elapsed() < 5000) {
+        QCoreApplication::processEvents();
+    }
     if (shell_component.isError()) {
         return 2;
     }
-
-    QObject* const root = shell_component.create();
-    if (root == nullptr) {
+    if (shell_component.status() != QQmlComponent::Ready) {
         return 2;
-    }
-    engine.setObjectOwnership(root, QQmlEngine::CppOwnership);
-
-    auto* const window = qobject_cast<QQuickWindow*>(root);
-    if (window == nullptr) {
-        return 3;
     }
 
     if (!registration.playback_page_url.contains(QStringLiteral("PlaybackPage.qml"))) {
