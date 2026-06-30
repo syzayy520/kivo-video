@@ -1383,6 +1383,14 @@ add_test(NAME kivo_p6e_gap_tests COMMAND kivo_p6e_gap_tests)
 add_library(kivo_video_playback_graph STATIC
   src/video/playback_graph/session/playback_session_facade.cpp
   src/video/playback_graph/session/playback_session_runtime.cpp
+  src/video/playback_graph/session/playback_session_snapshot_queries.cpp
+  src/video/playback_graph/session/playback_session_subtitle_policy.cpp
+  src/video/playback_graph/session/playback_session_audio_policy.cpp
+  src/video/playback_graph/session/playback_session_settings_policy.cpp
+  src/video/playback_graph/session/playback_session_video_surface_binding.cpp
+  src/video/playback_graph/session/playback_session_recovery.cpp
+  src/video/playback_graph/session/playback_session_command_query.cpp
+  src/video/playback_graph/session/playback_session_clock_sync.cpp
   src/video/playback_graph/state/playback_graph_state_machine.cpp
   src/video/playback_graph/command/command_lifetime_registry.cpp
   src/video/playback_graph/command/command_conflict_matrix.cpp
