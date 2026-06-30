@@ -15,6 +15,7 @@ public:
     [[nodiscard]] SnapshotQueryResult<AudioQueueSnapshot> query_audio_queue() const noexcept;
     [[nodiscard]] SnapshotQueryResult<VideoQueueSnapshot> query_video_queue() const noexcept;
     [[nodiscard]] SnapshotQueryResult<ClockSnapshot> query_clock() const noexcept;
+    void set_clock_estimate(std::int64_t estimate_ms, bool valid) noexcept;
     [[nodiscard]] std::size_t retained_snapshot_count() const noexcept;
 
 private:

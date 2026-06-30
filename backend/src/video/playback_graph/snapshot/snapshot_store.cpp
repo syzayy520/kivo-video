@@ -35,6 +35,11 @@ SnapshotQueryResult<ClockSnapshot> SnapshotStore::query_clock() const noexcept {
     return SnapshotQueryResult<ClockSnapshot>{clock_, SnapshotQueryError::None};
 }
 
+void SnapshotStore::set_clock_estimate(std::int64_t estimate_ms, bool valid) noexcept {
+    clock_.estimate_ms = estimate_ms;
+    clock_.valid = valid;
+}
+
 std::size_t SnapshotStore::retained_snapshot_count() const noexcept {
     return snapshots_.size();
 }

@@ -92,9 +92,67 @@ CommandToken PlaybackSession::close() noexcept {
     return runtime == nullptr ? allocation_failure_token() : runtime->close();
 }
 
+CommandToken PlaybackSession::attach_video_surface(
+    const VideoSurfaceBindingRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->attach_video_surface(request);
+}
+
+CommandToken PlaybackSession::detach_video_surface() noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->detach_video_surface();
+}
+
+CommandToken PlaybackSession::release_video_surface() noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->release_video_surface();
+}
+
+CommandToken PlaybackSession::retry(const RecoveryActionRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->retry(request);
+}
+
+CommandToken PlaybackSession::reopen(const RecoveryActionRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->reopen(request);
+}
+
 PlaybackSessionSnapshot PlaybackSession::snapshot() const noexcept {
     const auto* runtime = as_runtime(impl_);
     return runtime == nullptr ? PlaybackSessionSnapshot{} : runtime->snapshot();
+}
+
+PlaybackTimelineSnapshot PlaybackSession::query_timeline() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? PlaybackTimelineSnapshot{} : runtime->query_timeline();
+}
+
+VideoSurfaceSnapshot PlaybackSession::query_video_surface() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? VideoSurfaceSnapshot{} : runtime->query_video_surface();
+}
+
+DiagnosticsSummary PlaybackSession::query_diagnostics_summary() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? DiagnosticsSummary{} : runtime->query_diagnostics_summary();
+}
+
+SnapshotQueryResult<ClockSnapshot> PlaybackSession::query_clock() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? SnapshotQueryResult<ClockSnapshot>{} : runtime->query_clock();
+}
+
+SnapshotQueryResult<AudioQueueSnapshot> PlaybackSession::query_audio_queue() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? SnapshotQueryResult<AudioQueueSnapshot>{}
+                              : runtime->query_audio_queue();
+}
+
+SnapshotQueryResult<VideoQueueSnapshot> PlaybackSession::query_video_queue() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? SnapshotQueryResult<VideoQueueSnapshot>{}
+                              : runtime->query_video_queue();
 }
 
 CommandLifecycleSnapshot PlaybackSession::query_command(PlaybackCommandId id) const noexcept {

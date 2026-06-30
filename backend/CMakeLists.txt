@@ -1513,6 +1513,32 @@ set_tests_properties(kivo_p7g_public_header_purist_tests PROPERTIES TIMEOUT 30)
 add_test(NAME kivo_p7g_deterministic_harness_tests COMMAND kivo_p7g_deterministic_harness_tests)
 set_tests_properties(kivo_p7g_deterministic_harness_tests PROPERTIES TIMEOUT 30)
 
+# --- PlayerRuntimeAdapter: QML-to-P7 boundary core ---
+add_library(kivo_video_player_runtime_adapter STATIC
+  src/video/player_runtime_adapter/core/player_runtime_adapter.cpp
+  src/video/player_runtime_adapter/p7_bridge/p7_command_result.cpp
+  src/video/player_runtime_adapter/state/adapter_state_mapper.cpp
+)
+target_include_directories(kivo_video_player_runtime_adapter
+  PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+  PRIVATE
+    ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_video_player_runtime_adapter PUBLIC cxx_std_20)
+target_link_libraries(kivo_video_player_runtime_adapter PUBLIC kivo_video_playback_graph)
+
+add_executable(kivo_player_runtime_adapter_tests
+  tests/video/player_runtime_adapter/player_runtime_adapter_tests.cpp
+)
+target_include_directories(kivo_player_runtime_adapter_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_player_runtime_adapter_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_player_runtime_adapter_tests PRIVATE kivo_video_player_runtime_adapter)
+add_test(NAME kivo_player_runtime_adapter_tests COMMAND kivo_player_runtime_adapter_tests)
+set_tests_properties(kivo_player_runtime_adapter_tests PROPERTIES TIMEOUT 30)
+
 # --- P8: Subtitle Plane public ABI ---
 add_library(kivo_video_subtitle_plane STATIC
   src/video/subtitle_plane/abi/api_bootstrap.cpp
