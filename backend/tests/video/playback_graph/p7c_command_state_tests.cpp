@@ -331,8 +331,26 @@ namespace {
     if (!session.open(open).accepted()) {
         return false;
     }
-    const auto frame = session.query_subtitle_frame();
-    return frame.valid && !frame.frame_available;
+    const auto without_subtitle = session.query_subtitle_frame();
+    if (!without_subtitle.valid || without_subtitle.frame_available ||
+        without_subtitle.runtime_connected ||
+        without_subtitle.unavailable_reason != SubtitleFrameUnavailableReason::SubtitleDisabled) {
+        return false;
+    }
+
+    if (!session.start().accepted()) {
+        return false;
+    }
+
+    SubtitleTrackSwitchRequest track{};
+    track.track_id = 2;
+    if (!session.switch_subtitle_track(track).accepted()) {
+        return false;
+    }
+    const auto bridged = session.query_subtitle_frame();
+    return bridged.valid && bridged.runtime_connected && bridged.frame_available &&
+           bridged.primary.primary_text[0] == 'c' && bridged.primary.primary_text[1] == 'u' &&
+           bridged.primary.primary_text[2] == 'e';
 }
 
 [[nodiscard]] bool verify_diagnostics_invalid_closed() {

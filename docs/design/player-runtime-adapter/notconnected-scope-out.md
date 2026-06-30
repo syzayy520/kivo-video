@@ -25,5 +25,6 @@ Defer to UI/window policy layer. Do not force into P7 playback core.
 
 ## NotConnectedToP8Runtime
 
-`subtitle_frame` typed contract exists via `query_subtitle_frame()`, but real cue/frame
-content requires P8/P10 bridge. Empty typed frame must not be reported as fully connected.
+`subtitle_frame` reports `NotConnectedToP8Runtime` only when P7 has no active P8 runtime
+attachment (subtitle disabled or bridge not started). When P8 is attached but no cue is active,
+`subtitle_frame` stays `ConnectedToP7` with `subtitle_frame_available=false`.

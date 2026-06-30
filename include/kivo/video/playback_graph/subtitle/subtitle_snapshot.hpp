@@ -5,6 +5,11 @@
 namespace kivo::video::playback_graph {
 
 struct SubtitleCueSnapshot {
+    std::uint64_t cue_id{0};
+    std::int64_t start_ms{0};
+    std::int64_t end_ms{0};
+    char primary_text[256]{};
+    char secondary_text[256]{};
     bool visible{false};
 };
 

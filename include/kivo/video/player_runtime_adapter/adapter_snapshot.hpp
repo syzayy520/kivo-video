@@ -64,6 +64,8 @@ struct AdapterSnapshot {
     std::uint64_t selected_subtitle_track{0};
     bool subtitle_enabled{false};
     bool subtitle_frame_available{false};
+    char subtitle_primary[256]{};
+    char subtitle_secondary[256]{};
     std::int64_t subtitle_delay_ms{0};
 
     AdapterAspectMode aspect_mode{AdapterAspectMode::Fit};

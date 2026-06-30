@@ -3,16 +3,12 @@
 namespace kivo::video::playback_graph::runtime {
 
 SubtitleFrameSnapshot PlaybackSessionRuntime::query_subtitle_frame() const noexcept {
-    SubtitleFrameSnapshot frame{};
     if (!policy_state_valid_) {
-        return frame;
+        return {};
     }
 
-    frame.frame_available = false;
-    frame.primary = {};
-    frame.secondary = {};
-    frame.valid = true;
-    return frame;
+    return subtitle_frame_bridge_.query(position_ms_, subtitle_delay_ms_, subtitle_track_id_,
+                                      subtitle_enabled_);
 }
 
 }  // namespace kivo::video::playback_graph::runtime

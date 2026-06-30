@@ -1398,6 +1398,7 @@ add_library(kivo_video_playback_graph STATIC
   src/video/playback_graph/command/command_conflict_matrix.cpp
   src/video/playback_graph/command/pending_transport_intent.cpp
   src/video/playback_graph/p4_bridge/p4_state_sync_adapter.cpp
+  src/video/playback_graph/p8_bridge/subtitle_frame_p8_bridge.cpp
   src/video/playback_graph/coordination/recovery_replay_coordinator.cpp
   src/video/playback_graph/attachment/attachment_operation_registry.cpp
   src/video/playback_graph/generation/generation_stamp_publisher.cpp
@@ -1602,6 +1603,7 @@ target_include_directories(kivo_video_subtitle_plane
   ${CMAKE_SOURCE_DIR}/backend/include_private
 )
 target_compile_features(kivo_video_subtitle_plane PUBLIC cxx_std_20)
+target_link_libraries(kivo_video_playback_graph PRIVATE kivo_video_subtitle_plane)
 
 add_executable(kivo_p8b_c_header_compile_test
   tests/video/subtitle_plane/abi/p8_c_header_compile_test.c

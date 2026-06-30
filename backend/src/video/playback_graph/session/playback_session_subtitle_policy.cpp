@@ -14,6 +14,7 @@ CommandToken PlaybackSessionRuntime::switch_subtitle_track(
     state_machine_.transition_to(PlaybackGraphState::TrackSwitching);
     subtitle_track_id_ = request.track_id;
     subtitle_enabled_ = true;
+    subtitle_frame_bridge_.attach(subtitle_track_id_);
     state_machine_.transition_to(PlaybackGraphState::Playing);
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();
@@ -27,6 +28,7 @@ CommandToken PlaybackSessionRuntime::disable_subtitle() noexcept {
     }
     subtitle_enabled_ = false;
     subtitle_track_id_ = 0;
+    subtitle_frame_bridge_.detach();
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();
     return token;

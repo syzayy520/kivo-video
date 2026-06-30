@@ -95,6 +95,7 @@ CommandToken PlaybackSessionRuntime::cycle_subtitle_track() noexcept {
         subtitle_track_id_ = inventory_subtitle_ids_[next_index];
         subtitle_enabled_ = true;
     }
+    subtitle_frame_bridge_.attach(subtitle_track_id_);
 
     state_machine_.transition_to(PlaybackGraphState::TrackSwitching);
     state_machine_.transition_to(PlaybackGraphState::Playing);

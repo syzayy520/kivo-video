@@ -12,6 +12,7 @@
 #include "video/playback_graph/command/pending_transport_intent.hpp"
 #include "video/playback_graph/coordination/recovery_replay_coordinator.hpp"
 #include "video/playback_graph/p4_bridge/p4_state_sync_adapter.hpp"
+#include "video/playback_graph/p8_bridge/subtitle_frame_p8_bridge.hpp"
 #include "video/playback_graph/snapshot/snapshot_store.hpp"
 #include "video/playback_graph/state/playback_graph_state_machine.hpp"
 
@@ -119,6 +120,7 @@ private:
     std::int64_t audio_delay_ms_{0};
     PlaybackSettingsPolicySnapshot settings_policy_{};
     bool policy_state_valid_{false};
+    SubtitleFrameP8Bridge subtitle_frame_bridge_{};
 };
 
 }  // namespace kivo::video::playback_graph::runtime

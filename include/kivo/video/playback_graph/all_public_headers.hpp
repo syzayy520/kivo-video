@@ -21,6 +21,7 @@
 #include "kivo/video/playback_graph/recovery/recovery_action_request.hpp"
 #include "kivo/video/playback_graph/seek_request.hpp"
 #include "kivo/video/playback_graph/subtitle/subtitle_frame_snapshot.hpp"
+#include "kivo/video/playback_graph/subtitle/subtitle_frame_unavailable_reason.hpp"
 #include "kivo/video/playback_graph/subtitle/subtitle_snapshot.hpp"
 #include "kivo/video/playback_graph/track/track_cycle_command.hpp"
 #include "kivo/video/playback_graph/track/track_inventory_snapshot.hpp"

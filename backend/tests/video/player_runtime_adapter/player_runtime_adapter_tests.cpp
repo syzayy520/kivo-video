@@ -134,7 +134,9 @@ namespace {
     const auto with_subtitle = adapter.snapshot();
     if (!with_subtitle.subtitle_enabled || with_subtitle.selected_subtitle_track != 4 ||
         with_subtitle.connections.subtitle_tracks != AdapterConnectionStatus::ConnectedToP7 ||
-        with_subtitle.connections.subtitle_frame != AdapterConnectionStatus::NotConnectedToP8Runtime) {
+        with_subtitle.connections.subtitle_frame != AdapterConnectionStatus::ConnectedToP7 ||
+        !with_subtitle.subtitle_frame_available ||
+        with_subtitle.subtitle_primary[0] != 'c') {
         return false;
     }
 
@@ -259,7 +261,9 @@ namespace {
     if (!adapter.handle_shortcut(AdapterShortcutAction::Subtitle).accepted()) {
         return false;
     }
-    if (!adapter.snapshot().subtitle_enabled) {
+    const auto with_subtitle = adapter.snapshot();
+    if (!with_subtitle.subtitle_enabled ||
+        with_subtitle.connections.subtitle_frame != AdapterConnectionStatus::ConnectedToP7) {
         return false;
     }
 
