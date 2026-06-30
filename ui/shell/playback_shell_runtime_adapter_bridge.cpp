@@ -32,6 +32,28 @@ bool PlaybackShellRuntimeAdapterBridge::openMediaId(const quint64 media_id) {
     return ok;
 }
 
+bool PlaybackShellRuntimeAdapterBridge::play() {
+    if (adapter_ == nullptr) {
+        return false;
+    }
+    const bool ok = command_ok(adapter_->play());
+    if (ok) {
+        emitSnapshotChanged();
+    }
+    return ok;
+}
+
+bool PlaybackShellRuntimeAdapterBridge::pause() {
+    if (adapter_ == nullptr) {
+        return false;
+    }
+    const bool ok = command_ok(adapter_->pause());
+    if (ok) {
+        emitSnapshotChanged();
+    }
+    return ok;
+}
+
 bool PlaybackShellRuntimeAdapterBridge::togglePlayPause() {
     if (adapter_ == nullptr) {
         return false;
@@ -43,11 +65,33 @@ bool PlaybackShellRuntimeAdapterBridge::togglePlayPause() {
     return ok;
 }
 
+bool PlaybackShellRuntimeAdapterBridge::stop() {
+    if (adapter_ == nullptr) {
+        return false;
+    }
+    const bool ok = command_ok(adapter_->stop());
+    if (ok) {
+        emitSnapshotChanged();
+    }
+    return ok;
+}
+
 bool PlaybackShellRuntimeAdapterBridge::seek(const qint64 position_ms) {
     if (adapter_ == nullptr) {
         return false;
     }
     const bool ok = command_ok(adapter_->seek(position_ms));
+    if (ok) {
+        emitSnapshotChanged();
+    }
+    return ok;
+}
+
+bool PlaybackShellRuntimeAdapterBridge::seekRelative(const qint64 delta_ms) {
+    if (adapter_ == nullptr) {
+        return false;
+    }
+    const bool ok = command_ok(adapter_->seek_relative(delta_ms));
     if (ok) {
         emitSnapshotChanged();
     }
@@ -219,11 +263,22 @@ bool PlaybackShellRuntimeAdapterBridge::releaseSurface() {
     return ok;
 }
 
+bool PlaybackShellRuntimeAdapterBridge::copyDiagnostics() {
+    if (adapter_ == nullptr) {
+        return false;
+    }
+    return command_ok(adapter_->copy_diagnostics());
+}
+
 QVariantMap PlaybackShellRuntimeAdapterBridge::pullSnapshot() {
     if (adapter_ == nullptr) {
         return {};
     }
     return map_adapter_snapshot(adapter_->snapshot());
+}
+
+void PlaybackShellRuntimeAdapterBridge::publishSnapshotChange() {
+    emitSnapshotChanged();
 }
 
 }  // namespace kivo::ui::shell

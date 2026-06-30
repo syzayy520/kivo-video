@@ -13,4 +13,9 @@ PlaybackShellRuntimeAdapterBridge* PlaybackShellRuntimeContext::bridge() noexcep
     return bridge_.get();
 }
 
+kivo::video::player_runtime_adapter::PlayerRuntimeAdapter*
+PlaybackShellRuntimeContext::adapter() noexcept {
+    return adapter_.get();
+}
+
 }  // namespace kivo::ui::shell

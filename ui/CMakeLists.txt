@@ -31,6 +31,7 @@ add_executable(kivo_video_playback_shell
   shell/playback_shell_runtime_adapter_bridge.cpp
   shell/playback_shell_snapshot_mapper.cpp
   shell/playback_shell_qml_registration.cpp
+  shell/playback_shell_interaction_evidence.cpp
   shell/playback_shell_qml_resources.qrc
   playback/playback_qml_resources.qrc
 )
@@ -72,3 +73,16 @@ target_link_libraries(kivo_playback_shell_qml_load_test PRIVATE
 kivo_add_qt_runtime_deploy(kivo_playback_shell_qml_load_test)
 
 kivo_add_qt_runtime_test(kivo_playback_shell_qml_load_test kivo_playback_shell_qml_load_test)
+
+add_executable(kivo_playback_shell_interaction_test
+  ${CMAKE_SOURCE_DIR}/tests/ui_shell/playback_shell_interaction_test.cpp
+)
+target_compile_features(kivo_playback_shell_interaction_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_playback_shell_interaction_test PRIVATE Qt6::Core)
+
+add_test(NAME kivo_playback_shell_interaction_test
+  COMMAND $<TARGET_FILE:kivo_playback_shell_interaction_test>)
+set_tests_properties(kivo_playback_shell_interaction_test PROPERTIES
+  TIMEOUT 60
+  WORKING_DIRECTORY "$<TARGET_FILE_DIR:kivo_playback_shell_interaction_test>"
+)

@@ -13,6 +13,7 @@ public:
     ~PlaybackShellRuntimeContext();
 
     [[nodiscard]] PlaybackShellRuntimeAdapterBridge* bridge() noexcept;
+    [[nodiscard]] kivo::video::player_runtime_adapter::PlayerRuntimeAdapter* adapter() noexcept;
 
 private:
     std::unique_ptr<kivo::video::player_runtime_adapter::PlayerRuntimeAdapter> adapter_;

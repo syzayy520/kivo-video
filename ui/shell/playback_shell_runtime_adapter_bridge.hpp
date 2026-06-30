@@ -16,8 +16,12 @@ public:
         QObject* parent = nullptr);
 
     Q_INVOKABLE bool openMediaId(quint64 media_id);
+    Q_INVOKABLE bool play();
+    Q_INVOKABLE bool pause();
     Q_INVOKABLE bool togglePlayPause();
+    Q_INVOKABLE bool stop();
     Q_INVOKABLE bool seek(qint64 position_ms);
+    Q_INVOKABLE bool seekRelative(qint64 delta_ms);
     Q_INVOKABLE bool stepForward(qint64 step_ms);
     Q_INVOKABLE bool stepBackward(qint64 step_ms);
     Q_INVOKABLE bool setVolume(double value);
@@ -35,7 +39,10 @@ public:
     Q_INVOKABLE bool retry();
     Q_INVOKABLE bool close();
     Q_INVOKABLE bool releaseSurface();
+    Q_INVOKABLE bool copyDiagnostics();
     Q_INVOKABLE QVariantMap pullSnapshot();
+
+    void publishSnapshotChange();
 
 signals:
     void snapshotChanged();
