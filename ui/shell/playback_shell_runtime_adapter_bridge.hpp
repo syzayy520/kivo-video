@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QImage>
 #include <QObject>
 #include <QVariantMap>
 
@@ -16,6 +17,9 @@ public:
         QObject* parent = nullptr);
 
     Q_INVOKABLE bool openMediaId(quint64 media_id);
+    Q_INVOKABLE bool openLocalMediaFile(const QString& path);
+    Q_INVOKABLE QVariantMap queryLocalMediaPlayback();
+    [[nodiscard]] QImage pullVideoFrameImage();
     Q_INVOKABLE bool play();
     Q_INVOKABLE bool pause();
     Q_INVOKABLE bool togglePlayPause();

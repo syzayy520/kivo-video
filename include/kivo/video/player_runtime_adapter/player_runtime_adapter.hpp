@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string_view>
 
+#include "kivo/video/playback_graph/local_media_playback_query.hpp"
 #include "kivo/video/playback_graph/playback_session.hpp"
 #include "kivo/video/player_runtime_adapter/adapter_command_result.hpp"
 #include "kivo/video/player_runtime_adapter/adapter_snapshot.hpp"
@@ -23,6 +24,7 @@ public:
 
     [[nodiscard]] AdapterCommandResult open(const AdapterOpenRequest& request) noexcept;
     [[nodiscard]] AdapterCommandResult open_media_id(std::uint64_t media_id) noexcept;
+    [[nodiscard]] AdapterCommandResult open_local_media_file(std::string_view path) noexcept;
     [[nodiscard]] AdapterCommandResult close() noexcept;
     [[nodiscard]] AdapterCommandResult release_surface() noexcept;
 
@@ -72,6 +74,7 @@ public:
     [[nodiscard]] AdapterCommandResult copy_diagnostics() noexcept;
 
     [[nodiscard]] AdapterSnapshot snapshot() const noexcept;
+    [[nodiscard]] playback_graph::LocalMediaPlaybackQuery query_local_media_playback() const noexcept;
 
 private:
     playback_graph::PlaybackSession session_;

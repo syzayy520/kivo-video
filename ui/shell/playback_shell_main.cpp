@@ -14,6 +14,8 @@
 #include <QUrl>
 
 #include "playback_shell_interaction_evidence.hpp"
+#include "playback_shell_media_resolver.hpp"
+#include "playback_shell_playback_evidence.hpp"
 #include "playback_shell_qml_registration.hpp"
 #include "playback_shell_qt_platform_bootstrap.hpp"
 #include "playback_shell_runtime_context.hpp"
@@ -27,6 +29,10 @@ struct ShellEvidenceOptions {
     bool interaction_enabled{false};
     QString interaction_dir;
     int interaction_close_ms{1200};
+    bool playback_enabled{false};
+    QString playback_dir;
+    QString media_path;
+    int playback_close_ms{1500};
 };
 
 [[nodiscard]] ShellEvidenceOptions parse_shell_evidence_options(QCommandLineParser& parser) {
@@ -49,6 +55,19 @@ struct ShellEvidenceOptions {
         QStringLiteral("Auto-close delay after interaction evidence"),
         QStringLiteral("ms"),
         QStringLiteral("1200")));
+    parser.addOption(QCommandLineOption(
+        QStringList{QStringLiteral("playback-evidence")},
+        QStringLiteral("Capture real local media playback evidence to directory"),
+        QStringLiteral("dir")));
+    parser.addOption(QCommandLineOption(
+        QStringList{QStringLiteral("media")},
+        QStringLiteral("Local media file path for playback evidence mode"),
+        QStringLiteral("path")));
+    parser.addOption(QCommandLineOption(
+        QStringList{QStringLiteral("playback-close-ms")},
+        QStringLiteral("Auto-close delay after playback evidence"),
+        QStringLiteral("ms"),
+        QStringLiteral("1500")));
     parser.process(*QCoreApplication::instance());
 
     if (parser.isSet(QStringLiteral("ui-open-evidence"))) {
@@ -65,6 +84,19 @@ struct ShellEvidenceOptions {
         options.interaction_close_ms = parser.value(QStringLiteral("interaction-close-ms")).toInt();
         if (options.interaction_close_ms < 0) {
             options.interaction_close_ms = 1200;
+        }
+    }
+    if (parser.isSet(QStringLiteral("playback-evidence"))) {
+        options.playback_enabled = true;
+        options.playback_dir = parser.value(QStringLiteral("playback-evidence"));
+        options.playback_close_ms = parser.value(QStringLiteral("playback-close-ms")).toInt();
+        if (options.playback_close_ms < 0) {
+            options.playback_close_ms = 1500;
+        }
+        if (parser.isSet(QStringLiteral("media"))) {
+            options.media_path = parser.value(QStringLiteral("media"));
+        } else if (qEnvironmentVariableIsSet("KIVO_P10_MEDIA")) {
+            options.media_path = qEnvironmentVariable("KIVO_P10_MEDIA");
         }
     }
     return options;
@@ -185,7 +217,31 @@ int main(int argc, char* argv[]) {
             interaction,
             registration.playback_page_url);
     }
-    if (!evidence_options.ui_open_enabled && !evidence_options.interaction_enabled) {
+    if (evidence_options.playback_enabled) {
+        if (evidence_options.media_path.isEmpty()) {
+            qCritical() << "playback-evidence requires --media or KIVO_P10_MEDIA";
+            return 6;
+        }
+        const auto resolved =
+            kivo::ui::shell::resolve_playback_media_path(evidence_options.media_path);
+        kivo::ui::shell::PlaybackEvidenceOptions playback{};
+        playback.output_dir = evidence_options.playback_dir;
+        playback.media_path = resolved.original_path;
+        playback.selected_media_file = resolved.selected_file;
+        playback.media_original_exists = resolved.original_exists;
+        playback.media_is_directory = resolved.is_directory;
+        playback.selected_media_exists = resolved.selected_exists;
+        playback.media_resolve_error = resolved.error;
+        playback.close_delay_ms = evidence_options.playback_close_ms;
+        kivo::ui::shell::schedule_playback_evidence(
+            window,
+            bridge,
+            runtime_context.adapter(),
+            playback,
+            registration.playback_page_url);
+    }
+    if (!evidence_options.ui_open_enabled && !evidence_options.interaction_enabled
+        && !evidence_options.playback_enabled) {
         QObject::connect(window, &QQuickWindow::visibilityChanged, &app,
                          [](const QWindow::Visibility visibility) {
                              if (visibility == QWindow::Hidden) {

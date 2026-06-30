@@ -4,6 +4,7 @@
 #include "kivo/video/playback_graph/command_token.hpp"
 #include "kivo/video/playback_graph/playback_graph_observer.hpp"
 #include "kivo/video/playback_graph/playback_graph_policy.hpp"
+#include "kivo/video/playback_graph/local_media_playback_query.hpp"
 #include "kivo/video/playback_graph/playback_session.hpp"
 #include "kivo/video/playback_graph/playback_session_snapshot.hpp"
 #include "kivo/video/playback_graph/subtitle/subtitle_frame_snapshot.hpp"
@@ -14,6 +15,7 @@
 #include "video/playback_graph/p4_bridge/p4_state_sync_adapter.hpp"
 #include "video/playback_graph/p8_bridge/subtitle_frame_p8_bridge.hpp"
 #include "video/playback_graph/snapshot/snapshot_store.hpp"
+#include "video/playback_graph/local_media/local_media_first_frame_pipeline.hpp"
 #include "video/playback_graph/state/playback_graph_state_machine.hpp"
 
 namespace kivo::video::playback_graph::runtime {
@@ -74,6 +76,7 @@ public:
     [[nodiscard]] SubscriptionToken subscribe_events(GraphObserverHandle observer) noexcept;
     void unsubscribe(SubscriptionToken token) noexcept;
     [[nodiscard]] CommandToken inject_system_event(const SystemEvent& event) noexcept;
+    [[nodiscard]] LocalMediaPlaybackQuery query_local_media_playback() const noexcept;
 
 private:
     [[nodiscard]] CommandToken accept_command(GraphCommandKind command,
@@ -86,6 +89,8 @@ private:
     void sync_clock_store() noexcept;
     void initialize_track_inventory(std::uint64_t source_id) noexcept;
     void clear_track_inventory() noexcept;
+    [[nodiscard]] bool try_open_local_media(const OpenRequest& request) noexcept;
+    [[nodiscard]] bool try_start_local_media() noexcept;
 
     PlaybackGraphPolicy policy_{};
     PlaybackSessionId session_id_{1};
@@ -121,6 +126,7 @@ private:
     PlaybackSettingsPolicySnapshot settings_policy_{};
     bool policy_state_valid_{false};
     SubtitleFrameP8Bridge subtitle_frame_bridge_{};
+    local_media::LocalMediaFirstFramePipeline local_media_pipeline_{};
 };
 
 }  // namespace kivo::video::playback_graph::runtime

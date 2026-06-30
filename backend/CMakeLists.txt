@@ -1419,6 +1419,11 @@ add_library(kivo_video_playback_graph STATIC
   src/video/playback_graph/health/graph_health_monitor.cpp
   src/video/playback_graph/evidence/privacy_salt_lifecycle.cpp
   src/video/playback_graph/evidence/layered_error_taxonomy.cpp
+  src/video/playback_graph/local_media/local_media_source_registry.cpp
+  src/video/playback_graph/local_media/local_media_first_frame_pipeline.cpp
+  src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp
+  src/video/playback_graph/session/playback_session_local_media.cpp
+  src/video/playback_graph/session/playback_session_local_media_open.cpp
 )
 target_include_directories(kivo_video_playback_graph
   PUBLIC
@@ -1427,6 +1432,15 @@ target_include_directories(kivo_video_playback_graph
   ${CMAKE_SOURCE_DIR}/backend/include_private
 )
 target_compile_features(kivo_video_playback_graph PUBLIC cxx_std_20)
+if(KIVO_ENABLE_FFMPEG)
+  target_link_libraries(kivo_video_playback_graph PRIVATE kivo_cinema_engine)
+  target_compile_definitions(kivo_video_playback_graph PRIVATE KIVO_ENABLE_FFMPEG)
+  if(FFMPEG_ROOT)
+    target_include_directories(kivo_video_playback_graph PRIVATE ${FFMPEG_ROOT}/include)
+    target_link_directories(kivo_video_playback_graph PRIVATE ${FFMPEG_ROOT}/lib)
+    target_link_libraries(kivo_video_playback_graph PRIVATE swscale)
+  endif()
+endif()
 
 add_custom_target(kivo_video_playback_graph_contract_tool)
 add_custom_target(kivo_video_playback_graph_architecture_guard)
@@ -1499,6 +1513,18 @@ target_include_directories(kivo_p7g_deterministic_harness_tests PRIVATE
 target_compile_features(kivo_p7g_deterministic_harness_tests PRIVATE cxx_std_20)
 target_link_libraries(kivo_p7g_deterministic_harness_tests PRIVATE kivo_video_playback_graph)
 
+add_executable(kivo_p7h_local_media_first_frame_tests
+  tests/video/playback_graph/p7h_local_media_first_frame_tests.cpp
+)
+target_include_directories(kivo_p7h_local_media_first_frame_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_features(kivo_p7h_local_media_first_frame_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p7h_local_media_first_frame_tests PRIVATE kivo_video_player_runtime_adapter)
+if(KIVO_ENABLE_FFMPEG)
+  target_compile_definitions(kivo_p7h_local_media_first_frame_tests PRIVATE KIVO_ENABLE_FFMPEG)
+endif()
+
 add_custom_target(kivo_video_playback_graph_tests
   DEPENDS
     kivo_p7b_public_contract_tests
@@ -1508,6 +1534,7 @@ add_custom_target(kivo_video_playback_graph_tests
     kivo_p7f_snapshot_evidence_tests
     kivo_p7g_public_header_purist_tests
     kivo_p7g_deterministic_harness_tests
+    kivo_p7h_local_media_first_frame_tests
 )
 add_test(NAME kivo_p7b_public_contract_tests COMMAND kivo_p7b_public_contract_tests)
 set_tests_properties(kivo_p7b_public_contract_tests PROPERTIES TIMEOUT 30)
@@ -1523,10 +1550,19 @@ add_test(NAME kivo_p7g_public_header_purist_tests COMMAND kivo_p7g_public_header
 set_tests_properties(kivo_p7g_public_header_purist_tests PROPERTIES TIMEOUT 30)
 add_test(NAME kivo_p7g_deterministic_harness_tests COMMAND kivo_p7g_deterministic_harness_tests)
 set_tests_properties(kivo_p7g_deterministic_harness_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p7h_local_media_first_frame_tests COMMAND kivo_p7h_local_media_first_frame_tests)
+set_tests_properties(kivo_p7h_local_media_first_frame_tests PROPERTIES TIMEOUT 60)
 
 # --- PlayerRuntimeAdapter: QML-to-P7 boundary core ---
 add_library(kivo_video_player_runtime_adapter STATIC
   src/video/player_runtime_adapter/core/player_runtime_adapter.cpp
+  src/video/player_runtime_adapter/commands/adapter_lifecycle_commands.cpp
+  src/video/player_runtime_adapter/commands/adapter_playback_commands.cpp
+  src/video/player_runtime_adapter/commands/adapter_seek_commands.cpp
+  src/video/player_runtime_adapter/commands/adapter_track_commands.cpp
+  src/video/player_runtime_adapter/commands/adapter_policy_commands.cpp
+  src/video/player_runtime_adapter/commands/adapter_local_media_commands.cpp
+  src/video/player_runtime_adapter/diagnostics/adapter_diagnostics_commands.cpp
   src/video/player_runtime_adapter/p7_bridge/p7_command_result.cpp
   src/video/player_runtime_adapter/state/adapter_state_mapper.cpp
   src/video/player_runtime_adapter/state/adapter_track_inventory_mapper.cpp

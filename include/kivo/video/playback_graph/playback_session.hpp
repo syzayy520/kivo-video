@@ -12,6 +12,7 @@
 #include "kivo/video/playback_graph/playback_graph_event.hpp"
 #include "kivo/video/playback_graph/playback_graph_ids.hpp"
 #include "kivo/video/playback_graph/playback_graph_observer.hpp"
+#include "kivo/video/playback_graph/local_media_playback_query.hpp"
 #include "kivo/video/playback_graph/playback_graph_policy.hpp"
 #include "kivo/video/playback_graph/playback_session_snapshot.hpp"
 #include "kivo/video/playback_graph/recovery/recovery_action_request.hpp"
@@ -89,6 +90,7 @@ public:
     SubscriptionToken subscribe_events(GraphObserverHandle observer) noexcept;
     void unsubscribe(SubscriptionToken token) noexcept;
     CommandToken inject_system_event(const SystemEvent& event) noexcept;
+    [[nodiscard]] LocalMediaPlaybackQuery query_local_media_playback() const noexcept;
 
 private:
     void* impl_{nullptr};

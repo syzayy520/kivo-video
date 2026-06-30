@@ -291,4 +291,9 @@ CommandToken PlaybackSession::inject_system_event(const SystemEvent& event) noex
     return runtime == nullptr ? allocation_failure_token() : runtime->inject_system_event(event);
 }
 
+LocalMediaPlaybackQuery PlaybackSession::query_local_media_playback() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? LocalMediaPlaybackQuery{} : runtime->query_local_media_playback();
+}
+
 }  // namespace kivo::video::playback_graph

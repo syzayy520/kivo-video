@@ -53,6 +53,12 @@ QVariantMap map_adapter_snapshot(
         {"audioDelayMs", snapshot.audio_delay_ms},
         {"audio_delay_ms", snapshot.audio_delay_ms},
         {"bufferedRanges", map_buffered_ranges(snapshot.buffered_ranges)},
+        {"videoReady", snapshot.video_ready},
+        {"video_ready", snapshot.video_ready},
+        {"videoWidth", snapshot.video_size.width},
+        {"videoHeight", snapshot.video_size.height},
+        {"video_width", snapshot.video_size.width},
+        {"video_height", snapshot.video_size.height},
     };
 }
 

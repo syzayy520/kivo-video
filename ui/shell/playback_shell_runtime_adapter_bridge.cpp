@@ -1,5 +1,10 @@
 #include "playback_shell_runtime_adapter_bridge.hpp"
 
+#include <QDir>
+#include <QImage>
+
+#include <cstring>
+
 #include "playback_shell_snapshot_mapper.hpp"
 
 namespace kivo::ui::shell {
@@ -30,6 +35,68 @@ bool PlaybackShellRuntimeAdapterBridge::openMediaId(const quint64 media_id) {
         emitSnapshotChanged();
     }
     return ok;
+}
+
+bool PlaybackShellRuntimeAdapterBridge::openLocalMediaFile(const QString& path) {
+    if (adapter_ == nullptr || path.isEmpty()) {
+        return false;
+    }
+    const QByteArray utf8 = QDir::toNativeSeparators(path).toUtf8();
+    const bool ok = command_ok(adapter_->open_local_media_file(utf8.constData()));
+    if (ok) {
+        emitSnapshotChanged();
+    }
+    return ok;
+}
+
+QVariantMap PlaybackShellRuntimeAdapterBridge::queryLocalMediaPlayback() {
+    if (adapter_ == nullptr) {
+        return {};
+    }
+    const auto query = adapter_->query_local_media_playback();
+    return QVariantMap{
+        {QStringLiteral("active"), query.active},
+        {QStringLiteral("source_opened"), query.source_opened},
+        {QStringLiteral("demux_started"), query.demux_started},
+        {QStringLiteral("video_decode_started"), query.video_decode_started},
+        {QStringLiteral("first_frame_decoded"), query.first_frame_decoded},
+        {QStringLiteral("d3d11_uploaded"), query.d3d11_uploaded},
+        {QStringLiteral("frame_rendered"), query.frame_rendered},
+        {QStringLiteral("frame_pixels_valid"), query.frame_pixels_valid},
+        {QStringLiteral("container"), QString::fromStdString(query.container)},
+        {QStringLiteral("video_codec"), QString::fromStdString(query.video_codec)},
+        {QStringLiteral("error"), QString::fromStdString(query.error)},
+        {QStringLiteral("duration_ms"), static_cast<qint64>(query.duration_ms)},
+        {QStringLiteral("width"), query.width},
+        {QStringLiteral("height"), query.height},
+    };
+}
+
+QImage PlaybackShellRuntimeAdapterBridge::pullVideoFrameImage() {
+    if (adapter_ == nullptr) {
+        return {};
+    }
+    const auto query = adapter_->query_local_media_playback();
+    if (!query.frame_pixels_valid || query.width <= 0 || query.height <= 0 ||
+        query.rgba8888.empty()) {
+        return {};
+    }
+    QImage image(query.width, query.height, QImage::Format_RGBA8888);
+    if (image.isNull()) {
+        return {};
+    }
+    const auto row_bytes = static_cast<std::size_t>(query.width) * 4;
+    const auto expected = row_bytes * static_cast<std::size_t>(query.height);
+    if (query.rgba8888.size() < expected) {
+        return {};
+    }
+    for (int row = 0; row < query.height; ++row) {
+        std::memcpy(
+            image.scanLine(row),
+            query.rgba8888.data() + static_cast<std::size_t>(row) * row_bytes,
+            row_bytes);
+    }
+    return image;
 }
 
 bool PlaybackShellRuntimeAdapterBridge::play() {

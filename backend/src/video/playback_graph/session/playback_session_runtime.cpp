@@ -1,3 +1,4 @@
+#include "video/playback_graph/local_media/local_media_source_registry.hpp"
 #include "video/playback_graph/session/playback_session_runtime.hpp"
 
 namespace kivo::video::playback_graph::runtime {
@@ -26,15 +27,26 @@ CommandToken PlaybackSessionRuntime::open(const OpenRequest& request) noexcept {
         state_machine_.transition_to(PlaybackGraphState::Created);
     }
     state_machine_.transition_to(PlaybackGraphState::Building);
+
+    const auto local_path =
+        local_media::LocalMediaSourceRegistry::instance().resolve(request.source_id);
+    if (local_path.has_value()) {
+        if (!try_open_local_media(request)) {
+            return reject(PlaybackGraphError::SourceOpenFailed);
+        }
+        position_ms_ = 0;
+    } else {
+        last_source_id_ = request.source_id;
+        duration_ms_ = fake_duration_ms(request.source_id);
+        position_ms_ = 0;
+        initialize_track_inventory(request.source_id);
+    }
+
     state_machine_.transition_to(PlaybackGraphState::Ready);
-    last_source_id_ = request.source_id;
-    duration_ms_ = fake_duration_ms(request.source_id);
-    position_ms_ = 0;
     last_seek_target_ms_ = 0;
     seek_in_progress_ = false;
     policy_state_valid_ = true;
     settings_policy_.valid = true;
-    initialize_track_inventory(request.source_id);
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();
     return token;
@@ -46,6 +58,9 @@ CommandToken PlaybackSessionRuntime::start() noexcept {
         return token;
     }
     state_machine_.transition_to(PlaybackGraphState::Starting);
+    if (local_media_pipeline_.is_active() && !try_start_local_media()) {
+        return reject(PlaybackGraphError::InvalidState);
+    }
     state_machine_.transition_to(PlaybackGraphState::Playing);
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();
@@ -182,6 +197,7 @@ CommandToken PlaybackSessionRuntime::close() noexcept {
     subtitle_track_id_ = 0;
     subtitle_enabled_ = false;
     subtitle_frame_bridge_.reset();
+    local_media_pipeline_.close();
     clear_track_inventory();
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();
