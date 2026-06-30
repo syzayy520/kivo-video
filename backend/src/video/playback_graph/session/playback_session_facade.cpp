@@ -296,4 +296,9 @@ LocalMediaPlaybackQuery PlaybackSession::query_local_media_playback() const noex
     return runtime == nullptr ? LocalMediaPlaybackQuery{} : runtime->query_local_media_playback();
 }
 
+int PlaybackSession::pump_local_media_playback(const int max_packets) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? 0 : runtime->pump_local_media_playback(max_packets);
+}
+
 }  // namespace kivo::video::playback_graph

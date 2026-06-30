@@ -75,6 +75,7 @@ public:
 
     [[nodiscard]] AdapterSnapshot snapshot() const noexcept;
     [[nodiscard]] playback_graph::LocalMediaPlaybackQuery query_local_media_playback() const noexcept;
+    [[nodiscard]] int pump_local_media_playback(int max_packets) noexcept;
 
 private:
     playback_graph::PlaybackSession session_;

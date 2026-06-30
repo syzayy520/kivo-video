@@ -32,14 +32,24 @@ bool PlaybackSessionRuntime::try_start_local_media() noexcept {
     if (!local_media_pipeline_.is_active()) {
         return false;
     }
-    if (!local_media_pipeline_.decode_first_frame()) {
+
+    const auto& probe_status = local_media_pipeline_.status();
+    const auto path = local_media::LocalMediaSourceRegistry::instance().resolve(last_source_id_);
+    if (!path.has_value()) {
         return false;
     }
 
-    const auto& status = local_media_pipeline_.status();
+    if (!local_media_continuous_.start(
+            *path,
+            local_media_pipeline_.video_stream_index(),
+            probe_status.video_codec)) {
+        return false;
+    }
+
+    const auto& status = local_media_continuous_.stats();
     video_surface_.ready = status.frame_rendered;
-    video_surface_.width = status.width;
-    video_surface_.height = status.height;
+    video_surface_.width = probe_status.width;
+    video_surface_.height = probe_status.height;
     if (video_surface_.height > 0) {
         video_surface_.aspect_ratio =
             static_cast<double>(video_surface_.width) /
@@ -48,6 +58,7 @@ bool PlaybackSessionRuntime::try_start_local_media() noexcept {
     if (status.frame_rendered) {
         video_surface_.render_state = VideoRenderAttachmentState::SurfaceAttached;
     }
+    position_ms_ = status.position_ms;
     return status.frame_rendered;
 }
 

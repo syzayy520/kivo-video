@@ -40,6 +40,7 @@ public:
     [[nodiscard]] const LocalMediaFrameBuffer& frame_buffer() const noexcept {
         return frame_buffer_;
     }
+    [[nodiscard]] int video_stream_index() const noexcept { return video_stream_index_; }
 
 private:
     LocalMediaPipelineStatus status_{};

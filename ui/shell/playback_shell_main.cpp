@@ -13,6 +13,7 @@
 #include <QTimer>
 #include <QUrl>
 
+#include "playback_shell_continuous_playback_evidence.hpp"
 #include "playback_shell_interaction_evidence.hpp"
 #include "playback_shell_media_resolver.hpp"
 #include "playback_shell_playback_evidence.hpp"
@@ -33,6 +34,10 @@ struct ShellEvidenceOptions {
     QString playback_dir;
     QString media_path;
     int playback_close_ms{1500};
+    bool continuous_playback_enabled{false};
+    QString continuous_playback_dir;
+    int continuous_duration_ms{5000};
+    int continuous_close_ms{500};
 };
 
 [[nodiscard]] ShellEvidenceOptions parse_shell_evidence_options(QCommandLineParser& parser) {
@@ -68,6 +73,20 @@ struct ShellEvidenceOptions {
         QStringLiteral("Auto-close delay after playback evidence"),
         QStringLiteral("ms"),
         QStringLiteral("1500")));
+    parser.addOption(QCommandLineOption(
+        QStringList{QStringLiteral("continuous-playback-evidence")},
+        QStringLiteral("Capture continuous local media playback evidence to directory"),
+        QStringLiteral("dir")));
+    parser.addOption(QCommandLineOption(
+        QStringList{QStringLiteral("duration-ms")},
+        QStringLiteral("Continuous playback observation duration"),
+        QStringLiteral("ms"),
+        QStringLiteral("5000")));
+    parser.addOption(QCommandLineOption(
+        QStringList{QStringLiteral("continuous-close-ms")},
+        QStringLiteral("Auto-close delay after continuous playback evidence"),
+        QStringLiteral("ms"),
+        QStringLiteral("500")));
     parser.process(*QCoreApplication::instance());
 
     if (parser.isSet(QStringLiteral("ui-open-evidence"))) {
@@ -92,6 +111,24 @@ struct ShellEvidenceOptions {
         options.playback_close_ms = parser.value(QStringLiteral("playback-close-ms")).toInt();
         if (options.playback_close_ms < 0) {
             options.playback_close_ms = 1500;
+        }
+        if (parser.isSet(QStringLiteral("media"))) {
+            options.media_path = parser.value(QStringLiteral("media"));
+        } else if (qEnvironmentVariableIsSet("KIVO_P10_MEDIA")) {
+            options.media_path = qEnvironmentVariable("KIVO_P10_MEDIA");
+        }
+    }
+    if (parser.isSet(QStringLiteral("continuous-playback-evidence"))) {
+        options.continuous_playback_enabled = true;
+        options.continuous_playback_dir =
+            parser.value(QStringLiteral("continuous-playback-evidence"));
+        options.continuous_duration_ms = parser.value(QStringLiteral("duration-ms")).toInt();
+        if (options.continuous_duration_ms < 0) {
+            options.continuous_duration_ms = 5000;
+        }
+        options.continuous_close_ms = parser.value(QStringLiteral("continuous-close-ms")).toInt();
+        if (options.continuous_close_ms < 0) {
+            options.continuous_close_ms = 500;
         }
         if (parser.isSet(QStringLiteral("media"))) {
             options.media_path = parser.value(QStringLiteral("media"));
@@ -240,8 +277,32 @@ int main(int argc, char* argv[]) {
             playback,
             registration.playback_page_url);
     }
+    if (evidence_options.continuous_playback_enabled) {
+        if (evidence_options.media_path.isEmpty()) {
+            qCritical() << "continuous-playback-evidence requires --media or KIVO_P10_MEDIA";
+            return 7;
+        }
+        const auto resolved =
+            kivo::ui::shell::resolve_playback_media_path(evidence_options.media_path);
+        kivo::ui::shell::ContinuousPlaybackEvidenceOptions continuous{};
+        continuous.output_dir = evidence_options.continuous_playback_dir;
+        continuous.media_path = resolved.original_path;
+        continuous.selected_media_file = resolved.selected_file;
+        continuous.media_original_exists = resolved.original_exists;
+        continuous.media_is_directory = resolved.is_directory;
+        continuous.selected_media_exists = resolved.selected_exists;
+        continuous.media_resolve_error = resolved.error;
+        continuous.duration_ms = evidence_options.continuous_duration_ms;
+        continuous.close_delay_ms = evidence_options.continuous_close_ms;
+        kivo::ui::shell::schedule_continuous_playback_evidence(
+            window,
+            bridge,
+            runtime_context.adapter(),
+            continuous,
+            registration.playback_page_url);
+    }
     if (!evidence_options.ui_open_enabled && !evidence_options.interaction_enabled
-        && !evidence_options.playback_enabled) {
+        && !evidence_options.playback_enabled && !evidence_options.continuous_playback_enabled) {
         QObject::connect(window, &QQuickWindow::visibilityChanged, &app,
                          [](const QWindow::Visibility visibility) {
                              if (visibility == QWindow::Hidden) {

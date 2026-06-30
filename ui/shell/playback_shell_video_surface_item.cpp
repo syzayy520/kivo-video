@@ -1,6 +1,7 @@
 #include "playback_shell_video_surface_item.hpp"
 
 #include <QPainter>
+#include <QTimer>
 
 #include "playback_shell_runtime_adapter_bridge.hpp"
 
@@ -10,6 +11,10 @@ PlaybackShellVideoSurfaceItem::PlaybackShellVideoSurfaceItem(QQuickItem* const p
     : QQuickPaintedItem(parent) {
     setAntialiasing(false);
     setOpaquePainting(true);
+}
+
+PlaybackShellVideoSurfaceItem::~PlaybackShellVideoSurfaceItem() {
+    stopContinuousRefresh();
 }
 
 void PlaybackShellVideoSurfaceItem::setBridge(
@@ -28,6 +33,29 @@ bool PlaybackShellVideoSurfaceItem::refreshFrame() {
     frame_image_ = image;
     update();
     return true;
+}
+
+void PlaybackShellVideoSurfaceItem::startContinuousRefresh(const int interval_ms) {
+    if (refresh_timer_ == nullptr) {
+        refresh_timer_ = new QTimer(this);
+        connect(refresh_timer_, &QTimer::timeout, this,
+                &PlaybackShellVideoSurfaceItem::onContinuousRefreshTick);
+    }
+    const int effective_interval = interval_ms > 0 ? interval_ms : 33;
+    refresh_timer_->start(effective_interval);
+}
+
+void PlaybackShellVideoSurfaceItem::stopContinuousRefresh() {
+    if (refresh_timer_ != nullptr) {
+        refresh_timer_->stop();
+    }
+}
+
+void PlaybackShellVideoSurfaceItem::onContinuousRefreshTick() {
+    if (bridge_ != nullptr) {
+        (void)bridge_->pumpLocalMediaPlayback(32);
+    }
+    (void)refreshFrame();
 }
 
 void PlaybackShellVideoSurfaceItem::paint(QPainter* const painter) {

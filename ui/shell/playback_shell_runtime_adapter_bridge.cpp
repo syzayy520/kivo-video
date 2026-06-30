@@ -63,6 +63,15 @@ QVariantMap PlaybackShellRuntimeAdapterBridge::queryLocalMediaPlayback() {
         {QStringLiteral("d3d11_uploaded"), query.d3d11_uploaded},
         {QStringLiteral("frame_rendered"), query.frame_rendered},
         {QStringLiteral("frame_pixels_valid"), query.frame_pixels_valid},
+        {QStringLiteral("continuous_rendering"), query.continuous_rendering},
+        {QStringLiteral("decoded_frame_count"),
+         static_cast<qulonglong>(query.decoded_frame_count)},
+        {QStringLiteral("rendered_frame_count"),
+         static_cast<qulonglong>(query.rendered_frame_count)},
+        {QStringLiteral("playback_elapsed_ms"),
+         static_cast<qint64>(query.playback_elapsed_ms)},
+        {QStringLiteral("last_frame_signature"),
+         static_cast<qulonglong>(query.last_frame_signature)},
         {QStringLiteral("container"), QString::fromStdString(query.container)},
         {QStringLiteral("video_codec"), QString::fromStdString(query.video_codec)},
         {QStringLiteral("error"), QString::fromStdString(query.error)},
@@ -70,6 +79,17 @@ QVariantMap PlaybackShellRuntimeAdapterBridge::queryLocalMediaPlayback() {
         {QStringLiteral("width"), query.width},
         {QStringLiteral("height"), query.height},
     };
+}
+
+int PlaybackShellRuntimeAdapterBridge::pumpLocalMediaPlayback(const int max_packets) {
+    if (adapter_ == nullptr) {
+        return 0;
+    }
+    const int new_frames = adapter_->pump_local_media_playback(max_packets);
+    if (new_frames > 0) {
+        emitSnapshotChanged();
+    }
+    return new_frames;
 }
 
 QImage PlaybackShellRuntimeAdapterBridge::pullVideoFrameImage() {

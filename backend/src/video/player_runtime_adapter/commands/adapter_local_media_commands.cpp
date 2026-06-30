@@ -30,4 +30,8 @@ playback_graph::LocalMediaPlaybackQuery PlayerRuntimeAdapter::query_local_media_
     return session_.query_local_media_playback();
 }
 
+int PlayerRuntimeAdapter::pump_local_media_playback(const int max_packets) noexcept {
+    return session_.pump_local_media_playback(max_packets);
+}
+
 }  // namespace kivo::video::player_runtime_adapter

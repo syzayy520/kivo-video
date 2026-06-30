@@ -15,6 +15,7 @@
 #include "video/playback_graph/p4_bridge/p4_state_sync_adapter.hpp"
 #include "video/playback_graph/p8_bridge/subtitle_frame_p8_bridge.hpp"
 #include "video/playback_graph/snapshot/snapshot_store.hpp"
+#include "video/playback_graph/local_media/local_media_continuous_playback.hpp"
 #include "video/playback_graph/local_media/local_media_first_frame_pipeline.hpp"
 #include "video/playback_graph/state/playback_graph_state_machine.hpp"
 
@@ -77,6 +78,7 @@ public:
     void unsubscribe(SubscriptionToken token) noexcept;
     [[nodiscard]] CommandToken inject_system_event(const SystemEvent& event) noexcept;
     [[nodiscard]] LocalMediaPlaybackQuery query_local_media_playback() const noexcept;
+    [[nodiscard]] int pump_local_media_playback(int max_packets) noexcept;
 
 private:
     [[nodiscard]] CommandToken accept_command(GraphCommandKind command,
@@ -127,6 +129,7 @@ private:
     bool policy_state_valid_{false};
     SubtitleFrameP8Bridge subtitle_frame_bridge_{};
     local_media::LocalMediaFirstFramePipeline local_media_pipeline_{};
+    local_media::LocalMediaContinuousPlayback local_media_continuous_{};
 };
 
 }  // namespace kivo::video::playback_graph::runtime

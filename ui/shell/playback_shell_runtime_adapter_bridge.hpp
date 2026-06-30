@@ -19,6 +19,7 @@ public:
     Q_INVOKABLE bool openMediaId(quint64 media_id);
     Q_INVOKABLE bool openLocalMediaFile(const QString& path);
     Q_INVOKABLE QVariantMap queryLocalMediaPlayback();
+    Q_INVOKABLE int pumpLocalMediaPlayback(int max_packets);
     [[nodiscard]] QImage pullVideoFrameImage();
     Q_INVOKABLE bool play();
     Q_INVOKABLE bool pause();

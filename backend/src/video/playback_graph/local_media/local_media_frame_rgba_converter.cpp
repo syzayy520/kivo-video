@@ -1,5 +1,14 @@
 #include "video/playback_graph/local_media/local_media_frame_rgba_converter.hpp"
 
+#ifdef KIVO_ENABLE_FFMPEG
+#include "kivo/cinema_engine/decode_core/decoded_frame.hpp"
+
+extern "C" {
+#include <libavutil/pixfmt.h>
+#include <libswscale/swscale.h>
+}
+#endif
+
 namespace kivo::video::playback_graph::local_media {
 
 #ifndef KIVO_ENABLE_FFMPEG
@@ -13,13 +22,6 @@ RgbaFrameBuffer convert_decoded_frame_to_rgba8888(
 }
 
 #else
-
-#include "kivo/cinema_engine/decode_core/decoded_frame.hpp"
-
-extern "C" {
-#include <libavutil/pixfmt.h>
-#include <libswscale/swscale.h>
-}
 
 namespace {
 

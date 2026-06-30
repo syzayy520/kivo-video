@@ -1421,9 +1421,11 @@ add_library(kivo_video_playback_graph STATIC
   src/video/playback_graph/evidence/layered_error_taxonomy.cpp
   src/video/playback_graph/local_media/local_media_source_registry.cpp
   src/video/playback_graph/local_media/local_media_first_frame_pipeline.cpp
+  src/video/playback_graph/local_media/local_media_continuous_playback.cpp
   src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp
   src/video/playback_graph/session/playback_session_local_media.cpp
   src/video/playback_graph/session/playback_session_local_media_open.cpp
+  src/video/playback_graph/session/playback_session_local_media_continuous.cpp
 )
 target_include_directories(kivo_video_playback_graph
   PUBLIC

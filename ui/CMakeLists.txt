@@ -33,6 +33,7 @@ add_executable(kivo_video_playback_shell
   shell/playback_shell_qml_registration.cpp
   shell/playback_shell_interaction_evidence.cpp
   shell/playback_shell_playback_evidence.cpp
+  shell/playback_shell_continuous_playback_evidence.cpp
   shell/playback_shell_media_resolver.cpp
   shell/playback_shell_video_surface_item.cpp
   shell/playback_shell_qml_resources.qrc

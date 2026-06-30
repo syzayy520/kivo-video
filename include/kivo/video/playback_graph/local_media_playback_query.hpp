@@ -15,6 +15,11 @@ struct LocalMediaPlaybackQuery {
     bool d3d11_uploaded{false};
     bool frame_rendered{false};
     bool frame_pixels_valid{false};
+    bool continuous_rendering{false};
+    std::uint64_t decoded_frame_count{0};
+    std::uint64_t rendered_frame_count{0};
+    std::int64_t playback_elapsed_ms{0};
+    std::uint64_t last_frame_signature{0};
     std::string container;
     std::string video_codec;
     std::string error;

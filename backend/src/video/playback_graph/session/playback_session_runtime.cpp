@@ -198,6 +198,7 @@ CommandToken PlaybackSessionRuntime::close() noexcept {
     subtitle_enabled_ = false;
     subtitle_frame_bridge_.reset();
     local_media_pipeline_.close();
+    local_media_continuous_.close();
     clear_track_inventory();
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();

@@ -91,6 +91,7 @@ public:
     void unsubscribe(SubscriptionToken token) noexcept;
     CommandToken inject_system_event(const SystemEvent& event) noexcept;
     [[nodiscard]] LocalMediaPlaybackQuery query_local_media_playback() const noexcept;
+    [[nodiscard]] int pump_local_media_playback(int max_packets) noexcept;
 
 private:
     void* impl_{nullptr};
