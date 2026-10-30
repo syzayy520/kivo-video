@@ -753,6 +753,17 @@ def layer4_reuse(report: Report) -> None:
         report.fail(4, "verify_p14a_metrics", "找不到证据",
                     "docs/evidence/p14a/*.json 为空")
 
+    # P13-AF：跨臂比较（R2 极差 / R5 同臂复现）。单臂的次数判据复用
+    # `verify_p13ae_gate`，这里只加"三臂之间不许差太多"那一条 ——
+    # 一个判据只写一处，否则两套判据必然分叉。
+    p13af_files = sorted(glob.glob("docs/evidence/p13af/*-sync.json"))
+    if p13af_files:
+        run_sub("summarize_p13af",
+                [py, "tools/summarize_p13af.py", *p13af_files], report)
+    else:
+        report.fail(4, "summarize_p13af", "找不到证据",
+                    "docs/evidence/p13af/*-sync.json 为空")
+
     run_sub("verify_p12d3_soak",
             [py, "tools/verify_p12d3_soak.py",
              "--mem", "docs/evidence/p12d/p12d3-soak-r1-mem.csv",
