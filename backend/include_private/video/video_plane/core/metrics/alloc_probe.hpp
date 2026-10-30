@@ -38,6 +38,13 @@ void mark_steady() noexcept;
 [[nodiscard]] std::int64_t bytes_total() noexcept;
 [[nodiscard]] std::int64_t bytes_steady() noexcept;
 
+/// 登记一个线程（即使它一次都不分配）。
+///
+/// 为什么需要：只统计"分配过的线程"会漏掉最关键的那个结论 ——
+/// **播放线程一次都没分配**。那时它在证据里根本不存在，读者无法区分
+/// "它零分配"和"它没跑"。主动登记后，一个 `calls = 0` 的槽才是可读的证据。
+void announce_thread(const char* name) noexcept;
+
 /// 临时挂起 / 恢复计数。**不碰 `steady` 标记**（`arm()` 会把它清掉）。
 ///
 /// 用在哪：`DecodeSession::snapshot()` 自己会复制一堆 `std::string` ——

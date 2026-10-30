@@ -1,5 +1,9 @@
 #include "video/video_plane/backends/mediacodec/session/decode_session.hpp"
 
+#if defined(__ANDROID__) || defined(__linux__)
+#include <pthread.h>
+#endif
+
 #include "video/video_plane/backends/mediacodec/decode/mediaformat_color_io.hpp"
 #include "video/video_plane/backends/mediacodec/decode/mediacodec_format_guard.hpp"
 #include "video/video_plane/backends/mediacodec/source/encryption_facts.hpp"
@@ -343,14 +347,46 @@ SessionOutcome DecodeSession::begin_run() {
     return {};
 }
 
+namespace {
+
+/// 给当前线程起名（P14-C）。
+///
+/// 为什么值得单独写一句：内核会把 `pthread_setname_np` 设的名字写进
+/// `/proc/self/task/<tid>/comm`，而 P14-B 的分配归因正是靠 comm 把 tid 翻译成
+/// 人能读的东西。不起名，证据里就只有一串 tid —— 读的人分不清哪行是收帧、哪行是送包。
+///
+/// Windows 上没有对应机制（`SetThreadDescription` 不进 comm），这里故意留空：
+/// 桌面不是交付平台，编一个假名字反而会误导。
+void name_current_thread(const char* name) noexcept {
+#if defined(__ANDROID__) || defined(__linux__)
+    ::pthread_setname_np(::pthread_self(), name);
+#endif
+    // 同时向分配探针登记：一个"零分配"的线程必须能在证据里出现，
+    // 否则读者分不清"它没分配"和"它没跑"。
+    core::metrics::alloc_probe::announce_thread(name);
+}
+
+}  // namespace
+
 void DecodeSession::launch_workers() {
     if (mode_ == PipelineMode::kSplit) {
         // 起来顺序无关紧要：两段都靠平台队列互相驱动，谁先起都不影响正确性。
-        submit_thread_ = std::thread([this] { submit_worker_->run(); });
-        receive_thread_ = std::thread([this] { receive_worker_->run(); });
+        submit_thread_ = std::thread([this] {
+            name_current_thread("kivo-submit");
+            submit_worker_->run();
+        });
+        receive_thread_ = std::thread([this] {
+            name_current_thread("kivo-recv");
+            receive_worker_->run();
+        });
         return;
     }
-    merged_thread_ = std::thread([this] { run_merged(); });
+    // 合并模式下送包与收帧在同一个线程里，名字就叫 `kivo-decode`。
+    // 证据里看到这一个名字，就知道这一轮走的是合并管线 —— 比去翻 `pipeline.mode` 更快。
+    merged_thread_ = std::thread([this] {
+        name_current_thread("kivo-decode");
+        run_merged();
+    });
 }
 
 void DecodeSession::run_merged() {

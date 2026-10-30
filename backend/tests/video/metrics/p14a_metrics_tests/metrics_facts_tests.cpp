@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <cmath>
 #include <cstdlib>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -223,6 +224,24 @@ void t10_slot_table_overflow_is_counted_not_lost() {
     metrics::alloc_probe::reset();
 }
 
+void t11_announced_thread_appears_even_with_zero_calls() {
+    metrics::alloc_probe::reset();
+    metrics::alloc_probe::arm();
+
+    // 一个只登记、不分配的线程 —— 正是播放线程的样子（G3a）。
+    std::thread worker([] { metrics::alloc_probe::announce_thread("kivo-decode"); });
+    worker.join();
+
+    const metrics::AllocFacts facts = metrics::make_alloc_facts();
+    // 关键：它必须在表里。只统计"分配过的线程"时，这个槽根本不存在，
+    // 读者就分不清"零分配"和"没跑"。
+    CHECK(facts.thread_count == 1);
+    CHECK(facts.threads[0].calls == 0);
+    CHECK(std::string(facts.threads[0].name) == "kivo-decode");
+    CHECK(facts.calls_total == 0);
+    metrics::alloc_probe::reset();
+}
+
 }  // namespace
 
 int main() {
@@ -241,6 +260,7 @@ int main() {
         {"08 只在 arm 与 steady 之后计数", t08_counts_only_between_arm_and_disarm},
         {"09 分配归到调用它的线程", t09_calls_are_attributed_to_the_calling_thread},
         {"10 槽表溢出要计数不能丢", t10_slot_table_overflow_is_counted_not_lost},
+        {"11 零分配的线程也要出现在证据里", t11_announced_thread_appears_even_with_zero_calls},
     };
 
     for (const Case& item : cases) {

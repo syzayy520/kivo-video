@@ -126,6 +126,29 @@ std::int64_t bytes_total() noexcept { return g_bytes_total.load(std::memory_orde
 
 std::int64_t bytes_steady() noexcept { return g_bytes_steady.load(std::memory_order_relaxed); }
 
+void announce_thread(const char* name) noexcept {
+    if (name == nullptr) {
+        return;
+    }
+    const std::int32_t tid = current_tid();
+    const std::int32_t slot = claim_slot(tid);
+    if (slot < 0) {
+        return;
+    }
+    Slot& target = g_slots[static_cast<std::size_t>(slot)];
+    // 直接写入并标记已命名：`resolve_name` 之后就不会再用 comm 覆盖它。
+    // 我们自己的名字比内核 comm 更可靠 —— comm 只有 15 字节，还会被别的库改掉。
+    bool expected = false;
+    if (target.named.compare_exchange_strong(expected, true, std::memory_order_relaxed)) {
+        std::size_t index = 0;
+        for (; name[index] != '\0' && index < sizeof(target.name) - 1; ++index) {
+            target.name[index] = name[index];
+        }
+        target.name[index] = '\0';
+    }
+    t_slot = slot;
+}
+
 void reset() noexcept {
     g_calls_total.store(0, std::memory_order_relaxed);
     g_calls_steady.store(0, std::memory_order_relaxed);
