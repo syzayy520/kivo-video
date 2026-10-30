@@ -299,6 +299,19 @@ SessionOutcome DecodeSession::begin_run() {
 
     run_started_at_ = SteadyClock::now();
 
+    // P14-A：三条以前没有的尺子的起点。
+    //
+    // CPU 起点只取一次（`valid` 后不再覆盖）：seek 会再进 `begin_run()`，
+    // 每次都重置的话 G2 的账只剩"最后一次 seek 之后"。
+    // 分配计数同理：已经 arm 过就不再 reset，否则稳态计数会被 seek 抹掉一半。
+    if (!cpu_begin_.valid) {
+        cpu_begin_ = core::metrics::sample_cpu_time();
+    }
+    if (!core::metrics::alloc_probe::armed()) {
+        core::metrics::alloc_probe::reset();
+        core::metrics::alloc_probe::arm();
+    }
+
     DecodeSubmitWorker::Deps submit_deps;
     submit_deps.source = &source_;
     submit_deps.decoder = &decoder_;
@@ -380,6 +393,16 @@ void DecodeSession::stop() {
         submit_worker_.reset();
         receive_worker_.reset();
     }
+
+    // P14-A：**在渲染证据之前关掉计数**。
+    //
+    // 第一版没关，结果 `calls_steady` 把"把证据写成 JSON"这一段的分配也算了进去 ——
+    // 一份 5 KB 的证据要几百次分配，于是每一次会话都报"稳态分配 130 次"。
+    // 那个数字是真的，但它量的不是播放，是**测量本身**。
+    // 关掉之后计数仍然可读（`disarm()` 只停止累加），所以 `snapshot()` 拿到的
+    // 是"播放期间的分配次数"。
+    core::metrics::alloc_probe::disarm();
+
     started_ = false;
 }
 
@@ -391,6 +414,13 @@ core::pace::PaceSummary DecodeSession::pace_summary_after_stop() const {
 }
 
 DecodeStats DecodeSession::snapshot() const {
+    // P14-A：**测量自己不算进被测量的东西。**
+    //
+    // `snapshot()` 会复制一批 `std::string`（mime / codec 名 / 时钟档…）。
+    // UI 每秒读约 15 次统计，第一版没挂起，于是稳态计数稳定报 15 次/秒 ——
+    // 那个数字是真的，但它量的是"读统计"，不是"播放"。
+    // 挂起只影响计数，不影响任何播放行为，也不清 `steady` 标记。
+    core::metrics::alloc_probe::suspend();
     DecodeStats stats = context_;
     stats.samples_submitted = counters_.samples_submitted.load(std::memory_order_relaxed);
     stats.bytes_submitted = counters_.bytes_submitted.load(std::memory_order_relaxed);
@@ -410,6 +440,14 @@ DecodeStats DecodeSession::snapshot() const {
                                           : stats.first_frame_latency_us;
     stats.wall_micros = counters_.wall_micros.load(std::memory_order_relaxed);
     stats.completed = counters_.completed.load(std::memory_order_relaxed);
+
+    // P14-A：三条尺子。全部在 `snapshot()` 里现算，不另存 ——
+    // 存一份"最后一次算出来的"会和计数分叉，而那正是"恒错字段"的来源。
+    stats.metrics.cpu = core::metrics::make_cpu_time_facts(
+        cpu_begin_, core::metrics::sample_cpu_time());
+    stats.metrics.alloc = core::metrics::make_alloc_facts();
+    stats.metrics.buffers = core::metrics::make_buffer_lease_facts(stats.frames_received,
+                                                                   stats.frames_released);
 
     stats.error = failure_.text();
     stats.pace = pace_sampler_.read();
@@ -446,6 +484,7 @@ DecodeStats DecodeSession::snapshot() const {
                 static_cast<double>(stats.wall_micros);
         }
     }
+    core::metrics::alloc_probe::resume();
     return stats;
 }
 

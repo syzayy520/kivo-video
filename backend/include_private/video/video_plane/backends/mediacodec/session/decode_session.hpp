@@ -21,6 +21,7 @@
 #include "video/video_plane/backends/mediacodec/session/present_schedule.hpp"
 #include "video/video_plane/backends/mediacodec/source/mediaextractor_source.hpp"
 #include "video/video_plane/core/audio/clock/audio_clock_source.hpp"
+#include "video/video_plane/core/metrics/cpu_time_facts.hpp"
 #include "video/video_plane/core/pace/frame_pacer.hpp"
 
 namespace kivo::video::mediacodec {
@@ -269,6 +270,11 @@ private:
     PresentSchedule present_schedule_ = PresentSchedule::kSurfaceAtTime;
 
     std::chrono::steady_clock::time_point run_started_at_{};
+
+    /// CPU 时间起点（P14-A）。**只在第一次 `begin_run()` 时取**：
+    /// seek 会再进一次 `begin_run()`，如果每次都重置，G2 的账就只剩"最后一次 seek 之后"，
+    /// 而那是整场里最没有代表性的一段。
+    core::metrics::CpuTimeSnapshot cpu_begin_{};
 
     bool opened_ = false;
     bool started_ = false;

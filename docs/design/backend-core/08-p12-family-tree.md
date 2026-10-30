@@ -901,6 +901,30 @@ run_session_teardown(plan, hooks)  // 唯一执行器；JNI 只提供七个函�
 
 ---
 
+### 三之二十四、三条以前没有的尺子（P14-A）
+
+```
+core/metrics/                        # 度量族：只数，不判
+├── cpu_time_facts.hpp/.cxx          # CLOCK_*_CPUTIME 两次快照相减 → 两个占比（纯算术）
+├── alloc_probe.hpp/.cxx             # 原子计数 + arm/steady 开关（不含替换）
+├── alloc_probe_hook.cxx             # 全局 operator new/delete 的 14 个变体（**只在 Android 链**）
+└── buffer_lease_facts.hpp/.cxx      # 输出缓冲的归还账（received/released/in_flight/leaked）
+```
+
+| 文件 | 单一职责 | 不做什么 |
+| --- | --- | --- |
+| `cpu_time_facts.cxx` | 采两次样、给三个数与两个比值 | 不判"是否达标"；Windows 上返`valid=false`+理由 |
+| `alloc_probe.cxx` | 计数与开关 | 不替换分配器 |
+| `alloc_probe_hook.cxx` | 替换 14 个分配/释放变体，转发 + 计数 | 不含业务逻辑；Windows 上编译为空 |
+| `buffer_lease_facts.cxx` | 由两个计数算在途与泄漏 | **不声称平台的池状态**（`pool_owner = "codec"`） |
+
+> **`alloc_probe_hook.cxx` 必须直接出现在 android 的源文件清单里**，不能包在静态库中：
+> 静态库的目标只在"符号被需要"时才被拉进来，而这条尺子的价值恰恰是每个分配都经过它。
+> 桌面单测**不链它** —— 否则测到的就是测试框架自己的分配。
+
+证据：decode `kivo.p12c.decode/14` 新增 `metrics{cpu,alloc,buffers}`。
+判定脚本 `tools/verify_p14a_metrics.py`（M1–M5）。
+
 ### 三之二十三、音频证据字段与跨帧率可比性（P13-C）
 
 **代码只改了两行赋值，但这两行补的是两个"从来没写过"的字段。**

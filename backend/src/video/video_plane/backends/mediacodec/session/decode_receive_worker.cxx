@@ -7,6 +7,7 @@
 #include "video/video_plane/backends/mediacodec/session/decode_pipeline_gate.hpp"
 #include "video/video_plane/backends/mediacodec/session/decode_stage_cost.hpp"
 #include "video/video_plane/backends/mediacodec/session/surface_rebuild_tracker.hpp"
+#include "video/video_plane/core/metrics/alloc_probe.hpp"
 #include "video/video_plane/core/pace/frame_pacer.hpp"
 #include "video/video_plane/core/pace/pace_now.hpp"
 
@@ -184,7 +185,14 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
     }
 
     if (render) {
-        deps_.counters->frames_rendered.fetch_add(1, std::memory_order_relaxed);
+        const std::int64_t previous_rendered =
+            deps_.counters->frames_rendered.fetch_add(1, std::memory_order_relaxed);
+        // P14-A：首帧渲染之后才开始算"稳态分配"。
+        // 之前的分配（解码器初始化、vector 扩容、Surface 首建）是启动成本，
+        // G3 判的是稳态循环，不是开播那一刻。
+        if (previous_rendered == 0) {
+            core::metrics::alloc_probe::mark_steady();
+        }
         std::int64_t expected = -1;
         deps_.counters->first_frame_latency_us.compare_exchange_strong(
             expected, elapsed_us(deps_.started_at, now), std::memory_order_relaxed);

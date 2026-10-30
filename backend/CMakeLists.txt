@@ -2335,6 +2335,48 @@ endif()
 add_test(NAME kivo_p13d_drift_tests COMMAND kivo_p13d_drift_tests)
 set_tests_properties(kivo_p13d_drift_tests PROPERTIES TIMEOUT 60)
 
+# ─── P14-A: 三条以前没有的尺子（G2 / G3 / G4）───
+# 全部是计数与纯算术，零平台依赖（CPU 那条在 Windows 上返回"未测到"）。
+#
+# 分配钩子**单独一个库**：`operator new` 是进程级的，谁链上谁生效。
+# 把它塞进这个默认库，会让每一个桌面单测都带上这把尺子 ——
+# 那时测到的就不是"播放稳态"，而是"测试框架的分配"。
+set(KIVO_P14A_METRICS_SOURCES
+  src/video/video_plane/core/metrics/cpu_time_facts.cxx
+  src/video/video_plane/core/metrics/alloc_probe.cxx
+  src/video/video_plane/core/metrics/buffer_lease_facts.cxx
+)
+
+add_library(kivo_p14a_metrics STATIC ${KIVO_P14A_METRICS_SOURCES})
+target_include_directories(kivo_p14a_metrics PUBLIC
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p14a_metrics PUBLIC cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p14a_metrics PRIVATE /utf-8 /W4)
+endif()
+
+# 全局 operator new 替换：**只给需要它的目标显式链**。见上面注释。
+add_library(kivo_p14a_alloc_hook STATIC
+  src/video/video_plane/core/metrics/alloc_probe_hook.cxx
+)
+target_link_libraries(kivo_p14a_alloc_hook PUBLIC kivo_p14a_metrics)
+target_compile_features(kivo_p14a_alloc_hook PUBLIC cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p14a_alloc_hook PRIVATE /utf-8)
+endif()
+
+add_executable(kivo_p14a_metrics_tests
+  tests/video/metrics/p14a_metrics_tests/metrics_facts_tests.cpp
+)
+target_link_libraries(kivo_p14a_metrics_tests PRIVATE kivo_p14a_metrics)
+target_compile_features(kivo_p14a_metrics_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p14a_metrics_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p14a_metrics_tests COMMAND kivo_p14a_metrics_tests)
+set_tests_properties(kivo_p14a_metrics_tests PROPERTIES TIMEOUT 60)
+
 # ─── P13-E: 分位数的采样口径词汇 ───
 # 三个名字是线格式（写进 JSON、被 Python 校验器读、被状态卡表格引用），
 # 所以"不许改名"必须由测试守，不能只靠注释守。

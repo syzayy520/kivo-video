@@ -43,7 +43,10 @@ namespace {
 ///   /5（C8）：加 `pace.clock_mix`（逐帧时钟分档）。
 ///            音画偏差**没有**加进这里：它等于 `lateness`，只在 `cpu_paced` 下成立，
 ///            单独放一份账会与 `lateness` 打架。要读它去看 `kivo.p12c.sync/1`。
-constexpr const char* kSchema = "kivo.p12c.decode/13";
+///   /14（P14-A）：新增 `metrics` —— 三把以前没有的尺子（CPU 占比 / 堆分配次数 /
+///            输出缓冲归属）。**每个都带可用性与理由**：这一族最容易把"没测到"
+///            印成 0，而 0 看起来永远是好消息。
+constexpr const char* kSchema = "kivo.p12c.decode/14";
 
 /// 可选 int：`< 0` 一律写 `null`。
 /// E1 定的规矩（`08-p12-family-tree.md` §三之十二 第 3 条）：未知不写 0/-1，
@@ -342,6 +345,34 @@ std::string render_decode_stats_json(const DecodeStats& stats,
     out << "    \"gap_ms\": " << stats.surface_rebuild.last_gap_ms << ",\n";
     out << "    \"resume_ms\": " << stats.surface_rebuild.last_resume_ms << ",\n";
     out << "    \"frames_lead\": " << stats.surface_rebuild.last_frames_lead << "\n";
+    out << "  },\n";
+
+    // P14-A：三条以前没有尺子的目标。
+    //
+    // 写法与其它块不同：每一项都自带 `valid`/`reason` 或 `hook_installed`。
+    // `calls_steady: 0` 在没有钩子的构建上完全一样，所以"钩子装没装"必须出版 ——
+    // P13-T 的 `drift_rebases` 漏写就是同一个病（"门没触发" vs "门没接上"）。
+    out << "  \"metrics\": {\n";
+    out << "    \"cpu\": {\"valid\": " << (stats.metrics.cpu.valid ? "true" : "false")
+        << ", \"reason\": " << "\"" << escape_json_string(stats.metrics.cpu.reason) << "\""
+        << ", \"wall_ns\": " << stats.metrics.cpu.wall_ns
+        << ", \"thread_cpu_ns\": " << stats.metrics.cpu.thread_cpu_ns
+        << ", \"process_cpu_ns\": " << stats.metrics.cpu.process_cpu_ns
+        << ", \"thread_ratio\": " << fixed6(stats.metrics.cpu.thread_ratio)
+        << ", \"process_ratio\": " << fixed6(stats.metrics.cpu.process_ratio) << "},\n";
+    out << "    \"alloc\": {\"hook_installed\": "
+        << (stats.metrics.alloc.hook_installed ? "true" : "false")
+        << ", \"armed\": " << (stats.metrics.alloc.armed ? "true" : "false")
+        << ", \"calls_total\": " << stats.metrics.alloc.calls_total
+        << ", \"calls_steady\": " << stats.metrics.alloc.calls_steady
+        << ", \"bytes_total\": " << stats.metrics.alloc.bytes_total
+        << ", \"bytes_steady\": " << stats.metrics.alloc.bytes_steady << "},\n";
+    out << "    \"buffers\": {\"pool_owner\": " << "\"" << escape_json_string(stats.metrics.buffers.pool_owner) << "\""
+        << ", \"received\": " << stats.metrics.buffers.received
+        << ", \"released\": " << stats.metrics.buffers.released
+        << ", \"in_flight\": " << stats.metrics.buffers.in_flight
+        << ", \"leaked\": " << stats.metrics.buffers.leaked
+        << ", \"reason\": " << "\"" << escape_json_string(stats.metrics.buffers.reason) << "\"" << "}\n";
     out << "  },\n";
 
     out << "  \"timing\": {\n";

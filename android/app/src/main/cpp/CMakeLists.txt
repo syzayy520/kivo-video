@@ -33,6 +33,15 @@ add_library(kivo_core_pace STATIC
     # `undefined symbol: DriftSeries::note` —— 即"桌面全绿、APK 编不过"。
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_drift_series.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_drift_trend.cxx"
+
+    # P14-A：三把以前没有的尺子（G2/G3/G4）。
+    # `alloc_probe_hook.cxx` 替换全局 `operator new` —— 它必须**直接**出现在这里，
+    # 不能藏在静态库里：静态库的目标只有在"符号被需要"时才被拉进来，
+    # 而这条尺子的价值恰恰是"每个分配都经过它"。
+    "${KIVO_BACKEND}/src/video/video_plane/core/metrics/cpu_time_facts.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/core/metrics/alloc_probe.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/core/metrics/alloc_probe_hook.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/core/metrics/buffer_lease_facts.cxx"
     # P13-I：窗口分布。同样由 `pace_stats.cxx` 直接调用 ——
     # 漏注册的报应一模一样：桌面全绿，arm64 链接时 `undefined symbol: summarize_window`。
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_drift_window.cxx"

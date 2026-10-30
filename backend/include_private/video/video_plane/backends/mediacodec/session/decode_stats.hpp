@@ -7,6 +7,7 @@
 #include "video/video_plane/backends/mediacodec/source/encryption_facts.hpp"
 #include "video/video_plane/core/seek/seek_budget.hpp"
 #include "video/video_plane/backends/mediacodec/decode/video_color_facts.hpp"
+#include "video/video_plane/backends/mediacodec/session/decode_metrics_facts.hpp"
 #include "video/video_plane/backends/mediacodec/session/decode_pace_stats.hpp"
 #include "video/video_plane/backends/mediacodec/session/decode_stage_cost.hpp"
 #include "video/video_plane/backends/mediacodec/session/surface_rebuild_tracker.hpp"
@@ -80,6 +81,10 @@ struct DecodeStats {
 
     /// Surface 重建（P12-D1）。`rebinds == 0` 表示这一轮没换过面。
     SurfaceRebuildStats surface_rebuild;
+
+    /// 三把以前没有的尺子（P14-A）：CPU 占比、堆分配次数、输出缓冲归属。
+    /// 三个都带 `valid` / `reason` / `hook_installed` —— 这一族最容易把"没测到"印成 0。
+    DecodeMetricsFacts metrics;
 
     /// 颜色事实（P12-E1）：源 profile + 平台实际给的输出格式。
     /// 判定（10bit / 8bit / 不确定）不在这里做 —— 那是纯函数 `assess_color()` 的事，

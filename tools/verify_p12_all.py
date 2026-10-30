@@ -71,6 +71,9 @@ KNOWN_SCHEMAS = {
     "kivo.p12c.decode/5", "kivo.p12c.decode/6", "kivo.p12c.decode/7",
     "kivo.p12c.decode/8", "kivo.p12c.decode/9", "kivo.p12c.decode/10",
     "kivo.p12c.decode/11", "kivo.p12c.decode/12", "kivo.p12c.decode/13",
+    # P14-A：新增 `metrics` —— CPU 占比 / 堆分配次数 / 输出缓冲归属。
+    # 三项都带可用性与理由，`calls_steady = 0` 旁边必须有 `hook_installed`。
+    "kivo.p12c.decode/14",
     "kivo.p12c.sync/1",
     # P13-D：`av_drift` 的分位数改由"按媒体时间抽稀到 20 Hz"的分布给出，
     # 并新增 sampling / per_frame / trend 三块。`/1` 的证据不重写（重写等于伪造），
@@ -736,6 +739,17 @@ def layer4_reuse(report: Report) -> None:
                 [py, "tools/verify_p13ae_gate.py", *ae_files], report)
     else:
         report.fail(4, "verify_p13ae_gate", "找不到证据", "docs/evidence/p13ae/*-sync.json 为空")
+
+    # P14-A：三把尺子的自证（CPU 有效 / 钩子装上 / 缓冲归零 / 账目一致）。
+    # 只喂 decode 证据 —— 那条判据看的是 `metrics` 块，sync 文件里没有。
+    p14a_decode = sorted(f for f in glob.glob("docs/evidence/p14a/*.json")
+                         if not f.endswith("-sync.json"))
+    if p14a_decode:
+        run_sub("verify_p14a_metrics",
+                [py, "tools/verify_p14a_metrics.py", *p14a_decode], report)
+    else:
+        report.fail(4, "verify_p14a_metrics", "找不到证据",
+                    "docs/evidence/p14a/*.json 为空")
 
     run_sub("verify_p12d3_soak",
             [py, "tools/verify_p12d3_soak.py",
