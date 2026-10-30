@@ -78,9 +78,10 @@ AdapterCommandResult PlayerRuntimeAdapter::handle_shortcut(
         }
         case AdapterShortcutAction::ToggleMute:
             return set_muted(!snapshot().muted);
-        case AdapterShortcutAction::ToggleFullscreen:
         case AdapterShortcutAction::ExitFullscreen:
-            return runtime::missing_p7_api(AdapterMissingP7Api::FullscreenWindowScreen);
+            return exit_fullscreen();
+        case AdapterShortcutAction::ToggleFullscreen:
+            return snapshot().fullscreen_like ? exit_fullscreen() : enter_fullscreen();
         case AdapterShortcutAction::Subtitle:
             if (snapshot().subtitle_enabled) {
                 return disable_subtitle();

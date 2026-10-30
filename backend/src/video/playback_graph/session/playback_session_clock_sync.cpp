@@ -3,7 +3,7 @@
 namespace kivo::video::playback_graph::runtime {
 
 void PlaybackSessionRuntime::sync_clock_store() noexcept {
-    snapshot_store_.set_clock_estimate(position_ms_, duration_ms_ > 0);
+    snapshot_store_.set_clock_estimate(current_position_ms(), duration_ms_ > 0);
 }
 
 void PlaybackSessionRuntime::publish_current_snapshot() noexcept {

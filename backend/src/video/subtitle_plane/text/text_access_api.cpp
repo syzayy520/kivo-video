@@ -19,7 +19,7 @@ KivoP8ApiStatus KIVO_P8_CALL api_copy_text_buffer(
     const KivoP8ApiStatus token_status =
         validate_resource_access_token(token, KivoSubtitleResourceAccessKind_FrameLease);
     if (token_status != KivoP8ApiStatus_Ok || text_buffer_id.value == 0) return KivoP8ApiStatus_InvalidArgument;
-    return copy_frame_text_buffer(*record, text_buffer_id, dst, out_required_bytes);
+    return copy_frame_text_buffer(*record, token, text_buffer_id, dst, out_required_bytes);
 }
 
 KivoP8ApiStatus KIVO_P8_CALL api_copy_font_blob(

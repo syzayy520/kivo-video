@@ -1,5 +1,7 @@
 #include "kivo/cinema_engine/third_party_adapter/ffmpeg_adapter/ffmpeg_adapter.hpp"
 
+#include "ffmpeg_product_log_filter.hpp"
+
 #ifdef KIVO_ENABLE_FFMPEG
 extern "C" {
 #include <libavformat/avformat.h>
@@ -7,12 +9,13 @@ extern "C" {
 #include <libavutil/avutil.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/channel_layout.h>
+#include <libswscale/swscale.h>
 }
 #endif
 
 namespace kivo::cinema_engine {
 
-// ─── Availability ──────────────────────────────────────────────────
+// Availability
 
 bool FfmpegAdapter::is_available() {
 #ifdef KIVO_ENABLE_FFMPEG
@@ -22,10 +25,11 @@ bool FfmpegAdapter::is_available() {
 #endif
 }
 
-// ─── Format context lifecycle ──────────────────────────────────────
+// Format context lifecycle
 
 FfmpegFormatHandle FfmpegAdapter::open_file(const std::string& path) {
 #ifdef KIVO_ENABLE_FFMPEG
+    ffmpeg_adapter::install_product_log_filter();
     AVFormatContext* ctx = nullptr;
     int ret = avformat_open_input(&ctx, path.c_str(), nullptr, nullptr);
     if (ret < 0) return {nullptr};
@@ -44,12 +48,19 @@ void FfmpegAdapter::free_format_context(FfmpegFormatHandle& handle) {
         avformat_close_input(&ctx);
         handle.native = nullptr;
     }
+    if (handle.custom_io_destroy != nullptr && handle.custom_io_context != nullptr) {
+        handle.custom_io_destroy(handle.custom_io_context);
+    }
+    handle.custom_io_context = nullptr;
+    handle.custom_io_destroy = nullptr;
 #else
     handle.native = nullptr;
+    handle.custom_io_context = nullptr;
+    handle.custom_io_destroy = nullptr;
 #endif
 }
 
-// ─── Format context queries ────────────────────────────────────────
+// Format context queries
 
 bool FfmpegAdapter::probe_container(FfmpegFormatHandle handle,
                                     std::string& container_format,
@@ -93,7 +104,7 @@ bool FfmpegAdapter::enumerate_streams(FfmpegFormatHandle handle,
 #endif
 }
 
-// ─── Stream info extraction ────────────────────────────────────────
+// Stream info extraction
 
 bool FfmpegAdapter::get_stream_codec_name(FfmpegFormatHandle handle, int stream_index,
                                           std::string& codec_name) {
@@ -171,7 +182,28 @@ bool FfmpegAdapter::get_stream_metadata(FfmpegFormatHandle handle, int stream_in
 #endif
 }
 
-// ─── Packet reading ────────────────────────────────────────────────
+bool FfmpegAdapter::rescale_stream_timestamp_us(FfmpegFormatHandle handle,
+                                                int stream_index,
+                                                int64_t timestamp,
+                                                int64_t& out_microseconds) {
+#ifdef KIVO_ENABLE_FFMPEG
+    if (!handle.native) return false;
+    auto* ctx = static_cast<AVFormatContext*>(handle.native);
+    if (stream_index < 0 || static_cast<unsigned>(stream_index) >= ctx->nb_streams) return false;
+    out_microseconds = av_rescale_q(timestamp,
+                                    ctx->streams[stream_index]->time_base,
+                                    AVRational{1, 1000000});
+    return true;
+#else
+    (void)handle;
+    (void)stream_index;
+    (void)timestamp;
+    (void)out_microseconds;
+    return false;
+#endif
+}
+
+// Packet reading
 
 FfmpegReadResult FfmpegAdapter::read_packet(FfmpegFormatHandle handle) {
 #ifdef KIVO_ENABLE_FFMPEG
@@ -203,6 +235,16 @@ FfmpegReadResult FfmpegAdapter::read_packet(FfmpegFormatHandle handle) {
     if (pkt->data && pkt->size > 0) {
         result.packet_data.assign(pkt->data, pkt->data + pkt->size);
     }
+    for (int index = 0; index < pkt->side_data_elems; ++index) {
+        const AVPacketSideData& side = pkt->side_data[index];
+        if (side.data == nullptr || side.size <= 0) {
+            continue;
+        }
+        FfmpegPacketSideData copy;
+        copy.type = static_cast<int>(side.type);
+        copy.data.assign(side.data, side.data + side.size);
+        result.side_data.push_back(std::move(copy));
+    }
 
     av_packet_free(&pkt);
     return result;
@@ -211,7 +253,7 @@ FfmpegReadResult FfmpegAdapter::read_packet(FfmpegFormatHandle handle) {
 #endif
 }
 
-// ─── Seeking ───────────────────────────────────────────────────────
+// Seeking
 
 bool FfmpegAdapter::seek(FfmpegFormatHandle handle, double seconds) {
 #ifdef KIVO_ENABLE_FFMPEG
@@ -225,7 +267,20 @@ bool FfmpegAdapter::seek(FfmpegFormatHandle handle, double seconds) {
 #endif
 }
 
-// ─── Codec lifecycle ───────────────────────────────────────────────
+// Codec lifecycle
+
+namespace {
+
+void configure_video_decoder_threading(AVCodecContext* const ctx,
+                                       const AVCodec* const codec) noexcept {
+    if (ctx == nullptr || codec == nullptr || codec->type != AVMEDIA_TYPE_VIDEO) {
+        return;
+    }
+    ctx->thread_count = 0;
+    ctx->thread_type = FF_THREAD_FRAME | FF_THREAD_SLICE;
+}
+
+}  // namespace
 
 FfmpegCodecHandle FfmpegAdapter::open_decoder_by_name(const std::string& codec_name) {
 #ifdef KIVO_ENABLE_FFMPEG
@@ -233,6 +288,7 @@ FfmpegCodecHandle FfmpegAdapter::open_decoder_by_name(const std::string& codec_n
     if (!codec) return {nullptr};
     AVCodecContext* ctx = avcodec_alloc_context3(codec);
     if (!ctx) return {nullptr};
+    configure_video_decoder_threading(ctx, codec);
     if (avcodec_open2(ctx, codec, nullptr) < 0) {
         avcodec_free_context(&ctx);
         return {nullptr};
@@ -258,6 +314,7 @@ FfmpegCodecHandle FfmpegAdapter::create_codec_context(FfmpegFormatHandle format_
     if (avcodec_parameters_to_context(ctx, codecpar) < 0) {
         avcodec_free_context(&ctx); return {nullptr};
     }
+    configure_video_decoder_threading(ctx, codec);
     if (avcodec_open2(ctx, codec, nullptr) < 0) {
         avcodec_free_context(&ctx); return {nullptr};
     }
@@ -296,11 +353,12 @@ FfmpegCodecInfo FfmpegAdapter::get_codec_info(FfmpegCodecHandle handle) {
 #endif
 }
 
-// ─── Decode operations ─────────────────────────────────────────────
+// Decode operations
 
 FfmpegSendResult FfmpegAdapter::send_packet(FfmpegCodecHandle codec_handle,
                                             const FfmpegPacketInfo& info,
-                                            const uint8_t* data, int size) {
+                                            const uint8_t* data, int size,
+                                            const std::vector<FfmpegPacketSideData>& side_data) {
 #ifdef KIVO_ENABLE_FFMPEG
     if (!codec_handle.native) return {FfmpegSendStatus::Error, "null_codec_context"};
     auto* ctx = static_cast<AVCodecContext*>(codec_handle.native);
@@ -320,6 +378,20 @@ FfmpegSendResult FfmpegAdapter::send_packet(FfmpegCodecHandle codec_handle,
         memcpy(pkt->data, data, size);
         memset(pkt->data + size, 0, AV_INPUT_BUFFER_PADDING_SIZE);
         pkt->size = size;
+    }
+    for (const auto& side : side_data) {
+        if (side.data.empty()) {
+            continue;
+        }
+        auto* side_buffer = av_packet_new_side_data(
+            pkt,
+            static_cast<AVPacketSideDataType>(side.type),
+            static_cast<std::size_t>(side.data.size()));
+        if (side_buffer == nullptr) {
+            av_packet_free(&pkt);
+            return {FfmpegSendStatus::Error, "side_data_alloc_failed"};
+        }
+        memcpy(side_buffer, side.data.data(), side.data.size());
     }
 
     int ret = avcodec_send_packet(ctx, pkt);
@@ -388,20 +460,41 @@ bool FfmpegAdapter::receive_frame(FfmpegCodecHandle codec_handle,
         result.sample_rate = frame->sample_rate;
         result.channels = frame->ch_layout.nb_channels;
         result.sample_format = av_get_sample_fmt_name(static_cast<AVSampleFormat>(frame->format));
-        // Extract real sample data from AVFrame
         AVSampleFormat fmt = static_cast<AVSampleFormat>(frame->format);
-        int bytes_per_sample = av_get_bytes_per_sample(fmt);
-        result.plane_count = av_sample_fmt_is_planar(fmt) ? result.channels : 1;
-        size_t total_size = 0;
-        for (int p = 0; p < result.plane_count && p < 4; ++p) {
-            result.linesize[p] = frame->linesize[p];
-            total_size += frame->linesize[p];
+        const int bytes_per_sample = av_get_bytes_per_sample(fmt);
+        const bool planar = av_sample_fmt_is_planar(fmt) != 0;
+        if (bytes_per_sample <= 0 || result.channels <= 0) {
+            av_frame_free(&frame);
+            return false;
         }
-        result.frame_data.resize(total_size);
-        size_t offset = 0;
-        for (int p = 0; p < result.plane_count && p < 4; ++p) {
-            memcpy(result.frame_data.data() + offset, frame->data[p], frame->linesize[p]);
-            offset += frame->linesize[p];
+
+        if (planar) {
+            const int plane_count = result.channels < 8 ? result.channels : 8;
+            const int plane_bytes = frame->nb_samples * bytes_per_sample;
+            result.plane_count = plane_count;
+            result.frame_data.resize(
+                static_cast<size_t>(plane_count) * static_cast<size_t>(plane_bytes));
+            size_t offset = 0;
+            for (int p = 0; p < plane_count; ++p) {
+                result.linesize[p] = plane_bytes;
+                if (frame->data[p] != nullptr && plane_bytes > 0) {
+                    memcpy(result.frame_data.data() + offset,
+                           frame->data[p],
+                           static_cast<size_t>(plane_bytes));
+                }
+                offset += static_cast<size_t>(plane_bytes);
+            }
+        } else {
+            const int packed_bytes =
+                frame->nb_samples * result.channels * bytes_per_sample;
+            result.plane_count = 1;
+            result.linesize[0] = packed_bytes;
+            result.frame_data.resize(static_cast<size_t>(packed_bytes));
+            if (frame->data[0] != nullptr && packed_bytes > 0) {
+                memcpy(result.frame_data.data(),
+                       frame->data[0],
+                       static_cast<size_t>(packed_bytes));
+            }
         }
     }
 
@@ -412,18 +505,98 @@ bool FfmpegAdapter::receive_frame(FfmpegCodecHandle codec_handle,
 #endif
 }
 
+bool FfmpegAdapter::receive_frame_rgba(FfmpegCodecHandle codec_handle,
+                                       FfmpegFrameResult& result) {
+#ifdef KIVO_ENABLE_FFMPEG
+    if (!codec_handle.native) return false;
+    auto* ctx = static_cast<AVCodecContext*>(codec_handle.native);
+
+    AVFrame* frame = av_frame_alloc();
+    if (!frame) return false;
+
+    int ret = avcodec_receive_frame(ctx, frame);
+    if (ret < 0) {
+        av_frame_free(&frame);
+        return false;
+    }
+
+    if (frame->width <= 0 || frame->height <= 0 || frame->format == AV_PIX_FMT_NONE) {
+        av_frame_free(&frame);
+        return false;
+    }
+
+    struct ThreadLocalSwsContext {
+        SwsContext* context{nullptr};
+
+        ~ThreadLocalSwsContext() {
+            if (context != nullptr) {
+                sws_freeContext(context);
+                context = nullptr;
+            }
+        }
+    };
+
+    thread_local ThreadLocalSwsContext sws_cache;
+    sws_cache.context = sws_getCachedContext(
+        sws_cache.context,
+        frame->width,
+        frame->height,
+        static_cast<AVPixelFormat>(frame->format),
+        frame->width,
+        frame->height,
+        AV_PIX_FMT_RGBA,
+        SWS_BILINEAR,
+        nullptr,
+        nullptr,
+        nullptr);
+    if (sws_cache.context == nullptr) {
+        av_frame_free(&frame);
+        return false;
+    }
+
+    result = {};
+    result.is_video = true;
+    result.pts = frame->pts;
+    result.duration = frame->duration;
+    result.width = frame->width;
+    result.height = frame->height;
+    result.pixel_format = "rgba";
+    result.plane_count = 1;
+    result.linesize[0] = frame->width * 4;
+    result.frame_data.resize(
+        static_cast<std::size_t>(frame->width) *
+        static_cast<std::size_t>(frame->height) * 4U);
+
+    std::uint8_t* dst_data[4] = {result.frame_data.data(), nullptr, nullptr, nullptr};
+    const int dst_linesize[4] = {frame->width * 4, 0, 0, 0};
+    const int converted_rows = sws_scale(
+        sws_cache.context,
+        frame->data,
+        frame->linesize,
+        0,
+        frame->height,
+        dst_data,
+        dst_linesize);
+    av_frame_free(&frame);
+    if (converted_rows <= 0) {
+        result = {};
+        return false;
+    }
+    return true;
+#else
+    return false;
+#endif
+}
+
 void FfmpegAdapter::flush_decoder(FfmpegCodecHandle codec_handle) {
 #ifdef KIVO_ENABLE_FFMPEG
     if (!codec_handle.native) return;
     auto* ctx = static_cast<AVCodecContext*>(codec_handle.native);
-    avcodec_send_packet(ctx, nullptr);
-    AVFrame* frame = av_frame_alloc();
-    while (avcodec_receive_frame(ctx, frame) >= 0) {}
-    av_frame_free(&frame);
+    avcodec_flush_buffers(ctx);
 #endif
 }
 
-// ─── Utility ───────────────────────────────────────────────────────
+// Utility
 
 std::string FfmpegAdapter::map_error(int ffmpeg_error) {
 #ifdef KIVO_ENABLE_FFMPEG

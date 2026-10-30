@@ -8,6 +8,8 @@
 #include "kivo/video/source_core/runtime/session/opaque_source_access_ref.hpp"
 
 #include <cstdint>
+#include <fstream>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <mutex>
@@ -16,6 +18,11 @@
 #include <vector>
 
 namespace kivo::video::providers::local_file {
+
+struct LocalFileOpenStream {
+    mutable std::mutex mutex;
+    std::ifstream stream;
+};
 
 struct LocalFileSessionRecord {
     source_core::SourceSession session;
@@ -26,6 +33,7 @@ struct LocalFileSessionRecord {
     std::string internal_safe_path;
     std::uint64_t file_size{0};
     std::uint64_t last_mtime{0};
+    std::shared_ptr<LocalFileOpenStream> open_stream;
 
     bool is_open() const {
         return session.session_state == source_core::SourceSessionState::open;

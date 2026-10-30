@@ -139,6 +139,9 @@ DemuxResult RealDemuxRuntime::read_packet(const std::string& trace_id) {
     result.packet.duration = read_result.packet.duration;
     result.packet.is_key_frame = read_result.packet.is_key_frame;
     result.packet.data = std::move(read_result.packet_data);
+    for (auto& side : read_result.side_data) {
+        result.packet.side_data.push_back({side.type, std::move(side.data)});
+    }
     result.packet.packet_id = "pkt_" + std::to_string(read_result.packet.stream_index) + "_" +
                               std::to_string(read_result.packet.pts);
 

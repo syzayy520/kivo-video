@@ -15,7 +15,7 @@ enum class ConversionQuality {
     Default      // Use adapter default
 };
 
-// YuvRgbConversion is the policy for YUV→RGB/NV12 pixel format conversion.
+// YuvRgbConversion is the policy for YUV to RGB/NV12 pixel format conversion.
 struct YuvRgbConversion {
     ContractMetadata metadata;
 

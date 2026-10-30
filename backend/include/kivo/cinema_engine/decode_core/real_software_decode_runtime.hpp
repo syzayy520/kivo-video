@@ -32,6 +32,7 @@ public:
 
     // Decode a packet, producing zero or more frames
     DecodeResult decode(const KivoPacket& packet, const std::string& trace_id);
+    DecodeResult decode_video_rgba(const KivoPacket& packet, const std::string& trace_id);
 
     // Flush the decoder (signal EOF)
     DecodeResult flush(const std::string& trace_id);
@@ -50,7 +51,7 @@ public:
     std::string inspector_hint() const;
 
 private:
-    void* codec_context_;   // AVCodecContext* — opaque to business code
+    void* codec_context_;   // AVCodecContext* - opaque to business code
     std::string codec_name_;
     bool is_open_;
     bool is_flushed_;

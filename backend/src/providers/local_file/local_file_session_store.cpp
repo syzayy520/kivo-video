@@ -45,6 +45,13 @@ source_core::SourceError LocalFileSessionStore::close_session(source_core::Sourc
     if (it == records_.end())
         return {source_core::SourceErrorCode::session_not_found, "session not found"};
     it->second.session.session_state = source_core::SourceSessionState::closed;
+    if (it->second.open_stream) {
+        std::lock_guard<std::mutex> stream_lock(it->second.open_stream->mutex);
+        if (it->second.open_stream->stream.is_open()) {
+            it->second.open_stream->stream.close();
+        }
+        it->second.open_stream.reset();
+    }
     tombstones_[id.value] = std::move(it->second);
     records_.erase(it);
     return source_core::SourceError::ok();

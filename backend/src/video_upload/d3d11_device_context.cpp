@@ -1,7 +1,6 @@
 #include "kivo/cinema_engine/video_upload/d3d11_device_context.hpp"
 #include "kivo/cinema_engine/video_upload/d3d11_internal.hpp"
 
-#include <iostream>
 #include <cstring>
 
 namespace kivo::cinema_engine {
@@ -60,18 +59,14 @@ bool D3d11DeviceContext::initialize() {
             adapter_description_ = impl->adapter_description;
             initialized_ = true;
 
-            std::cout << "[D3d11DeviceContext] Initialized: " << device_type_
-                      << " (" << adapter_description_ << ")\n";
             return true;
         }
     }
 
     // All driver types failed.
     delete impl;
-    std::cerr << "[D3d11DeviceContext] D3D11CreateDevice failed for all driver types\n";
     return false;
 #else
-    std::cerr << "[D3d11DeviceContext] D3D11 not available on this platform\n";
     return false;
 #endif
 }

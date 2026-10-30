@@ -1,6 +1,8 @@
 option(KIVO_ENABLE_FFMPEG "Enable FFmpeg-based real media processing" OFF)
 option(KIVO_ENABLE_REAL_MEDIA_TESTS "Enable integration tests requiring real media samples" OFF)
 
+include("${CMAKE_SOURCE_DIR}/cmake/ffmpeg_runtime_deploy.cmake")
+
 add_library(kivo_cinema_engine STATIC
   src/audio_core/fake_audio_service.cpp
   src/color_science_core/fake_color_output_service.cpp
@@ -92,6 +94,8 @@ add_library(kivo_cinema_engine STATIC
   src/demux_core/real_demux_runtime.cpp
   src/decode_core/real_software_decode_runtime.cpp
   src/third_party_adapter/ffmpeg_adapter/ffmpeg_adapter.cpp
+  src/third_party_adapter/ffmpeg_adapter/ffmpeg_custom_io.cpp
+  src/third_party_adapter/ffmpeg_adapter/ffmpeg_product_log_filter.cpp
   src/video_upload/d3d11_device_context.cpp
   src/video_upload/d3d11_texture_upload.cpp
   src/presenter/presenter_boundary_shell.cpp
@@ -112,7 +116,7 @@ if(KIVO_ENABLE_FFMPEG)
     message(STATUS "FFmpeg SDK root: ${FFMPEG_ROOT}")
     target_include_directories(kivo_cinema_engine PUBLIC ${FFMPEG_ROOT}/include)
     target_link_directories(kivo_cinema_engine PUBLIC ${FFMPEG_ROOT}/lib)
-    target_link_libraries(kivo_cinema_engine PUBLIC avformat avcodec avutil swresample)
+    target_link_libraries(kivo_cinema_engine PUBLIC avformat avcodec avutil swresample swscale)
   else()
     message(WARNING "KIVO_ENABLE_FFMPEG=ON but FFMPEG_ROOT is not set. FFmpeg symbols will not be linked.")
   endif()
@@ -570,16 +574,19 @@ add_executable(kivo_real_probe_runtime_test
   tests/demux_core/real_probe_runtime_test.cpp
 )
 target_link_libraries(kivo_real_probe_runtime_test PRIVATE kivo_cinema_engine)
+kivo_add_ffmpeg_runtime_deploy(kivo_real_probe_runtime_test)
 
 add_executable(kivo_real_demux_runtime_test
   tests/demux_core/real_demux_runtime_test.cpp
 )
 target_link_libraries(kivo_real_demux_runtime_test PRIVATE kivo_cinema_engine)
+kivo_add_ffmpeg_runtime_deploy(kivo_real_demux_runtime_test)
 
 add_executable(kivo_real_decode_runtime_test
   tests/decode_core/real_software_decode_runtime_test.cpp
 )
 target_link_libraries(kivo_real_decode_runtime_test PRIVATE kivo_cinema_engine)
+kivo_add_ffmpeg_runtime_deploy(kivo_real_decode_runtime_test)
 
 add_test(NAME kivo_real_probe_runtime_test COMMAND kivo_real_probe_runtime_test)
 add_test(NAME kivo_real_demux_runtime_test COMMAND kivo_real_demux_runtime_test)
@@ -967,6 +974,165 @@ endif()
 
 # ─── P5A: Video Plane Contracts (INTERFACE library, 121+ headers) ───
 
+# --- P3 Source Runtime -> Playback-Ready Input contracts ---
+add_library(kivo_p3_contracts INTERFACE)
+target_include_directories(kivo_p3_contracts INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_contracts INTERFACE cxx_std_20)
+
+add_executable(kivo_p3_execution_family_test
+  tests/p3/execution/execution_family_tests.cpp
+)
+target_include_directories(kivo_p3_execution_family_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_execution_family_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_execution_family_test PRIVATE kivo_p3_contracts)
+add_test(NAME kivo_p3_execution_family_test COMMAND kivo_p3_execution_family_test)
+set_tests_properties(kivo_p3_execution_family_test PROPERTIES TIMEOUT 10)
+
+add_executable(kivo_p3_source_model_platform_test
+  tests/p3/source_model/source_model_platform_tests.cpp
+)
+target_include_directories(kivo_p3_source_model_platform_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_source_model_platform_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_source_model_platform_test PRIVATE kivo_p3_contracts)
+add_test(NAME kivo_p3_source_model_platform_test COMMAND kivo_p3_source_model_platform_test)
+set_tests_properties(kivo_p3_source_model_platform_test PROPERTIES TIMEOUT 10)
+
+add_executable(kivo_p3_contracts_test
+  tests/p3/contracts/p3_contracts_tests.cpp
+)
+target_include_directories(kivo_p3_contracts_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_contracts_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_contracts_test PRIVATE kivo_p3_contracts)
+add_test(NAME kivo_p3_contracts_test COMMAND kivo_p3_contracts_test)
+set_tests_properties(kivo_p3_contracts_test PROPERTIES TIMEOUT 10)
+
+add_library(kivo_p3_fake_providers STATIC
+  src/p3/providers/fake/fake_providers.cpp
+)
+target_include_directories(kivo_p3_fake_providers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_fake_providers PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_fake_providers PUBLIC kivo_p3_contracts)
+
+add_executable(kivo_p3_behavior_test
+  tests/p3/behavior/p3_behavior_tests.cpp
+)
+target_include_directories(kivo_p3_behavior_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_behavior_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_behavior_test PRIVATE kivo_p3_fake_providers)
+add_test(NAME kivo_p3_behavior_test COMMAND kivo_p3_behavior_test)
+set_tests_properties(kivo_p3_behavior_test PROPERTIES TIMEOUT 15)
+
+add_executable(kivo_p3_acceptance_test
+  tests/p3/acceptance/p3_acceptance_tests.cpp
+)
+target_include_directories(kivo_p3_acceptance_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_acceptance_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_acceptance_test PRIVATE kivo_p3_fake_providers)
+add_test(NAME kivo_p3_acceptance_test COMMAND kivo_p3_acceptance_test)
+set_tests_properties(kivo_p3_acceptance_test PROPERTIES TIMEOUT 15)
+
+add_executable(kivo_p3_completion_test
+  tests/p3/completion/p3_completion_tests.cpp
+)
+target_include_directories(kivo_p3_completion_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p3_completion_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p3_completion_test PRIVATE kivo_p3_contracts)
+add_test(NAME kivo_p3_completion_test COMMAND kivo_p3_completion_test)
+set_tests_properties(kivo_p3_completion_test PROPERTIES TIMEOUT 15)
+
+if(PYTHON_EXE)
+  add_test(NAME kivo_p3_architecture_guard_scan
+    COMMAND ${PYTHON_EXE} "${CMAKE_SOURCE_DIR}/backend/tools/p3/architecture_guard_scanner.py" --root=${CMAKE_SOURCE_DIR}
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  )
+  set_tests_properties(kivo_p3_architecture_guard_scan PROPERTIES TIMEOUT 15)
+endif()
+
+# --- P4 Playback Control Plane contracts ---
+add_library(kivo_p4_contracts INTERFACE)
+target_include_directories(kivo_p4_contracts INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_contracts INTERFACE cxx_std_20)
+
+add_executable(kivo_p4_primitives_revision_test
+  tests/playback/control_plane/primitives/p4_primitives_revision_tests.cpp
+)
+target_include_directories(kivo_p4_primitives_revision_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_primitives_revision_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p4_primitives_revision_test PRIVATE kivo_p4_contracts)
+add_test(NAME kivo_p4_primitives_revision_test COMMAND kivo_p4_primitives_revision_test)
+set_tests_properties(kivo_p4_primitives_revision_test PROPERTIES TIMEOUT 10)
+
+add_executable(kivo_p4_revision_control_test
+  tests/playback/control_plane/revision/p4_revision_control_tests.cpp
+)
+target_include_directories(kivo_p4_revision_control_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_revision_control_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p4_revision_control_test PRIVATE kivo_p4_contracts)
+add_test(NAME kivo_p4_revision_control_test COMMAND kivo_p4_revision_control_test)
+set_tests_properties(kivo_p4_revision_control_test PROPERTIES TIMEOUT 10)
+
+add_executable(kivo_p4_reader_memory_buffer_test
+  tests/playback/control_plane/reader/p4_reader_memory_buffer_tests.cpp
+)
+target_include_directories(kivo_p4_reader_memory_buffer_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_reader_memory_buffer_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p4_reader_memory_buffer_test PRIVATE kivo_p4_contracts)
+add_test(NAME kivo_p4_reader_memory_buffer_test COMMAND kivo_p4_reader_memory_buffer_test)
+set_tests_properties(kivo_p4_reader_memory_buffer_test PROPERTIES TIMEOUT 10)
+
+add_executable(kivo_p4_feedback_clock_track_test
+  tests/playback/control_plane/feedback/p4_feedback_clock_track_tests.cpp
+)
+target_include_directories(kivo_p4_feedback_clock_track_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_feedback_clock_track_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p4_feedback_clock_track_test PRIVATE kivo_p4_contracts)
+add_test(NAME kivo_p4_feedback_clock_track_test COMMAND kivo_p4_feedback_clock_track_test)
+set_tests_properties(kivo_p4_feedback_clock_track_test PROPERTIES TIMEOUT 10)
+
+add_executable(kivo_p4_recovery_events_diagnostics_test
+  tests/playback/control_plane/recovery/p4_recovery_events_diagnostics_tests.cpp
+)
+target_include_directories(kivo_p4_recovery_events_diagnostics_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_recovery_events_diagnostics_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p4_recovery_events_diagnostics_test PRIVATE kivo_p4_contracts)
+add_test(NAME kivo_p4_recovery_events_diagnostics_test COMMAND kivo_p4_recovery_events_diagnostics_test)
+set_tests_properties(kivo_p4_recovery_events_diagnostics_test PROPERTIES TIMEOUT 10)
+
+add_executable(kivo_p4_output_boundary_test
+  tests/playback/control_plane/output_boundary/p4_output_boundary_tests.cpp
+)
+target_include_directories(kivo_p4_output_boundary_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_output_boundary_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p4_output_boundary_test PRIVATE kivo_p4_contracts)
+add_test(NAME kivo_p4_output_boundary_test COMMAND kivo_p4_output_boundary_test)
+set_tests_properties(kivo_p4_output_boundary_test PROPERTIES TIMEOUT 10)
+
+add_executable(kivo_p4_negative_compile_test
+  tests/playback/control_plane/compile_fail/p4_negative_compile_tests.cpp
+)
+target_include_directories(kivo_p4_negative_compile_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_negative_compile_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p4_negative_compile_test PRIVATE kivo_p4_contracts)
+add_test(NAME kivo_p4_negative_compile_test COMMAND kivo_p4_negative_compile_test)
+set_tests_properties(kivo_p4_negative_compile_test PROPERTIES TIMEOUT 10)
+
+add_executable(kivo_p4_behavior_test
+  tests/playback/control_plane/p4_behavior_tests.cpp
+)
+target_include_directories(kivo_p4_behavior_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(kivo_p4_behavior_test PRIVATE cxx_std_20)
+target_link_libraries(kivo_p4_behavior_test PRIVATE kivo_p4_contracts)
+add_test(NAME kivo_p4_behavior_test COMMAND kivo_p4_behavior_test)
+set_tests_properties(kivo_p4_behavior_test PROPERTIES TIMEOUT 10)
+
+if(PYTHON_EXE)
+  add_test(NAME kivo_p4_architecture_guard_scan
+    COMMAND ${PYTHON_EXE} "${CMAKE_SOURCE_DIR}/backend/tools/p4/architecture_guard_scanner.py" "${CMAKE_SOURCE_DIR}/backend/include/kivo/playback/control_plane"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  )
+  set_tests_properties(kivo_p4_architecture_guard_scan PROPERTIES TIMEOUT 15)
+endif()
+
 add_library(kivo_video_plane_contracts INTERFACE)
 target_include_directories(kivo_video_plane_contracts INTERFACE
   ${CMAKE_SOURCE_DIR}/include
@@ -1211,6 +1377,7 @@ if(KIVO_ENABLE_FFMPEG)
       target_compile_options(kivo_p6c_decode_backend_tests PRIVATE /utf-8)
     endif()
     target_link_libraries(kivo_p6c_decode_backend_tests PRIVATE ${KIVO_P6C_LIBS})
+    kivo_add_ffmpeg_runtime_deploy(kivo_p6c_decode_backend_tests)
     add_test(NAME kivo_p6c_decode_backend_tests COMMAND kivo_p6c_decode_backend_tests)
     set_tests_properties(kivo_p6c_decode_backend_tests PROPERTIES TIMEOUT 60 ENVIRONMENT "PATH=${FFMPEG_ROOT}/bin;%PATH%")
 
@@ -1225,6 +1392,7 @@ if(KIVO_ENABLE_FFMPEG)
       target_compile_options(kivo_p6c_frame_converter_tests PRIVATE /utf-8)
     endif()
     target_link_libraries(kivo_p6c_frame_converter_tests PRIVATE ${KIVO_P6C_LIBS})
+    kivo_add_ffmpeg_runtime_deploy(kivo_p6c_frame_converter_tests)
     add_test(NAME kivo_p6c_frame_converter_tests COMMAND kivo_p6c_frame_converter_tests)
     set_tests_properties(kivo_p6c_frame_converter_tests PROPERTIES TIMEOUT 60 ENVIRONMENT "PATH=${FFMPEG_ROOT}/bin;%PATH%")
 
@@ -1239,6 +1407,7 @@ if(KIVO_ENABLE_FFMPEG)
       target_compile_options(kivo_p6c_evidence_tests PRIVATE /utf-8)
     endif()
     target_link_libraries(kivo_p6c_evidence_tests PRIVATE ${KIVO_P6C_LIBS})
+    kivo_add_ffmpeg_runtime_deploy(kivo_p6c_evidence_tests)
     add_test(NAME kivo_p6c_evidence_tests COMMAND kivo_p6c_evidence_tests)
     set_tests_properties(kivo_p6c_evidence_tests PROPERTIES TIMEOUT 60 ENVIRONMENT "PATH=${FFMPEG_ROOT}/bin;%PATH%")
   endif()
@@ -1379,25 +1548,101 @@ endif()
 target_link_libraries(kivo_p6e_gap_tests PRIVATE kivo_audio_plane_contracts)
 add_test(NAME kivo_p6e_gap_tests COMMAND kivo_p6e_gap_tests)
 
+# --- P6 Local PCM Runtime Bridge ---
+add_library(kivo_audio_plane_local_pcm_runtime STATIC
+  src/video/audio_plane/runtime/local_pcm/local_pcm_audio_runtime.cpp
+)
+target_include_directories(kivo_audio_plane_local_pcm_runtime PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_audio_plane_local_pcm_runtime PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(kivo_audio_plane_local_pcm_runtime PRIVATE /utf-8)
+endif()
+target_link_libraries(kivo_audio_plane_local_pcm_runtime PRIVATE kivo_cinema_engine)
+
+# --- P2: Source Runtime local media bridge for real playback input ---
+add_library(kivo_video_source_runtime_local_media STATIC
+  src/video/source_runtime/local_media/local_media_directory_queue.cpp
+  src/video/source_runtime/local_media/local_media_source_session.cpp
+)
+target_include_directories(kivo_video_source_runtime_local_media PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_video_source_runtime_local_media PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(kivo_video_source_runtime_local_media PRIVATE /utf-8)
+endif()
+target_link_libraries(kivo_video_source_runtime_local_media PRIVATE
+  kivo_video_provider_local_file
+)
+
+add_executable(kivo_video_source_runtime_local_media_queue_tests
+  tests/video/source_runtime/local_media/local_media_directory_queue_tests.cpp
+)
+target_include_directories(kivo_video_source_runtime_local_media_queue_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_video_source_runtime_local_media_queue_tests PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(kivo_video_source_runtime_local_media_queue_tests PRIVATE /utf-8)
+endif()
+target_link_libraries(kivo_video_source_runtime_local_media_queue_tests PRIVATE
+  kivo_video_source_runtime_local_media
+)
+add_test(NAME kivo_video_source_runtime_local_media_queue_tests
+  COMMAND kivo_video_source_runtime_local_media_queue_tests)
+
+# --- P5: Video Plane local media production runtime ---
+add_library(kivo_video_plane_local_media_runtime STATIC
+  src/video/video_plane/runtime/local_media/local_video_first_frame_pipeline.cpp
+  src/video/video_plane/runtime/local_media/local_video_d3d11_upload.cpp
+  src/video/video_plane/runtime/local_media/local_video_runtime_start.cpp
+  src/video/video_plane/runtime/local_media/local_video_runtime_pump.cpp
+  src/video/video_plane/runtime/local_media/local_video_runtime_controls.cpp
+  src/video/video_plane/runtime/local_media/local_video_rgba_converter.cpp
+)
+target_include_directories(kivo_video_plane_local_media_runtime PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_video_plane_local_media_runtime PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(kivo_video_plane_local_media_runtime PRIVATE /utf-8)
+endif()
+target_link_libraries(kivo_video_plane_local_media_runtime PRIVATE
+  kivo_cinema_engine
+  kivo_video_source_runtime_local_media
+)
+
 # --- P7: Playback Graph ---
 add_library(kivo_video_playback_graph STATIC
   src/video/playback_graph/session/playback_session_facade.cpp
+  src/video/playback_graph/session/playback_session_local_media_facade.cpp
   src/video/playback_graph/session/playback_session_runtime.cpp
   src/video/playback_graph/session/playback_session_snapshot_queries.cpp
   src/video/playback_graph/session/playback_session_subtitle_policy.cpp
   src/video/playback_graph/session/playback_session_audio_policy.cpp
   src/video/playback_graph/session/playback_session_settings_policy.cpp
+  src/video/playback_graph/session/playback_session_window_screen_policy.cpp
+  src/video/playback_graph/session/playback_session_playlist_policy.cpp
   src/video/playback_graph/session/playback_session_video_surface_binding.cpp
   src/video/playback_graph/session/playback_session_recovery.cpp
   src/video/playback_graph/session/playback_session_command_query.cpp
   src/video/playback_graph/session/playback_session_clock_sync.cpp
   src/video/playback_graph/session/playback_session_track_inventory.cpp
+  src/video/playback_graph/session/playback_session_track_switch.cpp
   src/video/playback_graph/session/playback_session_subtitle_frame.cpp
   src/video/playback_graph/state/playback_graph_state_machine.cpp
   src/video/playback_graph/command/command_lifetime_registry.cpp
   src/video/playback_graph/command/command_conflict_matrix.cpp
   src/video/playback_graph/command/pending_transport_intent.cpp
   src/video/playback_graph/p4_bridge/p4_state_sync_adapter.cpp
+  src/video/playback_graph/p4_bridge/p4_timeline_contract_bridge.cpp
   src/video/playback_graph/p8_bridge/subtitle_frame_p8_bridge.cpp
   src/video/playback_graph/coordination/recovery_replay_coordinator.cpp
   src/video/playback_graph/attachment/attachment_operation_registry.cpp
@@ -1420,9 +1665,12 @@ add_library(kivo_video_playback_graph STATIC
   src/video/playback_graph/evidence/privacy_salt_lifecycle.cpp
   src/video/playback_graph/evidence/layered_error_taxonomy.cpp
   src/video/playback_graph/local_media/local_media_source_registry.cpp
-  src/video/playback_graph/local_media/local_media_first_frame_pipeline.cpp
+  src/video/playback_graph/local_media/local_media_audio_dispatch.cpp
+  src/video/playback_graph/local_media/local_media_audio_display_filter.cpp
+  src/video/playback_graph/local_media/local_media_p3_handoff_bridge.cpp
+  src/video/playback_graph/local_media/local_media_subtitle_display_filter.cpp
+  src/video/playback_graph/local_media/local_media_continuous_start.cpp
   src/video/playback_graph/local_media/local_media_continuous_playback.cpp
-  src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp
   src/video/playback_graph/session/playback_session_local_media.cpp
   src/video/playback_graph/session/playback_session_local_media_open.cpp
   src/video/playback_graph/session/playback_session_local_media_continuous.cpp
@@ -1434,6 +1682,14 @@ target_include_directories(kivo_video_playback_graph
   ${CMAKE_SOURCE_DIR}/backend/include_private
 )
 target_compile_features(kivo_video_playback_graph PUBLIC cxx_std_20)
+target_link_libraries(kivo_video_playback_graph PRIVATE
+  kivo_video_provider_local_file
+  kivo_p3_contracts
+  kivo_p4_contracts
+  kivo_video_source_runtime_local_media
+  kivo_video_plane_local_media_runtime
+  kivo_audio_plane_local_pcm_runtime
+)
 if(KIVO_ENABLE_FFMPEG)
   target_link_libraries(kivo_video_playback_graph PRIVATE kivo_cinema_engine)
   target_compile_definitions(kivo_video_playback_graph PRIVATE KIVO_ENABLE_FFMPEG)
@@ -1461,10 +1717,37 @@ add_executable(kivo_p7c_command_state_tests
 )
 target_include_directories(kivo_p7c_command_state_tests PRIVATE
   ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include
   ${CMAKE_SOURCE_DIR}/backend/include_private
 )
 target_compile_features(kivo_p7c_command_state_tests PRIVATE cxx_std_20)
 target_link_libraries(kivo_p7c_command_state_tests PRIVATE kivo_video_playback_graph)
+
+add_executable(kivo_p7_local_media_audio_display_filter_tests
+  tests/video/playback_graph/p7_local_media_audio_display_filter_tests.cpp
+)
+target_include_directories(kivo_p7_local_media_audio_display_filter_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p7_local_media_audio_display_filter_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p7_local_media_audio_display_filter_tests PRIVATE
+  kivo_video_playback_graph
+)
+
+add_executable(kivo_p7_local_media_subtitle_display_filter_tests
+  tests/video/playback_graph/p7_local_media_subtitle_display_filter_tests.cpp
+)
+target_include_directories(kivo_p7_local_media_subtitle_display_filter_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p7_local_media_subtitle_display_filter_tests PRIVATE cxx_std_20)
+target_link_libraries(kivo_p7_local_media_subtitle_display_filter_tests PRIVATE
+  kivo_video_playback_graph
+)
 
 add_executable(kivo_p7d_async_generation_tests
   tests/video/playback_graph/p7d_async_generation_tests.cpp
@@ -1526,11 +1809,14 @@ target_link_libraries(kivo_p7h_local_media_first_frame_tests PRIVATE kivo_video_
 if(KIVO_ENABLE_FFMPEG)
   target_compile_definitions(kivo_p7h_local_media_first_frame_tests PRIVATE KIVO_ENABLE_FFMPEG)
 endif()
+kivo_add_ffmpeg_runtime_deploy(kivo_p7h_local_media_first_frame_tests)
 
 add_custom_target(kivo_video_playback_graph_tests
   DEPENDS
     kivo_p7b_public_contract_tests
     kivo_p7c_command_state_tests
+    kivo_p7_local_media_audio_display_filter_tests
+    kivo_p7_local_media_subtitle_display_filter_tests
     kivo_p7d_async_generation_tests
     kivo_p7e_behavior_coordinator_tests
     kivo_p7f_snapshot_evidence_tests
@@ -1542,6 +1828,12 @@ add_test(NAME kivo_p7b_public_contract_tests COMMAND kivo_p7b_public_contract_te
 set_tests_properties(kivo_p7b_public_contract_tests PROPERTIES TIMEOUT 30)
 add_test(NAME kivo_p7c_command_state_tests COMMAND kivo_p7c_command_state_tests)
 set_tests_properties(kivo_p7c_command_state_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p7_local_media_audio_display_filter_tests
+  COMMAND kivo_p7_local_media_audio_display_filter_tests)
+set_tests_properties(kivo_p7_local_media_audio_display_filter_tests PROPERTIES TIMEOUT 30)
+add_test(NAME kivo_p7_local_media_subtitle_display_filter_tests
+  COMMAND kivo_p7_local_media_subtitle_display_filter_tests)
+set_tests_properties(kivo_p7_local_media_subtitle_display_filter_tests PROPERTIES TIMEOUT 30)
 add_test(NAME kivo_p7d_async_generation_tests COMMAND kivo_p7d_async_generation_tests)
 set_tests_properties(kivo_p7d_async_generation_tests PROPERTIES TIMEOUT 30)
 add_test(NAME kivo_p7e_behavior_coordinator_tests COMMAND kivo_p7e_behavior_coordinator_tests)
@@ -1587,6 +1879,7 @@ target_include_directories(kivo_player_runtime_adapter_tests PRIVATE
 )
 target_compile_features(kivo_player_runtime_adapter_tests PRIVATE cxx_std_20)
 target_link_libraries(kivo_player_runtime_adapter_tests PRIVATE kivo_video_player_runtime_adapter)
+kivo_add_ffmpeg_runtime_deploy(kivo_player_runtime_adapter_tests)
 add_test(NAME kivo_player_runtime_adapter_tests COMMAND kivo_player_runtime_adapter_tests)
 set_tests_properties(kivo_player_runtime_adapter_tests PROPERTIES TIMEOUT 30)
 
@@ -1607,6 +1900,8 @@ add_library(kivo_video_subtitle_plane STATIC
   src/video/subtitle_plane/source/source_api.cpp
   src/video/subtitle_plane/source/source_descriptor_validation.cpp
   src/video/subtitle_plane/source/external_reader_lifecycle.cpp
+  src/video/subtitle_plane/source/embedded_packet_api.cpp
+  src/video/subtitle_plane/source/embedded_packet_ingest.cpp
   src/video/subtitle_plane/source/embedded_stream_api.cpp
   src/video/subtitle_plane/source/embedded_stream_end.cpp
   src/video/subtitle_plane/frame/frame_build_api.cpp
@@ -1811,3 +2106,370 @@ add_test(NAME kivo_p8g_deterministic_harness_tests COMMAND kivo_p8g_deterministi
 set_tests_properties(kivo_p8g_deterministic_harness_tests PROPERTIES TIMEOUT 30)
 add_test(NAME kivo_p8g_stress_property_tests COMMAND kivo_p8g_stress_property_tests)
 set_tests_properties(kivo_p8g_stress_property_tests PROPERTIES TIMEOUT 30)
+
+# --- P11-A: Hardware video plane (GPU device + D3D11VA decode) ---
+# Build registration follows docs/design/backend-core/01-family-tree.md.
+# Dependency direction is one-way: hwaccel -> device. Never the reverse.
+
+add_library(kivo_video_plane_gpu_device STATIC
+  src/video/video_plane/backends/d3d11/device/dxgi_adapter_selector.cpp
+  src/video/video_plane/backends/d3d11/device/d3d11_video_device.cpp
+)
+target_include_directories(kivo_video_plane_gpu_device PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/backend/include
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_video_plane_gpu_device PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(kivo_video_plane_gpu_device PRIVATE /utf-8 /W4)
+endif()
+target_link_libraries(kivo_video_plane_gpu_device PUBLIC d3d11 dxgi)
+
+if(KIVO_ENABLE_FFMPEG)
+  add_library(kivo_video_plane_gpu_hwaccel STATIC
+    src/video/video_plane/backends/d3d11/hwaccel/ffmpeg_get_format_policy.cpp
+    src/video/video_plane/backends/d3d11/hwaccel/ffmpeg_hwdevice_binding.cpp
+    src/video/video_plane/backends/d3d11/hwaccel/ffmpeg_d3d11va_decoder.cpp
+  )
+  target_include_directories(kivo_video_plane_gpu_hwaccel PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/backend/include
+    ${CMAKE_SOURCE_DIR}/backend/include_private
+  )
+  target_compile_features(kivo_video_plane_gpu_hwaccel PRIVATE cxx_std_20)
+  if(MSVC)
+    target_compile_options(kivo_video_plane_gpu_hwaccel PRIVATE /utf-8 /W4)
+  endif()
+  target_link_libraries(kivo_video_plane_gpu_hwaccel PUBLIC
+    kivo_video_plane_gpu_device
+    kivo_cinema_engine
+  )
+
+  add_executable(kivo_video_plane_get_format_policy_tests
+    tests/video_plane/decode_gpu/ffmpeg_get_format_policy_tests.cpp
+    src/video/video_plane/backends/d3d11/hwaccel/ffmpeg_get_format_policy.cpp
+  )
+  target_include_directories(kivo_video_plane_get_format_policy_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/backend/include
+    ${CMAKE_SOURCE_DIR}/backend/include_private
+  )
+  if(FFMPEG_ROOT)
+    target_include_directories(kivo_video_plane_get_format_policy_tests PRIVATE
+      ${FFMPEG_ROOT}/include
+    )
+  endif()
+  target_compile_features(kivo_video_plane_get_format_policy_tests PRIVATE cxx_std_20)
+  if(MSVC)
+    target_compile_options(kivo_video_plane_get_format_policy_tests PRIVATE /utf-8)
+  endif()
+  # Deliberately does not link the FFmpeg import libraries: the policy is pure
+  # enum logic and must stay verifiable even when the SDK libs are unavailable.
+  add_test(NAME kivo_video_plane_get_format_policy_tests
+    COMMAND kivo_video_plane_get_format_policy_tests)
+  set_tests_properties(kivo_video_plane_get_format_policy_tests PROPERTIES TIMEOUT 30)
+
+  # --- P11-A2: real-source hardware decode probe ---
+  # Separated from the policy test on purpose: this target must link FFmpeg,
+  # while the policy test must not, so a broken SDK can never hide the policy
+  # regression behind a link failure.
+  add_executable(kivo_hw_decode_probe
+    src/video/video_plane/probe/probe_options.cpp
+    src/video/video_plane/probe/media_source.cpp
+    src/video/video_plane/probe/probe_report.cpp
+    src/video/video_plane/probe/software_baseline.cpp
+    src/video/video_plane/probe/decode_probe.cpp
+    src/video/video_plane/probe/main.cpp
+  )
+  target_include_directories(kivo_hw_decode_probe PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/backend/include
+    ${CMAKE_SOURCE_DIR}/backend/include_private
+  )
+  target_compile_features(kivo_hw_decode_probe PRIVATE cxx_std_20)
+  if(MSVC)
+    target_compile_options(kivo_hw_decode_probe PRIVATE /utf-8 /W4)
+  endif()
+  target_link_libraries(kivo_hw_decode_probe PRIVATE
+    kivo_video_plane_gpu_hwaccel
+  )
+  # Explicit FFmpeg import libraries: the probe links avformat/avcodec directly
+  # (demux + software baseline), and relying on transitive propagation through a
+  # static library is fragile. Same style as the P6C targets above.
+  if(FFMPEG_ROOT)
+    target_link_directories(kivo_hw_decode_probe PRIVATE ${FFMPEG_ROOT}/lib)
+    target_link_libraries(kivo_hw_decode_probe PRIVATE
+      avformat avcodec avutil swresample swscale)
+  endif()
+endif()
+
+# ─── P12-C2: 可移植 SPSC 音频环形缓冲 ───
+# 刻意不在任何 if(WIN32)/if(ANDROID) 里：
+# 这份实现零平台依赖，桌面端（含 WASAPI）、Android（AAudio）、iOS（AudioUnit）
+# 共用同一份代码与同一组并发测试。想按平台分叉之前先问：分叉能解决什么？
+set(KIVO_P12C_CORE_AUDIO_SOURCES
+  src/video/video_plane/core/audio/spsc_audio_ring_buffer.cxx
+  src/video/video_plane/core/audio/pcm_format_converter.cxx
+  src/video/video_plane/core/audio/clock/audio_clock_types.cxx
+  src/video/video_plane/core/audio/clock/monotonic_clock_guard.cxx
+  src/video/video_plane/core/audio/clock/frame_position_extrapolator.cxx
+  src/video/video_plane/core/audio/clock/system_clock_source.cxx
+)
+
+add_library(kivo_p12c_core_audio STATIC ${KIVO_P12C_CORE_AUDIO_SOURCES})
+target_include_directories(kivo_p12c_core_audio PUBLIC
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p12c_core_audio PUBLIC cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12c_core_audio PRIVATE /utf-8 /W4)
+endif()
+
+# 并发正确性必须能在没有声卡、没有 Android 设备的机器上复现，
+# 因此这组测试刻意不链接任何平台库，只链接核心缓冲本身。
+add_executable(kivo_p12c_ring_buffer_tests
+  tests/video/audio_plane/p12c_ring_buffer_tests/spsc_audio_ring_buffer_tests.cpp
+)
+target_link_libraries(kivo_p12c_ring_buffer_tests PRIVATE kivo_p12c_core_audio)
+target_compile_features(kivo_p12c_ring_buffer_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12c_ring_buffer_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p12c_ring_buffer_tests COMMAND kivo_p12c_ring_buffer_tests)
+set_tests_properties(kivo_p12c_ring_buffer_tests PROPERTIES TIMEOUT 120)
+
+# ─── P12-C3: 可移植 PCM 转换 ───
+# 纯函数，没有并发也没有平台依赖，但它是"数据进设备前最后一次形状改变"：
+# 比例错 → 音量/削波错；交错错 → 左右互换；放过半帧 → 整段变噪声。
+# 这类缺陷不会崩、不会报错，只能靠断言守。
+add_executable(kivo_p12c_pcm_tests
+  tests/video/audio_plane/p12c_pcm_tests/pcm_format_converter_tests.cpp
+)
+target_link_libraries(kivo_p12c_pcm_tests PRIVATE kivo_p12c_core_audio)
+target_compile_features(kivo_p12c_pcm_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12c_pcm_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p12c_pcm_tests COMMAND kivo_p12c_pcm_tests)
+set_tests_properties(kivo_p12c_pcm_tests PROPERTIES TIMEOUT 60)
+
+# ─── P12-C4: 音频主时钟 ───
+# 三类异常（时间戳倒退 / 跳变 / 切换采样率）与回退三档全部落在纯逻辑层，
+# 所以这组测试不需要设备、不需要声卡 —— 它测的是"判断"，不是"硬件"。
+# 只编不依赖 <aaudio/AAudio.h> 的三个单元；真正读时间戳的那个文件留在 Android 侧。
+add_executable(kivo_p12c4_clock_tests
+  tests/video/audio_plane/p12c4_clock_tests/audio_clock_tests.cpp
+  src/video/video_plane/backends/aaudio/clock/aaudio_clock_source.cxx
+  src/video/video_plane/backends/aaudio/clock/aaudio_monotonic_now.cxx
+  src/video/video_plane/backends/aaudio/clock/aaudio_timestamp_reading.cxx
+)
+target_link_libraries(kivo_p12c4_clock_tests PRIVATE kivo_p12c_core_audio)
+target_compile_features(kivo_p12c4_clock_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12c4_clock_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p12c4_clock_tests COMMAND kivo_p12c4_clock_tests)
+set_tests_properties(kivo_p12c4_clock_tests PROPERTIES TIMEOUT 60)
+
+# ─── P12-C5: 呈现节拍器 ───
+# 节拍器本身零平台依赖（只用 steady_clock + int64 纳秒），所以同一份源
+# 在 MSVC 与 arm64 NDK 上编，测试不需要设备。它依赖 C4 的时钟接口，
+# 但纯视频时注入的是 SystemClockSource —— 不是"节拍依赖音频"。
+set(KIVO_P12C_CORE_PACE_SOURCES
+  src/video/video_plane/core/pace/pace_action.cxx
+  src/video/video_plane/core/pace/pace_policy.cxx
+  src/video/video_plane/core/pace/pace_histogram.cxx
+  src/video/video_plane/core/pace/pace_stats.cxx
+  src/video/video_plane/core/pace/pace_now.cxx
+  src/video/video_plane/core/pace/clock_position_tracker.cxx
+  src/video/video_plane/core/pace/frame_pacer.cxx
+)
+
+add_library(kivo_p12c_core_pace STATIC ${KIVO_P12C_CORE_PACE_SOURCES})
+target_link_libraries(kivo_p12c_core_pace PUBLIC kivo_p12c_core_audio)
+target_include_directories(kivo_p12c_core_pace PUBLIC
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p12c_core_pace PUBLIC cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12c_core_pace PRIVATE /utf-8 /W4)
+endif()
+
+add_executable(kivo_p12c5_pace_tests
+  tests/video/pace/p12c5_pace_tests/frame_pacer_tests.cpp
+)
+target_link_libraries(kivo_p12c5_pace_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p12c5_pace_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12c5_pace_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p12c5_pace_tests COMMAND kivo_p12c5_pace_tests)
+set_tests_properties(kivo_p12c5_pace_tests PROPERTIES TIMEOUT 60)
+
+# ─── P12-C6: 送包时序状态机 ───
+# 并发本身在桌面上测不了（没有 MediaCodec），所以把送包段唯一有分支的那部分
+# 抽成纯状态机再测：它守的是"输入满不许读下一包"和"EOS 只发一次"这两条
+# 踩过就丢数据的规矩。线程间的一致性由真机计数器闭合来守。
+set(KIVO_P12C_CORE_PIPELINE_SOURCES
+  src/video/video_plane/core/pipeline/submit_types.cxx
+  src/video/video_plane/core/pipeline/submit_sequencer.cxx
+)
+
+add_library(kivo_p12c_core_pipeline STATIC ${KIVO_P12C_CORE_PIPELINE_SOURCES})
+target_include_directories(kivo_p12c_core_pipeline PUBLIC
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p12c_core_pipeline PUBLIC cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12c_core_pipeline PRIVATE /utf-8 /W4)
+endif()
+
+add_executable(kivo_p12c6_pipeline_tests
+  tests/video/pipeline/p12c6_pipeline_tests/submit_sequencer_tests.cpp
+)
+target_link_libraries(kivo_p12c6_pipeline_tests PRIVATE kivo_p12c_core_pipeline)
+target_compile_features(kivo_p12c6_pipeline_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12c6_pipeline_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p12c6_pipeline_tests COMMAND kivo_p12c6_pipeline_tests)
+set_tests_properties(kivo_p12c6_pipeline_tests PROPERTIES TIMEOUT 60)
+
+# ─── P12-D4: 会话收尾顺序 ───
+# 顺序被提成了一份 constexpr 表（`session_teardown_plan.hpp`，纯头文件），
+# `session_stop` / `session_destroy` 都只是它的消费者。所以这里不需要静态库，
+# 只要把头文件目录给到测试。
+#
+# 为什么这组测试值得独立一个目标：它守的不是某个算法的边界，而是
+# "资源谁先死"这条跨模块约束 —— 改它的人多半是在重构 JNI 而不是在写解码逻辑，
+# 放在 pace / pipeline 的测试里会被当成无关噪声跳过。
+add_executable(kivo_p12d4_lifecycle_tests
+  tests/video/session/p12d4_lifecycle_tests/session_teardown_tests.cpp
+)
+target_include_directories(kivo_p12d4_lifecycle_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p12d4_lifecycle_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12d4_lifecycle_tests PRIVATE /utf-8 /W4)
+endif()
+add_test(NAME kivo_p12d4_lifecycle_tests COMMAND kivo_p12d4_lifecycle_tests)
+set_tests_properties(kivo_p12d4_lifecycle_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-A: 帧率能力（codec × 分辨率） ───
+# 解析与判决都是纯函数（不碰 Android），所以能在桌面上钉死。
+# 判决一旦错，整张"4K60 能不能"的结论就是错的 —— 而它会决定造什么规格的片源。
+add_library(kivo_p13a_framerate STATIC
+  src/video/video_plane/backends/mediacodec/device/mediacodec_framerate_capability.cxx
+)
+target_include_directories(kivo_p13a_framerate PUBLIC
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p13a_framerate PUBLIC cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13a_framerate PRIVATE /utf-8 /W4)
+endif()
+
+add_executable(kivo_p13a_framerate_tests
+  tests/video/device/p13a_framerate_tests/framerate_tests.cpp
+)
+target_link_libraries(kivo_p13a_framerate_tests PRIVATE kivo_p13a_framerate)
+target_compile_features(kivo_p13a_framerate_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13a_framerate_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13a_framerate_tests COMMAND kivo_p13a_framerate_tests)
+set_tests_properties(kivo_p13a_framerate_tests PROPERTIES TIMEOUT 60)
+
+# ─── P12-F3B: 轨道加密判定 ───
+# 判定的输入是平台给的 `crypto-mode`，规则是纯函数 —— 所以它能在桌面上被钉住。
+# 取值那一层（`mediaformat_encryption.cxx`）碰 `AMediaFormat`，只在 Android 上编。
+set(KIVO_P12F3B_ENCRYPTION_SOURCES
+  src/video/video_plane/backends/mediacodec/source/encryption_facts.cxx
+)
+add_library(kivo_p12f3b_encryption STATIC ${KIVO_P12F3B_ENCRYPTION_SOURCES})
+target_include_directories(kivo_p12f3b_encryption PUBLIC
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p12f3b_encryption PUBLIC cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12f3b_encryption PRIVATE /utf-8 /W4)
+endif()
+
+add_executable(kivo_p12f3b_encryption_tests
+  tests/video/source/p12f3b_encryption_tests/encryption_facts_tests.cpp
+)
+target_link_libraries(kivo_p12f3b_encryption_tests PRIVATE kivo_p12f3b_encryption)
+target_compile_features(kivo_p12f3b_encryption_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12f3b_encryption_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p12f3b_encryption_tests COMMAND kivo_p12f3b_encryption_tests)
+set_tests_properties(kivo_p12f3b_encryption_tests PROPERTIES TIMEOUT 60)
+
+# ─── P12-F1: seek 预算判定 ───
+# G8（首帧 < 150 ms）的判定是纯函数：它只吃"四个耗时 + 两个位置"，不碰平台。
+# 抽出来的理由与 C5/C6 相同：判定规则要能在桌面上被钉住，真机只负责提供数字。
+set(KIVO_P12F_CORE_SEEK_SOURCES
+  src/video/video_plane/core/seek/seek_budget.cxx
+)
+add_library(kivo_p12f_core_seek STATIC ${KIVO_P12F_CORE_SEEK_SOURCES})
+target_include_directories(kivo_p12f_core_seek PUBLIC
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p12f_core_seek PUBLIC cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12f_core_seek PRIVATE /utf-8 /W4)
+endif()
+
+add_executable(kivo_p12f1_seek_tests
+  tests/video/core/p12f1_seek_tests/seek_budget_tests.cpp
+)
+target_link_libraries(kivo_p12f1_seek_tests PRIVATE kivo_p12f_core_seek)
+target_compile_features(kivo_p12f1_seek_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12f1_seek_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p12f1_seek_tests COMMAND kivo_p12f1_seek_tests)
+set_tests_properties(kivo_p12f1_seek_tests PROPERTIES TIMEOUT 60)
+
+# ─── P12-E1: 颜色格式名与位深判定 ───
+# 被测的是两个纯函数文件：整数 → 名字/位深，以及"这一轮拿到了什么"的判定。
+# 它们没有平台依赖（只用 <cstdio>/<string>），所以桌面直接编，不必造一个静态库。
+#
+# 为什么值得单独一个目标：NDK 不导出 COLOR_Format* 常量，那些数值是手写的 ——
+# 写错不会有编译错误，只会让日志和证据说瞎话。这组测试就是钉住它们。
+add_executable(kivo_p12e1_color_tests
+  tests/video/decode/p12e1_color_tests/color_facts_tests.cpp
+  src/video/video_plane/backends/mediacodec/decode/color_format_names.cxx
+  src/video/video_plane/backends/mediacodec/decode/video_color_facts.cxx
+)
+target_include_directories(kivo_p12e1_color_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p12e1_color_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12e1_color_tests PRIVATE /utf-8 /W4)
+endif()
+add_test(NAME kivo_p12e1_color_tests COMMAND kivo_p12e1_color_tests)
+set_tests_properties(kivo_p12e1_color_tests PROPERTIES TIMEOUT 60)
+
+# ─── P12-E2: HDR 分类 ───
+# 被测的仍然是纯函数：颜色键常量（从 android.jar 反查后手写）+ `classify_hdr()`。
+# 平台侧那层（`mediaformat_color_io`）编不进桌面 —— `AMediaFormat` 只在 Android 上存在。
+# 它的正确性由设备端 `kivo_hdr_probe` 的 A/B 两次 configure 证明（见 38-p12e2-status.md）。
+add_executable(kivo_p12e2_hdr_tests
+  tests/video/decode/p12e2_hdr_tests/hdr_classify_tests.cpp
+  src/video/video_plane/backends/mediacodec/decode/color_format_names.cxx
+  src/video/video_plane/backends/mediacodec/decode/video_color_facts.cxx
+)
+target_include_directories(kivo_p12e2_hdr_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p12e2_hdr_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12e2_hdr_tests PRIVATE /utf-8 /W4)
+endif()
+add_test(NAME kivo_p12e2_hdr_tests COMMAND kivo_p12e2_hdr_tests)
+set_tests_properties(kivo_p12e2_hdr_tests PROPERTIES TIMEOUT 60)

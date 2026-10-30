@@ -10,7 +10,7 @@ source_core::SourceError validate_path(const std::string& path) {
         return {source_core::SourceErrorCode::invalid_request, "path contains NUL"};
 
     std::error_code ec;
-    auto p = std::filesystem::path(path);
+    auto p = std::filesystem::u8path(path);
     if (!p.is_absolute())
         return {source_core::SourceErrorCode::invalid_request, "relative path rejected"};
 
@@ -24,15 +24,12 @@ source_core::SourceError validate_path(const std::string& path) {
     if (std::filesystem::is_directory(status))
         return {source_core::SourceErrorCode::invalid_request, "directory rejected"};
 
-    if (path.size() >= 2 && path[0] == '\\' && path[1] == '\\')
-        return {source_core::SourceErrorCode::unsupported_provider, "UNC path deferred"};
-
     return source_core::SourceError::ok();
 }
 
 source_core::SourceError probe_file(const std::string& path, std::uint64_t& out_size, std::uint64_t& out_mtime) {
     std::error_code ec;
-    auto p = std::filesystem::path(path);
+    auto p = std::filesystem::u8path(path);
     if (!std::filesystem::exists(p, ec))
         return {source_core::SourceErrorCode::not_found, "file does not exist"};
     if (ec) return {source_core::SourceErrorCode::internal_error, "filesystem error"};

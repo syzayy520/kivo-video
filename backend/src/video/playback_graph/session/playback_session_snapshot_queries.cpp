@@ -4,6 +4,13 @@
 
 namespace kivo::video::playback_graph::runtime {
 
+std::int64_t PlaybackSessionRuntime::current_position_ms() const noexcept {
+    if (local_media_continuous_.is_active()) {
+        return local_media_continuous_.stats().position_ms;
+    }
+    return position_ms_;
+}
+
 PlaybackSessionSnapshot PlaybackSessionRuntime::snapshot() const noexcept {
     PlaybackSessionSnapshot snapshot{};
     snapshot.session_id = session_id_;
@@ -26,7 +33,8 @@ PlaybackTimelineSnapshot PlaybackSessionRuntime::query_timeline() const noexcept
         return timeline;
     }
 
-    timeline.position_ms = position_ms_;
+    const std::int64_t current_position = current_position_ms();
+    timeline.position_ms = current_position;
     timeline.duration_ms = duration_ms_;
     timeline.seek_in_progress = seek_in_progress_;
     timeline.last_seek_target_ms = last_seek_target_ms_;
@@ -35,8 +43,9 @@ PlaybackTimelineSnapshot PlaybackSessionRuntime::query_timeline() const noexcept
     const auto audio = snapshot_store_.query_audio_queue();
     const auto video = snapshot_store_.query_video_queue();
     if (audio.ok() && video.ok()) {
-        const auto buffered_end = position_ms_ + static_cast<std::int64_t>(audio.value.queued_duration_ms);
-        timeline.buffered_range.start_ms = position_ms_;
+        const auto buffered_end =
+            current_position + static_cast<std::int64_t>(audio.value.queued_duration_ms);
+        timeline.buffered_range.start_ms = current_position;
         timeline.buffered_range.end_ms =
             duration_ms_ > 0 ? std::min(buffered_end, duration_ms_) : buffered_end;
     }
@@ -47,7 +56,7 @@ PlaybackTimelineSnapshot PlaybackSessionRuntime::query_timeline() const noexcept
 SnapshotQueryResult<ClockSnapshot> PlaybackSessionRuntime::query_clock() const noexcept {
     auto clock = snapshot_store_.query_clock();
     if (clock.ok()) {
-        clock.value.estimate_ms = position_ms_;
+        clock.value.estimate_ms = current_position_ms();
         clock.value.valid = duration_ms_ > 0;
     }
     return clock;

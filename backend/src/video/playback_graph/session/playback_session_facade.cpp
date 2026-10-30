@@ -165,6 +165,50 @@ CommandToken PlaybackSession::set_subtitle_size(const SubtitleSizeRequest& reque
     return runtime == nullptr ? allocation_failure_token() : runtime->set_subtitle_size(request);
 }
 
+CommandToken PlaybackSession::enter_fullscreen() noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->enter_fullscreen();
+}
+
+CommandToken PlaybackSession::exit_fullscreen() noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->exit_fullscreen();
+}
+
+CommandToken PlaybackSession::move_to_screen(const ScreenMoveRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->move_to_screen(request);
+}
+
+CommandToken PlaybackSession::next() noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->next();
+}
+
+CommandToken PlaybackSession::previous() noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->previous();
+}
+
+CommandToken PlaybackSession::play_next_episode() noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token() : runtime->play_next_episode();
+}
+
+CommandToken PlaybackSession::play_playlist_item(
+    const PlaylistItemSelectRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token()
+                              : runtime->play_playlist_item(request);
+}
+
+CommandToken PlaybackSession::set_auto_play_next(
+    const AutoPlayNextRequest& request) noexcept {
+    auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? allocation_failure_token()
+                              : runtime->set_auto_play_next(request);
+}
+
 CommandToken PlaybackSession::close() noexcept {
     auto* runtime = as_runtime(impl_);
     return runtime == nullptr ? allocation_failure_token() : runtime->close();
@@ -269,6 +313,17 @@ PlaybackSettingsPolicySnapshot PlaybackSession::query_playback_settings_policy()
                             : runtime->query_playback_settings_policy();
 }
 
+WindowScreenPolicySnapshot PlaybackSession::query_window_screen_policy() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? WindowScreenPolicySnapshot{}
+                              : runtime->query_window_screen_policy();
+}
+
+PlaylistPolicySnapshot PlaybackSession::query_playlist_policy() const noexcept {
+    const auto* runtime = as_runtime(impl_);
+    return runtime == nullptr ? PlaylistPolicySnapshot{} : runtime->query_playlist_policy();
+}
+
 CommandLifecycleSnapshot PlaybackSession::query_command(PlaybackCommandId id) const noexcept {
     const auto* runtime = as_runtime(impl_);
     return runtime == nullptr ? CommandLifecycleSnapshot{} : runtime->query_command(id);
@@ -291,9 +346,11 @@ CommandToken PlaybackSession::inject_system_event(const SystemEvent& event) noex
     return runtime == nullptr ? allocation_failure_token() : runtime->inject_system_event(event);
 }
 
-LocalMediaPlaybackQuery PlaybackSession::query_local_media_playback() const noexcept {
+LocalMediaPlaybackQuery PlaybackSession::query_local_media_playback(
+    const bool include_frame_pixels) const noexcept {
     const auto* runtime = as_runtime(impl_);
-    return runtime == nullptr ? LocalMediaPlaybackQuery{} : runtime->query_local_media_playback();
+    return runtime == nullptr ? LocalMediaPlaybackQuery{}
+                              : runtime->query_local_media_playback(include_frame_pixels);
 }
 
 int PlaybackSession::pump_local_media_playback(const int max_packets) noexcept {

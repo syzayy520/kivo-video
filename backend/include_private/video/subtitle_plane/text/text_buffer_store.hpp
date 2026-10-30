@@ -5,6 +5,7 @@
 namespace kivo::video::subtitle_plane::runtime {
 
 KivoP8ApiStatus copy_frame_text_buffer(PlaneStateRecord& record,
+                                       KivoSubtitleResourceAccessToken token,
                                        KivoSubtitleTextBufferId text_buffer_id,
                                        KivoMutableByteSpan dst,
                                        uint64_t* out_required_bytes) noexcept;

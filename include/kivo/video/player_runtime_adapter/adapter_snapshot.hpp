@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "kivo/video/playback_graph/playback_graph_error.hpp"
@@ -27,6 +28,12 @@ struct AdapterConnectionSnapshot {
     AdapterConnectionStatus playlist{AdapterConnectionStatus::NotConnectedToP7};
     AdapterConnectionStatus user_settings_policy{AdapterConnectionStatus::NotConnectedToP7};
     AdapterConnectionStatus recovery_actions{AdapterConnectionStatus::NotConnectedToP7};
+};
+
+struct AdapterPlaylistItem {
+    std::uint64_t index{0};
+    std::string label{};
+    bool current{false};
 };
 
 struct AdapterSnapshot {
@@ -58,10 +65,24 @@ struct AdapterSnapshot {
     double volume{1.0};
     bool muted{false};
     std::int64_t audio_delay_ms{0};
+    bool fullscreen_like{false};
+    std::int32_t screen_index{-1};
+    bool screen_index_valid{false};
     bool auto_play_next{false};
+    bool playlist_queue_connected{false};
+    bool playlist_has_previous{false};
+    bool playlist_has_next{false};
+    bool playlist_has_next_episode{false};
+    std::uint64_t playlist_current_index{0};
+    std::uint64_t playlist_item_count{0};
+    std::vector<AdapterPlaylistItem> playlist_items{};
 
     std::uint64_t selected_audio_track{0};
+    std::vector<std::uint64_t> audio_track_ids{};
+    std::vector<std::uint64_t> video_track_ids{};
+    std::uint64_t selected_video_track{0};
     std::uint64_t selected_subtitle_track{0};
+    std::vector<std::uint64_t> subtitle_track_ids{};
     bool subtitle_enabled{false};
     bool subtitle_frame_available{false};
     char subtitle_primary[256]{};

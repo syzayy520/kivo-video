@@ -32,7 +32,7 @@ struct DecodedFrame {
     std::vector<uint8_t> frame_data;
 
     // Linesize / stride per plane for video frames (0 means tightly packed).
-    int32_t linesize[4]{0, 0, 0, 0};
+    int32_t linesize[8]{0, 0, 0, 0, 0, 0, 0, 0};
 };
 
 }  // namespace kivo::cinema_engine

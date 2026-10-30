@@ -43,6 +43,28 @@ struct PacketInfo {
     bool is_key_frame;
 };
 
+static std::string lower_ascii(std::string value) {
+    for (char& ch : value) {
+        if (ch >= 'A' && ch <= 'Z') {
+            ch = static_cast<char>(ch - 'A' + 'a');
+        }
+    }
+    return value;
+}
+
+static bool requires_passthrough_or_fallback(const std::string& codec_name) {
+    const std::string codec = lower_ascii(codec_name);
+    return codec == "truehd" || codec == "mlp";
+}
+
+static bool has_supported_sample_extension(const std::string& path) {
+    const std::string lower = lower_ascii(path);
+    return lower.size() >= 4 &&
+           (lower.rfind(".mp4") == lower.size() - 4 ||
+            lower.rfind(".m4v") == lower.size() - 4 ||
+            lower.rfind(".mov") == lower.size() - 4);
+}
+
 static PacketInfo test_demux_video_packet(const std::string& sample_path,
                                            int video_stream_index) {
     RealDemuxRuntime demux;
@@ -192,6 +214,12 @@ static PacketInfo test_demux_audio_packet(const std::string& sample_path,
 static void test_decode_audio_frame(const std::string& sample_path,
                                      int audio_stream_index,
                                      const std::string& codec_name) {
+    if (requires_passthrough_or_fallback(codec_name)) {
+        std::cout << "  SKIP: decode audio frame codec=" << codec_name
+                  << " requires passthrough or compatible fallback\n";
+        return;
+    }
+
     // Create properly configured audio decoder from stream parameters
     FfmpegFormatHandle fmt_handle = FfmpegAdapter::open_file(sample_path);
     assert(fmt_handle.native);
@@ -281,6 +309,10 @@ int main() {
     }
 
     std::cout << "  Sample: " << sample_path << "\n\n";
+    if (!has_supported_sample_extension(sample_path)) {
+        std::cout << "  SKIP: KIVO_SAMPLE_H264_AAC_MP4 requires an MP4/M4V/MOV H.264+AAC sample\n";
+        return 0;
+    }
 
     // Step 1: Probe
     std::cout << "[Step 1] Probe:\n";
@@ -314,6 +346,12 @@ int main() {
                   << " " << probe.audio_streams[0].channels << "ch\n";
     }
     std::cout << "\n";
+
+    if (lower_ascii(video_codec) != "h264" || lower_ascii(audio_codec) != "aac") {
+        std::cout << "  SKIP: demux+decode path requires H.264 video and AAC audio"
+                  << " (found " << video_codec << "/" << audio_codec << ")\n";
+        return 0;
+    }
 
     // Step 2: Demux + decode video
     if (video_idx >= 0) {

@@ -5,12 +5,6 @@ using namespace kivo::video::playback_graph;
 
 namespace {
 
-[[nodiscard]] bool is_missing(const AdapterCommandResult& result,
-                              AdapterMissingP7Api missing_api) noexcept {
-    return result.status == AdapterCommandStatus::NotConnectedToP7 &&
-           result.missing_api == missing_api;
-}
-
 [[nodiscard]] bool verify_lifecycle_snapshot() {
     PlayerRuntimeAdapter adapter{};
 
@@ -36,7 +30,13 @@ namespace {
         ready.connections.subtitle_tracks != AdapterConnectionStatus::ConnectedToP7 ||
         ready.connections.subtitle_frame != AdapterConnectionStatus::NotConnectedToP8Runtime ||
         ready.connections.audio_volume != AdapterConnectionStatus::ConnectedToP7 ||
+        ready.connections.playlist != AdapterConnectionStatus::ConnectedToP7 ||
         ready.connections.user_settings_policy != AdapterConnectionStatus::ConnectedToP7) {
+        return false;
+    }
+    if (ready.audio_track_ids.size() != 3 || ready.audio_track_ids[0] != 1 ||
+        ready.video_track_ids.size() != 2 || ready.video_track_ids[0] != 1 ||
+        ready.subtitle_track_ids.size() != 4 || ready.subtitle_track_ids[0] != 1) {
         return false;
     }
     if (ready.duration_ms != 42 * 60000 || ready.position_ms != 0) {
@@ -180,21 +180,34 @@ namespace {
         return false;
     }
 
-    const auto audio = adapter.select_audio_track(2);
-    if (audio.status != AdapterCommandStatus::RejectedByP7 ||
-        audio.p7_error != PlaybackGraphError::InvalidState) {
+    if (!adapter.select_audio_track(2).accepted()) {
+        return false;
+    }
+    const auto with_audio = adapter.snapshot();
+    if (with_audio.playback_state != RuntimePlaybackState::Ready ||
+        with_audio.selected_audio_track != 2) {
+        return false;
+    }
+
+    if (!adapter.select_subtitle_track(4).accepted()) {
+        return false;
+    }
+    const auto with_subtitle = adapter.snapshot();
+    if (with_subtitle.playback_state != RuntimePlaybackState::Ready ||
+        !with_subtitle.subtitle_enabled ||
+        with_subtitle.selected_subtitle_track != 4) {
         return false;
     }
 
     const auto video = adapter.select_video_track(3);
     if (video.status != AdapterCommandStatus::RejectedByP7 ||
-        video.p7_error != PlaybackGraphError::InvalidState) {
+        video.p7_error != PlaybackGraphError::InvalidCommand) {
         return false;
     }
 
-    const auto subtitle = adapter.select_subtitle_track(4);
+    const auto subtitle = adapter.select_subtitle_track(9);
     return subtitle.status == AdapterCommandStatus::RejectedByP7 &&
-           subtitle.p7_error == PlaybackGraphError::InvalidState;
+           subtitle.p7_error == PlaybackGraphError::InvalidCommand;
 }
 
 [[nodiscard]] bool verify_settings_policy_p1() {
@@ -279,25 +292,55 @@ namespace {
            invalid_copy.p7_error == PlaybackGraphError::ClosedGraph;
 }
 
-[[nodiscard]] bool verify_remaining_not_connected() {
+[[nodiscard]] bool verify_window_screen_policy_and_remaining_not_connected() {
     PlayerRuntimeAdapter adapter{};
     if (!adapter.open_media_id(11).accepted()) {
         return false;
     }
 
-    if (!is_missing(adapter.enter_fullscreen(), AdapterMissingP7Api::FullscreenWindowScreen) ||
-        !is_missing(adapter.exit_fullscreen(), AdapterMissingP7Api::FullscreenWindowScreen) ||
-        !is_missing(adapter.move_to_screen(1), AdapterMissingP7Api::FullscreenWindowScreen)) {
+    if (!adapter.enter_fullscreen().accepted()) {
         return false;
     }
-    if (!is_missing(adapter.next(), AdapterMissingP7Api::Playlist) ||
-        !is_missing(adapter.previous(), AdapterMissingP7Api::Playlist) ||
-        !is_missing(adapter.play_next_episode(), AdapterMissingP7Api::Playlist) ||
-        !is_missing(adapter.set_auto_play_next(true), AdapterMissingP7Api::Playlist)) {
+    const auto fullscreen = adapter.snapshot();
+    if (!fullscreen.fullscreen_like ||
+        fullscreen.connections.fullscreen_screen_policy !=
+            AdapterConnectionStatus::ConnectedToP7) {
         return false;
     }
-    if (!is_missing(adapter.handle_shortcut(AdapterShortcutAction::ToggleFullscreen),
-                    AdapterMissingP7Api::FullscreenWindowScreen)) {
+    if (!adapter.handle_shortcut(AdapterShortcutAction::ToggleFullscreen).accepted() ||
+        adapter.snapshot().fullscreen_like) {
+        return false;
+    }
+    if (!adapter.move_to_screen(1).accepted()) {
+        return false;
+    }
+    const auto screen = adapter.snapshot();
+    if (!screen.screen_index_valid || screen.screen_index != 1) {
+        return false;
+    }
+    if (adapter.move_to_screen(-1).status != AdapterCommandStatus::RejectedByP7) {
+        return false;
+    }
+
+    const auto next = adapter.next();
+    const auto previous = adapter.previous();
+    const auto next_episode = adapter.play_next_episode();
+    if (next.status != AdapterCommandStatus::RejectedByP7 ||
+        previous.status != AdapterCommandStatus::RejectedByP7 ||
+        next_episode.status != AdapterCommandStatus::RejectedByP7 ||
+        next.p7_error != PlaybackGraphError::PolicyUnsupportedByCapability ||
+        previous.p7_error != PlaybackGraphError::PolicyUnsupportedByCapability ||
+        next_episode.p7_error != PlaybackGraphError::PolicyUnsupportedByCapability) {
+        return false;
+    }
+    if (!adapter.set_auto_play_next(true).accepted()) {
+        return false;
+    }
+    const auto playlist = adapter.snapshot();
+    if (playlist.connections.playlist != AdapterConnectionStatus::ConnectedToP7 ||
+        !playlist.auto_play_next || playlist.playlist_queue_connected ||
+        playlist.playlist_has_previous || playlist.playlist_has_next ||
+        playlist.playlist_has_next_episode || playlist.playlist_item_count != 0) {
         return false;
     }
     if (!adapter.reopen().accepted() || !adapter.copy_diagnostics().accepted()) {
@@ -333,7 +376,7 @@ int main() {
     if (!verify_track_inventory_and_diagnostics_closure()) {
         return 7;
     }
-    if (!verify_remaining_not_connected()) {
+    if (!verify_window_screen_policy_and_remaining_not_connected()) {
         return 8;
     }
     return 0;

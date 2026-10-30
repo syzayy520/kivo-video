@@ -2,7 +2,6 @@
 #include "kivo/cinema_engine/video_upload/d3d11_internal.hpp"
 #include "kivo/cinema_engine/video_upload/d3d11_device_context.hpp"
 
-#include <iostream>
 #include <cstring>
 #include <chrono>
 
@@ -22,8 +21,8 @@ static DXGI_FORMAT pixel_format_to_dxgi(const std::string& pixel_format) {
     if (pixel_format == "yuv422p")    return DXGI_FORMAT_YUY2;
     if (pixel_format == "rgb24")      return DXGI_FORMAT_R8G8B8A8_UNORM;
     if (pixel_format == "bgr24")      return DXGI_FORMAT_B8G8R8A8_UNORM;
-    if (pixel_format == "rgba32")     return DXGI_FORMAT_R8G8B8A8_UNORM;
-    if (pixel_format == "bgra32")     return DXGI_FORMAT_B8G8R8A8_UNORM;
+    if (pixel_format == "rgba" || pixel_format == "rgba32") return DXGI_FORMAT_R8G8B8A8_UNORM;
+    if (pixel_format == "bgra" || pixel_format == "bgra32") return DXGI_FORMAT_B8G8R8A8_UNORM;
     return DXGI_FORMAT_UNKNOWN;
 }
 #endif
@@ -32,19 +31,16 @@ D3D11TextureHandle D3d11TextureUpload::create_texture(int32_t width, int32_t hei
                                                       const std::string& pixel_format) {
 #ifdef _WIN32
     if (!device_context_ || !device_context_->is_ready() || !device_context_->handle()) {
-        std::cerr << "[D3d11TextureUpload] Device context not ready\n";
         return nullptr;
     }
 
     auto* ctx_impl = static_cast<D3d11DeviceContextImpl*>(device_context_->handle());
     if (!ctx_impl->device) {
-        std::cerr << "[D3d11TextureUpload] No D3D11 device\n";
         return nullptr;
     }
 
     DXGI_FORMAT dxgi_format = pixel_format_to_dxgi(pixel_format);
     if (dxgi_format == DXGI_FORMAT_UNKNOWN) {
-        std::cerr << "[D3d11TextureUpload] Unknown pixel format: " << pixel_format << "\n";
         return nullptr;
     }
 
@@ -71,8 +67,6 @@ D3D11TextureHandle D3d11TextureUpload::create_texture(int32_t width, int32_t hei
     ID3D11Texture2D* texture = nullptr;
     HRESULT hr = ctx_impl->device->CreateTexture2D(&tex_desc, nullptr, &texture);
     if (FAILED(hr) || !texture) {
-        std::cerr << "[D3d11TextureUpload] CreateTexture2D failed: 0x"
-                  << std::hex << hr << std::dec << "\n";
         return nullptr;
     }
 
@@ -83,9 +77,6 @@ D3D11TextureHandle D3d11TextureUpload::create_texture(int32_t width, int32_t hei
     tex_impl->pixel_format = pixel_format;
 
     initialized_ = true;
-
-    std::cout << "[D3d11TextureUpload] Created real texture " << width << "x" << height
-              << " (" << pixel_format << ", DXGI=" << dxgi_format << ")\n";
 
     return static_cast<D3D11TextureHandle>(tex_impl);
 #else
@@ -103,7 +94,6 @@ bool D3d11TextureUpload::upload_frame(D3D11TextureHandle texture, const DecodedF
     if (!tex_impl->texture) return false;
 
     if (!device_context_ || !device_context_->is_ready() || !device_context_->handle()) {
-        std::cerr << "[D3d11TextureUpload] Device context not ready for upload\n";
         return false;
     }
 
@@ -112,7 +102,6 @@ bool D3d11TextureUpload::upload_frame(D3D11TextureHandle texture, const DecodedF
 
     // Real upload: copy frame_data into the GPU texture via UpdateSubresource.
     if (frame.frame_data.empty()) {
-        std::cerr << "[D3d11TextureUpload] No frame data to upload\n";
         return false;
     }
 
@@ -130,8 +119,6 @@ bool D3d11TextureUpload::upload_frame(D3D11TextureHandle texture, const DecodedF
     }
 
     if (frame.frame_data.size() < expected_size) {
-        std::cerr << "[D3d11TextureUpload] Frame data too small: "
-                  << frame.frame_data.size() << " < " << expected_size << "\n";
         return false;
     }
 
@@ -157,8 +144,6 @@ bool D3d11TextureUpload::upload_frame(D3D11TextureHandle texture, const DecodedF
 
         dctx->Unmap(tex_impl->texture, 0);
 
-        std::cout << "[D3d11TextureUpload] Uploaded " << frame.frame_data.size()
-                  << " bytes to GPU texture " << tex_impl->width << "x" << tex_impl->height << "\n";
         return true;
     }
 
@@ -168,8 +153,6 @@ bool D3d11TextureUpload::upload_frame(D3D11TextureHandle texture, const DecodedF
                             frame.frame_data.data(),
                             static_cast<UINT>(frame.pixel_format == "yuv420p" ? frame.width : frame.width * 4),
                             0);
-    std::cout << "[D3d11TextureUpload] Uploaded via UpdateSubresource: "
-              << frame.frame_data.size() << " bytes\n";
     return true;
 #else
     (void)texture; (void)frame; (void)conversion;

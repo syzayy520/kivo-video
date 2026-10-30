@@ -55,6 +55,7 @@ public:
     [[nodiscard]] AdapterCommandResult next() noexcept;
     [[nodiscard]] AdapterCommandResult previous() noexcept;
     [[nodiscard]] AdapterCommandResult play_next_episode() noexcept;
+    [[nodiscard]] AdapterCommandResult play_playlist_item(std::uint64_t index) noexcept;
     [[nodiscard]] AdapterCommandResult set_auto_play_next(bool enabled) noexcept;
 
     [[nodiscard]] AdapterCommandResult handle_shortcut(AdapterShortcutAction action) noexcept;
@@ -74,7 +75,8 @@ public:
     [[nodiscard]] AdapterCommandResult copy_diagnostics() noexcept;
 
     [[nodiscard]] AdapterSnapshot snapshot() const noexcept;
-    [[nodiscard]] playback_graph::LocalMediaPlaybackQuery query_local_media_playback() const noexcept;
+    [[nodiscard]] playback_graph::LocalMediaPlaybackQuery query_local_media_playback(
+        bool include_frame_pixels = true) const noexcept;
     [[nodiscard]] int pump_local_media_playback(int max_packets) noexcept;
 
 private:

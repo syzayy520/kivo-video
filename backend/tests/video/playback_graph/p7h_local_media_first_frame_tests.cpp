@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <cstdint>
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -24,6 +25,16 @@ namespace {
         }
     }
     return {};
+}
+
+[[nodiscard]] std::uint64_t alternate_audio_track(
+    const kivo::video::player_runtime_adapter::AdapterSnapshot& snapshot) {
+    for (const auto track_id : snapshot.audio_track_ids) {
+        if (track_id != snapshot.selected_audio_track) {
+            return track_id;
+        }
+    }
+    return 0;
 }
 
 }  // namespace
@@ -83,6 +94,37 @@ int main() {
     if (!snapshot.video_ready) {
         std::cerr << "FAIL: adapter snapshot video_ready false\n";
         return 7;
+    }
+    if (snapshot.selected_video_track == 0 || snapshot.video_track_ids.empty()) {
+        std::cerr << "FAIL: adapter snapshot missing selected video track\n";
+        return 8;
+    }
+
+    const std::uint64_t target_audio_track = alternate_audio_track(snapshot);
+    if (target_audio_track != 0) {
+        const auto track_switch = adapter.select_audio_track(target_audio_track);
+        if (track_switch.status != AdapterCommandStatus::Accepted) {
+            std::cerr << "FAIL: select_audio_track rejected"
+                      << " target=" << target_audio_track
+                      << " p7_error=" << static_cast<int>(track_switch.p7_error) << "\n";
+            return 9;
+        }
+        for (int attempt = 0; attempt < 20; ++attempt) {
+            (void)adapter.pump_local_media_playback(8);
+        }
+        const auto after_track_switch = adapter.snapshot();
+        const auto query_after_track_switch = adapter.query_local_media_playback();
+        if (after_track_switch.selected_audio_track != target_audio_track ||
+            !query_after_track_switch.active ||
+            !query_after_track_switch.p5_audio_packet_boundary_connected) {
+            std::cerr << "FAIL: audio track switch not reflected"
+                      << " selected=" << after_track_switch.selected_audio_track
+                      << " target=" << target_audio_track
+                      << " active=" << query_after_track_switch.active
+                      << " p5_audio_boundary="
+                      << query_after_track_switch.p5_audio_packet_boundary_connected << "\n";
+            return 10;
+        }
     }
 
     std::cout << "PASS local media first frame "

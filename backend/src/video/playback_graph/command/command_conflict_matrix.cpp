@@ -72,6 +72,15 @@ CommandConflictResult resolve_command_conflict(GraphCommandKind command,
     if (command == GraphCommandKind::SwitchAvTrackSet && state == PlaybackGraphState::Playing) {
         return from_decision(CommandConflictDecision::Accept);
     }
+    if ((command == GraphCommandKind::SwitchAudioTrack ||
+         command == GraphCommandKind::SwitchVideoTrack ||
+         command == GraphCommandKind::SwitchAvTrackSet ||
+         command == GraphCommandKind::SwitchSubtitleTrack ||
+         command == GraphCommandKind::DisableSubtitle) &&
+        (state == PlaybackGraphState::Ready || state == PlaybackGraphState::Playing ||
+         state == PlaybackGraphState::Paused)) {
+        return from_decision(CommandConflictDecision::Accept);
+    }
     if (command == GraphCommandKind::InjectSystemEvent) {
         return from_decision(CommandConflictDecision::Accept);
     }
@@ -101,6 +110,13 @@ CommandConflictResult resolve_command_conflict(GraphCommandKind command,
     if (command == GraphCommandKind::CycleAudioTrack &&
         (state == PlaybackGraphState::Ready || state == PlaybackGraphState::Playing ||
          state == PlaybackGraphState::Paused)) {
+        return from_decision(CommandConflictDecision::Accept);
+    }
+    if (command == GraphCommandKind::SetWindowScreenPolicy) {
+        return from_decision(CommandConflictDecision::Accept);
+    }
+    if (command == GraphCommandKind::PlaylistNavigate ||
+        command == GraphCommandKind::SetPlaylistPolicy) {
         return from_decision(CommandConflictDecision::Accept);
     }
 
@@ -153,6 +169,12 @@ const char* command_kind_name(GraphCommandKind command) noexcept {
             return "CycleSubtitleTrack";
         case GraphCommandKind::CycleAudioTrack:
             return "CycleAudioTrack";
+        case GraphCommandKind::SetWindowScreenPolicy:
+            return "SetWindowScreenPolicy";
+        case GraphCommandKind::PlaylistNavigate:
+            return "PlaylistNavigate";
+        case GraphCommandKind::SetPlaylistPolicy:
+            return "SetPlaylistPolicy";
     }
     return "Unknown";
 }

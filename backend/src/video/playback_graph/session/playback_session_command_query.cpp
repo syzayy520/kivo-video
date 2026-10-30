@@ -65,6 +65,26 @@ void PlaybackSessionRuntime::complete_if_accepted(CommandToken token,
                                                   CommandTerminalStatus terminal_status,
                                                   PlaybackGraphError error) noexcept {
     if (token.accepted()) {
+        if (terminal_status == CommandTerminalStatus::Completed &&
+            error == PlaybackGraphError::None) {
+            P4GraphTransitionInput transition{};
+            transition.command_id = token.command_id;
+            transition.expected_playback_revision =
+                p4_adapter_.current_playback_revision();
+            transition.observed_playback_revision =
+                p4_adapter_.current_playback_revision();
+            transition.expected_graph_snapshot_revision =
+                state_machine_.snapshot_revision();
+            transition.observed_graph_snapshot_revision =
+                state_machine_.snapshot_revision();
+            transition.from = state_machine_.state();
+            transition.to = state_machine_.state();
+            const auto p4_result = p4_adapter_.validate_and_commit(transition);
+            if (!p4_result.accepted) {
+                terminal_status = CommandTerminalStatus::Failed;
+                error = p4_result.error;
+            }
+        }
         (void)command_registry_.complete(token.command_id, terminal_status, error);
     }
 }

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "kivo/video/playback_graph/command_lifecycle_snapshot.hpp"
 #include "kivo/video/playback_graph/command_token.hpp"
 #include "kivo/video/playback_graph/playback_graph_observer.hpp"
@@ -13,11 +16,13 @@
 #include "video/playback_graph/command/pending_transport_intent.hpp"
 #include "video/playback_graph/coordination/recovery_replay_coordinator.hpp"
 #include "video/playback_graph/p4_bridge/p4_state_sync_adapter.hpp"
+#include "video/playback_graph/p4_bridge/p4_timeline_contract_bridge.hpp"
 #include "video/playback_graph/p8_bridge/subtitle_frame_p8_bridge.hpp"
 #include "video/playback_graph/snapshot/snapshot_store.hpp"
 #include "video/playback_graph/local_media/local_media_continuous_playback.hpp"
-#include "video/playback_graph/local_media/local_media_first_frame_pipeline.hpp"
+#include "video/playback_graph/local_media/local_media_p3_handoff_bridge.hpp"
 #include "video/playback_graph/state/playback_graph_state_machine.hpp"
+#include "video/video_plane/runtime/local_media/local_video_first_frame_pipeline.hpp"
 
 namespace kivo::video::playback_graph::runtime {
 
@@ -51,6 +56,15 @@ public:
         const PlaybackDeinterlaceModeRequest& request) noexcept;
     [[nodiscard]] CommandToken set_playback_speed(const PlaybackSpeedRequest& request) noexcept;
     [[nodiscard]] CommandToken set_subtitle_size(const SubtitleSizeRequest& request) noexcept;
+    [[nodiscard]] CommandToken enter_fullscreen() noexcept;
+    [[nodiscard]] CommandToken exit_fullscreen() noexcept;
+    [[nodiscard]] CommandToken move_to_screen(const ScreenMoveRequest& request) noexcept;
+    [[nodiscard]] CommandToken next() noexcept;
+    [[nodiscard]] CommandToken previous() noexcept;
+    [[nodiscard]] CommandToken play_next_episode() noexcept;
+    [[nodiscard]] CommandToken play_playlist_item(
+        const PlaylistItemSelectRequest& request) noexcept;
+    [[nodiscard]] CommandToken set_auto_play_next(const AutoPlayNextRequest& request) noexcept;
     [[nodiscard]] CommandToken close() noexcept;
     [[nodiscard]] CommandToken attach_video_surface(
         const VideoSurfaceBindingRequest& request) noexcept;
@@ -73,11 +87,14 @@ public:
     [[nodiscard]] TrackInventorySnapshot query_track_inventory() const noexcept;
     [[nodiscard]] AudioOutputPolicySnapshot query_audio_output_policy() const noexcept;
     [[nodiscard]] PlaybackSettingsPolicySnapshot query_playback_settings_policy() const noexcept;
+    [[nodiscard]] WindowScreenPolicySnapshot query_window_screen_policy() const noexcept;
+    [[nodiscard]] PlaylistPolicySnapshot query_playlist_policy() const noexcept;
     [[nodiscard]] CommandLifecycleSnapshot query_command(PlaybackCommandId id) const noexcept;
     [[nodiscard]] SubscriptionToken subscribe_events(GraphObserverHandle observer) noexcept;
     void unsubscribe(SubscriptionToken token) noexcept;
     [[nodiscard]] CommandToken inject_system_event(const SystemEvent& event) noexcept;
-    [[nodiscard]] LocalMediaPlaybackQuery query_local_media_playback() const noexcept;
+    [[nodiscard]] LocalMediaPlaybackQuery query_local_media_playback(
+        bool include_frame_pixels = true) const noexcept;
     [[nodiscard]] int pump_local_media_playback(int max_packets) noexcept;
 
 private:
@@ -90,15 +107,28 @@ private:
     void publish_current_snapshot() noexcept;
     void sync_clock_store() noexcept;
     void initialize_track_inventory(std::uint64_t source_id) noexcept;
+    void initialize_local_media_track_inventory(
+        const kivo::video::video_plane::runtime::local_media::LocalMediaPipelineStatus&
+            status) noexcept;
     void clear_track_inventory() noexcept;
+    [[nodiscard]] bool restart_local_media_with_tracks(
+        std::uint64_t video_track_id,
+        std::uint64_t audio_track_id,
+        std::int64_t position_ms,
+        bool paused_after_restart) noexcept;
     [[nodiscard]] bool try_open_local_media(const OpenRequest& request) noexcept;
     [[nodiscard]] bool try_start_local_media() noexcept;
+    void rebuild_playlist_queue_for_local_media(const std::string& path) noexcept;
+    void clear_playlist_queue() noexcept;
+    [[nodiscard]] CommandToken navigate_to_playlist_index(std::uint64_t index) noexcept;
+    [[nodiscard]] std::int64_t current_position_ms() const noexcept;
 
     PlaybackGraphPolicy policy_{};
     PlaybackSessionId session_id_{1};
     PlaybackGraphId graph_id_{1};
     PlaybackGraphStateMachine state_machine_{};
     P4StateSyncAdapter p4_adapter_{};
+    P4TimelineContractBridge p4_timeline_bridge_{};
     CommandLifetimeRegistry command_registry_;
     PendingTransportIntent pending_transport_intent_{};
     SubscriptionToken next_subscription_token_{1};
@@ -114,6 +144,7 @@ private:
     std::uint64_t video_track_id_{1};
     std::uint64_t subtitle_track_id_{0};
     bool subtitle_enabled_{false};
+    bool subtitle_fixture_source_allowed_{true};
     std::uint64_t inventory_audio_ids_[TrackInventorySnapshot::kMaxTracks]{};
     std::size_t inventory_audio_count_{0};
     std::uint64_t inventory_subtitle_ids_[TrackInventorySnapshot::kMaxTracks]{};
@@ -126,10 +157,15 @@ private:
     char audio_device_id_[64]{};
     std::int64_t audio_delay_ms_{0};
     PlaybackSettingsPolicySnapshot settings_policy_{};
+    WindowScreenPolicySnapshot window_screen_policy_{};
+    PlaylistPolicySnapshot playlist_policy_{};
+    std::vector<std::string> playlist_item_paths_{};
     bool policy_state_valid_{false};
     SubtitleFrameP8Bridge subtitle_frame_bridge_{};
-    local_media::LocalMediaFirstFramePipeline local_media_pipeline_{};
+    kivo::video::video_plane::runtime::local_media::LocalMediaFirstFramePipeline
+        local_media_pipeline_{};
     local_media::LocalMediaContinuousPlayback local_media_continuous_{};
+    local_media::LocalMediaP3HandoffBridge local_media_p3_handoff_{};
 };
 
 }  // namespace kivo::video::playback_graph::runtime

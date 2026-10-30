@@ -36,6 +36,7 @@ CommandToken PlaybackSessionRuntime::open(const OpenRequest& request) noexcept {
         }
         position_ms_ = 0;
     } else {
+        subtitle_fixture_source_allowed_ = true;
         last_source_id_ = request.source_id;
         duration_ms_ = fake_duration_ms(request.source_id);
         position_ms_ = 0;
@@ -47,6 +48,7 @@ CommandToken PlaybackSessionRuntime::open(const OpenRequest& request) noexcept {
     seek_in_progress_ = false;
     policy_state_valid_ = true;
     settings_policy_.valid = true;
+    playlist_policy_.valid = true;
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();
     return token;
@@ -76,6 +78,7 @@ CommandToken PlaybackSessionRuntime::pause() noexcept {
         pending_transport_intent_.request(GraphCommandKind::Pause);
         return token;
     }
+    local_media_continuous_.pause();
     state_machine_.transition_to(PlaybackGraphState::Pausing);
     state_machine_.transition_to(PlaybackGraphState::Paused);
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
@@ -88,6 +91,7 @@ CommandToken PlaybackSessionRuntime::resume() noexcept {
     if (!token.accepted()) {
         return token;
     }
+    local_media_continuous_.resume();
     state_machine_.transition_to(PlaybackGraphState::Resuming);
     state_machine_.transition_to(PlaybackGraphState::Playing);
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
@@ -107,10 +111,13 @@ CommandToken PlaybackSessionRuntime::seek(const SeekRequest& request) noexcept {
 
     const std::int64_t target_ms =
         request.kind == SeekKind::Relative
-            ? position_ms_ + request.target_timeline_ms
+            ? current_position_ms() + request.target_timeline_ms
             : request.target_timeline_ms;
     if (target_ms < 0 || (duration_ms_ > 0 && target_ms > duration_ms_)) {
         return reject(PlaybackGraphError::InvalidSeekTarget);
+    }
+    if (local_media_continuous_.is_active() && !local_media_continuous_.seek_to(target_ms)) {
+        return reject(PlaybackGraphError::SourceSeekFailed);
     }
 
     seek_in_progress_ = true;
@@ -121,42 +128,6 @@ CommandToken PlaybackSessionRuntime::seek(const SeekRequest& request) noexcept {
     state_machine_.transition_to(PlaybackGraphState::Playing);
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();
-    return token;
-}
-
-CommandToken PlaybackSessionRuntime::switch_audio_track(
-    const AudioTrackSwitchRequest& request) noexcept {
-    if (request.track_id == 0) {
-        return reject(PlaybackGraphError::InvalidCommand);
-    }
-    const auto token = accept_command(GraphCommandKind::SwitchAudioTrack, true);
-    if (token.accepted()) {
-        state_machine_.transition_to(PlaybackGraphState::TrackSwitching);
-    }
-    return token;
-}
-
-CommandToken PlaybackSessionRuntime::switch_video_track(
-    const VideoTrackSwitchRequest& request) noexcept {
-    if (request.track_id == 0) {
-        return reject(PlaybackGraphError::InvalidCommand);
-    }
-    const auto token = accept_command(GraphCommandKind::SwitchVideoTrack, true);
-    if (token.accepted()) {
-        state_machine_.transition_to(PlaybackGraphState::TrackSwitching);
-    }
-    return token;
-}
-
-CommandToken PlaybackSessionRuntime::switch_av_track_set(
-    const AvTrackSetSwitchRequest& request) noexcept {
-    if (request.audio_track_id == 0 && request.video_track_id == 0) {
-        return reject(PlaybackGraphError::InvalidCommand);
-    }
-    const auto token = accept_command(GraphCommandKind::SwitchAvTrackSet, true);
-    if (token.accepted()) {
-        state_machine_.transition_to(PlaybackGraphState::TrackSwitching);
-    }
     return token;
 }
 
@@ -173,6 +144,7 @@ CommandToken PlaybackSessionRuntime::stop() noexcept {
         state_machine_.transition_to(PlaybackGraphState::TrackSwitching);
         state_machine_.transition_to(PlaybackGraphState::Ready);
     }
+    local_media_continuous_.close();
     seek_in_progress_ = false;
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();
@@ -194,11 +166,13 @@ CommandToken PlaybackSessionRuntime::close() noexcept {
     seek_in_progress_ = false;
     policy_state_valid_ = false;
     settings_policy_.valid = false;
+    clear_playlist_queue();
     subtitle_track_id_ = 0;
     subtitle_enabled_ = false;
     subtitle_frame_bridge_.reset();
     local_media_pipeline_.close();
     local_media_continuous_.close();
+    local_media_p3_handoff_.reset();
     clear_track_inventory();
     complete_if_accepted(token, CommandTerminalStatus::Completed, PlaybackGraphError::None);
     publish_current_snapshot();

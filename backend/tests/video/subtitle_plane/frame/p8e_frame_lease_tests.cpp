@@ -26,7 +26,7 @@ int make_ready_plane(KivoSubtitlePlaneApiV1& api,
                      const KivoSubtitlePlaneConfig* config,
                      KivoSubtitlePlaneHandle* out_plane) {
     if (api.create_plane(config, out_plane) != KivoP8ApiStatus_Ok) return 100;
-    const uint8_t bytes[] = {'1', '\n'};
+    const uint8_t bytes[] = {'c', 'u', 'e'};
     KivoSubtitleSourceDescriptor source{};
     source.kind = KivoSubtitleSourceKind_MemoryBytes;
     source.memory_bytes.data = bytes;

@@ -3,6 +3,8 @@
 #include "video/player_runtime_adapter/state/adapter_subtitle_frame_mapper.hpp"
 #include "video/player_runtime_adapter/state/adapter_track_inventory_mapper.hpp"
 
+#include <utility>
+
 namespace kivo::video::player_runtime_adapter::runtime {
 namespace {
 
@@ -11,6 +13,7 @@ using playback_graph::PlaybackDeinterlaceMode;
 using playback_graph::PlaybackGraphState;
 using playback_graph::PlaybackScaleMode;
 using playback_graph::PlaybackToneMappingMode;
+using playback_graph::PlaybackWindowMode;
 using playback_graph::VideoRenderAttachmentState;
 
 [[nodiscard]] AdapterAspectMode map_aspect_mode(PlaybackAspectMode mode) noexcept {
@@ -164,6 +167,8 @@ AdapterSnapshot map_snapshot(const playback_graph::PlaybackSession& session,
     const auto track_inventory = session.query_track_inventory();
     const auto audio_policy = session.query_audio_output_policy();
     const auto settings_policy = session.query_playback_settings_policy();
+    const auto window_policy = session.query_window_screen_policy();
+    const auto playlist_policy = session.query_playlist_policy();
 
     AdapterSnapshot snapshot{};
     snapshot.p7_snapshot = p7_snapshot;
@@ -234,6 +239,31 @@ AdapterSnapshot map_snapshot(const playback_graph::PlaybackSession& session,
         snapshot.playback_speed = settings_policy.playback_speed;
         snapshot.subtitle_size = settings_policy.subtitle_size;
         snapshot.connections.user_settings_policy = AdapterConnectionStatus::ConnectedToP7;
+    }
+
+    if (window_policy.valid) {
+        snapshot.fullscreen_like = window_policy.mode == PlaybackWindowMode::Fullscreen;
+        snapshot.screen_index = window_policy.screen_index;
+        snapshot.screen_index_valid = window_policy.screen_index_valid;
+        snapshot.connections.fullscreen_screen_policy = AdapterConnectionStatus::ConnectedToP7;
+    }
+
+    if (playlist_policy.valid) {
+        snapshot.auto_play_next = playlist_policy.auto_play_next;
+        snapshot.playlist_queue_connected = playlist_policy.queue_connected;
+        snapshot.playlist_has_previous = playlist_policy.has_previous;
+        snapshot.playlist_has_next = playlist_policy.has_next;
+        snapshot.playlist_has_next_episode = playlist_policy.has_next_episode;
+        snapshot.playlist_current_index = playlist_policy.current_index;
+        snapshot.playlist_item_count = playlist_policy.item_count;
+        for (std::size_t i = 0; i < playlist_policy.visible_item_count; ++i) {
+            AdapterPlaylistItem item{};
+            item.index = playlist_policy.items[i].index;
+            item.label = playlist_policy.items[i].label;
+            item.current = playlist_policy.items[i].current;
+            snapshot.playlist_items.push_back(std::move(item));
+        }
+        snapshot.connections.playlist = AdapterConnectionStatus::ConnectedToP7;
     }
 
     return snapshot;

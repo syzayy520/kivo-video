@@ -7,10 +7,25 @@
 #include <algorithm>
 #include <filesystem>
 #include <cstring>
+#include <memory>
+#include <mutex>
 
 namespace kivo::video::providers::local_file {
+namespace {
 
-// ── Open ──────────────────────────────────────────────
+[[nodiscard]] bool is_unc_path(const std::string& path) noexcept {
+    return path.size() >= 2 && path[0] == '\\' && path[1] == '\\';
+}
+
+[[nodiscard]] source_core::ProviderKind provider_kind_for_path(
+    const std::string& path) noexcept {
+    return is_unc_path(path) ? source_core::ProviderKind::smb
+                             : source_core::ProviderKind::local_file;
+}
+
+}  // namespace
+
+// Open
 source_core::SourceOpenResult LocalFileProvider::open(
     const source_core::SourceOpenRequest& request,
     LocalFileSessionStore& store) {
@@ -23,14 +38,24 @@ source_core::SourceOpenResult LocalFileProvider::open(
     auto probe_err = probe_file(raw, file_size, mtime);
     if (!probe_err.is_ok()) return source_core::SourceOpenResult::failure(probe_err);
 
+    auto open_stream = std::make_shared<LocalFileOpenStream>();
+    open_stream->stream.open(std::filesystem::u8path(raw), std::ios::binary);
+    if (!open_stream->stream) {
+        return source_core::SourceOpenResult::failure(
+            {source_core::SourceErrorCode::internal_error, "cannot open file stream"});
+    }
+
     auto digest = compute_opaque_digest(raw, file_size, mtime);
     auto prefix = digest_prefix(digest);
     auto ext = safe_extension(raw);
     auto redacted = make_redacted_uri(prefix, ext);
+    const source_core::ProviderKind provider_kind = provider_kind_for_path(raw);
+    const std::string label_prefix =
+        provider_kind == source_core::ProviderKind::smb ? "smb:" : "local_file:";
 
     source_core::SourceIdentity identity;
-    identity.kind = source_core::ProviderKind::local_file;
-    identity.safe_label = "local_file:" + prefix;
+    identity.kind = provider_kind;
+    identity.safe_label = label_prefix + prefix;
     identity.display_uri = redacted;
 
     source_core::SourceCapabilitySnapshot capability;
@@ -39,35 +64,36 @@ source_core::SourceOpenResult LocalFileProvider::open(
     capability.content_length_bytes = file_size;
 
     source_core::SourceEvidenceSnapshot evidence;
-    evidence.kind = source_core::ProviderKind::local_file;
+    evidence.kind = provider_kind;
     evidence.uri_redacted = redacted.display();
     evidence.capability = capability;
 
     evidence.items.push_back({source_core::SourceEvidencePassKind::contract_pass,
         source_core::SourceEvidenceKind::contract_declared,
         source_core::SourceEvidenceOperation::unknown,
-        "contract declared", std::nullopt, source_core::ProviderKind::local_file, 1});
+        "contract declared", std::nullopt, provider_kind, 1});
     evidence.items.push_back({source_core::SourceEvidencePassKind::runtime_pass,
         source_core::SourceEvidenceKind::provider_runtime_observed,
         source_core::SourceEvidenceOperation::open,
-        "open succeeded", redacted, source_core::ProviderKind::local_file, 2});
+        "open succeeded", redacted, provider_kind, 2});
 
     auto sid = store.allocate_id();
     source_core::SourceSession session;
     session.session_id = sid;
     session.session_state = source_core::SourceSessionState::open;
-    session.provider_kind = source_core::ProviderKind::local_file;
+    session.provider_kind = provider_kind;
 
     LocalFileSessionRecord rec;
     rec.session = session; rec.identity = identity;
     rec.capability = capability; rec.evidence = evidence;
     rec.current_offset = 0; rec.internal_safe_path = raw; rec.file_size = file_size;
     rec.last_mtime = mtime;
+    rec.open_stream = std::move(open_stream);
     store.insert(std::move(rec));
     return source_core::SourceOpenResult::success(session);
 }
 
-// ── source mutation check ─────────────────────────────
+// Source mutation check
 static source_core::SourceError check_mutation(const LocalFileSessionRecord& rec) {
     std::uint64_t curr_sz = 0, curr_mt = 0;
     auto err = probe_file(rec.internal_safe_path, curr_sz, curr_mt);
@@ -79,7 +105,7 @@ static source_core::SourceError check_mutation(const LocalFileSessionRecord& rec
     return source_core::SourceError::ok();
 }
 
-// ── Read ──────────────────────────────────────────────
+// Read
 source_core::SourceReadResult LocalFileProvider::read(
     const source_core::SourceReadRequest& request,
     LocalFileSessionStore& store) {
@@ -96,32 +122,31 @@ source_core::SourceReadResult LocalFileProvider::read(
     if (request.length > kMaxReadChunkSize)
         return {0, false, false, {source_core::SourceErrorCode::read_size_exceeded, ""}, {}};
 
-    // Source mutation best-effort
-    auto mut_err = check_mutation(rec);
-    if (!mut_err.is_ok()) {
-        store.append_evidence(request.session_id,
-            {source_core::SourceEvidencePassKind::runtime_failed,
-             source_core::SourceEvidenceKind::source_changed_observed,
-             source_core::SourceEvidenceOperation::source_changed,
-             "source changed: " + mut_err.message, std::nullopt,
-             source_core::ProviderKind::local_file, 0});
-        return {0, false, false, mut_err, {}};
-    }
-
     bool is_positioned = request.offset.has_value();
     std::uint64_t read_offset = is_positioned ? request.offset.value() : rec.current_offset;
     if (read_offset >= rec.file_size)
         return {0, true, false, source_core::SourceError::ok(), {}};
 
     std::uint64_t safe_len = std::min(request.length, rec.file_size - read_offset);
-    std::ifstream file(rec.internal_safe_path, std::ios::binary);
-    if (!file) return {0, false, false, {source_core::SourceErrorCode::internal_error, "cannot open file for read"}, {}};
-    file.seekg(static_cast<std::streamoff>(read_offset));
-    if (!file) return {0, false, false, {source_core::SourceErrorCode::seek_unsupported, ""}, {}};
+    if (!rec.open_stream || !rec.open_stream->stream.is_open()) {
+        return {0, false, false,
+                {source_core::SourceErrorCode::internal_error, "source stream not open"},
+                {}};
+    }
 
     std::vector<std::uint8_t> buf(safe_len);
-    file.read(reinterpret_cast<char*>(buf.data()), static_cast<std::streamsize>(safe_len));
-    std::streamsize actual = file.gcount();
+    std::streamsize actual = 0;
+    {
+        std::lock_guard<std::mutex> stream_lock(rec.open_stream->mutex);
+        auto& file = rec.open_stream->stream;
+        file.clear();
+        file.seekg(static_cast<std::streamoff>(read_offset));
+        if (!file) {
+            return {0, false, false, {source_core::SourceErrorCode::seek_unsupported, ""}, {}};
+        }
+        file.read(reinterpret_cast<char*>(buf.data()), static_cast<std::streamsize>(safe_len));
+        actual = file.gcount();
+    }
     bool eof = (read_offset + static_cast<std::uint64_t>(actual)) >= rec.file_size;
 
     if (!is_positioned && actual > 0)
@@ -133,14 +158,14 @@ source_core::SourceReadResult LocalFileProvider::read(
              source_core::SourceEvidenceKind::provider_runtime_observed,
              is_positioned ? source_core::SourceEvidenceOperation::positioned_read
                            : source_core::SourceEvidenceOperation::read,
-             "read ok", std::nullopt, source_core::ProviderKind::local_file, 0});
+             "read ok", std::nullopt, rec.session.provider_kind, 0});
     }
 
     buf.resize(static_cast<std::size_t>(actual));
     return {static_cast<std::uint64_t>(actual), eof, false, source_core::SourceError::ok(), std::move(buf)};
 }
 
-// ── Seek ──────────────────────────────────────────────
+// Seek
 source_core::SourceSeekResult LocalFileProvider::seek(
     const source_core::SourceSeekRequest& request,
     LocalFileSessionStore& store) {
@@ -157,7 +182,7 @@ source_core::SourceSeekResult LocalFileProvider::seek(
             {source_core::SourceEvidencePassKind::runtime_failed,
              source_core::SourceEvidenceKind::source_changed_observed,
              source_core::SourceEvidenceOperation::source_changed,
-             "source changed", std::nullopt, source_core::ProviderKind::local_file, 0});
+             "source changed", std::nullopt, rec.session.provider_kind, 0});
         return {std::nullopt, mut_err};
     }
 
@@ -177,11 +202,11 @@ source_core::SourceSeekResult LocalFileProvider::seek(
         {source_core::SourceEvidencePassKind::runtime_pass,
          source_core::SourceEvidenceKind::range_proof,
          source_core::SourceEvidenceOperation::seek, "seek ok", std::nullopt,
-         source_core::ProviderKind::local_file, 0});
+         rec.session.provider_kind, 0});
     return {ut, source_core::SourceError::ok()};
 }
 
-// ── Close ─────────────────────────────────────────────
+// Close
 source_core::SourceError LocalFileProvider::close(
     source_core::SourceSessionId session_id,
     LocalFileSessionStore& store) {
@@ -191,12 +216,12 @@ source_core::SourceError LocalFileProvider::close(
             {source_core::SourceEvidencePassKind::runtime_pass,
              source_core::SourceEvidenceKind::session_closed,
              source_core::SourceEvidenceOperation::close, "close ok", std::nullopt,
-             source_core::ProviderKind::local_file, 0});
+             opt->session.provider_kind, 0});
     }
     return store.close_session(session_id);
 }
 
-// ── AccessRef resolve ─────────────────────────────────
+// AccessRef resolve
 source_core::SourceError LocalFileProvider::resolve_access_ref(
     const source_core::OpaqueSourceAccessRef& ref,
     LocalFileSessionStore& store) {
@@ -210,7 +235,7 @@ source_core::SourceError LocalFileProvider::resolve_access_ref(
     return source_core::SourceError::ok();
 }
 
-// ── DirectInput ───────────────────────────────────────
+// DirectInput
 source_core::DirectPlayInputResult LocalFileProvider::make_direct_play_input(
     source_core::SourceSessionId session_id,
     LocalFileSessionStore& store) {
@@ -243,7 +268,7 @@ source_core::DirectStreamInputResult LocalFileProvider::make_direct_stream_input
     return {std::move(dsi), std::nullopt};
 }
 
-// ── Evidence ──────────────────────────────────────────
+// Evidence
 source_core::SourceEvidenceSnapshot LocalFileProvider::get_evidence(
     source_core::SourceSessionId session_id,
     LocalFileSessionStore& store) {

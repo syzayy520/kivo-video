@@ -1,0 +1,102 @@
+{
+  "schema_version": "p3.golden.evidence.pack.v1",
+  "generated": "2026-06-27",
+  "sanitized": true,
+  "no_raw_tokens": true,
+  "no_raw_cookies": true,
+  "no_raw_signed_urls": true,
+  "no_raw_paths": true,
+  "no_raw_accounts": true,
+  "entries": [
+    {
+      "kind": "fast_start",
+      "evidence_id": "golden-fast-start-001",
+      "fast_start_possible": true,
+      "confidence": 0.95,
+      "masked_timestamps": true,
+      "masked_ports": true
+    },
+    {
+      "kind": "probe",
+      "evidence_id": "golden-probe-001",
+      "container": "mp4",
+      "video_codec": "h264",
+      "audio_codec": "aac",
+      "confidence": 0.98,
+      "constraints_all_blocking": true
+    },
+    {
+      "kind": "manifest",
+      "evidence_id": "golden-manifest-001",
+      "snapshot_version": 1,
+      "is_stale": false
+    },
+    {
+      "kind": "playlist",
+      "evidence_id": "golden-playlist-001",
+      "entry_count": 3,
+      "recursion_policy": "max_depth_5"
+    },
+    {
+      "kind": "playback_decision",
+      "evidence_id": "golden-decision-001",
+      "candidate_count": 2,
+      "selected_kind": "direct_play"
+    },
+    {
+      "kind": "decision_trace",
+      "evidence_id": "golden-trace-001",
+      "execution_card_id": "golden-card-001",
+      "bidirectional_linked": true
+    },
+    {
+      "kind": "pairwise_comparison",
+      "evidence_id": "golden-pairwise-001",
+      "winner_id": "cand-001",
+      "loser_id": "cand-002",
+      "reason": "higher_quality"
+    },
+    {
+      "kind": "handoff",
+      "evidence_id": "golden-handoff-001",
+      "ownership_model": "transfer_ownership",
+      "has_selected_candidate": true
+    },
+    {
+      "kind": "runtime_revision",
+      "evidence_id": "golden-revision-001",
+      "trigger": "signed_url_expired",
+      "action": "refresh",
+      "p4_action_hint": true
+    },
+    {
+      "kind": "session_error",
+      "evidence_id": "golden-session-error-001",
+      "observer_registered": true,
+      "auto_unregister": true
+    },
+    {
+      "kind": "redaction",
+      "evidence_id": "golden-redaction-001",
+      "all_fields_redacted": true
+    },
+    {
+      "kind": "cancellation",
+      "evidence_id": "golden-cancel-001",
+      "is_cancelled": true,
+      "state": "completed"
+    },
+    {
+      "kind": "retry",
+      "evidence_id": "golden-retry-001",
+      "max_retries": 3,
+      "is_idempotent": true
+    },
+    {
+      "kind": "closure",
+      "evidence_id": "golden-closure-001",
+      "no_commit_hash": true,
+      "redaction_state": "sanitized"
+    }
+  ]
+}

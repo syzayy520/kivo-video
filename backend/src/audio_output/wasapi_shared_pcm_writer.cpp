@@ -5,8 +5,28 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <mmreg.h>
 
 namespace kivo::cinema_engine {
+namespace {
+
+std::string sample_format_from_mix_format(const WAVEFORMATEX* const format) {
+    if (format == nullptr) {
+        return "s16";
+    }
+    if (format->wFormatTag == WAVE_FORMAT_IEEE_FLOAT) {
+        return "flt";
+    }
+    if (format->wFormatTag == WAVE_FORMAT_PCM) {
+        return format->wBitsPerSample == 32 ? "s32" : "s16";
+    }
+    if (format->wFormatTag == WAVE_FORMAT_EXTENSIBLE && format->wBitsPerSample == 32) {
+        return "flt";
+    }
+    return format->wBitsPerSample == 32 ? "s32" : "s16";
+}
+
+}  // namespace
 
 WasapiSharedPcmWriter::WasapiSharedPcmWriter() : impl_(nullptr) {}
 
@@ -117,6 +137,7 @@ bool WasapiSharedPcmWriter::initialize(const AudioEndpointRuntimeContract& endpo
     impl_->sample_rate = impl_->mix_format->nSamplesPerSec;
     impl_->channels = impl_->mix_format->nChannels;
     impl_->bits_per_sample = impl_->mix_format->wBitsPerSample;
+    impl_->sample_format = sample_format_from_mix_format(impl_->mix_format);
 
     // Update endpoint info with actual format
     endpoint_.sample_rate = impl_->sample_rate;
@@ -235,6 +256,22 @@ int32_t WasapiSharedPcmWriter::available_frames() const {
 #endif
 }
 
+int32_t WasapiSharedPcmWriter::sample_rate() const {
+    return (initialized_ && impl_) ? impl_->sample_rate : 0;
+}
+
+int32_t WasapiSharedPcmWriter::channel_count() const {
+    return (initialized_ && impl_) ? impl_->channels : 0;
+}
+
+int32_t WasapiSharedPcmWriter::bit_depth() const {
+    return (initialized_ && impl_) ? impl_->bits_per_sample : 0;
+}
+
+std::string WasapiSharedPcmWriter::sample_format() const {
+    return (initialized_ && impl_) ? impl_->sample_format : std::string{};
+}
+
 std::string WasapiSharedPcmWriter::last_error() const { return last_error_; }
 
 bool WasapiSharedPcmWriter::is_ready() const { return initialized_; }
@@ -278,6 +315,35 @@ bool WasapiSharedPcmWriter::stop() {
     }
     impl_->is_playing = false;
     playing_ = false;
+    return true;
+#else
+    last_error_ = "WASAPI not supported on this platform";
+    return false;
+#endif
+}
+
+bool WasapiSharedPcmWriter::reset() {
+    if (!initialized_ || !impl_) {
+        last_error_ = "Not initialized";
+        return false;
+    }
+
+#ifdef _WIN32
+    if (impl_->is_playing) {
+        const HRESULT stop_hr = impl_->audio_client->Stop();
+        if (FAILED(stop_hr)) {
+            last_error_ = "IAudioClient::Stop failed: " + std::to_string(stop_hr);
+            return false;
+        }
+        impl_->is_playing = false;
+        playing_ = false;
+    }
+
+    const HRESULT reset_hr = impl_->audio_client->Reset();
+    if (FAILED(reset_hr)) {
+        last_error_ = "IAudioClient::Reset failed: " + std::to_string(reset_hr);
+        return false;
+    }
     return true;
 #else
     last_error_ = "WASAPI not supported on this platform";
@@ -353,6 +419,10 @@ WriteResult WasapiSharedPcmWriter::write(const uint8_t* pcm_data, int32_t byte_s
 }
 
 int32_t WasapiSharedPcmWriter::available_frames() const { return 0; }
+int32_t WasapiSharedPcmWriter::sample_rate() const { return 0; }
+int32_t WasapiSharedPcmWriter::channel_count() const { return 0; }
+int32_t WasapiSharedPcmWriter::bit_depth() const { return 0; }
+std::string WasapiSharedPcmWriter::sample_format() const { return {}; }
 std::string WasapiSharedPcmWriter::last_error() const { return last_error_; }
 bool WasapiSharedPcmWriter::is_ready() const { return false; }
 bool WasapiSharedPcmWriter::start() {
@@ -360,6 +430,10 @@ bool WasapiSharedPcmWriter::start() {
     return false;
 }
 bool WasapiSharedPcmWriter::stop() {
+    last_error_ = "WASAPI not supported on this platform";
+    return false;
+}
+bool WasapiSharedPcmWriter::reset() {
     last_error_ = "WASAPI not supported on this platform";
     return false;
 }

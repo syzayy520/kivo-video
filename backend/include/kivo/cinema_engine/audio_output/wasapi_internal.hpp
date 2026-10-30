@@ -30,6 +30,7 @@ struct WasapiWriterImpl {
     int32_t sample_rate{0};
     int32_t channels{0};
     int32_t bits_per_sample{0};
+    std::string sample_format;
     int64_t total_bytes_written{0};
     int64_t total_samples_written{0};
 };

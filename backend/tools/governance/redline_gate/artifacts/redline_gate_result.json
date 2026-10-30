@@ -3,12 +3,12 @@
   "task_id": "P2-REDLINE-GATE-FOUNDATION",
   "scan_mode": "all",
   "classification": "FAIL",
-  "files_scanned": 207,
-  "violations_count": 6,
+  "files_scanned": 229,
+  "violations_count": 16,
   "violations_by_rule": {
     "SCHEMA": 1,
-    "R8": 3,
-    "R4": 2
+    "R8": 5,
+    "R4": 10
   },
   "violations": [
     {
@@ -25,6 +25,14 @@
       "file": "C:/kivo video\\docs/roadmap\\backend_task_checklist.md",
       "field_path": "content",
       "message": "premature claim: 'P2 Complete'",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R8",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\backend_task_checklist.md",
+      "field_path": "content",
+      "message": "premature claim: 'P3 COMPLETE'",
       "evidence_excerpt_redacted": "[redacted]"
     },
     {
@@ -54,9 +62,81 @@
     {
       "rule_id": "R4",
       "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p2_source_runtime_final_closure_001_execution_card.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
       "file": "C:/kivo video\\docs/roadmap\\p2_source_runtime_foundation_local_file_001_execution_card.md",
       "field_path": "content",
       "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p3_complete_line_v9_closure_ready_execution_card.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R8",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p3_complete_line_v9_closure_ready_execution_card.md",
+      "field_path": "content",
+      "message": "premature claim: 'P3 COMPLETE'",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p5_v2.2_execution_card.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p6a_closure_report.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p6b_closure_report.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\.codebuddy/memory\\2026-06-27.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\.codebuddy/memory\\2026-06-28.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\.codebuddy/memory\\MEMORY.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
       "evidence_excerpt_redacted": "[redacted]"
     }
   ],
@@ -70,30 +150,12 @@
     {
       "file": "C:/kivo video\\artifacts/p2/evidence\\REMOTE-RANGE-RUNTIME-HTTP-WEBDAV-001.json",
       "errors": [
-        "missing field: completion_level",
-        "missing field: runtime_mode",
-        "missing field: environment",
-        "missing field: media_identity",
-        "missing field: source_identity",
-        "missing field: extension_identity",
-        "missing field: capability_probe",
-        "missing field: direct_play_decision",
-        "missing field: direct_stream_decision",
-        "missing field: subtitle_snapshot",
-        "missing field: chapter_snapshot",
-        "missing field: playback_state_snapshot",
-        "missing field: inspector_snapshot",
-        "missing field: decision_ledger",
-        "missing field: errors",
-        "missing field: redline_scan",
-        "missing field: test_commands",
-        "missing field: artifacts",
-        "unknown runtime_environment_kind: 'deterministic_transport_fixture_runtime'"
+        "unknown schema_version: 'p2-evidence-v15'"
       ]
     }
   ],
   "legacy_inventory": "backend/tools/governance/redline_gate/artifacts/legacy_evidence_violations.json",
   "allowed_claims": [],
   "forbidden_claims": [],
-  "timestamp_utc": "2026-06-26T20:18:07Z"
+  "timestamp_utc": "2026-06-28T17:46:29Z"
 }

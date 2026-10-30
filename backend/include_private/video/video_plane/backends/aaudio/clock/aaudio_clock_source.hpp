@@ -1,0 +1,72 @@
+#pragma once
+
+#include <cstdint>
+
+#include "video/video_plane/backends/aaudio/clock/aaudio_clock_probe.hpp"
+#include "video/video_plane/backends/aaudio/clock/aaudio_clock_stats.hpp"
+#include "video/video_plane/backends/aaudio/clock/aaudio_monotonic_now.hpp"
+#include "video/video_plane/core/audio/clock/audio_clock_source.hpp"
+#include "video/video_plane/core/audio/clock/frame_position_extrapolator.hpp"
+#include "video/video_plane/core/audio/clock/monotonic_clock_guard.hpp"
+
+namespace kivo::video::aaudio {
+
+/// AAudio 音频主时钟：读时间戳 → 外推 → 单调化 → 快照。
+///
+/// 核心不是"怎么读"，而是"用什么驱动"：位置一律由**已呈现帧数**换算，
+/// 因此零点天然落在首帧真正出声的那一刻（见 15-p12c4-design.md §三）。
+/// 不需要记录 `requestStart` 时刻，也不需要减任何延迟常数 ——
+/// C1 实测启动开销 24–146 ms 波动，任何固定补偿都会错。
+///
+/// 读数通过 `AaudioClockProbe` 注入，`now` 通过函数指针注入：
+/// 于是整个类零平台依赖，回退分级那三档能在桌面上被测到。
+class AaudioClockSource final : public core::audio::AudioClockSource {
+public:
+    using NowFn = std::int64_t (*)() noexcept;
+
+    /// `frames_per_burst` 用来定陈旧阈值（2 个 burst 还没更新就算卡住）。
+    /// 传 0 或负数时退回 4 ms 的保守值。
+    AaudioClockSource(AaudioClockProbe& probe,
+                      std::int32_t sample_rate,
+                      std::int32_t frames_per_burst,
+                      NowFn now_fn = &monotonic_now_ns) noexcept;
+
+    [[nodiscard]] core::audio::AudioClockSnapshot now() override;
+
+    /// 切换采样率，位置保持连续（见 `FramePositionExtrapolator::set_sample_rate`）。
+    void set_sample_rate(std::int32_t sample_rate) noexcept;
+
+    /// seek 之后把时钟重设到新的媒体位置（P12-F2）。
+    ///
+    /// **两件事必须一起做**，缺一个都会出事：
+    /// 1. 外推基准要改（否则位置从 0 起算）；
+    /// 2. **单调守卫要 reset** —— 它的职责是"位置不许倒退"，而 seek 恰恰要倒退。
+    ///    只改外推不改守卫，时钟会卡在 seek 之前的位置不动，视频被拖住、
+    ///    所有计数却看起来正常 —— 这是本卡最容易漏的一步。
+    void rebase(std::int64_t media_position_ns) noexcept override;
+
+    [[nodiscard]] AaudioClockStats stats() const noexcept { return stats_; }
+    [[nodiscard]] std::int32_t sample_rate() const noexcept { return sample_rate_; }
+
+private:
+    [[nodiscard]] core::audio::AudioClockSnapshot publish(std::int64_t candidate_ns,
+                                                          core::audio::AudioClockSourceKind kind,
+                                                          bool stale);
+    [[nodiscard]] core::audio::AudioClockSnapshot freeze(core::audio::AudioClockSourceKind kind);
+    [[nodiscard]] std::int64_t frames_to_nanos(std::int64_t frames) const noexcept;
+
+    AaudioClockProbe& probe_;
+    NowFn now_fn_;
+    std::int32_t sample_rate_;
+    std::int32_t frames_per_burst_;
+    std::int64_t stale_after_ns_;
+
+    core::audio::FramePositionExtrapolator extrapolator_;
+    core::audio::MonotonicClockGuard guard_;
+    AaudioClockStats stats_;
+
+    std::int64_t latency_frames_ = 0;
+    core::audio::AudioClockSourceKind last_kind_ = core::audio::AudioClockSourceKind::kAudioTimestamp;
+};
+
+}  // namespace kivo::video::aaudio

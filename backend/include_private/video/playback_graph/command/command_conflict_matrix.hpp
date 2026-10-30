@@ -26,7 +26,10 @@ enum class GraphCommandKind {
     InjectSystemEvent,
     RecoveryReplay,
     CycleSubtitleTrack,
-    CycleAudioTrack
+    CycleAudioTrack,
+    SetWindowScreenPolicy,
+    PlaylistNavigate,
+    SetPlaylistPolicy
 };
 
 enum class CommandConflictDecision {

@@ -153,6 +153,127 @@ int main() {
     if (expect_source_result(api, plane, embedded_source, KivoP8ApiStatus_Ok,
                              KivoSubtitlePlaneError_None) != 0) return 15;
 
+    const uint8_t embedded_text[] = {'r', 'e', 'a', 'l'};
+    KivoEmbeddedSubtitlePacketSubmitRequest text_packet{};
+    text_packet.correlation_id.value = 51;
+    text_packet.packet_generation.source_generation = 1;
+    text_packet.packet_generation.track_generation = 1;
+    text_packet.packet_generation.packet_generation = 1;
+    text_packet.format = KivoSubtitleFormat_Srt;
+    text_packet.start_time.microseconds = 10'000'000;
+    text_packet.end_time.microseconds = 12'000'000;
+    text_packet.packet_bytes.data = embedded_text;
+    text_packet.packet_bytes.bytes = sizeof(embedded_text);
+    KivoSubtitleCommandToken packet_token{};
+    if (kivo_subtitle_plane_submit_embedded_packet_v1(plane, &text_packet, &packet_token) !=
+        KivoP8ApiStatus_Ok) {
+        return 40;
+    }
+    if (packet_token.immediate_status != KivoSubtitleCommandImmediateStatus_Accepted) return 41;
+    KivoSubtitleFrameBuildRequest frame_request{};
+    frame_request.playback_time.microseconds = 11'000'000;
+    frame_request.playback_revision.value = 1;
+    frame_request.graph_snapshot_revision.value = 1;
+    frame_request.seek_epoch.value = 1;
+    KivoSubtitleFrameLease frame{};
+    if (api.build_frame(plane, &frame_request, &frame) != KivoP8ApiStatus_Ok) return 42;
+    if (frame.status != KivoSubtitleFrameLeaseStatus_Ok) return 43;
+    KivoSubtitleResourceAccessToken frame_token{};
+    frame_token.kind = KivoSubtitleResourceAccessKind_FrameLease;
+    frame_token.lease_id = frame.lease_id;
+    frame_token.lease_generation = frame.lease_generation;
+    frame_token.snapshot_revision = frame.snapshot_revision;
+    uint64_t embedded_required = 0;
+    uint8_t embedded_out[4]{};
+    if (api.copy_text_buffer(plane,
+                             frame_token,
+                             KivoSubtitleTextBufferId{1},
+                             KivoMutableByteSpan{embedded_out, sizeof(embedded_out)},
+                             &embedded_required) != KivoP8ApiStatus_Ok) {
+        return 44;
+    }
+    if (embedded_required != sizeof(embedded_text) ||
+        std::memcmp(embedded_out, embedded_text, sizeof(embedded_text)) != 0) {
+        return 45;
+    }
+    api.release_frame(plane, &frame);
+
+    const uint8_t embedded_text_later[] = {'n', 'e', 'x', 't'};
+    KivoEmbeddedSubtitlePacketSubmitRequest later_text_packet = text_packet;
+    later_text_packet.correlation_id.value = 53;
+    later_text_packet.packet_generation.packet_generation = 2;
+    later_text_packet.start_time.microseconds = 12'000'000;
+    later_text_packet.end_time.microseconds = 14'000'000;
+    later_text_packet.packet_bytes.data = embedded_text_later;
+    later_text_packet.packet_bytes.bytes = sizeof(embedded_text_later);
+    if (kivo_subtitle_plane_submit_embedded_packet_v1(plane,
+                                                      &later_text_packet,
+                                                      &packet_token) != KivoP8ApiStatus_Ok) {
+        return 52;
+    }
+    frame_request.playback_time.microseconds = 11'000'000;
+    if (api.build_frame(plane, &frame_request, &frame) != KivoP8ApiStatus_Ok) return 53;
+    if (frame.status != KivoSubtitleFrameLeaseStatus_Ok) return 54;
+    frame_token.lease_id = frame.lease_id;
+    frame_token.lease_generation = frame.lease_generation;
+    frame_token.snapshot_revision = frame.snapshot_revision;
+    if (api.copy_text_buffer(plane,
+                             frame_token,
+                             KivoSubtitleTextBufferId{1},
+                             KivoMutableByteSpan{embedded_out, sizeof(embedded_out)},
+                             &embedded_required) != KivoP8ApiStatus_Ok) {
+        return 55;
+    }
+    if (embedded_required != sizeof(embedded_text) ||
+        std::memcmp(embedded_out, embedded_text, sizeof(embedded_text)) != 0) {
+        return 56;
+    }
+    api.release_frame(plane, &frame);
+    frame_request.playback_time.microseconds = 13'000'000;
+    if (api.build_frame(plane, &frame_request, &frame) != KivoP8ApiStatus_Ok) return 57;
+    if (frame.status != KivoSubtitleFrameLeaseStatus_Ok) return 58;
+    frame_token.lease_id = frame.lease_id;
+    frame_token.lease_generation = frame.lease_generation;
+    frame_token.snapshot_revision = frame.snapshot_revision;
+    if (api.copy_text_buffer(plane,
+                             frame_token,
+                             KivoSubtitleTextBufferId{1},
+                             KivoMutableByteSpan{embedded_out, sizeof(embedded_out)},
+                             &embedded_required) != KivoP8ApiStatus_Ok) {
+        return 59;
+    }
+    if (embedded_required != sizeof(embedded_text_later) ||
+        std::memcmp(embedded_out, embedded_text_later, sizeof(embedded_text_later)) != 0) {
+        return 60;
+    }
+    api.release_frame(plane, &frame);
+
+    const uint8_t pgs_packet[] = {0x50, 0x47, 0x53};
+    KivoEmbeddedSubtitlePacketSubmitRequest bitmap_packet = text_packet;
+    bitmap_packet.correlation_id.value = 52;
+    bitmap_packet.format = KivoSubtitleFormat_Pgs;
+    bitmap_packet.start_time.microseconds = 20'000'000;
+    bitmap_packet.end_time.microseconds = 22'000'000;
+    bitmap_packet.packet_bytes.data = pgs_packet;
+    bitmap_packet.packet_bytes.bytes = sizeof(pgs_packet);
+    if (kivo_subtitle_plane_submit_embedded_packet_v1(plane, &bitmap_packet, &packet_token) !=
+        KivoP8ApiStatus_Ok) {
+        return 46;
+    }
+    if (packet_token.immediate_status != KivoSubtitleCommandImmediateStatus_Accepted) return 47;
+    frame_request.playback_time.microseconds = 21'000'000;
+    if (api.build_frame(plane, &frame_request, &frame) != KivoP8ApiStatus_Ok) return 48;
+    if (frame.status != KivoSubtitleFrameLeaseStatus_Empty ||
+        frame.error != KivoSubtitlePlaneError_SubtitleFrameUnavailableByPolicy) {
+        return 49;
+    }
+    KivoSubtitleMetricsSnapshot embedded_metrics{};
+    if (api.get_metrics(plane, &embedded_metrics) != KivoP8ApiStatus_Ok) return 50;
+    if (embedded_metrics.packet_queue_depth < 2 ||
+        embedded_metrics.unsupported_feature_count == 0) {
+        return 51;
+    }
+
     ReaderProbe probe{};
     KivoSubtitleSourceDescriptor source{};
     source.kind = KivoSubtitleSourceKind_Reader;

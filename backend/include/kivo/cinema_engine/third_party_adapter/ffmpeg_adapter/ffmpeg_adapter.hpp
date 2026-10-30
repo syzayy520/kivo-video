@@ -1,6 +1,6 @@
 #pragma once
 
-// FFmpeg Adapter — public boundary header.
+// FFmpeg Adapter - public boundary header.
 // Contains ZERO FFmpeg forward declarations. All FFmpeg interactions are behind opaque handles.
 // FFmpeg native types (AVFormatContext, AVCodecContext, AVPacket, AVFrame) are
 // ONLY allowed inside backend/src/third_party_adapter/ffmpeg_adapter/ffmpeg_adapter.cpp.
@@ -11,11 +11,36 @@
 
 namespace kivo::cinema_engine {
 
-// ─── Opaque handle types ───────────────────────────────────────────
-struct FfmpegFormatHandle { void* native = nullptr; };
+// Opaque handle types
+enum class FfmpegIoSeekOrigin : std::uint8_t {
+    Begin = 0,
+    Current = 1,
+    End = 2,
+    Size = 3
+};
+
+struct FfmpegInputCallbacks {
+    void* user_data{nullptr};
+    int (*read)(void* user_data, std::uint8_t* buffer, int buffer_size){nullptr};
+    std::int64_t (*seek)(
+        void* user_data,
+        std::int64_t offset,
+        FfmpegIoSeekOrigin origin){nullptr};
+};
+
+struct FfmpegInputConfig {
+    FfmpegInputCallbacks callbacks{};
+    int buffer_size{32768};
+};
+
+struct FfmpegFormatHandle {
+    void* native = nullptr;
+    void* custom_io_context = nullptr;
+    void (*custom_io_destroy)(void* context) = nullptr;
+};
 struct FfmpegCodecHandle { void* native = nullptr; };
 
-// ─── Packet metadata (extracted from AVPacket) ─────────────────────
+// Packet metadata (extracted from AVPacket)
 struct FfmpegPacketInfo {
     int stream_index = 0;
     int64_t pts = 0;
@@ -24,16 +49,22 @@ struct FfmpegPacketInfo {
     bool is_key_frame = false;
 };
 
-// ─── Read result (includes compressed data copy) ───────────────────
+struct FfmpegPacketSideData {
+    int type = 0;
+    std::vector<uint8_t> data;
+};
+
+// Read result (includes compressed data copy)
 struct FfmpegReadResult {
     bool success = false;
     bool eof = false;
     std::string error_message;
     FfmpegPacketInfo packet;
     std::vector<uint8_t> packet_data;
+    std::vector<FfmpegPacketSideData> side_data;
 };
 
-// ─── Frame result (extracted from AVFrame) ─────────────────────────
+// Frame result (extracted from AVFrame)
 struct FfmpegFrameResult {
     bool is_video = false;
     bool is_audio = false;
@@ -48,18 +79,18 @@ struct FfmpegFrameResult {
     std::string sample_format;
     // Real pixel/sample data extracted from AVFrame.
     std::vector<uint8_t> frame_data;
-    int linesize[4]{0, 0, 0, 0};  // stride per plane
+    int linesize[8]{0, 0, 0, 0, 0, 0, 0, 0};  // stride per plane
     int plane_count{0};            // number of planes
 };
 
-// ─── Codec info (extracted from AVCodecContext) ────────────────────
+// Codec info (extracted from AVCodecContext)
 struct FfmpegCodecInfo {
     int width = 0;
     int height = 0;
     std::string pixel_format;
 };
 
-// ─── Send packet result ────────────────────────────────────────────
+// Send packet result
 enum class FfmpegSendStatus { Success, NeedDrain, EndOfStream, Error };
 
 struct FfmpegSendResult {
@@ -74,6 +105,7 @@ public:
 
     // --- Format context lifecycle ---
     static FfmpegFormatHandle open_file(const std::string& path);
+    static FfmpegFormatHandle open_custom_io(const FfmpegInputConfig& config);
     static void free_format_context(FfmpegFormatHandle& handle);
 
     // --- Format context queries ---
@@ -99,6 +131,10 @@ public:
     static bool get_stream_metadata(FfmpegFormatHandle handle, int stream_index,
                                     std::string& language, int64_t& duration,
                                     int64_t& bitrate);
+    static bool rescale_stream_timestamp_us(FfmpegFormatHandle handle,
+                                            int stream_index,
+                                            int64_t timestamp,
+                                            int64_t& out_microseconds);
 
     // --- Packet reading (wraps av_read_frame, returns data copy) ---
     static FfmpegReadResult read_packet(FfmpegFormatHandle handle);
@@ -116,9 +152,12 @@ public:
     // --- Decode operations ---
     static FfmpegSendResult send_packet(FfmpegCodecHandle codec_handle,
                                         const FfmpegPacketInfo& info,
-                                        const uint8_t* data, int size);
+                                        const uint8_t* data, int size,
+                                        const std::vector<FfmpegPacketSideData>& side_data = {});
     static bool receive_frame(FfmpegCodecHandle codec_handle,
                               FfmpegFrameResult& result);
+    static bool receive_frame_rgba(FfmpegCodecHandle codec_handle,
+                                   FfmpegFrameResult& result);
     static void flush_decoder(FfmpegCodecHandle codec_handle);
 
     // --- Utility ---

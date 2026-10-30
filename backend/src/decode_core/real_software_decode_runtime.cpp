@@ -2,8 +2,47 @@
 #include "kivo/cinema_engine/third_party_adapter/ffmpeg_adapter/ffmpeg_adapter.hpp"
 
 #include <utility>
+#include <vector>
 
 namespace kivo::cinema_engine {
+namespace {
+
+std::vector<FfmpegPacketSideData> to_ffmpeg_side_data(const KivoPacket& packet) {
+    std::vector<FfmpegPacketSideData> result;
+    result.reserve(packet.side_data.size());
+    for (const auto& side : packet.side_data) {
+        result.push_back({side.type, side.data});
+    }
+    return result;
+}
+
+void copy_frame_to_result(DecodeResult& result, FfmpegFrameResult&& frame) {
+    result.frame.frame_id = "frame_" + std::to_string(frame.pts);
+    result.frame.pts = frame.pts;
+    result.frame.dts = frame.dts;
+    result.frame.duration = frame.duration;
+
+    if (frame.is_video) {
+        result.frame.stream_kind = "video";
+        result.frame.width = frame.width;
+        result.frame.height = frame.height;
+        result.frame.pixel_format = frame.pixel_format;
+        result.frame.frame_data = std::move(frame.frame_data);
+        for (int i = 0; i < 8; ++i) result.frame.linesize[i] = frame.linesize[i];
+        return;
+    }
+
+    if (frame.is_audio) {
+        result.frame.stream_kind = "audio";
+        result.frame.sample_rate = frame.sample_rate;
+        result.frame.channels = frame.channels;
+        result.frame.sample_format = frame.sample_format;
+        result.frame.frame_data = std::move(frame.frame_data);
+        for (int i = 0; i < 8; ++i) result.frame.linesize[i] = frame.linesize[i];
+    }
+}
+
+}  // namespace
 
 RealSoftwareDecodeRuntime::RealSoftwareDecodeRuntime()
     : codec_context_(nullptr),
@@ -128,30 +167,142 @@ DecodeResult RealSoftwareDecodeRuntime::decode(const KivoPacket& packet, const s
     pkt_info.duration = static_cast<int>(packet.duration);
     pkt_info.is_key_frame = packet.is_key_frame;
 
-    FfmpegSendResult send_result = FfmpegAdapter::send_packet(
-        codec, pkt_info,
-        packet.data.empty() ? nullptr : packet.data.data(),
-        static_cast<int>(packet.data.size()));
+    const auto side_data = to_ffmpeg_side_data(packet);
+    FfmpegFrameResult drained_frame;
+    bool has_drained_frame = false;
+    bool packet_sent = false;
 
-    if (send_result.status == FfmpegSendStatus::NeedDrain) {
+    for (int attempt = 0; attempt < 8; ++attempt) {
+        FfmpegSendResult send_result = FfmpegAdapter::send_packet(
+            codec, pkt_info,
+            packet.data.empty() ? nullptr : packet.data.data(),
+            static_cast<int>(packet.data.size()),
+            side_data);
+
+        if (send_result.status == FfmpegSendStatus::Success) {
+            packet_sent = true;
+            break;
+        }
+        if (send_result.status == FfmpegSendStatus::EndOfStream) {
+            result.eof = true;
+            result.success = true;
+            return result;
+        }
+        if (send_result.status == FfmpegSendStatus::Error) {
+            result.success = false;
+            result.error_message = send_result.error_message;
+            return result;
+        }
+
+        FfmpegFrameResult frame;
+        if (!FfmpegAdapter::receive_frame(codec, frame)) {
+            result.needs_more_input = true;
+            result.success = true;
+            return result;
+        }
+        if (!has_drained_frame) {
+            drained_frame = std::move(frame);
+            has_drained_frame = true;
+        }
+    }
+
+    if (!packet_sent) {
+        result.success = false;
+        result.error_message = "decoder did not accept packet after drain";
+        return result;
+    }
+
+    FfmpegFrameResult frame;
+    if (has_drained_frame) {
+        frame = std::move(drained_frame);
+    } else if (!FfmpegAdapter::receive_frame(codec, frame)) {
         result.needs_more_input = true;
         result.success = true;
         return result;
     }
-    if (send_result.status == FfmpegSendStatus::EndOfStream) {
-        result.eof = true;
-        result.success = true;
-        return result;
+
+    copy_frame_to_result(result, std::move(frame));
+    if (result.frame.stream_kind == "video") {
+        pixel_format_ = result.frame.pixel_format;
+        width_ = result.frame.width;
+        height_ = result.frame.height;
     }
-    if (send_result.status == FfmpegSendStatus::Error) {
+
+    result.success = true;
+    return result;
+}
+
+DecodeResult RealSoftwareDecodeRuntime::decode_video_rgba(
+    const KivoPacket& packet,
+    const std::string& trace_id) {
+    DecodeResult result;
+    result.metadata.trace_id = trace_id;
+
+    if (!is_open_ || !codec_context_) {
         result.success = false;
-        result.error_message = send_result.error_message;
+        result.error_message = "not_open: Decoder is not open";
         return result;
     }
 
-    // Try to receive a frame
+    FfmpegCodecHandle codec;
+    codec.native = codec_context_;
+
+    FfmpegPacketInfo pkt_info;
+    pkt_info.stream_index = packet.stream_index;
+    pkt_info.pts = packet.pts;
+    pkt_info.dts = packet.dts;
+    pkt_info.duration = static_cast<int>(packet.duration);
+    pkt_info.is_key_frame = packet.is_key_frame;
+
+    const auto side_data = to_ffmpeg_side_data(packet);
+    FfmpegFrameResult drained_frame;
+    bool has_drained_frame = false;
+    bool packet_sent = false;
+
+    for (int attempt = 0; attempt < 8; ++attempt) {
+        FfmpegSendResult send_result = FfmpegAdapter::send_packet(
+            codec, pkt_info,
+            packet.data.empty() ? nullptr : packet.data.data(),
+            static_cast<int>(packet.data.size()),
+            side_data);
+
+        if (send_result.status == FfmpegSendStatus::Success) {
+            packet_sent = true;
+            break;
+        }
+        if (send_result.status == FfmpegSendStatus::EndOfStream) {
+            result.eof = true;
+            result.success = true;
+            return result;
+        }
+        if (send_result.status == FfmpegSendStatus::Error) {
+            result.success = false;
+            result.error_message = send_result.error_message;
+            return result;
+        }
+
+        FfmpegFrameResult frame;
+        if (!FfmpegAdapter::receive_frame_rgba(codec, frame)) {
+            result.needs_more_input = true;
+            result.success = true;
+            return result;
+        }
+        if (!has_drained_frame) {
+            drained_frame = std::move(frame);
+            has_drained_frame = true;
+        }
+    }
+
+    if (!packet_sent) {
+        result.success = false;
+        result.error_message = "decoder did not accept packet after drain";
+        return result;
+    }
+
     FfmpegFrameResult frame;
-    if (!FfmpegAdapter::receive_frame(codec, frame)) {
+    if (has_drained_frame) {
+        frame = std::move(drained_frame);
+    } else if (!FfmpegAdapter::receive_frame_rgba(codec, frame)) {
         result.needs_more_input = true;
         result.success = true;
         return result;
@@ -161,26 +312,15 @@ DecodeResult RealSoftwareDecodeRuntime::decode(const KivoPacket& packet, const s
     result.frame.pts = frame.pts;
     result.frame.dts = frame.dts;
     result.frame.duration = frame.duration;
-
-    if (frame.is_video) {
-        result.frame.stream_kind = "video";
-        result.frame.width = frame.width;
-        result.frame.height = frame.height;
-        result.frame.pixel_format = frame.pixel_format;
-        result.frame.frame_data = std::move(frame.frame_data);
-        for (int i = 0; i < 4; ++i) result.frame.linesize[i] = frame.linesize[i];
-        pixel_format_ = frame.pixel_format;
-        width_ = frame.width;
-        height_ = frame.height;
-    } else if (frame.is_audio) {
-        result.frame.stream_kind = "audio";
-        result.frame.sample_rate = frame.sample_rate;
-        result.frame.channels = frame.channels;
-        result.frame.sample_format = frame.sample_format;
-        result.frame.frame_data = std::move(frame.frame_data);
-        for (int i = 0; i < 4; ++i) result.frame.linesize[i] = frame.linesize[i];
-    }
-
+    result.frame.stream_kind = "video";
+    result.frame.width = frame.width;
+    result.frame.height = frame.height;
+    result.frame.pixel_format = frame.pixel_format;
+    result.frame.frame_data = std::move(frame.frame_data);
+    for (int i = 0; i < 8; ++i) result.frame.linesize[i] = frame.linesize[i];
+    pixel_format_ = frame.pixel_format;
+    width_ = frame.width;
+    height_ = frame.height;
     result.success = true;
     return result;
 }

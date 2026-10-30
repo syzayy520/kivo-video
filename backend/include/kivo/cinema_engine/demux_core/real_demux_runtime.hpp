@@ -50,7 +50,7 @@ public:
     int subtitle_stream_count() const;
 
 private:
-    void* format_context_;   // AVFormatContext* — opaque to business code
+    void* format_context_;   // AVFormatContext* - opaque to business code
     std::string container_format_;
     double duration_;
     bool is_open_;

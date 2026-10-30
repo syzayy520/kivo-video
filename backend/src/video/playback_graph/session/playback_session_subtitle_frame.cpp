@@ -7,8 +7,13 @@ SubtitleFrameSnapshot PlaybackSessionRuntime::query_subtitle_frame() const noexc
         return {};
     }
 
-    return subtitle_frame_bridge_.query(position_ms_, subtitle_delay_ms_, subtitle_track_id_,
-                                      subtitle_enabled_);
+    if (local_media_continuous_.is_active()) {
+        return local_media_continuous_.query_subtitle_frame(
+            current_position_ms(), subtitle_delay_ms_, subtitle_track_id_, subtitle_enabled_);
+    }
+
+    return subtitle_frame_bridge_.query(current_position_ms(), subtitle_delay_ms_,
+                                        subtitle_track_id_, subtitle_enabled_);
 }
 
 }  // namespace kivo::video::playback_graph::runtime

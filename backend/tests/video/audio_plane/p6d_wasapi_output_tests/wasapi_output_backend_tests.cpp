@@ -107,6 +107,7 @@ static void test_d06_transition_from_terminal() {
 }
 
 // D7: start after init → Running (requires real audio device)
+// Pre-fill ensures Start() should succeed. No "skipped" allowed.
 static void test_d07_start() {
     rt::WasapiOutputBackend backend;
     AudioOutputOpenRequest req;
@@ -115,23 +116,17 @@ static void test_d07_start() {
     req.bit_depth = 16;
     req.buffer_period_ms = 10;
     if (backend.init(req).is_error()) {
-        std::printf("[D07] start skipped (no audio device)\n");
-        return;
+        throw std::runtime_error("init must succeed (real audio device required for D07)");
     }
     auto r = backend.start();
-    if (r.is_error()) {
-        // Start may fail in CI/test environments without real audio hardware.
-        std::printf("[D07] start skipped (start failed in test env)\n");
-        backend.close();
-        return;
-    }
+    if (r.is_error()) throw std::runtime_error("start must succeed after pre-fill");
     if (backend.state() != AudioOutputBackendState::Running)
         throw std::runtime_error("state must be Running");
     backend.close();
-    std::printf("[D07] start PASS\n");
+    std::printf("[D07] start → Running PASS\n");
 }
 
-// D8: stop after start → Ready (requires real audio device)
+// D8: stop after start → Ready
 static void test_d08_stop() {
     rt::WasapiOutputBackend backend;
     AudioOutputOpenRequest req;
@@ -139,20 +134,16 @@ static void test_d08_stop() {
     req.channel_count = 2;
     req.bit_depth = 16;
     req.buffer_period_ms = 10;
-    if (backend.init(req).is_error()) {
-        std::printf("[D08] stop skipped (no audio device)\n");
-        return;
-    }
-    if (backend.start().is_error()) {
-        std::printf("[D08] stop skipped (start failed)\n");
-        return;
-    }
+    if (backend.init(req).is_error())
+        throw std::runtime_error("init must succeed");
+    if (backend.start().is_error())
+        throw std::runtime_error("start must succeed");
     auto r = backend.stop();
     if (r.is_error()) throw std::runtime_error("stop must succeed");
     if (backend.state() != AudioOutputBackendState::Ready)
         throw std::runtime_error("state must be Ready after stop");
     backend.close();
-    std::printf("[D08] stop PASS\n");
+    std::printf("[D08] stop → Ready PASS\n");
 }
 
 int main() {

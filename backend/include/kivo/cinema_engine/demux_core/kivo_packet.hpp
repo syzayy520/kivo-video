@@ -8,6 +8,11 @@
 
 namespace kivo::cinema_engine {
 
+struct KivoPacketSideData {
+    int type{0};
+    std::vector<uint8_t> data;
+};
+
 // KivoPacket is a typed packet wrapper carrying compressed codec data.
 struct KivoPacket {
     ContractMetadata metadata;
@@ -19,6 +24,7 @@ struct KivoPacket {
     bool is_key_frame{false};
     bool is_corrupt{false};
     std::vector<uint8_t> data;  // owned compressed packet payload
+    std::vector<KivoPacketSideData> side_data;
 };
 
 }  // namespace kivo::cinema_engine

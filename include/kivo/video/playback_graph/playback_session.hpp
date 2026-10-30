@@ -1,11 +1,14 @@
 #pragma once
 
 #include <cstdint>
+#include <string_view>
 
 #include "kivo/video/playback_graph/binding/video_surface_binding.hpp"
 #include "kivo/video/playback_graph/clock/playback_timeline_snapshot.hpp"
 #include "kivo/video/playback_graph/command/audio_output_policy_request.hpp"
 #include "kivo/video/playback_graph/command/playback_settings_policy_request.hpp"
+#include "kivo/video/playback_graph/command/playlist_policy_request.hpp"
+#include "kivo/video/playback_graph/command/window_screen_policy_request.hpp"
 #include "kivo/video/playback_graph/command_lifecycle_snapshot.hpp"
 #include "kivo/video/playback_graph/command_token.hpp"
 #include "kivo/video/playback_graph/evidence/diagnostics_summary.hpp"
@@ -45,6 +48,7 @@ public:
     PlaybackSession& operator=(PlaybackSession&& other) noexcept;
 
     CommandToken open(const OpenRequest& request) noexcept;
+    CommandToken open_local_media_file(std::string_view path) noexcept;
     CommandToken start() noexcept;
     CommandToken pause() noexcept;
     CommandToken resume() noexcept;
@@ -66,6 +70,14 @@ public:
     CommandToken set_deinterlace_mode(const PlaybackDeinterlaceModeRequest& request) noexcept;
     CommandToken set_playback_speed(const PlaybackSpeedRequest& request) noexcept;
     CommandToken set_subtitle_size(const SubtitleSizeRequest& request) noexcept;
+    CommandToken enter_fullscreen() noexcept;
+    CommandToken exit_fullscreen() noexcept;
+    CommandToken move_to_screen(const ScreenMoveRequest& request) noexcept;
+    CommandToken next() noexcept;
+    CommandToken previous() noexcept;
+    CommandToken play_next_episode() noexcept;
+    CommandToken play_playlist_item(const PlaylistItemSelectRequest& request) noexcept;
+    CommandToken set_auto_play_next(const AutoPlayNextRequest& request) noexcept;
     CommandToken close() noexcept;
     CommandToken attach_video_surface(const VideoSurfaceBindingRequest& request) noexcept;
     CommandToken detach_video_surface() noexcept;
@@ -86,11 +98,14 @@ public:
     TrackInventorySnapshot query_track_inventory() const noexcept;
     AudioOutputPolicySnapshot query_audio_output_policy() const noexcept;
     PlaybackSettingsPolicySnapshot query_playback_settings_policy() const noexcept;
+    WindowScreenPolicySnapshot query_window_screen_policy() const noexcept;
+    PlaylistPolicySnapshot query_playlist_policy() const noexcept;
     CommandLifecycleSnapshot query_command(PlaybackCommandId id) const noexcept;
     SubscriptionToken subscribe_events(GraphObserverHandle observer) noexcept;
     void unsubscribe(SubscriptionToken token) noexcept;
     CommandToken inject_system_event(const SystemEvent& event) noexcept;
-    [[nodiscard]] LocalMediaPlaybackQuery query_local_media_playback() const noexcept;
+    [[nodiscard]] LocalMediaPlaybackQuery query_local_media_playback(
+        bool include_frame_pixels = true) const noexcept;
     [[nodiscard]] int pump_local_media_playback(int max_packets) noexcept;
 
 private:

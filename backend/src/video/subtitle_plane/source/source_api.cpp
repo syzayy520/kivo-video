@@ -5,6 +5,7 @@
 #include "video/subtitle_plane/evidence/evidence_summary.hpp"
 #include "video/subtitle_plane/observer/observer_registry.hpp"
 #include "video/subtitle_plane/privacy/redacted_identity.hpp"
+#include "video/subtitle_plane/source/embedded_packet_ingest.hpp"
 #include "video/subtitle_plane/source/external_reader_lifecycle.hpp"
 #include "video/subtitle_plane/source/source_descriptor_validation.hpp"
 
@@ -48,6 +49,9 @@ KivoP8ApiStatus KIVO_P8_CALL api_set_source(
     record->timeline = KivoSubtitleTimelineAvailability_Available;
     record->metrics.packet_queue_bytes = source->memory_bytes.bytes;
     record->metrics.peak_packet_queue_bytes = source->memory_bytes.bytes;
+    if (source->kind == KivoSubtitleSourceKind_MemoryBytes) {
+        store_memory_text_source(*record, source->memory_bytes);
+    }
     *out_token = accept_command(*record, correlation_id);
     return KivoP8ApiStatus_Ok;
 }

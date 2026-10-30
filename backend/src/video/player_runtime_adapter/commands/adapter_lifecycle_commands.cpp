@@ -48,33 +48,42 @@ AdapterCommandResult PlayerRuntimeAdapter::reopen() noexcept {
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::enter_fullscreen() noexcept {
-    return runtime::missing_p7_api(AdapterMissingP7Api::FullscreenWindowScreen);
+    return runtime::command_result_from_p7(session_.enter_fullscreen());
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::exit_fullscreen() noexcept {
-    return runtime::missing_p7_api(AdapterMissingP7Api::FullscreenWindowScreen);
+    return runtime::command_result_from_p7(session_.exit_fullscreen());
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::move_to_screen(const std::int32_t screen_index) noexcept {
-    (void)screen_index;
-    return runtime::missing_p7_api(AdapterMissingP7Api::FullscreenWindowScreen);
+    playback_graph::ScreenMoveRequest request{};
+    request.screen_index = screen_index;
+    return runtime::command_result_from_p7(session_.move_to_screen(request));
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::next() noexcept {
-    return runtime::missing_p7_api(AdapterMissingP7Api::Playlist);
+    return runtime::command_result_from_p7(session_.next());
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::previous() noexcept {
-    return runtime::missing_p7_api(AdapterMissingP7Api::Playlist);
+    return runtime::command_result_from_p7(session_.previous());
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::play_next_episode() noexcept {
-    return runtime::missing_p7_api(AdapterMissingP7Api::Playlist);
+    return runtime::command_result_from_p7(session_.play_next_episode());
+}
+
+AdapterCommandResult PlayerRuntimeAdapter::play_playlist_item(
+    const std::uint64_t index) noexcept {
+    playback_graph::PlaylistItemSelectRequest request{};
+    request.index = index;
+    return runtime::command_result_from_p7(session_.play_playlist_item(request));
 }
 
 AdapterCommandResult PlayerRuntimeAdapter::set_auto_play_next(const bool enabled) noexcept {
-    (void)enabled;
-    return runtime::missing_p7_api(AdapterMissingP7Api::Playlist);
+    playback_graph::AutoPlayNextRequest request{};
+    request.enabled = enabled;
+    return runtime::command_result_from_p7(session_.set_auto_play_next(request));
 }
 
 }  // namespace kivo::video::player_runtime_adapter

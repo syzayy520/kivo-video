@@ -7,6 +7,8 @@
 #include "video/playback_graph/command/pending_transport_intent.hpp"
 #include "video/playback_graph/coordination/recovery_replay_coordinator.hpp"
 #include "video/playback_graph/p4_bridge/p4_state_sync_adapter.hpp"
+#include "video/playback_graph/p4_bridge/p4_timeline_contract_bridge.hpp"
+#include "video/playback_graph/p8_bridge/subtitle_frame_p8_bridge.hpp"
 #include "video/playback_graph/state/playback_graph_state_machine.hpp"
 
 using namespace kivo::video::playback_graph;
@@ -196,6 +198,35 @@ namespace {
            adapter.current_playback_revision().value == 1;
 }
 
+[[nodiscard]] bool verify_p4_timeline_contract_bridge_truthful_ownership() {
+    P4TimelineContractBridge bridge{};
+    P4TimelineContractInput input{};
+    input.session_id = PlaybackSessionId{1};
+    input.playback_revision = PlaybackRevision{5};
+    input.graph_snapshot_revision = GraphSnapshotRevision{11};
+    input.graph_state = PlaybackGraphState::Playing;
+    input.position_ms = 81027;
+    input.duration_ms = 6435179;
+    input.buffered_range_valid = true;
+    input.buffered_start_ms = 81027;
+    input.buffered_end_ms = 81147;
+    input.continuous_playback_active = true;
+    input.source_seekable = true;
+
+    const auto snapshot = bridge.build(input);
+    return snapshot.connected && snapshot.uses_p4_public_timeline_state &&
+           !snapshot.p4_runtime_state_machine_owner &&
+           snapshot.state.session_id.value == 1 &&
+           snapshot.state.revision.value == 11 &&
+           snapshot.state.generation.value == 5 &&
+           snapshot.state.state ==
+               kivo::playback::control_plane::state::SessionState::Playing &&
+           snapshot.state.observed_position_ms.value == 81027 &&
+           snapshot.state.duration_ms.has_value() &&
+           snapshot.state.duration_ms->value == 6435179 &&
+           snapshot.state.source_timeline.buffered_range.has_value();
+}
+
 [[nodiscard]] bool verify_registry_lifetime() {
     P4StateSyncAdapter p4{};
     CommandLifetimeRegistry registry{4, 1};
@@ -243,6 +274,11 @@ namespace {
     }
     if (resolve_command_conflict(GraphCommandKind::Pause, PlaybackGraphState::Starting, false).decision !=
         CommandConflictDecision::PendingTransportIntent) {
+        return false;
+    }
+    if (resolve_command_conflict(GraphCommandKind::SetWindowScreenPolicy,
+                                 PlaybackGraphState::NotCreated,
+                                 false).decision != CommandConflictDecision::Accept) {
         return false;
     }
     return resolve_command_conflict(GraphCommandKind::Start, PlaybackGraphState::Closed, false).decision ==
@@ -324,6 +360,31 @@ namespace {
     return session.query_track_inventory().selected_audio_track_id == 2;
 }
 
+[[nodiscard]] bool verify_ready_track_preselection_stays_ready() {
+    PlaybackSession session{};
+    OpenRequest open{};
+    open.source_id = 24;
+    if (!session.open(open).accepted() ||
+        session.snapshot().state != PlaybackGraphState::Ready) {
+        return false;
+    }
+
+    SubtitleTrackSwitchRequest subtitle{};
+    subtitle.track_id = 2;
+    if (!session.switch_subtitle_track(subtitle).accepted() ||
+        session.snapshot().state != PlaybackGraphState::Ready ||
+        session.query_track_inventory().selected_subtitle_track_id != 2) {
+        return false;
+    }
+    if (!session.cycle_audio_track().accepted() ||
+        session.snapshot().state != PlaybackGraphState::Ready ||
+        session.query_track_inventory().selected_audio_track_id != 2) {
+        return false;
+    }
+    return session.start().accepted() &&
+           session.snapshot().state == PlaybackGraphState::Playing;
+}
+
 [[nodiscard]] bool verify_subtitle_frame_typed_contract() {
     PlaybackSession session{};
     OpenRequest open{};
@@ -353,6 +414,48 @@ namespace {
            bridged.primary.primary_text[2] == 'e';
 }
 
+[[nodiscard]] bool verify_p8_embedded_packet_bridge() {
+    SubtitleFrameP8Bridge bridge{};
+    bridge.attach(9, false);
+    if (!bridge.active()) {
+        return false;
+    }
+
+    EmbeddedSubtitlePacketSubmission text_packet;
+    text_packet.start_time_us = 0;
+    text_packet.end_time_us = 2'000'000;
+    text_packet.codec_name = "subrip";
+    text_packet.data = {'r', 'e', 'a', 'l'};
+    if (!bridge.submit_embedded_packet(text_packet)) {
+        return false;
+    }
+
+    const auto frame = bridge.query(1000, 0, 9, true);
+    if (!frame.valid || !frame.runtime_connected || !frame.frame_available ||
+        frame.primary.primary_text[0] != 'r' || frame.primary.primary_text[1] != 'e' ||
+        frame.primary.primary_text[2] != 'a' || frame.primary.primary_text[3] != 'l') {
+        return false;
+    }
+
+    SubtitleFrameP8Bridge pgs_bridge{};
+    pgs_bridge.attach(10, false);
+    EmbeddedSubtitlePacketSubmission pgs_packet;
+    pgs_packet.start_time_us = 0;
+    pgs_packet.end_time_us = 2'000'000;
+    pgs_packet.codec_name = "hdmv_pgs_subtitle";
+    pgs_packet.data = {0x50, 0x47};
+    if (!pgs_bridge.submit_embedded_packet(pgs_packet)) {
+        return false;
+    }
+    const auto pgs_frame = pgs_bridge.query(1000, 0, 10, true);
+    const auto pgs_stats = pgs_bridge.stats();
+    return pgs_frame.valid && pgs_frame.runtime_connected && !pgs_frame.frame_available &&
+           pgs_stats.embedded_packet_ingest_connected &&
+           pgs_stats.submitted_packet_count == 1 &&
+           pgs_stats.unsupported_feature_count > 0 &&
+           !pgs_stats.pgs_bitmap_render_connected;
+}
+
 [[nodiscard]] bool verify_diagnostics_invalid_closed() {
     PlaybackSession session{};
     OpenRequest open{};
@@ -363,6 +466,75 @@ namespace {
     const auto summary = session.query_diagnostics_summary();
     return !summary.valid &&
            summary.invalid_reason == DiagnosticsInvalidReason::GraphClosed;
+}
+
+[[nodiscard]] bool verify_window_screen_policy_contract() {
+    PlaybackSession session{};
+    if (!session.enter_fullscreen().accepted()) {
+        return false;
+    }
+    auto window = session.query_window_screen_policy();
+    if (!window.valid || window.mode != PlaybackWindowMode::Fullscreen) {
+        return false;
+    }
+    ScreenMoveRequest move{};
+    move.screen_index = 1;
+    if (!session.move_to_screen(move).accepted()) {
+        return false;
+    }
+    window = session.query_window_screen_policy();
+    if (!window.valid || !window.screen_index_valid || window.screen_index != 1) {
+        return false;
+    }
+    if (!session.exit_fullscreen().accepted()) {
+        return false;
+    }
+    if (session.query_window_screen_policy().mode != PlaybackWindowMode::Windowed) {
+        return false;
+    }
+    if (!session.close().accepted()) {
+        return false;
+    }
+    return session.enter_fullscreen().immediate_error == PlaybackGraphError::ClosedGraph;
+}
+
+[[nodiscard]] bool verify_playlist_policy_contract() {
+    PlaybackSession session{};
+    OpenRequest open{};
+    open.source_id = 23;
+    if (!session.open(open).accepted()) {
+        return false;
+    }
+
+    const auto initial = session.query_playlist_policy();
+    if (!initial.valid || initial.queue_connected || initial.has_next ||
+        initial.has_previous || initial.has_next_episode || initial.auto_play_next) {
+        return false;
+    }
+    if (session.next().immediate_error !=
+            PlaybackGraphError::PolicyUnsupportedByCapability ||
+        session.previous().immediate_error !=
+            PlaybackGraphError::PolicyUnsupportedByCapability ||
+        session.play_next_episode().immediate_error !=
+            PlaybackGraphError::PolicyUnsupportedByCapability) {
+        return false;
+    }
+    AutoPlayNextRequest auto_play{};
+    auto_play.enabled = true;
+    if (!session.set_auto_play_next(auto_play).accepted()) {
+        return false;
+    }
+    const auto enabled = session.query_playlist_policy();
+    if (!enabled.valid || !enabled.auto_play_next || enabled.queue_connected ||
+        enabled.item_count != 0) {
+        return false;
+    }
+    if (!session.close().accepted()) {
+        return false;
+    }
+    return !session.query_playlist_policy().valid &&
+           session.set_auto_play_next(auto_play).immediate_error ==
+               PlaybackGraphError::ClosedGraph;
 }
 
 }  // namespace
@@ -383,26 +555,41 @@ int main() {
     if (!expect(verify_p4_revision_boundary())) {
         return 5;
     }
-    if (!expect(verify_registry_lifetime())) {
+    if (!expect(verify_p4_timeline_contract_bridge_truthful_ownership())) {
         return 6;
     }
-    if (!expect(verify_conflict_matrix())) {
+    if (!expect(verify_registry_lifetime())) {
         return 7;
     }
-    if (!expect(verify_pending_and_replay())) {
+    if (!expect(verify_conflict_matrix())) {
         return 8;
     }
-    if (!expect(verify_stop_preserves_open_session())) {
+    if (!expect(verify_pending_and_replay())) {
         return 9;
     }
-    if (!expect(verify_track_inventory_typed_contract())) {
+    if (!expect(verify_stop_preserves_open_session())) {
         return 10;
     }
-    if (!expect(verify_subtitle_frame_typed_contract())) {
+    if (!expect(verify_track_inventory_typed_contract())) {
         return 11;
     }
-    if (!expect(verify_diagnostics_invalid_closed())) {
+    if (!expect(verify_ready_track_preselection_stays_ready())) {
+        return 17;
+    }
+    if (!expect(verify_subtitle_frame_typed_contract())) {
         return 12;
+    }
+    if (!expect(verify_p8_embedded_packet_bridge())) {
+        return 13;
+    }
+    if (!expect(verify_diagnostics_invalid_closed())) {
+        return 14;
+    }
+    if (!expect(verify_window_screen_policy_contract())) {
+        return 15;
+    }
+    if (!expect(verify_playlist_policy_contract())) {
+        return 16;
     }
     return 0;
 }

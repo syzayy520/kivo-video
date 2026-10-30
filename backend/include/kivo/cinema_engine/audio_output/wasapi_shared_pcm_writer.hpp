@@ -48,6 +48,10 @@ struct WasapiSharedPcmWriter {
 
     // Get current buffer status.
     int32_t available_frames() const;
+    int32_t sample_rate() const;
+    int32_t channel_count() const;
+    int32_t bit_depth() const;
+    std::string sample_format() const;
 
     // Get the last error message (empty if no error).
     std::string last_error() const;
@@ -60,6 +64,9 @@ struct WasapiSharedPcmWriter {
 
     // Stop playback (if playing).
     bool stop();
+
+    // Clear queued endpoint audio after a discontinuity such as seek.
+    bool reset();
 
     // Release all resources.
     void release();

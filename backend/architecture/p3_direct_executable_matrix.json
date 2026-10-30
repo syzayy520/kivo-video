@@ -1,0 +1,60 @@
+{
+  "schema_version": "p3.direct.executable.matrix.v1",
+  "generated": "2026-06-27",
+  "matrix": [
+    {
+      "name": "kivo_p3_execution_family_test",
+      "command": "kivo_p3_execution_family_test.exe",
+      "working_directory": "build output directory",
+      "expected_result": "exit 0, 11 tests PASS",
+      "evidence_output": "stdout",
+      "closure_blocking": true,
+      "timeout_seconds": 10
+    },
+    {
+      "name": "kivo_p3_source_model_platform_test",
+      "command": "kivo_p3_source_model_platform_test.exe",
+      "working_directory": "build output directory",
+      "expected_result": "exit 0, 8 tests PASS",
+      "evidence_output": "stdout",
+      "closure_blocking": true,
+      "timeout_seconds": 10
+    },
+    {
+      "name": "kivo_p3_contracts_test",
+      "command": "kivo_p3_contracts_test.exe",
+      "working_directory": "build output directory",
+      "expected_result": "exit 0, 19 tests PASS",
+      "evidence_output": "stdout",
+      "closure_blocking": true,
+      "timeout_seconds": 10
+    },
+    {
+      "name": "kivo_p3_behavior_test",
+      "command": "kivo_p3_behavior_test.exe",
+      "working_directory": "build output directory",
+      "expected_result": "exit 0, 20 tests PASS",
+      "evidence_output": "stdout",
+      "closure_blocking": true,
+      "timeout_seconds": 15
+    },
+    {
+      "name": "kivo_p3_acceptance_test",
+      "command": "kivo_p3_acceptance_test.exe",
+      "working_directory": "build output directory",
+      "expected_result": "exit 0, acceptance tests PASS",
+      "evidence_output": "stdout",
+      "closure_blocking": true,
+      "timeout_seconds": 15
+    },
+    {
+      "name": "p3_architecture_guard_scan",
+      "command": "python backend/tools/p3/architecture_guard_scanner.py --root=.",
+      "working_directory": "project root",
+      "expected_result": "exit 0, 0 violations",
+      "evidence_output": "JSON stdout",
+      "closure_blocking": true,
+      "timeout_seconds": 15
+    }
+  ]
+}
