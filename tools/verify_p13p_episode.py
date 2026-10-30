@@ -407,9 +407,23 @@ def check_file(path: Path, doc: dict[str, Any]) -> dict[str, Any]:
         else:
             if rate_ppm != 0:
                 # G4 门开 + 速率注入：门必须追住，且领先量不得越出门限太多。
-                if rebases < 1:
+                #
+                # 「至少触发一次」原来写在这里，但它只在 ppm 够大时成立：
+                # 45 ms 门限下，要达到它需要 `ppm × 有效时长 > limit` ——
+                # 8 s 片源要 5625 ppm，130 s 片源要 346 ppm。
+                # P13-AE 的 100 ppm / 130 s 只累积 12.8 ms，**不该触发**；
+                # 旧判据把那两轮干净的 0 次判成了"门没接上" ——
+                # 那是判据把算术当成了怀疑对象（`114-p13ae-status.md` §七）。
+                #
+                # 现在的写法：先算累积量。够不到门限就要求 0 次；
+                # 够到了才要求至少 1 次。两种情况都仍然检查领先量有界。
+                duration_s = float(doc.get("source", {}).get("duration_us", 0)) / 1e6
+                accumulated_ns = (rate_ppm / 1e6) * max(0.0, duration_s - 2.0) * 1e9
+                if accumulated_ns > limit_ns and rebases < 1:
                     raise Failure(
-                        f"{path.name}: G4 速率 {rate_ppm} ppm 却一次没触发"
+                        f"{path.name}: G4 速率 {rate_ppm} ppm × {duration_s:.0f} s = "
+                        f"{accumulated_ns / 1e6:.1f} ms 已越过门限 {limit_ns / 1e6:.0f} ms，"
+                        "却一次没触发"
                     )
                 if ahead > limit_ns + 2 * frame_ns:
                     raise Failure(

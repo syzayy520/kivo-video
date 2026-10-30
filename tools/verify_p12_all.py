@@ -724,6 +724,19 @@ def layer4_reuse(report: Report) -> None:
         run_sub("verify_p13p_episode",
                 [py, "tools/verify_p13p_episode.py", *p13_files], report)
 
+    # P13-AE：门的标定。判据是"触发次数 == ppm × 时长 / band 的算术预测"，
+    # 外加关闸对照与"除首次外每次 ≤ band"。
+    #
+    # 不并进 `verify_p13d_drift`：那个问"抽稀后分位数自不自洽"，
+    # 这个问"门动作了几次、幅度对不对"。两张判据合一个脚本，
+    # 改其中一条就要重跑另一条的容差，早晚互相将就。
+    ae_files = sorted(glob.glob("docs/evidence/p13ae/*-sync.json"))
+    if ae_files:
+        run_sub("verify_p13ae_gate",
+                [py, "tools/verify_p13ae_gate.py", *ae_files], report)
+    else:
+        report.fail(4, "verify_p13ae_gate", "找不到证据", "docs/evidence/p13ae/*-sync.json 为空")
+
     run_sub("verify_p12d3_soak",
             [py, "tools/verify_p12d3_soak.py",
              "--mem", "docs/evidence/p12d/p12d3-soak-r1-mem.csv",
