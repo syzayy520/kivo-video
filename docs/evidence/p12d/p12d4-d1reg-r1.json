@@ -1,0 +1,123 @@
+{
+  "schema": "kivo.p12c.decode/6",
+  "generated_at_unix_ms": 1793277719262,
+  "source": {
+    "mime": "video/avc",
+    "width": 1920,
+    "height": 1080,
+    "duration_us": 6000000
+  },
+  "decoder": {
+    "codec_name": "OMX.qcom.video.decoder.avc",
+    "output_target": "surface"
+  },
+  "counters": {
+    "samples_submitted": 180,
+    "samples_rejected": 0,
+    "bytes_submitted": 6202195,
+    "frames_received": 181,
+    "frames_released": 181,
+    "frames_rendered": 163,
+    "frames_dropped_late": 0,
+    "frames_discarded_no_surface": 17
+  },
+  "pipeline": {
+    "mode": "merged",
+    "present": true,
+    "present_schedule": "cpu_paced",
+    "submit": {
+      "calls": 334,
+      "mean_us": 276.934132,
+      "total_us": 92496,
+      "max_us": 2822
+    },
+    "eos": {
+      "calls": 1,
+      "mean_us": 157.000000,
+      "total_us": 157,
+      "max_us": 157
+    },
+    "receive": {
+      "calls": 189,
+      "mean_us": 203.571429,
+      "total_us": 38475,
+      "max_us": 6031
+    },
+    "release": {
+      "calls": 181,
+      "mean_us": 254.679558,
+      "total_us": 46097,
+      "max_us": 4597
+    }
+  },
+  "surface_rebuild": {
+    "rebuilds": 1,
+    "gap_ms": 574,
+    "resume_ms": 21,
+    "frames_lead": 0
+  },
+  "timing": {
+    "wall_us": 6042923,
+    "first_frame_latency_us": 75440,
+    "decode_fps": 26.973701,
+    "speed_vs_realtime": 0.992897
+  },
+  "outcome": {
+    "completed": true,
+    "error": ""
+  },
+  "pace": {
+    "enabled": true,
+    "clock_source": "system",
+    "frame_duration_ns": 33333000,
+    "derived_fps": 30.000300,
+    "frames_decided": 180,
+    "presented": 163,
+    "dropped": 0,
+    "drop_ratio": 0.000000,
+    "catch_up_events": 0,
+    "catch_up_frames": 0,
+    "over_budget_frames": 0,
+    "lateness_ns": {
+      "p50": 125000,
+      "p95": 125000,
+      "p99": 875000,
+      "min": 2135,
+      "max": 1427748
+    },
+    "interval_ns": {
+      "p50": 125000,
+      "p95": 125000,
+      "p99": 625000,
+      "max": 1328823
+    },
+    "clock_mix": {
+      "primary_frames": 0,
+      "fallback_frames": 0,
+      "system_frames": 180
+    },
+    "schedule_lead_ns": {
+      "samples": 0,
+      "p01": 0,
+      "p10": 0,
+      "p50": 0,
+      "p90": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0,
+      "spread": 0
+    },
+    "clock_health": {
+      "extrapolated_frames": 0,
+      "free_run_frames": 0,
+      "jump_rebases": 0,
+      "monotonic_rejects": 0,
+      "stale_readings": 0
+    },
+    "wait": {
+      "count": 179,
+      "total_ns": 5770721710
+    },
+    "sampled_at_frames": 180
+  }
+}

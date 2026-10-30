@@ -1,0 +1,99 @@
+{
+  "schema": "kivo.p12c.decode/3",
+  "generated_at_unix_ms": 1793266271868,
+  "source": {
+    "mime": "video/hevc",
+    "width": 3840,
+    "height": 2160,
+    "duration_us": 4000000
+  },
+  "decoder": {
+    "codec_name": "OMX.qcom.video.decoder.hevc",
+    "output_target": "surface"
+  },
+  "counters": {
+    "samples_submitted": 120,
+    "samples_rejected": 0,
+    "bytes_submitted": 10202606,
+    "frames_received": 121,
+    "frames_released": 121,
+    "frames_rendered": 120,
+    "frames_dropped_late": 0
+  },
+  "pipeline": {
+    "mode": "merged",
+    "present": true,
+    "submit": {
+      "calls": 243,
+      "mean_us": 319.164609,
+      "total_us": 77557,
+      "max_us": 5960
+    },
+    "eos": {
+      "calls": 1,
+      "mean_us": 207.000000,
+      "total_us": 207,
+      "max_us": 207
+    },
+    "receive": {
+      "calls": 150,
+      "mean_us": 581.820000,
+      "total_us": 87273,
+      "max_us": 6845
+    },
+    "release": {
+      "calls": 121,
+      "mean_us": 140.347107,
+      "total_us": 16982,
+      "max_us": 590
+    }
+  },
+  "timing": {
+    "wall_us": 4101629,
+    "first_frame_latency_us": 134700,
+    "decode_fps": 29.256669,
+    "speed_vs_realtime": 0.975222
+  },
+  "outcome": {
+    "completed": true,
+    "error": ""
+  },
+  "pace": {
+    "enabled": true,
+    "clock_source": "system",
+    "frame_duration_ns": 33333000,
+    "derived_fps": 30.000300,
+    "frames_decided": 120,
+    "presented": 120,
+    "dropped": 0,
+    "drop_ratio": 0.000000,
+    "catch_up_events": 0,
+    "catch_up_frames": 0,
+    "over_budget_frames": 0,
+    "lateness_ns": {
+      "p50": 119416,
+      "p95": 119416,
+      "p99": 119416,
+      "min": 2500,
+      "max": 119416
+    },
+    "interval_ns": {
+      "p50": 67469,
+      "p95": 67469,
+      "p99": 67469,
+      "max": 67469
+    },
+    "clock_health": {
+      "extrapolated_frames": 0,
+      "free_run_frames": 0,
+      "jump_rebases": 0,
+      "monotonic_rejects": 0,
+      "stale_readings": 0
+    },
+    "wait": {
+      "count": 119,
+      "total_ns": 3840452092
+    },
+    "sampled_at_frames": 120
+  }
+}

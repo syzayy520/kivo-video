@@ -1,0 +1,65 @@
+{
+  "schema": "kivo.p12c.decode/3",
+  "generated_at_unix_ms": 1793261435983,
+  "source": {
+    "mime": "video/avc",
+    "width": 1920,
+    "height": 1080,
+    "duration_us": 6000000
+  },
+  "decoder": {
+    "codec_name": "OMX.qcom.video.decoder.avc",
+    "output_target": "surface"
+  },
+  "counters": {
+    "samples_submitted": 180,
+    "samples_rejected": 0,
+    "bytes_submitted": 6202195,
+    "frames_received": 181,
+    "frames_released": 181,
+    "frames_rendered": 180,
+    "frames_dropped_late": 0
+  },
+  "pipeline": {
+    "mode": "merged",
+    "present": true,
+    "submit": {
+      "calls": 655,
+      "mean_us": 134.610687,
+      "total_us": 88170,
+      "max_us": 4887
+    },
+    "eos": {
+      "calls": 1,
+      "mean_us": 71.000000,
+      "total_us": 71,
+      "max_us": 71
+    },
+    "receive": {
+      "calls": 543,
+      "mean_us": 1558.250460,
+      "total_us": 846130,
+      "max_us": 5153
+    },
+    "release": {
+      "calls": 181,
+      "mean_us": 52.679558,
+      "total_us": 9535,
+      "max_us": 734
+    }
+  },
+  "timing": {
+    "wall_us": 990415,
+    "first_frame_latency_us": 46209,
+    "decode_fps": 181.741997,
+    "speed_vs_realtime": 6.058067
+  },
+  "outcome": {
+    "completed": true,
+    "error": ""
+  },
+  "pace": {
+    "enabled": false,
+    "reason": "pacing not attached"
+  }
+}

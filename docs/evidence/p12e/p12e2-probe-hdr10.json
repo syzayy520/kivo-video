@@ -1,0 +1,70 @@
+{
+  "schema": "kivo.p12e.hdr-probe/3",
+  "generated_at_unix_ms": 1793340353737,
+  "media": "/data/local/tmp/hdr10.mp4",
+  "mime": "video/hevc",
+  "width": 1920,
+  "height": 1080,
+  "source_profile": 4096,
+  "source_color_standard": 6,
+  "source_color_transfer": 6,
+  "source_color_range": 2,
+  "hdr_static_info_bytes": null,
+  "hdr_kind": "hdr10",
+  "hdr_kind_reason": "standard=6(bt2020), transfer=6(st2084(pq))",
+  "track_format_dump": "mime: string(video/hevc), durationUs: int64(10000000), frame-count: int32(300), max-bitrate: int32(7535816), track-id: int32(1), language: string(und), width: int32(1920), height: int32(1080), display-width: int32(1920), display-height: int32(1080), sar-width: int32(1), sar-height: int32(1), max-input-size: int32(66208), frame-rate: int32(30), csd-0: data, android._is-hdr: int32(1), color-standard: int32(6), color-transfer: int32(6), color-range: int32(2), profile: int32(4096), level: int32(1024)}",
+  "first_sample": {
+    "read_ok": true,
+    "is_encrypted": false,
+    "is_sync": true,
+    "size": 58315
+  },
+  "attempts": [
+    {
+      "case": "track_format_as_is",
+      "configure_ok": true,
+      "configure_status": "ok",
+      "start_ok": true,
+      "output_read_ok": true,
+      "output_color_standard": 6,
+      "output_color_transfer": 6,
+      "output_color_range": 2,
+      "note": null
+    },
+    {
+      "case": "explicit_color_write",
+      "configure_ok": true,
+      "configure_status": "ok",
+      "start_ok": true,
+      "output_read_ok": true,
+      "output_color_standard": 6,
+      "output_color_transfer": 6,
+      "output_color_range": 2,
+      "note": null
+    },
+    {
+      "case": "request_sdr_transfer",
+      "configure_ok": true,
+      "configure_status": "ok",
+      "start_ok": true,
+      "output_read_ok": true,
+      "output_color_standard": 6,
+      "output_color_transfer": 6,
+      "output_color_range": 2,
+      "note": null
+    }
+  ],
+  "verdict": {
+    "both_started": true,
+    "same_color_after_start": true,
+    "reading": "explicitly writing the color keys produced the same reported color as passing the track format through; this path shows no observable effect, which does not mean the delivery was ignored — the platform may already read the same keys from the track format"
+  },
+  "sdr_transfer_request": {
+    "requested_transfer": 3,
+    "start_ok": true,
+    "output_transfer": 6,
+    "honoured": false,
+    "reading": "the decoder kept the source transfer after start, so the SDR output request was ignored; decoder-side tone mapping is not available on this component"
+  },
+  "scope": "this probe configures WITHOUT a window (ByteBuffer mode); it does not prove what the Surface playback path negotiates"
+}

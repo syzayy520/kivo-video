@@ -1,0 +1,19 @@
+---
+pid: 18536
+cwd: "C:\kivo video"
+command: "cd \"C:\\kivo video\" && ctest --preset vs-debug -R \"playback_shell|qml_load|ui_shell\" --output-on-failure 2>&1"
+started_at: 2026-06-30T17:38:00.058Z
+running_for_ms: 6875013  
+---
+Test project C:/kivo video/build/vs-debug
+    Start 219: kivo_playback_shell_qml_load_test
+1/1 Test #219: kivo_playback_shell_qml_load_test ...***Timeout  30.03 sec
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =  30.05 sec
+
+The following tests FAILED:
+219 - kivo_playback_shell_qml_load_test (Timeout)
+Errors while running CTest

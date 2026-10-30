@@ -1,0 +1,31 @@
+{
+  "gate_id": "FC-079",
+  "gate_name": "Architecture Guard CI Gate",
+  "task_id": "P3-COMPLETE-LINE-V9",
+  "status": "PASS",
+  "evidence_kind": "scanner_run",
+  "scanner_file": "backend/tools/p3/architecture_guard_scanner.py",
+  "scanner_run": true,
+  "files_scanned": 27,
+  "violations": 0,
+  "hits": [],
+  "scanner_status": "PASS",
+  "scanner_exit_code": 0,
+  "forbidden_patterns_checked": [
+    "provider_manager",
+    "source_manager",
+    "god_provider",
+    "universal_provider",
+    "one_big_provider"
+  ],
+  "forbidden_outputs_checked": [
+    "D3D11 include",
+    "DXGI include",
+    "WASAPI include",
+    "FFmpeg (avformat/avcodec/avutil)",
+    "Qt UI (QApplication/QWidget/QQml)"
+  ],
+  "scanner_differentiates": true,
+  "machine_checkable": true,
+  "ci_blocking_mode": true
+}

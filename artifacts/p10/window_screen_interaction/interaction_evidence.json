@@ -1,0 +1,239 @@
+{
+    "command_results": [
+        {
+            "bridge_ok": true,
+            "command": "openMediaId",
+            "pathway": "bridge",
+            "result": "accepted"
+        },
+        {
+            "bridge_ok": true,
+            "command": "play",
+            "pathway": "bridge",
+            "result": "accepted"
+        },
+        {
+            "bridge_ok": true,
+            "command": "pause",
+            "pathway": "bridge",
+            "result": "accepted"
+        },
+        {
+            "bridge_ok": true,
+            "command": "togglePlayPause",
+            "pathway": "bridge",
+            "result": "accepted"
+        },
+        {
+            "bridge_ok": true,
+            "command": "seek",
+            "pathway": "qml",
+            "result": "accepted"
+        },
+        {
+            "bridge_ok": true,
+            "command": "seekRelative",
+            "pathway": "bridge",
+            "result": "accepted"
+        },
+        {
+            "bridge_ok": true,
+            "command": "stop",
+            "pathway": "bridge",
+            "result": "accepted"
+        },
+        {
+            "bridge_ok": true,
+            "command": "setSubtitleDelay",
+            "pathway": "bridge",
+            "result": "accepted"
+        },
+        {
+            "bridge_ok": true,
+            "command": "setVolume",
+            "pathway": "bridge",
+            "result": "accepted"
+        },
+        {
+            "bridge_ok": true,
+            "command": "copyDiagnostics",
+            "pathway": "bridge",
+            "result": "accepted"
+        },
+        {
+            "bridge_ok": true,
+            "command": "enterFullscreen",
+            "pathway": "bridge",
+            "result": "accepted"
+        },
+        {
+            "bridge_ok": true,
+            "command": "close",
+            "pathway": "bridge",
+            "result": "accepted"
+        },
+        {
+            "bridge_ok": false,
+            "command": "play",
+            "pathway": "bridge",
+            "result": "rejected"
+        },
+        {
+            "bridge_ok": false,
+            "command": "copyDiagnostics",
+            "pathway": "bridge",
+            "result": "rejected"
+        }
+    ],
+    "commands_executed": [
+        "openMediaId",
+        "play",
+        "pause",
+        "togglePlayPause",
+        "seek",
+        "seekRelative",
+        "stop",
+        "setSubtitleDelay",
+        "setVolume",
+        "copyDiagnostics",
+        "enterFullscreen",
+        "close",
+        "play",
+        "copyDiagnostics"
+    ],
+    "exit": "normal",
+    "fake_content_used": false,
+    "fake_media_used": false,
+    "playback_page_loaded_from_qrc": true,
+    "playback_page_url": "qrc:/kivo/ui/playback/page/PlaybackPage.qml",
+    "qml_loaded": true,
+    "qml_state_after": {
+        "adapterSnapshotBound": true,
+        "currentTimeMs": 8000,
+        "isPaused": false,
+        "subtitleDelayMs": 120,
+        "volume": 0.75
+    },
+    "qml_state_before": {
+        "adapterSnapshotBound": true,
+        "currentTimeMs": 0,
+        "isPaused": false,
+        "subtitleDelayMs": 0,
+        "volume": 1
+    },
+    "qml_state_updated": true,
+    "residual_process": false,
+    "screenshot_exists": true,
+    "screenshot_path": "C:/kivo video/artifacts/p10/window_screen_interaction/interaction_screenshot.png",
+    "shell_root_url": "qrc:/kivo/ui/shell/PlaybackShellRoot.qml",
+    "shell_started": true,
+    "snapshot_after": {
+        "audioDelayMs": 0,
+        "audioTrackOptions": [
+        ],
+        "audio_delay_ms": 0,
+        "audio_track_options": [
+        ],
+        "bufferedRanges": [
+        ],
+        "closed": true,
+        "durationMs": 0,
+        "duration_ms": 0,
+        "fullscreenLike": true,
+        "fullscreen_like": true,
+        "hasError": false,
+        "isBuffering": false,
+        "isPaused": false,
+        "isPlaying": false,
+        "isRecovering": false,
+        "is_buffering": false,
+        "is_paused": false,
+        "is_playing": false,
+        "is_recovering": false,
+        "muted": false,
+        "positionMs": 0,
+        "position_ms": 0,
+        "screenIndex": -1,
+        "screenIndexValid": false,
+        "screen_index": -1,
+        "screen_index_valid": false,
+        "selectedAudioTrack": 0,
+        "selectedSubtitleTrack": 0,
+        "selected_audio_track": 0,
+        "selected_subtitle_track": 0,
+        "subtitleDelayMs": 0,
+        "subtitleEnabled": false,
+        "subtitleOptions": [
+        ],
+        "subtitlePrimary": "",
+        "subtitleSecondary": "",
+        "subtitle_delay_ms": 0,
+        "subtitle_enabled": false,
+        "subtitle_options": [
+        ],
+        "subtitle_primary": "",
+        "subtitle_secondary": "",
+        "videoHeight": 0,
+        "videoReady": false,
+        "videoWidth": 0,
+        "video_height": 0,
+        "video_ready": false,
+        "video_width": 0,
+        "volume": 1
+    },
+    "snapshot_before": {
+        "audioDelayMs": 0,
+        "audioTrackOptions": [
+        ],
+        "audio_delay_ms": 0,
+        "audio_track_options": [
+        ],
+        "bufferedRanges": [
+        ],
+        "closed": false,
+        "durationMs": 0,
+        "duration_ms": 0,
+        "fullscreenLike": false,
+        "fullscreen_like": false,
+        "hasError": false,
+        "isBuffering": false,
+        "isPaused": false,
+        "isPlaying": false,
+        "isRecovering": false,
+        "is_buffering": false,
+        "is_paused": false,
+        "is_playing": false,
+        "is_recovering": false,
+        "muted": false,
+        "positionMs": 0,
+        "position_ms": 0,
+        "screenIndex": -1,
+        "screenIndexValid": false,
+        "screen_index": -1,
+        "screen_index_valid": false,
+        "selectedAudioTrack": 0,
+        "selectedSubtitleTrack": 0,
+        "selected_audio_track": 0,
+        "selected_subtitle_track": 0,
+        "subtitleDelayMs": 0,
+        "subtitleEnabled": false,
+        "subtitleOptions": [
+        ],
+        "subtitlePrimary": "",
+        "subtitleSecondary": "",
+        "subtitle_delay_ms": 0,
+        "subtitle_enabled": false,
+        "subtitle_options": [
+        ],
+        "subtitle_primary": "",
+        "subtitle_secondary": "",
+        "videoHeight": 0,
+        "videoReady": false,
+        "videoWidth": 0,
+        "video_height": 0,
+        "video_ready": false,
+        "video_width": 0,
+        "volume": 1
+    },
+    "typed_p7_harness": true
+}

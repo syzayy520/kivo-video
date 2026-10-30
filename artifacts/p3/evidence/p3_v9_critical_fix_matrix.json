@@ -1,0 +1,102 @@
+{
+  "gate_id": "FC-005",
+  "gate_name": "V9 Critical Fix Gate",
+  "task_id": "P3-COMPLETE-LINE-V9",
+  "status": "CONTRACT_PASS",
+  "evidence_kind": "planning",
+  "critical_fixes": [
+    {
+      "item": "ManifestSessionLease and RuntimeRevision ownership rule",
+      "tracked_to_gate": "FC-039",
+      "contract": "ManifestSessionLease ownership model",
+      "test_target": "manifest_session_lease_refresh_ownership_tests",
+      "evidence_target": "artifacts/p3/evidence/manifest_session_lease_refresh_ownership_tests.json"
+    },
+    {
+      "item": "Snapshot supersede policy",
+      "tracked_to_gate": "FC-038",
+      "contract": "ManifestSession snapshot supersede",
+      "test_target": "manifest_snapshot_supersede_tests",
+      "evidence_target": "artifacts/p3/evidence/manifest_snapshot_supersede_tests.json"
+    },
+    {
+      "item": "IndependentRangeReader observer closure after P4 handoff",
+      "tracked_to_gate": "FC-036, FC-045",
+      "contract": "IndependentRangeReader ownership + independent_after_transfer",
+      "test_target": "independent_range_reader_tests, independent_after_transfer_tests",
+      "evidence_target": "artifacts/p3/evidence/independent_range_reader_tests.json"
+    },
+    {
+      "item": "DNS rebinding CNAME/redirect/connection-pool checks",
+      "tracked_to_gate": "FC-046, FC-047, FC-048, FC-049",
+      "contract": "NetworkPolicy SSRF + DNS rebinding + redirect security + final IP validation",
+      "test_target": "network_policy_ssrf_tests, dns_rebinding_cname_tests, redirect_security_tests, final_connected_ip_validation_tests",
+      "evidence_target": "artifacts/p3/evidence/network_policy_ssrf_tests.json"
+    },
+    {
+      "item": "FastStartEvidence confidence merge through CriticalConstraintsChecklist",
+      "tracked_to_gate": "FC-059, FC-060",
+      "contract": "FastProbe + CriticalConstraintsChecklist",
+      "test_target": "fast_probe_tests, critical_constraints_checklist_tests",
+      "evidence_target": "artifacts/p3/evidence/fast_probe_tests.json"
+    },
+    {
+      "item": "Background ProbeEvidence downgrade forcing RuntimeRevision",
+      "tracked_to_gate": "FC-061, FC-069",
+      "contract": "ProbeEvidence model + RuntimeRevision",
+      "test_target": "probe_evidence_model_tests, runtime_revision_tests",
+      "evidence_target": "artifacts/p3/evidence/probe_evidence_model_tests.json"
+    },
+    {
+      "item": "SecureMemory best_effort credential blocking",
+      "tracked_to_gate": "FC-052",
+      "contract": "SecureMemory states with reason and audit",
+      "test_target": "secure_memory_evidence_tests",
+      "evidence_target": "artifacts/p3/evidence/secure_memory_evidence_tests.json"
+    },
+    {
+      "item": "ExecutionContext policy propagation",
+      "tracked_to_gate": "FC-014",
+      "contract": "ExecutionContext fields propagation",
+      "test_target": "execution_context_tests",
+      "evidence_target": "artifacts/p3/evidence/execution_context_tests.json"
+    },
+    {
+      "item": "Provider metadata skip-probe cross-validation",
+      "tracked_to_gate": "FC-025",
+      "contract": "ProviderMetadataHint + ProbeSkipPolicy cross-validation",
+      "test_target": "provider_metadata_fast_path_tests",
+      "evidence_target": "artifacts/p3/evidence/provider_metadata_fast_path_tests.json"
+    },
+    {
+      "item": "CandidateRanking no reverse provider dependency",
+      "tracked_to_gate": "FC-066",
+      "contract": "CandidateRanking policy-based, no provider implementation dependency",
+      "test_target": "candidate_ranking_tests",
+      "evidence_target": "artifacts/p3/evidence/candidate_ranking_tests.json"
+    },
+    {
+      "item": "Closure evidence no current commit hash dependency",
+      "tracked_to_gate": "FC-074, FC-095",
+      "contract": "Golden diff policy + closure evidence schema",
+      "test_target": "golden_diff_policy_tests",
+      "evidence_target": "artifacts/p3/evidence/golden_diff_policy_tests.json"
+    },
+    {
+      "item": "No real account dependency",
+      "tracked_to_gate": "FC-011, FC-081",
+      "contract": "Fake provider foundation + integration harness",
+      "test_target": "fake provider harness tests",
+      "evidence_target": "artifacts/p3/evidence/p3_m1_fake_provider_baseline.json"
+    },
+    {
+      "item": "Windows primary platform hints only, no cross-platform API calls",
+      "tracked_to_gate": "FC-076",
+      "contract": "PlatformCapabilityHints as hints not API calls",
+      "test_target": "platform_capability_hints_tests",
+      "evidence_target": "artifacts/p3/evidence/platform_capability_hints_tests.json"
+    }
+  ],
+  "all_critical_items_mapped": true,
+  "stop_condition_check": "All 13 critical items tracked to contract, test, and evidence artifact. None left as documentation only."
+}

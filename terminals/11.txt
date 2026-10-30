@@ -1,0 +1,8 @@
+---
+pid: 11608
+cwd: "C:\kivo video"
+command: "$logDir = \"C:\\kivo video\\artifacts\\p9\\evidence\"; $env:PATH = \"C:\\Windows\\system32;C:\\Windows\"; $env:QT_DEBUG_PLUGINS = \"1\"; $env:QT_LOGGING_RULES = \"qt.qpa.plugin=true;qt.plugin.loader=true\"; $env:KIVO_SHELL_QT_DIAG = \"1\"; $env:QT_QPA_PLATFORM = \"offscreen\"; Remove-Item Env:QT_PLUGIN_PATH,Env:QML2_IMPORT_PATH -ErrorAction SilentlyContinue; $p = Start-Process -FilePath \"C:\\kivo video\\build\\vs-debug\\ui\\Debug\\kivo_playback_shell_qml_load_test.exe\" -RedirectStandardOutput \"$logDir\\qml_direct_out.txt\" -RedirectStandardError \"$logDir\\qml_direct_err.txt\" -PassThru -Wait -NoNewWindow; Write-Host \"qml_exit:$($p.ExitCode)\"; Get-Content \"$logDir\\qml_direct_out.txt\"; Get-Content \"$logDir\\qml_direct_err.txt\""
+started_at: 2026-06-30T17:37:02.496Z
+running_for_ms: 6935006  
+---
+qml_exit:-2147483645

@@ -1,0 +1,21 @@
+{
+  "gate_id": "FC-002",
+  "gate_name": "P2 Closure Dependency Gate",
+  "task_id": "P3-COMPLETE-LINE-V9",
+  "status": "CONTRACT_PASS",
+  "evidence_kind": "planning",
+  "p2_closure_dependency_verified": true,
+  "p2_closure_canonical_source": "closure-003",
+  "p2_closure_commit": "9ac330a492c0449d5f738c447ad0ceb9238972ab",
+  "p2_closure_branch": "kivo-video-p2-source-runtime-final-closure-003",
+  "p2_closure_base": "c90cfdc938cd21e6ecf6d62d1b088d0d0fe3b9a1",
+  "p2_closure_evidence": "artifacts/p2/evidence/P2-SOURCE-RUNTIME-FINAL-CLOSURE-003.json",
+  "p2_closure_card": "docs/execution_cards/P2_SOURCE_RUNTIME_FINAL_CLOSURE_003.md",
+  "p2_closure_evidence_exists": true,
+  "p2_closure_card_exists": true,
+  "closure_001_rejected": true,
+  "closure_002_rejected": true,
+  "closure_001_rejection_reason": "Premature PASS on Direct Exe / no_debug_dialog not closed",
+  "closure_002_rejection_reason": "Commit count self-reference infinite loop + evidence/card mismatch",
+  "stop_condition_check": "P2 closure evidence/card present and valid. closure-001/002 not used as dependency."
+}

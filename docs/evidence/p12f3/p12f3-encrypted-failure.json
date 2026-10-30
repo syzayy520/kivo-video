@@ -1,0 +1,9 @@
+{
+  "schema": "kivo.p12f.negative/1",
+  "generated_at_unix_ms": 1793340405603,
+  "case": "encrypted",
+  "stage": "open",
+  "return_code": 12,
+  "media": "neg_cenc.mp4",
+  "reason": "open(neg_cenc.mp4): track declares crypto-mode=1 (aes-ctr); sample-level encrypted tracks are not supported — no key/DRM session is set up, default IV size 8 bytes"
+}

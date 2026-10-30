@@ -1,0 +1,8 @@
+---
+pid: 8888
+cwd: "C:\kivo video"
+command: "$env:PATH = \"C:\\Windows\\system32\"; Remove-Item Env:QT_QPA_PLATFORM -ErrorAction SilentlyContinue; $p = Start-Process -FilePath \"C:\\kivo video\\build\\vs-debug\\ui\\Debug\\kivo_playback_shell_qml_load_test.exe\" -PassThru -Wait -NoNewWindow; Write-Host \"qml_exit:$($p.ExitCode)\""
+started_at: 2026-06-30T17:41:14.354Z
+running_for_ms: 6685000  
+---
+qml_exit:3

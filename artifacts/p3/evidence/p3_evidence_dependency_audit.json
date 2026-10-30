@@ -1,0 +1,20 @@
+{
+  "gate_id": "FC-008",
+  "gate_name": "Evidence Dependency Gate",
+  "task_id": "P3-COMPLETE-LINE-V9",
+  "status": "CONTRACT_PASS",
+  "evidence_kind": "planning",
+  "rules": {
+    "evidence_contracts_may_be_depended_on_by": "all modules",
+    "evidence_storage_may_be_used_by": "closure/test/evidence writer only",
+    "golden_evidence_may_exist_as": "test artifact",
+    "golden_evidence_in_normal_playback_success_path": false,
+    "success_path_synchronous_disk_writes_for_golden": false
+  },
+  "forbidden": [
+    "evidence depending back on provider/probe/decision implementation",
+    "golden evidence in normal playback success path",
+    "success path synchronous disk writes for golden snapshots"
+  ],
+  "stop_condition_check": "Normal success path does not depend on golden evidence output. Enforced by FC-073 Evidence Performance Gate."
+}

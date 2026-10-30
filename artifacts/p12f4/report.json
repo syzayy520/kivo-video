@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "files": 230,
+    "findings": 0,
+    "warnings": 0,
+    "sub_verifiers_ok": 7
+  },
+  "warnings": [],
+  "findings": [],
+  "exemptions": {
+    "no_ts": 16,
+    "midrun": 30
+  }
+}

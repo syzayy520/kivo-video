@@ -1,0 +1,17 @@
+---
+pid: 11780
+cwd: "C:\kivo video"
+command: "Get-ChildItem -Path \"C:\\\",\"C:\\Program Files\",\"C:\\Users\\Administrator\" -Filter \"qmake.exe\" -Recurse -ErrorAction SilentlyContinue -Depth 6 | Select-Object -First 10 FullName"
+started_at: 2026-06-30T17:12:07.777Z
+running_for_ms: 8430006  
+---
+
+FullName
+--------
+C:\tmp\KivoMusicQt_artist_index_collage_ascii\.qt\6.8.3\msvc2022_64\bin\qmake.exe
+C:\tmp\KivoMusicQt_artist_index_collage_rank_ascii\.qt\6.8.3\msvc2022_64\bin\qmake.exe
+C:\tmp\KivoMusicQt_artist_index_visual_palette_ascii\.qt\6.8.3\msvc2022_64\bin\qmake.exe
+C:\tmp\KivoMusicQt_ascii_lyrics_normalizer\.qt\6.8.3\msvc2022_64\bin\qmake.exe
+C:\tmp\KivoMusicQt_ascii_lyrics_normalizer_verify\.qt\6.8.3\msvc2022_64\bin\qmake.exe
+C:\tmp\KivoMusicQt_ascii_pa_0624_2\.qt\6.8.3\msvc2022_64\bin\qmake.exe
+

@@ -1,0 +1,51 @@
+{
+  "schema": "kivo.p12c.aaudio-probe/1",
+  "device": {
+    "model": "M2012K11AC",
+    "abi": "arm64-v8a",
+    "sdk": 33
+  },
+  "tone": {
+    "frequency_hz": 1000.0,
+    "requested_millis": 10000
+  },
+  "requested": {
+    "sample_rate": 48000,
+    "channel_count": 2,
+    "format": "pcm_float",
+    "prefer_exclusive": true,
+    "prefer_low_latency": true,
+    "buffer_capacity_frames": 0
+  },
+  "negotiated": {
+    "sample_rate": 48000,
+    "channel_count": 2,
+    "format": "pcm_float",
+    "sharing_mode": "shared",
+    "performance_mode": "low_latency",
+    "frames_per_burst": 192,
+    "buffer_capacity_frames": 1536
+  },
+  "downgrade_reason": "申请独占但实际为 shared",
+  "open": {
+    "ok": true,
+    "code": 0,
+    "message": ""
+  },
+  "start": {
+    "ok": true,
+    "code": 0,
+    "message": ""
+  },
+  "stats": {
+    "callbacks": 2670,
+    "frames_rendered": 482496,
+    "frames_silenced": 0,
+    "xrun_count": 0,
+    "wall_millis": 10146,
+    "expected_frames": 480000,
+    "render_ratio": 1.005,
+    "started": true,
+    "error": ""
+  }
+}

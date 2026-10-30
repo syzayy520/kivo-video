@@ -1,0 +1,8 @@
+---
+pid: 19204
+cwd: "C:\kivo video"
+command: "$env:QT_QPA_PLATFORM=\"offscreen\"; $p = Start-Process -FilePath \"C:\\kivo video\\build\\vs-debug\\ui\\Debug\\kivo_playback_shell_qml_load_test.exe\" -PassThru -Wait -NoNewWindow; Write-Host \"exit:$($p.ExitCode)\""
+started_at: 2026-06-30T17:19:54.757Z
+running_for_ms: 7960012  
+---
+exit:-1

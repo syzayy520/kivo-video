@@ -1,0 +1,116 @@
+{
+  "schema": "kivo.p12c.sync/1",
+  "generated_at_unix_ms": 1793343420132,
+  "device": {
+    "manufacturer": "Xiaomi",
+    "model": "M2012K11AC",
+    "device": "alioth",
+    "soc_model": "SM8250",
+    "sdk": "33",
+    "release": "13",
+    "abi": "arm64-v8a"
+  },
+  "codec": {
+    "video": "OMX.qcom.video.decoder.avc",
+    "audio": "c2.android.aac.decoder"
+  },
+  "source": {
+    "label": "p13c_1080p60_av.mp4",
+    "bytes": 6364461,
+    "has_video": true,
+    "has_audio": true,
+    "duration_us": 8000000,
+    "video": {"mime": "video/avc", "width": 1920, "height": 1080},
+    "audio": {"mime": "audio/mp4a-latm", "sample_rate": 48000, "channel_count": 2}
+  },
+  "frame_count": 480,
+  "frames_dropped": 0,
+  "xrun_count": 0,
+  "clock_source": "audio_timestamp",
+  "timestamp_fallback_count": 0,
+  "av_drift": {
+    "measurable": false,
+    "samples": 0,
+    "unavailable_reason": "present_schedule is surface_at_time: frames are submitted ~3 frames early, so the per-frame offset equals the submit lead (measured p50 = -99.875 ms) and is not A/V drift; measuring on-screen sync requires present fences (see 21-p12c6b-present-backpressure.md 2)"
+  },
+  "present_jitter": {
+    "measured_at": "submit",
+    "samples": 479,
+    "p50": -125000,
+    "p95": 125000,
+    "p99": 875000,
+    "max": 1336854,
+    "histogram": {
+      "count": 479,
+      "below": 0,
+      "above": 0,
+      "min_ns": -14687250,
+      "max_ns": 1336854,
+      "bucket_width_ns": 250000,
+      "low_ns": -128000000,
+      "bucket_count": 1024,
+      "buckets": {"453":1,"469":1,"473":1,"482":2,"506":2,"507":2,"508":1,"509":6,"510":5,"511":221,"512":221,"513":5,"514":6,"515":1,"516":2,"517":2}
+    }
+  },
+  "timeline": {
+    "video_pts_span_ns": 7983493000,
+    "present_wall_span_ns": 7933379945,
+    "lead_correction_ns": 49875000,
+    "corrected_wall_span_ns": 7983254945,
+    "playback_rate": 1.000030,
+    "anchor_audio_position_ns": 64596614,
+    "audio_position_at_video_stop_ns": 8076078645,
+    "note": "playback_rate = media time / wall time between first and last hand-off, with the submit-lead ramp removed. The audio position at video stop includes teardown latency (poll interval + drain) and must not be compared against the pts span directly"
+  },
+  "anchor": {
+    "video_pts_ns": 0,
+    "audio_position_ns": 64596614,
+    "note": "av_drift is measured relative to this anchor; the constant absorbed here is audio_position_ns at the first video frame"
+  },
+  "video": {
+    "frames_received": 481,
+    "frames_released": 481,
+    "frames_rendered": 480,
+    "frames_dropped_late": 0,
+    "frames_discarded_no_surface": 0,
+    "samples_submitted": 480,
+    "samples_rejected": 0,
+    "wall_us": 7987565,
+    "first_frame_latency_us": 53977,
+    "decode_fps": 60.093408,
+    "speed_vs_realtime": 1.001557,
+    "pipeline_mode": "merged",
+    "present_frames": true,
+    "present_schedule": "surface_at_time",
+    "surface_rebuild": {"rebuilds": 0, "gap_ms": -1, "resume_ms": -1, "frames_lead": 0}
+  },
+  "pace": {
+    "enabled": true,
+    "frames_decided": 480,
+    "presented": 480,
+    "dropped": 0,
+    "over_budget_frames": 0,
+    "frame_duration_ns": 16667000,
+    "derived_fps": 59.998800,
+    "lateness_ns": {"samples": 0, "p50": 0, "p99": 0, "max": 0},
+    "schedule_lead_ns": {"samples": 480, "p50": -49875000, "spread": 0},
+    "clock_health": {"extrapolated_frames": 0, "free_run_frames": 0, "jump_rebases": 0, "monotonic_rejects": 0},
+    "clock_mix": {"primary_frames": 480, "fallback_frames": 0, "system_frames": 0}
+  },
+  "audio": {
+    "opened": true,
+    "started": true,
+    "negotiated": {"sample_rate": 48000, "channel_count": 2, "format": "pcm_float", "sharing": "shared", "performance": "low_latency", "frames_per_burst": 192},
+    "output_format": {"sample_rate": 48000, "channel_count": 2, "encoding": "pcm_s16le", "diverged": false},
+    "ring_capacity_frames": 16384,
+    "prefill_reached": true,
+    "startup_millis": 132,
+    "clock_start_ns": 0,
+    "clock_end_ns": 8076100572,
+    "feed": {"packets_submitted": 376, "chunks_received": 375, "frames_decoded": 384000, "frames_written": 384000, "frames_dropped": 0, "ring_full_waits": 6313, "reached_eos": true},
+    "output": {"callbacks": 2160, "frames_rendered": 390336, "frames_silenced": 6336, "silence_head_frames": 0, "silence_tail_frames": 6336, "first_audible_frame": 0, "xrun_count": 0, "wall_millis": 8229},
+    "clock": {"queries": 484, "published_timestamp": 484, "published_frames_read": 0, "published_frames_written": 0, "published_frozen": 0, "timestamp_not_started": 0, "timestamp_fail": 0, "monotonic_rejects": 0, "jumps_clamped": 0, "latency_frames": 2736}
+  },
+  "completed": true,
+  "error": ""
+}

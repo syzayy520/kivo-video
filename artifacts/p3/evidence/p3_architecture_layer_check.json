@@ -1,0 +1,12 @@
+{
+  "gate_id": "FC-007",
+  "gate_name": "Architecture Layer Gate",
+  "task_id": "P3-COMPLETE-LINE-V9",
+  "status": "CONTRACT_PASS",
+  "evidence_kind": "planning",
+  "policy_file": "backend/architecture/p3_architecture_policy.json",
+  "layers_defined": ["base", "middle", "decision", "test_tool"],
+  "forbidden_dependencies_count": 5,
+  "dependency_linter_machine_checkable": true,
+  "stop_condition_check": "Dependency linter policy is machine-checkable. Implementation of linter deferred to FC-079 Architecture Guard CI Gate."
+}

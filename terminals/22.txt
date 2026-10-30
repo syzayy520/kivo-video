@@ -1,0 +1,22 @@
+---
+pid: 11428
+cwd: "C:\kivo video"
+command: "cd \"C:\\kivo video\" && cmake --build --preset vs-debug --target kivo_video_playback_shell kivo_player_runtime_adapter_tests kivo_video_playback_graph --config Debug 2>&1 | Select-Object -Last 15"
+started_at: 2026-06-30T18:41:54.912Z
+running_for_ms: 3040003  
+---
+
+  正在扫描源以查找模块依赖�?..
+  kivo_video_subtitle_plane.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_video_subtitle_plane.lib
+  正在扫描源以查找模块依赖�?..
+  kivo_video_playback_graph.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_video_playback_graph.lib
+  正在扫描源以查找模块依赖�?..
+  kivo_video_player_runtime_adapter.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_video_player_runtime_adapter.lib
+  正在扫描源以查找模块依赖�?..
+  kivo_player_runtime_adapter_tests.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_player_runtime_adapter_tests.exe
+适用�?.NET Framework MSBuild 版本 18.6.3+84d3e95b4
+
+  正在扫描源以查找模块依赖�?..
+  kivo_video_subtitle_plane.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_video_subtitle_plane.lib
+  正在扫描源以查找模块依赖�?..
+  kivo_video_playback_graph.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_video_playback_graph.lib

@@ -1,0 +1,32 @@
+qrc:/kivo/ui/playback/sheets/SettingToggleRow.qml:31:20: QML QQuickRectangle: The current style does not support customization of this control (property: "indicator" item: QQuickRectangle(0x20fb8a36510, parent=0x0, geometry=0,0 42x22)). Please customize a non-native style (such as Basic, Fusion, Material, etc). For more information, see: https://doc.qt.io/qt-6/qtquickcontrols2-customize.html#customization-reference
+UI_OPEN_QML_ENTRY=qrc:/kivo/ui/shell/PlaybackShellRoot.qml
+UI_OPEN_PLAYBACK_PAGE= qrc:/kivo/ui/playback/page/PlaybackPage.qml
+[matroska,webm @ 0000020fb8b36640] Stream #9: not enough frames to estimate rate; consider increasing probesize
+[matroska,webm @ 0000020fb8b36640] Stream #10: not enough frames to estimate rate; consider increasing probesize
+[matroska,webm @ 0000020fb8b36640] Stream #11: not enough frames to estimate rate; consider increasing probesize
+[matroska,webm @ 0000020fb8b36640] Could not find codec parameters for stream 4 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 0000020fb8b36640] Could not find codec parameters for stream 5 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 0000020fb8b36640] Could not find codec parameters for stream 6 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 0000020fb8b36640] Could not find codec parameters for stream 7 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 0000020fb8b36640] Could not find codec parameters for stream 8 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 0000020fb8b36640] Stream #9: not enough frames to estimate rate; consider increasing probesize
+[matroska,webm @ 0000020fb8b36640] Stream #10: not enough frames to estimate rate; consider increasing probesize
+[matroska,webm @ 0000020fb8b36640] Stream #11: not enough frames to estimate rate; consider increasing probesize
+[matroska,webm @ 0000020fb8b36640] Could not find codec parameters for stream 4 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 0000020fb8b36640] Could not find codec parameters for stream 5 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 0000020fb8b36640] Could not find codec parameters for stream 6 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 0000020fb8b36640] Could not find codec parameters for stream 7 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 0000020fb8b36640] Could not find codec parameters for stream 8 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+NORMAL_MEDIA_OPEN= accepted
+NORMAL_MEDIA_PLAY= accepted
+NORMAL_MEDIA_FIRST_FRAME= yes

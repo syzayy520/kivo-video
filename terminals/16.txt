@@ -1,0 +1,32 @@
+---
+pid: 8100
+cwd: "C:\kivo video"
+command: "cmake --build --preset vs-debug --target kivo_video_playback_shell kivo_playback_shell_qml_load_test --config Debug 2>&1 | Select-Object -Last 25"
+started_at: 2026-06-30T17:53:16.387Z
+running_for_ms: 5960000  
+---
+  CheckIndicator.qml is up to date.
+  plugins.qmltypes is up to date.
+  qmldir is up to date.
+  RadioIndicator.qml is up to date.
+  SwitchIndicator.qml is up to date.
+  effectsplugind.dll is up to date.
+  plugins.qmltypes is up to date.
+  qmldir is up to date.
+  qquicklayoutsplugind.dll is up to date.
+  plugins.qmltypes is up to date.
+  qmldir is up to date.
+  qmlshapesplugind.dll is up to date.
+  plugins.qmltypes is up to date.
+  qmldir is up to date.
+  qtquickcontrols2nativestyleplugind.dll is up to date.
+  plugins.qmltypes is up to date.
+  qmldir is up to date.
+  qtquickcontrols2windowsstyleimplplugind.dll is up to date.
+  CheckIndicator.qml is up to date.
+  qmldir is up to date.
+  QuickControls2WindowsStyleImpl.qmltypes is up to date.
+  SwitchIndicator.qml is up to date.
+  qtquickcontrols2basicstyleimplplugind.dll is up to date.
+  plugins.qmltypes is up to date.
+  qmldir is up to date.

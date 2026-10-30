@@ -1,0 +1,9 @@
+{
+  "schema": "kivo.p12f.negative/1",
+  "generated_at_unix_ms": 1793340390687,
+  "case": "bad-file",
+  "stage": "open",
+  "return_code": 5,
+  "media": "neg_truncated.mp4",
+  "reason": "open(neg_truncated.mp4): extractor: neg_truncated.mp4: container reports 0 tracks — the file is likely truncated or corrupt, not merely missing a video track"
+}

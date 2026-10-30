@@ -1,0 +1,9 @@
+{
+  "schema": "kivo.p12f.negative/1",
+  "generated_at_unix_ms": 1793340398125,
+  "case": "no-video-track",
+  "stage": "open",
+  "return_code": 5,
+  "media": "neg_audio_only.mp4",
+  "reason": "open(neg_audio_only.mp4): extractor: neg_audio_only.mp4: no video track among 1 tracks"
+}

@@ -1,0 +1,16 @@
+---
+pid: 3200
+cwd: "C:\kivo video"
+command: "Stop-Process -Name \"kivo_video_playback_shell\",\"kivo_playback_shell_qml_load_test\" -Force -ErrorAction SilentlyContinue; cd \"C:\\kivo video\" && cmake --preset vs-debug 2>&1 | Select-Object -Last 3 && cmake --build --preset vs-debug --target kivo_video_playback_shell kivo_playback_shell_qml_load_test --config Debug 2>&1 | Select-Object -Last 6"
+started_at: 2026-06-30T17:28:12.132Z
+running_for_ms: 7465005  
+---
+-- Configuring done (1.1s)
+-- Generating done (1.6s)
+-- Build files have been written to: C:/kivo video/build/vs-debug
+  qmldir is up to date.
+  QuickControls2WindowsStyleImpl.qmltypes is up to date.
+  SwitchIndicator.qml is up to date.
+  qtquickcontrols2basicstyleimplplugind.dll is up to date.
+  plugins.qmltypes is up to date.
+  qmldir is up to date.

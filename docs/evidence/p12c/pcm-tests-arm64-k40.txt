@@ -1,0 +1,17 @@
+# P12-C3 convert_to_float — arm64 真机测试输出
+# 设备：Redmi K40 (M2012K11AC / alioth / SM8250 / Android 13 API 33)
+# 构建：NDK r30 aarch64-linux-android26-clang++ -std=c++23 -O2 -static-libstdc++
+# 时间：2026-10-29 06:34:44 +0800
+
+=== P12-C3 PcmFormatConverter tests ===
+[PASS] P1 16bit 定点比例与满幅对称
+[PASS] P2 32bit 定点比例
+[PASS] P3 float32 原样透传
+[PASS] P4 半帧被拒
+[PASS] P5 目标容量不足被拒
+[PASS] P6 无效格式被拒
+[PASS] P7 立体声交错保持
+[PASS] P8 非对齐源地址
+[PASS] P9 帧长数学与零字节输入
+--- 断言 44 项，失败 0 项 ---
+exit=0

@@ -1,0 +1,116 @@
+{
+  "schema": "kivo.p12c.decode/5",
+  "generated_at_unix_ms": 1793271644660,
+  "source": {
+    "mime": "video/avc",
+    "width": 1920,
+    "height": 1080,
+    "duration_us": 6000000
+  },
+  "decoder": {
+    "codec_name": "OMX.qcom.video.decoder.avc",
+    "output_target": "surface"
+  },
+  "counters": {
+    "samples_submitted": 180,
+    "samples_rejected": 0,
+    "bytes_submitted": 6202195,
+    "frames_received": 181,
+    "frames_released": 181,
+    "frames_rendered": 180,
+    "frames_dropped_late": 0
+  },
+  "pipeline": {
+    "mode": "merged",
+    "present": true,
+    "present_schedule": "surface_at_time",
+    "submit": {
+      "calls": 331,
+      "mean_us": 251.335347,
+      "total_us": 83192,
+      "max_us": 3021
+    },
+    "eos": {
+      "calls": 1,
+      "mean_us": 66.000000,
+      "total_us": 66,
+      "max_us": 66
+    },
+    "receive": {
+      "calls": 187,
+      "mean_us": 141.374332,
+      "total_us": 26437,
+      "max_us": 2964
+    },
+    "release": {
+      "calls": 181,
+      "mean_us": 187.088398,
+      "total_us": 33863,
+      "max_us": 1635
+    }
+  },
+  "timing": {
+    "wall_us": 5903421,
+    "first_frame_latency_us": 36548,
+    "decode_fps": 30.490795,
+    "speed_vs_realtime": 1.016360
+  },
+  "outcome": {
+    "completed": true,
+    "error": ""
+  },
+  "pace": {
+    "enabled": true,
+    "clock_source": "audio_timestamp",
+    "frame_duration_ns": 33333000,
+    "derived_fps": 30.000300,
+    "frames_decided": 180,
+    "presented": 180,
+    "dropped": 0,
+    "drop_ratio": 0.000000,
+    "catch_up_events": 0,
+    "catch_up_frames": 0,
+    "over_budget_frames": 0,
+    "lateness_ns": {
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0
+    },
+    "interval_ns": {
+      "p50": 125000,
+      "p95": 125000,
+      "p99": 874750,
+      "max": 874750
+    },
+    "clock_mix": {
+      "primary_frames": 180,
+      "fallback_frames": 0,
+      "system_frames": 0
+    },
+    "schedule_lead_ns": {
+      "samples": 180,
+      "p01": -99875000,
+      "p10": -99875000,
+      "p50": -99875000,
+      "p90": -99875000,
+      "p99": -32625000,
+      "min": -99968855,
+      "max": 10208,
+      "spread": 0
+    },
+    "clock_health": {
+      "extrapolated_frames": 0,
+      "free_run_frames": 0,
+      "jump_rebases": 0,
+      "monotonic_rejects": 0,
+      "stale_readings": 0
+    },
+    "wait": {
+      "count": 0,
+      "total_ns": 0
+    },
+    "sampled_at_frames": 180
+  }
+}

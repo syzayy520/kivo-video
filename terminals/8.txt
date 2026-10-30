@@ -1,0 +1,8 @@
+---
+pid: 8596
+cwd: "C:\kivo video"
+command: "cmd /c \"cd /d C:\\kivo video\\build\\vs-debug\\ui\\Debug && set QT_QPA_PLATFORM=offscreen && kivo_playback_shell_qml_load_test.exe & echo exit=!errorlevel!\""
+started_at: 2026-06-30T17:20:31.692Z
+running_for_ms: 7930011  
+---
+exit=!errorlevel!

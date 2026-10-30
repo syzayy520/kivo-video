@@ -1,0 +1,8 @@
+---
+pid: 17156
+cwd: "C:\kivo video"
+command: "Stop-Process -Name \"kivo_playback_shell_qml_load_test\" -Force -ErrorAction SilentlyContinue; $env:QT_QPA_PLATFORM=\"offscreen\"; & \"C:\\kivo video\\build\\vs-debug\\ui\\Debug\\kivo_playback_shell_qml_load_test.exe\"; Write-Host \"qml_test_exit:$LASTEXITCODE\""
+started_at: 2026-06-30T17:19:12.242Z
+running_for_ms: 8005006  
+---
+qml_test_exit:-2147483645

@@ -1,0 +1,89 @@
+---
+pid: 6540
+cwd: "C:\kivo video"
+command: "cd \"C:\\kivo video\" && cmake --build --preset vs-debug --target kivo_video_playback_shell --config Debug 2>&1"
+started_at: 2026-06-30T18:20:27.892Z
+running_for_ms: 4330006  
+---
+适用于 .NET Framework MSBuild 版本 18.6.3+84d3e95b4
+
+  正在扫描源以查找模块依赖项...
+  kivo_video_subtitle_plane.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_video_subtitle_plane.lib
+  正在扫描源以查找模块依赖项...
+  playback_session_video_surface_binding.cpp
+  playback_session_settings_policy.cpp
+  playback_session_subtitle_policy.cpp
+  playback_session_runtime.cpp
+  playback_session_audio_policy.cpp
+  playback_session_facade.cpp
+  playback_session_recovery.cpp
+  playback_session_snapshot_queries.cpp
+  playback_session_command_query.cpp
+  playback_session_track_inventory.cpp
+  playback_session_subtitle_frame.cpp
+  local_media_source_registry.cpp
+  playback_session_clock_sync.cpp
+  local_media_first_frame_pipeline.cpp
+  playback_session_local_media.cpp
+  playback_session_local_media_open.cpp
+  正在编译...
+  playback_session_recovery.cpp
+  playback_session_settings_policy.cpp
+  playback_session_video_surface_binding.cpp
+  playback_session_subtitle_policy.cpp
+  playback_session_audio_policy.cpp
+  playback_session_runtime.cpp
+  playback_session_snapshot_queries.cpp
+  playback_session_facade.cpp
+  playback_session_command_query.cpp
+  playback_session_clock_sync.cpp
+  playback_session_track_inventory.cpp
+  playback_session_subtitle_frame.cpp
+  local_media_source_registry.cpp
+  playback_session_local_media_open.cpp
+  playback_session_local_media.cpp
+  local_media_first_frame_pipeline.cpp
+  kivo_video_playback_graph.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_video_playback_graph.lib
+  正在扫描源以查找模块依赖项...
+  player_runtime_adapter.cpp
+  adapter_state_mapper.cpp
+  正在编译...
+  player_runtime_adapter.cpp
+  adapter_state_mapper.cpp
+  kivo_video_player_runtime_adapter.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_video_player_runtime_adapter.lib
+  Automatic MOC for target kivo_video_playback_shell
+  正在扫描源以查找模块依赖项...
+  playback_shell_snapshot_mapper.cpp
+  playback_shell_playback_evidence.cpp
+  playback_shell_interaction_evidence.cpp
+  playback_shell_main.cpp
+  playback_shell_video_surface_item.cpp
+  playback_shell_runtime_context.cpp
+  playback_shell_runtime_adapter_bridge.cpp
+  正在编译...
+  playback_shell_video_surface_item.cpp
+  playback_shell_playback_evidence.cpp
+  playback_shell_snapshot_mapper.cpp
+  playback_shell_interaction_evidence.cpp
+  playback_shell_runtime_context.cpp
+  playback_shell_main.cpp
+  playback_shell_runtime_adapter_bridge.cpp
+C:\kivo video\ui\shell\playback_shell_playback_evidence.cpp(80,26): warning C4834: 放弃具有 [[nodiscard]] 属性的函数的返回值 [C:\kivo video\build\vs-debug\ui\kivo_video_playback_shell.vcxproj]
+C:\kivo video\ui\shell\playback_shell_playback_evidence.cpp(156,35): error C2440: “初始化”: 无法从“initializer list”转换为“QJsonObject” [C:\kivo video\build\vs-debug\ui\kivo_video_playback_shell.vcxproj]
+      C:\kivo video\ui\shell\playback_shell_playback_evidence.cpp(156,35):
+      “QJsonObject::QJsonObject(std::initializer_list<std::pair<QString,QJsonValue>>)”: 无法将参数 1 从“initializer list”转换为“std::initializer_list<std::pair<QString,QJsonValue>>”
+          C:\kivo video\ui\shell\playback_shell_playback_evidence.cpp(156,35):
+          元素“10”: 没有从“initializer list”到“std::pair<QString,QJsonValue>”的转换
+          C:\kivo video\ui\shell\playback_shell_playback_evidence.cpp(156,35):
+          元素“11”: 没有从“initializer list”到“std::pair<QString,QJsonValue>”的转换
+          C:\kivo video\ui\shell\playback_shell_playback_evidence.cpp(156,35):
+          元素“12”: 没有从“initializer list”到“std::pair<QString,QJsonValue>”的转换
+          C:\kivo video\ui\shell\playback_shell_playback_evidence.cpp(156,35):
+          元素“13”: 没有从“initializer list”到“std::pair<QString,QJsonValue>”的转换
+          C:\kivo video\ui\shell\playback_shell_playback_evidence.cpp(156,35):
+          元素“14”: 没有从“initializer list”到“std::pair<QString,QJsonValue>”的转换
+          C:\kivo video\ui\shell\playback_shell_playback_evidence.cpp(156,35):
+          元素“15”: 没有从“initializer list”到“std::pair<QString,QJsonValue>”的转换
+          C:\kivo video\ui\shell\playback_shell_playback_evidence.cpp(156,35):
+          尝试匹配参数列表“(initializer list)”时
+  

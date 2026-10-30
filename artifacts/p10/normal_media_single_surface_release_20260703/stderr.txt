@@ -1,0 +1,6 @@
+UI_OPEN_QML_ENTRY=qrc:/kivo/ui/shell/PlaybackShellRoot.qml
+UI_OPEN_PLAYBACK_PAGE= qrc:/kivo/ui/playback/page/PlaybackPage.qml
+NORMAL_MEDIA_RESOLVE_ERROR= no video file found in directory
+NORMAL_MEDIA_OPEN= rejected
+NORMAL_MEDIA_PLAY= rejected
+NORMAL_MEDIA_FIRST_FRAME= no

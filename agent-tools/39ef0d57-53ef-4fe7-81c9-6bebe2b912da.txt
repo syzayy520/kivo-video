@@ -1,0 +1,452 @@
+适用于 .NET Framework MSBuild 版本 18.6.3+84d3e95b4
+
+  正在扫描源以查找模块依赖项...
+  kivo_cinema_engine.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_cinema_engine.lib
+  正在扫描源以查找模块依赖项...
+  kivo_video_subtitle_plane.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_video_subtitle_plane.lib
+  正在扫描源以查找模块依赖项...
+  playback_session_video_surface_binding.cpp
+  playback_session_settings_policy.cpp
+  playback_session_recovery.cpp
+  playback_session_facade.cpp
+  playback_session_subtitle_policy.cpp
+  playback_session_snapshot_queries.cpp
+  playback_session_audio_policy.cpp
+  playback_session_runtime.cpp
+  playback_session_track_inventory.cpp
+  playback_session_clock_sync.cpp
+  playback_session_command_query.cpp
+  local_media_continuous_playback.cpp
+  playback_session_subtitle_frame.cpp
+  playback_session_local_media.cpp
+  playback_session_local_media_open.cpp
+  playback_session_local_media_continuous.cpp
+  正在编译...
+  playback_session_subtitle_policy.cpp
+  playback_session_settings_policy.cpp
+  playback_session_recovery.cpp
+  playback_session_video_surface_binding.cpp
+  playback_session_runtime.cpp
+  playback_session_snapshot_queries.cpp
+  playback_session_audio_policy.cpp
+  playback_session_facade.cpp
+  playback_session_clock_sync.cpp
+  playback_session_command_query.cpp
+  playback_session_track_inventory.cpp
+  playback_session_subtitle_frame.cpp
+  local_media_first_frame_pipeline.cpp
+  local_media_frame_rgba_converter.cpp
+  local_media_continuous_playback.cpp
+  playback_session_local_media.cpp
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(48,55): error C7568: 假定的函数模板“is_trivially_copy_constructible”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(48,94): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(48,41): error C7568: 假定的函数模板“conjunction_v”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(49,33): error C7568: 假定的函数模板“is_copy_constructible”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(49,62): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(49,19): error C7568: 假定的函数模板“conjunction_v”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(49,5): error C7568: 假定的函数模板“conditional_t”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(48,27): error C7568: 假定的函数模板“conditional_t”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(48,27): error C2187: 语法错误: 此处出现意外的“newline” [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(52,28): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_copy”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(52,28):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(52,8):
+          在编译类模板“kivo::video::playback_graph::local_media::std::_Non_trivial_move”时
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(52,28):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_copy<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(52,28): error C3770: “<错误>”: 不是有效基类 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(53,21): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_copy”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(53,21):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(53,21):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_copy<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(67,24): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_copy”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(67,24):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(67,8):
+          在编译类模板“kivo::video::playback_graph::local_media::std::_Deleted_move”时
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(67,24):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_copy<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(67,24): error C3770: “<错误>”: 不是有效基类 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(68,21): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_copy”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(68,21):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(68,21):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_copy<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(80,33): error C7568: 假定的函数模板“is_trivially_move_constructible”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(80,72): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(80,19): error C7568: 假定的函数模板“conjunction_v”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(80,78): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_copy”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(80,78):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(80,78):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_copy<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(81,37): error C7568: 假定的函数模板“is_move_constructible”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(81,66): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(81,23): error C7568: 假定的函数模板“conjunction_v”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(81,9): error C7568: 假定的函数模板“conditional_t”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(80,5): error C7568: 假定的函数模板“conditional_t”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(80,5): error C2187: 语法错误: 此处出现意外的“newline” [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(85,35): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_move”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(85,35):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(85,8):
+          在编译类模板“kivo::video::playback_graph::local_media::std::_Non_trivial_copy_assign”时
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(85,35):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_move<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(85,35): error C3770: “<错误>”: 不是有效基类 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(86,21): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_move”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(86,21):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(86,21):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_move<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(102,31): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_move”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(102,31):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(102,8):
+          在编译类模板“kivo::video::playback_graph::local_media::std::_Deleted_copy_assign”时
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(102,31):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_move<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(102,31): error C3770: “<错误>”: 不是有效基类 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(103,21): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_move”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(103,21):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(103,21):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_move<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(115,33): error C7568: 假定的函数模板“is_trivially_destructible”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(115,66): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(115,71): error C7568: 假定的函数模板“is_trivially_copy_constructible”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(115,110): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(116,23): error C7568: 假定的函数模板“is_trivially_copy_assignable”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(116,59): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(115,19): error C7568: 假定的函数模板“conjunction_v”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(117,9): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_move”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(117,9):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(117,9):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_move<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(118,37): error C7568: 假定的函数模板“is_copy_constructible”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(118,66): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(118,71): error C7568: 假定的函数模板“is_copy_assignable”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(118,97): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(118,23): error C7568: 假定的函数模板“conjunction_v”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(118,9): error C7568: 假定的函数模板“conditional_t”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(115,5): error C7568: 假定的函数模板“conditional_t”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(115,5): error C2187: 语法错误: 此处出现意外的“newline” [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(122,35): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_copy_assign”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(122,35):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(122,8):
+          在编译类模板“kivo::video::playback_graph::local_media::std::_Non_trivial_move_assign”时
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(122,35):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_copy_assign<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(122,35): error C3770: “<错误>”: 不是有效基类 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(123,21): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_copy_assign”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(123,21):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(123,21):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_copy_assign<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(139,31): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_copy_assign”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(139,31):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(139,8):
+          在编译类模板“kivo::video::playback_graph::local_media::std::_Deleted_move_assign”时
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(139,31):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_copy_assign<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(139,31): error C3770: “<错误>”: 不是有效基类 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(140,21): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_copy_assign”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(140,21):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(140,21):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_copy_assign<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(152,33): error C7568: 假定的函数模板“is_trivially_destructible”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(152,66): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(152,71): error C7568: 假定的函数模板“is_trivially_move_constructible”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(152,110): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(153,23): error C7568: 假定的函数模板“is_trivially_move_assignable”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(153,59): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(152,19): error C7568: 假定的函数模板“conjunction_v”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(154,9): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_copy_assign”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(154,9):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(154,9):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_copy_assign<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(155,37): error C7568: 假定的函数模板“is_move_constructible”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(155,66): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(155,71): error C7568: 假定的函数模板“is_move_assignable”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(155,97): error C3546: “...”: 没有可用于扩展的参数包 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(155,23): error C7568: 假定的函数模板“conjunction_v”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(155,9): error C7568: 假定的函数模板“conditional_t”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(152,5): error C7568: 假定的函数模板“conditional_t”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(152,5): error C2187: 语法错误: 此处出现意外的“newline” [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(159,22): error C2938: “kivo::video::playback_graph::local_media::std::_SMF_control_move_assign”: 未能使别名模板专用化 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(159,22):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\xsmf_control.h(159,22):
+          查看对正在编译的 别名 模板 实例化“kivo::video::playback_graph::local_media::std::_SMF_control_move_assign<_Base,_Types...>”的引用
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(39,59): error C2504: “exception”: 未定义基类 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(41,47): error C3668: “kivo::video::playback_graph::local_media::std::bad_optional_access::what”: 包含重写说明符“override”的方法没有重写任何基类方法 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(74,9): error C7568: 假定的函数模板“remove_cv_t”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(74,9):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(71,8):
+          在编译类模板“kivo::video::playback_graph::local_media::std::_Optional_destruct_base”时
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(81,48): error C2061: 语法错误: 标识符“in_place_t” [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(83,39): error C3861: “_Args”: 找不到标识符 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(81,5):
+      此诊断出现在编译器生成的函数“kivo::video::playback_graph::local_media::std::_Optional_destruct_base<_Ty,__formal>::_Optional_destruct_base(void) noexcept(<expr>)”中
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(83,39): error C2065: “_Args”: 未声明的标识符 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(81,5):
+      此诊断出现在编译器生成的函数“kivo::video::playback_graph::local_media::std::_Optional_destruct_base<_Ty,__formal>::_Optional_destruct_base(void) noexcept(<expr>)”中
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(105,9): error C7568: 假定的函数模板“remove_cv_t”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(105,9):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(102,8):
+          在编译类模板部分专用化“kivo::video::playback_graph::local_media::std::_Optional_destruct_base<_Ty,false>”时
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(140,48): error C2061: 语法错误: 标识符“in_place_t” [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(142,39): error C3861: “_Args”: 找不到标识符 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(140,5):
+      此诊断出现在编译器生成的函数“kivo::video::playback_graph::local_media::std::_Optional_destruct_base<_Ty,false>::_Optional_destruct_base(void) noexcept(<expr>)”中
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(142,39): error C2065: “_Args”: 未声明的标识符 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(140,5):
+      此诊断出现在编译器生成的函数“kivo::video::playback_graph::local_media::std::_Optional_destruct_base<_Ty,false>::_Optional_destruct_base(void) noexcept(<expr>)”中
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(70,29): error C7568: 假定的函数模板“is_trivially_destructible_v”后面缺少参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(70,29):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(172,8):
+          在编译类模板“kivo::video::playback_graph::local_media::std::_Optional_construct_base”时
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(172,33):
+          处理“kivo::video::playback_graph::local_media::std::_Optional_destruct_base ”的默认模板参数时
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(172,35): error C2976: “kivo::video::playback_graph::local_media::std::_Optional_destruct_base'”: 模板 参数太少 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(71,8):
+      参见“kivo::video::playback_graph::local_media::std::_Optional_destruct_base”的声明
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(172,35): error C2955: “kivo::video::playback_graph::local_media::std::_Optional_destruct_base”: 使用 类 模板 需要 模板 参数列表 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(71,8):
+      参见“kivo::video::playback_graph::local_media::std::_Optional_destruct_base”的声明
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(174,11): error C2976: “kivo::video::playback_graph::local_media::std::_Optional_destruct_base'”: 模板 参数太少 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(71,8):
+      参见“kivo::video::playback_graph::local_media::std::_Optional_destruct_base”的声明
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(177,62): error C3861: “is_nothrow_constructible_v”: 找不到标识符 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(177,23):
+      此诊断出现在编译器生成的函数“_Ty &kivo::video::playback_graph::local_media::std::_Optional_construct_base<_Ty>::_Construct(_Types ...) noexcept(<expr>)”中
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(198,18): error C3861: “is_nothrow_assignable_v”: 找不到标识符 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(197,23):
+      此诊断出现在编译器生成的函数“void kivo::video::playback_graph::local_media::std::_Optional_construct_base<_Ty>::_Assign(_Ty2 &&) noexcept(<expr>)”中
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(198,57): error C3861: “is_nothrow_constructible_v”: 找不到标识符 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(197,23):
+      此诊断出现在编译器生成的函数“void kivo::video::playback_graph::local_media::std::_Optional_construct_base<_Ty>::_Assign(_Ty2 &&) noexcept(<expr>)”中
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(209,18): error C3861: “is_nothrow_constructible_v”: 找不到标识符 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(208,23):
+      此诊断出现在编译器生成的函数“void kivo::video::playback_graph::local_media::std::_Optional_construct_base<_Ty>::_Construct_from(_Self &&) noexcept(<expr>)”中
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(218,18): error C3861: “is_nothrow_constructible_v”: 找不到标识符 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(217,23):
+      此诊断出现在编译器生成的函数“void kivo::video::playback_graph::local_media::std::_Optional_construct_base<_Ty>::_Assign_from(_Self &&) noexcept(<expr>)”中
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(219,21): error C3861: “is_nothrow_assignable_v”: 找不到标识符 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(217,23):
+      此诊断出现在编译器生成的函数“void kivo::video::playback_graph::local_media::std::_Optional_construct_base<_Ty>::_Assign_from(_Self &&) noexcept(<expr>)”中
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(262,26): error C3770: “<错误>”: 不是有效基类 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\optional(262,26): error C1003: 错误计数超过 100；正在停止编译 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_frame_rgba_converter.cpp”)
+  
+C:\kivo video\backend\include\kivo\cinema_engine\decode_core\real_software_decode_runtime.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_continuous_playback.cpp”)
+  
+C:\kivo video\backend\include\kivo\cinema_engine\demux_core\real_demux_runtime.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_continuous_playback.cpp”)
+  
+C:\kivo video\backend\include\kivo\cinema_engine\third_party_adapter\ffmpeg_adapter\ffmpeg_adapter.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_continuous_playback.cpp”)
+  
+  playback_session_local_media_open.cpp
+  playback_session_local_media_continuous.cpp
+C:\kivo video\backend\include\kivo\cinema_engine\demux_core\real_demux_runtime.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_first_frame_pipeline.cpp”)
+  
+C:\kivo video\backend\include\kivo\cinema_engine\decode_core\real_software_decode_runtime.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_first_frame_pipeline.cpp”)
+  
+C:\kivo video\backend\include\kivo\cinema_engine\third_party_adapter\ffmpeg_adapter\ffmpeg_adapter.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_video_playback_graph.vcxproj]
+  (编译源文件“../../../backend/src/video/playback_graph/local_media/local_media_first_frame_pipeline.cpp”)
+  

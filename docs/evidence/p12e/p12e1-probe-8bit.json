@@ -1,0 +1,51 @@
+{
+  "schema": "kivo.p12e.color-probe/1",
+  "generated_at_unix_ms": 1793340345775,
+  "media": "/data/local/tmp/avc8.mp4",
+  "mime": "video/avc",
+  "width": 1920,
+  "height": 1080,
+  "source_profile": 8,
+  "source_color_standard": -1,
+  "source_color_transfer": -1,
+  "source_color_range": -1,
+  "attempts": [
+    {
+      "case": "default_no_color_format",
+      "requested_color_format": "none",
+      "configure_ok": true,
+      "configure_status": "ok",
+      "start_ok": true,
+      "format_before_start": 21,
+      "format_after_start": 21,
+      "note": null
+    },
+    {
+      "case": "request_p010",
+      "requested_color_format": "yuvp010",
+      "configure_ok": true,
+      "configure_status": "ok",
+      "start_ok": true,
+      "format_before_start": 21,
+      "format_after_start": 21,
+      "note": null
+    },
+    {
+      "case": "request_surface_without_window",
+      "requested_color_format": "surface",
+      "configure_ok": true,
+      "configure_status": "ok",
+      "start_ok": true,
+      "format_before_start": 21,
+      "format_after_start": 21,
+      "note": "configure accepted a Surface request with no window, so configure does NOT validate color-format; 'configure ok' is therefore not evidence of any format support"
+    }
+  ],
+  "verdict": {
+    "all_attempts_started": true,
+    "same_format_for_all_requests": true,
+    "format_after_start": 21,
+    "reading": "every request produced the same output format after start; this component does not honour color-format requests, so neither P010 support nor its absence can be concluded from this probe"
+  },
+  "scope": "this probe configures WITHOUT a window (ByteBuffer mode) and does not prove what the Surface playback path negotiates"
+}

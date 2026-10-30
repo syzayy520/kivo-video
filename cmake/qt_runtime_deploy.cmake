@@ -25,7 +25,7 @@ function(kivo_add_qt_runtime_deploy target)
     message(FATAL_ERROR "windeployqt not found; cannot deploy Qt runtime for ${target}")
   endif()
 
-  set(_qml_dir "${CMAKE_SOURCE_DIR}/ui/playback")
+  set(_qml_dir "${CMAKE_SOURCE_DIR}/ui")
   get_filename_component(_qt6_root "${Qt6_DIR}/../../.." ABSOLUTE)
   set(_qt_platforms "${_qt6_root}/plugins/platforms")
   add_custom_command(

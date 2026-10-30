@@ -1,0 +1,7 @@
+qrc:/kivo/ui/playback/sheets/SettingToggleRow.qml:31:20: QML QQuickRectangle: The current style does not support customization of this control (property: "indicator" item: QQuickRectangle(0x1df8d12f520, parent=0x0, geometry=0,0 42x22)). Please customize a non-native style (such as Basic, Fusion, Material, etc). For more information, see: https://doc.qt.io/qt-6/qtquickcontrols2-customize.html#customization-reference
+UI_OPEN_QML_ENTRY=qrc:/kivo/ui/shell/PlaybackShellRoot.qml
+UI_OPEN_PLAYBACK_PAGE= qrc:/kivo/ui/playback/page/PlaybackPage.qml
+NORMAL_MEDIA_RESOLVE_ERROR= no video file found in directory
+NORMAL_MEDIA_OPEN= rejected
+NORMAL_MEDIA_PLAY= rejected
+NORMAL_MEDIA_FIRST_FRAME= no

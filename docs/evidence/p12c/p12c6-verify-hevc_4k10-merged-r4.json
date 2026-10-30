@@ -1,0 +1,65 @@
+{
+  "schema": "kivo.p12c.decode/3",
+  "generated_at_unix_ms": 1793265219006,
+  "source": {
+    "mime": "video/hevc",
+    "width": 3840,
+    "height": 2160,
+    "duration_us": 4000000
+  },
+  "decoder": {
+    "codec_name": "OMX.qcom.video.decoder.hevc",
+    "output_target": "surface"
+  },
+  "counters": {
+    "samples_submitted": 120,
+    "samples_rejected": 0,
+    "bytes_submitted": 10202606,
+    "frames_received": 121,
+    "frames_released": 121,
+    "frames_rendered": 120,
+    "frames_dropped_late": 0
+  },
+  "pipeline": {
+    "mode": "merged",
+    "present": true,
+    "submit": {
+      "calls": 493,
+      "mean_us": 156.115619,
+      "total_us": 76965,
+      "max_us": 6569
+    },
+    "eos": {
+      "calls": 1,
+      "mean_us": 7031.000000,
+      "total_us": 7031,
+      "max_us": 7031
+    },
+    "receive": {
+      "calls": 422,
+      "mean_us": 1772.701422,
+      "total_us": 748080,
+      "max_us": 6050
+    },
+    "release": {
+      "calls": 121,
+      "mean_us": 111.107438,
+      "total_us": 13444,
+      "max_us": 1067
+    }
+  },
+  "timing": {
+    "wall_us": 893268,
+    "first_frame_latency_us": 97161,
+    "decode_fps": 134.338183,
+    "speed_vs_realtime": 4.477939
+  },
+  "outcome": {
+    "completed": true,
+    "error": ""
+  },
+  "pace": {
+    "enabled": false,
+    "reason": "pacing not attached"
+  }
+}

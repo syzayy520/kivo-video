@@ -1,0 +1,30 @@
+{
+  "schema": "kivo.p12b.decode/1",
+  "generated_at_unix_ms": 1793233334372,
+  "source": {
+    "mime": "video/hevc",
+    "width": 3840,
+    "height": 2160,
+    "duration_us": 4000000
+  },
+  "decoder": {
+    "codec_name": "OMX.qcom.video.decoder.hevc",
+    "output_target": "surface"
+  },
+  "counters": {
+    "samples_submitted": 120,
+    "samples_rejected": 0,
+    "bytes_submitted": 10202606,
+    "frames_rendered": 120
+  },
+  "timing": {
+    "wall_us": 942174,
+    "first_frame_latency_us": 112951,
+    "decode_fps": 127.365009,
+    "speed_vs_realtime": 4.245500
+  },
+  "outcome": {
+    "completed": true,
+    "error": ""
+  }
+}

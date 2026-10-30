@@ -1,0 +1,8 @@
+---
+pid: 12904
+cwd: "C:\kivo video"
+command: "$env:PATH = \"C:\\Windows\\system32\"; $env:QT_QPA_PLATFORM = \"offscreen\"; & \"C:\\kivo video\\build\\vs-debug\\ui\\Debug\\kivo_video_playback_shell.exe\" --help 2>&1; Write-Host \"EXIT=$LASTEXITCODE\""
+started_at: 2026-06-30T17:40:34.056Z
+running_for_ms: 6725009  
+---
+EXIT=-1

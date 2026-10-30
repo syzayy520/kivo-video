@@ -1,0 +1,114 @@
+报告与台账已经更新到位：docs/design/backend-core/14-p12c3-status.md（新建，含回归与未完成项）、13-p12c2-status.md 补了 C2 人耳验收节、TASKS.md 指针切到 P12-C4、AGENTS.md / CURRENT.md / 家族树 / 项目记忆均已同步。
+
+
+
+
+WorkBuddy
+有声音
+
+
+P12-C3 已完成。这一轮把“正弦”换成了真实音轨。
+
+完整链路
+plaintext
+
+文件 fd → 解封装（选音频轨）→ AAC 解码 → S16→float32 → 环形缓冲 → AAudio → 扬声器
+共 13 个新增单元，全部为单文件单职责，最大 273 行。两处放置按铁律做了修正，原任务卡写法已作废：
+
+
+添加到对话
+内容	实际放置	理由
+PCM 描述 + 转换	core/audio/	零平台依赖，iOS 的 AudioUnit 同样要 float32
+解码线程编排	probe/audio/	现为探针，C5 后迁 core/session/
+真机数字（Redmi K40）
+
+添加到对话
+用例	结果
+AAC 48k/2ch 10 秒整曲	解出 480,256 帧，写入 480,256，丢弃 0，xrun=0，补静音 320
+AAC 44.1k/单声道 5 秒	协商为 44100Hz/1ch，AAudio 未强行改成 48k，xrun=0
+只有视频轨的 MP4（负向）	退出码 4，no audio track among 1 tracks
+转换单测 P1–P9	9/9 PASS，44 断言，x86_64 + arm64 真机 全过
+视频链路回归	新 APK 跑 4K HEVC10：120/120 帧、0 拒绝、completed=true
+单声道那条是故意设置的对照：如果 AAudio 把 44.1k 改成 48k 而我们还按 48k 播放，音高会高 8.8%。实测原样返回 44100，说明“按片源采样率开流”成立，也就不需要重采样。
+
+回归那条也不能省：我改了 mediaextractor_source（增加 TrackKind），这是视频链路共用的文件，因此重新安装 APK 后实际跑了一遍。
+
+三个我自己检查出的错误
+转换格式该信谁 —— 第一版用容器声明的格式计算转换步长。声道数一旦不符，交错就会错位，整段音频会变成噪声且不报任何错。现在改成只认 decoder.output_format()。
+AMEDIAFORMAT_KEY_PCM_ENCODING 是 API 28，而 minSdk 是 26 → 改字面量；且该键缺失时必须按 16bit 处理（那是 MediaCodec 的默认输出，不是猜测）。
+submit 返回 TRY_AGAIN 时我读了下一包 —— 读一次就推进读指针，那一包永久丢失。AAC 一包约 21ms，丢几包就是可听的断续。现在改为“包在手就绝不读下一包”。
+一处尚未查清，留给 C4
+frames_silenced 不是 0：实测 128 / 320 / 198 帧（2.7–6.7ms），三次不同。已确认的是稳态没有欠载（frames_dropped=0、frames_written == frames_decoded 严格相等、不随播放时长增长），所以它发生在起流或收尾的瞬间。但到底是头还是尾，我没分清——要分清得在会话里记录“第一块非静音出现的帧序号”，而 C2 定过“不要再改 session”，这轮没为它破例。已写进 C4 卡：C4 本来就要精确测首帧出声时刻，顺手就能回答。
+
+想请你确认一件事
+刚才那段是 左耳 440Hz（低）、右耳 880Hz（高）​。你说“有声音”是听到了，但左右是否也正确我无法从数据判断——声道互换不会引起任何指标异常，只有人耳能听出来。方便的话告诉我：低音在左、高音在右吗？
+
+报告与台账已经更新到位：docs/design/backend-core/14-p12c3-status.md（新建，含回归与未完成项）、13-p12c2-status.md 补了 C2 人耳验收节、TASKS.md 指针切到 P12-C4、AGENTS.md / CURRENT.md / 家族树 / 项目记忆均已同步。
+
+顺手修了文档里两处会误导接手者的问题：08 的私有头清单有 10 行重复；CMake 目标表写着 kivo_core、kivo_jni 这两个代码里从来没有过的名字（实际是 kivo_core_audio、kivo_player）。
+
+按你说的只留本地，没有提交。
+
+查看所有产物 (10)
+
+
+
+
+
+
+06:39
+声音应该是没问题的。C:\kivo video\android 这个是现在唯一的工作目录对吗？ 新人接管前先看什么才能完美接管？
+
+06:41
+
+
+
+WorkBuddy
+声音这块收到，C3 我按"已收工"记账了。
+
+你问的这两件事，我去核了目录和 git，结论和预想的不一样——而且发现了一个比"哪个目录"更要紧的问题。
+
+一、C:\kivo video\android 不是工作目录，只是壳
+真正的 C++ 代码在 C:\kivo video\backend：
+
+
+添加到对话
+目录	实际内容
+backend/src/video/video_plane/	core/audio/、backends/{aaudio,mediacodec}/、probe/audio/、runtime/ —— P12 全部代码
+android/	Gradle 壳 + 2 个 JNI .cxx + 4 个 Kotlin 文件，一行 C++ 后端都没有
+android/app/src/main/cpp/CMakeLists.txt 第 10 行靠 ../../../../.. 往上跳五层去拿 backend/ 的源文件（不是 add_subdirectory，CURRENT.md 原来那句写错了，我已改）。我实测过只拷 android/ 会怎样：
+
+plaintext
+
+CMake Error at CMakeLists.txt:14 (message):
+  KIVO_ROOT resolved incorrectly: .../cpp/../../../../..
+它连提示"你少拷了 backend"都不会——那个 ../ 压根没被规范化。
+
+二、更要紧的：现在只能整目录拷，不能 git clone
+这条比你问的目录问题严重。当前 216 项未跟踪，HEAD 2b5cfaa 还停在 P10：
+
+
+添加到对话
+你以为在库里	实际
+P12-A/B/C 的 C++ 源码	未跟踪
+docs/design/backend-core/（含 G1–G10 验收口径）	未跟踪
+docs/evidence/（A/B/C 全部真机证据）	未跟踪
+android/ 整个工程	未跟踪
+CURRENT.md / TASKS.md（就是交接文档本身）	未跟踪
+所以克隆出去只会得到一份 P10 基线：没有交接文档、没有 android 工程、没有一条 P12 证据。交接只能整目录拷，我给了实测过的命令（9,590 文件 / 1,185 目录 / 305 MB，一个 U 盘够）：
+
+powershell
+
+robocopy "C:\kivo video" "D:\kivo-video-backup" /E /XJ /XD build .gradle .kotlin .cxx
+顺带说一句：P12 三个阶段眼下只有本地这一份物理副本。换机器、磁盘坏、误删目录，A/B/C 一起没。这不算技术债，算数据安全，建议至少做一次离线备份。
+
+三、接管前按这个顺序看（约 25 分钟）
+
+添加到对话
+顺序	文件	读多久	读到什么
+1	AGENTS.md（我刚重写了 §零）	2 min	怎么拿到项目、目录边界、换机器必补的三样
+2	.codex/memory/kivo-video-iron-gate.md	5 min	铁律门闸：构思→规划→家族树→实现
+3	docs/handoff/CURRENT.md	10 min	现在在哪、怎么跑、13 个咬过人的坑、不许破的线
+4	docs/handoff/TASKS.md	5 min	当前指针 P12-C4，含目标/落位/验收/依赖
+5	03-goals.md + 07-p12-plan.md + 08-p12-family-tree.md	按需	数字口径、阶段红线、文件归位
+够不够"完美接管"的判据我写死了两条：能不看文档说出"当前指针是哪张卡、闸门是什么"，且 CURRENT.md §七 自检单全绿。少一条就别写代码——缺的是环境知识，不是代码能力。

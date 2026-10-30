@@ -1,0 +1,111 @@
+{
+  "schema": "kivo.p12c.decode/4",
+  "generated_at_unix_ms": 1793268423746,
+  "source": {
+    "mime": "video/avc",
+    "width": 1920,
+    "height": 1080,
+    "duration_us": 6000000
+  },
+  "decoder": {
+    "codec_name": "OMX.qcom.video.decoder.avc",
+    "output_target": "surface"
+  },
+  "counters": {
+    "samples_submitted": 180,
+    "samples_rejected": 0,
+    "bytes_submitted": 6202195,
+    "frames_received": 181,
+    "frames_released": 181,
+    "frames_rendered": 180,
+    "frames_dropped_late": 0
+  },
+  "pipeline": {
+    "mode": "merged",
+    "present": true,
+    "present_schedule": "surface_at_time",
+    "submit": {
+      "calls": 333,
+      "mean_us": 508.549550,
+      "total_us": 169347,
+      "max_us": 5341
+    },
+    "eos": {
+      "calls": 1,
+      "mean_us": 280.000000,
+      "total_us": 280,
+      "max_us": 280
+    },
+    "receive": {
+      "calls": 190,
+      "mean_us": 425.836842,
+      "total_us": 80909,
+      "max_us": 17796
+    },
+    "release": {
+      "calls": 181,
+      "mean_us": 350.928177,
+      "total_us": 63518,
+      "max_us": 2510
+    }
+  },
+  "timing": {
+    "wall_us": 5942145,
+    "first_frame_latency_us": 74553,
+    "decode_fps": 30.292091,
+    "speed_vs_realtime": 1.009736
+  },
+  "outcome": {
+    "completed": true,
+    "error": ""
+  },
+  "pace": {
+    "enabled": true,
+    "clock_source": "system",
+    "frame_duration_ns": 33333000,
+    "derived_fps": 30.000300,
+    "frames_decided": 180,
+    "presented": 180,
+    "dropped": 0,
+    "drop_ratio": 0.000000,
+    "catch_up_events": 0,
+    "catch_up_frames": 0,
+    "over_budget_frames": 0,
+    "lateness_ns": {
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0
+    },
+    "interval_ns": {
+      "p50": -125000,
+      "p95": 125000,
+      "p99": 625000,
+      "max": 1286896
+    },
+    "schedule_lead_ns": {
+      "samples": 180,
+      "p01": -99875000,
+      "p10": -99875000,
+      "p50": -99875000,
+      "p90": -99875000,
+      "p99": -25375000,
+      "min": -99940523,
+      "max": 6927,
+      "spread": 0
+    },
+    "clock_health": {
+      "extrapolated_frames": 0,
+      "free_run_frames": 0,
+      "jump_rebases": 0,
+      "monotonic_rejects": 0,
+      "stale_readings": 0
+    },
+    "wait": {
+      "count": 0,
+      "total_ns": 0
+    },
+    "sampled_at_frames": 180
+  }
+}

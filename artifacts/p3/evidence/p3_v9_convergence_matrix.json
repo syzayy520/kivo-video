@@ -1,0 +1,61 @@
+{
+  "gate_id": "FC-006",
+  "gate_name": "V9 High-Priority Convergence Gate",
+  "task_id": "P3-COMPLETE-LINE-V9",
+  "status": "CONTRACT_PASS",
+  "evidence_kind": "planning",
+  "convergence_items": [
+    {
+      "item": "Provider fast metadata/probe boundary",
+      "tracked_to_gate": "FC-025",
+      "policy": "ProviderMetadataHint fields + ProbeSkipPolicy after cross-validation"
+    },
+    {
+      "item": "CandidateRanking/SourceCapability no cyclic dependency",
+      "tracked_to_gate": "FC-066",
+      "policy": "Ranking uses policy reasons, not provider implementation"
+    },
+    {
+      "item": "Simple playlist vs HLS M3U8 parsing strategy",
+      "tracked_to_gate": "FC-042",
+      "policy": "#EXTM3U necessary not sufficient for HLS; HLS tags route to HLS parsing"
+    },
+    {
+      "item": "Playlist recursive visited identity",
+      "tracked_to_gate": "FC-043",
+      "policy": "Visited identity must be redacted stable identity, not raw URL"
+    },
+    {
+      "item": "BufferRequirement and PlatformCapabilityHints linkage",
+      "tracked_to_gate": "FC-064, FC-076",
+      "policy": "BufferRequirement dynamic adjustment by platform hints"
+    },
+    {
+      "item": "Golden Evidence Pack as offline artifact",
+      "tracked_to_gate": "FC-094",
+      "policy": "Sanitized offline pack in backend/tests/golden_evidence/p3/"
+    },
+    {
+      "item": "Three handoff ownership models only",
+      "tracked_to_gate": "FC-070",
+      "policy": "transfer_ownership, borrowed_until_close, reopen_by_plan only"
+    },
+    {
+      "item": "RuntimeRevision priority/throttle/coalesce",
+      "tracked_to_gate": "FC-021",
+      "policy": "max_revision_per_minute, min interval, coalesce window, priority order"
+    },
+    {
+      "item": "Optional field defaults",
+      "tracked_to_gate": "FC-034, FC-075",
+      "policy": "Optional fields must have default or when-present semantics"
+    },
+    {
+      "item": "known_not_verified_items and accepted_deferrals in closure report",
+      "tracked_to_gate": "FC-096",
+      "policy": "Closure report must include both sections with reason/risk/deferral_stage"
+    }
+  ],
+  "all_convergence_items_mapped": true,
+  "stop_condition_check": "All 10 convergence items captured. None left as documentation only."
+}

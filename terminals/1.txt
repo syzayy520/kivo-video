@@ -1,0 +1,79 @@
+---
+pid: 18484
+cwd: "C:\kivo video"
+command: "cd \"C:\\kivo video\" && cmake --preset vs-debug && cmake --build --preset vs-debug --target kivo_player_runtime_adapter_tests kivo_video_playback_graph_tests --config Debug 2>&1"
+started_at: 2026-06-30T15:36:21.168Z
+running_for_ms: 14175012 
+---
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.22621.
+-- Configuring done (0.5s)
+-- Generating done (1.4s)
+-- Build files have been written to: C:/kivo video/build/vs-debug
+适用于 .NET Framework MSBuild 版本 18.6.3+84d3e95b4
+
+  正在扫描源以查找模块依赖项...
+  command_conflict_matrix.cpp
+  recovery_replay_behavior.cpp
+  command_lifetime_registry.cpp
+  playback_session_runtime.cpp
+  track_switch_coordinator.cpp
+  pending_transport_intent.cpp
+  playback_session_facade.cpp
+  正在编译...
+  command_lifetime_registry.cpp
+  track_switch_coordinator.cpp
+  playback_session_facade.cpp
+  recovery_replay_behavior.cpp
+  pending_transport_intent.cpp
+  command_conflict_matrix.cpp
+  playback_session_runtime.cpp
+  kivo_video_playback_graph.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_video_playback_graph.lib
+  正在扫描源以查找模块依赖项...
+  adapter_state_mapper.cpp
+  player_runtime_adapter.cpp
+  正在编译...
+  adapter_state_mapper.cpp
+  player_runtime_adapter.cpp
+  kivo_video_player_runtime_adapter.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_video_player_runtime_adapter.lib
+  正在扫描源以查找模块依赖项...
+  player_runtime_adapter_tests.cpp
+  正在编译...
+  player_runtime_adapter_tests.cpp
+  kivo_player_runtime_adapter_tests.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_player_runtime_adapter_tests.exe
+适用于 .NET Framework MSBuild 版本 18.6.3+84d3e95b4
+
+  正在扫描源以查找模块依赖项...
+  kivo_video_playback_graph.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_video_playback_graph.lib
+  正在扫描源以查找模块依赖项...
+  p7b_public_contract_tests.cpp
+  正在编译...
+  p7b_public_contract_tests.cpp
+  kivo_p7b_public_contract_tests.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_p7b_public_contract_tests.exe
+  正在扫描源以查找模块依赖项...
+  p7c_command_state_tests.cpp
+  正在编译...
+  p7c_command_state_tests.cpp
+  kivo_p7c_command_state_tests.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_p7c_command_state_tests.exe
+  正在扫描源以查找模块依赖项...
+  kivo_p7d_async_generation_tests.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_p7d_async_generation_tests.exe
+  正在扫描源以查找模块依赖项...
+  p7e_behavior_coordinator_tests.cpp
+  正在编译...
+  p7e_behavior_coordinator_tests.cpp
+  kivo_p7e_behavior_coordinator_tests.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_p7e_behavior_coordinator_tests.exe
+  正在扫描源以查找模块依赖项...
+  p7f_snapshot_evidence_tests.cpp
+  正在编译...
+  p7f_snapshot_evidence_tests.cpp
+  kivo_p7f_snapshot_evidence_tests.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_p7f_snapshot_evidence_tests.exe
+  正在扫描源以查找模块依赖项...
+  p7g_deterministic_harness_tests.cpp
+  正在编译...
+  p7g_deterministic_harness_tests.cpp
+  kivo_p7g_deterministic_harness_tests.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_p7g_deterministic_harness_tests.exe
+  正在扫描源以查找模块依赖项...
+  p7g_public_header_purist_tests.cpp
+  正在编译...
+  p7g_public_header_purist_tests.cpp
+  kivo_p7g_public_header_purist_tests.vcxproj -> C:\kivo video\build\vs-debug\backend\Debug\kivo_p7g_public_header_purist_tests.exe
+  1>

@@ -1,0 +1,37 @@
+---
+pid: 2052
+cwd: "C:\kivo video"
+command: "cmake --build --preset vs-debug --target kivo_video_playback_shell kivo_playback_shell_qml_load_test kivo_playback_shell_interaction_test --config Debug 2>&1 | Select-Object -Last 30"
+started_at: 2026-06-30T18:04:04.733Z
+running_for_ms: 5310013  
+---
+  正在编译...
+  playback_shell_interaction_test.cpp
+C:\kivo video\tests\ui_shell\playback_shell_interaction_test.cpp(31,79): error C2027: 使用了未定义类型“QJsonArray�?[C:\kivo video\build\vs-debug\ui\kivo_playback_shell_interaction_test.vcxproj]
+      C:\tmp\KivoMusicQt_ascii_lyrics_normalizer\.qt\6.8.3\msvc2022_64\include\QtCore\qmetatype.h(1569,1):
+      参见“QJsonArray”的声明
+  
+C:\kivo video\tests\ui_shell\playback_shell_interaction_test.cpp(31,25): error C2027: 使用了未定义类型“QJsonArray�?[C:\kivo video\build\vs-debug\ui\kivo_playback_shell_interaction_test.vcxproj]
+      C:\tmp\KivoMusicQt_ascii_lyrics_normalizer\.qt\6.8.3\msvc2022_64\include\QtCore\qmetatype.h(1569,1):
+      参见“QJsonArray”的声明
+  
+C:\kivo video\tests\ui_shell\playback_shell_interaction_test.cpp(32,76): error C2027: 使用了未定义类型“QJsonArray�?[C:\kivo video\build\vs-debug\ui\kivo_playback_shell_interaction_test.vcxproj]
+      C:\tmp\KivoMusicQt_ascii_lyrics_normalizer\.qt\6.8.3\msvc2022_64\include\QtCore\qmetatype.h(1569,1):
+      参见“QJsonArray”的声明
+  
+C:\kivo video\tests\ui_shell\playback_shell_interaction_test.cpp(32,24): error C2027: 使用了未定义类型“QJsonArray�?[C:\kivo video\build\vs-debug\ui\kivo_playback_shell_interaction_test.vcxproj]
+      C:\tmp\KivoMusicQt_ascii_lyrics_normalizer\.qt\6.8.3\msvc2022_64\include\QtCore\qmetatype.h(1569,1):
+      参见“QJsonArray”的声明
+  
+C:\kivo video\tests\ui_shell\playback_shell_interaction_test.cpp(33,9): error C2027: 使用了未定义类型“QJsonArray�?[C:\kivo video\build\vs-debug\ui\kivo_playback_shell_interaction_test.vcxproj]
+      C:\tmp\KivoMusicQt_ascii_lyrics_normalizer\.qt\6.8.3\msvc2022_64\include\QtCore\qmetatype.h(1569,1):
+      参见“QJsonArray”的声明
+  
+C:\kivo video\tests\ui_shell\playback_shell_interaction_test.cpp(33,31): error C2027: 使用了未定义类型“QJsonArray�?[C:\kivo video\build\vs-debug\ui\kivo_playback_shell_interaction_test.vcxproj]
+      C:\tmp\KivoMusicQt_ascii_lyrics_normalizer\.qt\6.8.3\msvc2022_64\include\QtCore\qmetatype.h(1569,1):
+      参见“QJsonArray”的声明
+  
+C:\kivo video\tests\ui_shell\playback_shell_interaction_test.cpp(87,9): error C2059: 语法错误:“return�?[C:\kivo video\build\vs-debug\ui\kivo_playback_shell_interaction_test.vcxproj]
+C:\kivo video\tests\ui_shell\playback_shell_interaction_test.cpp(90,5): error C2059: 语法错误:“return�?[C:\kivo video\build\vs-debug\ui\kivo_playback_shell_interaction_test.vcxproj]
+C:\kivo video\tests\ui_shell\playback_shell_interaction_test.cpp(91,1): error C2059: 语法错误:“}�?[C:\kivo video\build\vs-debug\ui\kivo_playback_shell_interaction_test.vcxproj]
+C:\kivo video\tests\ui_shell\playback_shell_interaction_test.cpp(91,1): error C2143: 语法错误: 缺少�?�?在“}”的前面) [C:\kivo video\build\vs-debug\ui\kivo_playback_shell_interaction_test.vcxproj]

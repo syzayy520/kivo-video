@@ -1,0 +1,26 @@
+{
+  "gate_id": "P4G-006",
+  "gate_name": "P3/P4 Type Authority Gate",
+  "status": "verified",
+  "evidence_kind": "audit",
+  "p3_sealed_types_count": 6,
+  "p3_sealed_types": [
+    "PlaybackHandoffContract",
+    "PlaybackCandidateSet",
+    "SourceSession",
+    "ProbeEvidence",
+    "BufferRequirement",
+    "RuntimeRevisionResult"
+  ],
+  "p4_uses_ref_view_only": [
+    "P3PlaybackHandoffRef",
+    "P3CandidateSetRef",
+    "P3SelectedCandidateRef",
+    "P3SourceSessionRef",
+    "P3ReaderFactoryRef",
+    "P3ProbeEvidenceView",
+    "P3RuntimeRevisionView"
+  ],
+  "duplicate_check_result": "no P3 type redefined in P4 namespace",
+  "scan_method": "manual audit of p4 headers vs p3 sealed types list"
+}

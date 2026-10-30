@@ -1,0 +1,99 @@
+{
+  "schema": "kivo.p12c.audio-file-probe/1",
+  "device": {
+    "model": "M2012K11AC",
+    "abi": "arm64-v8a",
+    "sdk": 33
+  },
+  "source": {
+    "label": "aac_44k1_mono.mp4",
+    "bytes": 62194,
+    "mime": "audio/mp4a-latm",
+    "declared_sample_rate": 44100,
+    "declared_channel_count": 1,
+    "container_duration_us": 5023219
+  },
+  "decode": {
+    "codec_name": "c2.android.aac.decoder",
+    "output_sample_rate": 44100,
+    "output_channel_count": 1,
+    "output_encoding": "pcm_s16le",
+    "output_format_diverged": false,
+    "packets_submitted": 217,
+    "chunks_received": 216,
+    "frames_decoded": 221184,
+    "frames_written": 221184,
+    "frames_dropped": 0,
+    "ring_full_waits": 4259,
+    "ring_capacity_frames": 16384,
+    "reached_eos": true,
+    "eos_flag_seen": true,
+    "decode_ratio": 0.998,
+    "error": ""
+  },
+  "requested": {
+    "sample_rate": 44100,
+    "channel_count": 1,
+    "format": "pcm_float",
+    "prefer_exclusive": true,
+    "prefer_low_latency": true
+  },
+  "negotiated": {
+    "sample_rate": 44100,
+    "channel_count": 1,
+    "format": "pcm_float",
+    "sharing_mode": "shared",
+    "performance_mode": "none",
+    "frames_per_burst": 882,
+    "buffer_capacity_frames": 3544
+  },
+  "downgrade_reason": "申请独占但实际为 shared；申请低延迟但实际为 none",
+  "open": {
+    "ok": true,
+    "code": 0,
+    "message": ""
+  },
+  "start": {
+    "ok": true,
+    "code": 0,
+    "message": ""
+  },
+  "output": {
+    "prefill_reached": true,
+    "callbacks": 552,
+    "frames_rendered": 221382,
+    "frames_silenced": 198,
+    "first_audible_frame": 0,
+    "silence_head_frames": 0,
+    "silence_tail_frames": 198,
+    "xrun_count": 0,
+    "wall_millis": 5059,
+    "expected_frames": 221523,
+    "render_ratio": 0.999,
+    "error": ""
+  },
+  "clock": {
+    "source": "audio_timestamp",
+    "queries": 970,
+    "startup_millis": 147,
+    "first_ok_frame_position": 0,
+    "first_ok_time_nanos": 403421851908813,
+    "timestamp_ok": 970,
+    "timestamp_not_started": 0,
+    "timestamp_fail": 0,
+    "fallback_frames_read": 0,
+    "fallback_frames_written": 0,
+    "stale_freezes": 0,
+    "monotonic_rejects": 8,
+    "jumps_clamped": 0,
+    "latency_frames": 6747,
+    "max_extrapolation_ns": 21562083,
+    "clock_start_ns": 13107136,
+    "clock_end_ns": 4871159354,
+    "clock_span_ns": 4858052218,
+    "rendered_span_ns": 5020000000,
+    "span_ratio": 0.9677
+  },
+  "wall_millis": 5059,
+  "failure": ""
+}

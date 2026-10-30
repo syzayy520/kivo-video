@@ -1,0 +1,17 @@
+# P12-C2 SpscAudioRingBuffer — arm64 真机测试输出
+# 设备：Redmi K40 (M2012K11AC / alioth / SM8250 / Android 13 API 33)
+# 构建：NDK r30 aarch64-linux-android26-clang++ -std=c++23 -O2 -static-libstdc++
+# 时间：2026-10-29 06:09:41 +0800
+
+=== P12-C2 SpscAudioRingBuffer tests ===
+[PASS] R1 基本写读
+[PASS] R2 环绕顺序
+[PASS] R3 写满短写
+[PASS] R4 空读不改输出
+[PASS] R5 不覆盖未读
+[PASS] R6 并发 100 万帧
+[PASS] R7 热路径零分配
+[PASS] R8 容量取整与非法参数
+[PASS] R9 立体声不串道
+--- 断言 433 项，失败 0 项 ---
+exit=0

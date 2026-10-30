@@ -1,0 +1,74 @@
+{
+  "schema": "kivo.p12c.audio-file-probe/1",
+  "device": {
+    "model": "M2012K11AC",
+    "abi": "arm64-v8a",
+    "sdk": 33
+  },
+  "source": {
+    "label": "h264_1080p8.mp4",
+    "bytes": 6204870,
+    "mime": "",
+    "declared_sample_rate": 0,
+    "declared_channel_count": 0,
+    "container_duration_us": -1
+  },
+  "decode": {
+    "codec_name": "",
+    "output_sample_rate": 0,
+    "output_channel_count": 0,
+    "output_encoding": "unknown",
+    "output_format_diverged": false,
+    "packets_submitted": 0,
+    "chunks_received": 0,
+    "frames_decoded": 0,
+    "frames_written": 0,
+    "frames_dropped": 0,
+    "ring_full_waits": 0,
+    "ring_capacity_frames": 0,
+    "reached_eos": false,
+    "eos_flag_seen": false,
+    "decode_ratio": 0.000,
+    "error": ""
+  },
+  "requested": {
+    "sample_rate": 48000,
+    "channel_count": 2,
+    "format": "pcm_float",
+    "prefer_exclusive": true,
+    "prefer_low_latency": true
+  },
+  "negotiated": {
+    "sample_rate": 0,
+    "channel_count": 0,
+    "format": "unspecified",
+    "sharing_mode": "exclusive",
+    "performance_mode": "unknown",
+    "frames_per_burst": 0,
+    "buffer_capacity_frames": 0
+  },
+  "downgrade_reason": "",
+  "open": {
+    "ok": true,
+    "code": 0,
+    "message": ""
+  },
+  "start": {
+    "ok": true,
+    "code": 0,
+    "message": ""
+  },
+  "output": {
+    "prefill_reached": false,
+    "callbacks": 0,
+    "frames_rendered": 0,
+    "frames_silenced": 0,
+    "xrun_count": 0,
+    "wall_millis": 0,
+    "expected_frames": 0,
+    "render_ratio": 0.000,
+    "error": ""
+  },
+  "wall_millis": 0,
+  "failure": "h264_1080p8.mp4: no audio track among 1 tracks"
+}

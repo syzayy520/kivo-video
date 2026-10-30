@@ -1,0 +1,39 @@
+{
+  "schema": "kivo.p12e4.frame-luma/1",
+  "generated_at_unix_ms": 1793340368327,
+  "method": "Rec.709 luma on sRGB-encoded RGB values from the screenshot; NOT linear light",
+  "thresholds": {
+    "bright_clip": 250,
+    "dark_clip": 5
+  },
+  "frames": [
+    {
+      "label": "hdr-marked",
+      "file": "artifacts/p12e4/a-hdr-marked.png",
+      "width": 2400,
+      "height": 1080,
+      "pixels": 2592000,
+      "luma_mean": 105.99,
+      "luma_p05": 0,
+      "luma_p50": 71,
+      "luma_p95": 254,
+      "luma_max": 254,
+      "bright_clip_ratio": 0.09715,
+      "dark_clip_ratio": 0.17087
+    },
+    {
+      "label": "sdr-marked",
+      "file": "artifacts/p12e4/b-sdr-marked.png",
+      "width": 2400,
+      "height": 1080,
+      "pixels": 2592000,
+      "luma_mean": 91.15,
+      "luma_p05": 0,
+      "luma_p50": 61,
+      "luma_p95": 254,
+      "luma_max": 254,
+      "bright_clip_ratio": 0.09732,
+      "dark_clip_ratio": 0.15934
+    }
+  ]
+}

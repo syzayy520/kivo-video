@@ -20,7 +20,21 @@ install_ffmpeg*.bat
 vcpkg_*.txt
 vcpkg_out.txt
 
+# Local FFmpeg SDK bootstrap (junctions are machine-bound, libs are generated).
+# Only bootstrap.cmd and README.md are tracked.
+third_party/ffmpeg-sdk/include/
+third_party/ffmpeg-sdk/bin/
+third_party/ffmpeg-sdk/lib/
+
 backend/tools/governance/redline_gate/artifacts/*
 !backend/tools/governance/redline_gate/artifacts/legacy_evidence_field_retention_report.json
 !backend/tools/governance/redline_gate/artifacts/violation_classification_report.json
 !backend/tools/governance/redline_gate/artifacts/redline_gate_result.json
+
+# Agent workspace metadata (per-machine, not project source).
+.workbuddy/
+.codebuddy/
+
+# Scratch scripts kept out of history.
+tmp_*.py
+kivo_ev_test_*.json

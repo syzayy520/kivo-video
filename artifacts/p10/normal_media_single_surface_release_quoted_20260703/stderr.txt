@@ -1,0 +1,1875 @@
+UI_OPEN_QML_ENTRY=qrc:/kivo/ui/shell/PlaybackShellRoot.qml
+UI_OPEN_PLAYBACK_PAGE= qrc:/kivo/ui/playback/page/PlaybackPage.qml
+[matroska,webm @ 000002988a281b00] Stream #9: not enough frames to estimate rate; consider increasing probesize
+[matroska,webm @ 000002988a281b00] Stream #10: not enough frames to estimate rate; consider increasing probesize
+[matroska,webm @ 000002988a281b00] Stream #11: not enough frames to estimate rate; consider increasing probesize
+[matroska,webm @ 000002988a281b00] Could not find codec parameters for stream 4 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 000002988a281b00] Could not find codec parameters for stream 5 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 000002988a281b00] Could not find codec parameters for stream 6 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 000002988a281b00] Could not find codec parameters for stream 7 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 000002988a281b00] Could not find codec parameters for stream 8 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 000002988a281b00] Stream #9: not enough frames to estimate rate; consider increasing probesize
+[matroska,webm @ 000002988a281b00] Stream #10: not enough frames to estimate rate; consider increasing probesize
+[matroska,webm @ 000002988a281b00] Stream #11: not enough frames to estimate rate; consider increasing probesize
+[matroska,webm @ 000002988a281b00] Could not find codec parameters for stream 4 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 000002988a281b00] Could not find codec parameters for stream 5 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 000002988a281b00] Could not find codec parameters for stream 6 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 000002988a281b00] Could not find codec parameters for stream 7 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+[matroska,webm @ 000002988a281b00] Could not find codec parameters for stream 8 (Subtitle: hdmv_pgs_subtitle (pgssub)): unspecified size
+Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options
+NORMAL_MEDIA_OPEN= accepted
+NORMAL_MEDIA_PLAY= accepted
+NORMAL_MEDIA_FIRST_FRAME= yes
+[truehd @ 000002988ab8d180] Lossless check failed - expected 1a, calculated f9.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid channel 12 specified as output from matrix.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x06fa)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1bdf)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1009)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0be3)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x06ac)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0ec9)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1200)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0716)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1842)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1200)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0844)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0724)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1017)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 51, calculated 71.
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0658)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x09db)
+[truehd @ 000002988ab8d180] Invalid channel 8 specified as output from matrix.
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0688)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x00a7)
+[truehd @ 000002988ab8d180] IIR filter order 12 is greater than maximum 4.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] IIR filter order 13 is greater than maximum 4.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0ca8)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0b87)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] IIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0ce8)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] IIR filter order 15 is greater than maximum 4.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0c35)
+[truehd @ 000002988ab8d180] IIR filter order 8 is greater than maximum 4.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x13af)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1990)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1286)
+[truehd @ 000002988ab8d180] IIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Sum of coeff_bits and coeff_shift for IIR filter must be 16 or less.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0502)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x05af)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x08d4)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1cbf)
+[truehd @ 000002988ab8d180] Lossless check failed - expected 5d, calculated 13.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x16bc)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1358)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected 8f, calculated 7b.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Lossless check failed - expected 9c, calculated d8.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0915)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1a2b)
+[truehd @ 000002988ab8d180] IIR filter order 5 is greater than maximum 4.
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0b10)
+[truehd @ 000002988ab8d180] IIR filter order 12 is greater than maximum 4.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1cc1)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1cac)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x02b1)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x00f2)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1fed)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0cf4)
+[truehd @ 000002988ab8d180] IIR filter order 14 is greater than maximum 4.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0694)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] IIR filter order 7 is greater than maximum 4.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1ea8)
+[truehd @ 000002988ab8d180] IIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] IIR filter order 5 is greater than maximum 4.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0cf5)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] IIR filter order 11 is greater than maximum 4.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x152f)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1b3f)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1a5c)
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x06c7)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] IIR filter order 14 is greater than maximum 4.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0a2f)
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] IIR filter order 12 is greater than maximum 4.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0e8e)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0bee)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] IIR filter order 12 is greater than maximum 4.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0a8d)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0449)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1039)
+[truehd @ 000002988ab8d180] Lossless check failed - expected dd, calculated e7.
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1d6a)
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x03ae)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Lossless check failed - expected 36, calculated 33.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0bcd)
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected 13, calculated ca.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 58, calculated b1.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x007c)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x10c8)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] FIR filter order 14 is greater than maximum 8.
+[truehd @ 000002988ab8d180] FIR filter order 12 is greater than maximum 8.
+[truehd @ 000002988ab8d180] FIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1a80)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x17b5)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0d64)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0d6a)
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0a74)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0412)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1de5)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x16de)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x18bd)
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x12d5)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x07d0)
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1b21)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0152)
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x066d)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0055)
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x05ca)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0062)
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x159c)
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x02c9)
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x07da)
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1db3)
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1272)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Lossless check failed - expected b7, calculated 18.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] IIR filter order 13 is greater than maximum 4.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x19fb)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0046)
+[truehd @ 000002988ab8d180] FIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] FIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] FIR filter has state data specified.
+[truehd @ 000002988ab8d180] FIR filter order 10 is greater than maximum 8.
+[truehd @ 000002988ab8d180] Lossless check failed - expected a7, calculated b1.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0885)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1a03)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected e4, calculated c3.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0005)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1c02)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x08fd)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid channel 14 specified as output from matrix.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Lossless check failed - expected b1, calculated 09.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0ba0)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0590)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x00d2)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x039a)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0668)
+[truehd @ 000002988ab8d180] IIR filter order 10 is greater than maximum 4.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0c94)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x08c4)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1145)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x058c)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x13e5)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x12b4)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected 61, calculated f6.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1530)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] FIR filter order 14 is greater than maximum 8.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x06e0)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x12b4)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0575)
+[truehd @ 000002988ab8d180] Invalid channel 14 specified as output from matrix.
+[truehd @ 000002988ab8d180] Invalid channel 13 specified as output from matrix.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0487)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected d0, calculated 8a.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1d77)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x073e)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1500)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0585)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected 84, calculated 56.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1009)
+[truehd @ 000002988ab8d180] Lossless check failed - expected 2e, calculated 5e.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1299)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] IIR filter order 14 is greater than maximum 4.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0b31)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] FIR filter order 12 is greater than maximum 8.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] FIR filter order 14 is greater than maximum 8.
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1cb2)
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x03c3)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] FIR filter order 9 is greater than maximum 8.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] FIR filter order 9 is greater than maximum 8.
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] FIR filter order 9 is greater than maximum 8.
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x13d8)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] FIR filter order 10 is greater than maximum 8.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected 54, calculated 06.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x06fe)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] Invalid channel 5 specified as output from matrix.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1e34)
+[truehd @ 000002988ab8d180] FIR filter order 15 is greater than maximum 8.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] FIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] FIR filter order 13 is greater than maximum 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0a4f)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0d60)
+[truehd @ 000002988ab8d180] FIR filter order 9 is greater than maximum 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x010d)
+[truehd @ 000002988ab8d180] FIR filter order 15 is greater than maximum 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1030)
+[truehd @ 000002988ab8d180] Invalid channel 3 specified as output from matrix.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1832)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0e72)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1512)
+[truehd @ 000002988ab8d180] Invalid channel 3 specified as output from matrix.
+[truehd @ 000002988ab8d180] FIR filter order 15 is greater than maximum 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0434)
+[truehd @ 000002988ab8d180] Invalid channel 12 specified as output from matrix.
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0892)
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x15fc)
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1552)
+[truehd @ 000002988ab8d180] Lossless check failed - expected f1, calculated 3f.
+[truehd @ 000002988ab8d180] IIR filter order 8 is greater than maximum 4.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] Lossless check failed - expected 7e, calculated 16.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 6b, calculated 8d.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 2b, calculated ee.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0000)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected 88, calculated 73.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Lossless check failed - expected d5, calculated d4.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 75, calculated 8d.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0d2b)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid channel 10 specified as output from matrix.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1315)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x178a)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x08a3)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0103)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x140b)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0f2c)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1e93)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1fb9)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1c2b)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x05d1)
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1ed4)
+[truehd @ 000002988ab8d180] Invalid channel 6 specified as output from matrix.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0450)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1b3f)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Lossless check failed - expected cf, calculated a4.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1d2a)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1231)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Lossless check failed - expected 87, calculated be.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0006)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1237)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x15a3)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x057f)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0a2e)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0d69)
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 8f, calculated d2.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1fd9)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0d1c)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1497)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x143b)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0923)
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x15cc)
+[truehd @ 000002988ab8d180] Invalid channel 6 specified as output from matrix.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x044e)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1556)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x01d1)
+[truehd @ 000002988ab8d180] Lossless check failed - expected 37, calculated 52.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 1d, calculated 68.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Lossless check failed - expected 2d, calculated 7a.
+[truehd @ 000002988ab8d180] Lossless check failed - expected dd, calculated 14.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x12a1)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] IIR filter order 14 is greater than maximum 4.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 41, calculated 1a.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1bfc)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x03d5)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0715)
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x132f)
+[truehd @ 000002988ab8d180] Lossless check failed - expected a0, calculated 4d.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1a2a)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1e00)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0bb5)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] FIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0e40)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] FIR filter order 9 is greater than maximum 8.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] IIR filter order 5 is greater than maximum 4.
+[truehd @ 000002988ab8d180] Invalid channel 11 specified as output from matrix.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x106d)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1836)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1305)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x126a)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x19de)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1bf4)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1aca)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1ee3)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected 29, calculated fb.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x16cb)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid channel 15 specified as output from matrix.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x083a)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x095a)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] IIR filter order 13 is greater than maximum 4.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1751)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x105e)
+[truehd @ 000002988ab8d180] IIR filter order 15 is greater than maximum 4.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0dec)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x15c5)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x117a)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 75, calculated 42.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1704)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0b86)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0004)
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1e49)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0a5d)
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x169b)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1043)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] FIR filter order 11 is greater than maximum 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1e51)
+[truehd @ 000002988ab8d180] IIR filter order 13 is greater than maximum 4.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x103f)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] FIR filter order 11 is greater than maximum 8.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] FIR filter order 15 is greater than maximum 8.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x016d)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x01f1)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1d09)
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 49, calculated d0.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x060b)
+[truehd @ 000002988ab8d180] Invalid channel 6 specified as output from matrix.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1128)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected c6, calculated ea.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0d52)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Lossless check failed - expected fe, calculated 53.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0700)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1a7a)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0066)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1b67)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x142d)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] FIR and IIR filters must use the same precision.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1d8d)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0d8a)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0b4f)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x00a1)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1349)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] IIR filter order 8 is greater than maximum 4.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected 66, calculated 8e.
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 2a, calculated 27.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1678)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x04e7)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x10db)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0433)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1f45)
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] Sum of coeff_bits and coeff_shift for FIR filter must be 16 or less.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0cbe)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x01f5)
+[truehd @ 000002988ab8d180] IIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0c8a)
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1132)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1d3c)
+[truehd @ 000002988ab8d180] IIR filter order 14 is greater than maximum 4.
+[truehd @ 000002988ab8d180] FIR filter order 14 is greater than maximum 8.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] FIR filter has state data specified.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected ae, calculated af.
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x169f)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0b32)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] IIR filter order 6 is greater than maximum 4.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x11ab)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0486)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x124b)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] IIR filter order 13 is greater than maximum 4.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid channel 11 specified as output from matrix.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x025c)
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x04c5)
+[truehd @ 000002988ab8d180] FIR filter order 9 is greater than maximum 8.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid channel 9 specified as output from matrix.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x04c0)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x02d4)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Sum of coeff_bits and coeff_shift for IIR filter must be 16 or less.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x18c8)
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1fd1)
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Sum of coeff_bits and coeff_shift for IIR filter must be 16 or less.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1997)
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0f8c)
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x15d6)
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x133c)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0f9b)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] IIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0be2)
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Number of primitive matrices cannot be greater than 8.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Total filter orders too high.
+[truehd @ 000002988ab8d180] Lossless check failed - expected db, calculated 22.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x018d)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1949)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Sum of coeff_bits and coeff_shift for FIR filter must be 16 or less.
+[truehd @ 000002988ab8d180] FIR filter has state data specified.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x042c)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0359)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x079f)
+[truehd @ 000002988ab8d180] FIR filter order 12 is greater than maximum 8.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1ac7)
+[truehd @ 000002988ab8d180] FIR filter has state data specified.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0293)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] Sum of coeff_bits and coeff_shift for FIR filter must be 16 or less.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1dba)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1a95)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0895)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0129)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1c6b)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0f05)
+[truehd @ 000002988ab8d180] Lossless check failed - expected 0f, calculated a2.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1012)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected 07, calculated 3c.
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected c6, calculated e4.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1396)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1f19)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x08d0)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x022a)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x026f)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x10b5)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid channel 13 specified as output from matrix.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1aa8)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1751)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0812)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x175d)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0f54)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0d6d)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] FIR filter order 15 is greater than maximum 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x124e)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0e68)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x10bb)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1c70)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] FIR filter order 13 is greater than maximum 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x07ed)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1a7d)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0804)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] FIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] Sum of coeff_bits and coeff_shift for FIR filter must be 16 or less.
+[truehd @ 000002988ab8d180] FIR filter order 14 is greater than maximum 8.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x09e0)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0108)
+[truehd @ 000002988ab8d180] FIR filter has state data specified.
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] Sum of coeff_bits and coeff_shift for FIR filter must be 16 or less.
+[truehd @ 000002988ab8d180] FIR filter has state data specified.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x07f0)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x111e)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0e6d)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1d12)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0da7)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0b99)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] FIR filter order 12 is greater than maximum 8.
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] IIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Sum of coeff_bits and coeff_shift for FIR filter must be 16 or less.
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1c8d)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1177)
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0a7f)
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0433)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1511)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x07c8)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0c67)
+[truehd @ 000002988ab8d180] FIR filter has state data specified.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 52, calculated 4d.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] IIR filter coeff_bits must be between 1 and 16.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] Lossless check failed - expected 4e, calculated 57.
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0008)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0dc5)
+[truehd @ 000002988ab8d180] Invalid channel 6 specified as output from matrix.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 56, calculated 98.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0540)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1373)
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x13e4)
+[truehd @ 000002988ab8d180] Invalid blocksize.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0c64)
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] quant_step_size larger than huff_lsbs
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Invalid huff_lsbs.
+[truehd @ 000002988ab8d180] No samples to output.
+[truehd @ 000002988ab8d180] Lossless check failed - expected 57, calculated 34.
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x18af)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] FIR filter order 10 is greater than maximum 8.
+[truehd @ 000002988ab8d180] Lossless check failed - expected ca, calculated b1.
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] Negative output_shift is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+[truehd @ 000002988ab8d180] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0700)
+[truehd @ 000002988ab8d180] Lossless check failed - expected f0, calculated 08.
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1fb9)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x1022)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0201)
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] restart header sync incorrect (got 0x0bc4)
+[truehd @ 000002988ab8d180] too many audio samples in frame
+[truehd @ 000002988ab8d180] substream 1 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] substream 0 length mismatch
+[truehd @ 000002988ab8d180] too many audio samples in frame

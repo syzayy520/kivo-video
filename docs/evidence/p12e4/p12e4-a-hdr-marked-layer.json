@@ -1,0 +1,22 @@
+{
+  "schema": "kivo.p12e3.layer-dataspace/1",
+  "tag": "a-hdr-marked",
+  "package": "com.kivo.cinema",
+  "layer": "SurfaceView[com.kivo.cinema/com.kivo.cinema.ui.PlayerActivity](BLAST)#121294",
+  "layer_dataspace": {
+    "name": "BT2020_ITU_PQ",
+    "value": 298188800,
+    "hdr_metadata_types": 0
+  },
+  "display": {
+    "dynamic_range": "HDR",
+    "color_mode": "standard_hdr",
+    "hdr_panel": "true"
+  },
+  "raw_lines": {
+    "layer": "isOpaque=true hasProtectedContent=false isColorspaceAgnostic=false dataspace=BT2020_ITU_PQ (298188800) hdr metadata types=0 dimming enabled=true colorTransform=[[1.000,0.000,0.000,0.000][0.000,1.000,0.000,0.000][0.000,0.000,1.000,0.000][0.000,0.000,0.000,1.000]]",
+    "dynamic_range": "current dynamic_range: HDR",
+    "color_mode": "Current Color Mode: standard_hdr",
+    "hdr_panel": "HDR Panel:true QSync:false DynBitclk:false"
+  }
+}

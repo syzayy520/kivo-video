@@ -19,7 +19,7 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "KIVO_ENABLE_FFMPEG": "ON",
         "KIVO_ENABLE_REAL_MEDIA_TESTS": "ON",
-        "FFMPEG_ROOT": "C:/ffmpeg-sdk/ffmpeg-n7.1-latest-win64-gpl-shared-7.1"
+        "FFMPEG_ROOT": "${sourceDir}/third_party/ffmpeg-sdk"
       }
     },
     {
@@ -44,7 +44,7 @@
       "cacheVariables": {
         "KIVO_ENABLE_FFMPEG": "ON",
         "KIVO_ENABLE_REAL_MEDIA_TESTS": "ON",
-        "FFMPEG_ROOT": "C:/ffmpeg-sdk/ffmpeg-n7.1-latest-win64-gpl-shared-7.1"
+        "FFMPEG_ROOT": "${sourceDir}/third_party/ffmpeg-sdk"
       }
     },
     {

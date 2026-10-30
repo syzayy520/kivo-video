@@ -1,0 +1,186 @@
+{
+  "schema": "kivo.p12c.decode/11",
+  "generated_at_unix_ms": 1793338757680,
+  "source": {
+    "mime": "video/avc",
+    "width": 1920,
+    "height": 1080,
+    "duration_us": 10000000
+  },
+  "decoder": {
+    "codec_name": "OMX.qcom.video.decoder.avc",
+    "output_target": "surface"
+  },
+  "color": {
+    "source_mime": "video/avc",
+    "source_profile": 8,
+    "source_is_10bit": false,
+    "negotiated_format": 2141391878,
+    "negotiated_name": "qcom_private",
+    "negotiated_bit_depth": null,
+    "color_standard": 1,
+    "color_transfer": 3,
+    "color_range": 2,
+    "source_color_standard": null,
+    "source_color_transfer": null,
+    "source_color_range": null,
+    "delivered_color_standard": null,
+    "delivered_color_transfer": null,
+    "delivered_color_range": null,
+    "configure_format": {
+      "copied": false,
+      "fallback_reason": null
+    },
+    "hdr": {
+      "kind": "sdr",
+      "kind_reason": "track format carries neither color-standard nor color-transfer; nothing to classify or deliver (this is not a claim that the source is SDR)",
+      "static_info_bytes": null,
+      "dataspace": {
+        "applied": false,
+        "value": 0,
+        "reason": "source is SDR; its dataspace is left untouched on purpose"
+      },
+      "dataspace_readback": {
+        "ok": true,
+        "value": 0,
+        "reason": null
+      },
+      "tonemap": {
+        "implemented": false,
+        "reason": "source is SDR; there is nothing to tone-map"
+      }
+    },
+    "verdict": "indeterminate",
+    "reason": "source is 8-bit; the negotiated output is qcom_private(2141391878) [vendor-private: does not express bit depth] — bit depth is not expressed by this value, which does not affect this verdict"
+  },
+  "seek": {
+    "requests": 1,
+    "target_us": 5000000,
+    "landing_us": 5000000,
+    "prepare_us": 17740,
+    "first_frame_us": 9978,
+    "total_us": 27718,
+    "budget_us": 150000,
+    "pass": true,
+    "video_first_pts_us": 5000000,
+    "reason": null,
+    "av": {
+      "applicable": true,
+      "audio_present": true,
+    "audio_landing_us": 4992000,
+      "gap_us": -8000,
+      "limit_us": 40000,
+      "pass": true,
+      "reason": null
+    }
+  },
+  "counters": {
+    "samples_submitted": 150,
+    "samples_rejected": 0,
+    "bytes_submitted": 3838760,
+    "frames_received": 151,
+    "frames_released": 151,
+    "frames_rendered": 150,
+    "frames_dropped_late": 0,
+    "frames_discarded_no_surface": 0
+  },
+  "pipeline": {
+    "mode": "merged",
+    "present": true,
+    "present_schedule": "surface_at_time",
+    "submit": {
+      "calls": 396,
+      "mean_us": 326.676768,
+      "total_us": 129364,
+      "max_us": 3956
+    },
+    "eos": {
+      "calls": 1,
+      "mean_us": 577.000000,
+      "total_us": 577,
+      "max_us": 577
+    },
+    "receive": {
+      "calls": 212,
+      "mean_us": 213.542453,
+      "total_us": 45271,
+      "max_us": 3371
+    },
+    "release": {
+      "calls": 200,
+      "mean_us": 234.320000,
+      "total_us": 46864,
+      "max_us": 1281
+    }
+  },
+  "surface_rebuild": {
+    "rebuilds": 0,
+    "gap_ms": -1,
+    "resume_ms": -1,
+    "frames_lead": 0
+  },
+  "timing": {
+    "wall_us": 4876943,
+    "first_frame_latency_us": 9978,
+    "decode_fps": 30.756972,
+    "speed_vs_realtime": 2.050465
+  },
+  "outcome": {
+    "completed": true,
+    "error": ""
+  },
+  "pace": {
+    "enabled": true,
+    "clock_source": "audio_timestamp",
+    "frame_duration_ns": 33333000,
+    "derived_fps": 30.000300,
+    "frames_decided": 199,
+    "presented": 199,
+    "dropped": 0,
+    "drop_ratio": 0.000000,
+    "catch_up_events": 0,
+    "catch_up_frames": 0,
+    "over_budget_frames": 0,
+    "lateness_ns": {
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0
+    },
+    "interval_ns": {
+      "p50": -125000,
+      "p95": 125000,
+      "p99": 625000,
+      "max": 629136
+    },
+    "clock_mix": {
+      "primary_frames": 199,
+      "fallback_frames": 0,
+      "system_frames": 0
+    },
+    "schedule_lead_ns": {
+      "samples": 199,
+      "p01": -99875000,
+      "p10": -99875000,
+      "p50": -99875000,
+      "p90": -99875000,
+      "p99": 13489,
+      "min": -99969897,
+      "max": 13489,
+      "spread": 0
+    },
+    "clock_health": {
+      "extrapolated_frames": 0,
+      "free_run_frames": 0,
+      "jump_rebases": 0,
+      "monotonic_rejects": 0,
+      "stale_readings": 0
+    },
+    "wait": {
+      "count": 0,
+      "total_ns": 0
+    },
+    "sampled_at_frames": 199
+  }
+}

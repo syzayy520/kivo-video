@@ -1,0 +1,8 @@
+Usage: C:\kivo video\build\vs-debug\ui\Debug\kivo_video_playback_shell.exe [options]
+Kivo Video Playback Shell
+
+Options:
+  -?, -h, --help            Displays help on commandline options.
+  --help-all                Displays help, including generic Qt options.
+  --ui-open-evidence <dir>  Capture UI_OPEN screenshot evidence to directory
+  --ui-open-close-ms <ms>   Auto-close delay after screenshot

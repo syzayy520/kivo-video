@@ -1,0 +1,116 @@
+{
+  "schema": "kivo.p12c.sync/1",
+  "generated_at_unix_ms": 1793272603466,
+  "device": {
+    "manufacturer": "Xiaomi",
+    "model": "M2012K11AC",
+    "device": "alioth",
+    "soc_model": "SM8250",
+    "sdk": "33",
+    "release": "13",
+    "abi": "arm64-v8a"
+  },
+  "codec": {
+    "video": "OMX.qcom.video.decoder.avc",
+    "audio": ""
+  },
+  "source": {
+    "label": "h264_1080p8.mp4",
+    "bytes": 6204870,
+    "has_video": true,
+    "has_audio": false,
+    "duration_us": 6000000,
+    "video": {"mime": "video/avc", "width": 1920, "height": 1080},
+    "audio": {"mime": "", "sample_rate": 0, "channel_count": 0}
+  },
+  "frame_count": 165,
+  "frames_dropped": 0,
+  "xrun_count": 0,
+  "clock_source": "system",
+  "timestamp_fallback_count": 0,
+  "av_drift": {
+    "measurable": false,
+    "samples": 0,
+    "unavailable_reason": "source has no audio track; there is no audio timeline to compare against"
+  },
+  "present_jitter": {
+    "measured_at": "present",
+    "samples": 164,
+    "p50": 125000,
+    "p95": 125000,
+    "p99": 375000,
+    "max": 13348302,
+    "histogram": {
+      "count": 164,
+      "below": 0,
+      "above": 0,
+      "min_ns": -13358312,
+      "max_ns": 13348302,
+      "bucket_width_ns": 250000,
+      "low_ns": -128000000,
+      "bucket_count": 1024,
+      "buckets": {"458":1,"510":2,"511":76,"512":82,"513":2,"565":1}
+    }
+  },
+  "timeline": {
+    "video_pts_span_ns": 5966607000,
+    "present_wall_span_ns": 5966733800,
+    "lead_correction_ns": 0,
+    "corrected_wall_span_ns": 5966733800,
+    "playback_rate": 0.999979,
+    "anchor_audio_position_ns": 108521614,
+    "audio_position_at_video_stop_ns": -1,
+    "note": "playback_rate = media time / wall time between first and last hand-off, with the submit-lead ramp removed. The audio position at video stop includes teardown latency (poll interval + drain) and must not be compared against the pts span directly"
+  },
+  "anchor": {
+    "video_pts_ns": 0,
+    "audio_position_ns": 108521614,
+    "note": "av_drift is measured relative to this anchor; the constant absorbed here is audio_position_ns at the first video frame"
+  },
+  "video": {
+    "frames_received": 181,
+    "frames_released": 181,
+    "frames_rendered": 165,
+    "frames_dropped_late": 0,
+    "frames_discarded_no_surface": 15,
+    "samples_submitted": 180,
+    "samples_rejected": 0,
+    "wall_us": 6055624,
+    "first_frame_latency_us": 88605,
+    "decode_fps": 27.247398,
+    "speed_vs_realtime": 0.990814,
+    "pipeline_mode": "merged",
+    "present_frames": true,
+    "present_schedule": "cpu_paced",
+    "surface_rebuild": {"rebuilds": 1, "gap_ms": 470, "resume_ms": 29, "frames_lead": 0}
+  },
+  "pace": {
+    "enabled": true,
+    "frames_decided": 180,
+    "presented": 165,
+    "dropped": 0,
+    "over_budget_frames": 0,
+    "frame_duration_ns": 33333000,
+    "derived_fps": 30.000300,
+    "lateness_ns": {"samples": 165, "p50": 125000, "p99": 375000, "max": 13450592},
+    "schedule_lead_ns": {"samples": 0, "p50": 0, "spread": 0},
+    "clock_health": {"extrapolated_frames": 0, "free_run_frames": 0, "jump_rebases": 0, "monotonic_rejects": 0},
+    "clock_mix": {"primary_frames": 0, "fallback_frames": 0, "system_frames": 180}
+  },
+  "audio": {
+    "opened": false,
+    "started": false,
+    "negotiated": {"sample_rate": 0, "channel_count": 0, "format": "", "sharing": "", "performance": "", "frames_per_burst": 0},
+    "output_format": {"sample_rate": 0, "channel_count": 0, "encoding": "unknown", "diverged": false},
+    "ring_capacity_frames": 0,
+    "prefill_reached": false,
+    "startup_millis": -1,
+    "clock_start_ns": 0,
+    "clock_end_ns": 0,
+    "feed": {"packets_submitted": 0, "chunks_received": 0, "frames_decoded": 0, "frames_written": 0, "frames_dropped": 0, "ring_full_waits": 0, "reached_eos": false},
+    "output": {"callbacks": 0, "frames_rendered": 0, "frames_silenced": 0, "silence_head_frames": 0, "silence_tail_frames": 0, "first_audible_frame": -1, "xrun_count": 0, "wall_millis": 0},
+    "clock": {"queries": 0, "published_timestamp": 0, "published_frames_read": 0, "published_frames_written": 0, "published_frozen": 0, "timestamp_not_started": 0, "timestamp_fail": 0, "monotonic_rejects": 0, "jumps_clamped": 0, "latency_frames": 0}
+  },
+  "completed": true,
+  "error": ""
+}

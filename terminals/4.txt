@@ -1,0 +1,8 @@
+---
+pid: 6388
+cwd: "C:\kivo video"
+command: "& \"C:\\kivo video\\build\\vs-debug\\ui\\Debug\\kivo_playback_shell_qml_load_test.exe\"; Write-Host \"qml_test_exit:$LASTEXITCODE\""
+started_at: 2026-06-30T17:18:51.763Z
+running_for_ms: 8025006  
+---
+qml_test_exit:-1

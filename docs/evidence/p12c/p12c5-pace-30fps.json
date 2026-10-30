@@ -1,0 +1,69 @@
+{
+  "schema": "kivo.p12c.decode/2",
+  "generated_at_unix_ms": 1793259153454,
+  "source": {
+    "mime": "video/avc",
+    "width": 1920,
+    "height": 1080,
+    "duration_us": 6000000
+  },
+  "decoder": {
+    "codec_name": "OMX.qcom.video.decoder.avc",
+    "output_target": "surface"
+  },
+  "counters": {
+    "samples_submitted": 180,
+    "samples_rejected": 0,
+    "bytes_submitted": 6202195,
+    "frames_rendered": 181,
+    "frames_dropped_late": 0
+  },
+  "timing": {
+    "wall_us": 6071556,
+    "first_frame_latency_us": 71472,
+    "decode_fps": 29.811139,
+    "speed_vs_realtime": 0.988215
+  },
+  "outcome": {
+    "completed": true,
+    "error": ""
+  },
+  "pace": {
+    "enabled": true,
+    "clock_source": "system",
+    "frame_duration_ns": 33333000,
+    "derived_fps": 30.000300,
+    "frames_decided": 181,
+    "presented": 181,
+    "dropped": 0,
+    "drop_ratio": 0.000000,
+    "catch_up_events": 0,
+    "catch_up_frames": 0,
+    "over_budget_frames": 0,
+    "lateness_ns": {
+      "p50": 125000,
+      "p95": 125000,
+      "p99": 125000,
+      "min": 3177,
+      "max": 144479
+    },
+    "interval_ns": {
+      "p50": 72417,
+      "p95": 72417,
+      "p99": 72417,
+      "max": 72417
+    },
+    "clock_health": {
+      "extrapolated_frames": 0,
+      "free_run_frames": 0,
+      "jump_rebases": 0,
+      "monotonic_rejects": 0,
+      "stale_readings": 0
+    },
+    "wait": {
+      "count": 180,
+      "total_ns": 5806749352
+    },
+    "sampled_at_frames": 181
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "gate_id": "FC-010",
+  "gate_name": "P3-M0 Contract Baseline Gate",
+  "task_id": "P3-COMPLETE-LINE-V9",
+  "status": "CONTRACT_PASS",
+  "evidence_kind": "contract_tests",
+  "milestone": "P3-M0",
+  "contracts_implemented": [
+    "ExecutionContext (17 fields, schema_version p3.execution.context.v1)",
+    "MonotonicDeadline",
+    "BudgetAllocator (BudgetKind enum + 4 reserved budgets)",
+    "RetryBudget + CircuitBreaker (idempotent retry, circuit breaker states)",
+    "CancellationSignal (4 states, request/complete lifecycle)",
+    "AsyncTaskOwnership (owner tracking, detached forbidden)",
+    "EventStreamBackpressure (3 overflow policies, critical must not drop)",
+    "RuntimeRevisionStormControl (throttle/coalesce/priority)",
+    "FeatureFlagClosurePolicy (experimental flag closure guard)",
+    "SourceOriginKind/ProviderFamily/SourceTransportKind/MediaDeliveryKind/ContainerFormat (5 distinct enums)",
+    "SourceOriginIdentity/ProviderIdentity/SourceTransportIdentity/MediaDeliveryIdentity/SourceCapability",
+    "PlatformCapabilityHints/DecoderCapabilityRequirement/AudioCapabilityRequirement/SubtitleCapabilityRequirement/BufferRequirement"
+  ],
+  "tests_run": 19,
+  "tests_passed": 19,
+  "tests_failed": 0,
+  "build_config": "Debug",
+  "generator": "Visual Studio 18 2026",
+  "compiler": "MSVC 14.51.36231",
+  "cxx_standard": "C++20",
+  "stop_condition_check": "All public contracts have schema_version. No implementation hidden inside contract modules."
+}
