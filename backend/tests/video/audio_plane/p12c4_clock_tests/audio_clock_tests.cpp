@@ -17,6 +17,7 @@
 
 #include "video/video_plane/backends/aaudio/clock/aaudio_clock_probe.hpp"
 #include "video/video_plane/backends/aaudio/clock/aaudio_clock_source.hpp"
+#include "video/video_plane/backends/aaudio/clock/aaudio_clock_trace.hpp"
 #include "video/video_plane/core/audio/clock/frame_position_extrapolator.hpp"
 #include "video/video_plane/core/audio/clock/monotonic_clock_guard.hpp"
 #include "video/video_plane/core/audio/clock/system_clock_source.hpp"
@@ -307,6 +308,58 @@ struct TestCase {
     void (*run)();
 };
 
+// ── P14-E：异常窗口 ────────────────────────────────────────────────
+
+void t13_trace_window_ends_at_the_event() {
+    aaudio::ClockTraceRing ring;
+    aaudio::ClockTrace trace;
+
+    // 喂 16 个正常点（每点 +10ms），最后一个是"倒退"点。
+    for (int index = 0; index < 15; ++index) {
+        aaudio::ClockTraceSample sample;
+        sample.mono_ns = index * 10'000'000LL;
+        sample.candidate_ns = index * 10'000'000LL;
+        sample.accepted_ns = index * 10'000'000LL;
+        sample.kind = 0;
+        ring.push(sample);
+    }
+    aaudio::ClockTraceSample bad;
+    bad.mono_ns = 15 * 10'000'000LL;
+    bad.candidate_ns = 15 * 10'000'000LL;
+    bad.accepted_ns = 14 * 10'000'000LL;  // 被守卫压回上一个位置
+    bad.kind = 0;
+    ring.push(bad);
+    ring.snapshot_into(trace, 1);
+
+    CHECK(trace.event_count == 1);
+    CHECK(trace.events[0].flags == 1);
+    CHECK(trace.events[0].samples == 16);
+    // 窗格以事件结尾：pivot 必须是最后一个样本。
+    CHECK(trace.events[0].pivot == 15);
+    // 最后一行必须**同时**保留设备原值与守卫输出 —— 两者不等才是这一格的证据。
+    CHECK(trace.events[0].data[15].candidate_ns == 150'000'000);
+    CHECK(trace.events[0].data[15].accepted_ns == 140'000'000);
+    // 时间轴必须是连续的：窗口里 mono 严格递增。
+    for (int index = 1; index < trace.events[0].samples; ++index) {
+        CHECK(trace.events[0].data[index].mono_ns > trace.events[0].data[index - 1].mono_ns);
+    }
+}
+
+void t14_trace_keeps_at_most_three_events() {
+    aaudio::ClockTraceRing ring;
+    aaudio::ClockTrace trace;
+    for (int event = 0; event < 5; ++event) {
+        aaudio::ClockTraceSample sample;
+        sample.mono_ns = event;
+        ring.push(sample);
+        ring.snapshot_into(trace, 2);
+    }
+    // 超过三次说明"这不是异常而是常态"，那时该改判据而不是加容量 ——
+    // 所以只留三格，第 4、5 次**明确丢弃**（而不是悄悄覆盖第一个）。
+    CHECK(trace.event_count == 3);
+}
+
+
 const TestCase kCases[] = {
     {"C1 时间戳倒退被拒绝", t1_backward_timestamp_is_rejected},
     {"C2 时间戳跳变被钳制", t2_jump_is_clamped},
@@ -321,6 +374,8 @@ const TestCase kCases[] = {
     {"C10 三档全废则冻结", t10_all_sources_dead_freezes},
     {"C11 主导来源反映真实", t11_dominant_source_reflects_reality},
     {"C12 系统时钟单调且自报", t12_system_clock_is_monotonic_and_labelled},
+    {"C13 异常窗口以事件结尾", t13_trace_window_ends_at_the_event},
+    {"C14 窗口最多三次", t14_trace_keeps_at_most_three_events},
 };
 
 }  // namespace

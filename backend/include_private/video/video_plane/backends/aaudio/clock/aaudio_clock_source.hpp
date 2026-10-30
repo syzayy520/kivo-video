@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "video/video_plane/backends/aaudio/clock/aaudio_clock_probe.hpp"
+#include "video/video_plane/backends/aaudio/clock/aaudio_clock_trace.hpp"
 #include "video/video_plane/backends/aaudio/clock/aaudio_clock_stats.hpp"
 #include "video/video_plane/backends/aaudio/clock/aaudio_monotonic_now.hpp"
 #include "video/video_plane/core/audio/clock/audio_clock_source.hpp"
@@ -67,6 +68,12 @@ private:
 
     std::int64_t latency_frames_ = 0;
     core::audio::AudioClockSourceKind last_kind_ = core::audio::AudioClockSourceKind::kAudioTimestamp;
+
+    /// 最近一次 `now()` 里取到的墙钟时刻。`publish()` 拿不到它，
+    /// 而窗口里的每一行都必须带"这是哪一刻的观测" —— 少了它，时间轴就断了。
+    std::int64_t last_mono_ns_ = 0;
+    /// 异常前后各 8 个原始观测的滚动窗口（P14-E）。
+    ClockTraceRing trace_ring_;
 };
 
 }  // namespace kivo::video::aaudio

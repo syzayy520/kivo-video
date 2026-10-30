@@ -135,7 +135,7 @@ using core::pace::SignedHistogram;
 ///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/20";
+constexpr const char* kSchema = "kivo.p12c.sync/21";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -1006,7 +1006,31 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
         << audio.clock.timestamp_not_started << ", \"timestamp_fail\": "
         << audio.clock.timestamp_fail << ", \"monotonic_rejects\": "
         << audio.clock.monotonic_rejects << ", \"jumps_clamped\": " << audio.clock.jumps_clamped
-        << ", \"latency_frames\": " << audio.clock.latency_frames << "}\n";
+        << ", \"latency_frames\": " << audio.clock.latency_frames;
+
+    // P14-E：异常时刻的原始观测窗口。
+    //
+    // 为什么必须出版：`monotonic_rejects` 与 `jumps_clamped` 只是**计数**。
+    // 一个计数为 1 的证据，说不出"设备给的位置突然倒退"还是"我们自己的换算偏了" ——
+    // 这两件事的修法完全不同（前者等平台修，后者改代码）。
+    // 窗口里每一行同时给 `candidate`（设备原值）与 `accepted`（守卫输出），
+    // 差值就是守卫做的事，不用猜。
+    out << ", \"trace\": {\"event_count\": " << audio.clock.trace.event_count << ", \"events\": [";
+    for (std::int32_t event_index = 0; event_index < audio.clock.trace.event_count; ++event_index) {
+        const auto& event = audio.clock.trace.events[static_cast<std::size_t>(event_index)];
+        out << (event_index == 0 ? "" : ", ") << "{\"flags\": " << event.flags
+            << ", \"pivot\": " << event.pivot << ", \"samples\": " << event.samples
+            << ", \"points\": [";
+        for (std::int32_t index = 0; index < event.samples; ++index) {
+            const auto& point = event.data[static_cast<std::size_t>(index)];
+            out << (index == 0 ? "" : ", ") << "{\"mono_ns\": " << point.mono_ns
+                << ", \"candidate_ns\": " << point.candidate_ns
+                << ", \"accepted_ns\": " << point.accepted_ns
+                << ", \"kind\": " << point.kind << ", \"stale\": " << point.stale << "}";
+        }
+        out << "]}";
+    }
+    out << "]}}\n";
     out << "  },\n";
 
     out << "  \"completed\": " << (completed ? "true" : "false") << ",\n";

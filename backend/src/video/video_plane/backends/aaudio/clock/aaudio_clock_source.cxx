@@ -38,6 +38,7 @@ core::audio::AudioClockSnapshot AaudioClockSource::now() {
         ++stats_.timestamp_ok;
 
         const std::int64_t mono_ns = now_fn_();
+        last_mono_ns_ = mono_ns;
         if (stats_.first_ok_frame_position < 0) {
             stats_.first_ok_frame_position = reading.frame_position;
             stats_.first_ok_time_nanos = reading.time_nanos;
@@ -90,6 +91,7 @@ core::audio::AudioClockSnapshot AaudioClockSource::now() {
     const std::int64_t frames_read = probe_.read_frames_read();
     if (frames_read >= 0) {
         ++stats_.fallback_frames_read;
+        last_mono_ns_ = now_fn_();
         return publish(frames_to_nanos(frames_read),
                        core::audio::AudioClockSourceKind::kAudioFramesRead, false);
     }
@@ -98,6 +100,7 @@ core::audio::AudioClockSnapshot AaudioClockSource::now() {
     const std::int64_t frames_written = probe_.read_frames_written();
     if (frames_written >= 0) {
         ++stats_.fallback_frames_written;
+        last_mono_ns_ = now_fn_();
         const std::int64_t presented = frames_written - latency_frames_;
         return publish(frames_to_nanos(presented > 0 ? presented : 0),
                        core::audio::AudioClockSourceKind::kAudioFramesWritten, false);
@@ -106,6 +109,7 @@ core::audio::AudioClockSnapshot AaudioClockSource::now() {
     // 三档全部不可用：冻结在最后已知位置，明确标 stale。
     // 宁可让上层看到"时钟不动了"，也不许凭空造一个进度出来。
     ++stats_.stale_freezes;
+    last_mono_ns_ = now_fn_();
     return freeze(last_kind_);
 }
 
@@ -139,6 +143,31 @@ core::audio::AudioClockSnapshot AaudioClockSource::publish(std::int64_t candidat
     }
     if (decision.clamped_jump) {
         ++stats_.jumps_clamped;
+    }
+
+    // P14-E：把这次观测放进滚动窗口；异常时把窗口扣进证据。
+    //
+    // 为什么必须记 `candidate`（设备原值）而不只记 `accepted`（守卫输出）：
+    // 守卫做的事就是**把它改掉**，只存改完的值，等于把证据留给唯一不该被信任的那一环。
+    {
+        ClockTraceSample sample;
+        sample.mono_ns = last_mono_ns_;
+        sample.candidate_ns = candidate_ns;
+        sample.accepted_ns = decision.position_ns;
+        sample.kind = static_cast<std::int32_t>(kind);
+        sample.stale = stale ? 1 : 0;
+        trace_ring_.push(sample);
+
+        std::int32_t flags = 0;
+        if (decision.rejected_backward) {
+            flags |= 1;
+        }
+        if (decision.clamped_jump) {
+            flags |= 2;
+        }
+        if (flags != 0) {
+            trace_ring_.snapshot_into(stats_.trace, flags);
+        }
     }
 
     stats_.last_position_ns = decision.position_ns;

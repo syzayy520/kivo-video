@@ -56,6 +56,7 @@ SYNC_QUANTILE_BLOCK_SCHEMAS = (
     "kivo.p12c.sync/18",  # P13-AB：探针的时钟台阶注入（clock_injection 三格）
     "kivo.p12c.sync/19",  # P13-AC：限速收敛（drift_max_correction / drift_corrected_total）
     "kivo.p12c.sync/20",  # P13-AD：速率注入 + 门开关（clock_injection.rate_ppm / drift_gate）
+    "kivo.p12c.sync/21",  # P14-E：audio.clock.trace —— 异常时刻的原始观测窗口
 )
 
 # ── schema 白名单 ──────────────────────────────────────────────────────────
@@ -176,6 +177,7 @@ KNOWN_SCHEMAS = {
     # 前者区分"台阶"与"速率"两种注入（真实事件是后者）；后者让"门关"对照组
     # 不会与"门判断沉默"在证据上混为一谈。
     "kivo.p12c.sync/20",
+    "kivo.p12c.sync/21",  # P14-E：`audio.clock.trace`（异常时刻的原始观测窗口）
     "kivo.p12d5.present-timing/1",
     "kivo.p12e.color-probe/1",
     "kivo.p12e.hdr-probe/1", "kivo.p12e.hdr-probe/2", "kivo.p12e.hdr-probe/3",

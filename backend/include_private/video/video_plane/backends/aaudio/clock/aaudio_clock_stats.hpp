@@ -1,5 +1,6 @@
 #pragma once
 
+#include "video/video_plane/backends/aaudio/clock/aaudio_clock_trace.hpp"
 #include <cstdint>
 
 #include "video/video_plane/core/audio/clock/audio_clock_types.hpp"
@@ -39,6 +40,10 @@ struct AaudioClockStats {
     // ── 守卫 ──
     std::int64_t monotonic_rejects = 0;
     std::int64_t jumps_clamped = 0;
+
+    /// 异常前后各 8 个原始观测（P14-E）。只有计数没有窗口时，
+    /// "设备跳了"与"我们算错了"在证据里长得一样 —— 这正是本卡要分开的两种。
+    ClockTrace trace{};
 
     // ── 启动观测（用于验证"零点 = 首帧实际出声"）──
     std::int64_t first_ok_frame_position = -1;  ///< 首次成功时的已呈现帧数
