@@ -68,6 +68,22 @@ struct AudioPlaybackStats {
 /// 刻意把 `video` / `audio` / `pace` 三个整结构带进来，而不是在这里挑字段：
 /// 挑选是**报表**的职责。在这里挑，等于让"哪些数字进证据"散落在两处，
 /// 加一个字段要改两个文件，早晚漏。
+/// 探针往时钟里注入的那一级台阶（P13-AB）。
+///
+/// **为什么要出版**：被注入过的证据和真实现场在字段上完全一样 —— 一份
+/// `clock_ahead +80 ms` 的 JSON，读者无从判断那是设备跑偏还是我们按的按钮。
+/// 三格一起出版之后，"这一轮有台阶"是可查事实，不是回忆。
+struct ClockInjection {
+    /// 注入量（0 = 本轮没注入）。
+    std::int64_t offset_ns = 0;
+    /// 从首次读到的位置算起，走够这么多才注入。
+    std::int64_t arm_after_ns = 0;
+    /// 注入发生的位置；-1 = 没发生（参数给了但片源没走到那么远）。
+    std::int64_t armed_at_position_ns = -1;
+    /// 速率注入（P13-AD）：正 = 时钟比墙快多少 ppm。0 = 只注了台阶或没注入。
+    std::int32_t rate_ppm = 0;
+};
+
 struct AvSyncStats {
     std::string source_label;
     std::int64_t source_bytes = 0;
@@ -93,6 +109,9 @@ struct AvSyncStats {
     /// 少了这两个数，`av_drift` 会被读成"全链路偏差"。
     std::int64_t anchor_video_pts_ns = 0;
     std::int64_t anchor_audio_position_ns = 0;
+
+    /// 探针注入（P13-AB）。`offset_ns == 0` 时本轮与生产完全一致。
+    ClockInjection clock_injection{};
 
     mediacodec::DeviceIdentity device{};
     std::int64_t generated_at_unix_ms = 0;

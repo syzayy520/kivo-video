@@ -62,6 +62,9 @@ PaceDecision FramePacer::arrive(std::int64_t pts_ns) noexcept {
         tracker_.anchor(pts_ns, reading);
     }
     stats_.note_health(reading.health);
+    if (reading.drift_rebased) {
+        stats_.note_drift_rebase(reading.drift_correction_ns);
+    }
 
     const bool pts_discontinuous = has_last_pts_ && pts_ns <= last_pts_ns_;
 
@@ -91,6 +94,14 @@ PaceDecision FramePacer::arrive(std::int64_t pts_ns) noexcept {
 
     const std::int64_t lateness_ns = reading.mono_ns - due_at_ns;
 
+    // P13-P：目标时刻相对"上一帧 + 一帧"偏了多少。
+    //
+    // 这是把 `lateness` 拆成两半的那一半：`present` 侧由 `present_jitter` 回答，
+    // `due` 侧只有这里知道（`last_due_ns_` 是节拍器私有的）。
+    // 首帧没有"上一帧"—— 锚点就在这一帧建立，`due` 恒等于 `now`，比较无意义 ⇒ 记 0。
+    const std::int64_t due_step_ns =
+        has_last_due_ ? due_at_ns - (last_due_ns_ + frame_duration_ns_) : 0;
+
     const PaceVerdict verdict =
         decide(PaceInput{lateness_ns, consecutive_late_, catching_up_}, policy_);
 
@@ -112,7 +123,13 @@ PaceDecision FramePacer::arrive(std::int64_t pts_ns) noexcept {
     decision.action = verdict.action;
     decision.due_at_ns = due_at_ns;
     decision.lateness_ns = lateness_ns;
+    decision.media_ns = pts_ns;
     decision.frame_duration_ns = frame_duration_ns_;
+    decision.due_step_ns = due_step_ns;
+    // P13-R：把这次读取的原始量留在成员上，`note_presented()` 在交出之后才被调用，
+    // 那时已经读不到这一帧的 reading 了（再读一次会给另一个数）。
+    reading_mono_ns_ = reading.mono_ns;
+    reading_elapsed_ns_ = reading.elapsed_ns;
     decision.health = reading.health;
 
     switch (verdict.action) {
@@ -163,16 +180,31 @@ PaceDecision FramePacer::arrive(std::int64_t pts_ns) noexcept {
 
 void FramePacer::note_presented(const PaceDecision& decision,
                                std::int64_t present_at_ns) noexcept {
-    stats_.note_presented(present_at_ns - decision.due_at_ns);
-    stats_.note_present_mono(present_at_ns);
-
+    // P13-Q：`present_step` 与 `note_interval()` 是同一个数（同一对时间戳、同一个期望），
+    // 所以只算一次再两处用 —— 各算一遍迟早有一处忘了乘 `frames`。
+    std::int64_t present_step_ns = 0;
     if (has_last_present_) {
         // 期望间隔 = 帧时长 × 中间经过的帧数（含当前帧，由 arrive() 每帧 +1）。
         // 中间丢过帧必须乘上去，否则"丢帧造成的 2 帧间隔"会被记成一帧抖动，
         // G6 的 p99 就被自己制造的假数据撑爆了。
         const std::int64_t frames = frames_since_present_ > 0 ? frames_since_present_ : 1;
         const std::int64_t expected_ns = decision.frame_duration_ns * frames;
-        stats_.note_interval((present_at_ns - last_present_ns_) - expected_ns);
+        present_step_ns = (present_at_ns - last_present_ns_) - expected_ns;
+    }
+
+    stats_.note_presented(
+        present_at_ns - decision.due_at_ns, decision.media_ns,
+        DueStep{.due_step_ns = decision.due_step_ns,
+                .frame_duration_ns = decision.frame_duration_ns,
+                .present_step_ns = present_step_ns,
+                .clock_mono_ns = reading_mono_ns_,
+                .clock_elapsed_ns = reading_elapsed_ns_,
+                .anchor_pts_ns = tracker_.anchor_pts_ns(),
+                .due_at_ns = decision.due_at_ns});
+    stats_.note_present_mono(present_at_ns);
+
+    if (has_last_present_) {
+        stats_.note_interval(present_step_ns);
     }
     last_present_ns_ = present_at_ns;
     has_last_present_ = true;
@@ -196,6 +228,16 @@ void FramePacer::note_scheduled(const PaceDecision& decision,
 
 void FramePacer::reset() noexcept {
     tracker_.reset();
+    // 锚点没了 ⇒ `lateness = present_at − due_at` 的零点没了 ⇒ 漂移序列必须
+    // 在这里切段（P13-M）。这是**唯一**知道"换了一条时间轴"的地方：
+    // `DriftSeries::note()` 只能从 pts 推断，而 pts 前进推不出"没换时间轴"，
+    // 于是向前 seek 那一次必然漏 —— 漏掉的那一次会把两个零点之间的跳变
+    // 拟合成"漂移速率"，还会让 `media_span` 把两段之间十秒的空白算成播过的时长。
+    //
+    // 放在 `reset()` 里而不是 `seek_to()` 里：`begin_run()` 是本类唯一的
+    // 起跑入口，`start()` / `seek_to()` / `resume_after_seek()` 都走它 ——
+    // 三处各写一次迟早漏一处，而漏的那处不会有任何判据报红。
+    stats_.note_anchor_reset();
     has_last_pts_ = false;
     last_pts_ns_ = 0;
     has_last_due_ = false;
@@ -220,6 +262,11 @@ PaceSummary FramePacer::summary() const noexcept {
     // C8：建锚位置。`av_drift` 是相对量，被锚点吸收掉的常量必须能单独看到。
     out.anchor_pts_ns = tracker_.anchor_pts_ns();
     out.anchor_position_ns = tracker_.anchor_position_ns();
+    // P13-AD：把门的配置一并出版。校验器据此复算，不再硬编码 45/5；
+    // 关着门的对照组也不会被误读成"门没触发"。
+    out.drift_gate_enabled = policy_.drift_gate_enabled;
+    out.drift_limit_ns = policy_.drift_limit_ns;
+    out.drift_band_ns = policy_.drift_band_ns;
     return out;
 }
 

@@ -9,6 +9,10 @@ bool PacePolicy::sane() const noexcept {
     if (jump_limit_ns <= 0 || stale_extrapolate_limit_ns <= 0 || max_single_wait_ns <= 0) {
         return false;
     }
+    // P13-AC：迟滞带必须小于门限，否则"复位目标"会落在反方向，越修越远。
+    if (drift_limit_ns <= 0 || drift_band_ns < 0 || drift_band_ns >= drift_limit_ns) {
+        return false;
+    }
     if (min_frame_duration_ns <= 0 || max_frame_duration_ns <= min_frame_duration_ns ||
         default_frame_duration_ns < min_frame_duration_ns ||
         default_frame_duration_ns > max_frame_duration_ns) {

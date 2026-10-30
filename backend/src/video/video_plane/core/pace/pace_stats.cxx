@@ -7,10 +7,84 @@ void PaceStats::note_waited(std::int64_t wait_ns) noexcept {
     wait_total_ns_ += wait_ns;
 }
 
-void PaceStats::note_presented(std::int64_t lateness_ns) noexcept {
+void PaceStats::note_presented(std::int64_t lateness_ns, std::int64_t media_ns,
+                               DueStep step) noexcept {
     ++presented_;
     ++latency_samples_;
+
+    // P13-F/P13-P：逐帧极值与它的前后邻帧。
+    //
+    // 位置、极值、前因后果都在 `episode_` 里由**同一次比较**决定：上一版在
+    // `PaceStats` 里另存一份 `frame_worst_`，那是同一个数写两处（先后差一位的
+    // 经典错法就是那时踩出来的，注释留在 `WorstEpisodeRecorder` 里）。
+    // 记录器自己数样本序号，所以下面两行的先后不影响 `index`。
+    // P13-Q：两侧各自累积。`present_step` 由交出时刻的时间戳算（与 `present_jitter`
+    // 同一个数），`due_step` 由钟算；两个来源不同，所以下面那条跨帧恒等式有内容。
+    if (!has_lateness_) {
+        has_lateness_ = true;
+        first_lateness_ns_ = lateness_ns;
+    }
+    sum_present_step_ns_ += step.present_step_ns;
+    sum_due_step_ns_ += step.due_step_ns;
+    last_lateness_ns_ = lateness_ns;
+
+    // P13-R：四个跨度。首个呈现帧定原点，之后每帧刷新末值 ——
+    // 与累积账不同，这里只关心"整段走了多远"，不关心逐帧差。
+    if (!has_span_) {
+        has_span_ = true;
+        first_arrive_mono_ns_ = step.clock_mono_ns;
+        first_elapsed_ns_ = step.clock_elapsed_ns;
+        first_due_ns_ = step.due_at_ns;
+        first_pts_ns_ = media_ns;
+    }
+    last_arrive_mono_ns_ = step.clock_mono_ns;
+    last_elapsed_ns_ = step.clock_elapsed_ns;
+    last_due_ns_ = step.due_at_ns;
+    last_pts_ns_ = media_ns;
+    if (step.due_at_ns != 0) {
+        ++clock_supplied_frames_;
+    }
+
     lateness_.add(lateness_ns);
+    episode_.note(EpisodeSample{
+        .lateness_ns = lateness_ns,
+        .media_ns = media_ns,
+        .due_step_ns = step.due_step_ns,
+        .cumulative_present_step_ns = sum_present_step_ns_,
+        .cumulative_due_step_ns = sum_due_step_ns_,
+        .lateness_at_first_ns = first_lateness_ns_,
+        .clock_mono_ns = step.clock_mono_ns,
+        .clock_elapsed_ns = step.clock_elapsed_ns,
+        .anchor_pts_ns = step.anchor_pts_ns,
+        .due_at_ns = step.due_at_ns,
+    });
+
+    // P13-P：目标时刻动过几帧。判据是"超过一帧"—— 门限与 G6 的 over_budget 同口径，
+    // 这样两个数能直接对照读（`due_step_frames` 与 `over_budget_frames` 不必相等：
+    // 前者数的是**基准**偏了，后者数的是**结果**偏了；相等才需要解释）。
+    if (step.frame_duration_ns > 0) {
+        ++due_step_supplied_;
+        const std::int64_t magnitude =
+            step.due_step_ns < 0 ? -step.due_step_ns : step.due_step_ns;
+        if (magnitude > step.frame_duration_ns) {
+            ++due_step_frames_;
+        }
+    }
+
+    // 抽稀门在同一处判定并存储：分两步（先问后加）会给两个真相。
+    if (drift_.note(media_ns, lateness_ns)) {
+        sampled_lateness_.add(lateness_ns);
+        ++sampled_samples_;
+    }
+}
+
+void PaceStats::note_anchor_reset() noexcept {
+    // 锚点重建 = `lateness` 的零点换了。漂移序列必须在这里切段，而不是等
+    // 下一帧的 pts 去推断 —— 推断只在"倒退"这一个方向上有效（P13-M）。
+    //
+    // 只动段，不动任何累计计数：`presented_` / `sampled_samples_` / 直方图
+    // 回答的是"整场发生过什么"，与本卡无关。
+    drift_.break_segment();
 }
 
 void PaceStats::note_dropped(std::int64_t lateness_ns) noexcept {
@@ -26,6 +100,14 @@ void PaceStats::note_catch_up_frame(std::int64_t lateness_ns) noexcept {
 
 void PaceStats::note_interval(std::int64_t deviation_ns) noexcept {
     interval_.add(deviation_ns);
+}
+
+void PaceStats::note_drift_rebase(std::int64_t correction_ns) noexcept {
+    ++drift_rebases_;
+    drift_corrected_total_ns_ += correction_ns;
+    if (correction_ns > drift_max_correction_ns_) {
+        drift_max_correction_ns_ = correction_ns;
+    }
 }
 
 void PaceStats::note_health(ClockHealth health) noexcept {
@@ -83,9 +165,60 @@ PaceSummary PaceStats::summary(std::int64_t frame_duration_ns, ClockHealth healt
     out.dropped_lateness = dropped_lateness_;
     out.schedule_lead = schedule_lead_;
     out.scheduled_samples = scheduled_samples_;
+    out.sampled_lateness = sampled_lateness_;
+    out.sampled_samples = sampled_samples_;
+    out.drift_observed_frames = drift_.observed_frames();
+    out.drift_skipped_frames = drift_.skipped_frames();
+    out.drift_unobserved_cells = drift_.unobserved_cells();
+    // P13-H：累计口径的跨度。`out.drift.span_ns` 是**窗口**跨度，两者不能混用 ——
+    // 混用的那一处（报告的 `observed_hz`）正是本卡修的缺陷。
+    out.drift_media_span_ns = drift_.media_span_ns();
+    // P13-I：段内接受数。与 `drift_media_span_ns` 都是"本段/各段"口径，
+    // 与 `sampled_samples` 的整场累计口径分开摆 —— 两个数在 seek 之后必然不等，
+    // 把它们合成一个字段就是上一版 `truncated` 说假话的根源。
+    out.drift_segment_samples = drift_.segment_samples();
+    // P13-M：段内最大的那个洞。`drift_unobserved_cells` 是整场累计，
+    // 答不出"最宽的洞有多宽"—— 而回归的可信度取决于最大值，不是总和。
+    out.drift_segment_largest_gap_cells = drift_.largest_gap_cells();
+    out.drift_segment_contiguous = drift_.contiguous();
+    out.drift = summarize_drift(drift_);
+    // P13-I：趋势自带的那批点，也自带它们的分布。
+    // 这一行是"两张表合一"的全部实现 —— 它不做任何换算，只是把
+    // `DriftTrend` 已经在回归的那批点再数一遍，于是两个数的样本必然同源。
+    out.window_lateness = summarize_window(drift_);
+    // P13-F：两个口径的最差点。抽稀那份由序列累计维护，`of` 已是全场累计数；
+    // 逐帧那份的 `of` 只能在这里回填（见头文件注释）。
+    out.sampled_worst = drift_.max_point();
+    // P13-P：逐帧那份改为从 episode 派生 —— 极值与位置是同一次比较的结果，
+    // `of` 与 `lateness_` 的样本数同源，不可能出现"index 说 480、samples 说 479"。
+    out.frame_episode = episode_.episode();
+    out.frame_episode.of = static_cast<std::int32_t>(lateness_.count());
+    out.frame_worst = out.frame_episode.position();
+    out.due_step_frames = due_step_frames_;
+    out.due_step_supplied = due_step_supplied_;
+    // P13-Q：跨帧账。`closure_gap_ns` 是那条恒等式的残差 —— 出版它而不是断言它为 0，
+    // 因为"记账中间漏了一帧"（丢帧 / 锚点重建）是真实会发生的事，读者需要看见。
+    out.first_lateness_ns = first_lateness_ns_;
+    out.last_lateness_ns = last_lateness_ns_;
+    out.sum_present_step_ns = sum_present_step_ns_;
+    out.sum_due_step_ns = sum_due_step_ns_;
+    out.closure_gap_ns = (last_lateness_ns_ - first_lateness_ns_) -
+                         (sum_present_step_ns_ - sum_due_step_ns_);
+    // P13-R：四个跨度。正常分支上严格满足
+    // `due_span == arrive_mono_span + pts_span − elapsed_span`。
+    out.arrive_mono_span_ns = last_arrive_mono_ns_ - first_arrive_mono_ns_;
+    out.elapsed_span_ns = last_elapsed_ns_ - first_elapsed_ns_;
+    out.due_span_ns = last_due_ns_ - first_due_ns_;
+    out.pts_span_ns = last_pts_ns_ - first_pts_ns_;
+    out.clock_supplied_frames = clock_supplied_frames_;
     out.clock_primary_frames = clock_primary_frames_;
     out.clock_fallback_frames = clock_fallback_frames_;
     out.clock_system_frames = clock_system_frames_;
+    // P13-S：漂移门的触发帧数。`FramePacer::summary()` 会把它连同 tracker 的四个计数
+    // 一起交给证据层 —— 但**不是**从 tracker 取的（tracker 不知道自己被统计了几次）。
+    out.drift_rebases = drift_rebases_;
+    out.drift_max_correction_ns = drift_max_correction_ns_;
+    out.drift_corrected_total_ns = drift_corrected_total_ns_;
     out.first_present_mono_ns = first_present_mono_ns_;
     out.last_present_mono_ns = last_present_mono_ns_;
     out.frame_duration_ns = frame_duration_ns;

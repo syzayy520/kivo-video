@@ -2215,6 +2215,10 @@ set(KIVO_P12C_CORE_AUDIO_SOURCES
   src/video/video_plane/core/audio/clock/monotonic_clock_guard.cxx
   src/video/video_plane/core/audio/clock/frame_position_extrapolator.cxx
   src/video/video_plane/core/audio/clock/system_clock_source.cxx
+  # P13-AB：探针用的时钟台阶注入。放在 core/audio/clock/ 而不是测试目录，
+  # 因为它的注入点是 `AudioClockSource` 这层接缝 —— 探针与生产走同一条时钟链，
+  # 差别只在"包不包这一层"。
+  src/video/video_plane/core/audio/clock/clock_offset_source.cxx
 )
 
 add_library(kivo_p12c_core_audio STATIC ${KIVO_P12C_CORE_AUDIO_SOURCES})
@@ -2281,6 +2285,15 @@ set(KIVO_P12C_CORE_PACE_SOURCES
   src/video/video_plane/core/pace/pace_policy.cxx
   src/video/video_plane/core/pace/pace_histogram.cxx
   src/video/video_plane/core/pace/pace_stats.cxx
+  src/video/video_plane/core/pace/sampling_mode.cxx
+  src/video/video_plane/core/pace/pace_drift_series.cxx
+  src/video/video_plane/core/pace/pace_drift_trend.cxx
+  src/video/video_plane/core/pace/pace_drift_window.cxx
+  src/video/video_plane/core/pace/pace_window_stats.cxx
+  src/video/video_plane/core/pace/pace_hac.cxx
+  src/video/video_plane/core/pace/pace_halves_agreement.cxx
+  src/video/video_plane/core/pace/pace_worst_episode.cxx
+  src/video/video_plane/core/pace/pace_drift_budget.cxx
   src/video/video_plane/core/pace/pace_now.cxx
   src/video/video_plane/core/pace/clock_position_tracker.cxx
   src/video/video_plane/core/pace/frame_pacer.cxx
@@ -2306,6 +2319,168 @@ if(MSVC)
 endif()
 add_test(NAME kivo_p12c5_pace_tests COMMAND kivo_p12c5_pace_tests)
 set_tests_properties(kivo_p12c5_pace_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-D: 抽稀序列与漂移趋势 ───
+# 两个纯计算族（抽稀 + 回归），零平台依赖，因此能在桌面上把逻辑钉死：
+# 喂一条 1000 ppm 的直线必须算回 1000，喂 30fps 与 60fps 的同片长必须采到同样多的点。
+# 真机上要验的是"设备给的 lateness 长什么样"，那部分只能靠 `docs/evidence/p13d/`。
+add_executable(kivo_p13d_drift_tests
+  tests/video/pace/p13d_drift_tests/drift_series_tests.cpp
+)
+target_link_libraries(kivo_p13d_drift_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13d_drift_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13d_drift_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13d_drift_tests COMMAND kivo_p13d_drift_tests)
+set_tests_properties(kivo_p13d_drift_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-E: 分位数的采样口径词汇 ───
+# 三个名字是线格式（写进 JSON、被 Python 校验器读、被状态卡表格引用），
+# 所以"不许改名"必须由测试守，不能只靠注释守。
+add_executable(kivo_p13e_sampling_mode_tests
+  tests/video/pace/p13e_sampling_mode_tests/sampling_mode_tests.cpp
+)
+target_link_libraries(kivo_p13e_sampling_mode_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13e_sampling_mode_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13e_sampling_mode_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13e_sampling_mode_tests COMMAND kivo_p13e_sampling_mode_tests)
+set_tests_properties(kivo_p13e_sampling_mode_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-F: 最差那一下在哪儿 ───
+# `max` 只说最差多大，说不出在片头还是片尾 —— 而这两者对结论的影响完全相反。
+# 位置属于序列，直方图按定义没有，所以极值由 `DriftSeries` 累计维护后上报。
+# 这一组守的是"有符号最大"、"index 0 基"、"环形覆盖后仍在"这三条容易写错的口径。
+add_executable(kivo_p13f_worst_tests
+  tests/video/pace/p13f_worst_tests/worst_tests.cpp
+)
+target_link_libraries(kivo_p13f_worst_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13f_worst_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13f_worst_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13f_worst_tests COMMAND kivo_p13f_worst_tests)
+set_tests_properties(kivo_p13f_worst_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-G: 抽稀的最小可用门槛 ───
+# 1 个样本的抽稀块看起来完全合法（四个分位数相等是唯一破绽），
+# 而缺 pts 的流正好会产出它。这组测试把"如果发生会长成什么样"钉死，
+# 并把 `kPerFrame` 曾经不可达的那条链用随机序列扫出来。
+add_executable(kivo_p13g_decimated_floor_tests
+  tests/video/pace/p13g_decimated_floor_tests/decimated_floor_tests.cpp
+)
+target_link_libraries(kivo_p13g_decimated_floor_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13g_decimated_floor_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13g_decimated_floor_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13g_decimated_floor_tests COMMAND kivo_p13g_decimated_floor_tests)
+set_tests_properties(kivo_p13g_decimated_floor_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-H: 累计媒体跨度（`observed_hz` 的分母） ───
+# 守的是一条口径不匹配：`accepted` 累计，分母却取窗口跨度（封顶 102.35 s）。
+# 8 s / 35 s 片源上两者相等，所以缺陷只在没人跑过的时长里存在。
+add_executable(kivo_p13h_media_span_tests
+  tests/video/pace/p13h_media_span_tests/media_span_tests.cpp
+)
+target_link_libraries(kivo_p13h_media_span_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13h_media_span_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13h_media_span_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13h_media_span_tests COMMAND kivo_p13h_media_span_tests)
+set_tests_properties(kivo_p13h_media_span_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-I: 窗口的身份（覆盖 ≠ 跨段） ───
+# 守两件事：① `truncated` 上一版拿整场累计数比容量，seek 之后谎报覆盖；
+# ② 趋势描述的那批点必须自带分布，否则"这段抖多少"与"这段漂多少"是两批样本。
+add_executable(kivo_p13i_window_tests
+  tests/video/pace/p13i_window_tests/window_tests.cpp
+)
+target_link_libraries(kivo_p13i_window_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13i_window_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13i_window_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13i_window_tests COMMAND kivo_p13i_window_tests)
+set_tests_properties(kivo_p13i_window_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-J: 漂移的误差棒 ───
+# 守四件事：① 0.25 ms 桶中心会把 29~250 µs 的真实差异塌成同一个数；
+# ② 斜率必须带标准误（r2 = 5.5e-05 时六位小数全是噪声）；
+# ③ CI 含 0 时不许说看得见；④ 两个点算不出 SE，那时 SE=0 是"算不出"不是"没有误差"。
+add_executable(kivo_p13j_confidence_tests
+  tests/video/pace/p13j_confidence_tests/confidence_tests.cpp
+)
+target_link_libraries(kivo_p13j_confidence_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13j_confidence_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13j_confidence_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13j_confidence_tests COMMAND kivo_p13j_confidence_tests)
+set_tests_properties(kivo_p13j_confidence_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-K: 自相关校正（HAC / Newey–West）───
+# 守四件事：① AR(1) 正相关残差下 HAC 的 SE 必须明显大于 IID 的；
+# ② 白噪声下两者接近（膨胀比来自自相关，不来自实现）；③ 同一份数据能被
+# 独立朴素实现逐位复算；④ 半程斜率分得开"持续漂移"和"中途跳一下"。
+add_executable(kivo_p13k_hac_tests
+  tests/video/pace/p13k_hac_tests/hac_tests.cpp
+)
+target_link_libraries(kivo_p13k_hac_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13k_hac_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13k_hac_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13k_hac_tests COMMAND kivo_p13k_hac_tests)
+set_tests_properties(kivo_p13k_hac_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-L: 累积漂移 + 额度判读 ───
+# 守四件事：① 分得开 ≠ 要紧（CI 不含 0 而累积只有十几微秒 ⇒ within_budget）；
+# ② 反过来也成立（CI 含 0 而远端积起来越过额度 ⇒ over_budget）；
+# ③ 上界只增不减；④ 算不出来一律 unknown，不许伪装成 within_budget。
+add_executable(kivo_p13l_budget_tests
+  tests/video/pace/p13l_budget_tests/budget_tests.cpp
+)
+target_link_libraries(kivo_p13l_budget_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13l_budget_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13l_budget_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13l_budget_tests COMMAND kivo_p13l_budget_tests)
+set_tests_properties(kivo_p13l_budget_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-M: 段边界的权威是锚点重建 ───
+# 守四件事：① 切段后一个**前进**的 pts 也能起新段（P13-L 缺陷的正解）；
+# ② pts 倒退的兜底路径不许被拆掉；③ 切段不动任何"整场"计数；
+# ④ 段内空洞不切段，但必须出版（`largest_gap_cells` / `contiguous`）。
+add_executable(kivo_p13m_segment_tests
+  tests/video/pace/p13m_segment_tests/segment_tests.cpp
+)
+target_link_libraries(kivo_p13m_segment_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13m_segment_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13m_segment_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13m_segment_tests COMMAND kivo_p13m_segment_tests)
+set_tests_properties(kivo_p13m_segment_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-N: 分位数必须自己说出精度 ───
+# 守五件事：① 桶中心不是量出来的值（125 000 vs 真值 73 000）；
+# ② 桶号与值同源（秩边界上不许挪一格）；③ 可能范围含那个值且被样本钳窄；
+# ④ 溢出/端点返回精确值、范围退化成点；⑤ 整批参照与 p50 同秩口径。
+add_executable(kivo_p13n_quantile_tests
+  tests/video/pace/p13n_quantile_tests/quantile_tests.cpp
+)
+target_link_libraries(kivo_p13n_quantile_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13n_quantile_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13n_quantile_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13n_quantile_tests COMMAND kivo_p13n_quantile_tests)
+set_tests_properties(kivo_p13n_quantile_tests PROPERTIES TIMEOUT 60)
 
 # ─── P12-C6: 送包时序状态机 ───
 # 并发本身在桌面上测不了（没有 MediaCodec），所以把送包段唯一有分支的那部分
@@ -2473,3 +2648,32 @@ if(MSVC)
 endif()
 add_test(NAME kivo_p12e2_hdr_tests COMMAND kivo_p12e2_hdr_tests)
 set_tests_properties(kivo_p12e2_hdr_tests PROPERTIES TIMEOUT 60)
+
+# ─── P13-O: 两个半程斜率的一致性 ───
+# 判的是"差多少算差"：`gap > 1.96 × pooled` 为不一致。
+# 这组测试的重点不在正例，而在三条"会把失败伪装成通过"的路：
+# 一侧没估出来、SE 是 NaN、SE 是负数 —— 三者都必须落到 unknown。
+add_executable(kivo_p13o_halves_tests
+  tests/video/pace/p13o_halves_tests/halves_tests.cpp
+)
+target_link_libraries(kivo_p13o_halves_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13o_halves_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13o_halves_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13o_halves_tests COMMAND kivo_p13o_halves_tests)
+set_tests_properties(kivo_p13o_halves_tests PROPERTIES TIMEOUT 60)
+
+# P13-P：最差帧的前后邻帧。重点同样不在正例，而在两条"会把未知伪装成已知"的路：
+# 不带 DueStep 时 supplied 必须为 0（否则 `due_step_frames == 0` 分不出"没位移"与"没接线"），
+# 新最差必须丢掉旧最差的尾巴（否则"收敛用了 8 帧"会凭空成立）。
+add_executable(kivo_p13p_episode_tests
+  tests/video/pace/p13p_episode_tests/episode_tests.cpp
+)
+target_link_libraries(kivo_p13p_episode_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p13p_episode_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p13p_episode_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p13p_episode_tests COMMAND kivo_p13p_episode_tests)
+set_tests_properties(kivo_p13p_episode_tests PROPERTIES TIMEOUT 60)

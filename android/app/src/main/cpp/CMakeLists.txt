@@ -24,6 +24,28 @@ add_library(kivo_core_pace STATIC
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_policy.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_histogram.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_stats.cxx"
+    # P13-E：分位数的采样口径词汇（三个线格式名字 + "能不能跨帧率比"）。
+    # 报告层靠它写 `quantiles.<mode>`，漏注册同样只在 arm64 链接时炸。
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/sampling_mode.cxx"
+    # P13-D：按媒体时间抽稀的序列 + 漂移趋势（纯计算，零平台依赖）。
+    # 这两个文件被 `pace_stats.cxx` 直接调用：漏注册不会在桌面暴露
+    # （桌面走 backend/CMakeLists.txt 的另一份清单），只会在链接 arm64 时炸
+    # `undefined symbol: DriftSeries::note` —— 即"桌面全绿、APK 编不过"。
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_drift_series.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_drift_trend.cxx"
+    # P13-I：窗口分布。同样由 `pace_stats.cxx` 直接调用 ——
+    # 漏注册的报应一模一样：桌面全绿，arm64 链接时 `undefined symbol: summarize_window`。
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_drift_window.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_window_stats.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_hac.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_halves_agreement.cxx"
+    # P13-P：最差帧的前后邻帧。同样由 `pace_stats.cxx` 直接调用 ——
+    # 漏注册的老报应：桌面全绿，arm64 链接时 `undefined symbol: WorstEpisodeRecorder::note`。
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_worst_episode.cxx"
+    # P13-L：累积漂移 + 额度判读。由 `pace_drift_trend.cxx` 调用 ——
+    # 漏注册的报应与前几张卡一模一样：桌面全绿，arm64 链接时
+    # `undefined symbol: accumulate_drift`。
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_drift_budget.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_now.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/clock_position_tracker.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/frame_pacer.cxx"
@@ -170,6 +192,9 @@ add_library(kivo_core_audio STATIC
     "${KIVO_BACKEND}/src/video/video_plane/core/audio/clock/monotonic_clock_guard.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/audio/clock/frame_position_extrapolator.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/audio/clock/system_clock_source.cxx"
+    # P13-AB：`kivo.clock_offset_ms` 的注入点。只有探针传了这个参数才会创建它，
+    # 不带参数时生产路径上一个分支都不多（见头文件注释）。
+    "${KIVO_BACKEND}/src/video/video_plane/core/audio/clock/clock_offset_source.cxx"
 )
 
 target_include_directories(kivo_core_audio

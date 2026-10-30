@@ -84,7 +84,12 @@ public:
     /// 但只把偏移记进各自的直方图 —— 混记会让 `over_budget_frames` 把"正常提前"判成超预算。
     void note_scheduled(const PaceDecision& decision, std::int64_t submit_at_ns) noexcept;
 
-    /// seek / 换片源：清掉锚点、历史与追帧状态。计数不清（证据要的是全会话）。
+    /// seek / 换片源 / 停再起：清掉锚点、历史与追帧状态。计数不清（证据要的是全会话）。
+    ///
+    /// 同时**切掉漂移序列的段**（P13-M）：锚点重建意味着 `lateness` 的零点换了，
+    /// 跨过这一刻的回归拟合的是两个零点之间的跳变，不只是一条直线的速率差。
+    /// 段数会 +1，但那是"段数"不是"计数" —— `presented` / `sampled_samples`
+    /// / 各直方图一律不动。详见 `DriftSeries::break_segment()`。
     void reset() noexcept;
 
     [[nodiscard]] PaceSummary summary() const noexcept;
@@ -118,6 +123,11 @@ private:
     bool catching_up_ = false;
     std::int64_t catch_up_events_ = 0;
     std::int64_t frames_decided_ = 0;
+
+    /// 本帧 `arrive()` 读到的钟读数（P13-R）。`note_presented()` 在交出之后才被调用，
+    /// 那时再读一次会得到另一个数 —— 记的是**决策那一刻**的钟，必须在 `arrive()` 里留。
+    std::int64_t reading_mono_ns_ = 0;
+    std::int64_t reading_elapsed_ns_ = 0;
 
     ClockHealth last_health_ = ClockHealth::kFresh;
     std::int64_t frame_duration_ns_ = 40'000'000;

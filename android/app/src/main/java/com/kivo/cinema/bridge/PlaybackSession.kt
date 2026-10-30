@@ -158,13 +158,23 @@ class PlaybackSession(
     }
 
     /** 挂节拍。**必须在 [start] 之前**：起播之后再挂等于半路改规则。 */
-    fun configurePacing(targetFps: Int, allowDrop: Boolean): Int {
+    fun configurePacing(
+        targetFps: Int,
+        allowDrop: Boolean,
+        clockOffsetMs: Int = 0,
+        clockOffsetAtMs: Int = 2_000,
+        clockRatePpm: Int = 0,
+        driftGate: Boolean = true,
+    ): Int {
         if (handle == 0L) {
             lastError = "configurePacing before openVideo"
             return -1
         }
         val rc = runCatching {
-            NativePlayer.nativeSessionSetPacing(handle, targetFps, allowDrop)
+            NativePlayer.nativeSessionSetPacing(
+                handle, targetFps, allowDrop, clockOffsetMs, clockOffsetAtMs,
+                clockRatePpm, driftGate
+            )
         }.getOrElse { -1 }
         if (rc != 0) {
             lastError = nativeErrorOr("pacing failed rc=$rc")

@@ -38,6 +38,11 @@ public:
 
         bool stale = false;
         bool jump_rebased = false;
+        /// 累积漂移超过 `drift_limit_ns`，这一帧按墙钟推进并把累积清零（P13-S）。
+        bool drift_rebased = false;
+        /// 这一帧实际修正了多少 ns（0 = 没修）。出版幅度才能分清
+        /// "一次还完"（≈ 整个超出量）与"分很多笔还"（每笔很小）。
+        std::int64_t drift_correction_ns = 0;
         bool backward_clamped = false;
         bool monotonic_rejected = false;
     };
@@ -71,6 +76,20 @@ public:
     }
     [[nodiscard]] std::int64_t free_run_readings() const noexcept { return free_run_readings_; }
     [[nodiscard]] std::int64_t jump_rebases() const noexcept { return jump_rebases_; }
+    /// 累积漂移触发的重锚次数（P13-S）。与 `jump_rebases` 分开数：
+    /// 那个是"一次跳了 1 秒"，这个是"每次只差一点、攒到 45 ms"。
+    [[nodiscard]] std::int64_t drift_rebases() const noexcept { return drift_rebases_; }
+    /// 单次修正的最大幅度（P13-AC）。配合 `drift_rebases` 就能看出这一轮是
+    /// "一次还完"（max ≈ total、次数 1）还是"分成多笔"（次数多、每笔小）。
+    /// 它是诊断量，不是判据 —— 限速那版曾把它当判据，后来被真机否掉了。
+    [[nodiscard]] std::int64_t drift_max_correction_ns() const noexcept {
+        return drift_max_correction_ns_;
+    }
+    /// 累计修正量。收敛所需的"总账" —— 与 `drift_rebases × 单帧上限` 对照，
+    /// 就能看出修正在几帧里摊完。
+    [[nodiscard]] std::int64_t drift_corrected_total_ns() const noexcept {
+        return drift_corrected_total_ns_;
+    }
     [[nodiscard]] std::int64_t backward_clamps() const noexcept { return backward_clamps_; }
     [[nodiscard]] std::int64_t monotonic_rejects() const noexcept { return monotonic_rejects_; }
     [[nodiscard]] ClockHealth last_health() const noexcept { return last_health_; }
@@ -96,6 +115,25 @@ private:
     std::int64_t extrapolated_readings_ = 0;
     std::int64_t free_run_readings_ = 0;
     std::int64_t jump_rebases_ = 0;
+    /// 累积漂移（P13-S）：`Σ(位置增量 − 墙钟增量)`。它与 `previous_*` 不同寿命 ——
+    /// 这个只被 `reset()` 清，跳变重锚不清它（跳变本身就是一次大漂移，清不清都行，
+    /// 但只要它参与下一次判定，就必须与清零点同源）。
+    std::int64_t cum_drift_ns_ = 0;
+    /// 是否处在"收敛中"（P13-AC）。两个阈值：越过 `limit` 进入，降到
+    /// `limit − band` 退出。只用一个阈值会让残差停在阈值下方一点（实测 44/45），
+    /// 迟滞带就白设了。
+    bool correcting_ = false;
+    /// 首帧读取的单调时刻：用来划"启动期"（P13-W）。
+    std::int64_t first_mono_ns_ = 0;
+    /// 首帧的位置与墙钟原点（P13-AA）。领先量按 `position − (原点 + 墙钟增量)` 派生，
+    /// 这样三条推进分支（正常 / stale 外推 / 跳变重锚）都被同一把尺子量到。
+    std::int64_t origin_mono_ns_ = 0;
+    std::int64_t origin_position_ns_ = 0;
+    std::int64_t drift_rebases_ = 0;
+    /// P13-AC：单帧修正的最大幅度与累计量。八个字节换"限速到底有没有生效"这个
+    /// 可判定的问题 —— 只数次数是分不出"一帧削平"和"二十三帧摊平"的。
+    std::int64_t drift_max_correction_ns_ = 0;
+    std::int64_t drift_corrected_total_ns_ = 0;
     std::int64_t backward_clamps_ = 0;
     std::int64_t monotonic_rejects_ = 0;
     ClockHealth last_health_ = ClockHealth::kFresh;

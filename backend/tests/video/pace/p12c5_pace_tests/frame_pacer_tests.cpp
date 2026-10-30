@@ -14,6 +14,8 @@
 #include <cstdlib>
 
 #include "video/video_plane/core/audio/clock/audio_clock_source.hpp"
+#include "video/video_plane/core/audio/clock/clock_offset_source.hpp"
+#include "video/video_plane/core/pace/clock_position_tracker.hpp"
 #include "video/video_plane/core/pace/frame_pacer.hpp"
 #include "video/video_plane/core/pace/pace_histogram.hpp"
 #include "video/video_plane/core/pace/pace_policy.hpp"
@@ -641,6 +643,402 @@ struct TestCase {
     void (*run)();
 };
 
+// ---- S1 时钟"只快一点"也要被拦住（P13-S）----------------------------------
+//
+// `jump_limit_ns` 只看单次跳变（1 s），于是 1.5% 的**速率**误差永远不触发它：
+// 每帧只多走 250 µs，跑一万帧也只是 250 µs。真机满载 8 秒攒了 118.79 ms，
+// 而 `jump_rebases` 全程 0 —— 门根本没响（`91-p13r-status.md` §一）。
+//
+// 这一条钉住：累积漂移超过 45 ms 就必须按墙钟推进一次，且位置与墙钟的距离
+// 不能超过"一个门限 + 一帧"。
+void s1_cumulative_drift_is_rebased() {
+    reset_time();
+    FakeClock clock;
+    pace::PacePolicy policy;
+    pace::ClockPositionTracker tracker(clock, policy, &fake_now);
+
+    const std::int64_t frame_ns = 16'666'667;
+    const std::int64_t fast_ns = 16'916'667;  // 每帧多 250 µs ≈ 1.5%
+    std::int64_t position = 0;
+    pace::ClockPositionTracker::Reading last{};
+    for (int i = 0; i < 400; ++i) {
+        g_now_ns += frame_ns;
+        position += fast_ns;
+        clock.position_ns = position;
+        last = tracker.read();
+    }
+
+    // 8 秒里累积约 60 ms，必须至少触发一次
+    CHECK(tracker.drift_rebases() >= 1);
+    // 位置的超前量不能超过"门限 + 一帧多走的量"
+    CHECK(last.position_ns - g_now_ns <= policy.drift_limit_ns + fast_ns);
+    // 门限以内不该误触发（这个假时钟只快 1.5%，不是跳变）
+    CHECK(tracker.jump_rebases() == 0);
+
+    // 反例：时钟与墙同步时一次都不该触发
+    reset_time();
+    FakeClock steady;
+    pace::ClockPositionTracker tracker2(steady, policy, &fake_now);
+    position = 0;
+    for (int i = 0; i < 400; ++i) {
+        g_now_ns += frame_ns;
+        position += frame_ns;
+        steady.position_ns = position;
+        (void)tracker2.read();
+    }
+    CHECK(tracker2.drift_rebases() == 0);
+}
+
+// ---- S3 计数真的能从 tracker 走到 summary（P13-T）--------------------------
+//
+// P13-S 的结题里写过一句"`pace.clock_health.jump_rebases` 是死字段"。核了一遍
+// `FramePacer::summary()`：它确实把 tracker 的四个计数搬进 `PaceSummary`（jump / stale /
+// backward / monotonic），**不是死字段** —— 那 442 份证据里全 0，是因为 tracker 级
+// 的跳变一次都没发生（音频时钟自己在更下层就钳掉了）。
+//
+// 这一条把整条链钉住：假快钟 → tracker 计数 → `pacer.summary()` → 证据字段。
+void s3_drift_counter_reaches_summary() {
+    reset_time();
+    FakeClock clock;
+    pace::FramePacer::Setup setup;
+    setup.clock = &clock;
+    setup.now = &fake_now;
+    setup.wait = &fake_wait;
+    pace::FramePacer pacer(setup);
+
+    const std::int64_t frame_ns = 16'666'667;
+    const std::int64_t fast_ns = 16'916'667;
+    std::int64_t position = 0;
+    for (int i = 0; i < 400; ++i) {
+        g_now_ns += frame_ns;
+        position += fast_ns;
+        clock.position_ns = position;
+        const pace::PaceDecision decision = pacer.arrive(static_cast<std::int64_t>(i) * frame_ns);
+        pacer.note_presented(decision, g_now_ns);
+    }
+    const pace::PaceSummary summary = pacer.summary();
+    CHECK(summary.drift_rebases >= 1);
+    CHECK(summary.presented == 400);
+}
+
+// ---- S4 断断续续的超前也要被拦住（P13-V）----------------------------------
+//
+// P13-U 的真机形状：8 秒领先 91.72 ms，但**中间夹着零漂**，最差帧的 `due_step`
+// 只有 −3.8 µs。旧判据要求"连续 60 帧正漂"，夹一次零漂就归零，永远到不了门限。
+//
+// 这一条造同样的形状：每 20 帧超前 300 µs，随后 5 帧不动。旧判据 0 次，
+// 新判据（按单帧贡献累积，30 ms 以上才算台阶）必须触发。
+void s4_bursty_lead_is_still_rebased() {
+    reset_time();
+    FakeClock clock;
+    pace::PacePolicy policy;
+    pace::ClockPositionTracker tracker(clock, policy, &fake_now);
+
+    const std::int64_t frame_ns = 16'666'667;
+    std::int64_t position = 0;
+    for (int i = 0; i < 400; ++i) {
+        g_now_ns += frame_ns;
+        const bool burst = (i % 25) < 20;
+        position += frame_ns + (burst ? 300'000 : 0);
+        clock.position_ns = position;
+        (void)tracker.read();
+    }
+    // 400 帧里 320 帧各多 300 µs ⇒ 累积 96 ms，必须被拦
+    CHECK(tracker.drift_rebases() >= 1);
+    CHECK(tracker.jump_rebases() == 0);
+}
+
+// ---- S5 启动期之外的"中台阶"必须被吃掉（P13-W）----------------------------
+//
+// 30 ms–1 s 这一档以前两条门都不管：`jump_limit_ns` 要 > 1 s，
+// 漂移门要"单帧 < 30 ms 才计入累积"。真机反复出现的正是这一档（P13-R/U/V 各 1/3 轮）。
+//
+// 新规则：启动期（首帧后 1 s）之外的正向台阶直接按墙钟吃掉。
+// 启动期内的台阶**不拦** —— C5-4/C5-5 就在那一段压 50 ms，语义不能改。
+void s5_mid_step_is_absorbed_after_startup() {
+    reset_time();
+    FakeClock clock;
+    pace::PacePolicy policy;
+    pace::ClockPositionTracker tracker(clock, policy, &fake_now);
+
+    const std::int64_t frame_ns = 16'666'667;
+    std::int64_t position = 0;
+    // 先走 2 s 的正常时间（越过启动期）
+    for (int i = 0; i < 120; ++i) {
+        g_now_ns += frame_ns;
+        position += frame_ns;
+        clock.position_ns = position;
+        (void)tracker.read();
+    }
+    CHECK(tracker.drift_rebases() == 0);
+
+    // 一个 60 ms 的台阶：> 30 ms（台阶门），< 1 s（跳变门不管）
+    g_now_ns += frame_ns;
+    position += frame_ns + 60000000;
+    clock.position_ns = position;
+    const pace::ClockPositionTracker::Reading stepped = tracker.read();
+
+    CHECK(stepped.drift_rebased);
+    CHECK(tracker.drift_rebases() == 1);
+    CHECK(tracker.jump_rebases() == 0);  // 没到 1 s，不该算跳变
+}
+
+// ---- S6 领先量必须等于"位置 −（原点 + 墙钟）"（P13-AA）--------------------
+//
+// P13-Z 在真机上发现：`clock_ahead +73.30 ms` 而 `drift_rebases = 0` ——
+// 逐帧累加那本账漏掉了 stale 外推 / 跳变重锚 / 倒退钳制三条推进分支。
+// 改成派生（两端之差）之后，这条恒等式**按定义**成立，单测把它钉死：
+// 无论位置是被谁推的，领先量都能被同一把尺子量到。
+void s6_lead_equals_position_minus_wall() {
+    reset_time();
+    FakeClock clock;
+    pace::PacePolicy policy;
+    pace::ClockPositionTracker tracker(clock, policy, &fake_now);
+
+    const std::int64_t frame_ns = 16'666'667;
+    std::int64_t position = 0;
+    std::int64_t origin_position = 0;
+    std::int64_t origin_mono = 0;
+    std::int64_t previous_lead = 0;
+    std::int64_t final_lead = 0;
+    bool first = true;
+    for (int i = 0; i < 300; ++i) {
+        g_now_ns += frame_ns;
+        // 中段混入一次 80 ms 台阶（< 1 s，走正常分支）与几帧停更（走 stale 外推）
+        std::int64_t extra = 0;
+        if (i == 200) {
+            extra = 80'000'000;
+        }
+        clock.stale = (i >= 120 && i < 125);
+        position += frame_ns + extra;
+        clock.position_ns = position;
+        const auto reading = tracker.read();
+        if (first) {
+            origin_position = reading.position_ns;
+            origin_mono = g_now_ns;
+            first = false;
+        }
+        // 恒等式：这次读到的领先量必须等于两端之差（容差一帧）。
+        //
+        // 台阶（i = 200）之后**不能**再要求"领先量立刻 ≤ 门限"：P13-AC 之后
+        // 修正限速 2 ms/帧，80 ms 的台阶要 20 帧才收敛（那时这条断言会把
+        // 正常的收敛过程判成失败 —— 本卡第一版就是这么红的）。
+        // 台阶之后该守的是"不增"：每帧最多补一帧的墙钟增量，修正只会让它变小。
+        const std::int64_t lead = reading.position_ns - (origin_position + (g_now_ns - origin_mono));
+        if (i < 200) {
+            CHECK(lead <= policy.drift_limit_ns + frame_ns);
+        } else if (i > 200) {
+            CHECK(lead <= previous_lead + frame_ns);
+        }
+        previous_lead = lead;
+        final_lead = lead;
+    }
+    CHECK(tracker.drift_rebases() >= 1);
+    // 收敛之后必须回到门限以内 —— 限速改的是"怎么收敛"，不是"收敛到哪"。
+    CHECK(final_lead <= policy.drift_limit_ns);
+}
+
+// ---- S7 时钟台阶注入：按需触发，且门只吃一次（P13-AB）----------------------
+//
+// P13-S 到 P13-AA 靠负载撞"时钟跑偏"，20 多轮命中率约 1/3 —— 撞不上就分不清
+// "门没用"和"这次没撞上"，于是一整条链从 P13-S 欠到现在。这一条用注入把
+// 那件事变成确定的：位置从第 2 s 起持续超前 80 ms，其余全是真的。
+//
+// 钉两件事：
+//   ① 装饰器语义 —— 2 s 之前一毫秒不加，之后**每一帧**都带着这 80 ms
+//      （持续偏移，不是一次性脉冲）；
+//   ② 门的收敛 —— 复位一次把领先量压到门限，之后**不再反复复位**。
+void s7_clock_offset_is_injected_and_gated_once() {
+    reset_time();
+    FakeClock clock;
+    clock.follow_wall = true;  // 位置跟着墙钟走：真实音频时钟的近似
+    audio::ClockOffsetSource injected(clock, 80'000'000, 2'000'000'000);
+
+    // ① 起点定在首次读到的那一刻
+    g_now_ns += 1'000'000;
+    const audio::AudioClockSnapshot first = injected.now();
+    const std::int64_t origin = first.position_ns;
+    CHECK(!injected.applied());
+
+    // 2 s 之前：位置与内层一致，一分不加
+    bool clean_before = true;
+    for (int i = 0; i < 100; ++i) {  // 100 × 16.7 ms ≈ 1.67 s
+        g_now_ns += 16'666'667;
+        const audio::AudioClockSnapshot snapshot = injected.now();
+        if (snapshot.position_ns != clock.position_ns) {
+            clean_before = false;
+        }
+    }
+    CHECK(clean_before);
+    CHECK(!injected.applied());
+
+    // 越过 2 s：从这里开始每一帧都带 80 ms
+    g_now_ns += 400'000'000;
+    const audio::AudioClockSnapshot armed = injected.now();
+    CHECK(injected.applied());
+    CHECK(injected.armed_at_position_ns() >= origin + 2'000'000'000);
+    CHECK(armed.position_ns == clock.position_ns + 80'000'000);
+
+    bool all_biased = true;
+    for (int i = 0; i < 100; ++i) {
+        g_now_ns += 16'666'667;
+        const audio::AudioClockSnapshot snapshot = injected.now();
+        if (snapshot.position_ns != clock.position_ns + 80'000'000) {
+            all_biased = false;
+        }
+    }
+    CHECK(all_biased);  // 持续偏移，不是脉冲
+
+    // ② 同一条台阶喂给 tracker：门只吃一次，领先量停在门限上
+    reset_time();
+    FakeClock clock2;
+    clock2.follow_wall = true;
+    audio::ClockOffsetSource injected2(clock2, 80'000'000, 2'000'000'000);
+    pace::PacePolicy policy;
+    pace::ClockPositionTracker tracker(injected2, policy, &fake_now);
+
+    std::int64_t tracker_origin_position = 0;
+    std::int64_t tracker_origin_mono = 0;
+    for (int i = 0; i < 240; ++i) {  // 4 s
+        g_now_ns += 16'666'667;
+        const pace::ClockPositionTracker::Reading reading = tracker.read();
+        if (i == 0) {
+            tracker_origin_position = reading.position_ns;
+            tracker_origin_mono = g_now_ns;
+        }
+    }
+    const std::int64_t lead =
+        tracker.read().position_ns - (tracker_origin_position + (g_now_ns - tracker_origin_mono));
+    CHECK(injected2.applied());
+    // P13-AC：一次台阶**一次还完**，且还到 `limit − band` 而不是 `limit`。
+    // （第一版在这里限速 2 ms/帧，真机否掉了 —— 事件帧因此从 −45 变 −78。）
+    CHECK(tracker.drift_rebases() == 1);
+    CHECK(tracker.drift_max_correction_ns() == tracker.drift_corrected_total_ns());
+    CHECK(lead <= policy.drift_limit_ns);  // 收敛到门限以内
+    CHECK(lead > 0);                       // 没有像 P13-X 那样翻负（过冲）
+}
+
+// ---- S8 迟滞带：一次还完，但还到「门限 − 带」，且稳态不再触发（P13-AC）----
+//
+// P13-AB 的残差停在 45.00 ms：门限同时当"触发阈值"和"收敛目标"，于是下一帧
+// 钟再挤 50 µs 就又触发一次，`drift_rebases` 是 5/6/10 而总修正只有 35.2 ms。
+//
+// 这一条钉三件事：
+//   ① 一次台阶只修一次（`rebases == 1`，max == total）—— 没有反复微调；
+//   ② 收敛到 `limit − band`（40 ms），不是停在门限下方一点（44）；
+//   ③ 收敛之后不再触发（迟滞带把稳态推到阈值以下）。
+//
+// ⚠️ 第一版这里是"限速 2 ms/帧"。真机把它否了：事件帧 `due_step` 从 −45 变 −78、
+// 迟到从 29 变 62、200 ms 台阶多丢 5 帧 —— 限速只在**瞬时台阶**上起作用，且更差；
+// 在渐变漂移上触发时超出量只有几毫秒，根本跑不满。
+void s8_hysteresis_band_settles_once() {
+    reset_time();
+    FakeClock clock;
+    clock.follow_wall = true;
+    audio::ClockOffsetSource injected(clock, 200'000'000, 2'000'000'000);  // 200 ms 大台阶
+    pace::PacePolicy policy;
+    pace::ClockPositionTracker tracker(injected, policy, &fake_now);
+
+    std::int64_t origin_position = 0;
+    std::int64_t origin_mono = 0;
+    for (int i = 0; i < 600; ++i) {  // 10 s
+        g_now_ns += 16'666'667;
+        const pace::ClockPositionTracker::Reading reading = tracker.read();
+        if (i == 0) {
+            origin_position = reading.position_ns;
+            origin_mono = g_now_ns;
+        }
+    }
+    const std::int64_t lead =
+        tracker.read().position_ns - (origin_position + (g_now_ns - origin_mono));
+
+    CHECK(injected.applied());
+    CHECK(tracker.drift_rebases() == 1);                                   // ① 一次还完
+    CHECK(tracker.drift_max_correction_ns() == tracker.drift_corrected_total_ns());
+    // 修正总量 = 台阶 − (limit − band) = 200 − 40 = 160 ms
+    CHECK(tracker.drift_corrected_total_ns() == 160'000'000);
+    // ② 收敛到迟滞带下沿
+    CHECK(lead <= policy.drift_limit_ns - policy.drift_band_ns + 1'000'000);
+    CHECK(lead > policy.drift_limit_ns - policy.drift_band_ns - 1'000'000);
+    // ③ 稳态零新触发
+    const std::int64_t rebases_after_settle = tracker.drift_rebases();
+    for (int i = 0; i < 120; ++i) {
+        g_now_ns += 16'666'667;
+        (void)tracker.read();
+    }
+    CHECK(tracker.drift_rebases() == rebases_after_settle);
+}
+
+// ---- S9 速率误差：门能追住，关掉门就一路涨（P13-AD）------------------------
+//
+// P13-AB/AC 注入的都是**瞬时台阶**，可 8 次真实事件**全是渐变**：8 秒里
+// `clock_ahead` 从 0 长到 73–165 ms（1.5%–5% 的速率差）。两者对门的要求不一样 ——
+// 台阶考验"当帧还多少"，速率考验"能不能一直追住、不越攒越多"。
+//
+// 这一条同时跑"门开/门关"两组，因为只有对照组能证明那组数字是门的功劳：
+//   · 门开：领先量被压在 [limit−band, limit] 的锯齿里，`drift_rebases` 多次；
+//   · 门关：`drift_rebases = 0`，领先量按时钟的速率一路涨到 ppm × 时长。
+void s9_rate_error_is_tracked_only_with_gate() {
+    constexpr std::int32_t kPpm = 15'000;  // 1.5%，与 P13-R r4 同量级
+    const std::int64_t frame_ns = 16'666'667;
+
+    // ── 门开 ──
+    reset_time();
+    FakeClock clock;
+    clock.follow_wall = true;
+    audio::ClockOffsetSource injected(clock, 0, 1'000'000'000, kPpm);
+    pace::PacePolicy policy;  // drift_gate_enabled 默认 true
+    pace::ClockPositionTracker tracker(injected, policy, &fake_now);
+
+    std::int64_t origin_position = 0;
+    std::int64_t origin_mono = 0;
+    std::int64_t peak_lead = 0;
+    for (int i = 0; i < 360; ++i) {  // 6 s
+        g_now_ns += frame_ns;
+        const auto reading = tracker.read();
+        if (i == 0) {
+            origin_position = reading.position_ns;
+            origin_mono = g_now_ns;
+        }
+        const std::int64_t lead =
+            reading.position_ns - (origin_position + (g_now_ns - origin_mono));
+        if (lead > peak_lead) {
+            peak_lead = lead;
+        }
+    }
+    CHECK(injected.applied());
+    CHECK(tracker.drift_rebases() >= 5);  // 5 s × 1.5% = 75 ms，每 5 ms 越线一次
+    // 锯齿的上沿不超过门限 + 一帧（越线那一帧才会修，下一帧才落到 40）
+    CHECK(peak_lead <= policy.drift_limit_ns + frame_ns);
+
+    // ── 门关（对照组）──
+    reset_time();
+    FakeClock clock2;
+    clock2.follow_wall = true;
+    audio::ClockOffsetSource injected2(clock2, 0, 1'000'000'000, kPpm);
+    pace::PacePolicy open_policy;
+    open_policy.drift_gate_enabled = false;
+    pace::ClockPositionTracker tracker2(injected2, open_policy, &fake_now);
+
+    std::int64_t origin2 = 0;
+    std::int64_t mono2 = 0;
+    for (int i = 0; i < 360; ++i) {  // 6 s
+        g_now_ns += frame_ns;
+        const auto reading = tracker2.read();
+        if (i == 0) {
+            origin2 = reading.position_ns;
+            mono2 = g_now_ns;
+        }
+    }
+    const std::int64_t lead_off =
+        tracker2.read().position_ns - (origin2 + (g_now_ns - mono2));
+
+    CHECK(tracker2.drift_rebases() == 0);  // 门关着，一次都不该触发
+    // 5 s × 1.5% = 75 ms，允许 ±10 ms 的取整与首帧误差
+    CHECK(lead_off > 65'000'000);
+    CHECK(lead_off < 85'000'000);
+}
+
 const TestCase kCases[] = {
     {"C5-1 首帧即刻到期", t1_first_frame_is_due_now},
     {"C5-2 早到则睡到到期", t2_early_frame_waits_until_due},
@@ -668,6 +1066,14 @@ const TestCase kCases[] = {
     {"C8-3 at_time 的 lateness 是提交提前量", t24_at_time_arrive_lateness_is_submit_lead},
     {"C8-4 分布可独立重放分位数", t25_histogram_bins_replay_percentile},
     {"C8-5 时钟分档逐帧不漏", t26_clock_mix_counts_every_frame},
+    {"S1 累积漂移超过 45ms 才重锚", s1_cumulative_drift_is_rebased},
+    {"S3 漂移计数走到 summary", s3_drift_counter_reaches_summary},
+    {"S4 断断续续的超前也被拦", s4_bursty_lead_is_still_rebased},
+    {"S5 启动期外的中台阶被吃掉", s5_mid_step_is_absorbed_after_startup},
+    {"S6 领先量等于位置减墙钟", s6_lead_equals_position_minus_wall},
+    {"S7 时钟台阶注入且门只吃一次", s7_clock_offset_is_injected_and_gated_once},
+    {"S8 迟滞带一次还完且稳态不触发", s8_hysteresis_band_settles_once},
+    {"S9 速率误差：门开追住/门关涨到 ppm", s9_rate_error_is_tracked_only_with_gate},
 };
 
 }  // namespace

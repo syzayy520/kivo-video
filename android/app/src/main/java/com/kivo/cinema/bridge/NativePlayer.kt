@@ -118,8 +118,24 @@ object NativePlayer {
      *
      * @param targetFps 期望帧率，仅作首帧兜底；真实帧时长由 pts 差值观测。
      * @param allowDrop 是否允许按节拍丢帧。false 用于"只睡不丢"的对照组。
+     * @param clockOffsetMs 探针注入（P13-AB）：非 0 时在媒体时间走到
+     *        [clockOffsetAtMs] 之后把时钟位置一次加上这么多毫秒。0 = 不注入。
+     *        用来把"时钟跑偏"从靠负载撞概率变成可复现；证据里会留 `clock_injection`。
+     * @param clockOffsetAtMs 注入时刻（相对首次读到的位置）。
+     * @param clockRatePpm 速率注入（P13-AD）：正 = 时钟比墙快多少 ppm。
+     *        真实事件的形状是**渐变**（8 秒慢慢长到几十毫秒），不是瞬时台阶，
+     *        所以这一格比 [clockOffsetMs] 更接近现场。
+     * @param driftGate 漂移门开关。false = 对照组，证据里 `drift_gate.enabled` 写 false。
      */
-    external fun nativeSessionSetPacing(handle: Long, targetFps: Int, allowDrop: Boolean): Int
+    external fun nativeSessionSetPacing(
+        handle: Long,
+        targetFps: Int,
+        allowDrop: Boolean,
+        clockOffsetMs: Int,
+        clockOffsetAtMs: Int,
+        clockRatePpm: Int,
+        driftGate: Boolean,
+    ): Int
 
     /**
      * 选择流水线模式（P12-C6）与呈现排程方式（P12-C7）。必须在 [nativeSessionStart] 之前调用。

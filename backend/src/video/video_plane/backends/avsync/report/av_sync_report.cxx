@@ -2,21 +2,140 @@
 
 #include "video/video_plane/backends/mediacodec/device/mediacodec_json_string_escaper.hpp"
 #include "video/video_plane/core/audio/pcm_format.hpp"
+#include "video/video_plane/core/pace/sampling_mode.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <sstream>
 
 namespace kivo::video::avsync {
+
+// 半程一致性（P13-O）住 `core::pace`：它是纯判定，与报告层无关。
+// 起个短别名而不是 using namespace —— 这个文件已经同时碰 avsync / mediacodec /
+// core 三棵子树，展开整棵命名空间会让"这个名字属于哪一层"看不见。
+namespace pace = kivo::video::core::pace;
+
 namespace {
+
+/// 「这个分布没有位置可言」的显式常量。
+///
+/// 与"有位置但还没测到"（`valid == false` 但将来会有）在 JSON 里表现相同 ——
+/// 都是不写 `worst` 键。区别只在注释里：这里是**结构上就没有**媒体时刻，
+/// 不是漏采。
+const core::pace::DriftExtreme kNoExtreme{};
 
 using core::pace::SignedHistogram;
 
 /// 版本历史：
 ///   /1（C8，首版）：把 C1–C7 的事实收进一份文件。
+///   /2（P13-D）：`av_drift` 的分位数改由**按媒体时间抽稀到 20 Hz** 的分布给出，
+///       并新增 `sampling` / `per_frame` / `trend` 三块。
+///       原因：逐帧采样的 p99 随帧率变（60fps 的样本密度是 30fps 的两倍），
+///       同一台机器读出"60fps 更差"，差的是看得更清楚。
+///       `/1` 的证据不重写（重写等于伪造），校验器同时接受两个版本。
+///   /3（P13-E）：`av_drift` 下**不再有任何裸分位数**，改挂到 `quantiles.<口径>`；
+///       `sampling` 增加 `cross_frame_rate_set` 指向唯一可比的那一份（或 null）。
+///       原因：/2 虽然把口径写进了 `sampling.mode`，但 `av_drift.p99` 这个键名本身
+///       不带口径 —— 复制一个数去填表格的人，永远想不起去看三行之外。
+///       "记得看注释"不是保障，"结构上取不出裸数"才是。
+///   /4（P13-F）：`quantiles.<口径>` 新增 `worst`（`index` / `of` / `media_ns` / `lateness_ns`）。
+///       原因：`max` 只说最差**多大**，说不出最差**在哪儿** —— 而"片头冷启动"与
+///       "片尾收尾"对结论的影响完全相反。4K60 r1 那个 88 ms 因此无法归因
+///       （见 `65-p13e-status.md` §六.1）。位置是**序列**的属性，直方图按定义没有，
+///       所以由 `DriftSeries` 累计维护后上报。
+///   /5（P13-G）：抽稀块有了**结构门**（`decimated_block_is_usable`：≥2 样本且跨度 >0）。
+///       原因：1 个样本的 `p50/p95/p99/max` 四个数完全相同，长得像一份正常数据，
+///       E1/E2/E3/F1/F2′ 全套判据都会放它过去，而缺 pts 的流正好产出这种形态。
+///       降级时 `sampling.reason` 由 `decimated_unusable_reason()` 唯一给出。
+///       —— `/5` 当时漏了这条历史记录，P13-H 补上（schema 号动了、说明没动，
+///       与 P13-E 那次 `card_checks` 漏写同族）。
+///   /6（P13-H）：`sampling` 新增 `media_span_ns`（**整场**媒体时间跨度），
+///       `observed_hz` 以它为分母。原因：`accepted` 是累计的，分母却取了
+///       `trend.span_ns`（**窗口**跨度，封顶 102.35 s），于是超过 102.4 s 之后
+///       `observed_hz` 随片长线性增长（130 s → 25.4 Hz，600 s → 117 Hz），
+///       而旁边写着 `target_hz: 20`。那个数没有上界，也没有判据拦它 ——
+///       校验器复算的是同一个除法（见 `70-p13h-design.md` §一）。
+///   /7（P13-I）：`trend` 自带 `capacity` / `window_sample_count` / `segment_accepted`
+///       与 `window_quantiles`（**窗口**分位数 + 分布）；删掉含糊的 `segment_samples`。
+///       两件事一起改的：
+///       ① `truncated` 上一版写的是"整场累计 > 容量"，seek 之后会谎报覆盖 ——
+///          覆盖是**每段**的事，所以段内接受数必须单独算、单独报；
+///       ② `quantiles.<口径>` 是整场累计、`trend` 是最近 102.4 s，两个数在长片源上
+///          不是同一批样本，却并排摆着让人当同一批读。趋势自带分布之后，
+///          "这段抖多少"和"这段漂多少"同源，不必跨块借数（`72-p13i-design.md` §二）。
+///       `segment_samples` 这个名字同时被读成"这段采了几个"和"窗口里剩几个"，
+///       一删为二：`segment_accepted`（段口径）与 `window_sample_count`（窗口口径）。
+///   /8（P13-J）：给斜率配误差棒 —— `slope_ppm_std_error` / `slope_ci_low_ppm` /
+///       `slope_ci_high_ppm` / `slope_detectable`，外加窗口中位数是否精确的
+///       `window_median_exact` / `window_median_fallback_windows`。
+///       起因是两件事同时为真，而报告只让读者看见其中一件：
+///       ① 八个窗口中位数**全部等于 125000**（三轮真机无例外）—— 0.25 ms 桶中心
+///          把 29 µs~250 µs 那段真实差异一口吃掉，`delta_median_ns` 恒 0、
+///          `slope_from_windows_ppm` 恒 0。那不是"没有漂移"，是"尺子上只有一个刻度"；
+///       ② `slope_ppm` 在 `r2 = 5.5e-05` 之下照样印六位小数，没有误差棒，
+///          于是纯噪声被读成"精确测到 −0.022 ppm"。
+///       顺带纠正一句从 P13-D 说到 P13-I 的话：漂移量准**不是**卡在 7 ppm。
+///       逐点回归的标准误实测只有 ~0.075 ppm，分辨力比 7 ppm 好一个半数量级 ——
+///       缺的是刻度盘，不是尺子（见 `74-p13j-design.md` §一）。
+///   /9（P13-K）：`slope_ppm_std_error` **换了模型**（名字没变、语义变了），
+///       并新增 `slope_ppm_std_error_iid` / `slope_ppm_std_error_inflation` /
+///       `hac_lags` / `hac_lag1_autocorrelation` / `hac_estimated`，
+///       以及半程诊断 `slope_first_half_ppm` / `slope_second_half_ppm` /
+///       `slope_halves_agree`。
+///   /13（P13-O）：半程各自带 HAC 标准误与 95% 带，新增 `slope_halves_*`
+///       共 12 格与三态 `slope_halves_relation`；`slope_halves_agree` 降为历史字段。
+///       判据：`inconsistent ⇒ drift_verdict == unknown`。
+///       起因是 `/8` 自己造出的一次假阳性：r3（35 s / 700 点）报
+///       `slope_detectable = true`，而那条线 `r2 = 0.007` —— 只解释 0.7% 方差。
+///       `/8` 的 SE 假设残差独立同分布，而 `lateness` 的相邻样本正相关
+///       （vsync 相位、调频、抽稀本身就抹平了慢变分量），有效样本数远小于 `n`，
+///       SE 被系统性低估、CI 过窄 —— 于是"看不见的"被判成"看得见"。
+///       换成 Newey–West（Bartlett 核）之后同一份数据给出更宽的带。
+///       为什么**改名而不并排**：读者不该在 `_iid` 与 `_hac` 之间选一个信，
+///       该用的那个必须就叫 `slope_ppm_std_error`；旧值留 `_iid` 只为对照。
+///       这个决定本身有风险（同名不同义是这份证据最忌讳的病），
+///       所以它被写进状态卡诚实清单第一条，并由判据 K0 盯住三个字段必须同时存在。
+///   /10（P13-L）：`slope_detectable` 后面接上 `drift_accumulated_ns` /
+///       `drift_accumulated_upper_ns` / `drift_budget_ns` / `drift_verdict`。
+///       起因是一句被读错了两张卡的话：`detectable = true` 被当成"漂移要紧"。
+///       它只说"与 0 分得开"。P13-K 的 r3 报着 `detectable = true`，
+///       对应的斜率 0.48 ppm 在 35 秒里只累积 **17 µs** —— 比一次 vsync 抖动还小。
+///       分得开是因为尺子细，不要紧是因为量太小，两件事必须分开说。
+///       反方向的漏报同样真实：CI 含 0（`detectable = false`）时，CI 远端
+///       积起来也可能越过人耳阈值 —— 所以判定用的是**上界**，不是点估计。
+///       `drift_verdict` 取三态而非布尔：`unknown`（这份趋势没资格下结论）
+///       与 `within_budget`（有资格，且没过）印成同一个 `false`，
+///       就是本项目反复栽的那种"让失败伪装成通过"。
+///   /11（P13-M）：`segments` 后面接上 `segment_largest_gap_cells` /
+///       `segment_contiguous`。
+///       起因是 P13-L 撞出的一份真机缺陷证据：在 30 s 处向前跳到 40 s，
+///       报告照样写 `segments = 1`、`span = 112.367 s`、`observed_hz = 18.466`，
+///       而实际是两段之间隔着十秒空白。
+///       根因不是"阈值不够"，是**判定用错了信号**：上一版拿
+///       `media_ns < last_media_ns_` 推断"换了时间轴"。pts 倒退确实是换了
+///       时间轴（充分条件），但 pts 前进推不出"没换"—— 向前 seek 正是
+///       "前进且换了"。用存在性推断不存在性，必然漏一次。
+///       现在段边界由 `FramePacer::reset()`（锚点重建）决定，精确、无阈值；
+///       段内真空洞（卡顿）无法与向前 seek 在 pts 上区分，因此**不切段**，
+///       只出版"最宽的那个洞有多宽"，让读者知道 `span_ns` 里含着一个洞。
+///   /12（P13-N）：每个 `quantiles.<口径>` 的 `p50` 后面接上
+///       `p50_range_low_ns` / `p50_range_high_ns` / `p50_bucket_samples` /
+///       `bucket_width_ns`；`trend` 里接上 `median_of_window_medians_ns`。
+///       起因是同一份证据里的两个 p50 相差 66%，而 JSON 里没有任何字段
+///       能阻止读者把它读成"两份测量打架"：
+///       `quantiles.media_time_decimated.p50` 是直方图桶中心（恒 125 000），
+///       `first/last_window_median_ns` 是原始值选出的真值（74 835）。
+///       它们不打架 —— 真值确实在 [0, 250000) 那一桶里，是桶中心没本事说出来。
+///       所以修法不是把 125000 改成 "124999"（那不是更准，是假装更准），
+///       而是**让 p50 自己说出它可能的范围**，并给整批点一个精确参照。
+///       这个错从 P13-J 就存在：那轮把窗口中位数换成精确值，
+///       却没管同名的整场 p50 还是桶中心，于是同一份 JSON 里出现了
+///       两根刻度不同的尺子，而它们看起来是同一把。
 ///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/1";
+constexpr const char* kSchema = "kivo.p12c.sync/20";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -63,14 +182,125 @@ void render_distribution(std::ostringstream& out, const SignedHistogram& histogr
 }
 
 /// 分位数 + 分布的组合对象。
+///
+/// **它永远是所在对象的最后一个成员**，所以结尾不写逗号。
+///
+/// 上一版有个 `trailing_comma` 参数，因为 P13-D 把 `per_frame` / `trend` 接在了
+/// 它后面。P13-E 把分位数收进 `quantiles.<口径>` 之后，每个块又只剩它自己 ——
+/// 参数留着只会让人继续在"这个逗号该不该有"上出错（本轮就真的多写了一个尾逗号，
+/// `json.load` 当场报 `Illegal trailing comma`）。删掉参数，让位置只有一个答案：
+/// 块自己不带逗号，**外层对象**负责加。
+///
+/// P13-F 的 `worst` 插在 `max` 与 `histogram` 之间，就是为了不碰这条不变量：
+/// `histogram` 仍然永远是最后一个成员。
+///
+/// P13-N 的 `p50` 精度四格插在 `p50` 与 `p95` 之间，理由与 `worst` 一样：
+/// 那四格解释的是**紧挨着它上面那一行那个数**，隔开就成了一堆无主字段。
 void render_quantiles(std::ostringstream& out, const SignedHistogram& histogram,
-                      const char* indent) {
+                      const core::pace::DriftExtreme& worst, const char* indent,
+                      const core::pace::WorstEpisode* episode = nullptr) {
     const std::string pad(indent);
+    const std::int64_t p50 = histogram.percentile_ns(0.50);
     out << pad << "\"samples\": " << histogram.count() << ",\n";
-    out << pad << "\"p50\": " << histogram.percentile_ns(0.50) << ",\n";
+    out << pad << "\"p50\": " << p50 << ",\n";
+
+    // ── `p50` 到底是什么（P13-N）──
+    //
+    // `percentile_ns(0.50)` 返回的是**桶中心**，桶宽 0.25 ms。真机上 2013/2048
+    // 个样本落在 0~250 µs 这一桶里，于是 p50 恒为 125000 —— 而同一份证据里
+    // 窗口精确中位数是 74 835。两个数差 66%，JSON 里却没有任何字段能阻止
+    // 读者把它读成"两份测量打架"。它们不打架：真值确实在那个桶里，
+    // 是桶中心没本事说出来。
+    //
+    // 所以这里出版三格，让 `p50` 旁边永远站着一句"它可能的范围"：
+    //   `p50_range_low/high_ns` —— 真值所在的闭开区间（已与 `[min, max]` 求交，
+    //       因为 `percentile_ns` 会把桶中心钳进样本范围，钳过之后可能的范围就窄了）；
+    //   `p50_bucket_samples` —— 那个区间里有几个样本。落在一个桶里的样本越多，
+    //       `p50` 越接近"这个桶的中心"而不是"这堆数的中位数"。
+    // 落在溢出区时 `percentile_ns` 返回精确极值，范围退化成那个点本身
+    // （low == high），这是**更准**，不是缺数据。
+    //
+    // 范围由 `SignedHistogram::percentile_range()` 算，不在这里算 ——
+    // 这个文件只在 Android 侧编译，写在这里的钳制逻辑没有桌面单测兜底。
+    const core::pace::SignedHistogram::PercentileRange p50_range =
+        histogram.percentile_range(0.50);
+    out << pad << "\"p50_range_low_ns\": " << p50_range.low_ns << ",\n";
+    out << pad << "\"p50_range_high_ns\": " << p50_range.high_ns << ",\n";
+    out << pad << "\"p50_bucket_samples\": " << histogram.percentile_bucket(0.50).samples
+        << ",\n";
+    // 桶宽无条件给：它是**定义**（`SignedHistogram::kBucketWidthNs`），
+    // 不是一个观测。有了它，上面那个区间与 p50 的差就能自己复算，
+    // 不必相信任何手填数字。
+    out << pad << "\"bucket_width_ns\": " << SignedHistogram::kBucketWidthNs << ",\n";
+
     out << pad << "\"p95\": " << histogram.percentile_ns(0.95) << ",\n";
     out << pad << "\"p99\": " << histogram.percentile_ns(0.99) << ",\n";
     out << pad << "\"max\": " << histogram.max_ns() << ",\n";
+
+    // `worst`：最差那一下**在哪儿**（P13-F）。
+    //
+    // `max` 只说多大，说不出在片头还是片尾 —— 而这两者对结论的影响完全相反。
+    // `valid == false`（这个口径没有样本、或该分布根本没有位置语义）时
+    // **整个键不写**，不写零：零会被读成"最差发生在第 0 个样本、媒体时刻 0"，
+    // 那是一个看起来完全正常的假观测。
+    if (worst.valid) {
+        // ── 这是「手慢了」还是「表快了」（P13-P）──
+        //
+        // 只给 `lateness_ns` 时两者长得一模一样。下面三格让恒等式可以当场复算：
+        //
+        //     lateness[k] − lateness[k−1] = present_step[k] − due_step[k]
+        //
+        // `present_step[k]` 就是 `present_jitter` 的样本（`(present[k] − present[k−1]) − T`），
+        // 所以 `due_step_ns` 一出版，两侧各占多少就只剩一道减法。
+        //
+        // 没有 episode（该口径没有邻帧）时**只写原来的四格**，不写零：
+        // 零会被读成"目标时刻没动"，那是一个看起来完全正常的假观测。
+        const bool has_episode = episode != nullptr && episode->valid;
+
+        out << pad << "\"worst\": {\n";
+        out << pad << "  \"index\": " << worst.index << ",\n";
+        out << pad << "  \"of\": " << worst.of << ",\n";
+        out << pad << "  \"media_ns\": " << worst.media_ns << ",\n";
+        // 逗号跟着"后面还有没有成员"走，不跟分支走 —— 上一版在这里多写过一个尾逗号，
+        // `json.load` 当场报 Illegal trailing comma（见本文件的另一处注释）。
+        out << pad << "  \"lateness_ns\": " << worst.lateness_ns;
+        out << (has_episode ? ",\n" : "\n");
+        if (has_episode) {
+            out << pad << "  \"due_step_ns\": " << episode->due_step_ns << ",\n";
+            // P13-Q：从首帧累积到本帧的两侧账。`lateness_at_first_ns` 恒为 0
+            // （锚点在第 0 帧建立），出版它是为了让下面那条跨帧恒等式能当场复算。
+            out << pad << "  \"cumulative_present_step_ns\": "
+                << episode->cumulative_present_step_ns << ",\n";
+            out << pad << "  \"cumulative_due_step_ns\": "
+                << episode->cumulative_due_step_ns << ",\n";
+            out << pad << "  \"lateness_at_first_ns\": "
+                << episode->lateness_at_first_ns << ",\n";
+            // P13-R：这三格 + `media_ns` 必须满足 `due = mono + (pts − anchor_pts − elapsed)`。
+            // 不满足就说明这一帧走的不是正常分支（free_run / pts 不连续），账要另算。
+            out << pad << "  \"clock_mono_ns\": " << episode->clock_mono_ns << ",\n";
+            out << pad << "  \"clock_elapsed_ns\": " << episode->clock_elapsed_ns << ",\n";
+            out << pad << "  \"anchor_pts_ns\": " << episode->anchor_pts_ns << ",\n";
+            out << pad << "  \"due_at_ns\": " << episode->due_at_ns << ",\n";
+            out << pad << "  \"prev_lateness_ns\": [";
+            for (std::int32_t i = 0; i < episode->before_count; ++i) {
+                if (i != 0) {
+                    out << ", ";
+                }
+                out << episode->before_ns[i];
+            }
+            out << "],\n";
+            out << pad << "  \"next_lateness_ns\": [";
+            for (std::int32_t i = 0; i < episode->after_count; ++i) {
+                if (i != 0) {
+                    out << ", ";
+                }
+                out << episode->after_ns[i];
+            }
+            out << "]\n";
+        }
+        out << pad << "},\n";
+    }
+
     out << pad << "\"histogram\": {\n";
     render_distribution(out, histogram, (pad + "  ").c_str());
     out << pad << "}\n";
@@ -101,6 +331,28 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "{\n";
     out << "  \"schema\": " << quoted(kSchema) << ",\n";
     out << "  \"generated_at_unix_ms\": " << stats.generated_at_unix_ms << ",\n";
+
+    // P13-AB：探针注入。**三格总是写**（不注入时 `offset_ns = 0`），
+    // 而不是"没注入就省略" —— 省略会让"这一轮没注入"和"这个字段还没实现"
+    // 长得一样，那是上一张卡吃过的亏（`normal_branch_frames` 满 480 却全是 0）。
+    out << "  \"clock_injection\": {\n";
+    out << "    \"offset_ns\": " << stats.clock_injection.offset_ns << ",\n";
+    out << "    \"arm_after_ns\": " << stats.clock_injection.arm_after_ns << ",\n";
+    out << "    \"armed_at_position_ns\": " << stats.clock_injection.armed_at_position_ns
+        << ",\n";
+    // P13-AD：速率注入。正 = 钟比墙快，与 `clock_ahead`、`playback_rate` 同向。
+    // 台阶与速率是**两种不同的输入**：前者考验"当帧还多少"，后者考验
+    // "能不能一直追住、不越攒越多"。不出版这一格，两种轮次在证据上无法区分。
+    out << "    \"rate_ppm\": " << stats.clock_injection.rate_ppm << "\n";
+    out << "  },\n";
+
+    // 门的配置（P13-AD）。校验器据此复算目标残差，不再硬编码 45/5；
+    // 关着门的一轮也不会被读成"门判断沉默"。
+    out << "  \"drift_gate\": {\n";
+    out << "    \"enabled\": " << (pace.drift_gate_enabled ? "true" : "false") << ",\n";
+    out << "    \"limit_ns\": " << pace.drift_limit_ns << ",\n";
+    out << "    \"band_ns\": " << pace.drift_band_ns << "\n";
+    out << "  },\n";
 
     out << "  \"device\": {\n";
     out << "    \"manufacturer\": " << quoted(stats.device.manufacturer) << ",\n";
@@ -160,6 +412,80 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
         stats.has_audio && audio_clock && paced_at_present && pace.lateness.count() > 0;
 
     out << "  \"av_drift\": {\n";
+
+    // ── 口径先于数字，且结构上不可绕过 ──
+    //
+    // P13-C 吃过一次教训：`audio.opened` 恒为 false，单看那个字段完全合法，
+    // 只有和 `clock_source` 并排才暴露矛盾。P13-D 撞上的是同一类错的第二个实例：
+    // `p99 = 1.6 ms` 单独看无所谓对错，**配不上"逐帧"还是"抽稀"就不可比** ——
+    // 而它当时躺在 `av_drift.p99` 这种不带口径的键下面，写表格的人复制一个数，
+    // 永远不会想起去看三行之外的 `sampling.mode`。
+    //
+    // P13-E 的修法不是"记得看 mode"，而是**让裸的 p99 在结构上不存在**：
+    // 分位数一律挂在 `quantiles.<口径>` 下，想取一个数就必须先说出是哪个口径。
+    // 抽稀不成立时 `quantiles.media_time_decimated` **整块缺席**，不拿逐帧的数顶上 ——
+    // 缺席会让表格空一格，冒充会让人算出一个看起来很正常的错数。
+    // 抽稀块"有没有"和"能不能用"是两件事（P13-G）。
+    //
+    // 原先这里只判 `sampled_samples > 0`。那条判据的问题是：**1 个样本也算有**。
+    // 而 1 个样本的 p50/p95/p99/max 四个数完全相同，长得像一份正常数据，
+    // 于是 E1/E2/E3/F1/F2′ 全套判据都会放它过去（见 `68-p13g-design.md` §二）。
+    // 缺 pts 的流正好会产出一份这样的东西：首帧接受、其后每个 pts 都是 0、
+    // 全部 `skipped`。
+    //
+    // 现在要求"至少两点且跨度为正"才算抽稀成立。这个门槛只管**结构**
+    // （是不是抽稀数据），不管**可信度**（斜率能不能看）—— 后者归
+    // `DriftTrend::kMinSamples` / `kMinSpanNs`，两件事不能用一个阈值。
+    const bool decimated =
+        pace.sampled_samples > 0 &&
+        core::pace::decimated_block_is_usable(pace.sampled_samples, pace.drift_media_span_ns);
+
+    // 口径名与"为什么是这个口径"必须成对。三种情况分开说，不许用一句通用的
+    // "没传 pts" 去解释所有空序列 —— 不可测的那些轮次里，真实原因往往是
+    // 没音轨或走了 surface_at_time，跟 pts 一点关系都没有。
+    // 一个解释错的 reason 比没有 reason 更坏：它会把排查引到反方向。
+    core::pace::SamplingMode mode = core::pace::SamplingMode::kMediaTimeDecimated;
+    std::string sampling_reason;
+    if (!drift_measurable) {
+        mode = core::pace::SamplingMode::kNotMeasured;
+        sampling_reason =
+            "av_drift is not measurable on this run; the reason is in unavailable_reason below "
+            "(no audio attached / clock_source is system / present_schedule is surface_at_time)";
+    } else if (!decimated) {
+        mode = core::pace::SamplingMode::kPerFrame;
+        // 理由**必须**由 `decimated_unusable_reason()` 给，不许在这里另写一句。
+        //
+        // 上一版这里写的是 "no media pts was supplied to note_presented()"。
+        // 那句话描述了一件不可能发生的事：`note_presented()` 的签名就要求 pts，
+        // 且它的首帧分支无条件接受 —— 只要它被调过一次，`sampled_samples` 就 ≥ 1。
+        // 所以 `kPerFrame` 当时是**死路径**，而那句 reason 是编的
+        // （完整的链见 `68-p13g-design.md` §一）。
+        //
+        // 现在门槛改在"样本够不够证明媒体时间在推进"，这条路径真的会被走到，
+        // 理由也有一个唯一出处。改文案要改的是那个函数，不是这里。
+        sampling_reason = core::pace::decimated_unusable_reason(
+            pace.sampled_samples, pace.drift_media_span_ns);
+    }
+
+    const std::int64_t sample_interval_ns = core::pace::DriftSeries::kSampleIntervalNs;
+    // 分子分母必须同口径（P13-H）。
+    //
+    // `sampled_samples` 是**累计**接受数（环形覆盖后继续涨），
+    // 所以分母只能用 `drift_media_span_ns`（累计跨度）。
+    // 上一版这里用的是 `pace.drift.span_ns` —— 那是**窗口**跨度，封顶 102.35 s。
+    // 两者的商在 8 s / 35 s 片源上恰好对，超过 102.4 s 之后随片长线性增长：
+    // 130 s 报 25.4 Hz、600 s 报 117 Hz，而旁边写着 `target_hz: 20`。
+    // 那个数没有上界，也没有判据拦它 —— 校验器复算的是同一个除法
+    // （`70-p13h-design.md` §一）。
+    //
+    // 现在两个操作数在 JSON 里**相邻**（`accepted` 后面紧跟 `media_span_ns`），
+    // 谁想再算一遍这个除法，都不必去别处找分母。
+    const double observed_hz =
+        (pace.drift_media_span_ns > 0)
+            ? static_cast<double>(pace.sampled_samples) * 1e9 /
+                  static_cast<double>(pace.drift_media_span_ns)
+            : 0.0;
+
     if (drift_measurable) {
         out << "    \"measurable\": true,\n";
         out << "    \"measured_at\": \"present\",\n";
@@ -167,13 +493,309 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
             << quoted("(audio clock elapsed) - (video pts elapsed), sampled at present_at; "
                       "positive means video is behind audio")
             << ",\n";
-        render_quantiles(out, pace.lateness, "    ");
     } else {
         out << "    \"measurable\": false,\n";
-        out << "    \"samples\": 0,\n";
+    }
+
+    out << "    \"sampling\": {\n";
+    // 名字取自 `core/pace/sampling_mode` 的唯一一张表 —— 报告层不许自己再写一遍字面量，
+    // 否则 C++ 一处、Python 校验器一处，两边迟早各说各话。
+    out << "      \"mode\": " << quoted(core::pace::sampling_mode_name(mode)) << ",\n";
+    // 这一格是本卡的全部意义：它**指向**唯一能放进"30fps vs 60fps"那张表的分位数集合。
+    // 写成一个路径而不是布尔值：布尔只说明"有得比"，路径说明"比的是哪一份"。
+    // 抽稀不成立时写 null，而不是写 "per_frame" —— 逐帧根本不能跨帧率比。
+    if (drift_measurable && decimated) {
+        out << "      \"cross_frame_rate_set\": "
+            << quoted("quantiles.media_time_decimated") << ",\n";
+    } else {
+        out << "      \"cross_frame_rate_set\": null,\n";
+    }
+    out << "      \"interval_ns\": " << sample_interval_ns << ",\n";
+    out << "      \"target_hz\": " << (1'000'000'000LL / sample_interval_ns) << ",\n";
+    out << "      \"frames_observed\": " << pace.drift_observed_frames << ",\n";
+    out << "      \"accepted\": " << pace.sampled_samples << ",\n";
+    // 紧跟 `accepted`：这是它的分母，不是别处的跨度。
+    // `trend.span_ns` 是窗口跨度，答的是另一个问题（回归用了多长的时间），
+    // 两者在未覆盖时相等、覆盖后必然不等 —— 摆在一起容易被当成同一个数。
+    out << "      \"media_span_ns\": " << pace.drift_media_span_ns << ",\n";
+    out << "      \"skipped\": " << pace.drift_skipped_frames << ",\n";
+    // 播放空洞：一格没采到时 20 Hz 的实际节奏就掉了。只报不补 —— 补等于编数据。
+    out << "      \"unobserved_cells\": " << pace.drift_unobserved_cells << ",\n";
+    out << "      \"observed_hz\": " << fixed6(observed_hz) << ",\n";
+    out << "      \"reason\": ";
+    if (mode == core::pace::SamplingMode::kPerFrame) {
+        // 两半拼起来：前半是"为什么抽稀不成立"（唯一出处是那个函数），
+        // 后半是"所以你能拿到什么"（口径警告，与具体原因无关）。
+        // 不把后半塞进那个函数：它会随原因重复三遍，改一次漏两处。
+        out << quoted(std::string(sampling_reason) +
+                      "; only per-frame quantiles exist on this run and they are NOT "
+                      "comparable across frame rates");
+    } else {
+        out << quoted(sampling_reason);
+    }
+    out << "\n";
+    out << "    },\n";
+
+    // ── 分位数：按口径分块，没有"默认那一份" ──
+    //
+    // 不可测时给一个**空对象**而不是给 0：`{}` 说的是"一份都没有"，
+    // `0` 说的是"量到了零"—— 后者是个能算进平均值的假观测。
+    out << "    \"quantiles\": {";
+    if (!drift_measurable) {
+        out << "},\n";
+    } else {
+        out << "\n";
+        if (decimated) {
+            out << "      \"media_time_decimated\": {\n";
+            render_quantiles(out, pace.sampled_lateness, pace.sampled_worst, "        ");
+            out << "      },\n";
+        }
+        // 逐帧那份一直在：G6 的 `over_budget_frames` 必须逐帧数，
+        // 抽稀会漏掉恰好落空的那几帧，所以不能只剩抽稀那一份。
+        out << "      \"per_frame\": {\n";
+        render_quantiles(out, pace.lateness, pace.frame_worst, "        ",
+                         &pace.frame_episode);
+        out << "      }\n";
+        out << "    },\n";
+    }
+
+    if (drift_measurable) {
+        // ── 漂移 ──
+        //
+        // 分位数对"慢速线性增长"是瞎的：音频时钟快 0.1% 时每秒多偏 1 ms，
+        // 8 秒只累积 8 ms，而抖动本身就有 ±1 ms —— p99 看不出任何异常，
+        // 放到 10 分钟的长片里却是 600 ms 的音画不同步。所以斜率要单独一把尺。
+        const core::pace::DriftTrend& trend = pace.drift;
+        out << "    \"trend\": {\n";
+        out << "      \"usable\": " << (trend.usable ? "true" : "false") << ",\n";
+        // `usable == false` 时非空。宁可写"量不出来"，也不许报一个 0 让人读成"没漂移"。
+        out << "      \"unusable_reason\": " << quoted(trend.unusable_reason) << ",\n";
+        out << "      \"windows\": " << trend.window_count << ",\n";
+        out << "      \"span_ns\": " << trend.span_ns << ",\n";
+        // ── 三个数说清"窗口里为什么只有这些点"（P13-I）──
+        //
+        // 上一版只有 `segment_samples` 一个数加一个 `truncated` 布尔。
+        // 那份数据回答不了下面这个问题：窗口 1800 点、累计 3400 点，差在哪？
+        // 是覆盖（前面被环形吃掉了）还是 seek（前面那段换了时间轴）？——
+        // 两种原因对应两种完全不同的读法，而上一版的 `truncated` 会把后者也说成前者。
+        //
+        // 现在三个数各有各的问题，且互相能验：
+        //   `capacity`           环形能装几个（导出常量，读者才能自己算 min）
+        //   `segment_accepted`   本段时间轴采了几个（seek 之后从 0 重新起算）
+        //   `window_sample_count` 窗口里还剩几个 = min(上两者)
+        // 覆盖 ⇔ `segment_accepted > capacity`；跨段 ⇔ `segments > 1`。
+        // 两个原因各有各的字段，读者不必去猜。
+        out << "      \"capacity\": " << core::pace::DriftSeries::kCapacity << ",\n";
+        out << "      \"segment_accepted\": " << pace.drift_segment_samples << ",\n";
+        out << "      \"window_sample_count\": " << pace.window_lateness.samples << ",\n";
+        // 环形覆盖 / seek 会改变"这份趋势描述的是哪一段"，必须一并说清。
+        out << "      \"truncated\": " << (trend.truncated ? "true" : "false") << ",\n";
+        out << "      \"segments\": " << trend.segments << ",\n";
+        // ── 段内的那个洞（P13-M）──
+        //
+        // `span_ns` 是"末 − 首"，空洞**落在里面**。一个 10 s 的洞会让跨度多算
+        // 10 s，`slope_ppm × span` 的累积量跟着偏 —— 而 `segments` 一个字都不会说，
+        // 因为那按定义是同一段（同一锚点，中间卡住了）。
+        //
+        // 这两个字段不参与任何判定，只回答"这条直线横跨了多宽的一个洞"。
+        // 放在 `segments` 后面而不是末尾：它们是读 `span_ns` 的前提，
+        // 隔几十行再出现就等于让读者先乘错一次。
+        out << "      \"segment_largest_gap_cells\": " << trend.segment_largest_gap_cells << ",\n";
+        out << "      \"segment_contiguous\": " << (trend.segment_contiguous ? "true" : "false")
+            << ",\n";
+        out << "      \"first_window_median_ns\": " << trend.first_window_median_ns << ",\n";
+        out << "      \"last_window_median_ns\": " << trend.last_window_median_ns << ",\n";
+        out << "      \"delta_median_ns\": " << trend.delta_median_ns << ",\n";
+        // ── 整批点的精确参照（P13-N）──
+        //
+        // 紧挨着 `delta_median_ns` 而不是丢到文档里：读者拿 `quantiles.*.p50`
+        // （桶中心 125000）和这三个中位数（真实 74 835）并排看的时候，
+        // 中间必须有一个**同批点的精确数**可以对照，否则那 66% 的差只能靠解释。
+        //
+        // 只在 `window_median_exact == true` 时出版：有窗退回桶中心时，
+        // 这个"中位数的中位数"混着桶中心与真值，拿去对照只会把两个误差叠加。
+        // 那时两格都不写 —— 缺席本身就是一句"这一轮没有精确参照"。
+        if (trend.window_median_exact) {
+            out << "      \"median_of_window_medians_ns\": "
+                << trend.median_of_window_medians_ns << ",\n";
+        }
+        out << "      \"slope_ppm\": " << fixed6(trend.slope_ppm) << ",\n";
+        // 紧跟在斜率后面是**防腐**，不是排版：
+        // 这两个数分开摆，读者就会单独引用 `slope_ppm` 那六位小数 ——
+        // 而它的可信度全看下面这个 SE。`r2 = 5.5e-05` 时 SE 比斜率大一个数量级，
+        // 单独引用它等于把噪声包装成结论（P13-J §一）。
+        //
+        // P13-K 起这个数是 **HAC 修正后**的。名字没变、语义变了 ——
+        // 保留旧名是因为它才是"该用的那个数"，不该让读者在 `_iid` / `_hac`
+        // 之间二选一；旧口径原地改名 `_iid`，不会被谁顺手引用。
+        out << "      \"slope_ppm_std_error\": " << fixed6(trend.slope_ppm_std_error) << ",\n";
+        // 旧口径与膨胀比并排放在新值下面：没有这两个数，"我们换成 HAC 了"
+        // 就是一句无法检验的声明 —— 读者无从知道修正到底动了多少。
+        out << "      \"slope_ppm_std_error_iid\": " << fixed6(trend.slope_ppm_std_error_iid)
+            << ",\n";
+        // SE 之比（不是方差之比）：眼前两个 SE 直接相除就能复算。
+        out << "      \"slope_ppm_std_error_inflation\": "
+            << fixed6(trend.slope_ppm_std_error_inflation) << ",\n";
+        // 带宽与残差一阶自相关：前者让人能拿原始序列复算 HAC，
+        // 后者一句话解释"为什么要修正"。少一个，这套数就只能被相信。
+        out << "      \"hac_lags\": " << trend.hac_lags << ",\n";
+        out << "      \"hac_lag1_autocorrelation\": "
+            << fixed6(trend.hac_lag1_autocorrelation) << ",\n";
+        // `false` ⇒ 样本太少没估出来，上面的 SE 其实是 IID 旧值。
+        // 不写这一位，"修正过"与"没修正"在 JSON 上长得一模一样。
+        out << "      \"hac_estimated\": " << (trend.hac_estimated ? "true" : "false") << ",\n";
+        out << "      \"slope_ci_low_ppm\": " << fixed6(trend.slope_ci_low_ppm) << ",\n";
+        out << "      \"slope_ci_high_ppm\": " << fixed6(trend.slope_ci_high_ppm) << ",\n";
+        // `false` 的正确读法：漂移小于 CI 半宽，**不是**"漂移为零"。
+        // 这正是 `slope_ppm` 一直缺的那句翻译。
+        out << "      \"slope_detectable\": " << (trend.slope_detectable ? "true" : "false")
+            << ",\n";
+        // ── 看得见 ≠ 要紧（P13-L）──
+        //
+        // 上一行刚问完"这个斜率与 0 分得开吗"，这四个字段就在这里回答"那要不要紧"。
+        // 必须紧挨着，不能挪到 trend 末尾：挪开就等于让读者自己去乘那个 ppm，
+        // 而 P13-K 的 r3 正是这么被读成"要出事"的 —— `detectable = true`，
+        // 累积量 17 µs，比一次 vsync 抖动还小。
+        //
+        // 三个数是**事实**，一个词是**结论**：
+        //   `drift_accumulated_ns`        点估计（带符号，正 = 越来越晚）
+        //   `drift_accumulated_upper_ns`  置信带远端积出的保守上界（非负）
+        //   `drift_budget_ns`             判定用的额度（45 ms，ITU-R BT.1359）
+        //   `drift_verdict`               unknown / within_budget / over_budget
+        //
+        // 三态不是布尔：`unknown` 表"这份趋势没资格下结论"，把它和
+        // `within_budget` 一起印成 `false`，就是让一次失败伪装成一次通过。
+        //
+        // 累积量只覆盖 `span_ns` 这一段，不是整场 —— 斜率不能拿去做外推，
+        // 一份 600 秒的片源若趋势只覆盖最后 102 秒，这里说的也只是那 102 秒。
+        out << "      \"drift_accumulated_ns\": " << trend.drift_accumulated_ns << ",\n";
+        out << "      \"drift_accumulated_upper_ns\": " << trend.drift_accumulated_upper_ns
+            << ",\n";
+        out << "      \"drift_budget_ns\": " << trend.drift_budget_ns << ",\n";
+        out << "      \"drift_verdict\": "
+            << quoted(core::pace::drift_verdict_name(trend.drift_verdict)) << ",\n";
+        out << "      \"slope_from_windows_ppm\": " << fixed6(trend.slope_from_windows_ppm)
+            << ",\n";
+        // 说一个 0 而不说尺子上有几个刻度，是这份证据从 P13-D 到 P13-I 一直犯的错。
+        // `slope_from_windows_ppm == 0` 只有在 `window_median_exact == true` 时才
+        // 能读成"没漂"，否则它只是"八个数都被量化到同一个格点"。
+        out << "      \"window_median_exact\": "
+            << (trend.window_median_exact ? "true" : "false") << ",\n";
+        out << "      \"window_median_fallback_windows\": "
+            << trend.window_median_fallback_windows << ",\n";
+        // 光有斜率没有 r2，噪声会被读成漂移 —— 这个字段是斜率的准入条件，不是装饰。
+        out << "      \"r2\": " << fixed6(trend.r2) << ",\n";
+        // ── 半程斜率：一条线的两种来历（P13-K 诊断）──
+        //
+        // 全序列斜率分不清"持续漂移"和"中途跳了一下"：两种情形斜率一样，
+        // 结论却相反（前者会一直累积，后者不会）。两个半程各拟合一次，
+        // 同号才说明整段朝一个方向走。
+        // `slope_halves_agree` 只是诊断，不带阈值也不参与任何判定 ——
+        // 斜率接近 0 时符号由噪声决定，那时 true/false 就是掷硬币。
+        out << "      \"slope_first_half_ppm\": " << fixed6(trend.slope_first_half_ppm) << ",\n";
+        out << "      \"slope_second_half_ppm\": " << fixed6(trend.slope_second_half_ppm) << ",\n";
+        out << "      \"slope_halves_agree\": " << (trend.slope_halves_agree ? "true" : "false")
+            << ",\n";
+        // ── 半程一致性：把"差多少"和"差多少算差"一起出版（P13-O）──
+        //
+        // 上面那个布尔只说同不同号。真机 13 份证据里 8 份报 true，其中 3 份
+        // 两半程量级差 5 倍以上；最极端的一份两半程都是正的、全序列斜率却是负的。
+        // 这一组才是该读的那一格：`gap` 与 `pooled` 必须成对出现，
+        // 单独一个 gap 会让读者拿它去和一把不存在的尺子比。
+        //
+        // `estimated == false` 时误差那一组全部写 0 并由 `relation = unknown` 兜住；
+        // 但 `gap_ppm` 与 `cumulative_gap_ns` 照写 —— 那两个只依赖斜率，
+        // 而斜率总是拟合得出来的。
+        const pace::HalvesAgreement& halves = trend.halves;
+        out << "      \"slope_first_half_std_error_ppm\": "
+            << fixed6(halves.first_std_error_ppm) << ",\n";
+        out << "      \"slope_second_half_std_error_ppm\": "
+            << fixed6(halves.second_std_error_ppm) << ",\n";
+        out << "      \"slope_first_half_ci_low_ppm\": " << fixed6(halves.first_ci_low_ppm)
+            << ",\n";
+        out << "      \"slope_first_half_ci_high_ppm\": " << fixed6(halves.first_ci_high_ppm)
+            << ",\n";
+        out << "      \"slope_second_half_ci_low_ppm\": " << fixed6(halves.second_ci_low_ppm)
+            << ",\n";
+        out << "      \"slope_second_half_ci_high_ppm\": " << fixed6(halves.second_ci_high_ppm)
+            << ",\n";
+        out << "      \"slope_halves_gap_ppm\": " << fixed6(halves.gap_ppm) << ",\n";
+        out << "      \"slope_halves_pooled_error_ppm\": " << fixed6(halves.pooled_error_ppm)
+            << ",\n";
+        // `z` 可能是 +inf（两侧残差都恒为 0 且斜率不同）。`%.6f` 会打印 `inf`，
+        // 那不是合法 JSON —— 整个文件会因此在任何解析器里炸掉。
+        // 写 null 并让校验器按"pooled == 0"那条规则解释（见 O4）。
+        out << "      \"slope_halves_z\": ";
+        if (std::isfinite(halves.z)) {
+            out << fixed6(halves.z);
+        } else {
+            out << "null";
+        }
+        out << ",\n";
+        out << "      \"slope_halves_cumulative_gap_ns\": " << halves.cumulative_gap_ns << ",\n";
+        // 两段真实跨度：O6 复算 `cumulative_gap_ns` 的第二个输入。
+        // 没有它们，那个整数就只能被"验成非负"，而它的实际含义
+        // `|first×span1 − second×span2|` 里有两个未知量。
+        out << "      \"slope_first_half_span_ns\": " << halves.first_span_ns << ",\n";
+        out << "      \"slope_second_half_span_ns\": " << halves.second_span_ns << ",\n";
+        out << "      \"slope_halves_resolution_ppm\": " << fixed6(halves.resolution_ppm) << ",\n";
+        out << "      \"slope_halves_budget_equivalent_ppm\": "
+            << fixed6(halves.budget_equivalent_ppm) << ",\n";
+        out << "      \"slope_halves_resolution_sufficient\": "
+            << (halves.resolution_sufficient ? "true" : "false") << ",\n";
+        out << "      \"slope_halves_relation\": "
+            << quoted(pace::halves_relation_name(halves.relation)) << ",\n";
+        // 8 个点是"可复算"的物证：第三方能拿下面三行自己拟合一遍，看是不是同一个量级。
+        out << "      \"window_start_ns\": [";
+        for (std::int32_t i = 0; i < trend.window_count; ++i) {
+            out << (i == 0 ? "" : ", ")
+                << trend.window_start_ns[static_cast<std::size_t>(i)];
+        }
+        out << "],\n";
+        out << "      \"window_median_ns\": [";
+        for (std::int32_t i = 0; i < trend.window_count; ++i) {
+            out << (i == 0 ? "" : ", ")
+                << trend.window_median_ns[static_cast<std::size_t>(i)];
+        }
+        out << "],\n";
+        out << "      \"window_samples\": [";
+        for (std::int32_t i = 0; i < trend.window_count; ++i) {
+            out << (i == 0 ? "" : ", ")
+                << trend.window_samples[static_cast<std::size_t>(i)];
+        }
+        out << "],\n";
+        // ── 趋势自带的那批点，自带它们的分布（P13-I）──
+        //
+        // 与 `quantiles.media_time_decimated` 是**两批不同的样本**：
+        // 那个是整场累计（环形覆盖后继续加、seek 之后也继续加），
+        // 这个是 `trend` 刚刚回归过的那 N 个点。把两个数并排放而不说明，
+        // 读表的人必然当成同一批 —— 一份 130 秒的证据里，
+        // p99 覆盖 2600 点、slope 覆盖 2048 点，谁也不会想起去看 `truncated`。
+        //
+        // 判据 I1 用 `Σ window_samples == window_sample_count` 把它钉住：
+        // 那两个数一个来自 8 趟分窗循环、一个来自 `DriftSeries::size()`，
+        // 算法不同、路径不同，只有它们真的数的是同一批点才会相等。
+        //
+        // **不写 `worst`**（传 `kNoExtreme`）：累计口径已经有一个 `worst`，
+        // 再给窗口一个同名不同口径的，就是 P13-E 花一整张卡消灭的那种东西。
+        // 想知道"最差那一下在哪儿"，答案在累计那一份里，且带着 `media_ns` 能自己对齐。
+        out << "      \"window_quantiles\": {\n";
+        render_quantiles(out, pace.window_lateness.lateness, kNoExtreme, "        ");
+        out << "      }\n";
+        out << "    }\n";
+    } else {
+        // 这里**不能**再写一次 `"measurable": false` —— 它在上面 `sampling` 之前
+        // 已经按同一个条件输出过了。重复键在 JSON 里是"后者覆盖前者"或直接报错，
+        // 总收口（verify_p12_all 层1）正是靠"重复键"这一条抓到的。
         out << "    \"unavailable_reason\": ";
         if (!stats.has_audio) {
-            out << quoted("source has no audio track; there is no audio timeline to compare "
+            // `has_audio` 是"这次会话有没有接音频"，不是"片源有没有音轨"。
+            // `kivo.audio off` 会让它变 false，而片源其实带音轨 —— 曾经这里直接写
+            // "source has no audio track"，在关音频的对照轮里就是一句假话。
+            // 不猜是哪一种，把两种可能都列出来。
+            out << quoted("no audio is attached to this session: either the source has no audio "
+                          "track, or audio was disabled for this run (kivo.audio off). "
+                          "Without an audio timeline there is nothing to compare video pts "
                           "against");
         } else if (!audio_clock) {
             out << quoted("clock_source is system; the per-frame offset would only measure "
@@ -195,7 +817,10 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     // `cpu_paced` 记在"交出前的一瞬"，`surface_at_time` 记在"提交给合成器的一瞬"。
     out << "    \"measured_at\": "
         << quoted(video.present_schedule == "cpu_paced" ? "present" : "submit") << ",\n";
-    render_quantiles(out, pace.interval, "    ");
+    // 这个块**没有位置**：`note_interval()` 收到的只是两个时刻相减，
+    // 调用方不给媒体时刻。传一个 invalid 的极值 = 不写 `worst` 键，
+    // 而不是写一个零 —— 零会被读成"最差发生在第 0 个样本"。
+    render_quantiles(out, pace.interval, kNoExtreme, "    ");
     out << "  },\n";
 
     // ── 播放速率：唯一一个不与节拍器结论循环的检查 ──
@@ -297,6 +922,27 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "    \"presented\": " << pace.presented << ",\n";
     out << "    \"dropped\": " << pace.dropped << ",\n";
     out << "    \"over_budget_frames\": " << pace.over_budget_frames << ",\n";
+    // P13-P：目标时刻动过几帧，以及"这一路参数到底接没接上"。
+    // 后者不是调试字段：`due_step_frames` 为 0 有两种读法（没位移 / 没接线），
+    // 只出版前者，读者会永远读成第一种。`due_step_supplied < presented` 时，0 作废。
+    out << "    \"due_step_frames\": " << pace.due_step_frames << ",\n";
+    out << "    \"due_step_supplied\": " << pace.due_step_supplied << ",\n";
+    // P13-Q：跨帧账。三个数在 `dropped == 0` 时严格闭合
+    // （`last − first == sum_present − sum_due`），残差单独出版 —— 它非 0 时
+    // 说明中间有帧没被记账，别拿这三个数去解释整段。
+    out << "    \"first_lateness_ns\": " << pace.first_lateness_ns << ",\n";
+    out << "    \"last_lateness_ns\": " << pace.last_lateness_ns << ",\n";
+    out << "    \"sum_present_step_ns\": " << pace.sum_present_step_ns << ",\n";
+    out << "    \"sum_due_step_ns\": " << pace.sum_due_step_ns << ",\n";
+    out << "    \"closure_gap_ns\": " << pace.closure_gap_ns << ",\n";
+    // P13-R：四个跨度。正常分支上 `due_span == arrive_mono_span + pts_span − elapsed_span`
+    // 严格成立，于是"due 为什么整体前移"只剩两个可能：钟比墙快，或者帧比 pts 到得早。
+    out << "    \"arrive_mono_span_ns\": " << pace.arrive_mono_span_ns << ",\n";
+    out << "    \"elapsed_span_ns\": " << pace.elapsed_span_ns << ",\n";
+    out << "    \"due_span_ns\": " << pace.due_span_ns << ",\n";
+    out << "    \"pts_span_ns\": " << pace.pts_span_ns << ",\n";
+    // 接线自证：小于 `presented` 时上面四格全是 0，那个 0 不可读作"没动"。
+    out << "    \"clock_supplied_frames\": " << pace.clock_supplied_frames << ",\n";
     out << "    \"frame_duration_ns\": " << pace.frame_duration_ns << ",\n";
     out << "    \"derived_fps\": " << fixed6(pace.derived_fps) << ",\n";
     out << "    \"lateness_ns\": {\"samples\": " << pace.latency_samples << ", \"p50\": "
@@ -308,7 +954,13 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
         << "},\n";
     out << "    \"clock_health\": {\"extrapolated_frames\": " << pace.extrapolated_frames
         << ", \"free_run_frames\": " << pace.free_run_frames << ", \"jump_rebases\": "
-        << pace.jump_rebases << ", \"monotonic_rejects\": " << pace.monotonic_rejects << "},\n";
+        << pace.jump_rebases << ", \"monotonic_rejects\": " << pace.monotonic_rejects
+        << ", \"drift_rebases\": " << pace.drift_rebases
+        // P13-AC：修正的**幅度**。只数次数分不出"一帧削平"和"二十三帧摊平" ——
+        // 前者（P13-AB）单帧 45 ms，于是修一次就变成一次 29–31 ms 的迟到尖峰；
+        // 后者单帧 ≤ 2 ms，把同样的修正摊到约 0.38 s 里。
+        << ", \"drift_max_correction_ns\": " << pace.drift_max_correction_ns
+        << ", \"drift_corrected_total_ns\": " << pace.drift_corrected_total_ns << "},\n";
     out << "    \"clock_mix\": {\"primary_frames\": " << pace.clock_primary_frames
         << ", \"fallback_frames\": " << pace.clock_fallback_frames << ", \"system_frames\": "
         << pace.clock_system_frames << "}\n";

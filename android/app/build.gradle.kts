@@ -38,9 +38,32 @@ android {
         }
     }
 
+    // ── 签名固定在仓库内（2026-10-30）──
+    //
+    // 不固定时的真实事故：这台机器上有四个 Windows 账户（Administrator /
+    // CodexAlt / codex / huyasi），各自有一份 `~/.android/debug.keystore`。
+    // Android 的 debug 构建用**当前账户**那把私钥签名，于是同一份代码、
+    // 同一个 applicationId，不同助手构建出的 APK 签名不同，`adb install -r`
+    // 直接 `INSTALL_FAILED_UPDATE_INCOMPATIBLE` —— 现象看起来像"项目包被换了"，
+    // 实际只是密钥换了。
+    //
+    // 固定之后：谁构建都签同一把钥匙，覆盖安装永远成立，不再需要 uninstall。
+    // 这是 debug 专用钥匙（storePassword 就是 `android`），只用于自测装机。
+    signingConfigs {
+        create("kivoDebug") {
+            storeFile = file("../keystore/kivo-debug.jks")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         debug {
             isMinifyEnabled = false
+            // 固定签名（见上面 signingConfigs 的注释）：不这么做，
+            // 换一个 Windows 账户构建就会因为 debug 密钥不同而装不上。
+            signingConfig = signingConfigs.getByName("kivoDebug")
         }
         release {
             isMinifyEnabled = false

@@ -63,8 +63,17 @@ void session_stop(SessionHandle* handle);
 /// **时钟选择（P12-C8）**：`session_open_audio` 成功起流之后，这里用**音频主时钟**；
 /// 否则用 `SystemClockSource`，证据里 `clock_source` 会如实写 `system`。
 /// 这条分支就是"有没有做 A/V 同步"的唯一开关 —— 不许在同一轮里一半音频一半系统。
+/// @param clock_offset_ms   探针注入（P13-AB）：非 0 时在媒体时间走到
+///        `clock_offset_at_ms` 之后把时钟位置一次加上这么多毫秒。0 = 不注入，
+///        此时生产路径上不多任何一个分支。证据里会留 `clock_injection` 三格。
+/// @param clock_offset_at_ms 注入时刻（相对首次读到的位置），默认 2000。
+/// @param clock_rate_ppm  探针注入（P13-AD）：正 = 时钟比墙快。这是**真实事件**的形状
+///        （8 秒里慢慢长到几十毫秒），与 `clock_offset_ms` 的瞬时台阶互补。
+/// @param drift_gate      漂移门开关（P13-AD）。false = 对照组，证据里 `drift_gate.enabled`
+///        会写 false，它的 `drift_rebases = 0` 不可读作"门判断沉默"。
 [[nodiscard]] int session_set_pacing(SessionHandle* handle, int target_fps, bool allow_drop,
-                                    std::string& error);
+                                    int clock_offset_ms, int clock_offset_at_ms,
+                                    int clock_rate_ppm, bool drift_gate, std::string& error);
 
 /// 打开音轨并起流（P12-C8）。必须在 `session_set_pacing` 与 `session_start` 之前调用。
 ///

@@ -77,6 +77,32 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
     private var caseName = ""
 
     /**
+     * 探针的时钟台阶注入（P13-AB）。
+     *
+     * 为什么需要：P13-S 到 P13-AA 跑了 20 多轮负载实验去撞"时钟跑偏"，
+     * 命中率约 1/3，于是"门到底管不管用"一直悬着 —— 撞不上就分不清
+     * "门没用"和"这次没撞上"。这里把那个事件改成按需触发：媒体时间走到
+     * [clockOffsetAtMs] 之后，时钟位置一次加上 [clockOffsetMs]。
+     *
+     * 0 = 不注入。不带这个参数时生产路径与之前逐字节相同，
+     * 证据里的 `clock_injection.offset_ns` 会写 0。
+     */
+    private var clockOffsetMs = 0
+    private var clockOffsetAtMs = 2_000
+
+    /**
+     * 速率注入（P13-AD）：正 = 时钟比墙快多少 ppm。
+     *
+     * 为什么还要这一格：P13-AB/AC 注入的都是**瞬时台阶**，可 P13-R/U/V/Z 的
+     * 8 次真实事件**全是渐变**（8 秒里从 0 长到 73–165 ms）。台阶考验"当帧还多少"，
+     * 速率考验"能不能一直追住"—— 这是两种不同的输入，不能互相代替。
+     */
+    private var clockRatePpm = 0
+
+    /** 漂移门开关（P13-AD）。false = 对照组；证据里 `drift_gate.enabled` 会写 false。 */
+    private var driftGate = true
+
+    /**
      * 长稳采样前缀（P12-D3）。非空时每 [soakIntervalMs] 写一份**中途快照**。
      *
      * 为什么中途快照是必须的：`frames_dropped` 的判据是"**无累积趋势**"，
@@ -327,12 +353,16 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
 
         // 节拍必须在 start 之前挂上：start 之后就起解码线程了，再挂等于半路改规则。
         if (pacingEnabled) {
-            val pacingRc = live.configurePacing(targetFps, allowDrop)
+            val pacingRc = live.configurePacing(
+                targetFps, allowDrop, clockOffsetMs, clockOffsetAtMs, clockRatePpm, driftGate
+            )
             if (pacingRc != 0) {
                 failStart("pacing", pacingRc, live, media)
                 return
             }
-            Log.i(TAG, "pacing on: targetFps=$targetFps allowDrop=$allowDrop")
+            Log.i(TAG, "pacing on: targetFps=$targetFps allowDrop=$allowDrop " +
+                    "clockOffset=${clockOffsetMs}ms@${clockOffsetAtMs}ms " +
+                    "rate=${clockRatePpm}ppm gate=$driftGate")
         }
 
         // 流水线模式同样必须在 start 之前定：start 之后就起线程了，再改等于半路换引擎。
@@ -464,6 +494,14 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
             ?: evidenceName.replace(Regex("\\.json$"), "") + "-sync.json"
         // P12-F1：非负则在该时刻做一次 seek（单位 ms），默认起播后 1.5 s 触发。
         caseName = intent.getStringExtra("kivo.case") ?: ""
+        // P13-AB：探针的时钟台阶注入。非 0 时在媒体时间走到 clockOffsetAtMs 之后
+        // 把时钟位置一次加上这么多毫秒 —— 用来把"时钟跑偏"从靠负载撞概率
+        // （历史命中率约 1/3）变成可复现。0 = 不注入，生产路径不受影响。
+        clockOffsetMs = intent.getIntExtra("kivo.clock_offset_ms", 0)
+        clockOffsetAtMs = intent.getIntExtra("kivo.clock_offset_at_ms", 2_000)
+        clockRatePpm = intent.getIntExtra("kivo.clock_rate_ppm", 0)
+        // 传 `--es kivo.drift_gate off` 关掉漂移门（对照组）。
+        driftGate = intent.getStringExtra("kivo.drift_gate") != "off"
         seekTargetMs = intent.getIntExtra("kivo.seek.ms", -1).toLong()
         seekAtMs = intent.getIntExtra("kivo.seek.at.ms", 1500).toLong().coerceAtLeast(0L)
         autoFinish = intent.hasExtra("kivo.evidence")

@@ -40,11 +40,22 @@ struct PaceDecision {
     /// 判定瞬间的真实迟到量：`now - due_at`。负表示早到，正表示迟到。
     std::int64_t lateness_ns = 0;
 
+    /// 本帧的媒体时刻（pts，ns）。P13-D 起带下来：抽稀按**媒体时间**做门，
+    /// 呈现路径必须把 pts 递给记账层，否则只能按帧序号抽稀 —— 那等于没抽。
+    std::int64_t media_ns = 0;
+
     /// `kWait` 时实际睡的时长；其余动作恒为 0。
     std::int64_t wait_ns = 0;
 
     /// 本帧使用的帧时长估计（由观察到的 pts 差值得出，不是容器声明）。
     std::int64_t frame_duration_ns = 0;
+
+    /// `due_at − (上一帧 due_at + frame_duration)`（P13-P）。
+    ///
+    /// `lateness = now − due_at` 里，"现在"与"目标"各有一半责任。这个字段是目标那一半：
+    /// 负值表示目标时刻被算早了（时钟/锚点映射把表拨快），此时画面**按时**交出也会报迟到。
+    /// 首帧恒为 0（锚点在这一帧建立）。
+    std::int64_t due_step_ns = 0;
 
     ClockHealth health = ClockHealth::kFresh;
 

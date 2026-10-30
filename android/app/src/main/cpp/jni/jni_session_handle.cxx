@@ -8,6 +8,7 @@
 #include "video/video_plane/backends/mediacodec/session/decode_session.hpp"
 #include "video/video_plane/backends/mediacodec/session/decode_stats_renderer.hpp"
 #include "video/video_plane/backends/mediacodec/session/session_teardown_plan.hpp"
+#include "video/video_plane/core/audio/clock/clock_offset_source.hpp"
 #include "video/video_plane/core/audio/clock/system_clock_source.hpp"
 
 #include <android/native_window_jni.h>
@@ -36,6 +37,11 @@ struct SessionHandle {
 
     /// 音频播放侧（P12-C8）。同样必须声明在 session 之前 —— 节拍器可能持着它的时钟。
     std::unique_ptr<kivo::video::avsync::AudioPlayback> audio;
+
+    /// 探针的时钟台阶注入（P13-AB）。**声明在 `audio` 之后、`session` 之前**：
+    /// 它持有 `audio`/`system_clock` 里那一个的引用（先于被引用者亡），
+    /// 而 `session` 的节拍器持有它的指针（后于使用者亡）。
+    std::unique_ptr<kivo::video::core::audio::ClockOffsetSource> offset_clock;
 
     std::unique_ptr<DecodeSession> session;
     /// 视频停下的那一刻的音频位置（见 AvSyncStats 同名注释）。
@@ -306,7 +312,8 @@ void session_stop(SessionHandle* handle) {
 }
 
 int session_set_pacing(SessionHandle* handle, int target_fps, bool allow_drop,
-                       std::string& error) {
+                       int clock_offset_ms, int clock_offset_at_ms, int clock_rate_ppm,
+                       bool drift_gate, std::string& error) {
     if (handle == nullptr || !handle->session) {
         error = "session handle is null";
         return 1;
@@ -325,9 +332,24 @@ int session_set_pacing(SessionHandle* handle, int target_fps, bool allow_drop,
         clock = handle->system_clock.get();
     }
 
+    // P13-AB：探针注入。包一层，不改变时钟链本身 —— 节拍器看到的仍是一个
+    // `AudioClockSource`，差别只在位置里多了一次给定的台阶。
+    //
+    // 不带参数（0）时 `offset_clock` 保持空，`clock` 原样传下去：生产路径上
+    // 一个分支都不多。这也是为什么注入点选在这一层，而不是往 tracker 里塞开关。
+    if (clock_offset_ms != 0 || clock_rate_ppm != 0) {
+        handle->offset_clock = std::make_unique<kivo::video::core::audio::ClockOffsetSource>(
+            *clock, static_cast<std::int64_t>(clock_offset_ms) * 1'000'000,
+            static_cast<std::int64_t>(clock_offset_at_ms) * 1'000'000, clock_rate_ppm);
+        clock = handle->offset_clock.get();
+    }
+
     kivo::video::mediacodec::PacingSetup setup;
     setup.clock = clock;
     setup.policy.allow_drop = allow_drop;
+    // P13-AD：门关 = 对照组。位置完全按时钟走，门一次都不触发 ——
+    // 没有这一组，"门没触发"就分不清"该沉默时沉默"和"根本没接上"。
+    setup.policy.drift_gate_enabled = drift_gate;
     if (target_fps > 0) {
         // 只是首帧兜底：真实帧时长由 pts 差值观测得出，不信这里传的值。
         setup.policy.default_frame_duration_ns = 1'000'000'000 / target_fps;
@@ -435,6 +457,13 @@ int session_write_sync_stats(SessionHandle* handle, const std::string& path,
     // 只在 stop() 之后调：这个接口读节拍器的完整直方图，跑起来时读就是数据竞争。
     stats.pace = handle->session->pace_summary_after_stop();
     stats.audio_position_at_video_stop_ns = handle->audio_position_at_video_stop_ns;
+    if (handle->offset_clock != nullptr) {
+        stats.clock_injection.offset_ns = handle->offset_clock->offset_ns();
+        stats.clock_injection.arm_after_ns = handle->offset_clock->arm_after_ns();
+        stats.clock_injection.armed_at_position_ns =
+            handle->offset_clock->armed_at_position_ns();
+        stats.clock_injection.rate_ppm = handle->offset_clock->rate_ppm();
+    }
     stats.anchor_video_pts_ns = stats.pace.anchor_pts_ns;
     stats.anchor_audio_position_ns = stats.pace.anchor_position_ns;
     if (handle->audio) {
@@ -462,7 +491,11 @@ std::string session_summary(SessionHandle* handle) {
     std::snprintf(buffer, sizeof(buffer),
                   "codec=%s mime=%s %dx%d pipe=%s frames=%lld recv=%lld rel=%lld dropped=%lld "
                   "samples=%lld wall=%.3fs fps=%.2f speed=%.2fx first_frame=%.1fms pace=%s "
-                  "p99=%.1fms completed=%d error=%s",
+                  // 口径写进键名，不是写在旁边的注释里：这条日志是 `adb logcat` 里最常被
+                  // 复制的一行，复制出去就只剩 "p99=0.1ms"。这个 p99 是**逐帧**的
+                  // 节拍迟到量（每帧都进直方图），与 `av_drift` 里抽稀口径的 p99
+                  // 不是同一个数，对着比会得出"两处矛盾"的假结论。
+                  "pace_lateness_p99[per_frame]=%.1fms completed=%d error=%s",
                   stats.codec_name.c_str(), stats.mime.c_str(), stats.width, stats.height,
                   stats.pipeline_mode.c_str(),
                   static_cast<long long>(stats.frames_rendered),

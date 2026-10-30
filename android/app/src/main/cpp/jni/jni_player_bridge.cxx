@@ -148,17 +148,26 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionStart(JNIEnv* /*env*/, job
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSetPacing(JNIEnv* /*env*/, jobject /*thiz*/,
                                                                jlong handle, jint target_fps,
-                                                               jboolean allow_drop) {
+                                                               jboolean allow_drop,
+                                                               jint clock_offset_ms,
+                                                               jint clock_offset_at_ms,
+                                                               jint clock_rate_ppm,
+                                                               jboolean drift_gate) {
     auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
     std::string error;
     const int code = kivo::jni_bridge::session_set_pacing(
-        session, static_cast<int>(target_fps), allow_drop == JNI_TRUE, error);
+        session, static_cast<int>(target_fps), allow_drop == JNI_TRUE,
+        static_cast<int>(clock_offset_ms), static_cast<int>(clock_offset_at_ms),
+        static_cast<int>(clock_rate_ppm), drift_gate == JNI_TRUE, error);
     if (code != 0) {
         KIVO_LOGW("session pacing failed: code=%d reason=%s", code, error.c_str());
         return static_cast<jint>(code);
     }
-    KIVO_LOGI("session pacing on: target_fps=%d allow_drop=%d", static_cast<int>(target_fps),
-              allow_drop == JNI_TRUE ? 1 : 0);
+    KIVO_LOGI("session pacing on: target_fps=%d allow_drop=%d clock_offset=%dms@%dms "
+              "rate=%dppm gate=%d",
+              static_cast<int>(target_fps), allow_drop == JNI_TRUE ? 1 : 0,
+              static_cast<int>(clock_offset_ms), static_cast<int>(clock_offset_at_ms),
+              static_cast<int>(clock_rate_ppm), drift_gate == JNI_TRUE ? 1 : 0);
     return 0;
 }
 
