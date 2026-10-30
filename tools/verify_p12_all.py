@@ -758,6 +758,12 @@ def layer4_reuse(report: Report) -> None:
     # P13-AF：跨臂比较（R2 极差 / R5 同臂复现）。单臂的次数判据复用
     # `verify_p13ae_gate`，这里只加"三臂之间不许差太多"那一条 ——
     # 一个判据只写一处，否则两套判据必然分叉。
+    # P14-F：时钟异常的计数自洽（H1）。形状判读也在同一个脚本里。
+    p14f_files = sorted(glob.glob("docs/evidence/p14f/*-sync.json"))
+    if p14f_files:
+        run_sub("summarize_p14f_jumps",
+                [py, "tools/summarize_p14f_jumps.py", *p14f_files], report)
+
     # P14-D：长跑。判据与 AE 同一套（次数 / 首次 / 稳态 / 丢帧 / p99），
     # 含跳变的轮次由脚本自己打印 SKIP 并写明理由 —— 不允许为了变绿放宽阈值。
     p14d_files = sorted(glob.glob("docs/evidence/p14d/*-sync.json"))
