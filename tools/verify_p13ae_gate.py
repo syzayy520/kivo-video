@@ -115,6 +115,23 @@ def verify(path: Path) -> str:
             f"而同轮没有任何时钟事件（monotonic_rejects / extrapolated 均为 0）—— 无法归因"
         )
 
+    # ── F2 的适用边界：含"时钟跳变"的轮次不判 ──
+    #
+    # 预测式只描述**注入的速率漂移**。一次 position 跳变会在 `cum_drift` 上
+    # 留下一次性台阶，门会用**一次大修正**把它吃掉 —— 那一次修正等于替掉了
+    # `修正量 / band` 次小触发，于是次数与公式两边都不再对得上。
+    # P14-D 的 30 分钟长跑就是这样：706 次 vs 预测 711，同时带着一次 931 ms 修正
+    # 和 `jump_rebases = 1`。**这不是门算错了，是公式里没有跳变这一项。**
+    #
+    # 所以这里显式跳过并打印理由，而不是悄悄放宽阈值（放宽 = 为了让红灯变绿改判据）。
+    clock_jumps = int(health.get("jump_rebases", 0))
+    if clock_jumps > 0:
+        return (
+            f"{path.name}: SKIP  F2 不判（jump_rebases={clock_jumps}，"
+            f"公式不含跳变项）；观测 {rebases} 次 / 预测 {expected} 次；"
+            f"ahead={ahead_ns / 1e6:+.2f} ms rate={rate:.6f} dropped={dropped}"
+        )
+
     # ── F2：次数偏差 ──
     slack = COUNT_SLACK + int((ppm / 1e6) * T_EFF_UNCERTAINTY_S * 1e9 / band_ns) if band_ns > 0 else COUNT_SLACK
     if abs(rebases - expected) > slack:

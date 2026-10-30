@@ -922,8 +922,16 @@ core/metrics/                        # 度量族：只数，不判
 > 静态库的目标只在"符号被需要"时才被拉进来，而这条尺子的价值恰恰是每个分配都经过它。
 > 桌面单测**不链它** —— 否则测到的就是测试框架自己的分配。
 
-证据：decode `kivo.p12c.decode/14` 新增 `metrics{cpu,alloc,buffers}`。
-判定脚本 `tools/verify_p14a_metrics.py`（M1–M5）。
+证据：decode `kivo.p12c.decode/14` 新增 `metrics{cpu,alloc,buffers}`；
+`/15` 起 `alloc` 再加 `threads[] / thread_count / overflow_calls`（P14-B）。
+
+| 增量 | 落位 | 守的规矩 |
+| --- | --- | --- |
+| 线程槽表（8 槽 + 溢出） | `alloc_probe.cxx` 内部 | `thread_local int` 必须是**平凡类型** —— 换成 `optional` 之类，第一次分配就会在 `operator new` 里递归 |
+| `announce_thread(name)` | `alloc_probe` | **零分配的线程也要出现在证据里**：否则"它零分配"和"它没跑"不可分 |
+| 线程起名 | `decode_session.cxx` 的 `name_current_thread()` | 名字进 `/proc/self/task/<tid>/comm`，归因靠它把 tid 翻译成人能读的东西；Windows 上留空，不编假名 |
+
+判定脚本 `tools/verify_p14a_metrics.py`（M1–M5 + N1–N4）。
 
 ### 三之二十三、音频证据字段与跨帧率可比性（P13-C）
 
