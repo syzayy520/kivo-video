@@ -31,6 +31,33 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 EVIDENCE = ROOT / "docs" / "evidence"
 
+# `av_drift` 带 `quantiles.<口径>` 结构的那几版。
+#
+# **一处定义，两处使用**：`sync_sample_count()` 从这里取"样本数在哪儿"，
+# `check_sync()` 从这里取"是不是分块结构"。曾经这两处各写一遍元组，
+# 结果 P13-F 加了 `/4` 只改了白名单、两处判据还认 `/3` ——
+# 那是同一个病（两张表只更新一张）在同一个文件里的第三次发作。
+SYNC_QUANTILE_BLOCK_SCHEMAS = (
+    "kivo.p12c.sync/3",  # P13-E：分位数收进口径块
+    "kivo.p12c.sync/4",  # P13-F：多一格 worst
+    "kivo.p12c.sync/5",  # P13-G：抽稀块要 ≥2 样本且跨度 >0 才成立
+    "kivo.p12c.sync/6",  # P13-H：多一格 media_span_ns（observed_hz 的累计分母）
+    "kivo.p12c.sync/7",  # P13-I：trend 自带窗口分布；truncated 改成段口径
+    "kivo.p12c.sync/8",  # P13-J：trend 给斜率配标准误与置信带；窗口中位数改精确
+    "kivo.p12c.sync/9",  # P13-K：SE 换成 HAC（Newey–West），旧值改名 _iid；半程诊断
+    "kivo.p12c.sync/10",  # P13-L：累积漂移 + 额度判读（看得见 ≠ 要紧）
+    "kivo.p12c.sync/11",  # P13-M：段边界锚点重建；多出版段内最大空洞
+    "kivo.p12c.sync/12",  # P13-N：p50 精度（可能范围 / 桶内样本数 / 桶宽）
+    "kivo.p12c.sync/13",  # P13-O：半程各自 HAC 标准误 + 三态；replace 掉只比符号的布尔
+    "kivo.p12c.sync/14",  # P13-P：最差帧的 due_step + 前后邻帧（手慢了 vs 表快了）
+    "kivo.p12c.sync/15",  # P13-Q：两侧的跨帧累积（缓慢位移看得见）
+    "kivo.p12c.sync/16",  # P13-R：四个跨度 + 最差帧的钟读数（due 为什么整体前移）
+    "kivo.p12c.sync/17",  # P13-S：累积漂移门（只拦"持续超前"）
+    "kivo.p12c.sync/18",  # P13-AB：探针的时钟台阶注入（clock_injection 三格）
+    "kivo.p12c.sync/19",  # P13-AC：限速收敛（drift_max_correction / drift_corrected_total）
+    "kivo.p12c.sync/20",  # P13-AD：速率注入 + 门开关（clock_injection.rate_ppm / drift_gate）
+)
+
 # ── schema 白名单 ──────────────────────────────────────────────────────────
 # 硬编码是刻意的摩擦：新增卡片必须显式加进来，让"格式变更"被看见一次。
 # 藏起来自动发现，只会让某天悄悄多出一种 schema 而没人注意。
@@ -45,6 +72,105 @@ KNOWN_SCHEMAS = {
     "kivo.p12c.decode/8", "kivo.p12c.decode/9", "kivo.p12c.decode/10",
     "kivo.p12c.decode/11", "kivo.p12c.decode/12", "kivo.p12c.decode/13",
     "kivo.p12c.sync/1",
+    # P13-D：`av_drift` 的分位数改由"按媒体时间抽稀到 20 Hz"的分布给出，
+    # 并新增 sampling / per_frame / trend 三块。`/1` 的证据不重写（重写等于伪造），
+    # 两个版本同时接受；D1–D5 的判据只在 `/2` 上成立（见 tools/verify_p13d_drift.py）。
+    "kivo.p12c.sync/2",
+    # P13-E：`av_drift` 下不再有裸分位数，一律挂 `quantiles.<口径>`，
+    # 并由 `sampling.cross_frame_rate_set` 指出唯一可比的那一份。
+    # `/2` 保留白名单只是为了旧证据仍能被层 1 接受（它们无法 retrofit）——
+    # 但注意：`/2` 曾**完全没被层 2 校验过**（分发里只写了 `/1`），见 `card_checks`。
+    "kivo.p12c.sync/3",
+    # P13-F：`quantiles.<口径>` 新增 `worst`（index / of / media_ns / lateness_ns）——
+    # `max` 只说最差多大，说不出在片头还是片尾，而这两者对结论的影响完全相反。
+    # `/3` 的证据不重写，两个版本同时接受；F 判据只在 `/4` 上成立。
+    "kivo.p12c.sync/4",
+    # P13-G：抽稀块要成立，至少 2 个样本且跨度为正 —— 1 个样本的块
+    # 每个分位数都相同，长得像正常数据（`68-p13g-design.md` §二）。
+    # `/4` 及以前的证据不重写，新门槛只对 `/5` 生效。
+    "kivo.p12c.sync/5",
+    # P13-H：`sampling` 新增 `media_span_ns`（整场累计跨度），`observed_hz`
+    # 改以它为分母 —— 旧口径拿窗口跨度（封顶 102.35 s）除累计样本数，
+    # 超过 102.4 s 之后商随片长线性增长（`70-p13h-design.md` §一）。
+    # `/5` 及以前的证据不重写；H 判据只在 `/6` 上成立。
+    "kivo.p12c.sync/6",
+    # P13-I：`trend` 自带 `window_quantiles`（趋势描述的那批点自带分布），
+    # 并把含糊的 `segment_samples` 拆成 `segment_accepted` + `window_sample_count`；
+    # `truncated` 改判"本段接受数 > 容量"—— 上一版拿整场累计数比容量，
+    # seek 之后会谎报环形覆盖（`72-p13i-design.md` §一）。
+    # `/6` 及以前的证据不重写；I 判据只在 `/7` 上成立。
+    "kivo.p12c.sync/7",
+    # P13-J：`trend` 多出 `slope_ppm_std_error` / `slope_ci_low_ppm` /
+    # `slope_ci_high_ppm` / `slope_detectable` / `window_median_exact` /
+    # `window_median_fallback_windows`。两件事一起改的：
+    # ① 八窗中位数上一版走 0.25 ms 桶中心，真机上全部等于 125000 ——
+    #    `delta_median_ns` 与 `slope_from_windows_ppm` 恒 0，"没漂移"和
+    #    "尺子上只有一个刻度"长得一样；
+    # ② `slope_ppm` 在 `r2 = 5.5e-05` 之下照样印六位小数，没有误差棒
+    #    （`74-p13j-design.md` §一）。`/7` 及以前的证据不重写；
+    #    J 判据只在 `/8` 上成立。
+    "kivo.p12c.sync/8",
+    # P13-K：`slope_ppm_std_error` **换模型**（Newey–West / Bartlett），名字没变；
+    # 旧口径原地改名 `slope_ppm_std_error_iid`，另加 `hac_lags` /
+    # `hac_lag1_autocorrelation` / `hac_estimated` / 膨胀比，以及半程诊断
+    # `slope_first_half_ppm` / `slope_second_half_ppm` / `slope_halves_agree`。
+    # 起因是 `/8` 自己造的假阳性：r3（35 s / 700 点）报 `detectable = true`
+    # 而那条线 `r2 = 0.007` —— 独立同分布假设把 SE 压小了
+    # （`76-p13k-design.md` §一）。`/8` 及以前的证据不重写；K 判据只在 `/9` 上成立。
+    "kivo.p12c.sync/9",
+    # P13-L：`slope_detectable` 后面接上 `drift_accumulated_ns` /
+    # `drift_accumulated_upper_ns` / `drift_budget_ns` / `drift_verdict`。
+    # 起因是一句被读错了两张卡的话：`detectable = true` 被当成"漂移要紧" ——
+    # 它只说"与 0 分得开"。反方向的漏报同样真实：CI 含 0 时远端积起来
+    # 也可能越过人耳阈值，所以判定用的是**上界**（`78-p13l-design.md` §一）。
+    # `/9` 及以前的证据不重写；L 判据只在 `/10` 上成立。
+    "kivo.p12c.sync/10",
+    # P13-M：`segments` 后面接上 `segment_largest_gap_cells` /
+    # `segment_contiguous`，`segments` 的语义收窄成"一次锚点生命周期算一段"。
+    # 起因是 P13-L 撞出的一份真机缺陷证据：在 30 s 处向前跳到 40 s，
+    # 报告照样写 `segments = 1`、`span = 112.367 s` —— pts 前进推不出"没换时间轴"，
+    # 向前 seek 必有一次漏切（`80-p13m-design.md` §一）。
+    # `/10` 及以前的证据不重写；M 判据只在 `/11` 上成立。
+    "kivo.p12c.sync/11",
+    # P13-N：每个 `quantiles.<口径>` 的 `p50` 后面接上 `p50_range_low_ns` /
+    # `p50_range_high_ns` / `p50_bucket_samples` / `bucket_width_ns`；
+    # `trend` 里接上 `median_of_window_medians_ns`。
+    # 起因是同一份证据里两个 p50 相差 66%（桶中心 125 000 vs 精确值 74 835），
+    # 而 `/11` 的 JSON 里没有任何字段能阻止读者把它读成"两份测量打架"。
+    # 它们不打架，是同一批点的两种精度 —— 缺的是让 p50 自己说出可能范围
+    # （`82-p13n-design.md` §一）。`/11` 及以前的证据不重写；N 判据只在 `/12` 上成立。
+    "kivo.p12c.sync/12",
+    # `/13`（P13-O）：`slope_halves_*` 16 格 + 三态 `slope_halves_relation`。
+    # `slope_halves_agree` 保留原语义（同号），降为历史字段 —— 删它会让旧证据
+    # 无法对读，改语义会让同一字段名在两版证据里指两件事。
+    "kivo.p12c.sync/13",
+    # `/14`（P13-P）：`pace.due_step_frames` / `due_step_supplied` 两格，
+    # 以及 `quantiles.per_frame.worst` 里的 `due_step_ns` + 前后各几帧的 `lateness`。
+    # 目的只有一个：让 `Δlateness = present_step − due_step` 这条恒等式可复算 ——
+    # 88.231 ms 倒在"手慢了"还是"表快了"上，旧字段分不出来（`86-p13p-design.md` §一）。
+    "kivo.p12c.sync/14",
+    # `/15`（P13-Q）：`pace` 五格整场账（first/last/Σpresent/Σdue/残差）+
+    # `worst` 三格累积账。单帧 `due_step` 只看得到"一步"，看不到"每步都小、累积很大"——
+    # `p13d-4k60-r1` 的 88 → 5 用六帧正是这种（`87-p13p-status.md` §三）。
+    "kivo.p12c.sync/15",
+    # `/16`（P13-R）：`pace` 五格（mono/elapsed/due/pts 四个跨度 + 正常分支帧数）+
+    # `worst` 四格钟读数。`due_span == mono_span + pts_span − elapsed_span` 让
+    # "due 为什么整体前移"只剩两个可能：钟比墙快，或帧比 pts 到得早。
+    "kivo.p12c.sync/16",
+    # `/17`（P13-S）：`pace.clock_health.drift_rebases` —— 累积漂移门的触发次数。
+    # 与 `jump_rebases` 分开：那个是"一次跳 1 秒"，这个是"每帧只差一点、攒到 45 ms"。
+    "kivo.p12c.sync/17",
+    # `/18`（P13-AB）：顶层 `clock_injection` 三格。被注入过的证据与真实现场
+    # 在字段上本来完全一样，这三格是唯一的区分 —— 缺了它就没法判断
+    # 那个 `clock_ahead` 是设备跑偏还是探针按的按钮。
+    "kivo.p12c.sync/18",
+    # `/19`（P13-AC）：`clock_health` 多两格修正幅度。只数 `drift_rebases` 分不出
+    # "一帧削平 45 ms"和"二十三帧各摊 2 ms"，而前者正是 P13-F 抱怨的尖峰形状。
+    "kivo.p12c.sync/19",
+    # `/20`（P13-AD）：`clock_injection.rate_ppm` 与顶层 `drift_gate`。
+    # 前者区分"台阶"与"速率"两种注入（真实事件是后者）；后者让"门关"对照组
+    # 不会与"门判断沉默"在证据上混为一谈。
+    "kivo.p12c.sync/20",
     "kivo.p12d5.present-timing/1",
     "kivo.p12e.color-probe/1",
     "kivo.p12e.hdr-probe/1", "kivo.p12e.hdr-probe/2", "kivo.p12e.hdr-probe/3",
@@ -296,8 +422,33 @@ def check_tonemap(payload: dict, name: str, report: Report) -> None:
         report.fail(2, name, "tonemap 无理由", "不实现就必须写清为什么")
 
 
-def check_sync(payload: dict, name: str, report: Report) -> None:
+# 顶层出现就算"裸分位数"的键。`per_frame` 也在里面 —— 那是 `/2` 的旧位置。
+BARE_QUANTILE_KEYS = ("samples", "p50", "p95", "p99", "max", "histogram", "per_frame")
+
+
+def sync_sample_count(drift: dict, schema: str) -> object:
+    """这一轮采到多少分位样本 —— **版本不同，位置不同**。
+
+    `/1` 与 `/2`：`av_drift.samples`（不分口径，所以 P13-E 把它挪了）。
+    `/3` 起：`quantiles.<口径>.samples`，优先抽稀那一份（跨帧率可比的那份）。
+    `/5` 起抽稀块可能整块缺席（样本不足），那时只有 `per_frame`——顺着往后找即可。
+    """
+    if schema in SYNC_QUANTILE_BLOCK_SCHEMAS:
+        quantiles = drift.get("quantiles") or {}
+        for mode in ("media_time_decimated", "per_frame"):
+            block = quantiles.get(mode) or {}
+            value = block.get("samples")
+            if isinstance(value, int):
+                return value
+        return None
+    return drift.get("samples")
+
+
+def check_sync(payload: dict, name: str, report: Report,
+               schema: str = "kivo.p12c.sync/1") -> None:
     drift = payload.get("av_drift") or {}
+    # `/3` 与 `/4` 共用 `quantiles.<口径>` 结构；`/4` 只是多了一格 `worst`。
+    is_v3 = schema in SYNC_QUANTILE_BLOCK_SCHEMAS
 
     # 跨字段一致性（P13-C 加的）：**单个字段看不出问题，两个字段放一起才看得出来**。
     #
@@ -307,7 +458,7 @@ def check_sync(payload: dict, name: str, report: Report) -> None:
     # 一个**恒为 false 的字段**比缺字段更危险 —— 它看起来是个合理的观测值。
     audio = payload.get("audio") or {}
     clock_source = payload.get("clock_source") or ""
-    samples = drift.get("samples")
+    samples = sync_sample_count(drift, schema)
     has_audio_evidence = (clock_source == "audio_timestamp") or (
         isinstance(samples, int) and samples > 0)
     if has_audio_evidence:
@@ -322,13 +473,30 @@ def check_sync(payload: dict, name: str, report: Report) -> None:
                 report.fail(2, name, "音频证据自相矛盾",
                             f"clock_source={clock_source!r} samples={samples!r} "
                             f"但 {', '.join(f'audio.{k}={audio.get(k)!r}' for k in broken)}")
+
     if drift.get("measurable") is False and not drift.get("unavailable_reason"):
         report.fail(2, name, "音画漂移不可测却无理由",
                     "measurable=false 必须带 unavailable_reason")
+
     if drift.get("measurable") is True:
-        samples = drift.get("samples")
-        if not isinstance(samples, int) or samples <= 0:
-            report.fail(2, name, "可测却没有样本", f"samples={samples!r}")
+        if is_v3:
+            # `/3` 不再有 `samples` 这个键，判据改看"有没有按口径分块的分布"。
+            # 只判 `samples` 是否存在，会让新证据每一份都红 —— 那不是发现，是没跟上。
+            if not isinstance(drift.get("quantiles"), dict) or not drift.get("quantiles"):
+                report.fail(2, name, "可测却没有分位数",
+                            "quantiles 必须是按口径分块的非空对象")
+        else:
+            samples = drift.get("samples")
+            if not isinstance(samples, int) or samples <= 0:
+                report.fail(2, name, "可测却没有样本", f"samples={samples!r}")
+
+    if is_v3:
+        # E1 的粗筛：详细复算在 tools/verify_p13d_drift.py，这里只保证
+        # "不带口径的分位数"根本进不了总收口。
+        bare = [key for key in BARE_QUANTILE_KEYS if key in drift]
+        if bare:
+            report.fail(2, name, "裸分位数",
+                        f"av_drift 顶层出现 {bare}：分位数必须挂在 quantiles.<口径> 下")
 
 
 def check_audio_probe(payload: dict, name: str, report: Report) -> None:
@@ -408,8 +576,11 @@ def card_checks(payload: dict, name: str, report: Report) -> None:
         check_seek(payload, name, report)
         check_encryption(payload, name, report)
         check_tonemap(payload, name, report)
-    elif schema == "kivo.p12c.sync/1":
-        check_sync(payload, name, report)
+    elif schema.startswith("kivo.p12c.sync/"):
+        # 曾经这里只写了 `/1`，于是 `/2` 的证据**完全跳过了层 2**：
+        # 能在白名单里、能过解析，但"可测却没有样本""不可测却无理由"一条都没查。
+        # 加 schema 却忘了加分发，等于给新证据开了一张免检通行证。
+        check_sync(payload, name, report, schema)
     elif schema in ("kivo.p12c.aaudio-probe/1", "kivo.p12c.aaudio-probe/2"):
         check_audio_probe(payload, name, report)
     elif schema == "kivo.p12c.audio-file-probe/1":
@@ -527,6 +698,31 @@ def layer4_reuse(report: Report) -> None:
     else:
         report.fail(4, "verify_p12d_multi paced", "找不到证据",
                     "docs/evidence/p12d/p12d2-paced-*.json 为空")
+
+    # P13-E 起接进总收口。之前 `verify_p13d_drift.py` 只能手动跑 ——
+    # 一个"要靠人记得执行"的判据，等于没有判据：证据可以一直躺在盘上没人复算。
+    #
+    # 这里只查**结构**（E1–E3、F1–F3 + 分位数逐位复算），不带 D1/D2：
+    # D1/D2 是"30fps 与 60fps 同源对照"的跨组结论，需要同一批证据一起喂；
+    # 总收口按目录逐份遍历，凑不齐一对就会误判成失败。
+    # 需要 D1/D2 时手动跑：`python tools/verify_p13d_drift.py docs/evidence/p13d/*-sync.json`。
+    #
+    # P13-F 的教训：这一段原来只扫 `docs/evidence/p13d/`，于是 p13f 的 5 份证据
+    # **一份都没被 F 判据看过** —— 端到端植入一条 `worst = max + 1` 的坏证据，
+    # 总收口照样报"四层通过 / 可交付"。这与 P13-E 抓到的"加 schema 忘了加分发"
+    # 是同一个病：**白名单与分发是两张表，加了一张忘了另一张**。
+    # 现在按目录模式扫，新增证据目录只要符合 `p1*f` 就自动纳入。
+    p13_files = sorted(glob.glob("docs/evidence/p13*/*-sync.json"))
+    if p13_files:
+        run_sub("verify_p13d_drift", [py, "tools/verify_p13d_drift.py", *p13_files], report)
+    else:
+        report.fail(4, "verify_p13d_drift", "找不到证据", "docs/evidence/p13*/*-sync.json 为空")
+
+    # P13-P：恒等式 / 邻帧长度 / 归类的复算。同样按目录扫 ——
+    # 上一卡的教训是"白名单与分发是两张表"，这一处只留一条路径。
+    if p13_files:
+        run_sub("verify_p13p_episode",
+                [py, "tools/verify_p13p_episode.py", *p13_files], report)
 
     run_sub("verify_p12d3_soak",
             [py, "tools/verify_p12d3_soak.py",

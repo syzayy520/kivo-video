@@ -4,9 +4,72 @@
 
 ## 零、先把项目完整拿到手
 
-### 0.1 不能用 `git clone`（P12 成果不在版本库里）
+#
+## 0.0 装机铁律（2026-10-30 事故后加，两件都不许再犯）
 
-**这是交接第一件要确认的事。** 当前工作区有 **337 项未跟踪/改动**，当前 HEAD（`2b5cfaa`）停在 P10 时代：
+### ① 签名：已固定在仓库里，不许换
+
+`android/app/build.gradle.kts` 的 `signingConfigs.create("kivoDebug")` 指向
+`android/keystore/kivo-debug.jks`。**任何账户、任何助手构建出来的 debug APK 签名都一样**，
+`adb install -r` 永远能覆盖安装。
+
+为什么必须这样：这台机器上有 **四个 Windows 账户**（Administrator / CodexAlt / codex / huyasi），
+各自有一份 `~/.android/debug.keystore`。Android 的 debug 构建用**当前账户**那把私钥签名，
+于是同一份代码、同一个 `applicationId`，换个人构建就 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`。
+现象看起来像"项目包被换了"，实际只是密钥换了 —— 用户为这个已经问过一次。
+
+> **同一项目包 = 同一个目录 + 同一个 `applicationId`**，签名不是身份。
+> 但签名不一致会逼着人 `uninstall`，而 `uninstall` 会**删掉应用私有证据**。
+
+### ② 禁止为了装 APK 去 `adb uninstall`
+
+`uninstall` 会连带删掉：
+
+- `files/evidence/` —— 设备上还没归档的取证（可能就是别人几小时的活）；
+- `/sdcard/Android/data/com.kivo.cinema/files/media/` —— 推上去的测试片源（几十 MB，要重推）。
+
+真要 `uninstall`（例如签名仍未对齐），**顺序必须是**：
+
+```bash
+# 1) 备份私有证据
+adb shell "run-as com.kivo.cinema ls files/evidence" > list.txt
+while read -r f; do adb shell "run-as com.kivo.cinema cat files/evidence/$f" > backup/$f; done < list.txt
+# 2) 备份外部片源
+adb pull /sdcard/Android/data/com.kivo.cinema/files/media backup/media
+# 3) 卸载安装
+# 4) 装完先把片源推回去，再把证据 cp 回去（cp 比逐文件 cat 快）
+```
+
+另外：HyperOS 上 `adb install` 会弹「USB安装提示」并在 **9 秒后自动拒绝**，
+所以安装常常返回 `INSTALL_FAILED_USER_RESTRICTED: Install canceled by user`。
+处理办法是安装的同时点「继续安装」（`adb shell input tap <x> <y>`，
+1080×2400 上约为 `347 2111`），不是去改系统设置。
+
+## 0.1 成果已入库，但**还没推送**（`git clone` 仍只能拿到 P10）
+
+**这是交接第一件要确认的事。** 2026-10-30 15:02–15:03 补了三个提交
+（`2c8eb9e` → `44a2b86` → `0f9f307`），把 P10→P13-C 的源码、证据、交接文档
+全部纳入版本库；工作区现在只剩 **13 项**待跟踪/改动。
+
+**但是 —— 分支从没推过。** `codex/kivo-video-p0-ui-01-playback-overlay-v13`
+没有配 upstream，`origin` 上的同名分支仍停在 `e1394ff`（P10 时代），
+本地比它**领先 4 个提交**。
+
+| 做法 | 结果 |
+| --- | --- |
+| `git clone` | ❌ 仍只拿到 P10 基线（除非先 `git push -u origin <分支>`） |
+| 整目录拷贝 | ✅ 立刻可用，但要排掉构建产物（见下） |
+
+三条命令自证（数字对不上就是这条已经过期了，别照抄结论）：
+
+```bash
+git rev-parse HEAD                        # 0f9f307…（不是 2b5cfaa）
+git rev-list --count origin/codex/kivo-video-p0-ui-01-playback-overlay-v13..HEAD   # 4
+git status --porcelain | wc -l            # 13（不是 337）
+```
+
+> ⚠️ **「已提交」不等于「已备份」。** 本地 `.git` 和源码在同一个磁盘上，
+> 磁盘坏 / 目录误删，两者一起没。真正的备份只有两种：`git push`，或者整目录拷到另一块盘。
 
 > ⚠️ **本机 `git` 会直接罢工**：仓库属主是 `DESKTOP-UFK7V16/CodexAlt`，而当前登录用户是 `codex`，
 > 所以任何 `git` 命令都报
@@ -23,15 +86,15 @@
 >
 > 不解决它，`git status` / `git diff` 全部不可用 —— 但**不影响编译、不影响 adb、不影响 ctest**。
 
-| 你以为在库里 | 实际状态 |
+| 内容 | 状态（`0f9f307`） |
 | --- | --- |
-| P12-A/B/C 的 C++ 源码（`core/audio/`、`backends/aaudio/`、`probe/audio/`） | **未跟踪** |
-| `docs/design/backend-core/`（含验收口径 G1–G10、家族树） | **未跟踪** |
-| `docs/evidence/`（A/B/C 全部真机证据） | **未跟踪** |
-| `android/` 整个 Gradle 工程 | **未跟踪** |
-| `docs/handoff/CURRENT.md`、`TASKS.md`（本文件旁边的接手文档） | **未跟踪** |
+| P12-A/B/C 的 C++ 源码（`core/audio/`、`backends/aaudio/`、`probe/audio/`） | ✅ 已入库 |
+| `docs/design/backend-core/`（含验收口径 G1–G10、家族树） | ✅ 已入库 |
+| `docs/evidence/`（A/B/C 全部真机证据） | ✅ 已入库 |
+| `android/` 整个 Gradle 工程 | ✅ 已入库 |
+| `docs/handoff/CURRENT.md`、`TASKS.md`（本文件旁边的接手文档） | ✅ 已入库 |
 
-所以：
+只是**入库了，没推出去**。所以拿到手的方式只有两种：
 
 - ✅ **整目录拷贝** `C:\kivo video`（连同 `.git`）
 - ✅ 拷的时候**排掉构建产物**：`build/`、`android/build/`、`android/app/build/`、
@@ -192,6 +255,8 @@ CMake Error at CMakeLists.txt:14 (message):
 | P12-F3 错误路径 | **DONE 2026-10-30（4/4，经 F3B）**。`bad-file` / `no-video-track` / `no-audio-track` / `encrypted` 四条全部 PASS，`verify_p12f3_errors.py` 退出码 0，变异能打红 |
 | P12-F3B 加密轨识别 | 已收口 2026-10-30。**原判「平台不报加密」是错的**：平台报在轨道格式的 `crypto-mode`（`int32(1)`）上，而 `AMEDIAEXTRACTOR_SAMPLE_FLAG_ENCRYPTED` 在 K40 恒不设。三步实测：注 `pssh` 无效 → fMP4 无效 → `track_format_dump` 看到 `crypto-mode`。改判后 `open()` 即拒（返回码 12）、reason 点名 `aes-ctr`；明文对照 `verdict=unknown` 且 300/301/300 帧零丢帧。⚠️ 三态：`encrypted`/`clear`/**`unknown`**，第三态必须存在（明文片源同样缺这个键） |
 | **P13-C 4K+音频** | **DONE 2026-10-30**。12 轮零丢帧/零 xrun。**分辨率不是变量，帧率才是**：4K60 与 1080p60 的 `av_drift` 几乎相同（p99 0.6–1.9ms），而 30fps 基线是 0.125–0.375ms —— 60fps 让尾部涨 4 倍（p50 恒 0.125ms，说明是采样密度而非漂移变大）。⚠️ 修掉两个「证据字段恒错」bug：`audio.opened` 从未被赋值、`audio.started` 被 stop() 清掉；收口加了跨字段一致性检查（`clock_source=audio_timestamp` ⇒ opened/started 必须 true） |
+| **P13-D 采样归一化** | **DONE 2026-10-30**。抽稀按媒体时间 20 Hz，30/60/4K 在 8 s 上都是 160 点（差 0.21%）；**同源对照下 60fps 的 p99 反而更低（0.23×）—— P13-C 的"帧率才是变量"没有复现**；漂移首次有斜率，35 s 片长分辨率约 7 ppm，只能说"< 7 ppm" |
+| **P13-E 口径前缀** | **DONE 2026-10-30**。`av_drift` 顶层不再有裸 `p99`，分位数一律挂 `quantiles.<口径>`；`cross_frame_rate_set` 用路径指出唯一可跨帧率比的那一份（不可比时为 `null`，`not_measured` 时 `quantiles` 是 `{}` 不是 0）。schema 升 `sync/3`，13 轮证据全部重采 |
 | **P13-B 冷启动/seek 分离** | **DONE 2026-10-30**。**P13-A 那句「4K 上 150ms 不够」是错的**（混了冷启动与 seek，且 132ms 本来就没超 150ms）。实测 seek 4K 只有 28–49ms，比 1080p 只慢 5–15ms。已拆成 G8a（冷启动 ≤300ms）+ G8b（seek ≤150ms），21 轮冷启动 + 9 轮 seek 全 pass。⚠️ 首版阈值 200ms 按单轮数据拍，真机首轮就 206ms 红 —— **阈值必须按已观测最大值定**。根因：两个场景共用一个计数器且 seek 会覆盖冷启动值，现已分开存 |
 | **P13-A 4K/60fps/高码率** | **DONE 2026-10-30**。四组全零丢帧：1080p60 46.7Mbps（60.2fps/首帧 47ms）、4K60 HEVC8（60.0/66ms）、4K60 AVC8（59.4/116ms）、**4K60 HEVC10（59.2/133ms）**。**证伪 G8 的 150ms 预算在 4K 上不够**（光解码起跑就吃 66–133ms）→ 下一卡 P13-B。⚠️ 顺带修掉一个活了 6 张卡的 bug：renderer 有两个 `"source"` 键，JSON 重复键让 `source.mime/width/height` 静默消失；收口层 1 现在查重复键 |
 | **P12-F4 证据总收口** | **DONE 2026-10-30，P12 结题**。交付物是 `tools/verify_p12_all.py`（不是总结）：230 份证据 / 四层 / 7 个子校验器 exit 0 / 46 项已声明豁免。自检 8 变异 **8/8 抓得到**。收口时修正了 3 处**我自己写错的判据**（中途快照 `completed=false`、负向样本 `reached_eos`、paced 传错证据集）。⚠️ 豁免必须明示 —— 靠隐藏换来的全绿比红更危险 |

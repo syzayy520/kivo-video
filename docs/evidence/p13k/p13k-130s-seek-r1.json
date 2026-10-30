@@ -1,0 +1,202 @@
+{
+  "schema": "kivo.p12c.decode/13",
+  "generated_at_unix_ms": 1793356949544,
+  "source": {
+    "mime": "video/avc",
+    "width": 640,
+    "height": 360,
+    "duration_us": 130000000,
+    "encryption": {
+      "crypto_mode_present": false,
+      "crypto_mode": null,
+      "crypto_mode_name": null,
+      "default_iv_size": null,
+      "key_declared": false,
+      "verdict": "unknown",
+      "reason": "track format carries no crypto-mode key, so the platform did not declare whether this track is encrypted; playback continues, but this run cannot prove the track was clear"
+    }
+  },
+  "decoder": {
+    "codec_name": "OMX.qcom.video.decoder.avc",
+    "output_target": "surface"
+  },
+  "color": {
+    "source_mime": "video/avc",
+    "source_profile": 8,
+    "source_is_10bit": false,
+    "negotiated_format": 2141391878,
+    "negotiated_name": "qcom_private",
+    "negotiated_bit_depth": null,
+    "color_standard": 4,
+    "color_transfer": 3,
+    "color_range": 2,
+    "source_color_standard": null,
+    "source_color_transfer": null,
+    "source_color_range": null,
+    "delivered_color_standard": null,
+    "delivered_color_transfer": null,
+    "delivered_color_range": null,
+    "configure_format": {
+      "copied": false,
+      "fallback_reason": null
+    },
+    "hdr": {
+      "kind": "sdr",
+      "kind_reason": "track format carries neither color-standard nor color-transfer; nothing to classify or deliver (this is not a claim that the source is SDR)",
+      "static_info_bytes": null,
+      "dataspace": {
+        "applied": false,
+        "value": 0,
+        "reason": "source is SDR; its dataspace is left untouched on purpose"
+      },
+      "dataspace_readback": {
+        "ok": true,
+        "value": 0,
+        "reason": null
+      },
+      "tonemap": {
+        "implemented": false,
+        "reason": "source is SDR; there is nothing to tone-map"
+      }
+    },
+    "verdict": "indeterminate",
+    "reason": "source is 8-bit; the negotiated output is qcom_private(2141391878) [vendor-private: does not express bit depth] — bit depth is not expressed by this value, which does not affect this verdict"
+  },
+  "seek": {
+    "requests": 1,
+    "target_us": 30000000,
+    "landing_us": 30000000,
+    "prepare_us": 15335,
+    "first_frame_us": 10655,
+    "total_us": 25990,
+    "budget_us": 150000,
+    "pass": true,
+    "video_first_pts_us": 30000000,
+    "reason": null,
+    "av": {
+      "applicable": true,
+      "audio_present": true,
+    "audio_landing_us": 29994666,
+      "gap_us": -5334,
+      "limit_us": 40000,
+      "pass": true,
+      "reason": null
+    }
+  },
+  "counters": {
+    "samples_submitted": 3000,
+    "samples_rejected": 0,
+    "bytes_submitted": 11271222,
+    "frames_received": 3001,
+    "frames_released": 3001,
+    "frames_rendered": 3000,
+    "frames_dropped_late": 0,
+    "frames_discarded_no_surface": 0
+  },
+  "pipeline": {
+    "mode": "merged",
+    "present": true,
+    "present_schedule": "cpu_paced",
+    "submit": {
+      "calls": 8573,
+      "mean_us": 370.118745,
+      "total_us": 3173028,
+      "max_us": 24164
+    },
+    "eos": {
+      "calls": 1,
+      "mean_us": 124.000000,
+      "total_us": 124,
+      "max_us": 124
+    },
+    "receive": {
+      "calls": 4677,
+      "mean_us": 171.005131,
+      "total_us": 799791,
+      "max_us": 17222
+    },
+    "release": {
+      "calls": 4649,
+      "mean_us": 467.460959,
+      "total_us": 2173226,
+      "max_us": 8345
+    }
+  },
+  "surface_rebuild": {
+    "rebuilds": 0,
+    "gap_ms": -1,
+    "resume_ms": -1,
+    "frames_lead": 0
+  },
+  "timing": {
+    "wall_us": 99945819,
+    "first_frame_latency_us": 10655,
+    "decode_fps": 30.016263,
+    "speed_vs_realtime": 1.300705
+  },
+  "cold_start": {
+    "applicable": true,
+    "first_frame_us": 105191,
+    "budget_us": 300000,
+    "pass": true,
+    "reason": null
+  },
+  "outcome": {
+    "completed": true,
+    "error": ""
+  },
+  "pace": {
+    "enabled": true,
+    "clock_source": "audio_timestamp",
+    "frame_duration_ns": 33333000,
+    "derived_fps": 30.000300,
+    "frames_decided": 4648,
+    "presented": 4648,
+    "dropped": 0,
+    "drop_ratio": 0.000000,
+    "catch_up_events": 0,
+    "catch_up_frames": 0,
+    "over_budget_frames": 0,
+    "lateness_ns": {
+      "p50": 125000,
+      "p95": 125000,
+      "p99": 1375000,
+      "min": 17708,
+      "max": 8151708
+    },
+    "interval_ns": {
+      "p50": -125000,
+      "p95": 125000,
+      "p99": 1375000,
+      "max": 8041531
+    },
+    "clock_mix": {
+      "primary_frames": 4648,
+      "fallback_frames": 0,
+      "system_frames": 0
+    },
+    "schedule_lead_ns": {
+      "samples": 0,
+      "p01": 0,
+      "p10": 0,
+      "p50": 0,
+      "p90": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0,
+      "spread": 0
+    },
+    "clock_health": {
+      "extrapolated_frames": 1,
+      "free_run_frames": 0,
+      "jump_rebases": 0,
+      "monotonic_rejects": 1,
+      "stale_readings": 1
+    },
+    "wait": {
+      "count": 4644,
+      "total_ns": 145572687488
+    },
+    "sampled_at_frames": 4648
+  }
+}

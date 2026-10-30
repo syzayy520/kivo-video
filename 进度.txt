@@ -1,52 +1,5 @@
-E1 的关键问题在于：在 Surface 输出模式下，`color-format` 到底会不会告诉我们位深。先上真机观察，再写设计。
-现在把颜色事实接入解码器与证据链：
-真机证据出来了，而且比设计时预想的更糟：两种位深的片源给出**同一个厂商私有格式值** `0x7FA30C06`。我把它作为已知厂商格式记进映射表：
-探针第一次跑就推翻了它自己这条假设：**连“请求 Surface 但不给窗口”都 configure 成功**，说明这颗 OMX 组件在 configure 阶段根本不校验 `color-format`。因此，“configure 成功”不等于“支持”。要拿到真实协商结果，必须 start 之后再读：
-探针给出的是否定结论：**三个请求（连“Surface 但不给窗口”这种矛盾请求）都 configure 成功、start 成功、且都报 NV12** —— 这颗 OMX 组件根本不采纳 `color-format`。现在用新构建重跑播放器两轮，让证据带上“厂商私有”的措辞：
-E1 收口了。这张卡的结论是**否定的**，而且是两个方向都查过的否定。
-
-## 两个方向都拿不到位深
-
-**播放路径（Surface）**：`color-format` 报的是厂商私有值 **`0x7FA30C06`**（高通私有区），不是设计里假设的 `0x7F000789`。8bit 的 AVC 片源和 10bit 的 HEVC 片源**给出完全相同的这个值** —— 它连位深都不表达。
-
-**探针路径（ByteBuffer）**：新写的 `kivo_color_probe` 对同一片源做三次 configure：
-
-| 请求 | configure | start | start 后格式 |
-|---|---|---|---|
-| 不设 `color-format` | ok | ok | **21 (NV12)** |
-| `P010` | ok | ok | **21 (NV12)** |
-| `Surface`（**不给窗口**） | ok | ok | **21 (NV12)** |
-
-第三行是关键：Surface 输出不可能没有窗口，但它照样 configure 成功、start 成功。**这颗 OMX 组件在 configure 阶段根本不校验 `color-format`** —— 所以“请求 P010 后配置成功”什么都证明不了，我原本设计里那个“反证”也失效了。
-
-于是证据里写的是 `verdict = "indeterminate"` + 非空 reason（新字段 `color`，schema 升 `/7`），永远不会出现“看起来成功”的空字段。这就是卡片要的“报得出 reason”。
-
-## 设计被实测推翻三处
-
-1. 以为 Surface 会报 `0x7F000789`，实际是厂商私有 `0x7FA30C06`。
-2. 以为“P010 configure 成功 = 支持”，且“Surface 无窗口会失败”可作反证 —— 两者都不成立。
-3. 以为 configure 后就能读协商结果 —— 实际必须 **`start()` 之后**读，之前读到的是默认值 21。
-
-三处都在 `35-p12e1-design.md` 里加了更正块，原文没删。
-
-## 顺带量到一件对 E2/E3 很关键的事
-
-8bit 与 10bit 片源的 `color-standard/transfer/range` 都是 **1/3/2**（BT709/SDR/limited），一模一样。用 ffprobe 核对片源：
-
-```
-hevc_1080p10.mp4: Main 10, yuv420p10le,
-                  color_space=unknown, color_transfer=unknown, color_primaries=unknown
-```
-
-**那是解码器的默认值，不是片源信息。** 我们现在这个“10bit 片源”其实是 10bit SDR、没有任何色彩标记 —— E2 想验 HDR，必须先准备带 BT2020 + PQ 的真 HDR10 片源，否则测到的全是默认值。这条已经写进 `TASKS.md` 的指针段和 `AGENTS.md`。
-
-## 产物
-
-- 新增 `decode/color_format_names.*`（NDK 不导出这些常量，数值手写、单测钉住）、`decode/video_color_facts.*`（纯判定，verdict + reason）、`probe/color_probe_main.cxx`（可执行 `kivo_color_probe`）
-- 单测 `kivo_p12e1_color_tests` **10 例 / 52 断言**；`ctest -R kivo_p12` 7/7
-- 证据 `docs/evidence/p12e/` 5 份：3 份播放证据（帧数闭合、181=180+0+0+1）+ 2 份探针产物
-- 验收 `36-p12e1-status.md`（§五 七条诚实清单、§六 给 E2/E3 的交接）
-
-## 下一步
-
-指针已翻到 **P12-E2（HDR 静态元数据下发）**。它的下发点在 `configure()` 之前 —— 现在代码把轨道格式原样交给解码器，一个颜色键都没加；E3 的观测点则已经就绪（`color` 段能读那三个键了）。
+这张表是关键证据：`slope_halves_agree` 在真机上已经说过两次谎，我先确认具体是哪些记录。
+实际证据出现了 3 条同号但量级差很大的记录，其中 `p13n-fwd-r1` 最极端：两半程都是正数（+0.5975 / +0.0276），**全序列斜率却是 −0.0015**。我先确认周边结构，再着手。
+设计已成形，我先记下任务，然后按 Iron Gate 的顺序推进。
+设计完成。现在实现 HAC 区间版。
+HAC 区间版已完成。现在写半程一致性单元。

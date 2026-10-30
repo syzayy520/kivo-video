@@ -362,8 +362,16 @@ probe/audio/
 core/pace/
 ├── pace_action.hpp/.cxx        # 动作与时钟健康度枚举 + PaceDecision（纯数据）
 ├── pace_policy.hpp/.cxx        # 阈值 + decide() 纯函数（可对表格逐条断言）
-├── pace_histogram.hpp/.cxx     # 有符号定宽直方图（1026 桶，零分配）
+├── pace_histogram.hpp/.cxx     # 有符号定宽直方图（1026 桶，零分配；P13-N：+ 分位数落在哪个桶 / 可能范围）
 ├── pace_stats.hpp/.cxx         # 聚合计数与分位数
+├── sampling_mode.hpp/.cxx      # P13-E：三个线格式口径名 + 「能不能跨帧率比」的唯一答案
+│                               # P13-G：+ 抽稀块的最小可用门槛（结构门，不是统计门）
+├── pace_drift_series.hpp/.cxx  # P13-D：按媒体时间抽稀 + 定长环形序列（P13-F：+ 累计极值点；P13-H：+ 累计媒体跨度；P13-I：+ 段内接受数，`truncated` 改判段口径；P13-M：`break_segment()` 由锚点重建驱动 + 段内最宽空洞）
+├── pace_drift_trend.hpp/.cxx   # P13-D：序列 → 窗口中位数 + 两道斜率 + r2（P13-J：+ 标准误与置信带；P13-N：+ 整批精确参照）
+├── pace_drift_window.hpp/.cxx  # P13-I：序列 → 窗口上的一份分布（趋势自带它回归过的那批点）
+├── pace_window_stats.hpp/.cxx  # P13-J：序列 → 切窗 + 每窗**精确**中位数（原始值 nth_element，桶只兜底）
+├── pace_hac.hpp/.cxx           # P13-K：给**已拟合的直线**算 Newey–West 斜率标准误 + 带宽 + ρ1
+├── pace_drift_budget.hpp/.cxx  # P13-L：斜率 → 累积纳秒 + 对着 45 ms 额度判三态（看得见 ≠ 要紧）
 ├── clock_position_tracker.hpp/.cxx  # 陈旧外推 / 跳变重锚 / 倒退钳制
 ├── frame_pacer.hpp/.cxx        # 编排：pts → due_at → 动作 → 等待 → 记账
 └── pace_now.hpp/.cxx           # NowFn / WaitFn（可注入，单测不真睡）
@@ -373,8 +381,15 @@ core/pace/
 | --- | --- | --- |
 | `pace_action.cxx` | 动作/健康度的可读名（进证据 JSON） | 不做判定 |
 | `pace_policy.cxx` | `(迟到量, 连迟帧数, 是否追帧) → 动作` | 不读时钟、不睡觉、不记账 |
-| `pace_histogram.cxx` | 桶计数、分位数、超阈值计数 | 不做业务判断 |
-| `pace_stats.cxx` | 把观察值聚合成 `PaceSummary` | 不碰时钟 |
+| `pace_histogram.cxx` | 桶计数、分位数、**分位数落在哪个桶与它可能的范围**（P13-N）、超阈值计数。`percentile_ns` / `percentile_bucket` / `percentile_range` 三者共用私有 `locate()` —— 各写一遍累加循环，迟早在秩边界上分家 | 不做业务判断，**不猜"真值更可能落在桶里哪一处"**（桶内分布未知，只报几何范围） |
+| `sampling_mode.cxx` | 定义"一份分位数是按什么节奏采的"这三个词，以及哪一份可跨帧率比；**并回答"这份抽稀数据成不成立、不成立是为什么"** | 不碰直方图、不碰时钟、不算统计量 |
+| `pace_stats.cxx` | 把观察值聚合成 `PaceSummary`（含两个口径的最差点） | 不碰时钟 |
+| `pace_drift_series.cxx` | 判定"这一帧要不要采"并写进定长环（判定与存储同处，不分两步）；**顺带 O(1) 维护累计极值点、累计媒体跨度、段内接受数、段内最宽空洞**；`break_segment()` 由**锚点重建事件**（`FramePacer::reset()`）驱动切段，`note()` 里的 pts 倒退只作兜底 | 不算趋势、不下结论、**不从 pts 推断"没换时间轴"**（向前 seek 必然漏） |
+| `pace_drift_trend.cxx` | 从序列算窗口与斜率（纯函数，输入只有点）；P13-N 起另给 `median_of_window_medians_ns` —— 8 窗中位数的中位数，作为整场桶中心 p50 的**精确参照**。**它的 `span_ns` 是窗口口径（封顶 102.35 s），不是整场跨度** —— 后者归 `DriftSeries::media_span_ns()` | 不碰时钟、不认识帧率；**不把 `median_of_window_medians` 当成全体中位数**（中位数不可合并，只在等样本窗时近似） |
+| `pace_drift_window.cxx` | 把序列里**还留着的**点重放成一份分布（`summarize_window`，纯函数）。回答"趋势描述的那一段，抖动是多少" | 不算趋势、不认识整场累计口径 |
+| `pace_window_stats.cxx` | 按媒体时间切窗 + 每窗的**精确**中位数（原始 `lateness_ns` 走 `nth_element`，桶只给超采样窗兜底并显式标记 `exact=false`）。回答"窗与窗之间到底差多少" | 不做回归、不判漂移、不认识帧率 |
+| `pace_hac.cxx` | 给一条**已经拟合好**的直线算 HAC（Bartlett 核）斜率标准误，附带宽 `L`、残差一阶自相关 ρ1、与 IID 方差之比。回答"这个斜率有多准" | 不拟合斜率、不改 r2、不认识窗口 —— 斜率由 `pace_drift_trend` 传进来 |
+| `pace_drift_budget.cxx` | 把 `ppm` 积回纳秒（点估计 + 置信带远端的保守上界），对着 45 ms 额度判 `unknown` / `within_budget` / `over_budget`。回答"看得见的那个漂移要紧吗" | 不改斜率、不改 SE、不判绝对偏移（那是分位数的事）、不做跨轮汇总 |
 | `clock_position_tracker.cxx` | 把 `AudioClockSource` 变成"可信、非递减的位置" | 不算 `due_at` |
 | `frame_pacer.cxx` | 建锚点、算 `due_at`、编排等待与记账 | 不碰 MediaCodec、不认识 `ANativeWindow` |
 | `pace_now.cxx` | `steady_clock` 纳秒 + `sleep_until` | 不含策略 |

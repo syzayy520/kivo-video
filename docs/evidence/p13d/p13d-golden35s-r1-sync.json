@@ -1,0 +1,184 @@
+{
+  "schema": "kivo.p12c.sync/3",
+  "generated_at_unix_ms": 1793347865068,
+  "device": {
+    "manufacturer": "Xiaomi",
+    "model": "M2012K11AC",
+    "device": "alioth",
+    "soc_model": "SM8250",
+    "sdk": "33",
+    "release": "13",
+    "abi": "arm64-v8a"
+  },
+  "codec": {
+    "video": "OMX.qcom.video.decoder.avc",
+    "audio": "c2.android.aac.decoder"
+  },
+  "source": {
+    "label": "golden_35s_av.mp4",
+    "bytes": 979879,
+    "has_video": true,
+    "has_audio": true,
+    "duration_us": 35000000,
+    "video": {"mime": "video/avc", "width": 640, "height": 360},
+    "audio": {"mime": "audio/mp4a-latm", "sample_rate": 48000, "channel_count": 2}
+  },
+  "frame_count": 1050,
+  "frames_dropped": 0,
+  "xrun_count": 0,
+  "clock_source": "audio_timestamp",
+  "timestamp_fallback_count": 0,
+  "av_drift": {
+    "measurable": true,
+    "measured_at": "present",
+    "definition": "(audio clock elapsed) - (video pts elapsed), sampled at present_at; positive means video is behind audio",
+    "sampling": {
+      "mode": "media_time_decimated",
+      "cross_frame_rate_set": "quantiles.media_time_decimated",
+      "interval_ns": 50000000,
+      "target_hz": 20,
+      "frames_observed": 1050,
+      "accepted": 700,
+      "skipped": 350,
+      "unobserved_cells": 0,
+      "observed_hz": 20.019066,
+      "reason": ""
+    },
+    "quantiles": {
+      "media_time_decimated": {
+        "samples": 700,
+        "p50": 125000,
+        "p95": 125000,
+        "p99": 1125000,
+        "max": 4645312,
+        "histogram": {
+          "count": 700,
+          "below": 0,
+          "above": 0,
+          "min_ns": 14584,
+          "max_ns": 4645312,
+          "bucket_width_ns": 250000,
+          "low_ns": -128000000,
+          "bucket_count": 1024,
+          "buckets": {"512":665,"513":19,"514":2,"515":4,"516":3,"517":1,"520":2,"523":1,"526":1,"527":1,"530":1}
+        }
+      },
+      "per_frame": {
+        "samples": 1050,
+        "p50": 125000,
+        "p95": 125000,
+        "p99": 1125000,
+        "max": 4645312,
+        "histogram": {
+          "count": 1050,
+          "below": 0,
+          "above": 0,
+          "min_ns": 14584,
+          "max_ns": 4645312,
+          "bucket_width_ns": 250000,
+          "low_ns": -128000000,
+          "bucket_count": 1024,
+          "buckets": {"512":1003,"513":26,"514":3,"515":5,"516":4,"517":3,"520":2,"523":1,"526":1,"527":1,"530":1}
+        }
+      }
+    },
+    "trend": {
+      "usable": true,
+      "unusable_reason": "",
+      "windows": 8,
+      "span_ns": 34966666000,
+      "segment_samples": 700,
+      "truncated": false,
+      "segments": 1,
+      "first_window_median_ns": 125000,
+      "last_window_median_ns": 125000,
+      "delta_median_ns": 0,
+      "slope_ppm": -1.066310,
+      "slope_from_windows_ppm": 0.000000,
+      "r2": 0.001141,
+      "window_start_ns": [0, 4370833250, 8741666500, 13112499750, 17483333000, 21854166250, 26224999500, 30595832750],
+      "window_median_ns": [125000, 125000, 125000, 125000, 125000, 125000, 125000, 125000],
+      "window_samples": [88, 87, 88, 87, 87, 88, 87, 88]
+    }
+  },
+  "present_jitter": {
+    "measured_at": "present",
+    "samples": 1049,
+    "p50": -125000,
+    "p95": 125000,
+    "p99": 875000,
+    "max": 4564229,
+    "histogram": {
+      "count": 1049,
+      "below": 0,
+      "above": 0,
+      "min_ns": -4560136,
+      "max_ns": 4564229,
+      "bucket_width_ns": 250000,
+      "low_ns": -128000000,
+      "bucket_count": 1024,
+      "buckets": {"493":1,"497":2,"501":1,"503":1,"505":1,"506":2,"507":1,"508":5,"509":5,"510":10,"511":511,"512":480,"513":9,"514":6,"515":4,"516":3,"517":2,"520":1,"522":1,"526":2,"530":1}
+    }
+  },
+  "timeline": {
+    "video_pts_span_ns": 34966317000,
+    "present_wall_span_ns": 34966714361,
+    "lead_correction_ns": 0,
+    "corrected_wall_span_ns": 34966714361,
+    "playback_rate": 0.999989,
+    "anchor_audio_position_ns": 36878802,
+    "audio_position_at_video_stop_ns": 35170902032,
+    "note": "playback_rate = media time / wall time between first and last hand-off, with the submit-lead ramp removed. The audio position at video stop includes teardown latency (poll interval + drain) and must not be compared against the pts span directly"
+  },
+  "anchor": {
+    "video_pts_ns": 0,
+    "audio_position_ns": 36878802,
+    "note": "av_drift is measured relative to this anchor; the constant absorbed here is audio_position_ns at the first video frame"
+  },
+  "video": {
+    "frames_received": 1051,
+    "frames_released": 1051,
+    "frames_rendered": 1050,
+    "frames_dropped_late": 0,
+    "frames_discarded_no_surface": 0,
+    "samples_submitted": 1050,
+    "samples_rejected": 0,
+    "wall_us": 34999922,
+    "first_frame_latency_us": 32328,
+    "decode_fps": 30.000067,
+    "speed_vs_realtime": 1.000002,
+    "pipeline_mode": "split",
+    "present_frames": true,
+    "present_schedule": "cpu_paced",
+    "surface_rebuild": {"rebuilds": 0, "gap_ms": -1, "resume_ms": -1, "frames_lead": 0}
+  },
+  "pace": {
+    "enabled": true,
+    "frames_decided": 1050,
+    "presented": 1050,
+    "dropped": 0,
+    "over_budget_frames": 0,
+    "frame_duration_ns": 33333000,
+    "derived_fps": 30.000300,
+    "lateness_ns": {"samples": 1050, "p50": 125000, "p99": 1125000, "max": 4645312},
+    "schedule_lead_ns": {"samples": 0, "p50": 0, "spread": 0},
+    "clock_health": {"extrapolated_frames": 0, "free_run_frames": 0, "jump_rebases": 0, "monotonic_rejects": 0},
+    "clock_mix": {"primary_frames": 1050, "fallback_frames": 0, "system_frames": 0}
+  },
+  "audio": {
+    "opened": true,
+    "started": true,
+    "negotiated": {"sample_rate": 48000, "channel_count": 2, "format": "pcm_float", "sharing": "shared", "performance": "low_latency", "frames_per_burst": 192},
+    "output_format": {"sample_rate": 48000, "channel_count": 2, "encoding": "pcm_s16le", "diverged": false},
+    "ring_capacity_frames": 16384,
+    "prefill_reached": true,
+    "startup_millis": 128,
+    "clock_start_ns": 0,
+    "clock_end_ns": 35344481354,
+    "feed": {"packets_submitted": 1642, "chunks_received": 1641, "frames_decoded": 1680384, "frames_written": 1680384, "frames_dropped": 0, "ring_full_waits": 28873, "reached_eos": true},
+    "output": {"callbacks": 9403, "frames_rendered": 1699200, "frames_silenced": 18816, "silence_head_frames": 0, "silence_tail_frames": 18816, "first_audible_frame": 0, "xrun_count": 0, "wall_millis": 35494},
+    "clock": {"queries": 1054, "published_timestamp": 1054, "published_frames_read": 0, "published_frames_written": 0, "published_frozen": 0, "timestamp_not_started": 0, "timestamp_fail": 0, "monotonic_rejects": 0, "jumps_clamped": 1, "latency_frames": 2736}
+  },
+  "completed": true,
+  "error": ""
+}

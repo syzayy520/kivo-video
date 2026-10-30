@@ -1,0 +1,223 @@
+{
+  "schema": "kivo.p12c.sync/8",
+  "generated_at_unix_ms": 1793355778738,
+  "device": {
+    "manufacturer": "Xiaomi",
+    "model": "M2012K11AC",
+    "device": "alioth",
+    "soc_model": "SM8250",
+    "sdk": "33",
+    "release": "13",
+    "abi": "arm64-v8a"
+  },
+  "codec": {
+    "video": "OMX.qcom.video.decoder.avc",
+    "audio": "c2.android.aac.decoder"
+  },
+  "source": {
+    "label": "p13h_360p30_130s_av.mp4",
+    "bytes": 16361090,
+    "has_video": true,
+    "has_audio": true,
+    "duration_us": 130000000,
+    "video": {"mime": "video/avc", "width": 640, "height": 360},
+    "audio": {"mime": "audio/mp4a-latm", "sample_rate": 48000, "channel_count": 1}
+  },
+  "frame_count": 3000,
+  "frames_dropped": 0,
+  "xrun_count": 0,
+  "clock_source": "audio_timestamp",
+  "timestamp_fallback_count": 0,
+  "av_drift": {
+    "measurable": true,
+    "measured_at": "present",
+    "definition": "(audio clock elapsed) - (video pts elapsed), sampled at present_at; positive means video is behind audio",
+    "sampling": {
+      "mode": "media_time_decimated",
+      "cross_frame_rate_set": "quantiles.media_time_decimated",
+      "interval_ns": 50000000,
+      "target_hz": 20,
+      "frames_observed": 4649,
+      "accepted": 3099,
+      "media_span_ns": 154866666000,
+      "skipped": 1550,
+      "unobserved_cells": 0,
+      "observed_hz": 20.010762,
+      "reason": ""
+    },
+    "quantiles": {
+      "media_time_decimated": {
+        "samples": 3099,
+        "p50": 125000,
+        "p95": 125000,
+        "p99": 375000,
+        "max": 7398271,
+        "worst": {
+          "index": 3074,
+          "of": 3099,
+          "media_ns": 128766666000,
+          "lateness_ns": 7398271
+        },
+        "histogram": {
+          "count": 3099,
+          "below": 0,
+          "above": 0,
+          "min_ns": -805260,
+          "max_ns": 7398271,
+          "bucket_width_ns": 250000,
+          "low_ns": -128000000,
+          "bucket_count": 1024,
+          "buckets": {"508":1,"512":3056,"513":18,"514":4,"516":1,"517":1,"518":3,"520":1,"521":4,"523":2,"524":1,"526":2,"529":1,"531":1,"533":1,"534":1,"541":1}
+        }
+      },
+      "per_frame": {
+        "samples": 4649,
+        "p50": 125000,
+        "p95": 125000,
+        "p99": 375000,
+        "max": 19502625,
+        "worst": {
+          "index": 1261,
+          "of": 4649,
+          "media_ns": 42033333000,
+          "lateness_ns": 19502625
+        },
+        "histogram": {
+          "count": 4649,
+          "below": 0,
+          "above": 0,
+          "min_ns": -805260,
+          "max_ns": 19502625,
+          "bucket_width_ns": 250000,
+          "low_ns": -128000000,
+          "bucket_count": 1024,
+          "buckets": {"508":1,"512":4587,"513":24,"514":8,"516":4,"517":2,"518":4,"519":1,"520":1,"521":4,"522":1,"523":2,"524":1,"526":2,"529":1,"531":1,"533":1,"534":1,"538":1,"541":1,"590":1}
+        }
+      }
+    },
+    "trend": {
+      "usable": true,
+      "unusable_reason": "",
+      "windows": 8,
+      "span_ns": 99966666000,
+      "capacity": 2048,
+      "segment_accepted": 2000,
+      "window_sample_count": 2000,
+      "truncated": false,
+      "segments": 2,
+      "first_window_median_ns": 73906,
+      "last_window_median_ns": 74001,
+      "delta_median_ns": 95,
+      "slope_ppm": 0.137157,
+      "slope_ppm_std_error": 0.210556,
+      "slope_ci_low_ppm": -0.275532,
+      "slope_ci_high_ppm": 0.549846,
+      "slope_detectable": false,
+      "slope_from_windows_ppm": -0.009691,
+      "window_median_exact": true,
+      "window_median_fallback_windows": 0,
+      "r2": 0.000212,
+      "window_start_ns": [30000000000, 42495833250, 54991666500, 67487499750, 79983333000, 92479166250, 104974999500, 117470832750],
+      "window_median_ns": [73906, 74261, 75302, 73532, 72605, 74167, 72960, 74001],
+      "window_samples": [250, 250, 250, 250, 250, 250, 250, 250],
+      "window_quantiles": {
+        "samples": 2000,
+        "p50": 125000,
+        "p95": 125000,
+        "p99": 375000,
+        "max": 7398271,
+        "histogram": {
+          "count": 2000,
+          "below": 0,
+          "above": 0,
+          "min_ns": -805260,
+          "max_ns": 7398271,
+          "bucket_width_ns": 250000,
+          "low_ns": -128000000,
+          "bucket_count": 1024,
+          "buckets": {"508":1,"512":1976,"513":9,"514":4,"516":1,"517":1,"523":2,"524":1,"526":2,"529":1,"531":1,"541":1}
+        }
+      }
+    }
+  },
+  "present_jitter": {
+    "measured_at": "present",
+    "samples": 4647,
+    "p50": -125000,
+    "p95": 125000,
+    "p99": 375000,
+    "max": 19413667,
+    "histogram": {
+      "count": 4647,
+      "below": 0,
+      "above": 0,
+      "min_ns": -33156344,
+      "max_ns": 19413667,
+      "bucket_width_ns": 250000,
+      "low_ns": -128000000,
+      "bucket_count": 1024,
+      "buckets": {"379":1,"434":1,"482":1,"486":1,"489":1,"491":1,"493":1,"495":1,"497":1,"498":1,"500":2,"501":1,"502":3,"503":1,"504":2,"505":3,"507":3,"508":3,"509":2,"510":21,"511":2301,"512":2244,"513":18,"514":4,"515":2,"516":4,"517":1,"518":4,"519":2,"521":5,"523":2,"525":1,"526":1,"528":1,"530":1,"532":2,"534":1,"541":1,"589":1}
+    }
+  },
+  "timeline": {
+    "video_pts_span_ns": 99965667000,
+    "present_wall_span_ns": 154909888534,
+    "lead_correction_ns": 0,
+    "corrected_wall_span_ns": 154909888534,
+    "playback_rate": 0.645315,
+    "anchor_audio_position_ns": 30072944229,
+    "audio_position_at_video_stop_ns": 130175043396,
+    "note": "playback_rate = media time / wall time between first and last hand-off, with the submit-lead ramp removed. The audio position at video stop includes teardown latency (poll interval + drain) and must not be compared against the pts span directly"
+  },
+  "anchor": {
+    "video_pts_ns": 30000000000,
+    "audio_position_ns": 30072944229,
+    "note": "av_drift is measured relative to this anchor; the constant absorbed here is audio_position_ns at the first video frame"
+  },
+  "video": {
+    "frames_received": 3001,
+    "frames_released": 3001,
+    "frames_rendered": 3000,
+    "frames_dropped_late": 0,
+    "frames_discarded_no_surface": 0,
+    "samples_submitted": 3000,
+    "samples_rejected": 0,
+    "wall_us": 99940855,
+    "first_frame_latency_us": 5744,
+    "decode_fps": 30.017754,
+    "speed_vs_realtime": 1.300769,
+    "pipeline_mode": "merged",
+    "present_frames": true,
+    "present_schedule": "cpu_paced",
+    "surface_rebuild": {"rebuilds": 0, "gap_ms": -1, "resume_ms": -1, "frames_lead": 0}
+  },
+  "pace": {
+    "enabled": true,
+    "frames_decided": 4649,
+    "presented": 4649,
+    "dropped": 0,
+    "over_budget_frames": 0,
+    "frame_duration_ns": 33333000,
+    "derived_fps": 30.000300,
+    "lateness_ns": {"samples": 4649, "p50": 125000, "p99": 375000, "max": 19502625},
+    "schedule_lead_ns": {"samples": 0, "p50": 0, "spread": 0},
+    "clock_health": {"extrapolated_frames": 1, "free_run_frames": 0, "jump_rebases": 0, "monotonic_rejects": 1},
+    "clock_mix": {"primary_frames": 4649, "fallback_frames": 0, "system_frames": 0}
+  },
+  "audio": {
+    "opened": true,
+    "started": true,
+    "negotiated": {"sample_rate": 48000, "channel_count": 1, "format": "pcm_float", "sharing": "shared", "performance": "low_latency", "frames_per_burst": 192},
+    "output_format": {"sample_rate": 48000, "channel_count": 1, "encoding": "pcm_s16le", "diverged": false},
+    "ring_capacity_frames": 16384,
+    "prefill_reached": true,
+    "startup_millis": 129,
+    "clock_start_ns": 0,
+    "clock_end_ns": 130309049802,
+    "feed": {"packets_submitted": 7292, "chunks_received": 7285, "frames_decoded": 7459840, "frames_written": 7459328, "frames_dropped": 512, "ring_full_waits": 134739, "reached_eos": true},
+    "output": {"callbacks": 41262, "frames_rendered": 7456320, "frames_silenced": 13376, "silence_head_frames": 0, "silence_tail_frames": 13376, "first_audible_frame": 0, "xrun_count": 0, "wall_millis": 155435},
+    "clock": {"queries": 4653, "published_timestamp": 4653, "published_frames_read": 0, "published_frames_written": 0, "published_frozen": 0, "timestamp_not_started": 0, "timestamp_fail": 0, "monotonic_rejects": 1, "jumps_clamped": 1, "latency_frames": 2736}
+  },
+  "completed": true,
+  "error": ""
+}
