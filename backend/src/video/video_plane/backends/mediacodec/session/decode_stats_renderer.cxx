@@ -4,6 +4,8 @@
 #include "video/video_plane/backends/mediacodec/source/encryption_facts.hpp"
 #include "video/video_plane/backends/mediacodec/source/encryption_key_names.hpp"
 #include "video/video_plane/core/seek/seek_budget.hpp"
+
+#include <string>
 #include "video/video_plane/backends/mediacodec/device/mediacodec_json_string_escaper.hpp"
 
 #include <cstdio>
@@ -43,10 +45,12 @@ namespace {
 ///   /5（C8）：加 `pace.clock_mix`（逐帧时钟分档）。
 ///            音画偏差**没有**加进这里：它等于 `lateness`，只在 `cpu_paced` 下成立，
 ///            单独放一份账会与 `lateness` 打架。要读它去看 `kivo.p12c.sync/1`。
+///   /15（P14-B）：`metrics.alloc` 增 `threads[] / thread_count / overflow_calls` ——
+///            把"5 次/秒"指认到具体线程。没有线程维度，G3 只能写"未达标"而无法指导改动。
 ///   /14（P14-A）：新增 `metrics` —— 三把以前没有的尺子（CPU 占比 / 堆分配次数 /
 ///            输出缓冲归属）。**每个都带可用性与理由**：这一族最容易把"没测到"
 ///            印成 0，而 0 看起来永远是好消息。
-constexpr const char* kSchema = "kivo.p12c.decode/14";
+constexpr const char* kSchema = "kivo.p12c.decode/15";
 
 /// 可选 int：`< 0` 一律写 `null`。
 /// E1 定的规矩（`08-p12-family-tree.md` §三之十二 第 3 条）：未知不写 0/-1，
@@ -366,7 +370,20 @@ std::string render_decode_stats_json(const DecodeStats& stats,
         << ", \"calls_total\": " << stats.metrics.alloc.calls_total
         << ", \"calls_steady\": " << stats.metrics.alloc.calls_steady
         << ", \"bytes_total\": " << stats.metrics.alloc.bytes_total
-        << ", \"bytes_steady\": " << stats.metrics.alloc.bytes_steady << "},\n";
+        << ", \"bytes_steady\": " << stats.metrics.alloc.bytes_steady
+        << ", \"thread_count\": " << stats.metrics.alloc.thread_count
+        // 溢出必须出版：没有它，"只有这几个线程分配过"和"后面的全丢了"分不开。
+        << ", \"overflow_calls\": " << stats.metrics.alloc.overflow_calls
+        << ", \"threads\": [";
+    for (std::int32_t index = 0; index < stats.metrics.alloc.thread_count; ++index) {
+        const auto& thread = stats.metrics.alloc.threads[static_cast<std::size_t>(index)];
+        out << (index == 0 ? "" : ", ") << "{\"tid\": " << thread.tid << ", \"name\": \""
+            << mediacodec::escape_json_string(std::string(thread.name))
+            << "\", \"calls\": " << thread.calls << ", \"bytes\": " << thread.bytes
+            << ", \"calls_steady\": " << thread.calls_steady
+            << ", \"bytes_steady\": " << thread.bytes_steady << "}";
+    }
+    out << "]},\n";
     out << "    \"buffers\": {\"pool_owner\": " << "\"" << escape_json_string(stats.metrics.buffers.pool_owner) << "\""
         << ", \"received\": " << stats.metrics.buffers.received
         << ", \"released\": " << stats.metrics.buffers.released

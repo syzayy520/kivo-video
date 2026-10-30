@@ -1,6 +1,6 @@
 {
-  "schema": "kivo.p12c.decode/14",
-  "generated_at_unix_ms": 1793393105717,
+  "schema": "kivo.p12c.decode/15",
+  "generated_at_unix_ms": 1793393730227,
   "source": {
     "mime": "video/avc",
     "width": 1920,
@@ -98,28 +98,28 @@
     "present": true,
     "present_schedule": "cpu_paced",
     "submit": {
-      "calls": 884,
-      "mean_us": 263.843891,
-      "total_us": 233238,
-      "max_us": 5855
+      "calls": 890,
+      "mean_us": 276.269663,
+      "total_us": 245880,
+      "max_us": 15748
     },
     "eos": {
       "calls": 1,
-      "mean_us": 119.000000,
-      "total_us": 119,
-      "max_us": 119
+      "mean_us": 199.000000,
+      "total_us": 199,
+      "max_us": 199
     },
     "receive": {
-      "calls": 490,
-      "mean_us": 142.779592,
-      "total_us": 69962,
-      "max_us": 4490
+      "calls": 494,
+      "mean_us": 167.253036,
+      "total_us": 82623,
+      "max_us": 5755
     },
     "release": {
       "calls": 481,
-      "mean_us": 272.943867,
-      "total_us": 131286,
-      "max_us": 8019
+      "mean_us": 253.972973,
+      "total_us": 122161,
+      "max_us": 1969
     }
   },
   "surface_rebuild": {
@@ -129,19 +129,19 @@
     "frames_lead": 0
   },
   "metrics": {
-    "cpu": {"valid": true, "reason": "", "wall_ns": 8103014476, "thread_cpu_ns": 121976971, "process_cpu_ns": 1505052126, "thread_ratio": 0.015053, "process_ratio": 0.185740},
-    "alloc": {"hook_installed": true, "armed": true, "calls_total": 50, "calls_steady": 43, "bytes_total": 10832, "bytes_steady": 10056},
+    "cpu": {"valid": true, "reason": "", "wall_ns": 8071023018, "thread_cpu_ns": 137874060, "process_cpu_ns": 1554102764, "thread_ratio": 0.017083, "process_ratio": 0.192553},
+    "alloc": {"hook_installed": true, "armed": true, "calls_total": 50, "calls_steady": 43, "bytes_total": 10832, "bytes_steady": 10056, "thread_count": 3, "overflow_calls": 0, "threads": [{"tid": 4089, "name": "com.kivo.cinema", "calls": 48, "bytes": 10768, "calls_steady": 41, "bytes_steady": 9992}, {"tid": 4255, "name": "", "calls": 1, "bytes": 32, "calls_steady": 1, "bytes_steady": 32}, {"tid": 4258, "name": "", "calls": 1, "bytes": 32, "calls_steady": 1, "bytes_steady": 32}]},
     "buffers": {"pool_owner": "codec", "received": 481, "released": 481, "in_flight": 0, "leaked": 0, "reason": ""}
   },
   "timing": {
-    "wall_us": 8019647,
-    "first_frame_latency_us": 47805,
-    "decode_fps": 59.853008,
-    "speed_vs_realtime": 0.997550
+    "wall_us": 8023733,
+    "first_frame_latency_us": 52247,
+    "decode_fps": 59.822529,
+    "speed_vs_realtime": 0.997042
   },
   "cold_start": {
     "applicable": true,
-    "first_frame_us": 47805,
+    "first_frame_us": 52247,
     "budget_us": 300000,
     "pass": true,
     "reason": null
@@ -165,15 +165,15 @@
     "lateness_ns": {
       "p50": 125000,
       "p95": 125000,
-      "p99": 625000,
-      "min": 13229,
-      "max": 2863130
+      "p99": 375000,
+      "min": 16146,
+      "max": 1580123
     },
     "interval_ns": {
       "p50": -125000,
       "p95": 125000,
       "p99": 375000,
-      "max": 2702584
+      "max": 1496542
     },
     "clock_mix": {
       "primary_frames": 480,
@@ -199,8 +199,8 @@
       "stale_readings": 0
     },
     "wait": {
-      "count": 479,
-      "total_ns": 7395961980
+      "count": 478,
+      "total_ns": 7392773900
     },
     "sampled_at_frames": 480
   }

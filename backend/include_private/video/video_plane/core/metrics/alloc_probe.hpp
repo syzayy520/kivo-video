@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <atomic>
 #include <cstdint>
 
@@ -61,6 +62,28 @@ void note_hook_installed() noexcept;
 
 }  // namespace alloc_probe
 
+/// 一个线程的分配账（P14-B）。
+///
+/// `calls/bytes` 是该线程**累计**值；`calls_steady` 的线程分解不在结构里，
+/// 因为稳态起点对每个线程都是同一刻（首帧渲染），减一次就够，不必存两份。
+struct ThreadAllocFacts {
+    std::int32_t tid = 0;
+    std::int64_t calls = 0;
+    std::int64_t bytes = 0;
+    /// 首帧渲染之后的调用数。**G3 的正主**：进程总量里混着 UI 轮询，
+    /// 只有按线程分开，才能说"播放线程是不是零分配"。
+    std::int64_t calls_steady = 0;
+    std::int64_t bytes_steady = 0;
+    /// 内核 `comm`（最长 15 字节）。**空不等于没有线程** —— 未命名的线程就是空。
+    char name[24] = {};
+};
+
+/// 槽表容量。8 个够用：播放会话里常驻的线程是 recv / submit / audio / poll / main。
+///
+/// 为什么是定长数组而不是 `unordered_map<tid, …>`：那本身要分配，
+/// 而我们正在 `operator new` 里面 —— 递归。定长数组是唯一安全的选择。
+inline constexpr std::int32_t kMaxTrackedThreads = 8;
+
 /// 进证据的分配事实。**事实与结论分开**：这里只有计数，不判"是否为零"。
 ///
 /// 放在 `alloc_probe` 之外：它是**证据形状**，不是探针的接口 ——
@@ -72,6 +95,16 @@ struct AllocFacts {
     std::int64_t calls_steady = 0;  ///< 首帧渲染之后的调用数 —— G3 判的是这个
     std::int64_t bytes_total = 0;
     std::int64_t bytes_steady = 0;
+
+    /// 按线程分解（P14-B）。这是"5 次/秒到底是谁"的唯一答案来源。
+    std::array<ThreadAllocFacts, kMaxTrackedThreads> threads{};
+    std::int32_t thread_count = 0;
+
+    /// 槽表满了之后落到"溢出"槽的调用数。
+    ///
+    /// 必须出版：没有它，"只有 8 个线程分配过"和"第 9 个线程之后全丢了"
+    /// 在证据里长得一模一样。
+    std::int64_t overflow_calls = 0;
 };
 
 [[nodiscard]] AllocFacts make_alloc_facts() noexcept;

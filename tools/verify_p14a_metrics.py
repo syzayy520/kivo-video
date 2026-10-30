@@ -11,6 +11,11 @@ M3 钩子装上      `alloc.hook_installed = true`。
 M4 缓冲归零      `buffers.in_flight = 0` 且 `leaked = 0`
 M5 账目一致      `buffers.received/released` 必须等于 `counters.frames_received/released`
                  —— 两个计数器各写一遍迟早分叉，这类"恒错字段"比缺字段更难发现
+N1 槽表够用      `thread_count >= 1` 且 `overflow_calls = 0`
+                 （溢出了就说明归因不完整，结论只能覆盖前 8 个线程）
+N2 分桶不漏账    `Σ threads[].calls == calls_total`
+N3 归因完整      `thread_count` 个槽里有调用数 > 0 的至少一个
+N4 稳态分桶      `Σ threads[].calls_steady == calls_steady`（无溢出时）
 
 用法：
     python tools/verify_p14a_metrics.py docs/evidence/p14a/*.json
@@ -90,11 +95,60 @@ def verify(path: Path) -> str:
             f"counters.frames_released({counters['frames_released']})"
         )
 
+    # ── N1/N2：线程分桶自证（P14-B）──
+    #
+    # `/14` 的证据没有线程维度（P14-A 时的形状）。**不重写历史证据** ——
+    # 重写等于伪造。这里显式跳过并在摘要里标注，而不是让它静默通过。
+    schema_index = 0
+    if "/" in schema:
+        try:
+            schema_index = int(schema.rsplit("/", 1)[1])
+        except ValueError:
+            schema_index = 0
+    threads = alloc.get("threads")
+    if threads is None and schema_index < 15:
+        return (
+            f"{path.name}: OK  cpu={cpu['thread_ratio']:.4f}/{process_ratio:.4f} "
+            f"alloc steady={alloc['calls_steady']}/{alloc['calls_total']} "
+            f"buffers={buffers['received']}->{buffers['released']} "
+            f"leaked={buffers['leaked']} | /{schema_index} 无线程分桶（豁免）"
+        )
+    if threads is None:
+        raise Failure("N1 缺 threads[]：没有线程维度就说不清那 5 次/秒是谁")
+    if int(alloc["thread_count"]) != len(threads):
+        raise Failure(
+            f"N1 thread_count({alloc['thread_count']}) != threads 数组长度({len(threads)})"
+        )
+    if int(alloc["thread_count"]) < 1:
+        raise Failure("N1 thread_count = 0：一次分配都没归到一个线程上")
+    if int(alloc.get("overflow_calls", 0)) != 0:
+        raise Failure(
+            f"N1 overflow_calls = {alloc['overflow_calls']}：线程超过 8 个，"
+            "归因只覆盖前 8 个，结论不完整"
+        )
+    bucket_total = sum(int(item["calls"]) for item in threads)
+    if bucket_total != int(alloc["calls_total"]):
+        raise Failure(
+            f"N2 分桶合计 {bucket_total} != calls_total {alloc['calls_total']}（有分配没归到槽里）"
+        )
+    if bucket_total > 0 and all(int(item["calls"]) == 0 for item in threads):
+        raise Failure("N3 有分配总量却每个桶都是 0")
+
+    # N4：稳态也要对得上。没有这一条，"总量分桶一致、但稳态分桶漏了"
+    # 会在证据里完全看不出来 —— 而 G3 判的正是稳态那一格。
+    steady_total = sum(int(item.get("calls_steady", 0)) for item in threads)
+    if int(alloc.get("overflow_calls", 0)) == 0 and steady_total != int(alloc["calls_steady"]):
+        raise Failure(
+            f"N4 稳态分桶合计 {steady_total} != calls_steady {alloc['calls_steady']}"
+        )
+
     return (
         f"{path.name}: OK  cpu={cpu['thread_ratio']:.4f}/{process_ratio:.4f} "
         f"(thread/proc) alloc steady={alloc['calls_steady']}/{alloc['calls_total']} "
         f"bytes={alloc['bytes_steady']} buffers={buffers['received']}->{buffers['released']} "
-        f"leaked={buffers['leaked']}"
+        f"leaked={buffers['leaked']} "
+        f"threads=" + ",".join(
+            f"{t['name'] or t['tid']}:{t.get('calls_steady', 0)}/{t['calls']}" for t in threads)
     )
 
 

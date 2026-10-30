@@ -14,6 +14,8 @@
 #include <cstdio>
 #include <cmath>
 #include <cstdlib>
+#include <thread>
+#include <vector>
 
 #include "video/video_plane/core/metrics/alloc_probe.hpp"
 #include "video/video_plane/core/metrics/buffer_lease_facts.hpp"
@@ -168,6 +170,59 @@ void t08_counts_only_between_arm_and_disarm() {
     metrics::alloc_probe::reset();
 }
 
+// ── ④ 线程归因（P14-B）──────────────────────────────────────────
+
+void t09_calls_are_attributed_to_the_calling_thread() {
+    metrics::alloc_probe::reset();
+    metrics::alloc_probe::arm();
+
+    // 三个线程，各记 10 次。主线程不记，好让断言干净。
+    std::vector<std::thread> workers;
+    for (int index = 0; index < 3; ++index) {
+        workers.emplace_back([] {
+            for (int call = 0; call < 10; ++call) {
+                metrics::alloc_probe::note_call(16);
+            }
+        });
+    }
+    for (std::thread& worker : workers) {
+        worker.join();
+    }
+
+    const metrics::AllocFacts facts = metrics::make_alloc_facts();
+    CHECK(facts.calls_total == 30);
+    CHECK(facts.thread_count == 3);      // 三个线程各占一槽
+    CHECK(facts.overflow_calls == 0);    // 8 个槽够用
+    std::int64_t sum = 0;
+    for (std::int32_t index = 0; index < facts.thread_count; ++index) {
+        sum += facts.threads[static_cast<std::size_t>(index)].calls;
+    }
+    // 分桶不漏账：合计必须等于总量，否则有一批分配没归到任何线程上。
+    CHECK(sum == facts.calls_total);
+    metrics::alloc_probe::reset();
+}
+
+void t10_slot_table_overflow_is_counted_not_lost() {
+    metrics::alloc_probe::reset();
+    metrics::alloc_probe::arm();
+
+    // 槽表 8 个：开 12 个线程，必然溢出。
+    std::vector<std::thread> workers;
+    for (int index = 0; index < 12; ++index) {
+        workers.emplace_back([] { metrics::alloc_probe::note_call(1); });
+    }
+    for (std::thread& worker : workers) {
+        worker.join();
+    }
+
+    const metrics::AllocFacts facts = metrics::make_alloc_facts();
+    CHECK(facts.calls_total == 12);
+    CHECK(facts.thread_count <= metrics::kMaxTrackedThreads);
+    // 溢出**必须被记下来**：否则"只有 8 个线程分配过"和"后面 4 个丢了"分不开。
+    CHECK(facts.overflow_calls == 12 - facts.thread_count);
+    metrics::alloc_probe::reset();
+}
+
 }  // namespace
 
 int main() {
@@ -184,6 +239,8 @@ int main() {
         {"06 零帧会话不算泄漏", t06_zero_frames_is_not_a_leak},
         {"07 归还多于取走要报红", t07_released_more_than_received_is_flagged},
         {"08 只在 arm 与 steady 之后计数", t08_counts_only_between_arm_and_disarm},
+        {"09 分配归到调用它的线程", t09_calls_are_attributed_to_the_calling_thread},
+        {"10 槽表溢出要计数不能丢", t10_slot_table_overflow_is_counted_not_lost},
     };
 
     for (const Case& item : cases) {

@@ -74,6 +74,8 @@ KNOWN_SCHEMAS = {
     # P14-A：新增 `metrics` —— CPU 占比 / 堆分配次数 / 输出缓冲归属。
     # 三项都带可用性与理由，`calls_steady = 0` 旁边必须有 `hook_installed`。
     "kivo.p12c.decode/14",
+    # P14-B：`metrics.alloc` 增线程分桶（threads / thread_count / overflow_calls）。
+    "kivo.p12c.decode/15",
     "kivo.p12c.sync/1",
     # P13-D：`av_drift` 的分位数改由"按媒体时间抽稀到 20 Hz"的分布给出，
     # 并新增 sampling / per_frame / trend 三块。`/1` 的证据不重写（重写等于伪造），
