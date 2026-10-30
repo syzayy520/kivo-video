@@ -47,6 +47,15 @@ QtObject {
         mode = PlaybackOverlayState.Visible
     }
 
+    function toggleVisible() {
+        if (sheetOpen || statusActive || paused) {
+            showVisible()
+            return
+        }
+        mode = mode === PlaybackOverlayState.Hidden ? PlaybackOverlayState.Visible
+                                                    : PlaybackOverlayState.Hidden
+    }
+
     function beginInteraction() {
         if (statusActive)
             return

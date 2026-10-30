@@ -16,7 +16,7 @@ Item {
 
     opacity: overlayVisible ? 1 : 0
     visible: opacity > 0
-    height: 116
+    height: 86
 
     Behavior on opacity {
         NumberAnimation {
@@ -27,14 +27,16 @@ Item {
 
     RowLayout {
         anchors.left: parent.left
-        anchors.leftMargin: 38
+        anchors.leftMargin: 34
         anchors.top: parent.top
-        anchors.topMargin: 32
-        spacing: 18
+        anchors.topMargin: 22
+        spacing: 14
 
         PlaybackIconButton {
-            iconName: "close"
-            tooltipText: "返回"
+            iconName: "chevronLeft"
+            tooltipText: qsTr("Back")
+            quiet: true
+            baseColor: Qt.rgba(1, 1, 1, 0.52)
             onClicked: root.backRequested()
             Layout.alignment: Qt.AlignVCenter
         }
@@ -42,15 +44,15 @@ Item {
         Column {
             id: titleColumn
 
-            Layout.preferredWidth: Math.min(root.width - 360, 760)
-            spacing: 4
+            Layout.preferredWidth: Math.min(root.width - 320, 680)
+            spacing: 2
 
             Text {
                 width: parent.width
                 text: root.title
                 visible: text.length > 0
-                color: Qt.rgba(1, 1, 1, 0.94)
-                font.pixelSize: PlaybackTypography.titleSize
+                color: Qt.rgba(1, 1, 1, 0.88)
+                font.pixelSize: Math.max(16, PlaybackTypography.titleSize - 2)
                 font.weight: Font.DemiBold
                 font.letterSpacing: 0
                 font.family: PlaybackTypography.uiFamily
@@ -64,7 +66,7 @@ Item {
                 width: parent.width
                 text: root.subtitle
                 visible: text.length > 0
-                color: Qt.rgba(1, 1, 1, 0.56)
+                color: Qt.rgba(1, 1, 1, 0.48)
                 font.pixelSize: PlaybackTypography.captionSize
                 font.weight: Font.Medium
                 font.letterSpacing: 0
@@ -79,15 +81,17 @@ Item {
 
     RowLayout {
         anchors.right: parent.right
-        anchors.rightMargin: 36
+        anchors.rightMargin: 34
         anchors.top: parent.top
-        anchors.topMargin: 28
+        anchors.topMargin: 22
         spacing: 6
 
         PlaybackIconButton {
             iconName: "more"
-            tooltipText: "更多"
+            tooltipText: qsTr("More")
             visible: root.moreAvailable
+            quiet: true
+            baseColor: Qt.rgba(1, 1, 1, 0.52)
             onClicked: function(source) { root.moreRequested(source) }
             Layout.preferredWidth: visible ? 42 : 0
         }

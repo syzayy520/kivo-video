@@ -17,10 +17,10 @@ FocusScope {
     property string subtitleSecondary: ""
     property bool subtitleEnabled: false
     property int subtitleDelayMs: 0
-    property string audioTrackLabel: ""
+    property var audioTrackLabel: ""
     property string versionLabel: ""
     property string currentEpisode: ""
-    property string selectedSubtitle: ""
+    property var selectedSubtitle: ""
     property var subtitleOptions: []
     property var audioTrackOptions: []
     property var episodeOptions: []
@@ -30,14 +30,28 @@ FocusScope {
     property bool isPlaying: !isPaused
     property bool isPaused: false
     property bool isBuffering: false
+    property bool isOpening: false
+    property string bufferReason: "none"
+    property int rebufferCount: 0
+    property string playbackState: ""
     property int bufferingSeconds: 0
     property bool isRecovering: false
     property bool hasError: false
-    property string errorUserMessage: "暂时无法播放"
+    property string errorUserMessage: qsTr("Playback unavailable")
     property string activeSheet: ""
     property real volume: 1.0
     property bool isMuted: false
+    property int audioDelayMs: 0
+    property real subtitleSize: 1.0
+    property real playbackSpeed: 1.0
+    property string aspectMode: "fit"
+    property string toneMappingMode: "auto"
     property bool fullscreenLike: false
+    property bool autoPlayNext: false
+    property bool playlistQueueConnected: false
+    property bool playlistHasPrevious: false
+    property bool playlistHasNext: false
+    property bool playlistHasNextEpisode: false
     property bool autoHideEnabled: true
     property bool showPlaceholderVideo: true
     property var runtimeAdapter: null
@@ -47,6 +61,16 @@ FocusScope {
     readonly property real durationSeconds: durationMs / 1000
     readonly property real positionSeconds: currentTimeMs / 1000
     readonly property real bufferedSeconds: durationSeconds * buffered
+    readonly property bool contextMenuOpen: contextMenu.visible
+    readonly property bool playbackStateClosed: playbackState === "NotCreated"
+                                                   || playbackState === "Closed"
+    readonly property bool playbackStateHasMedia: playbackState.length > 0
+                                                   && playbackState !== "NotCreated"
+                                                   && playbackState !== "Closed"
+    readonly property bool mediaContextAvailable: !playbackStateClosed
+                                                  && (durationMs > 0
+                                                  || title.length > 0
+                                                  || playbackStateHasMedia)
     property alias overlayState: overlay.stateModel
 
     signal requestPlayPause()
@@ -65,6 +89,7 @@ FocusScope {
     signal requestChooseVersion()
     signal requestShowReason()
     signal requestOpenFile()
+    signal requestOpenFolder()
     signal backRequested()
     signal playbackActionRequested(string actionName)
 
@@ -106,15 +131,71 @@ FocusScope {
     }
 
     function requestFullscreenThroughAdapter() {
+        if (!root.mediaContextAvailable && !root.fullscreenLike)
+            return false
         if (root.fullscreenLike)
             dispatchRuntimeCommand("exitFullscreen", [], "exitFullscreen")
         else
             dispatchRuntimeCommand("enterFullscreen", [], "enterFullscreen")
+        return true
+    }
+
+    function requestFullscreenGesture() {
+        if (overlay.stateModel.sheetOpen || overlay.stateModel.statusActive)
+            return false
+        if (!root.mediaContextAvailable && !root.fullscreenLike)
+            return false
+        overlay.stateModel.showVisible()
+        return root.requestFullscreenThroughAdapter()
+    }
+
+    function syncLoadingState() {
+        if (root.isOpening || root.isBuffering)
+            overlay.stateModel.setBuffering(root.bufferingSeconds)
+        else if (overlay.stateModel.statusKind === "buffering")
+            overlay.stateModel.clearStatus()
+    }
+
+    function optionCount(options) {
+        return options && options.length !== undefined ? options.length : 0
+    }
+
+    function sheetAvailable(sheetName) {
+        if (!root.mediaContextAvailable)
+            return false
+        if (sheetName === "subtitle" || sheetName === "audio")
+            return overlay.sheetAvailable(sheetName)
+        if (sheetName === "episodes")
+            return optionCount(root.episodeOptions) > 0
+        if (sheetName === "version")
+            return optionCount(root.versionOptions) > 0
+        if (sheetName === "settings" || sheetName === "more")
+            return overlay.sheetAvailable(sheetName)
+        return false
     }
 
     function requestSheetShortcut(shortcutName, sheetName) {
+        if (!sheetAvailable(sheetName))
+            return false
         dispatchShortcut(shortcutName)
         overlay.stateModel.toggleSheet(sheetName)
+        return true
+    }
+
+    function requestContextMenu(x, y) {
+        if (overlay.stateModel.sheetOpen) {
+            overlay.stateModel.closeSheet()
+            return false
+        }
+        if (overlay.stateModel.statusActive)
+            return false
+        overlay.stateModel.showVisible()
+        contextMenu.popup(x, y)
+        return true
+    }
+
+    function closeContextMenu() {
+        contextMenu.close()
     }
 
     width: 1280
@@ -128,19 +209,20 @@ FocusScope {
     VideoLayer {
         anchors.fill: parent
         visible: root.showPlaceholderVideo
+        z: 0
     }
 
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton | Qt.RightButton
+        z: 5
 
         onPositionChanged: overlay.stateModel.showVisible()
         onPressed: overlay.stateModel.showVisible()
         onClicked: function(mouse) {
             if (mouse.button === Qt.RightButton) {
-                overlay.stateModel.showVisible()
-                contextMenu.popup(mouse.x, mouse.y)
+                root.requestContextMenu(mouse.x, mouse.y)
                 return
             }
 
@@ -149,22 +231,23 @@ FocusScope {
                 return
             }
 
-            root.dispatchRuntimeCommand("togglePlayPause", [], "playPause")
+            overlay.stateModel.toggleVisible()
         }
         onDoubleClicked: {
-            overlay.stateModel.showVisible()
-            root.requestFullscreenThroughAdapter()
+            root.requestFullscreenGesture()
         }
     }
 
     PlaybackOverlay {
         id: overlay
         anchors.fill: parent
+        z: 10
         title: root.title
         seasonEpisode: root.seasonEpisode
         primarySubtitle: root.subtitleEnabled ? root.subtitlePrimary : ""
         secondarySubtitle: root.subtitleEnabled ? root.subtitleSecondary : ""
         fullscreen: root.fullscreenLike
+        playbackAvailable: root.mediaContextAvailable
         autoHideEnabled: root.autoHideEnabled
         volume: root.volume
         muted: root.isMuted
@@ -176,6 +259,14 @@ FocusScope {
         currentEpisode: root.currentEpisode
         selectedSubtitle: root.selectedSubtitle
         subtitleDelayMs: root.subtitleDelayMs
+        subtitleSize: root.subtitleSize
+        audioDelayMs: root.audioDelayMs
+        playbackSpeed: root.playbackSpeed
+        aspectMode: root.aspectMode
+        toneMappingMode: root.toneMappingMode
+        autoPlayNext: root.autoPlayNext
+        playlistHasNext: root.playlistHasNext
+        playlistHasNextEpisode: root.playlistHasNextEpisode
         subtitleOptions: root.subtitleOptions
         audioTrackOptions: root.audioTrackOptions
         episodeOptions: root.episodeOptions
@@ -210,10 +301,16 @@ FocusScope {
             root.requestFullscreenThroughAdapter()
         }
         onSheetActionRequested: function(actionName) {
-            root.playbackActionRequested(actionName)
+            if (actionName === "settings")
+                overlay.stateModel.openSheet("settings")
+            else
+                root.playbackActionRequested(actionName)
         }
         onSubtitleTrackRequested: function(trackId) {
-            root.dispatchRuntimeCommand("selectSubtitleTrack", [trackId], "selectSubtitleTrack")
+            if (Number(trackId) === 0)
+                root.dispatchRuntimeCommand("disableSubtitle", [], "disableSubtitle")
+            else
+                root.dispatchRuntimeCommand("selectSubtitleTrack", [trackId], "selectSubtitleTrack")
         }
         onSubtitleSizeRequested: function(size) {
             root.dispatchRuntimeCommand("setSubtitleSize", [size], "setSubtitleSize")
@@ -221,11 +318,26 @@ FocusScope {
         onSubtitleDelayRequested: function(delayMs) {
             root.dispatchRuntimeCommand("setSubtitleDelay", [delayMs], "setSubtitleDelay")
         }
+        onAudioDelayRequested: function(delayMs) {
+            root.dispatchRuntimeCommand("setAudioDelay", [delayMs], "setAudioDelay")
+        }
+        onPlaybackSpeedRequested: function(speed) {
+            root.dispatchRuntimeCommand("setPlaybackSpeed", [speed], "setPlaybackSpeed")
+        }
+        onAspectModeRequested: function(mode) {
+            root.dispatchRuntimeCommand("setAspectMode", [mode], "setAspectMode")
+        }
+        onToneMappingModeRequested: function(mode) {
+            root.dispatchRuntimeCommand("setToneMappingMode", [mode], "setToneMappingMode")
+        }
+        onAutoPlayNextRequested: function(enabled) {
+            root.dispatchRuntimeCommand("setAutoPlayNext", [enabled], "setAutoPlayNext")
+        }
         onAudioTrackRequested: function(trackId) {
             root.dispatchRuntimeCommand("selectAudioTrack", [trackId], "selectAudioTrack")
         }
         onEpisodeRequested: function(episodeId) {
-            root.dispatchOpenMediaId(episodeId, "openEpisode")
+            root.dispatchRuntimeCommand("playPlaylistItem", [episodeId], "playPlaylistItem")
         }
         onVersionRequested: function(versionId) {
             root.dispatchOpenMediaId(versionId, "openVersion")
@@ -235,7 +347,14 @@ FocusScope {
 
     PlaybackInputController {
         id: inputController
+        objectName: "playbackInputController"
         overlayState: overlay.stateModel
+        playbackAvailable: root.mediaContextAvailable
+        seekAvailable: root.mediaContextAvailable && root.durationMs > 0
+        subtitleAvailable: root.subtitleOptions.length > 0
+        audioAvailable: overlay.audioTrackChoiceAvailable
+        episodeAvailable: root.episodeOptions.length > 0
+        versionAvailable: root.versionOptions.length > 0
 
         onRequestPlayPause: {
             root.dispatchRuntimeCommand("togglePlayPause", [], "playPause")
@@ -273,42 +392,41 @@ FocusScope {
 
     PlaybackContextMenu {
         id: contextMenu
+        objectName: "playbackContextMenu"
+        seekAvailable: root.mediaContextAvailable && root.durationMs > 0
+        subtitleAvailable: root.subtitleOptions.length > 0
+        audioAvailable: overlay.audioTrackChoiceAvailable
+        episodeAvailable: root.episodeOptions.length > 0
+        versionAvailable: root.versionOptions.length > 0
+        playbackAvailable: root.mediaContextAvailable
+        moreAvailable: overlay.moreHubAvailable
+        openActionsAvailable: !root.mediaContextAvailable
 
         onRequestOpenFile: root.requestOpenFile()
+        onRequestOpenFolder: root.requestOpenFolder()
         onRequestPlayPause: {
             root.dispatchRuntimeCommand("togglePlayPause", [], "playPause")
         }
         onRequestSkipBackward: function(ms) {
+            if (!root.mediaContextAvailable || root.durationMs <= 0)
+                return
             root.dispatchRuntimeCommand("stepBackward", [ms], "rewind10")
         }
         onRequestSkipForward: function(ms) {
+            if (!root.mediaContextAvailable || root.durationMs <= 0)
+                return
             root.dispatchRuntimeCommand("stepForward", [ms], "forward10")
         }
-        onRequestSubtitleSheet: {
-            overlay.stateModel.openSheet("subtitle")
-            root.dispatchShortcut("subtitle")
-        }
-        onRequestAudioTrackSheet: {
-            overlay.stateModel.openSheet("audio")
-            root.dispatchShortcut("audioTrack")
-        }
-        onRequestEpisodeSheet: {
-            overlay.stateModel.openSheet("episodes")
-            root.requestEpisodeSheet()
-        }
-        onRequestVersionSheet: {
-            overlay.stateModel.openSheet("version")
-            root.requestVersionSheet()
+        onRequestMoreSheet: {
+            if (!overlay.openSheetIfAvailable("more"))
+                return
+            root.requestMoreSheet()
         }
     }
 
-    onIsBufferingChanged: {
-        if (isBuffering)
-            overlay.stateModel.setBuffering(bufferingSeconds)
-        else if (overlay.stateModel.statusKind === "buffering")
-            overlay.stateModel.clearStatus()
-    }
-    onBufferingSecondsChanged: if (isBuffering) overlay.stateModel.setBuffering(bufferingSeconds)
+    onIsBufferingChanged: syncLoadingState()
+    onIsOpeningChanged: syncLoadingState()
+    onBufferingSecondsChanged: if (isOpening || isBuffering) overlay.stateModel.setBuffering(bufferingSeconds)
     onIsRecoveringChanged: if (isRecovering) overlay.stateModel.setRecovering()
     onHasErrorChanged: if (hasError) overlay.stateModel.setError()
     onIsPausedChanged: overlay.stateModel.setPaused(isPaused)

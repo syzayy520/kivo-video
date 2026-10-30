@@ -7,10 +7,13 @@ Item {
     property real duration: 0
     property real position: 0
     property real bufferedPosition: 0
+    property bool timelineAvailable: false
     property url previewImageSource: ""
 
-    readonly property bool hovered: timelineMouse.containsMouse
-    readonly property bool dragging: timelineMouse.pressed
+    readonly property bool contentVisible: root.timelineAvailable
+    readonly property bool seekable: root.timelineAvailable && root.duration > 0
+    readonly property bool hovered: root.seekable && timelineMouse.containsMouse
+    readonly property bool dragging: root.seekable && timelineMouse.pressed
     property real hoverX: 0
 
     signal seekRequested(real seconds)
@@ -19,7 +22,8 @@ Item {
     signal dragStarted()
     signal dragEnded()
 
-    height: 58
+    implicitHeight: root.contentVisible ? 48 : 0
+    height: implicitHeight
 
     function clamp(value, minValue, maxValue) {
         return Math.max(minValue, Math.min(maxValue, value))
@@ -47,11 +51,13 @@ Item {
 
     Text {
         id: currentTime
+        objectName: "currentTime"
+        visible: root.contentVisible
         anchors.left: parent.left
         anchors.verticalCenter: barWrap.verticalCenter
         width: root.duration >= 3600 ? 72 : 52
-        text: root.formatTime(root.position)
-        color: Qt.rgba(1, 1, 1, 0.70)
+        text: root.contentVisible ? root.formatTime(root.position) : ""
+        color: Qt.rgba(1, 1, 1, 0.56)
         font.pixelSize: PlaybackTypography.timeSize
         font.weight: Font.DemiBold
         font.letterSpacing: 0
@@ -62,11 +68,13 @@ Item {
 
     Text {
         id: totalTime
+        objectName: "totalTime"
+        visible: root.contentVisible
         anchors.right: parent.right
         anchors.verticalCenter: barWrap.verticalCenter
         width: root.duration >= 3600 ? 72 : 52
-        text: root.formatTime(root.duration)
-        color: Qt.rgba(1, 1, 1, 0.70)
+        text: root.contentVisible ? (root.seekable ? root.formatTime(root.duration) : "--:--") : ""
+        color: Qt.rgba(1, 1, 1, root.seekable ? 0.56 : 0.36)
         font.pixelSize: PlaybackTypography.timeSize
         font.weight: Font.DemiBold
         font.letterSpacing: 0
@@ -77,6 +85,8 @@ Item {
 
     Item {
         id: barWrap
+        objectName: "barWrap"
+        visible: root.contentVisible
         anchors.left: currentTime.right
         anchors.leftMargin: 14
         anchors.right: totalTime.left
@@ -89,9 +99,9 @@ Item {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            height: root.hovered || root.dragging ? 5 : 2
+            height: root.hovered || root.dragging ? 4 : 2
             radius: height / 2
-            color: Qt.rgba(1, 1, 1, 0.16)
+            color: Qt.rgba(1, 1, 1, root.seekable ? 0.13 : 0.08)
 
             Behavior on height {
                 NumberAnimation {
@@ -107,7 +117,7 @@ Item {
             width: unplayed.width * root.clamp(root.bufferedPosition / Math.max(1, root.duration), 0, 1)
             height: unplayed.height
             radius: height / 2
-            color: Qt.rgba(1, 1, 1, 0.28)
+            color: Qt.rgba(1, 1, 1, 0.24)
         }
 
         Rectangle {
@@ -118,15 +128,15 @@ Item {
             radius: height / 2
             gradient: Gradient {
                 orientation: Gradient.Horizontal
-                GradientStop { position: 0.0; color: "#ffffff" }
-                GradientStop { position: 1.0; color: "#d9dde4" }
+                GradientStop { position: 0.0; color: "#f7f8fb" }
+                GradientStop { position: 1.0; color: "#d4d8df" }
             }
         }
 
         Rectangle {
-            width: 7
-            height: 7
-            radius: 3.5
+            width: 8
+            height: 8
+            radius: 4
             x: root.clamp((root.position / Math.max(1, root.duration)) * unplayed.width - width / 2, -width / 2, unplayed.width - width / 2)
             anchors.verticalCenter: unplayed.verticalCenter
             opacity: root.hovered || root.dragging ? 1 : 0
@@ -142,9 +152,11 @@ Item {
 
         MouseArea {
             id: timelineMouse
+            objectName: "timelineMouse"
             anchors.fill: parent
             hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
+            enabled: root.seekable
+            cursorShape: root.seekable ? Qt.PointingHandCursor : Qt.ArrowCursor
 
             onEntered: root.hoverStarted()
             onExited: root.hoverEnded()
@@ -166,7 +178,7 @@ Item {
 
         Item {
             id: previewBubble
-            visible: root.dragging
+            visible: root.seekable && root.dragging
             width: root.previewImageSource == "" ? timeBubble.implicitWidth + 22 : 208
             height: root.previewImageSource == "" ? 30 : 148
             x: root.clamp(root.hoverX - width / 2, 0, Math.max(0, barWrap.width - width))

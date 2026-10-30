@@ -6,15 +6,16 @@ PlaybackSheet {
     property string currentEpisode: ""
     property var episodes: []
 
-    signal episodeRequested(string episodeId)
+    signal episodeRequested(var itemIndex)
 
-    title: "选集"
+    title: qsTr("Episodes")
 
     Repeater {
         model: root.episodes
 
         Item {
             property string episodeId: modelData.episodeId || ""
+            property var itemIndex: modelData.itemIndex === undefined ? -1 : modelData.itemIndex
             property string episodeName: modelData.name || ""
             property string durationText: modelData.durationText || ""
             property real progress: modelData.progress === undefined ? 0 : modelData.progress
@@ -80,7 +81,7 @@ PlaybackSheet {
                 anchors.right: parent.right
                 anchors.rightMargin: 12
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.currentEpisode === episodeId ? "当前" : durationText
+                text: root.currentEpisode === episodeId ? qsTr("Current") : durationText
                 color: root.currentEpisode === episodeId ? Qt.rgba(0.96, 0.92, 0.84, 0.92) : Qt.rgba(1, 1, 1, 0.50)
                 font.pixelSize: 12
                 font.weight: Font.Medium
@@ -93,7 +94,7 @@ PlaybackSheet {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
 
-                onClicked: root.episodeRequested(episodeId)
+                onClicked: root.episodeRequested(itemIndex)
             }
         }
     }

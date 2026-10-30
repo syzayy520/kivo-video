@@ -9,12 +9,17 @@ Item {
     property bool controlsVisible: false
     property bool sheetOpen: false
     property bool statusActive: false
+    property real textScale: 1.0
 
     anchors.fill: parent
-    visible: primaryText.length > 0 || secondaryText.length > 0
+    visible: root.subtitleVisible
 
     readonly property real safeBottom: parent ? parent.height * 0.11 : 86
-    readonly property real liftedBottom: sheetOpen ? 250 : (controlsVisible || statusActive ? 176 : safeBottom)
+    readonly property real liftedBottom: sheetOpen ? 250 : (controlsVisible ? 176 : safeBottom)
+    readonly property real boundedTextScale: Math.max(0.75, Math.min(1.60, textScale))
+    readonly property bool subtitleVisible: !root.statusActive
+                                            && (root.primaryText.length > 0
+                                                || root.secondaryText.length > 0)
 
     Column {
         id: subtitleColumn
@@ -30,7 +35,8 @@ Item {
             text: root.primaryText
             visible: text.length > 0
             color: Qt.rgba(1, 1, 1, 0.96)
-            font.pixelSize: PlaybackTypography.subtitlePrimarySize
+            font.pixelSize: Math.round(PlaybackTypography.subtitlePrimarySize
+                                       * root.boundedTextScale)
             font.weight: Font.Bold
             font.letterSpacing: 0
             font.family: PlaybackTypography.cjkFamily
@@ -48,7 +54,8 @@ Item {
             text: root.secondaryText
             visible: text.length > 0
             color: Qt.rgba(1, 1, 1, 0.82)
-            font.pixelSize: PlaybackTypography.subtitleSecondarySize
+            font.pixelSize: Math.round(PlaybackTypography.subtitleSecondarySize
+                                       * root.boundedTextScale)
             font.weight: Font.Medium
             font.letterSpacing: 0
             font.family: PlaybackTypography.uiFamily

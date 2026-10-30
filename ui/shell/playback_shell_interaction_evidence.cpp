@@ -31,20 +31,15 @@ struct CommandOutcome {
 struct QmlPageState {
     int current_time_ms{0};
     int subtitle_delay_ms{0};
+    double subtitle_size{1.0};
     double volume{1.0};
     bool is_paused{true};
     bool adapter_bound{false};
 };
 
 [[nodiscard]] QString classify_failed_command(const QString& command) {
-    static const QStringList typed_only{
-        QStringLiteral("enterFullscreen"),
-        QStringLiteral("exitFullscreen"),
-        QStringLiteral("previous"),
-        QStringLiteral("next"),
-    };
-    return typed_only.contains(command) ? QStringLiteral("typed-only")
-                                        : QStringLiteral("rejected");
+    Q_UNUSED(command);
+    return QStringLiteral("rejected");
 }
 
 [[nodiscard]] QJsonObject variant_map_to_json(const QVariantMap& map) {
@@ -58,6 +53,7 @@ struct QmlPageState {
     }
     state.current_time_ms = page->property("currentTimeMs").toInt();
     state.subtitle_delay_ms = page->property("subtitleDelayMs").toInt();
+    state.subtitle_size = page->property("subtitleSize").toDouble();
     state.volume = page->property("volume").toDouble();
     state.is_paused = page->property("isPaused").toBool();
     state.adapter_bound = page->property("adapterSnapshotBound").toBool();
@@ -108,15 +104,15 @@ void pump_events(const int ms) {
     if (page == nullptr) {
         return false;
     }
-    bool ok = false;
+    QVariant ok;
     const bool invoked = QMetaObject::invokeMethod(
         page,
         "dispatchRuntimeCommand",
-        Q_RETURN_ARG(bool, ok),
+        Q_RETURN_ARG(QVariant, ok),
         Q_ARG(QVariant, method_name),
         Q_ARG(QVariant, QVariant::fromValue(args)),
         Q_ARG(QVariant, method_name));
-    return invoked && ok;
+    return invoked && ok.toBool();
 }
 
 void record_bridge_command(
@@ -134,7 +130,8 @@ void record_bridge_command(
 
 [[nodiscard]] QVector<CommandOutcome> run_command_sequence(
     PlaybackShellRuntimeAdapterBridge* const bridge,
-    QObject* const page) {
+    QObject* const page,
+    QVariantMap* const snapshot_before_close) {
     QVector<CommandOutcome> outcomes;
     record_bridge_command(outcomes, QStringLiteral("openMediaId"), bridge, bridge->openMediaId(42));
     pump_events(80);
@@ -165,7 +162,40 @@ void record_bridge_command(
     record_bridge_command(
         outcomes, QStringLiteral("setSubtitleDelay"), bridge, bridge->setSubtitleDelay(120));
     pump_events(80);
+    record_bridge_command(
+        outcomes, QStringLiteral("setSubtitleSize"), bridge, bridge->setSubtitleSize(1.18));
+    pump_events(80);
+    record_bridge_command(
+        outcomes, QStringLiteral("selectSubtitleTrack"), bridge, bridge->selectSubtitleTrack(1));
+    pump_events(80);
+    record_bridge_command(
+        outcomes, QStringLiteral("disableSubtitle"), bridge, bridge->disableSubtitle());
+    pump_events(80);
     record_bridge_command(outcomes, QStringLiteral("setVolume"), bridge, bridge->setVolume(0.75));
+    pump_events(80);
+    record_bridge_command(
+        outcomes, QStringLiteral("setPlaybackSpeed"), bridge, bridge->setPlaybackSpeed(1.25));
+    pump_events(80);
+    record_bridge_command(
+        outcomes, QStringLiteral("setAspectMode"), bridge, bridge->setAspectMode(QStringLiteral("fill")));
+    pump_events(80);
+    record_bridge_command(outcomes,
+                          QStringLiteral("setToneMappingMode"),
+                          bridge,
+                          bridge->setToneMappingMode(QStringLiteral("sdr")));
+    pump_events(80);
+    record_bridge_command(
+        outcomes, QStringLiteral("setAudioDelay"), bridge, bridge->setAudioDelay(80));
+    pump_events(80);
+    record_bridge_command(outcomes, QStringLiteral("previous"), bridge, bridge->previous());
+    pump_events(80);
+    record_bridge_command(outcomes, QStringLiteral("next"), bridge, bridge->next());
+    pump_events(80);
+    record_bridge_command(
+        outcomes, QStringLiteral("playNextEpisode"), bridge, bridge->playNextEpisode());
+    pump_events(80);
+    record_bridge_command(
+        outcomes, QStringLiteral("setAutoPlayNext"), bridge, bridge->setAutoPlayNext(true));
     pump_events(80);
     record_bridge_command(
         outcomes, QStringLiteral("copyDiagnostics"), bridge, bridge->copyDiagnostics());
@@ -173,6 +203,9 @@ void record_bridge_command(
     record_bridge_command(
         outcomes, QStringLiteral("enterFullscreen"), bridge, bridge->enterFullscreen());
     pump_events(80);
+    if (snapshot_before_close != nullptr) {
+        *snapshot_before_close = bridge->pullSnapshot();
+    }
     record_bridge_command(outcomes, QStringLiteral("close"), bridge, bridge->close());
     pump_events(80);
     record_bridge_command(outcomes, QStringLiteral("play"), bridge, bridge->play());
@@ -205,7 +238,9 @@ void schedule_interaction_evidence(
         const QVariantMap snapshot_before = bridge->pullSnapshot();
         const QmlPageState qml_before = read_qml_page_state(page);
 
-        const QVector<CommandOutcome> outcomes = run_command_sequence(bridge, page);
+        QVariantMap snapshot_before_close;
+        const QVector<CommandOutcome> outcomes =
+            run_command_sequence(bridge, page, &snapshot_before_close);
         pump_events(400);
 
         const QVariantMap snapshot_after = bridge->pullSnapshot();
@@ -214,6 +249,7 @@ void schedule_interaction_evidence(
         const bool qml_state_updated =
             qml_before.current_time_ms != qml_after.current_time_ms
             || qml_before.subtitle_delay_ms != qml_after.subtitle_delay_ms
+            || qml_before.subtitle_size != qml_after.subtitle_size
             || qml_before.volume != qml_after.volume || qml_before.is_paused != qml_after.is_paused;
 
         const QString screenshot_path =
@@ -243,10 +279,13 @@ void schedule_interaction_evidence(
             {QStringLiteral("commands_executed"), commands},
             {QStringLiteral("command_results"), command_results},
             {QStringLiteral("snapshot_before"), variant_map_to_json(snapshot_before)},
+            {QStringLiteral("snapshot_before_close"),
+             variant_map_to_json(snapshot_before_close)},
             {QStringLiteral("snapshot_after"), variant_map_to_json(snapshot_after)},
             {QStringLiteral("qml_state_before"), QJsonObject{
                  {QStringLiteral("currentTimeMs"), qml_before.current_time_ms},
                  {QStringLiteral("subtitleDelayMs"), qml_before.subtitle_delay_ms},
+                 {QStringLiteral("subtitleSize"), qml_before.subtitle_size},
                  {QStringLiteral("volume"), qml_before.volume},
                  {QStringLiteral("isPaused"), qml_before.is_paused},
                  {QStringLiteral("adapterSnapshotBound"), qml_before.adapter_bound},
@@ -254,6 +293,7 @@ void schedule_interaction_evidence(
             {QStringLiteral("qml_state_after"), QJsonObject{
                  {QStringLiteral("currentTimeMs"), qml_after.current_time_ms},
                  {QStringLiteral("subtitleDelayMs"), qml_after.subtitle_delay_ms},
+                 {QStringLiteral("subtitleSize"), qml_after.subtitle_size},
                  {QStringLiteral("volume"), qml_after.volume},
                  {QStringLiteral("isPaused"), qml_after.is_paused},
                  {QStringLiteral("adapterSnapshotBound"), qml_after.adapter_bound},

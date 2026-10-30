@@ -11,13 +11,15 @@ Item {
     property bool quiet: true
     property color baseColor: Qt.rgba(1, 1, 1, 0.66)
     property color hoverColor: Qt.rgba(1, 1, 1, 0.96)
+    readonly property bool containsMouse: mouseArea.containsMouse
 
     signal clicked(var source)
 
-    width: prominent ? 52 : 44
-    height: 44
+    width: prominent ? 56 : 42
+    height: prominent ? 56 : 42
     enabled: buttonEnabled
     scale: mouseArea.pressed ? 0.97 : 1.0
+    opacity: buttonEnabled ? 1.0 : 0.36
 
     Accessible.role: Accessible.Button
     Accessible.name: tooltipText
@@ -31,25 +33,51 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 12
-        color: {
-            if (!root.quiet)
-                return mouseArea.containsMouse || root.checked ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.04)
-            return mouseArea.containsMouse || root.checked ? Qt.rgba(1, 1, 1, 0.07) : "transparent"
+        anchors.margins: root.prominent ? 1 : 3
+        radius: width / 2
+        color: root.prominent
+               ? Qt.rgba(1, 1, 1, mouseArea.containsMouse ? 0.18 : 0.12)
+               : Qt.rgba(1, 1, 1, mouseArea.containsMouse || root.checked
+                                ? (root.quiet ? 0.055 : 0.09)
+                                : 0)
+        border.color: root.prominent ? Qt.rgba(1, 1, 1, 0.16) : "transparent"
+        border.width: root.prominent ? 1 : 0
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 100
+                easing.type: Easing.OutCubic
+            }
         }
-        border.color: "transparent"
-        border.width: 1
+    }
+
+    Rectangle {
+        anchors.centerIn: parent
+        width: root.prominent ? 48 : 0
+        height: width
+        radius: width / 2
+        color: "transparent"
+        border.color: Qt.rgba(1, 1, 1, 0.08)
+        border.width: root.prominent ? 1 : 0
+        opacity: root.prominent ? 1 : 0
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 90
+                easing.type: Easing.OutCubic
+            }
+        }
     }
 
     PlaybackIconSet {
         anchors.centerIn: parent
-        width: root.prominent ? 26 : 21
-        height: root.prominent ? 26 : 21
+        width: root.prominent ? 30 : 22
+        height: root.prominent ? 30 : 22
         iconName: root.iconName
         strokeColor: root.prominent
                      ? Qt.rgba(1, 1, 1, mouseArea.containsMouse ? 1.0 : 0.92)
                      : (mouseArea.containsMouse || root.checked ? root.hoverColor : root.baseColor)
-        strokeWidth: root.prominent ? 1.65 : 1.65
+        strokeWidth: root.prominent ? 1.9 : 1.65
     }
 
     MouseArea {

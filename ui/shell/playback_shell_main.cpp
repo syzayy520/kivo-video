@@ -1,4 +1,3 @@
-#include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QDir>
@@ -14,130 +13,17 @@
 #include <QUrl>
 
 #include "playback_shell_continuous_playback_evidence.hpp"
+#include "playback_shell_evidence_options.hpp"
 #include "playback_shell_interaction_evidence.hpp"
+#include "playback_shell_manual_media_open_controller.hpp"
 #include "playback_shell_media_resolver.hpp"
+#include "playback_shell_normal_media_launch.hpp"
 #include "playback_shell_playback_evidence.hpp"
 #include "playback_shell_qml_registration.hpp"
 #include "playback_shell_qt_platform_bootstrap.hpp"
 #include "playback_shell_runtime_context.hpp"
 
 namespace {
-
-struct ShellEvidenceOptions {
-    bool ui_open_enabled{false};
-    QString ui_open_dir;
-    int ui_open_close_ms{1500};
-    bool interaction_enabled{false};
-    QString interaction_dir;
-    int interaction_close_ms{1200};
-    bool playback_enabled{false};
-    QString playback_dir;
-    QString media_path;
-    int playback_close_ms{1500};
-    bool continuous_playback_enabled{false};
-    QString continuous_playback_dir;
-    int continuous_duration_ms{5000};
-    int continuous_close_ms{500};
-};
-
-[[nodiscard]] ShellEvidenceOptions parse_shell_evidence_options(QCommandLineParser& parser) {
-    ShellEvidenceOptions options{};
-    parser.addOption(QCommandLineOption(
-        QStringList{QStringLiteral("ui-open-evidence")},
-        QStringLiteral("Capture UI_OPEN screenshot evidence to directory"),
-        QStringLiteral("dir")));
-    parser.addOption(QCommandLineOption(
-        QStringList{QStringLiteral("ui-open-close-ms")},
-        QStringLiteral("Auto-close delay after screenshot"),
-        QStringLiteral("ms"),
-        QStringLiteral("1500")));
-    parser.addOption(QCommandLineOption(
-        QStringList{QStringLiteral("interaction-evidence")},
-        QStringLiteral("Capture shell runtime interaction evidence to directory"),
-        QStringLiteral("dir")));
-    parser.addOption(QCommandLineOption(
-        QStringList{QStringLiteral("interaction-close-ms")},
-        QStringLiteral("Auto-close delay after interaction evidence"),
-        QStringLiteral("ms"),
-        QStringLiteral("1200")));
-    parser.addOption(QCommandLineOption(
-        QStringList{QStringLiteral("playback-evidence")},
-        QStringLiteral("Capture real local media playback evidence to directory"),
-        QStringLiteral("dir")));
-    parser.addOption(QCommandLineOption(
-        QStringList{QStringLiteral("media")},
-        QStringLiteral("Local media file path for playback evidence mode"),
-        QStringLiteral("path")));
-    parser.addOption(QCommandLineOption(
-        QStringList{QStringLiteral("playback-close-ms")},
-        QStringLiteral("Auto-close delay after playback evidence"),
-        QStringLiteral("ms"),
-        QStringLiteral("1500")));
-    parser.addOption(QCommandLineOption(
-        QStringList{QStringLiteral("continuous-playback-evidence")},
-        QStringLiteral("Capture continuous local media playback evidence to directory"),
-        QStringLiteral("dir")));
-    parser.addOption(QCommandLineOption(
-        QStringList{QStringLiteral("duration-ms")},
-        QStringLiteral("Continuous playback observation duration"),
-        QStringLiteral("ms"),
-        QStringLiteral("5000")));
-    parser.addOption(QCommandLineOption(
-        QStringList{QStringLiteral("continuous-close-ms")},
-        QStringLiteral("Auto-close delay after continuous playback evidence"),
-        QStringLiteral("ms"),
-        QStringLiteral("500")));
-    parser.process(*QCoreApplication::instance());
-
-    if (parser.isSet(QStringLiteral("ui-open-evidence"))) {
-        options.ui_open_enabled = true;
-        options.ui_open_dir = parser.value(QStringLiteral("ui-open-evidence"));
-        options.ui_open_close_ms = parser.value(QStringLiteral("ui-open-close-ms")).toInt();
-        if (options.ui_open_close_ms < 0) {
-            options.ui_open_close_ms = 1500;
-        }
-    }
-    if (parser.isSet(QStringLiteral("interaction-evidence"))) {
-        options.interaction_enabled = true;
-        options.interaction_dir = parser.value(QStringLiteral("interaction-evidence"));
-        options.interaction_close_ms = parser.value(QStringLiteral("interaction-close-ms")).toInt();
-        if (options.interaction_close_ms < 0) {
-            options.interaction_close_ms = 1200;
-        }
-    }
-    if (parser.isSet(QStringLiteral("playback-evidence"))) {
-        options.playback_enabled = true;
-        options.playback_dir = parser.value(QStringLiteral("playback-evidence"));
-        options.playback_close_ms = parser.value(QStringLiteral("playback-close-ms")).toInt();
-        if (options.playback_close_ms < 0) {
-            options.playback_close_ms = 1500;
-        }
-        if (parser.isSet(QStringLiteral("media"))) {
-            options.media_path = parser.value(QStringLiteral("media"));
-        } else if (qEnvironmentVariableIsSet("KIVO_P10_MEDIA")) {
-            options.media_path = qEnvironmentVariable("KIVO_P10_MEDIA");
-        }
-    }
-    if (parser.isSet(QStringLiteral("continuous-playback-evidence"))) {
-        options.continuous_playback_enabled = true;
-        options.continuous_playback_dir =
-            parser.value(QStringLiteral("continuous-playback-evidence"));
-        options.continuous_duration_ms = parser.value(QStringLiteral("duration-ms")).toInt();
-        if (options.continuous_duration_ms < 0) {
-            options.continuous_duration_ms = 5000;
-        }
-        options.continuous_close_ms = parser.value(QStringLiteral("continuous-close-ms")).toInt();
-        if (options.continuous_close_ms < 0) {
-            options.continuous_close_ms = 500;
-        }
-        if (parser.isSet(QStringLiteral("media"))) {
-            options.media_path = parser.value(QStringLiteral("media"));
-        } else if (qEnvironmentVariableIsSet("KIVO_P10_MEDIA")) {
-            options.media_path = qEnvironmentVariable("KIVO_P10_MEDIA");
-        }
-    }
-    return options;
-}
 
 [[nodiscard]] QString resolve_source_root() {
     const QString app_dir = QCoreApplication::applicationDirPath();
@@ -153,7 +39,9 @@ struct ShellEvidenceOptions {
     return QStringLiteral("C:/kivo video");
 }
 
-void schedule_ui_open_evidence(QQuickWindow* const window, const ShellEvidenceOptions& options) {
+void schedule_ui_open_evidence(
+    QQuickWindow* const window,
+    const kivo::ui::shell::ShellEvidenceOptions& options) {
     if (!options.ui_open_enabled) {
         return;
     }
@@ -196,8 +84,10 @@ int main(int argc, char* argv[]) {
 
     QCommandLineParser parser;
     parser.setApplicationDescription(QStringLiteral("Kivo Video Playback Shell"));
+    parser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
     parser.addHelpOption();
-    const ShellEvidenceOptions evidence_options = parse_shell_evidence_options(parser);
+    const auto evidence_options =
+        kivo::ui::shell::parse_shell_evidence_options(parser);
 
     kivo::ui::shell::PlaybackShellRuntimeContext runtime_context;
     auto* const bridge = runtime_context.bridge();
@@ -216,6 +106,9 @@ int main(int argc, char* argv[]) {
     }
 
     engine.rootContext()->setContextProperty(QStringLiteral("shellRuntimeAdapter"), bridge);
+    kivo::ui::shell::PlaybackShellManualMediaOpenController manual_media_open(bridge);
+    engine.rootContext()->setContextProperty(QStringLiteral("shellManualMediaOpenController"),
+                                             &manual_media_open);
     engine.rootContext()->setContextProperty(QStringLiteral("playbackPageUrl"),
                                              registration.playback_page_url);
 
@@ -241,6 +134,7 @@ int main(int argc, char* argv[]) {
         qCritical() << "Playback shell root is not a window";
         return 5;
     }
+    bridge->bindWindow(window);
 
     schedule_ui_open_evidence(window, evidence_options);
     if (evidence_options.interaction_enabled) {
@@ -300,6 +194,17 @@ int main(int argc, char* argv[]) {
             runtime_context.adapter(),
             continuous,
             registration.playback_page_url);
+    }
+    if (evidence_options.normal_media_enabled) {
+        const auto resolved =
+            kivo::ui::shell::resolve_playback_media_path(evidence_options.media_path);
+        kivo::ui::shell::NormalMediaLaunchOptions normal{};
+        normal.media_path = resolved.original_path;
+        normal.selected_media_file = resolved.selected_file;
+        normal.media_original_exists = resolved.original_exists;
+        normal.selected_media_exists = resolved.selected_exists;
+        normal.media_resolve_error = resolved.error;
+        kivo::ui::shell::schedule_normal_media_launch(window, bridge, normal);
     }
     if (!evidence_options.ui_open_enabled && !evidence_options.interaction_enabled
         && !evidence_options.playback_enabled && !evidence_options.continuous_playback_enabled) {

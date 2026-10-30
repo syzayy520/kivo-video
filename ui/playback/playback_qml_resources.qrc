@@ -23,6 +23,10 @@
         <file>sheets/VersionSheet.qml</file>
         <file>sheets/SubtitleSheet.qml</file>
         <file>sheets/MorePlaybackSheet.qml</file>
+        <file>sheets/SettingsSheet.qml</file>
+        <file>sheets/SettingStepperRow.qml</file>
+        <file>sheets/SettingSegmentRow.qml</file>
+        <file>sheets/SettingToggleRow.qml</file>
         <file>controls/PlaybackIconButton.qml</file>
         <file>controls/PlaybackIconSet.qml</file>
         <file>controls/PlaybackTextButton.qml</file>

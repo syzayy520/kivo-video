@@ -89,15 +89,18 @@ Canvas {
             chevron(false, w * 0.28, h * 0.31, h * 0.38)
             break
         case "rewind10":
-            chevron(true, w * 0.22, h * 0.32, h * 0.36)
-            line(w * 0.58, h * 0.34, w * 0.58, h * 0.66)
-            ctx.font = "8px sans-serif"
-            ctx.fillText("10", w * 0.50, h * 0.64)
+            chevron(true, w * 0.18, h * 0.30, h * 0.36)
+            ctx.font = Math.max(8, Math.round(w * 0.34)) + "px sans-serif"
+            ctx.textAlign = "center"
+            ctx.textBaseline = "middle"
+            ctx.fillText("10", w * 0.62, h * 0.53)
             break
         case "forward10":
-            chevron(false, w * 0.16, h * 0.32, h * 0.36)
-            ctx.font = "8px sans-serif"
-            ctx.fillText("10", w * 0.46, h * 0.64)
+            chevron(false, w * 0.46, h * 0.30, h * 0.36)
+            ctx.font = Math.max(8, Math.round(w * 0.34)) + "px sans-serif"
+            ctx.textAlign = "center"
+            ctx.textBaseline = "middle"
+            ctx.fillText("10", w * 0.28, h * 0.53)
             break
         case "volume":
             ctx.beginPath()
@@ -133,15 +136,55 @@ Canvas {
             dot(w * 0.24, h * 0.72, w * 0.08)
             dot(w * 0.66, h * 0.64, w * 0.08)
             break
+        case "subtitle":
+            rect(w * 0.22, h * 0.30, w * 0.56, h * 0.42)
+            line(w * 0.32, h * 0.48, w * 0.50, h * 0.48)
+            line(w * 0.56, h * 0.48, w * 0.68, h * 0.48)
+            line(w * 0.32, h * 0.60, w * 0.44, h * 0.60)
+            line(w * 0.50, h * 0.60, w * 0.68, h * 0.60)
+            break
         case "episodes":
             rect(w * 0.26, h * 0.28, w * 0.48, h * 0.34)
             line(w * 0.34, h * 0.72, w * 0.66, h * 0.72)
             line(w * 0.38, h * 0.80, w * 0.62, h * 0.80)
             break
+        case "versions":
+            rect(w * 0.24, h * 0.28, w * 0.52, h * 0.34)
+            line(w * 0.32, h * 0.40, w * 0.68, h * 0.40)
+            line(w * 0.32, h * 0.52, w * 0.58, h * 0.52)
+            line(w * 0.34, h * 0.72, w * 0.66, h * 0.72)
+            break
         case "more":
             dot(w * 0.30, cy, w * 0.045)
             dot(cx, cy, w * 0.045)
             dot(w * 0.70, cy, w * 0.045)
+            break
+        case "settings":
+            ctx.beginPath()
+            ctx.arc(cx, cy, w * 0.23, 0, Math.PI * 2)
+            ctx.stroke()
+            dot(cx, cy, w * 0.055)
+            line(cx, h * 0.16, cx, h * 0.27)
+            line(cx, h * 0.73, cx, h * 0.84)
+            line(w * 0.16, cy, w * 0.27, cy)
+            line(w * 0.73, cy, w * 0.84, cy)
+            line(w * 0.25, h * 0.25, w * 0.33, h * 0.33)
+            line(w * 0.67, h * 0.67, w * 0.75, h * 0.75)
+            line(w * 0.75, h * 0.25, w * 0.67, h * 0.33)
+            line(w * 0.33, h * 0.67, w * 0.25, h * 0.75)
+            break
+        case "chevronRight":
+            chevron(false, w * 0.34, h * 0.30, h * 0.40)
+            break
+        case "chevronLeft":
+            chevron(true, w * 0.30, h * 0.30, h * 0.40)
+            break
+        case "minus":
+            line(w * 0.30, cy, w * 0.70, cy)
+            break
+        case "plus":
+            line(w * 0.30, cy, w * 0.70, cy)
+            line(cx, h * 0.30, cx, h * 0.70)
             break
         case "close":
             line(w * 0.32, h * 0.32, w * 0.68, h * 0.68)

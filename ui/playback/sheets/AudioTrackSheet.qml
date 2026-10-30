@@ -4,12 +4,12 @@ import "../controls"
 PlaybackSheet {
     id: root
 
-    property string selectedTrack: ""
+    property var selectedTrack: ""
     property var trackOptions: []
 
-    signal trackRequested(string trackName)
+    signal trackRequested(var trackName)
 
-    title: "音轨"
+    title: qsTr("Audio")
 
     Repeater {
         model: root.trackOptions

@@ -9,6 +9,16 @@ Item {
     property string statusKind: ""
     property int bufferingSeconds: 0
     property string errorMessage: ""
+    property bool retryAvailable: false
+
+    readonly property string errorTitle: qsTr("Playback unavailable")
+    readonly property string errorDetailText: root.errorMessage === undefined
+                                                 || root.errorMessage === null
+                                             ? ""
+                                             : String(root.errorMessage).trim()
+    readonly property bool errorDetailVisible: root.statusKind === "error"
+                                               && root.errorDetailText.length > 0
+                                               && root.errorDetailText !== root.errorTitle
 
     signal retryRequested()
     signal openFileRequested()
@@ -19,13 +29,13 @@ Item {
     Item {
         id: centerStack
         anchors.centerIn: parent
-        width: Math.min(parent.width - 64, 360)
+        width: Math.min(parent.width - 64, 340)
         height: content.implicitHeight
 
         Column {
             id: content
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 14
+            spacing: 12
 
             Item {
                 id: spinner
@@ -65,20 +75,18 @@ Item {
                 width: centerStack.width
                 visible: root.statusKind !== "buffering" || root.bufferingSeconds >= 2
                 text: {
-                    if (root.statusKind === "buffering" && root.bufferingSeconds >= 6)
-                        return "当前片源加载较慢，正在继续缓冲..."
                     if (root.statusKind === "buffering")
-                        return "正在缓冲..."
+                        return root.bufferingSeconds >= 6 ? qsTr("Still buffering") : qsTr("Buffering")
                     if (root.statusKind === "recovering")
-                        return "当前片源加载较慢\n正在恢复播放..."
+                        return qsTr("Recovering playback")
                     if (root.statusKind === "recovered")
-                        return "播放已恢复"
+                        return qsTr("Playback recovered")
                     if (root.statusKind === "error")
-                        return "暂时无法播放"
+                        return root.errorTitle
                     return ""
                 }
                 color: Qt.rgba(1, 1, 1, 0.88)
-                font.pixelSize: root.statusKind === "error" ? 20 : 15
+                font.pixelSize: root.statusKind === "error" ? 18 : 14
                 font.weight: Font.DemiBold
                 font.letterSpacing: 0
                 font.family: PlaybackTypography.uiFamily
@@ -90,10 +98,11 @@ Item {
             }
 
             Text {
+                objectName: "statusErrorDetailText"
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: centerStack.width
-                visible: root.statusKind === "error" && root.errorMessage.length > 0
-                text: root.errorMessage
+                visible: root.errorDetailVisible
+                text: root.errorDetailText
                 color: Qt.rgba(1, 1, 1, 0.52)
                 font.pixelSize: PlaybackTypography.captionSize
                 font.weight: Font.Medium
@@ -113,14 +122,18 @@ Item {
                 spacing: 8
 
                 PlaybackTextButton {
-                    text: "重试"
-                    tooltipText: "重试播放"
+                    objectName: "retryButton"
+                    text: qsTr("Retry")
+                    tooltipText: qsTr("Retry playback")
+                    visible: root.retryAvailable
                     onClicked: root.retryRequested()
                 }
 
                 PlaybackTextButton {
-                    text: "打开视频"
-                    tooltipText: "打开本地视频文件"
+                    objectName: "openVideoButton"
+                    text: qsTr("Open Video")
+                    tooltipText: qsTr("Open a local video file")
+                    visible: !root.retryAvailable
                     onClicked: root.openFileRequested()
                 }
             }

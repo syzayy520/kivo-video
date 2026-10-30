@@ -1,0 +1,14 @@
+# 版本单一真相（2026-10 主线）
+# AGP 9.x 起内置 Kotlin 编译，不再声明 org.jetbrains.kotlin.android 插件，
+# 否则会与内置 kotlin 扩展冲突（duplicate extension）。Kotlin 版本随 AGP 走。
+[versions]
+agp = "9.4.1"
+coreKtx = "1.19.1"
+appcompat = "1.8.0"
+
+[libraries]
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }

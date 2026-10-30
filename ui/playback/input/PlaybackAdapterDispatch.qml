@@ -28,8 +28,8 @@ QtObject {
     function invoke(adapter, methodName, args) {
         if (!adapter || typeof adapter[methodName] !== "function")
             return false
-        adapter[methodName].apply(adapter, args || [])
-        return true
+        var result = adapter[methodName].apply(adapter, args || [])
+        return result === undefined ? true : !!result
     }
 
     function dispatchCommand(adapter, methodName, args, actionName) {

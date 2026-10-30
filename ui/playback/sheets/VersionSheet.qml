@@ -11,7 +11,7 @@ PlaybackSheet {
 
     signal versionRequested(string versionName)
 
-    title: "版本"
+    title: qsTr("Versions")
 
     Repeater {
         model: root.versionOptions
@@ -69,37 +69,4 @@ PlaybackSheet {
         }
     }
 
-    Rectangle {
-        width: parent.width
-        height: 1
-        color: Qt.rgba(1, 1, 1, 0.08)
-    }
-
-    PlaybackTextButton {
-        width: parent.width
-        visible: root.technicalRows.length > 0
-        text: root.technicalOpen ? "收起技术详情" : "技术详情"
-        tooltipText: "技术详情"
-        onClicked: root.technicalOpen = !root.technicalOpen
-    }
-
-    Column {
-        width: parent.width
-        visible: root.technicalOpen && root.technicalRows.length > 0
-        spacing: 6
-
-        Repeater {
-            model: root.technicalRows
-
-            Text {
-                width: parent.width
-                text: modelData
-                color: Qt.rgba(1, 1, 1, 0.52)
-                font.pixelSize: 12
-                font.weight: Font.Medium
-                font.letterSpacing: 0
-                elide: Text.ElideRight
-            }
-        }
-    }
 }

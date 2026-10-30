@@ -6,6 +6,12 @@ Item {
     property var overlayState: null
     property int skipStepMs: 10000
     property real volumeStep: 0.05
+    property bool playbackAvailable: false
+    property bool seekAvailable: false
+    property bool subtitleAvailable: false
+    property bool audioAvailable: false
+    property bool episodeAvailable: false
+    property bool versionAvailable: false
 
     visible: false
 
@@ -26,6 +32,37 @@ Item {
         id: shortcutMap
     }
 
+    function revealsChrome(action) {
+        return actionAvailable(action)
+                && (action === "subtitleSheet"
+                || action === "audioSheet"
+                || action === "episodeSheet"
+                || action === "versionSheet")
+    }
+
+    function actionAvailable(action) {
+        if (overlayState && overlayState.statusActive
+                && action !== "escape" && action !== "openFile")
+            return false
+        if (overlayState && overlayState.sheetOpen && action !== "escape")
+            return false
+        if ((action === "playPause" || action === "volumeUp"
+                || action === "volumeDown" || action === "mute")
+                && !root.playbackAvailable)
+            return false
+        if (action === "skipBackward" || action === "skipForward")
+            return root.seekAvailable
+        if (action === "subtitleSheet")
+            return root.playbackAvailable && root.subtitleAvailable
+        if (action === "audioSheet")
+            return root.playbackAvailable && root.audioAvailable
+        if (action === "episodeSheet")
+            return root.playbackAvailable && root.episodeAvailable
+        if (action === "versionSheet")
+            return root.playbackAvailable && root.versionAvailable
+        return true
+    }
+
     function handle(event) {
         if (!event)
             return false
@@ -34,7 +71,10 @@ Item {
         if (action.length === 0)
             return false
 
-        if (overlayState)
+        if (!actionAvailable(action))
+            return false
+
+        if (overlayState && revealsChrome(action))
             overlayState.showVisible()
 
         if (action === "playPause") {

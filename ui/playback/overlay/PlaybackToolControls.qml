@@ -7,6 +7,7 @@ RowLayout {
 
     property bool compact: false
     property bool fullscreen: false
+    property bool fullscreenAvailable: false
     property string versionLabel: ""
     property bool subtitleAvailable: false
     property bool audioAvailable: false
@@ -17,29 +18,29 @@ RowLayout {
     signal sheetRequested(string sheetName, var source)
     signal fullscreenRequested()
 
-    spacing: compact ? 4 : 6
+    spacing: compact ? 2 : 4
 
-    PlaybackTextButton {
-        text: "CC"
-        tooltipText: "字幕"
-        visible: root.subtitleAvailable
-        compact: true
+    PlaybackIconButton {
+        iconName: "subtitle"
+        tooltipText: qsTr("Subtitles")
+        visible: false
+        baseColor: Qt.rgba(1, 1, 1, 0.54)
         onClicked: function(source) { root.sheetRequested("subtitle", source) }
         Layout.preferredWidth: visible ? 42 : 0
     }
 
     PlaybackIconButton {
         iconName: "audio"
-        tooltipText: "音轨"
-        visible: !root.compact && root.audioAvailable
+        tooltipText: qsTr("Audio")
+        visible: false
         onClicked: function(source) { root.sheetRequested("audio", source) }
         Layout.preferredWidth: visible ? 42 : 0
     }
 
     PlaybackIconButton {
         iconName: "episodes"
-        tooltipText: "选集"
-        visible: !root.compact && root.episodeAvailable
+        tooltipText: qsTr("Episodes")
+        visible: false
         onClicked: function(source) { root.sheetRequested("episodes", source) }
         Layout.preferredWidth: visible ? 42 : 0
     }
@@ -47,25 +48,30 @@ RowLayout {
     PlaybackTextButton {
         id: versionButton
 
-        text: root.versionLabel.length > 0 ? root.versionLabel : "版本"
-        tooltipText: "版本"
-        visible: !root.compact && root.versionAvailable
+        text: root.versionLabel.length > 0 ? root.versionLabel : qsTr("Versions")
+        tooltipText: qsTr("Versions")
+        visible: false
         onClicked: function(source) { root.sheetRequested("version", source) }
         Layout.preferredWidth: visible ? Math.max(56, implicitWidth + 18) : 0
     }
 
     PlaybackIconButton {
+        objectName: "moreToolButton"
         iconName: "more"
-        tooltipText: "更多"
+        tooltipText: qsTr("More")
         visible: root.moreAvailable
+        baseColor: Qt.rgba(1, 1, 1, 0.54)
         onClicked: function(source) { root.sheetRequested("more", source) }
         Layout.preferredWidth: visible ? 42 : 0
     }
 
     PlaybackIconButton {
+        objectName: "fullscreenToolButton"
         iconName: "fullscreen"
-        tooltipText: root.fullscreen ? "退出全屏" : "全屏"
+        tooltipText: root.fullscreen ? qsTr("Exit Full Screen") : qsTr("Full Screen")
+        visible: root.fullscreenAvailable || root.fullscreen
+        baseColor: Qt.rgba(1, 1, 1, 0.54)
         onClicked: root.fullscreenRequested()
-        Layout.preferredWidth: 42
+        Layout.preferredWidth: visible ? 42 : 0
     }
 }

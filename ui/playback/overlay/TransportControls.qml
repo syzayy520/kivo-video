@@ -6,6 +6,8 @@ RowLayout {
     id: root
 
     property bool paused: false
+    property bool playbackAvailable: false
+    property bool seekAvailable: false
 
     signal previousRequested()
     signal rewindRequested()
@@ -15,43 +17,51 @@ RowLayout {
     signal interactionStarted()
     signal interactionEnded()
 
-    spacing: 14
+    spacing: 10
 
     PlaybackIconButton {
         iconName: "previous"
-        tooltipText: "上一段"
+        tooltipText: qsTr("Previous")
         onClicked: root.previousRequested()
         visible: false
         Layout.preferredWidth: 0
     }
 
     PlaybackIconButton {
+        objectName: "rewindButton"
         iconName: "rewind10"
-        tooltipText: "快退 10 秒"
+        tooltipText: qsTr("Back 10 seconds")
+        visible: root.seekAvailable
+        buttonEnabled: root.seekAvailable
         onClicked: root.rewindRequested()
-        baseColor: Qt.rgba(1, 1, 1, 0.56)
-        Layout.preferredWidth: 44
+        baseColor: Qt.rgba(1, 1, 1, 0.50)
+        Layout.preferredWidth: visible ? 44 : 0
     }
 
     PlaybackIconButton {
+        objectName: "playPauseButton"
         iconName: root.paused ? "play" : "pause"
-        tooltipText: root.paused ? "播放" : "暂停"
+        tooltipText: root.paused ? qsTr("Play") : qsTr("Pause")
+        visible: root.playbackAvailable
         prominent: true
         onClicked: root.playPauseRequested()
-        Layout.preferredWidth: 52
+        Layout.preferredWidth: visible ? 56 : 0
     }
 
     PlaybackIconButton {
+        objectName: "forwardButton"
         iconName: "forward10"
-        tooltipText: "快进 10 秒"
+        tooltipText: qsTr("Forward 10 seconds")
+        visible: root.seekAvailable
+        buttonEnabled: root.seekAvailable
         onClicked: root.forwardRequested()
-        baseColor: Qt.rgba(1, 1, 1, 0.56)
-        Layout.preferredWidth: 44
+        baseColor: Qt.rgba(1, 1, 1, 0.50)
+        Layout.preferredWidth: visible ? 44 : 0
     }
 
     PlaybackIconButton {
         iconName: "next"
-        tooltipText: "下一段"
+        tooltipText: qsTr("Next")
         onClicked: root.nextRequested()
         visible: false
         Layout.preferredWidth: 0

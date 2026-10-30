@@ -7,21 +7,25 @@ Item {
     property real volume: 1.0
     property bool muted: false
     property bool compact: false
+    property bool volumeAvailable: false
 
     signal volumeRequested(real value)
     signal muteRequested()
     signal interactionStarted()
     signal interactionEnded()
 
-    width: compact ? 42 : 188
+    width: compact ? 42 : 132
     height: 42
 
     PlaybackIconButton {
         id: volumeButton
+        objectName: "volumeButton"
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         iconName: root.muted || root.volume <= 0 ? "muted" : "volume"
-        tooltipText: root.muted ? "取消静音" : "静音"
+        tooltipText: root.muted ? qsTr("Unmute") : qsTr("Mute")
+        visible: root.volumeAvailable
+        buttonEnabled: root.volumeAvailable
 
         onClicked: {
             root.muteRequested()
@@ -35,7 +39,17 @@ Item {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         height: 20
-        visible: !root.compact
+        visible: opacity > 0
+        opacity: root.volumeAvailable && !root.compact
+                 && (volumeMouse.containsMouse || volumeMouse.pressed
+                     || volumeButton.containsMouse) ? 1 : 0
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 110
+                easing.type: Easing.OutCubic
+            }
+        }
 
         Rectangle {
             anchors.left: parent.left

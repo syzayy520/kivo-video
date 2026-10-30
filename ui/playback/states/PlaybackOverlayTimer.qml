@@ -23,7 +23,7 @@ Item {
     Timer {
         id: autoHideTimer
 
-        interval: 3000
+        interval: 2200
         repeat: false
 
         onTriggered: {

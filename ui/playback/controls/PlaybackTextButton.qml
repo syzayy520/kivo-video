@@ -29,9 +29,9 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 12
-        color: mouseArea.containsMouse || root.selected ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
-        border.color: root.selected ? Qt.rgba(1, 1, 1, 0.22) : "transparent"
+        radius: 8
+        color: mouseArea.containsMouse || root.selected ? Qt.rgba(1, 1, 1, 0.07) : "transparent"
+        border.color: root.selected ? Qt.rgba(1, 1, 1, 0.18) : "transparent"
         border.width: 1
     }
 

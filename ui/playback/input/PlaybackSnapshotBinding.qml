@@ -35,18 +35,65 @@ Item {
             isPlaying: raw.isPlaying !== undefined ? raw.isPlaying : !!raw.is_playing,
             isPaused: raw.isPaused !== undefined ? raw.isPaused : !!raw.is_paused,
             isBuffering: raw.isBuffering !== undefined ? raw.isBuffering : !!raw.is_buffering,
+            isOpening: raw.isOpening !== undefined ? raw.isOpening : !!raw.is_opening,
+            bufferReason: raw.bufferReason || raw.buffer_reason || "none",
+            rebufferCount: raw.rebufferCount !== undefined ? raw.rebufferCount
+                           : (raw.rebuffer_count || 0),
+            playbackState: raw.playbackState || raw.playback_state || "",
             isRecovering: raw.isRecovering !== undefined ? raw.isRecovering : !!raw.is_recovering,
             hasError: raw.hasError !== undefined ? raw.hasError : (raw.playbackState === "Failed"),
             closed: !!raw.closed,
+            fullscreenLike: raw.fullscreenLike !== undefined ? raw.fullscreenLike : !!raw.fullscreen_like,
+            autoPlayNext: raw.autoPlayNext !== undefined ? raw.autoPlayNext : !!raw.auto_play_next,
+            playlistQueueConnected: raw.playlistQueueConnected !== undefined
+                                    ? raw.playlistQueueConnected
+                                    : !!raw.playlist_queue_connected,
+            playlistHasPrevious: raw.playlistHasPrevious !== undefined
+                                 ? raw.playlistHasPrevious
+                                 : !!raw.playlist_has_previous,
+            playlistHasNext: raw.playlistHasNext !== undefined
+                             ? raw.playlistHasNext
+                             : !!raw.playlist_has_next,
+            playlistHasNextEpisode: raw.playlistHasNextEpisode !== undefined
+                                    ? raw.playlistHasNextEpisode
+                                    : !!raw.playlist_has_next_episode,
+            episodeOptions: raw.episodeOptions !== undefined
+                            ? raw.episodeOptions
+                            : (raw.episode_options || []),
+            currentEpisode: raw.currentEpisode || raw.current_episode || "",
+            versionOptions: raw.versionOptions !== undefined
+                            ? raw.versionOptions
+                            : (raw.version_options || []),
+            versionTechnicalRows: raw.versionTechnicalRows !== undefined
+                                  ? raw.versionTechnicalRows
+                                  : (raw.version_technical_rows || []),
             volume: raw.volume !== undefined ? raw.volume : 1.0,
             muted: raw.muted !== undefined ? raw.muted : false,
             subtitlePrimary: raw.subtitlePrimary || raw.subtitle_primary || "",
             subtitleSecondary: raw.subtitleSecondary || raw.subtitle_secondary || "",
             subtitleEnabled: raw.subtitleEnabled !== undefined ? raw.subtitleEnabled
                               : (raw.subtitle_enabled !== undefined ? raw.subtitle_enabled : false),
+            selectedSubtitleTrack: raw.selectedSubtitleTrack !== undefined
+                                   ? raw.selectedSubtitleTrack
+                                   : (raw.selected_subtitle_track || ""),
+            subtitleOptions: raw.subtitleOptions !== undefined
+                             ? raw.subtitleOptions
+                             : (raw.subtitle_options || []),
             subtitleDelayMs: raw.subtitleDelayMs !== undefined ? raw.subtitleDelayMs
                              : (raw.subtitle_delay_ms || 0),
-            audioDelayMs: raw.audioDelayMs !== undefined ? raw.audioDelayMs : (raw.audio_delay_ms || 0)
+            selectedAudioTrack: raw.selectedAudioTrack !== undefined
+                                ? raw.selectedAudioTrack
+                                : (raw.selected_audio_track || ""),
+            audioTrackOptions: raw.audioTrackOptions !== undefined
+                               ? raw.audioTrackOptions
+                               : (raw.audio_track_options || []),
+            audioDelayMs: raw.audioDelayMs !== undefined ? raw.audioDelayMs : (raw.audio_delay_ms || 0),
+            subtitleSize: raw.subtitleSize !== undefined ? raw.subtitleSize
+                          : (raw.subtitle_size !== undefined ? raw.subtitle_size : 1.0),
+            playbackSpeed: raw.playbackSpeed !== undefined ? raw.playbackSpeed
+                           : (raw.playback_speed !== undefined ? raw.playback_speed : 1.0),
+            aspectMode: raw.aspectMode || raw.aspect_mode || "fit",
+            toneMappingMode: raw.toneMappingMode || raw.tone_mapping_mode || "auto"
         }
     }
 
@@ -64,14 +111,37 @@ Item {
         root.target.buffered = snap.buffered
         root.target.isPaused = snap.isPaused
         root.target.isBuffering = snap.isBuffering
+        root.target.isOpening = snap.isOpening
+        root.target.bufferReason = snap.bufferReason
+        root.target.rebufferCount = snap.rebufferCount
+        root.target.playbackState = snap.playbackState
         root.target.isRecovering = snap.isRecovering
         root.target.hasError = snap.hasError
+        root.target.fullscreenLike = snap.fullscreenLike
+        root.target.autoPlayNext = snap.autoPlayNext
+        root.target.playlistQueueConnected = snap.playlistQueueConnected
+        root.target.playlistHasPrevious = snap.playlistHasPrevious
+        root.target.playlistHasNext = snap.playlistHasNext
+        root.target.playlistHasNextEpisode = snap.playlistHasNextEpisode
+        root.target.episodeOptions = snap.episodeOptions
+        root.target.currentEpisode = snap.episodeOptions.length > 0 ? snap.currentEpisode : ""
+        root.target.versionOptions = snap.versionOptions
+        root.target.versionTechnicalRows = snap.versionOptions.length > 0 ? snap.versionTechnicalRows : []
         root.target.volume = snap.volume
         root.target.isMuted = snap.muted
         root.target.subtitlePrimary = snap.subtitlePrimary
         root.target.subtitleSecondary = snap.subtitleSecondary
         root.target.subtitleEnabled = snap.subtitleEnabled
+        root.target.selectedSubtitle = snap.selectedSubtitleTrack
+        root.target.subtitleOptions = snap.subtitleOptions
         root.target.subtitleDelayMs = snap.subtitleDelayMs
+        root.target.audioTrackLabel = snap.selectedAudioTrack
+        root.target.audioTrackOptions = snap.audioTrackOptions
+        root.target.audioDelayMs = snap.audioDelayMs
+        root.target.subtitleSize = snap.subtitleSize
+        root.target.playbackSpeed = snap.playbackSpeed
+        root.target.aspectMode = snap.aspectMode
+        root.target.toneMappingMode = snap.toneMappingMode
     }
 
     function scheduleRefresh() {

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature
+        android:name="android.hardware.vulkan.version"
+        android:required="false" />
+
+    <application
+        android:allowBackup="false"
+        android:label="Kivo Cinema"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.KivoCinema">
+
+        <activity
+            android:name=".ui.PlayerActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
+            android:exported="true"
+            android:screenOrientation="landscape">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- P13-A 帧率能力探针：无 UI，采集完即 finish。
+             单独一条 Activity 的理由：它不需要 Surface、不需要片源，
+             塞进 PlayerActivity 会让"打开播放器"与"采一次能力"耦合。 -->
+        <activity
+            android:name=".ui.FramerateDumpActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
+            android:exported="true" />
+
+        <!-- P12-D2 多路并发解码探针。与 PlayerActivity 分开：那个是"一条会话 + 一个面"，
+             这条要的是 N 条同时跑，塞进去会把 onSurfaceAvailable 的一对一假设打破。 -->
+        <activity
+            android:name=".ui.MultiPlayerActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
+            android:exported="true"
+            android:screenOrientation="landscape" />
+
+    </application>
+
+</manifest>
