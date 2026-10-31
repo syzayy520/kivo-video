@@ -761,7 +761,12 @@ def check_discontinuity(data: dict, pace: dict, notes: list[str]) -> None:
     if injection_ns > 0 and gate_block.get("enabled") is True:
         tolerance = int(gate_block.get("band_ns") or 0) + int(pace.get("frame_duration_ns") or 0)
         steps = [abs(int(entry.get("step_ns") or 0)) for entry in recent]
-        if any(abs(step - injection_ns) <= tolerance for step in steps):
+        # P14-AE：`jump_rebased` 会把台阶**丢掉**（≥ 1 s 走这条分支），账上只剩一笔
+        # `step = 0` 的跳变。但原始量还在：`raw_delta − wall_delta` 就是被丢掉的那一段。
+        # AD1 要问的是"注入留没留下痕迹"，不是"它是否以 step 的形式留下"。
+        jumps = [abs(int(entry.get("raw_delta_ns") or 0) - int(entry.get("wall_delta_ns") or 0))
+                 for entry in recent if entry.get("kind") == "jump_rebased"]
+        if any(abs(step - injection_ns) <= tolerance for step in steps + jumps):
             pass
         elif events > len(recent):
             # 环只有 8 格：事件多于 8 笔时，注入那一笔可能已经滚出去了。
@@ -775,6 +780,26 @@ def check_discontinuity(data: dict, pace: dict, notes: list[str]) -> None:
                 f"（容差 {tolerance / 1e6:.2f} ms = 带 + 一帧）："
                 + ", ".join(f"{step / 1e6:.2f}" for step in steps)
                 + " ms —— 探针改动了记账"
+            )
+
+    # ── AE1 / AE2（P14-AE）：跳变要进账，但不许进 offset ──
+    #
+    # `jump_rebased` 是"位置被改过、但门没经手"的那一类：位置按墙推进、台阶被丢掉。
+    # 它不记账，就等于"改过却没人知道"—— 这正是 P14-Y 那本账要防的第二类沉默。
+    # AE2 是**回退护栏**而不是发现：跳变按裁决表不进 offset（否则 B 臂把它减一次、
+    # 门再还一次，同一段墙时算两遍）。这一条现在由构造保证，所以它只会被"改坏"触发。
+    jump_rebases = int((pace.get("clock_health") or {}).get("jump_rebases") or 0)
+    if jump_rebases > 0:
+        if int(block.get("jumped", 0)) <= 0:
+            raise Failure(
+                f"AE1 clock_health.jump_rebases={jump_rebases}，账上 jumped=0"
+                " —— 位置被改过却没进账"
+            )
+        others = int(block.get("stepped", 0)) + int(block.get("clamped", 0)) + int(block.get("rejected", 0))
+        if others == 0 and offset_ns != 0:
+            raise Failure(
+                f"AE2 这一轮只有跳变（{block.get('jumped')} 笔），offset 却是 "
+                f"{offset_ns / 1e6:.2f} ms —— 跳变进了 offset，B 臂会把它重复扣一次"
             )
 
     # Y0：一次事件都没有 ⇒ 干净的空。有样本就是幽灵账。
