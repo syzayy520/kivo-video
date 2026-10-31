@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "video/video_plane/backends/aaudio/clock/aaudio_clock_probe.hpp"
+#include "video/video_plane/backends/aaudio/clock/aaudio_clock_tail.hpp"
 #include "video/video_plane/backends/aaudio/clock/aaudio_clock_trace.hpp"
 #include "video/video_plane/backends/aaudio/clock/aaudio_clock_stats.hpp"
 #include "video/video_plane/backends/aaudio/clock/aaudio_monotonic_now.hpp"
@@ -74,6 +75,8 @@ private:
     std::int64_t last_mono_ns_ = 0;
     /// 异常前后各 8 个原始观测的滚动窗口（P14-E）。
     ClockTraceRing trace_ring_;
+    /// 残差尾部累加器（P14-G）。
+    ClockTailTracker tail_;
 };
 
 }  // namespace kivo::video::aaudio

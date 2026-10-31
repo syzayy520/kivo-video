@@ -1,5 +1,6 @@
 #pragma once
 
+#include "video/video_plane/backends/aaudio/clock/aaudio_clock_tail.hpp"
 #include "video/video_plane/backends/aaudio/clock/aaudio_clock_trace.hpp"
 #include <cstdint>
 
@@ -44,6 +45,10 @@ struct AaudioClockStats {
     /// 异常前后各 8 个原始观测（P14-E）。只有计数没有窗口时，
     /// "设备跳了"与"我们算错了"在证据里长得一样 —— 这正是本卡要分开的两种。
     ClockTrace trace{};
+
+    /// 残差尾部（P14-G）。计数说"发生了几次"，窗口说"那一次长什么样"，
+    /// 尾部说"离阈值还有多远、再大一点会有多少" —— 三件事互不替代。
+    ClockTailFacts tail{};
 
     // ── 启动观测（用于验证"零点 = 首帧实际出声"）──
     std::int64_t first_ok_frame_position = -1;  ///< 首次成功时的已呈现帧数

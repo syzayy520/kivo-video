@@ -17,6 +17,7 @@
 
 #include "video/video_plane/backends/aaudio/clock/aaudio_clock_probe.hpp"
 #include "video/video_plane/backends/aaudio/clock/aaudio_clock_source.hpp"
+#include "video/video_plane/backends/aaudio/clock/aaudio_clock_tail.hpp"
 #include "video/video_plane/backends/aaudio/clock/aaudio_clock_trace.hpp"
 #include "video/video_plane/core/audio/clock/frame_position_extrapolator.hpp"
 #include "video/video_plane/core/audio/clock/monotonic_clock_guard.hpp"
@@ -359,6 +360,140 @@ void t14_trace_keeps_at_most_three_events() {
     CHECK(trace.event_count == 3);
 }
 
+// ── P14-G：残差尾部 ────────────────────────────────────────────────
+
+void t15_tail_first_sample_only_sets_baseline() {
+    aaudio::ClockTailTracker tracker;
+    tracker.note(0, 1000);
+    const aaudio::ClockTailFacts facts = tracker.snapshot();
+    // 第一个观测没有"上一步"可比 —— 计入样本就等于凭空造一个 0 残差，
+    // 而 0 残差是"最健康"的那个读数。
+    CHECK(facts.samples == 0);
+    CHECK(facts.forward == 0);
+    CHECK(facts.backward == 0);
+}
+
+void t16_tail_equal_steps_land_in_the_healthiest_bucket() {
+    aaudio::ClockTailTracker tracker;
+    tracker.note(0, 1000);
+    tracker.note(33'000'000, 33'001'000);  // 两者都走了 33 ms
+    const aaudio::ClockTailFacts facts = tracker.snapshot();
+    CHECK(facts.samples == 1);
+    CHECK(facts.forward == 1);
+    CHECK(facts.buckets[0] == 1);  // < 1 ms
+    CHECK(facts.max_forward_ns == 0);
+    CHECK(facts.beyond_threshold() == 0);
+}
+
+void t17_tail_clamp_sized_residual_is_counted_beyond_threshold() {
+    aaudio::ClockTailTracker tracker;
+    tracker.note(60'000'000'000, 1'000);
+    // 实测形状（P14-E）：候选跳 +226 ms，墙钟只走 0.5 ms → 残差 225.5 ms。
+    // `mono_ns` 是**绝对时刻**，因此第二个观测的墙钟步长 = 501000 − 1000 = 0.5 ms。
+    tracker.note(60'226'000'000, 501'000);
+    const aaudio::ClockTailFacts facts = tracker.snapshot();
+    CHECK(facts.samples == 1);
+    CHECK(facts.max_forward_ns == 225'500'000);
+    // 225.5 ms 落在 [128, 256) 那一档（档号 8：第 0 档是 [0,1)，
+    // 之后每档的下界依次是 1/2/4/…/512 ms）。**档的下界 128 ms 低于阈值 200 ms**，
+    // 所以"从档位反推越过数"会漏掉这一批 —— 这条断言钉死"必须逐次判定"。
+    CHECK(facts.buckets[8] == 1);
+    CHECK(facts.beyond_threshold() == 1);
+    CHECK(facts.clamp_threshold_ns == 200'000'000);
+}
+
+void t18_tail_backward_residual_is_recorded_as_magnitude() {
+    aaudio::ClockTailTracker tracker;
+    tracker.note(0, 1000);
+    tracker.note(29'240'000, 33'001'000);  // 设备只走 29.24 ms，墙钟走 33 ms
+    const aaudio::ClockTailFacts facts = tracker.snapshot();
+    CHECK(facts.backward == 1);
+    CHECK(facts.forward == 0);
+    CHECK(facts.max_backward_ns == 3'760'000);  // 3.76 ms，与 P14-F r2 同量级
+    CHECK(facts.buckets[2] == 1);               // [2, 4) ms
+    CHECK(facts.beyond_threshold() == 0);
+}
+
+void t19_tail_rebase_drops_baseline_but_keeps_counts() {
+    aaudio::ClockTailTracker tracker;
+    tracker.note(0, 1000);
+    tracker.note(33'000'000, 33'001'000);
+    CHECK(tracker.snapshot().samples == 1);
+
+    // seek：候选位置整体挪到 90 s。若不丢基线，下一个观测会算出一个
+    // 等于 seek 距离的残差，把尾部统计污染成"一次 90 秒的跳变"。
+    tracker.drop_baseline();
+    tracker.note(90'000'000'000, 33'002'000);
+    const aaudio::ClockTailFacts facts = tracker.snapshot();
+    CHECK(facts.samples == 1);            // 没有多出一个假样本
+    CHECK(facts.max_forward_ns == 0);     // 也没有出现一个巨大的正残差
+
+    // 基线已重建：下一个正常观测继续被采样。
+    tracker.note(90'033'000'000, 66'002'000);
+    CHECK(tracker.snapshot().samples == 2);
+}
+
+
+void t20_long_gap_with_zero_residual_is_a_false_clamp_not_a_jump() {
+    aaudio::ClockTailTracker tracker;
+    tracker.note(59'994'238'594, 23'747'823'150'678);
+
+    // 烟测实测形状：查询循环被卡住 287.4 ms，设备位置**同量**前进 287.4 ms。
+    // 残差 ≈ −9.7 µs，即"设备完全正常"；但守卫只看位置距上轮最大值，
+    // 287 ms > 200 ms 阈值 → 钳掉 200 ms。
+    tracker.note(60'281'678'541, 23'748'110'600'365);
+    const aaudio::ClockTailFacts facts = tracker.snapshot();
+
+    CHECK(facts.samples == 1);
+    CHECK(facts.max_forward_ns == 0);          // 没有正残差
+    CHECK(facts.max_backward_ns == 9'740);     // 负残差只有 9.7 µs
+    CHECK(facts.beyond_threshold() == 0);      // 尾部里**没有**越阈值的样本
+
+    // 间隔必须自己说出来 —— 否则这次钳制在证据里就成了"设备跳了 287 ms"的假案。
+    CHECK(facts.intervals == 1);
+    CHECK(facts.long_gaps == 1);
+    CHECK(facts.max_mono_step_ns == 287'449'687);
+}
+
+void t21_long_gap_is_counted_even_when_candidate_regresses() {
+    aaudio::ClockTailTracker tracker;
+    tracker.note(1'000'000'000, 5'000'000'000);
+
+    // 间隔 250 ms，但候选位置**倒退**：两个异常同时发生。
+    // 间隔若记在"候选无效就早退"之后，这条最该看的组合就丢了。
+    tracker.note(900'000'000, 5'250'000'000);
+    const aaudio::ClockTailFacts facts = tracker.snapshot();
+    CHECK(facts.intervals == 1);
+    CHECK(facts.long_gaps == 1);
+    CHECK(facts.samples == 0);   // 倒退的样本不进残差分布（各有专职计数）
+    CHECK(facts.backward == 0);
+}
+
+void t22_gap_plus_residual_can_exceed_threshold_together() {
+    aaudio::ClockTailTracker tracker;
+    tracker.note(0, 1'000'000);
+
+    // 首轮 30 分钟里的第三次钳制：间隔 190 ms（不到阈值）、残差 20 ms（也不到阈值），
+    // 但守卫比的是**候选步长** 210 ms → 照样钳制。
+    // "残差越阈值 OR 间隔越阈值"这条判据会漏掉它 —— 所以候选步长必须自己记。
+    tracker.note(210'000'000, 191'000'000);
+    const aaudio::ClockTailFacts facts = tracker.snapshot();
+
+    CHECK(facts.long_gaps == 0);               // 间隔 190 ms，没越阈值
+    CHECK(facts.beyond_threshold() == 0);      // 残差 20 ms，也没越阈值
+    CHECK(facts.buckets[5] == 1);              // 第 5 档是 [16, 32) ms
+    CHECK(facts.long_candidate_steps == 1);    // 但候选步长 210 ms 越了
+    CHECK(facts.max_candidate_step_ns == 210'000'000);
+}
+
+void t23_first_mono_is_the_start_of_the_first_interval() {
+    aaudio::ClockTailTracker tracker;
+    tracker.note(0, 5'000'000'000);
+    tracker.note(33'000'000, 5'033'000'000);
+    // 起点必须是**第一个间隔的起点**（5.000 s），不是第二个观测的时刻（5.033 s）——
+    // 差一个步长看似无害，但事件时刻表全靠这个零点。
+    CHECK(tracker.snapshot().first_mono_ns == 5'000'000'000);
+}
 
 const TestCase kCases[] = {
     {"C1 时间戳倒退被拒绝", t1_backward_timestamp_is_rejected},
@@ -376,6 +511,15 @@ const TestCase kCases[] = {
     {"C12 系统时钟单调且自报", t12_system_clock_is_monotonic_and_labelled},
     {"C13 异常窗口以事件结尾", t13_trace_window_ends_at_the_event},
     {"C14 窗口最多三次", t14_trace_keeps_at_most_three_events},
+    {"C15 首次观测只建基线", t15_tail_first_sample_only_sets_baseline},
+    {"C16 同步前进落在最低档", t16_tail_equal_steps_land_in_the_healthiest_bucket},
+    {"C17 钳制幅度计入越阈值", t17_tail_clamp_sized_residual_is_counted_beyond_threshold},
+    {"C18 负残差按幅度记录", t18_tail_backward_residual_is_recorded_as_magnitude},
+    {"C19 seek 丢基线不清计数", t19_tail_rebase_drops_baseline_but_keeps_counts},
+    {"C20 长间隔零残差是假钳制", t20_long_gap_with_zero_residual_is_a_false_clamp_not_a_jump},
+    {"C21 候选倒退也记间隔", t21_long_gap_is_counted_even_when_candidate_regresses},
+    {"C22 间隔加残差可以一起越线", t22_gap_plus_residual_can_exceed_threshold_together},
+    {"C23 零点取第一个间隔的起点", t23_first_mono_is_the_start_of_the_first_interval},
 };
 
 }  // namespace

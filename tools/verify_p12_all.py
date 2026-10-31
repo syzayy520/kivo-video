@@ -57,6 +57,8 @@ SYNC_QUANTILE_BLOCK_SCHEMAS = (
     "kivo.p12c.sync/19",  # P13-AC：限速收敛（drift_max_correction / drift_corrected_total）
     "kivo.p12c.sync/20",  # P13-AD：速率注入 + 门开关（clock_injection.rate_ppm / drift_gate）
     "kivo.p12c.sync/21",  # P14-E：audio.clock.trace —— 异常时刻的原始观测窗口
+    "kivo.p12c.sync/22",  # P14-G 中间形态：只有残差尾部（不参与判定，见 p14g/pre）
+    "kivo.p12c.sync/23",  # P14-G 终版：+ 观测间隔 / 候选步长（钳制的充分条件）
 )
 
 # ── schema 白名单 ──────────────────────────────────────────────────────────
@@ -178,6 +180,8 @@ KNOWN_SCHEMAS = {
     # 不会与"门判断沉默"在证据上混为一谈。
     "kivo.p12c.sync/20",
     "kivo.p12c.sync/21",  # P14-E：`audio.clock.trace`（异常时刻的原始观测窗口）
+    "kivo.p12c.sync/22",  # P14-G 中间形态：只有残差尾部（证据存于 p14g/pre/，不参与判定）
+    "kivo.p12c.sync/23",  # P14-G 终版：+ intervals / long_gaps / long_candidate_steps
     "kivo.p12d5.present-timing/1",
     "kivo.p12e.color-probe/1",
     "kivo.p12e.hdr-probe/1", "kivo.p12e.hdr-probe/2", "kivo.p12e.hdr-probe/3",
@@ -763,6 +767,12 @@ def layer4_reuse(report: Report) -> None:
     if p14f_files:
         run_sub("summarize_p14f_jumps",
                 [py, "tools/summarize_p14f_jumps.py", *p14f_files], report)
+
+    # P14-G：时钟残差尾部 + 观测间隔 + 候选步长。判"钳制有没有来由"。
+    p14g_files = sorted(glob.glob("docs/evidence/p14g/*-sync.json"))
+    if p14g_files:
+        run_sub("verify_p14g_tail",
+                [py, "tools/verify_p14g_tail.py", *p14g_files], report)
 
     # P14-D：长跑。判据与 AE 同一套（次数 / 首次 / 稳态 / 丢帧 / p99），
     # 含跳变的轮次由脚本自己打印 SKIP 并写明理由 —— 不允许为了变绿放宽阈值。

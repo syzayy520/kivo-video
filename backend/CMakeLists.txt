@@ -2266,6 +2266,7 @@ add_executable(kivo_p12c4_clock_tests
   tests/video/audio_plane/p12c4_clock_tests/audio_clock_tests.cpp
   src/video/video_plane/backends/aaudio/clock/aaudio_clock_source.cxx
   src/video/video_plane/backends/aaudio/clock/aaudio_clock_trace.cxx
+  src/video/video_plane/backends/aaudio/clock/aaudio_clock_tail.cxx
   src/video/video_plane/backends/aaudio/clock/aaudio_monotonic_now.cxx
   src/video/video_plane/backends/aaudio/clock/aaudio_timestamp_reading.cxx
 )

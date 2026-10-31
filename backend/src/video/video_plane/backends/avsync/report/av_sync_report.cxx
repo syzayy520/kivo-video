@@ -133,9 +133,16 @@ using core::pace::SignedHistogram;
 ///       却没管同名的整场 p50 还是桶中心，于是同一份 JSON 里出现了
 ///       两根刻度不同的尺子，而它们看起来是同一把。
 ///
+///   /21（P14-E）：`audio.clock.trace` —— 异常前后 16 个原始观测的窗口。
+///       计数说不出"设备跳了"还是"我们算错了"，序列可以。
+///   /22（P14-G）：`audio.clock.tail` —— 每一次观测的（设备步长 − 墙钟步长）
+///       按量级归档。82 分钟里只出现了 1 次钳制，而"多久一次"这个问题的
+///       泊松区间是 [0.03, 5.6] —— 一个事件回答不了频率。尾部把问题从
+///       "等第二个事件"改成"看分布尾巴有多长"，用已有的几万个样本换答案。
+///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/21";
+constexpr const char* kSchema = "kivo.p12c.sync/23";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -1030,8 +1037,38 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
         }
         out << "]}";
     }
-    out << "]}}\n";
-    out << "  },\n";
+    out << "]},\n";
+
+    // P14-G：残差尾部。计数（`monotonic_rejects` / `jumps_clamped`）只说"几次"，
+    // 窗口（`trace`）只说"那一次长什么样"，都不回答"离阈值还有多远"。
+    // 尾部把**每一次观测**都归档，于是"再大一点会有多少"从一次罕见事件
+    // 变成一条分布 —— 这是本卡唯一的目的。
+    {
+        const auto& tail = audio.clock.tail;
+        out << "    \"tail\": {\"samples\": " << tail.samples
+            << ", \"forward\": " << tail.forward << ", \"backward\": " << tail.backward
+            << ", \"max_forward_ns\": " << tail.max_forward_ns
+            << ", \"max_backward_ns\": " << tail.max_backward_ns
+            << ", \"clamp_threshold_ns\": " << tail.clamp_threshold_ns
+            << ", \"beyond_threshold\": " << tail.beyond_threshold()
+            << ", \"intervals\": " << tail.intervals
+            << ", \"long_gaps\": " << tail.long_gaps
+            << ", \"max_mono_step_ns\": " << tail.max_mono_step_ns
+            << ", \"long_candidate_steps\": " << tail.long_candidate_steps
+            << ", \"max_candidate_step_ns\": " << tail.max_candidate_step_ns
+            << ", \"first_mono_ns\": " << tail.first_mono_ns
+            << ", \"buckets\": [";
+        for (std::int32_t index = 0; index < aaudio::kClockTailBucketCount; ++index) {
+            out << (index == 0 ? "" : ", ")
+                << tail.buckets[static_cast<std::size_t>(index)];
+        }
+        out << "], \"edges_ns\": [";
+        for (std::size_t index = 0; index < aaudio::kClockTailEdgesNs.size(); ++index) {
+            out << (index == 0 ? "" : ", ") << aaudio::kClockTailEdgesNs[index];
+        }
+        out << "]}\n";
+    }
+    out << "  }},\n";
 
     out << "  \"completed\": " << (completed ? "true" : "false") << ",\n";
     out << "  \"error\": " << quoted(error) << "\n";

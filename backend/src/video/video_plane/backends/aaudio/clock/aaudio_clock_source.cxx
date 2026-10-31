@@ -117,6 +117,10 @@ void AaudioClockSource::rebase(std::int64_t media_position_ns) noexcept {
     extrapolator_.rebase(media_position_ns);
     // 守卫必须同时重置：它记着 seek 之前的最大位置，不重置就会把新位置当成"倒退"丢掉。
     guard_.reset(media_position_ns);
+    // 尾部只丢基线，**不清计数**：seek 让候选位置整体挪几秒到几分钟，
+    // 旧基线配新位置会算出一个"等于 seek 距离"的残差，把尾部统计污染成假异常。
+    // 而已经采到的样本仍然属于"本次运行"，没有理由抹掉。
+    tail_.drop_baseline();
 }
 
 void AaudioClockSource::set_sample_rate(std::int32_t sample_rate) noexcept {
@@ -144,6 +148,12 @@ core::audio::AudioClockSnapshot AaudioClockSource::publish(std::int64_t candidat
     if (decision.clamped_jump) {
         ++stats_.jumps_clamped;
     }
+
+    // P14-G：残差尾部。**在守卫之前算**用的是什么不重要，重要的是记的是
+    // 设备原值 `candidate_ns` 与墙钟 `last_mono_ns_` 的步长之差 ——
+    // 守卫改的是它的输出，不改这两个输入。
+    tail_.note(candidate_ns, last_mono_ns_);
+    stats_.tail = tail_.snapshot();
 
     // P14-E：把这次观测放进滚动窗口；异常时把窗口扣进证据。
     //

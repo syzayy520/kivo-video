@@ -172,6 +172,7 @@ add_library(kivo_backend_aaudio STATIC
     "${KIVO_BACKEND}/src/video/video_plane/backends/aaudio/clock/aaudio_timestamp_reader.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/backends/aaudio/clock/aaudio_clock_source.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/backends/aaudio/clock/aaudio_clock_trace.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/backends/aaudio/clock/aaudio_clock_tail.cxx"
 
     # ---- session：启停与统计 ----
     "${KIVO_BACKEND}/src/video/video_plane/backends/aaudio/session/aaudio_output_session.cxx"
