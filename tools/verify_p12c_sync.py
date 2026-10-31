@@ -70,7 +70,7 @@ class Failure(Exception):
 #:
 #: `/2` **从未存在过**（`/1` 直接跳到 `/3`），所以它不是"漏了"，是当时就没写。
 MIN_SCHEMA_VERSION = 1
-MAX_SCHEMA_VERSION = 38
+MAX_SCHEMA_VERSION = 39
 ABSENT_SCHEMA_VERSIONS = frozenset({2})
 
 #: 从这一版起，`pace.pts_span_ns`（实测首末 pts 差）与 `pace.clock_supplied_frames`
@@ -111,6 +111,9 @@ SCHEMA_WITH_STEP_REPAY = 37
 #: 从 `/38` 起跨度有"是谁喂的"这一格（P14-AA）：presented 还是 scheduled。
 #: 以前 at_time 档压根不喂 DueStep，四跨度恒 0、`media_rate` 无从算。
 SCHEMA_WITH_SPAN_BASIS = 38
+#: 从 `/39` 起 `av_drift` 自带使用条件（P14-AC）：`sync_verdict` 与 `lead_ns`。
+#: `av_drift` 很小只证明视频跟住了钟，不证明钟是对的 —— 22 轮里 17 轮两者相反。
+SCHEMA_WITH_SYNC_VERDICT = 39
 
 #: 已知越界 —— **不是豁免判据，是登记在案的异常**。值是 `(说明, 钟领先量指纹)`。
 #:
@@ -1160,6 +1163,26 @@ def verify(path: Path) -> tuple[str, list[str], str]:
         gate = data.get("drift_gate") or {}
         if not isinstance(gate.get("step_repay"), bool):
             raise Failure("/37 起 drift_gate.step_repay 必须是布尔（哪一臂跑的要写在自己身上）")
+    if version >= SCHEMA_WITH_SYNC_VERDICT:
+        drift = data.get("av_drift") or {}
+        verdict = drift.get("sync_verdict")
+        if verdict not in ("av_synced", "clock_off", "unknown"):
+            raise Failure(f"/39 起 av_drift.sync_verdict={verdict!r} 不在白名单里")
+        if verdict != "unknown":
+            lead = abs(int(drift.get("lead_ns") or 0))
+            bound = int(drift.get("lead_bound_ns") or 0)
+            if bound <= 0:
+                raise Failure("AC1 lead_bound_ns 必须 > 0，否则'av_synced'没有门槛")
+            if verdict == "av_synced" and lead > bound:
+                raise Failure(
+                    f"AC1 判成 av_synced，但领先量 {lead / 1e6:.2f} ms > 一帧 "
+                    f"{bound / 1e6:.2f} ms —— av_drift 在这一轮不能当同步结论"
+                )
+            if verdict == "clock_off" and lead <= bound:
+                raise Failure(
+                    f"AC2 判成 clock_off，但领先量 {lead / 1e6:.2f} ms 在一帧以内"
+                    " —— 结论比证据悲观，同样是错的"
+                )
     if version >= SCHEMA_WITH_SPAN_BASIS:
         # AA1：只要这一轮交过帧，跨度就必须有人喂 —— 否则又是"全 0 看起来像没动"。
         span_frames = int(pace.get("span_frames", 0))

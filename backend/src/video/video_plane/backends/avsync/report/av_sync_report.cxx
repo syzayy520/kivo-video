@@ -317,7 +317,7 @@ using core::pace::SignedHistogram;
 ///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/38";
+constexpr const char* kSchema = "kivo.p12c.sync/39";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -881,6 +881,35 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     // 参考系是一个**结构性的前提**，不是一句注释 —— 所以它印在最前面，
     // 与下面的 `vs_wall.reference` 并排，读者第一眼就知道有两个答案。
     out << "    \"reference\": " << quoted("audio_clock") << ",\n";
+
+    // ── P14-AC：`av_drift` 单独不能下同步结论 ──
+    //
+    // `av_drift` 是"视频相对这只钟"。它很小只能证明**视频跟住了钟**，
+    // 不能证明钟是对的。243 份证据里两份参考系都齐的 22 轮中：
+    // `av_drift.p99 <= 1 ms` 的有 21 轮，其中 17 轮 `|clock_lead| > 40 ms`
+    // （中位数 43.8、最大 400）—— 一眼看过去"很准"，而钟其实偏了。
+    //
+    // 所以把前置条件写在**同一块里**：钟与墙差不到一帧，才允许把 av_drift
+    // 读成同步结论。这不是多加一个数，是给这个数配一句使用条件。
+    const std::int64_t lead_bound_ns = pace.frame_duration_ns > 0 ? pace.frame_duration_ns : 0;
+    const std::int64_t lead_abs_ns =
+        pace.clock_lead_ns < 0 ? -pace.clock_lead_ns : pace.clock_lead_ns;
+    const bool lead_measured = pace.lead_trace.samples > 0 && lead_bound_ns > 0;
+    const char* sync_verdict = "unknown";
+    std::string sync_reason;
+    if (!lead_measured) {
+        sync_reason = "钟与墙的领先量没有样本：同步结论给不出";
+    } else if (lead_abs_ns <= lead_bound_ns) {
+        sync_verdict = "av_synced";
+        sync_reason = "领先量在一帧以内：此时 av_drift 可以读成同步结论";
+    } else {
+        sync_verdict = "clock_off";
+        sync_reason = "领先量超过一帧：av_drift 只证明视频跟住了钟，不证明钟是对的";
+    }
+    out << "    \"sync_verdict\": " << quoted(sync_verdict) << ",\n";
+    out << "    \"sync_verdict_reason\": " << quoted(sync_reason) << ",\n";
+    out << "    \"lead_ns\": " << pace.clock_lead_ns << ",\n";
+    out << "    \"lead_bound_ns\": " << lead_bound_ns << ",\n";
 
     // ── 口径先于数字，且结构上不可绕过 ──
     //

@@ -123,6 +123,8 @@ SYNC_QUANTILE_BLOCK_SCHEMAS = (
     "kivo.p12c.sync/37",
     # P14-AA：`pace` 多 `span_frames` / `span_basis`。跨度还是那四个，改的是"谁喂的"。
     "kivo.p12c.sync/38",
+    # P14-AC：`av_drift` 多 `sync_verdict` / `lead_ns` —— 给这个数配一句使用条件。
+    "kivo.p12c.sync/39",
 )
 
 # P14-R：哪几版报告带 `end_reason`。两个集合分开写而不是写一次"≥ /29"，
@@ -133,7 +135,8 @@ SCHEMAS_WITH_SYNC_END_REASON = {"kivo.p12c.sync/29", "kivo.p12c.sync/30",
                                  "kivo.p12c.sync/31", "kivo.p12c.sync/32",
                                  "kivo.p12c.sync/33", "kivo.p12c.sync/34",
                                  "kivo.p12c.sync/35", "kivo.p12c.sync/36",
-                                 "kivo.p12c.sync/37", "kivo.p12c.sync/38"}
+                                 "kivo.p12c.sync/37", "kivo.p12c.sync/38",
+                                 "kivo.p12c.sync/39"}
 
 # ── schema 白名单 ──────────────────────────────────────────────────────────
 # 硬编码是刻意的摩擦：新增卡片必须显式加进来，让"格式变更"被看见一次。
@@ -324,6 +327,8 @@ KNOWN_SCHEMAS = {
     "kivo.p12c.sync/37",
     # P14-AA：`span_frames` / `span_basis` —— at_time 档第一次能说出跨度是谁喂的。
     "kivo.p12c.sync/38",
+    # P14-AC：`av_drift.sync_verdict` —— "这个数能不能当同步结论"写在它自己身上。
+    "kivo.p12c.sync/39",
     "kivo.p12d5.present-timing/1",
     "kivo.p12e.color-probe/1",
     "kivo.p12e.hdr-probe/1", "kivo.p12e.hdr-probe/2", "kivo.p12e.hdr-probe/3",
