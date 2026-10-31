@@ -38,18 +38,7 @@ void PaceStats::note_presented(std::int64_t lateness_ns, std::int64_t media_ns,
     // 所以 P14-T 那 110 份证据的数一个没动 —— 判据 U1 现在能要求逐位相等。
     if (step.due_at_ns != 0) {
         ++clock_supplied_frames_;
-
-        if (!has_span_) {
-            has_span_ = true;
-            first_arrive_mono_ns_ = step.clock_mono_ns;
-            first_elapsed_ns_ = step.clock_elapsed_ns;
-            first_due_ns_ = step.due_at_ns;
-            first_pts_ns_ = media_ns;
-        }
-        last_arrive_mono_ns_ = step.clock_mono_ns;
-        last_elapsed_ns_ = step.clock_elapsed_ns;
-        last_due_ns_ = step.due_at_ns;
-        last_pts_ns_ = media_ns;
+        note_span(step, media_ns);
 
         // P14-U：两个参考系。
         //
@@ -85,14 +74,7 @@ void PaceStats::note_presented(std::int64_t lateness_ns, std::int64_t media_ns,
     // P13-P：目标时刻动过几帧。判据是"超过一帧"—— 门限与 G6 的 over_budget 同口径，
     // 这样两个数能直接对照读（`due_step_frames` 与 `over_budget_frames` 不必相等：
     // 前者数的是**基准**偏了，后者数的是**结果**偏了；相等才需要解释）。
-    if (step.frame_duration_ns > 0) {
-        ++due_step_supplied_;
-        const std::int64_t magnitude =
-            step.due_step_ns < 0 ? -step.due_step_ns : step.due_step_ns;
-        if (magnitude > step.frame_duration_ns) {
-            ++due_step_frames_;
-        }
-    }
+    note_due_step(step);
 
     // 抽稀门在同一处判定并存储：分两步（先问后加）会给两个真相。
     if (drift_.note(media_ns, lateness_ns)) {
@@ -147,6 +129,49 @@ void PaceStats::note_scheduled(std::int64_t lead_ns) noexcept {
     ++presented_;
     ++scheduled_samples_;
     schedule_lead_.add(lead_ns);
+}
+
+void PaceStats::note_scheduled_step(const DueStep& step, std::int64_t media_ns) noexcept {
+    // P14-AA：AtTime 档的 DueStep 以前**从来没进过这本账** ——
+    // `note_scheduled()` 只记提交提前量与间隔，于是 `due_step_supplied = 0`、
+    // 四个跨度全 0、`media_rate` 无从计算。这一条路补的就是那两本账。
+    //
+    // **不碰 lateness / episode / 抽稀**：`present_at` 在 at_time 档是"提交时刻"，
+    // 提前量 p50 ≈ −3 帧，写成 lateness 会把 G6 的 p99 撑爆 —— 那不是迟到。
+    note_span(step, media_ns);
+    note_due_step(step);
+}
+
+void PaceStats::note_span(const DueStep& step, std::int64_t media_ns) noexcept {
+    // 跨度的唯一入口（P14-AA 抽出来的）。present 与 scheduled 都走这里 ——
+    // 两处各写一遍，迟早有一处忘了改，而"跨度"这种两端之差最容易被写成两个真相。
+    if (step.due_at_ns == 0) {
+        return;  // 这一帧没有钟读数，不参与跨度
+    }
+    ++span_frames_;
+
+    if (!has_span_) {
+        has_span_ = true;
+        first_arrive_mono_ns_ = step.clock_mono_ns;
+        first_elapsed_ns_ = step.clock_elapsed_ns;
+        first_due_ns_ = step.due_at_ns;
+        first_pts_ns_ = media_ns;
+    }
+    last_arrive_mono_ns_ = step.clock_mono_ns;
+    last_elapsed_ns_ = step.clock_elapsed_ns;
+    last_due_ns_ = step.due_at_ns;
+    last_pts_ns_ = media_ns;
+}
+
+void PaceStats::note_due_step(const DueStep& step) noexcept {
+    if (step.frame_duration_ns > 0) {
+        ++due_step_supplied_;
+        const std::int64_t magnitude =
+            step.due_step_ns < 0 ? -step.due_step_ns : step.due_step_ns;
+        if (magnitude > step.frame_duration_ns) {
+            ++due_step_frames_;
+        }
+    }
 }
 
 void PaceStats::note_clock_kind(core::audio::AudioClockSourceKind kind) noexcept {
@@ -219,6 +244,18 @@ PaceSummary PaceStats::summary(std::int64_t frame_duration_ns, ClockHealth healt
     out.frame_worst = out.frame_episode.position();
     out.due_step_frames = due_step_frames_;
     out.due_step_supplied = due_step_supplied_;
+    out.span_frames = span_frames_;
+    // 哪条路喂的跨度：presented 有钟读数就是 presented；否则看 scheduled。
+    // 两条都有（理论上不该发生）就报 mixed —— 让读者知道这一格不干净。
+    if (clock_supplied_frames_ > 0 && span_frames_ > clock_supplied_frames_) {
+        out.span_basis = "mixed";
+    } else if (clock_supplied_frames_ > 0) {
+        out.span_basis = "presented";
+    } else if (span_frames_ > 0) {
+        out.span_basis = "scheduled";
+    } else {
+        out.span_basis = "none";
+    }
     // P13-Q：跨帧账。`closure_gap_ns` 是那条恒等式的残差 —— 出版它而不是断言它为 0，
     // 因为"记账中间漏了一帧"（丢帧 / 锚点重建）是真实会发生的事，读者需要看见。
     out.first_lateness_ns = first_lateness_ns_;

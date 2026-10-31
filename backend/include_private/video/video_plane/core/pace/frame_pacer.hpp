@@ -99,6 +99,10 @@ public:
 
 private:
     void sleep_until(std::int64_t deadline_ns) noexcept;
+    /// present 与 scheduled 两条记账路共用同一个 DueStep 构造（P14-AA）。
+    /// 各写一遍的话，漏一格不会有任何判据报红 —— 跨度会悄悄变成 0。
+    [[nodiscard]] DueStep make_due_step(const PaceDecision& decision,
+                                        std::int64_t present_step_ns) const noexcept;
     [[nodiscard]] bool stop_requested() const noexcept;
 
     PacePolicy policy_;

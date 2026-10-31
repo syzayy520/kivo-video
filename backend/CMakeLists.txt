@@ -2834,3 +2834,16 @@ if(MSVC)
 endif()
 add_test(NAME kivo_p14z_step_repay_tests COMMAND kivo_p14z_step_repay_tests)
 set_tests_properties(kivo_p14z_step_repay_tests PROPERTIES TIMEOUT 60)
+
+# ─── P14-AA: at_time 档的跨度与 DueStep ───
+# scheduled 也要喂跨度；presented 的口径不动；混着喂报 mixed。
+add_executable(kivo_p14aa_scheduled_span_tests
+  tests/video/pace/p14aa_scheduled_span_tests/scheduled_span_tests.cpp
+)
+target_link_libraries(kivo_p14aa_scheduled_span_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p14aa_scheduled_span_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p14aa_scheduled_span_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p14aa_scheduled_span_tests COMMAND kivo_p14aa_scheduled_span_tests)
+set_tests_properties(kivo_p14aa_scheduled_span_tests PROPERTIES TIMEOUT 60)

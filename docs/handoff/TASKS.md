@@ -1197,7 +1197,7 @@ R4 `measured=false ⇒ 七格全 0`（Q3 的清单不含新增四格）/ **R5 �
 - **待办**：B 臂两轮（脚本已就绪，设备锁屏卡住）→ 同构建 A 臂复跑 → 由数据决定默认值。
   半场记录见 `166-p14z-status.md`（含一次差点写下的"假零"：`present_jitter` 的键不带 `_ns`）。
 
-### P14-AA · `surface_at_time` 档的 DueStep 与跨度 —— TODO（设计已写，未动代码）
+### P14-AA · `surface_at_time` 档的 DueStep 与跨度 —— **DOING**（桌面已落地，真机未跑）
 
 - **数字先修正**：`CURRENT` 原来写"108 份不可判里 at_time 是默认档"，拆开是
   **90 份旧格式（/1–/15，字段不存在，不补）+ 18 份 at_time（真的缺）**。
@@ -1209,7 +1209,14 @@ R4 `measured=false ⇒ 七格全 0`（Q3 的清单不含新增四格）/ **R5 �
   （`P1 due_step_supplied=0 != presented=480`）。"白名单与分发是两张表"的第四次发作。
 - **方案 B（设计稿 167）**：抽 `note_span()`，present 与 scheduled 都喂跨度；
   `clock_supplied_frames` 含义不动，另出 `span_frames` / `span_basis`（schema `/38`）。
+- **已落地（桌面）**：`note_span()` 与 `note_due_step()` 抽成唯一入口，`make_due_step()` 让
+  present / scheduled 共用同一个 DueStep 构造；`span_frames` / `span_basis` 出版（`sync/38`）；
+  R1 改判 `span_frames`（`clock_supplied_frames` 的含义不动）；`media_rate` 的不可判理由改口径。
+- **数字**：`kivo_p14aa_scheduled_span_tests` 4 例 / 18 断言全过；全量 ctest **286 项**，
+  唯一红 #170；总闸 20 个子校验器 exit 0；APK（arm64）构建通过。
 - **不做**：不把提交提前量写成 lateness（会污染 G6）；不给旧 90 份补字段（等于伪造时间戳）。
+- **待办**：真机一轮 at_time（`kivo.present surface_at_time`）看 `span_basis=scheduled` 与
+  `media_rate` 是否真的算得出；把 `docs/evidence/p14aa/` 接进总闸的 p13p 分发（否则没人守）。
 
 **下一张卡（历史指针，P14-B 已收口）：P14-B · 分配归因** —— 把计数按线程分桶，找出那 5 次/秒；
 查清楚之前 G3 不能判。

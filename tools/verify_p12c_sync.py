@@ -70,7 +70,7 @@ class Failure(Exception):
 #:
 #: `/2` **从未存在过**（`/1` 直接跳到 `/3`），所以它不是"漏了"，是当时就没写。
 MIN_SCHEMA_VERSION = 1
-MAX_SCHEMA_VERSION = 37
+MAX_SCHEMA_VERSION = 38
 ABSENT_SCHEMA_VERSIONS = frozenset({2})
 
 #: 从这一版起，`pace.pts_span_ns`（实测首末 pts 差）与 `pace.clock_supplied_frames`
@@ -108,6 +108,9 @@ SCHEMA_WITH_DISCONTINUITY = 36
 #: 从 `/37` 起 `drift_gate.step_repay` 出版（P14-Z）：台阶还掉还是不还。
 #: 两臂的"零修正"读起来一样、意思相反，不写清楚就分不开。
 SCHEMA_WITH_STEP_REPAY = 37
+#: 从 `/38` 起跨度有"是谁喂的"这一格（P14-AA）：presented 还是 scheduled。
+#: 以前 at_time 档压根不喂 DueStep，四跨度恒 0、`media_rate` 无从算。
+SCHEMA_WITH_SPAN_BASIS = 38
 
 #: 已知越界 —— **不是豁免判据，是登记在案的异常**。值是 `(说明, 钟领先量指纹)`。
 #:
@@ -1149,6 +1152,18 @@ def verify(path: Path) -> tuple[str, list[str], str]:
         gate = data.get("drift_gate") or {}
         if not isinstance(gate.get("step_repay"), bool):
             raise Failure("/37 起 drift_gate.step_repay 必须是布尔（哪一臂跑的要写在自己身上）")
+    if version >= SCHEMA_WITH_SPAN_BASIS:
+        # AA1：只要这一轮交过帧，跨度就必须有人喂 —— 否则又是"全 0 看起来像没动"。
+        span_frames = int(pace.get("span_frames", 0))
+        basis = pace.get("span_basis")
+        if basis not in ("presented", "scheduled", "none", "mixed"):
+            raise Failure(f"/38 起 span_basis={basis!r} 不在白名单里")
+        presented = int(pace.get("presented", 0))
+        if presented > 0 and span_frames == 0:
+            raise Failure(
+                f"AA1 presented={presented} 却没有任何一帧喂过跨度（span_frames=0）"
+                " —— 四个跨度全 0 不可读作'没动'"
+            )
 
     if data["completed"] and data["error"]:
         raise Failure("completed=true 却带着非空 error")

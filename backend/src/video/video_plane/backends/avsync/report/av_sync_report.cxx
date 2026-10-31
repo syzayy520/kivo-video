@@ -317,7 +317,7 @@ using core::pace::SignedHistogram;
 ///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/37";
+constexpr const char* kSchema = "kivo.p12c.sync/38";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -660,7 +660,11 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     //
     // **可为负**：seek 回退之后末帧的 pts 早于首帧。负数不是错误，是一句事实。
     const std::int64_t media_span_ns = pace.pts_span_ns;
-    const std::int64_t media_span_frames = pace.clock_supplied_frames;
+    // P14-AA：跨度现在由两条路喂（present 与 scheduled）。`span_frames` 是
+    // "真正撑起这四个跨度的帧数"；`clock_supplied_frames` 只数 presented 那一批，
+    // 含义不动。0 时退回旧字段 —— 老证据里没有 span_frames 这一格。
+    const std::int64_t media_span_frames =
+        pace.span_frames > 0 ? pace.span_frames : pace.clock_supplied_frames;
     const bool media_rate_measured = (media_span_frames >= 2) && (corrected_span_ns > 0);
     const double media_rate = media_rate_measured
                                   ? static_cast<double>(media_span_ns) /
@@ -672,11 +676,13 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     if (corrected_span_ns <= 0) {
         media_rate_reason = "墙钟跨度 <= 0：只交出过一帧，或呈现时间戳缺失";
     } else if (media_span_frames == 0) {
+        // P14-AA 改了这句话：at_time 档**从 `/38` 起会喂跨度**。
+        // 再写"这一档不提供"就是拿旧实现解释新证据。
         media_rate_reason =
-            "没有任何一帧带钟读数（surface_at_time 路径不提供）：实测 pts 跨度不存在，"
-            "四跨度全 0 不是'没动'";
+            "没有任何一帧喂过跨度（present 与 scheduled 两条路都空）："
+            "实测 pts 跨度不存在，四跨度全 0 不是'没动'";
     } else if (media_span_frames == 1) {
-        media_rate_reason = "只有 1 帧带钟读数：一帧没有跨度";
+        media_rate_reason = "只有 1 帧喂过跨度：一帧没有跨度";
     }
 
     // ── P14-V：公布口径 ──
@@ -1459,6 +1465,10 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "    \"closure_gap_ns\": " << pace.closure_gap_ns << ",\n";
     // P13-R：四个跨度。正常分支上 `due_span == arrive_mono_span + pts_span − elapsed_span`
     // 严格成立，于是"due 为什么整体前移"只剩两个可能：钟比墙快，或者帧比 pts 到得早。
+    // P14-AA：跨度是几帧撑起来的、由哪条路喂的。不写清楚，
+    // at_time 档的跨度会被读成"呈现时刻"的跨度。
+    out << "    \"span_frames\": " << pace.span_frames << ",\n";
+    out << "    \"span_basis\": " << quoted(pace.span_basis) << ",\n";
     out << "    \"arrive_mono_span_ns\": " << pace.arrive_mono_span_ns << ",\n";
     out << "    \"elapsed_span_ns\": " << pace.elapsed_span_ns << ",\n";
     out << "    \"due_span_ns\": " << pace.due_span_ns << ",\n";

@@ -252,7 +252,10 @@ def check_file(path: Path, doc: dict[str, Any]) -> dict[str, Any]:
         elapsed_span = pace.get("elapsed_span_ns")
         due_span = pace.get("due_span_ns")
         pts_span = pace.get("pts_span_ns")
-        normal = pace.get("clock_supplied_frames")
+        # P14-AA：`/38` 起跨度可能由 scheduled 喂（at_time 档）。`clock_supplied_frames`
+        # 一直是"presented 且带钟读数"，那一格不动；R1 要判的是"撑起跨度的帧数"，
+        # 所以有 `span_frames` 就用它 —— 否则 at_time 轮永远红在一条过时的口径上。
+        normal = pace.get("span_frames", pace.get("clock_supplied_frames"))
         for name, value in (("arrive_mono_span_ns", mono_span), ("elapsed_span_ns", elapsed_span),
                             ("due_span_ns", due_span), ("pts_span_ns", pts_span),
                             ("clock_supplied_frames", normal)):

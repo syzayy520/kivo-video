@@ -192,15 +192,8 @@ void FramePacer::note_presented(const PaceDecision& decision,
         present_step_ns = (present_at_ns - last_present_ns_) - expected_ns;
     }
 
-    stats_.note_presented(
-        present_at_ns - decision.due_at_ns, decision.media_ns,
-        DueStep{.due_step_ns = decision.due_step_ns,
-                .frame_duration_ns = decision.frame_duration_ns,
-                .present_step_ns = present_step_ns,
-                .clock_mono_ns = reading_mono_ns_,
-                .clock_elapsed_ns = reading_elapsed_ns_,
-                .anchor_pts_ns = tracker_.anchor_pts_ns(),
-                .due_at_ns = decision.due_at_ns});
+    stats_.note_presented(present_at_ns - decision.due_at_ns, decision.media_ns,
+                          make_due_step(decision, present_step_ns));
     stats_.note_present_mono(present_at_ns);
 
     if (has_last_present_) {
@@ -211,9 +204,28 @@ void FramePacer::note_presented(const PaceDecision& decision,
     frames_since_present_ = 0;
 }
 
+core::pace::DueStep FramePacer::make_due_step(const PaceDecision& decision,
+                                               std::int64_t present_step_ns) const noexcept {
+    // 两条记账路径共用同一个构造（P14-AA）：present 与 scheduled 若各写一遍，
+    // 迟早有一处漏了 `anchor_pts_ns` 或 `due_at_ns`，而那种漏不会有任何判据报红 ——
+    // 它只会让跨度悄悄变成 0。
+    return DueStep{.due_step_ns = decision.due_step_ns,
+                   .frame_duration_ns = decision.frame_duration_ns,
+                   .present_step_ns = present_step_ns,
+                   .clock_mono_ns = reading_mono_ns_,
+                   .clock_elapsed_ns = reading_elapsed_ns_,
+                   .anchor_pts_ns = tracker_.anchor_pts_ns(),
+                   .due_at_ns = decision.due_at_ns};
+}
+
 void FramePacer::note_scheduled(const PaceDecision& decision,
                                std::int64_t submit_at_ns) noexcept {
     stats_.note_scheduled(submit_at_ns - decision.due_at_ns);
+    // P14-AA：AtTime 档也要把 DueStep 喂进去，否则 `due_step_supplied = 0`、
+    // 四个跨度全 0、`media_rate` 无从计算 —— 这一档以前就是这么没有量程的。
+    // `present_step` 传 0：AtTime 档量到的是"提交间隔"，不是"交出的间隔"。
+    // 给它编一个数才是更坏的做法 —— 那一格在这里没有定义。
+    stats_.note_scheduled_step(make_due_step(decision, 0), decision.media_ns);
     stats_.note_present_mono(submit_at_ns);
 
     if (has_last_present_) {

@@ -286,6 +286,13 @@ struct PaceSummary {
     /// 而"全 0"看起来像"这一轮没动"，正好是最容易被读错的那种假观测。
     /// 校验器 R1 拿它当接线自证（`86`/`88` 两张卡各撞到过一次同类漏接）。
     std::int64_t clock_supplied_frames = 0;
+    /// 真正喂过**跨度**的帧数（present 与 scheduled 两条路都算，P14-AA）。
+    /// 与上一格分开：`clock_supplied_frames` 一直是"presented 且带钟读数"，
+    /// 它的含义不动；这一格回答"四个跨度是几帧撑起来的"。
+    std::int64_t span_frames = 0;
+    /// 跨度是哪条路喂的：`presented` / `scheduled` / `none`。不写清楚，
+    /// 读者会把 at_time 档的跨度当成"呈现时刻"的跨度。
+    const char* span_basis = "none";
 
     // ---- 参考系的两份答案（P14-U）----
     //
@@ -424,6 +431,9 @@ public:
 
     /// 记一条"提交提前量"（`submit_at - due_at`，负表示提前）。仅 `kSurfaceAtTime` 路径用。
     void note_scheduled(std::int64_t lead_ns) noexcept;
+    /// AtTime 档的 DueStep 记账（P14-AA）。**只喂跨度与 due_step 两本账**：
+    /// 提交提前量不是 lateness，混进去会把 G6 的 p99 撑爆（提前量 p50 ≈ −3 帧）。
+    void note_scheduled_step(const DueStep& step, std::int64_t media_ns) noexcept;
 
     /// 记一帧的时钟分档。每帧调一次，与是否呈现无关。
     void note_clock_kind(core::audio::AudioClockSourceKind kind) noexcept;
@@ -468,7 +478,13 @@ private:
     std::int64_t last_elapsed_ns_ = 0;
     std::int64_t last_due_ns_ = 0;
     std::int64_t last_pts_ns_ = 0;
+    /// 跨度的唯一入口（P14-AA）。present 与 scheduled 都走它。
+    void note_span(const DueStep& step, std::int64_t media_ns) noexcept;
+    /// `due_step_frames / due_step_supplied` 的唯一入口（P14-AA 抽出来的）。
+    void note_due_step(const DueStep& step) noexcept;
+
     std::int64_t clock_supplied_frames_ = 0;
+    std::int64_t span_frames_ = 0;
     /// P14-U：两个参考系的记录器。与 `drift_` 一样只该在呈现线程里写。
     LeadTraceRecorder lead_trace_{};
     WallOffsetRecorder wall_offset_{};

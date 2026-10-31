@@ -266,7 +266,7 @@ SCHEMA_PREFIX = "kivo.p12c.sync"
 #
 # 区间端点各自有名字，因为它们是两个不同的决定：
 SCHEMA_MIN = 3      # 再往前分位数挂在顶层、键名不带口径，判据结构上对不上
-SCHEMA_LATEST = 37  # 报告层当前写到哪一版。升 schema 时必须同步这一个数（P14-Y 35→36，P14-Z 36→37）
+SCHEMA_LATEST = 38  # 报告层当前写到哪一版。升 schema 时必须同步这一个数（Y 35→36，Z 36→37，AA 37→38）
 SCHEMA_ORDER = tuple(f"/{version}" for version in range(SCHEMA_MIN, SCHEMA_LATEST + 1))
 
 
