@@ -70,7 +70,7 @@ class Failure(Exception):
 #:
 #: `/2` **从未存在过**（`/1` 直接跳到 `/3`），所以它不是"漏了"，是当时就没写。
 MIN_SCHEMA_VERSION = 1
-MAX_SCHEMA_VERSION = 41
+MAX_SCHEMA_VERSION = 42
 ABSENT_SCHEMA_VERSIONS = frozenset({2})
 
 #: 从这一版起，`pace.pts_span_ns`（实测首末 pts 差）与 `pace.clock_supplied_frames`
@@ -120,6 +120,9 @@ SCHEMA_WITH_JUMP_MAX = 40
 #: 从 `/41` 起出版 `dropped_events`（P14-AG）：丢掉的那几帧**在哪儿**。
 #: 计数之外还要有现场 —— 否则"丢了 24 帧"回答不了"一簇还是两簇"。
 SCHEMA_WITH_DROP_EVENTS = 41
+#: 从 `/42` 起 `video.seek` 出版（P15-A / G8）：`SeekFacts` 与 `assess_seek()` 一直在，
+#: 只是从来没印过 —— "没有证据"的真实原因是"没印"。
+SCHEMA_WITH_SEEK = 42
 
 #: 已知越界 —— **不是豁免判据，是登记在案的异常**。值是 `(说明, 钟领先量指纹)`。
 #:
@@ -610,6 +613,54 @@ def check_gate_scale(
             raise Failure(
                 "V5 门一次都没复位，reach 却说是'修完之后剩下的速率'（开关传反了）"
             )
+
+
+def _check_seek(data: dict, notes: list[str]) -> None:
+    """AS1（P15-A / G8）：seek 事实必须出版，且判定内部自洽。
+
+    G8 的口径是"seek 后首帧 < 150 ms"。`assess_seek()` 早就实现了它，还带三条
+    "不能判"的分支（没 seek / 落点被拒 / 没测到首帧）—— 这一条判的是那些分支有没有
+    被诚实地印出来，而不是再实现一遍阈值。
+    """
+    video = data.get("video") or {}
+    block = video.get("seek")
+    if not isinstance(block, dict):
+        raise Failure("AS1 /42 起 `video.seek` 必须出版（G8 的事实与判定）")
+
+    requests = int(block.get("requests", -1))
+    target = int(block.get("target_us", -2))
+    landing = int(block.get("landing_us", -2))
+    assessment = block.get("assessment") or {}
+    passed = assessment.get("pass")
+    reason = assessment.get("reason")
+    total = int(assessment.get("total_us", -2))
+
+    if not isinstance(reason, str):
+        raise Failure("AS1 `seek.assessment.reason` 必须是字符串（通过时为空串）")
+
+    if requests <= 0:
+        # 没 seek 的轮次**不许**判通过 —— `assess_seek()` 的第一条就是这个。
+        # 这条判据守的是"一轮没 seek 的证据不能被读成 G8 达标"。
+        if passed is not False:
+            raise Failure(
+                f"AS1 这一轮 requests={requests}（没有 seek），`assessment.pass` 却是 {passed!r}"
+                " —— 没 seek 不能判通过"
+            )
+        if not reason:
+            raise Failure("AS1 没有 seek 时必须给出 reason（空 reason 会被读成'没问题'）")
+        return
+
+    if target < 0 or landing < 0:
+        raise Failure(f"AS1 requests={requests} 但 target_us={target} / landing_us={landing} 无效")
+    # PREVIOUS_SYNC 的定义：落在目标之前。落在后面时数字不算数（要先丢一批）。
+    if landing > target:
+        raise Failure(f"AS1 landing_us={landing} 落在 target_us={target} 之后，超出 PREVIOUS_SYNC 语义")
+    if passed is True and reason:
+        raise Failure(f"AS1 判了通过却带着 reason：{reason!r}")
+    if passed is False and not reason:
+        raise Failure("AS1 判了失败却没给 reason")
+    if total < 0 and passed is True:
+        raise Failure(f"AS1 判了通过但 total_us={total}（没有总耗时，'通过'没有依据）")
 
 
 def _check_drop_events(data: dict, notes: list[str]) -> None:
@@ -1344,6 +1395,8 @@ def verify(path: Path) -> tuple[str, list[str], str]:
         _check_jump_max(data, notes)
     if version >= SCHEMA_WITH_DROP_EVENTS:
         _check_drop_events(data, notes)
+    if version >= SCHEMA_WITH_SEEK:
+        _check_seek(data, notes)
 
     if version >= SCHEMA_WITH_SPAN_BASIS:
         # AA1：只要这一轮交过帧，跨度就必须有人喂 —— 否则又是"全 0 看起来像没动"。

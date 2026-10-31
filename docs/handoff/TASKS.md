@@ -1402,6 +1402,22 @@ R4 `measured=false ⇒ 七格全 0`（Q3 的清单不含新增四格）/ **R5 �
   −755 ms 那种数，那是"丢帧的另一面"，不是"调度抖了一下"。
 - **状态**：**未动代码**。等拍板后按 C 落地（`worst_abs` + AH1/AH2 + 三轮真机，schema `/42`）。
 
+### P15-A · G8 seek 出版 —— **DOING**（2026-11-01，代码已落地，真机被锁屏挡住）
+
+- **纠正计划里的一句话**：我在 `177` 里写"G8 不是加脚本，要先接进 `VideoStats`"——
+  **错了**。`SeekFacts` 从 P12-F1 起就在 `stats.seek` 里，`assess_seek()`（150 ms 预算）
+  连同三条"不能判"分支（没 seek / 落点被拒 / 没测到首帧）也一直在，还有单测
+  （`p12f1_seek_tests`）。**唯一缺的是"印出来"** —— 所以"G8 没有证据"的真实原因是"没印"。
+- **已落地**（schema `/41` → `/42`）：`video.seek` 出版 `requests / target_us / landing_us /
+  prepare_us / first_frame_us / video_first_pts_us / audio_present / audio_landing_us` +
+  `assessment{total_us, pass, reason}`。判定在报告里调 `assess_seek()` 算，不在判据里重写阈值。
+- **判据 AS1**（8 条变异全过）：没 seek 的轮次**不许**判通过且 reason 必须非空；
+  有 seek 时 `landing ≤ target`、`pass` 与 `reason` 不许自相矛盾、判通过必须有 `total_us`。
+- **脚本**：`tools/run_p15a_seek.sh`（无 seek / 向前 seek 20 s / 向后 seek 5 s）。
+- **卡在**：设备锁屏（`mDreamingLockscreen=true`，`adb` 唤不醒，估计设了 PIN）。
+  三轮跑不了，所以**这一卡没有真机证据**，不能结题。
+- **数字（已有）**：`ctest` 286/286；旧证据（`/41`）不受影响。
+
 ### P15 · 把 G1/G2/G3/G5/G8 从"有机制"变成"有数字" —— **计划已写，未开工**
 
 - **为什么**：`03-goals.md` 的 G1–G10 是 P11 为 **Windows 参考实现**定的。Android 侧目前

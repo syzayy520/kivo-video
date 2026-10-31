@@ -4,6 +4,7 @@
 #include "video/video_plane/backends/mediacodec/session/session_end_reason.hpp"
 #include "video/video_plane/core/audio/pcm_format.hpp"
 #include "video/video_plane/core/pace/pace_gate_scale.hpp"
+#include "video/video_plane/core/seek/seek_budget.hpp"
 #include "video/video_plane/core/pace/sampling_mode.hpp"
 
 #include <algorithm>
@@ -317,7 +318,7 @@ using core::pace::SignedHistogram;
 ///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/41";
+constexpr const char* kSchema = "kivo.p12c.sync/42";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -1481,7 +1482,32 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "    \"surface_rebuild\": {\"rebuilds\": " << video.surface_rebuild.rebinds
         << ", \"gap_ms\": " << video.surface_rebuild.last_gap_ms
         << ", \"resume_ms\": " << video.surface_rebuild.last_resume_ms
-        << ", \"frames_lead\": " << video.surface_rebuild.last_frames_lead << "}\n";
+        << ", \"frames_lead\": " << video.surface_rebuild.last_frames_lead << "},\n";
+
+    // ── P15-A（G8）：seek 的事实与判定 ──
+    //
+    // `SeekFacts` 从 P12-F1 起就在 `stats.seek` 里，`assess_seek()`（150 ms 预算）
+    // 也一直在 `core/seek/seek_budget.hpp`，还有单测（`p12f1_seek_tests`）——
+    // **只是从来没出版过**。于是"G8 没有证据"的真实原因是"没印"，不是"没测"。
+    //
+    // 判定在这里算而不是在判据里算：`assess_seek()` 是纯函数，它的三条"不能判"分支
+    // （没 seek / 落点被拒 / 没测到首帧）与阈值绑在一起，分开写迟早分叉。
+    const core::seek::SeekAssessment seek_check = core::seek::assess_seek(video.seek);
+    out << "    \"seek\": {\n";
+    out << "      \"requests\": " << video.seek.requests << ",\n";
+    out << "      \"target_us\": " << video.seek.target_us << ",\n";
+    // PREVIOUS_SYNC 的语义是"落在目标之前"，所以 `landing_us <= target_us` 是**定义**，
+    // 不是统计。落在后面时 `assess_seek()` 会直接判失败（后续帧要先丢一批，数字不算数）。
+    out << "      \"landing_us\": " << video.seek.landing_us << ",\n";
+    out << "      \"prepare_us\": " << video.seek.prepare_us << ",\n";
+    out << "      \"first_frame_us\": " << video.seek.first_frame_us << ",\n";
+    out << "      \"video_first_pts_us\": " << video.seek.video_first_pts_us << ",\n";
+    out << "      \"audio_present\": " << (video.seek.audio_present ? "true" : "false") << ",\n";
+    out << "      \"audio_landing_us\": " << video.seek.audio_landing_us << ",\n";
+    out << "      \"assessment\": {\"total_us\": " << seek_check.total_us
+        << ", \"pass\": " << (seek_check.pass ? "true" : "false")
+        << ", \"reason\": " << quoted(seek_check.reason) << "}\n";
+    out << "    }\n";
     out << "  },\n";
 
     // ── 节拍侧面 ──
