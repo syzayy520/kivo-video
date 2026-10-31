@@ -39,6 +39,10 @@ struct DecodePaceStats {
     std::int64_t wait_total_ns = 0;
 
     // ---- 抖动（有符号：早为负、晚为正）----
+    /// 进了 `lateness` 直方图的样本数。**必须出版**：`surface_at_time` 下
+    /// `note_presented` 从不被调用，整块全零 —— 没有这一格，"零样本"会被读成"零延迟"。
+    std::int64_t latency_samples = 0;
+
     std::int64_t lateness_p50_ns = 0;
     std::int64_t lateness_p95_ns = 0;
     std::int64_t lateness_p99_ns = 0;

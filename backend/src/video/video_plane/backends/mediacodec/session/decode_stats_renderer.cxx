@@ -45,6 +45,9 @@ namespace {
 ///   /5（C8）：加 `pace.clock_mix`（逐帧时钟分档）。
 ///            音画偏差**没有**加进这里：它等于 `lateness`，只在 `cpu_paced` 下成立，
 ///            单独放一份账会与 `lateness` 打架。要读它去看 `kivo.p12c.sync/1`。
+///   /17（P14-K）：`pace.lateness_ns` 增 `samples` / `measured` / `reason`。
+///       起因：`surface_at_time` 下 `note_presented` 从不被调用，整块是**全零**，
+///       而 `sampled_at_frames` 是 1800 —— "没测到"被印成了"零延迟"。
 ///   /16（P14-I）：`metrics.present_gap` —— 接收圈最长一次的构成
 ///            （submit / pump / pace / release / unaccounted）。三段必须同圈。
 ///   /15（P14-B）：`metrics.alloc` 增 `threads[] / thread_count / overflow_calls` ——
@@ -52,7 +55,7 @@ namespace {
 ///   /14（P14-A）：新增 `metrics` —— 三把以前没有的尺子（CPU 占比 / 堆分配次数 /
 ///            输出缓冲归属）。**每个都带可用性与理由**：这一族最容易把"没测到"
 ///            印成 0，而 0 看起来永远是好消息。
-constexpr const char* kSchema = "kivo.p12c.decode/16";
+constexpr const char* kSchema = "kivo.p12c.decode/17";
 
 /// 可选 int：`< 0` 一律写 `null`。
 /// E1 定的规矩（`08-p12-family-tree.md` §三之十二 第 3 条）：未知不写 0/-1，
@@ -463,7 +466,22 @@ std::string render_decode_stats_json(const DecodeStats& stats,
         out << "    \"catch_up_events\": " << pace.catch_up_events << ",\n";
         out << "    \"catch_up_frames\": " << pace.catch_up_frames << ",\n";
         out << "    \"over_budget_frames\": " << pace.over_budget_frames << ",\n";
+        // P14-K：`lateness` 只在 `cpu_paced` 下才有样本（那档由我们睡到点、交出去）。
+        // `surface_at_time` 交给合成器定时，我们只能测"提交提前量"（`schedule_lead_ns`），
+        // 测不到"何时上屏"。此前这个块在那一档里**全零**，而 `sampled_at_frames`
+        // 是 1800 —— 读者会把它读成"lateness 0，完美同步"，实际是一个样本都没有。
+        // 这是 P14-A/P13-T 那类"没测到印成 0"的同一个病，所以：先出版样本数与理由。
+        const bool lateness_measured = pace.latency_samples > 0;
         out << "    \"lateness_ns\": {\n";
+        out << "      \"samples\": " << pace.latency_samples << ",\n";
+        out << "      \"measured\": " << (lateness_measured ? "true" : "false") << ",\n";
+        out << "      \"reason\": " << "\""
+            << (lateness_measured
+                    ? std::string()
+                    : std::string("no present-timestamp samples: in surface_at_time the "
+                                  "compositor decides when a frame is shown, so only the "
+                                  "submit lead (schedule_lead_ns) is observable"))
+            << "\",\n";
         out << "      \"p50\": " << pace.lateness_p50_ns << ",\n";
         out << "      \"p95\": " << pace.lateness_p95_ns << ",\n";
         out << "      \"p99\": " << pace.lateness_p99_ns << ",\n";

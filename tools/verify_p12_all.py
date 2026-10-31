@@ -82,6 +82,8 @@ KNOWN_SCHEMAS = {
     "kivo.p12c.decode/15",
     # P14-I：`metrics.present_gap`（接收圈最长一次的构成）。
     "kivo.p12c.decode/16",
+    # P14-K：`pace.lateness_ns` 增 samples/measured/reason（默认档下 lateness 无样本）。
+    "kivo.p12c.decode/17",
     "kivo.p12c.sync/1",
     # P13-D：`av_drift` 的分位数改由"按媒体时间抽稀到 20 Hz"的分布给出，
     # 并新增 sampling / per_frame / trend 三块。`/1` 的证据不重写（重写等于伪造），
@@ -771,6 +773,15 @@ def layer4_reuse(report: Report) -> None:
     if p14f_files:
         run_sub("summarize_p14f_jumps",
                 [py, "tools/summarize_p14f_jumps.py", *p14f_files], report)
+
+    # P14-K：默认排程档 + lateness 的 measured 标志（P7/P8 在同一脚本里）。
+    p14k_files = sorted(glob.glob("docs/evidence/p14k/*.json"))
+    if p14k_files:
+        run_sub("verify_p14i_gap(p14k)",
+                [py, "tools/verify_p14i_gap.py", *p14k_files], report)
+        run_sub("verify_p14g_tail(p14k)",
+                [py, "tools/verify_p14g_tail.py",
+                 *sorted(glob.glob("docs/evidence/p14k/*-sync.json"))], report)
 
     # P14-I：接收圈的停顿构成。只看结构，好坏由人判。
     p14i_files = sorted(glob.glob("docs/evidence/p14i/*.json"))

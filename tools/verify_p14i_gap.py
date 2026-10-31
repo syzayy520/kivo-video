@@ -9,6 +9,11 @@ P3 分档不漏账  `Σ buckets == iterations`
 P4 残差非负且不超 gap  `0 <= worst_unaccounted_ns <= max_gap_ns`
               —— 减法写反时会出现负残差，那是最隐蔽的一种错
 P5 极值自洽    `max_gap_ns` 落在非空档里（与实现同一套边界，但独立算一遍）
+P7 不自称测到   `lateness_ns.measured == (samples > 0)`，`measured=false` 时 `reason` 非空。
+              `surface_at_time` 下 `note_presented` 从不被调用，整块全零；
+              不出版样本数与理由，"没测到"就会被读成"零延迟"。
+P8 有替代证据   `measured=false` 时 `schedule_lead_ns.samples > 0` ——
+              否则这一档连"提交得多准时"都没有，G7 在这一档等于完全空白。
 P6 分段不重复计  `worst_pace_ns + worst_release_ns <= worst_pump_ns + 1 ms`
               —— pace/release 是 pump 的内部，超过就是把同一段时间算了两次
 
@@ -75,6 +80,34 @@ def verify(path: Path) -> str | None:
     index = bucket_of(max_gap, EDGES_NS)
     if index >= len(buckets) or buckets[index] == 0:
         raise Failure(f"P5 最长一圈 {max_gap / 1e6:.1f} ms 应落在第 {index} 档，那一档却是 0")
+
+    # ── P7/P8：lateness 不许"自称测到"（decode/17 起才有这两格）──
+    schema_index = 0
+    if "/" in str(document.get("schema", "")):
+        try:
+            schema_index = int(str(document["schema"]).rsplit("/", 1)[1])
+        except ValueError:
+            schema_index = 0
+    if schema_index >= 17:
+        lateness = document["pace"]["lateness_ns"]
+        samples = int(lateness.get("samples", -1))
+        measured = bool(lateness.get("measured", False))
+        if samples < 0:
+            raise Failure("P7 lateness_ns 没有 samples 字段")
+        if measured != (samples > 0):
+            raise Failure(
+                f"P7 measured={measured} 与 samples={samples} 不一致 —— "
+                "零样本却自称测到，正是这一格要防的"
+            )
+        if not measured:
+            if not str(lateness.get("reason", "")).strip():
+                raise Failure("P7 measured=false 却没有 reason")
+            lead_samples = int(document["pace"]["schedule_lead_ns"]["samples"])
+            if lead_samples <= 0:
+                raise Failure(
+                    "P8 没有 lateness 样本，也没有 schedule_lead 样本 —— "
+                    "这一轮的时点证据完全空白"
+                )
 
     inner = int(gap["worst_pace_ns"]) + int(gap["worst_release_ns"])
     if inner > int(gap["worst_pump_ns"]) + 1_000_000:

@@ -25,6 +25,7 @@ DecodePaceStats decode_pace_stats_from(const core::pace::PaceSummary& summary,
     out.waited = summary.waited;
     out.wait_total_ns = summary.wait_total_ns;
 
+    out.latency_samples = summary.latency_samples;
     out.lateness_p50_ns = summary.lateness.percentile_ns(0.50);
     out.lateness_p95_ns = summary.lateness.percentile_ns(0.95);
     out.lateness_p99_ns = summary.lateness.percentile_ns(0.99);

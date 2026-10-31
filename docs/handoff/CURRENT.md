@@ -1,8 +1,8 @@
 # 交接快照 · Kivo Video Android 后端核心
 
-> 最后更新：2026-10-31 11:15（P14-J 收口：长间隔在收尾，播放期间无停顿；已推送 origin）
+> 最后更新：2026-10-31 11:45（P14-K 收口：默认排程档 0 丢帧，但 lateness/over_budget 是沉默的零）
 > 读这一份就能接手。**下一步做什么看 `TASKS.md`，本文只讲"现在在哪、怎么跑、哪里会踩坑"。**
-> 如果只给你 30 秒：读本文第一节，然后打开 `TASKS.md` 找 `P14-J`（已 DONE）；下一张卡看 §一 的"下一步做什么"。
+> 如果只给你 30 秒：读本文第一节，然后打开 `TASKS.md` 找 `P14-K`（已 DONE）；下一张卡看 §一 的"下一步做什么"。
 
 ---
 
@@ -16,8 +16,8 @@
 | 问题 | 答案 |
 | --- | --- |
 | 项目是什么 | 自研播放器后端核心，**平台顺序 Android → iOS → 桌面**，当前只做后端，不做 UI |
-| 现在到哪了 | P12-A … P12-F 全部收口（P12 结题）；**P13-A … P13-AE 已收口；P14-A…J 与 P13-AF 已收口** |
-| 下一步做什么 | **`surface_at_time` 排程档**：P14-J 已把长间隔钉在收尾（位置 == 跨度），播放期间没有可归因停顿，这条线封口。至今所有结论只在 `cpu_paced` 一档上；`surface_at_time` 把按时呈现交给合成器，`present_gap` 与节拍等待的含义都会变，需要单独一轮。其次是**第二台机器**。 |
+| 现在到哪了 | P12-A … P12-F 全部收口（P12 结题）；**P13-A … P13-AE 已收口；P14-A…K 与 P13-AF 已收口** |
+| 下一步做什么 | **给所有派生计数加 `measured`/`reason`**：P14-K 发现默认档下 `lateness` 零样本却印成 0（已修），`over_budget_frames` 由它派生、同样是沉默的零（未修）。`over_budget` / `catch_up_events` / `drop_ratio` 要一次改完，同一套写法，并让 P7/P8 覆盖它们。其次是**第二台机器**（`surface_at_time` 跨机型最可能变）。 |
 | 代码在哪 | C++ 后端 `backend/`；Android 壳 `android/`。`android/app/src/main/cpp/CMakeLists.txt` 用 `${KIVO_ROOT}/backend/src/...` **逐条列源文件**（不是 `add_subdirectory`，也别去找那个），所以两个目录必须同一个仓库、相对位置不能变 |
 | 工作目录 | **`C:\kivo video` 整个仓库**。`android/` 单独拿出来会在 CMake 配置期 `FATAL_ERROR`。哪些目录必须一起给，见 `AGENTS.md` §零 |
 | 怎么验证 | 必须真机（Redmi K40，序列号 `b6e950ee`），模拟器数字一律无效 |
