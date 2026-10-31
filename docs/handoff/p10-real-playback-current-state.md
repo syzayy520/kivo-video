@@ -26,7 +26,7 @@ continue from `e1394ff7d4315b502878b18a96963530213dbe6a`.
 
 Attachment:
 
-`C:\Users\huyasi\.codex\attachments\1f5f28af-f32b-45b1-bf46-96a548f0117d\pasted-text.txt`
+`<用户目录>\<user>\.codex\attachments\1f5f28af-f32b-45b1-bf46-96a548f0117d\pasted-text.txt`
 
 Task id:
 
@@ -181,7 +181,7 @@ P0/P1 audit:
   match the real runtime, and unsupported backend capabilities must be reported
   as deferred instead of faked.
 - Current P1 governance gate was attempted with bundled Python:
-  `C:\Users\huyasi\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe backend\tools\governance\verify_p1_gates.py`
+  `<用户目录>\<user>\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe backend\tools\governance\verify_p1_gates.py`
 - Result: `FAIL: unexpected root-level file: cmake_p5d_build.log`.
 - `cmake_p5d_build.log` is ignored/untracked and was last modified
   `2026-06-28 06:16:16`; it was not touched or cleaned during this task.

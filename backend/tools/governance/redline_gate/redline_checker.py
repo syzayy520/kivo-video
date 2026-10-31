@@ -4,7 +4,7 @@ P2 Redline Gate Checker V3 — Production-grade
 8 rule categories. True scan mode separation. No fake PASS.
 Python stdlib only.
 """
-import json, os, sys, re, glob, importlib.util
+import json, os, sys, re, glob, importlib.util, subprocess
 from datetime import datetime, timezone
 
 MEDIA_KINDS = {"local_file","smb","nfs","ftp","ftps","sftp","http_file","https_file","http_stream","https_stream","dlna_upnp","s3_object","minio_object","webdav","alist","emby","plex","jellyfin","google_drive","onedrive","iptv_m3u","hls_live"}
@@ -269,6 +269,85 @@ def scan_all(root, r):
     scan_reports(root, r)
     scan_tools(root, r)
 
+# ═══ 交付物扫描（2026-10-31 决定）═══
+#
+# 闸门对**交付物**负责，不对历史负责。理由与数字见 `CURRENT.md` 下一步 ③：
+# 30 条存量违规全在 `docs/roadmap`、`.codebuddy/memory` 与一份旧 schema 里；
+# 让这条闸门永远红着，等于让每次 ctest 都背一条与交付无关的失败 —— 久了他就不看了。
+#
+# **不判红 ≠ 没有**：历史存量仍在 `legacy_evidence_violations.json` 里记账，
+# 且 `scan_delivery()` 每次都会把它的条数印出来。
+DELIVERY_DIRS = ('backend', 'android', 'docs/design', 'docs/handoff',
+                 'tools', 'ui', 'include', 'cmake')
+#: 构建产物与第三方：不是交付物，扫它们只会把噪声当违规。
+DELIVERY_SKIP_PARTS = ('/build/', '/.gradle/', '/.cxx/', '/.kotlin/',
+                       '/vcpkg_installed/', '/artifacts/', '/third_party/',
+                       '/samples/', '/.git/')
+DELIVERY_SUFFIXES = ('.py', '.md', '.json', '.kt', '.kts', '.cxx', '.cpp',
+                     '.hpp', '.h', '.txt', '.sh', '.cmake')
+
+
+def _delivery_files(root):
+    """交付目录里的文件 + 本次改动（git 能看到的话）。"""
+    seen = set()
+    for top in DELIVERY_DIRS:
+        base = os.path.join(root, top)
+        if not os.path.isdir(base):
+            continue
+        for dirpath, _dirnames, filenames in os.walk(base):
+            norm = dirpath.replace(os.sep, '/') + '/'
+            if any(part in norm for part in DELIVERY_SKIP_PARTS):
+                continue
+            for name in filenames:
+                if not name.endswith(DELIVERY_SUFFIXES):
+                    continue
+                path = os.path.join(dirpath, name)
+                if is_self_artifact(path):
+                    continue
+                seen.add(os.path.abspath(path))
+    # 本次改动：`git status --porcelain` 里改过的路径。拿不到 git 就说出来，
+    # 不静默跳过 —— 少了这一半，"本次改动"这一条就名存实亡。
+    try:
+        done = subprocess.run(
+            ['git', '-c', 'safe.directory=' + os.path.abspath(root), 'status', '--porcelain'],
+            cwd=root, capture_output=True, text=True, timeout=20)
+        if done.returncode == 0:
+            for line in done.stdout.splitlines():
+                rel = line[3:].strip().strip('"')
+                if ' -> ' in rel:
+                    rel = rel.split(' -> ', 1)[1]
+                path = os.path.join(root, rel)
+                if not os.path.isfile(path) or not path.endswith(DELIVERY_SUFFIXES):
+                    continue
+                # 自己产出的结果文件必须排除：上一轮的结果里存着历史违规的原文，
+                # 把它当交付物扫，闸门就会"因为自己记录过违规"而判红 —— 自我中毒。
+                if is_self_artifact(path):
+                    continue
+                seen.add(os.path.abspath(path))
+        else:
+            print('  [warn] git status 不可用：本次改动没有被扫')
+    except Exception as error:  # noqa: BLE001 - 工具缺失不该让闸门崩，但要说出来
+        print(f'  [warn] git status 失败（{error}）：本次改动没有被扫')
+    return sorted(seen)
+
+
+def scan_delivery(root, r):
+    """交付物 + 本次改动。历史文档不判红，但仍被点数。"""
+    for path in _delivery_files(root):
+        r.files_scanned += 1
+        if path.endswith('.json'):
+            scan_json(path, r, root, True)
+        check_credential_leakage(path, r, True)
+        check_premature_claims(path, r, True)
+    # 历史存量照样统计一次，只统计不判红 —— 这一行必须印出来，
+    # 否则"绿了"会被读成"那些违规不存在了"。
+    historical = Result()
+    scan_reports(root, historical)
+    if historical.violations:
+        print(f"  历史存量：{len(historical.violations)} 条（不判红，"
+              f"见 artifacts/legacy_evidence_violations.json）")
+
+
 def is_self_artifact(path):
     """Don't scan redline gate's own generated artifacts."""
     return 'redline_gate/artifacts' in path.replace('\\','/')
@@ -329,7 +408,9 @@ def self_test():
 # ═══ Main ═══
 def main():
     if "--self-test" in sys.argv: sys.exit(0 if self_test() else 1)
-    root="."; scan_mode="all"
+    # 默认扫交付物（2026-10-31 决定）。全仓历史审计用 `--scan=all`，
+    # 那条会红在 29 条历史违规上 —— 它是审计工具，不是 CI 闸门。
+    root="."; scan_mode="delivery"
     for a in sys.argv[1:]:
         if a.startswith('--root='): root=a.split('=',1)[1]
         if a.startswith('--scan='): scan_mode=a.split('=',1)[1]
@@ -337,14 +418,22 @@ def main():
 
     # Schema check on real evidence
     failures, scount = run_schema_check(root)
-    r.files_scanned += scount
-    for p,errs in failures: r.schema_failures.append((p,errs))
-    if failures: r.add('SCHEMA','FAIL','evidence/','schema','Schema gate failures on legacy evidence')
+    if scan_mode == 'delivery':
+        # 交付物模式：这份 schema 台账扫的是 `artifacts/p2/evidence` 的历史证据，
+        # 与交付物无关。**照样点数，但不判红** —— 印出来，别假装它不存在。
+        r.files_scanned += scount
+        if failures:
+            print(f"  历史 schema 失败：{len(failures)} 份（不判红，见 artifacts/legacy_evidence_violations.json）")
+    else:
+        r.files_scanned += scount
+        for p,errs in failures: r.schema_failures.append((p,errs))
+        if failures: r.add('SCHEMA','FAIL','evidence/','schema','Schema gate failures on legacy evidence')
 
     # Scan per mode
     if scan_mode=='evidence': scan_evidence(root, r)
     elif scan_mode=='reports': scan_reports(root, r)
     elif scan_mode=='tools': scan_tools(root, r)
+    elif scan_mode=='delivery': scan_delivery(root, r)
     else: scan_all(root, r)  # 'all'
 
     # Legacy inventory

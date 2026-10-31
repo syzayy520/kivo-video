@@ -1236,6 +1236,24 @@ R4 `measured=false ⇒ 七格全 0`（Q3 的清单不含新增四格）/ **R5 �
 - **判据顺手改两条**：门限判据把 B 臂的 `|offset|` 加进上界（否则"按要求不动"被判成"门坏了"）；
   R1 改判 `span_frames`。
 
+### P14-AB · 红线扫描域：闸门对交付物负责 —— DONE（2026-10-31）
+
+- **决定**：默认扫"交付物 + 本次改动"，`--scan=all` 保留为**历史审计**，不再当 CI 闸门。
+- **实现**：新增 `scan_delivery()` —— 扫 `backend/`、`android/`、`docs/design`、`docs/handoff`、
+  `tools/`、`ui/`、`include/`、`cmake/`，加上 `git status` 里改过的路径；
+  排除 `build/`、`.gradle/`、`.cxx/`、`artifacts/`、`third_party/`、`samples/`。
+- **历史不隐藏**：每次扫描都印"历史存量 29 条 / 历史 schema 失败 2 份（不判红）"，
+  仍写 `legacy_evidence_violations.json`。**不判红 ≠ 没有**。
+- **先修了 4 条**：两份文档的 `C://Users//` / `/Users/` 脱敏成 `<用户目录>`；
+  `158-p14v-status.md` 里那两处"讨论规则时把规则字面量写进来"改成不带字面量的说法。
+- **两个坑**：
+  ① 批量脱敏把**扫描器自己的 `CREDENTIAL_PATTERNS`** 也改了（`r'C:////Users////'` 被换成占位符），
+     于是它开始匹配占位符 —— 已回滚重做，规则一个字没动；
+  ② 自己产出的 `redline_gate_result.json` 里存着历史违规原文，被"本次改动"那一路扫进来，
+     闸门"因为自己记录过违规"而判红 —— **自我中毒**。已在 git 分支同样排除 `is_self_artifact`。
+- **数字**：`ctest -C Debug` **286/286 全绿（0 失败）** —— 本仓库第一次；
+  `#170` 从长期红转绿，`--scan=delivery` 2290 个文件 0 违规。
+
 **下一张卡（历史指针，P14-B 已收口）：P14-B · 分配归因** —— 把计数按线程分桶，找出那 5 次/秒；
 查清楚之前 G3 不能判。
 

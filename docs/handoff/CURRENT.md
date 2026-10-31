@@ -37,9 +37,9 @@
    `--scan=delivery`（试验版，未保留在仓库）跑了一遍，交付目录里还有 **4 条** —— `docs/design/backend-core/158-p14v-status.md`
    （R4 + R8）、`docs/design/p7/…V1.9.md`（R4）、`docs/handoff/p10-real-playback-current-state.md`（R4）。
    外加 schema 闸门是**独立**跑的，它扫的是 `artifacts/p2/evidence` 两份旧证据，与模式无关。
-   所以这不是"要不要修 30 条"，而是"这条闸门要不要对历史负责"：
-   ①扫交付物+本次改动 → 今天就能绿，且新违规仍然拦得住；
-   ②全仓历史 → 永远红，除非改写历史文档（那等于伪造）。待拍板。④ **`jumps_clamped = 3` 的线索** —— 当时 3 次、今天 0 次。⑤ **让 `surface_at_time` 也提供钟读数** —— 但**不是 108 份**：拆开是 90 份旧格式（/1–/15，补不了）+ **18 份 at_time**（真的缺）。设计见 `167-p14aa-design.md`，里面还查出一个总闸覆盖洞：`p13p` 只扫 `p13*`，`p14k` 的 at_time 证据从没被扫过，手动跑当场红（P1 `due_step_supplied=0`）。⑥ **打断之后"回来从哪继续"** —— 需要 native 暴露 `position_us`。⑦ **32 位 Android**：CM311-1A 只有 `armeabi-v7a`，要先有 32 位 FFmpeg。 |
+   **已定并落地（2026-10-31，P14-AB）**：默认扫"交付物 + 本次改动"，`--scan=all` 留作历史审计。
+   4 条交付物违规已修（两份文档脱敏、`158` 去掉规则字面量），**`ctest` 286/286 全绿**，
+   `#170` 从长期红转绿。历史 29 条 + 2 份旧 schema 仍在台账里，每轮扫描都会印出来 —— 不判红 ≠ 没有。④ **`jumps_clamped = 3` 的线索** —— 当时 3 次、今天 0 次。⑤ **让 `surface_at_time` 也提供钟读数** —— 但**不是 108 份**：拆开是 90 份旧格式（/1–/15，补不了）+ **18 份 at_time**（真的缺）。设计见 `167-p14aa-design.md`，里面还查出一个总闸覆盖洞：`p13p` 只扫 `p13*`，`p14k` 的 at_time 证据从没被扫过，手动跑当场红（P1 `due_step_supplied=0`）。⑥ **打断之后"回来从哪继续"** —— 需要 native 暴露 `position_us`。⑦ **32 位 Android**：CM311-1A 只有 `armeabi-v7a`，要先有 32 位 FFmpeg。 |
 | 代码在哪 | C++ 后端 `backend/`；Android 壳 `android/`。`android/app/src/main/cpp/CMakeLists.txt` 用 `${KIVO_ROOT}/backend/src/...` **逐条列源文件**（不是 `add_subdirectory`，也别去找那个），所以两个目录必须同一个仓库、相对位置不能变 |
 | 工作目录 | **`C:\kivo video` 整个仓库**。`android/` 单独拿出来会在 CMake 配置期 `FATAL_ERROR`。哪些目录必须一起给，见 `AGENTS.md` §零 |
 | 怎么验证 | 必须真机（Redmi K40，序列号 `b6e950ee`），模拟器数字一律无效 |

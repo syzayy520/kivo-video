@@ -1,6 +1,6 @@
 # KIVO-VIDEO-P7-PLAYBACK-GRAPH-INTEGRATION-DESIGN-LOCK-001-V1.9
 
-**Source DOCX**: `C:/Users/huyasi/Downloads/Kivo Video P7 Playback Graph Integration Design V1.9.docx`
+**Source DOCX**: `<用户目录>/Downloads/Kivo Video P7 Playback Graph Integration Design V1.9.docx`
 **Source SHA256**: `B85D3B4C200445A46469AD4600B97BD0BB409F0DA7D3679BA1E0E44F87529FD8`
 **Extracted**: `2026-06-29T01:03:34Z`
 **Paragraph count**: `1108`
