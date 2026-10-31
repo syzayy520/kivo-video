@@ -14,6 +14,8 @@ T3 分档不漏账  `Σ buckets == samples`。加档时忘了扩数组，这里�
 T4 极值自洽    按证据里自己的 `edges_ns` 重新算一遍 `max_forward_ns` /
               `max_backward_ns` 该落在第几档，那一档必须非空。
               **独立写一遍边界计算**（不调用被测实现），否则就是拿实现验实现。
+T8 位置自洽      `long_gaps > 0` 时 `last_long_gap_at_ns` 必须落在 `[0, span_ns]`，
+              且 `first <= last`。这一格是 P14-J 加的：次数说不清"在开头还是结尾"。
 T5 钳制可解释  守卫的条件是「候选步长 > 200 ms」，所以 `long_candidate_steps`
               必须 ≥ `jumps_clamped`。
               **不能写成"残差越阈值 或 间隔越阈值"** —— 首轮 30 分钟里有一次钳制，
@@ -139,6 +141,11 @@ def verify(path: Path) -> tuple[str, dict[str, Any]]:
                 f"但那一档计数为 0（分布与极值不是同一批样本）"
             )
 
+    # ── T8：长间隔的位置自洽（P14-J）──
+    first_at = int(tail.get("first_long_gap_at_ns", -1))
+    last_at = int(tail.get("last_long_gap_at_ns", -1))
+    span = int(tail.get("span_ns", 0))
+
     # ── T5：钳制必须被"真跳"或"长间隔"之一解释掉 ──
     beyond = int(tail["beyond_threshold"])
     clamps = int(clock["jumps_clamped"])
@@ -154,6 +161,25 @@ def verify(path: Path) -> tuple[str, dict[str, Any]]:
         )
     if long_steps > intervals:
         raise Failure(f"T6 步长不漏账：long_candidate_steps({long_steps}) > intervals({intervals})")
+
+    # `/24` 之前没有这两格。**不重写历史证据**，显式跳过并在输出里说明 ——
+    # 静默跳过会让"3 份全绿"和"只验了 1 份"长得一样。
+    schema_index = 0
+    if "/" in str(document.get("schema", "")):
+        try:
+            schema_index = int(str(document["schema"]).rsplit("/", 1)[1])
+        except ValueError:
+            schema_index = 0
+
+    if schema_index >= 24 and long_gaps > 0:
+        if last_at < 0 or span <= 0:
+            raise Failure(f"T8 有 {long_gaps} 次长间隔，却没记下位置（last_at={last_at}）")
+        if first_at < 0 or first_at > last_at:
+            raise Failure(f"T8 首个长间隔位置 {first_at} 与最后一个 {last_at} 顺序不对")
+        if last_at > span:
+            raise Failure(f"T8 最后长间隔位置 {last_at} 超过会话跨度 {span}")
+    if schema_index >= 24 and long_gaps == 0 and last_at >= 0:
+        raise Failure(f"T8 long_gaps = 0 却记下了位置 {last_at}")
 
     # ── T6 ──
     if long_gaps > intervals:

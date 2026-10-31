@@ -142,7 +142,7 @@ using core::pace::SignedHistogram;
 ///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/23";
+constexpr const char* kSchema = "kivo.p12c.sync/24";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -1057,6 +1057,9 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
             << ", \"long_candidate_steps\": " << tail.long_candidate_steps
             << ", \"max_candidate_step_ns\": " << tail.max_candidate_step_ns
             << ", \"first_mono_ns\": " << tail.first_mono_ns
+            << ", \"span_ns\": " << tail.span_ns
+            << ", \"first_long_gap_at_ns\": " << tail.first_long_gap_at_ns
+            << ", \"last_long_gap_at_ns\": " << tail.last_long_gap_at_ns
             << ", \"buckets\": [";
         for (std::int32_t index = 0; index < aaudio::kClockTailBucketCount; ++index) {
             out << (index == 0 ? "" : ", ")

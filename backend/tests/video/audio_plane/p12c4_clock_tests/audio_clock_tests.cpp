@@ -541,6 +541,39 @@ void t27_clamped_position_advances_by_exactly_the_allowance() {
     CHECK(guard.max_position_ns() == 60'300'000'000);
 }
 
+void t28_long_gap_position_is_relative_to_session_start() {
+    aaudio::ClockTailTracker tracker;
+    tracker.note(0, 1'000'000);
+    tracker.note(33'000'000, 34'000'000);         // 33 ms：不算长
+    CHECK(tracker.snapshot().last_long_gap_at_ns == -1);
+
+    tracker.note(33'500'000, 34'500'000);          // 间隔只 0.5 ms
+    tracker.note(33'800'000, 301'000'000);         // 间隔 296.5 ms → 长间隔
+    const auto facts = tracker.snapshot();
+    CHECK(facts.long_gaps == 1);
+    // 位置必须相对**会话起点**（1 ms），不是相对 0：
+    // 差这 1 ms 看似无害，但"开头还是结尾"全靠这个零点判断。
+    CHECK(facts.first_long_gap_at_ns == 301'000'000 - 1'000'000);
+    CHECK(facts.last_long_gap_at_ns == facts.first_long_gap_at_ns);
+    CHECK(facts.span_ns == 301'000'000 - 1'000'000);
+}
+
+void t29_first_and_last_long_gap_are_kept_separately() {
+    aaudio::ClockTailTracker tracker;
+    tracker.note(0, 1'000'000);
+    // 第一版这里写成 `note(60e9, 60.4e9)` —— 那一步的 mono 增量本身就是 60 秒，
+    // 于是它自己又算一次长间隔，`long_gaps` 变成 3 而不是 2。测试数据也必须连续。
+    tracker.note(0, 400'000'000);        // 起点处 399 ms（预热/首帧）
+    tracker.note(33'000'000, 433'000'000);  // 正常 33 ms
+    tracker.note(33'000'000, 862'000'000);  // 结尾处 429 ms（排空/收尾）
+    const auto facts = tracker.snapshot();
+    CHECK(facts.long_gaps == 2);
+    // 只留 last 就会把"开头那次"抹掉；两个都留才能一次看清两端。
+    CHECK(facts.first_long_gap_at_ns == 399'000'000);
+    CHECK(facts.last_long_gap_at_ns == 861'000'000);
+    CHECK(facts.last_long_gap_at_ns > facts.first_long_gap_at_ns);
+}
+
 const TestCase kCases[] = {
     {"C1 时间戳倒退被拒绝", t1_backward_timestamp_is_rejected},
     {"C2 时间戳跳变被钳制", t2_jump_is_clamped},
@@ -566,6 +599,8 @@ const TestCase kCases[] = {
     {"C21 候选倒退也记间隔", t21_long_gap_is_counted_even_when_candidate_regresses},
     {"C22 间隔加残差可以一起越线", t22_gap_plus_residual_can_exceed_threshold_together},
     {"C23 零点取第一个间隔的起点", t23_first_mono_is_the_start_of_the_first_interval},
+    {"C28 长间隔位置相对会话起点", t28_long_gap_position_is_relative_to_session_start},
+    {"C29 首末长间隔分开放", t29_first_and_last_long_gap_are_kept_separately},
     {"C24 长间隔等量前进不算跳变", t24_long_gap_with_equal_advance_is_not_a_jump},
     {"C25 真跳变仍被钳制", t25_real_jump_after_a_normal_interval_is_still_clamped},
     {"C26 间隔吃掉大部分前进不钳制", t26_gap_explains_most_of_the_advance_so_no_clamp},

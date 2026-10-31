@@ -30,6 +30,12 @@ void ClockTailTracker::note(std::int64_t candidate_ns, std::int64_t mono_ns) noe
         }
         if (mono_step >= facts_.clamp_threshold_ns) {
             ++facts_.long_gaps;
+            // 位置相对会话起点。起点在前面的分支里刚建立，这里一定有效。
+            const std::int64_t at_ns = mono_ns - facts_.first_mono_ns;
+            if (facts_.first_long_gap_at_ns < 0) {
+                facts_.first_long_gap_at_ns = at_ns;
+            }
+            facts_.last_long_gap_at_ns = at_ns;
         }
     }
 
@@ -71,6 +77,9 @@ void ClockTailTracker::note(std::int64_t candidate_ns, std::int64_t mono_ns) noe
             facts_.max_backward_ns = magnitude;
         }
     }
+
+    // 跨度跟着走：最后一个观测的终点减去第一个观测的起点。
+    facts_.span_ns = mono_ns - facts_.first_mono_ns;
 
     const std::int64_t magnitude = residual < 0 ? -residual : residual;
     std::int32_t bucket = 0;

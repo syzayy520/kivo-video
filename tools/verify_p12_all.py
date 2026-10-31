@@ -58,6 +58,7 @@ SYNC_QUANTILE_BLOCK_SCHEMAS = (
     "kivo.p12c.sync/20",  # P13-AD：速率注入 + 门开关（clock_injection.rate_ppm / drift_gate）
     "kivo.p12c.sync/21",  # P14-E：audio.clock.trace —— 异常时刻的原始观测窗口
     "kivo.p12c.sync/22",  # P14-G 中间形态：只有残差尾部（不参与判定，见 p14g/pre）
+    "kivo.p12c.sync/24",  # P14-J：tail 加 span_ns 与长间隔发生位置
     "kivo.p12c.sync/23",  # P14-G 终版：+ 观测间隔 / 候选步长（钳制的充分条件）
 )
 
@@ -184,6 +185,7 @@ KNOWN_SCHEMAS = {
     "kivo.p12c.sync/21",  # P14-E：`audio.clock.trace`（异常时刻的原始观测窗口）
     "kivo.p12c.sync/22",  # P14-G 中间形态：只有残差尾部（证据存于 p14g/pre/，不参与判定）
     "kivo.p12c.sync/23",  # P14-G 终版：+ intervals / long_gaps / long_candidate_steps
+    "kivo.p12c.sync/24",  # P14-J：tail 加 span_ns / 首末长间隔位置
     "kivo.p12d5.present-timing/1",
     "kivo.p12e.color-probe/1",
     "kivo.p12e.hdr-probe/1", "kivo.p12e.hdr-probe/2", "kivo.p12e.hdr-probe/3",
@@ -781,6 +783,12 @@ def layer4_reuse(report: Report) -> None:
     if p14h_files:
         run_sub("verify_p14h_guard",
                 [py, "tools/verify_p14h_guard.py", *p14h_files], report)
+
+    # P14-J：长间隔发生在第几秒（判据 T8，与 P14-G 同一脚本）。
+    p14j_files = sorted(glob.glob("docs/evidence/p14j/*-sync.json"))
+    if p14j_files:
+        run_sub("verify_p14g_tail(p14j)",
+                [py, "tools/verify_p14g_tail.py", *p14j_files], report)
 
     # P14-G：时钟残差尾部 + 观测间隔 + 候选步长。判"钳制有没有来由"。
     p14g_files = sorted(glob.glob("docs/evidence/p14g/*-sync.json"))
