@@ -101,7 +101,7 @@ print(f"{name}: /{str(d.get('schema','')).split('/')[-1]}  "
       f"max_corr_ms={(health.get('drift_max_correction_ns') or 0)/1e6:.2f}  "
       f"disc={disc.get('events')}  offset_ms={(disc.get('offset_ns') or 0)/1e6:.2f}  "
       f"lead_ms={(pace.get('clock_lead_ns') or 0)/1e6:.2f}  "
-      f"jitter_max_ms={(jitter.get('max_ns') or 0)/1e6:.2f}  "
+      f"jitter_max_ms={(jitter.get('max') or 0)/1e6:.2f}  "
       f"dropped={d.get('frames_dropped')}")
 PY
 done

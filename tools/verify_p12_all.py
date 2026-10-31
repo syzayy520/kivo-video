@@ -953,7 +953,12 @@ def layer4_reuse(report: Report) -> None:
     # 代价是 `p12c` / `p12d` / `p12f3` 里 15 份 `/1` 旧证据也会进来，全部判「不适用」。
     # **这正是要的**：它们本来就该在清单里被点名，而不是靠"glob 没扫到"消失。
     drift_files = sorted(glob.glob("docs/evidence/p1*/*-sync.json"))
-    p13_files = sorted(glob.glob("docs/evidence/p13*/*-sync.json"))
+    # P14-AA：at_time 档的证据也要进这一路 —— 以前只扫 `p13*`，`p14k` 那几份
+    # at_time 证据从来没被 p13p 看过，手动跑当场红（P1 due_step_supplied=0）。
+    # **白名单与分发是两张表**，这已经是它第四次发作，所以这里直接按目录加，
+    # 不再另外维护一张"哪些目录要被校验"的表。
+    p13_files = sorted(glob.glob("docs/evidence/p13*/*-sync.json")
+                       + glob.glob("docs/evidence/p14aa/*-sync.json"))
     if drift_files:
         run_sub("verify_p13d_drift", [py, "tools/verify_p13d_drift.py", *drift_files], report)
     else:

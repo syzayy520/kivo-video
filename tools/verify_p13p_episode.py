@@ -116,7 +116,13 @@ def check_file(path: Path, doc: dict[str, Any]) -> dict[str, Any]:
     quantiles = (doc.get("av_drift") or {}).get("quantiles") or {}
     per_frame = quantiles.get("per_frame") or {}
     worst = per_frame.get("worst")
+    # P14-AA：at_time 档按设计**不喂 lateness**（提交提前量不是迟到），
+    # 所以它没有 worst 帧，也就没有 P2 要判的那一格。跳过要写明，
+    # 不许静默通过 —— "没有"和"通过"在这里必须分得开。
     if not worst:
+        if str((pace or {}).get("span_basis")) == "scheduled":
+            return {"status": "skip",
+                    "why": "at_time 档不喂 lateness（提交提前量不是迟到），没有 worst 帧"}
         raise Failure(f"{path.name}: P2 per_frame 没有 worst 块")
 
     index = worst.get("index")

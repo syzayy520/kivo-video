@@ -1066,8 +1066,16 @@ def verify(path: Path) -> tuple[str, list[str], str]:
         gate = data.get("drift_gate") or {}
         gate_enabled = gate.get("enabled")
         gate_limit = int(gate.get("limit_ns") or 0)
-        if gate_enabled is True and gate_limit > 0 and \
-                abs(clock_lead) > gate_limit + frame_duration:
+        # P14-Z：**台阶不还**的那一臂，门是被要求不要动的（`step_repay = false`）。
+        # 这时领先量本来就该停在台阶量级 —— 判据必须把 `|offset|` 加进上界，
+        # 否则它会把"按要求不动"判成"门坏了"。两臂的差别要写在判据里，
+        # 不然同一个数字在 A 臂是故障、在 B 臂是设计。
+        repay = gate.get("step_repay")
+        offset_ns = abs(int((data.get("drift_discontinuity") or {}).get("offset_ns") or 0))
+        lead_bound = gate_limit + frame_duration
+        if repay is False:
+            lead_bound += offset_ns
+        if gate_enabled is True and gate_limit > 0 and abs(clock_lead) > lead_bound:
             raise Failure(
                 f"门开着却让它跑过去了：钟领先 {clock_lead / 1e6:.3f} ms，"
                 f"门限 {gate_limit / 1e6:.3f} ms（+ 一帧 {frame_duration / 1e6:.3f} ms）。"
