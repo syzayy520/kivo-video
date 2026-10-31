@@ -1385,6 +1385,23 @@ R4 `measured=false ⇒ 七格全 0`（Q3 的清单不含新增四格）/ **R5 �
   两者在负向样本上分叉，要单独决定（设计 §四之二）。
 - **结题**：`175-p14ag-status.md`；设计 `174-p14ag-design.md`；脚本 `tools/run_p14ag_drop_events.sh`。
 
+### P14-AH · `present_jitter.worst` 用哪个口径 —— **待拍板**（2026-11-01，材料已写）
+
+- **材料**：`176-present-jitter-worst-decision.md`（实测 283 轮 + 三案对照 + 建议）。
+- **实测**：`|min| > |max|` 的有 **148/283（52%）**；差距 > 10 ms 的有 **86 轮（30%）**，
+  其中 **70 轮 `frames_dropped = 0`**（不是丢帧的副产物，是真抖动）。
+  这 86 轮的 `|min|` 中位 **32.4 ms**、`|max|` 中位 **5.0 ms**。
+  最刺眼的是 `p14ad-800ms-b1`：`present_jitter.max` 印 **0.47 ms**，直方图里躺着 **−754.93 ms**。
+- **三个选项**：A 维持 `worst = max`（30% 轮次把最差报小）；B 改成 max-abs（要动 F1 与
+  `av_drift` 三块共用代码）；**C 新增 `present_jitter.worst_abs = {value_ns, media_ns}`**，
+  `worst` 那套一字不动。
+- **建议 C**：F1 守的是"最差 = 最大迟到"，那在 `lateness`/`av_drift` 上对，在 jitter 上不适用；
+  名字即口径（`worst` 与 `worst_abs` 摆一起，读者必须选一个）；判据可直接验
+  `|value_ns| == max(|min|,|max|)`。
+- **读法**：`worst_abs` 与 `dropped_events.total` 必须一起读 —— 一次跳掉 24 帧会让它变成
+  −755 ms 那种数，那是"丢帧的另一面"，不是"调度抖了一下"。
+- **状态**：**未动代码**。等拍板后按 C 落地（`worst_abs` + AH1/AH2 + 三轮真机，schema `/42`）。
+
 **下一张卡（历史指针，P14-B 已收口）：P14-B · 分配归因** —— 把计数按线程分桶，找出那 5 次/秒；
 查清楚之前 G3 不能判。
 
