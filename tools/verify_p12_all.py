@@ -79,6 +79,8 @@ KNOWN_SCHEMAS = {
     "kivo.p12c.decode/14",
     # P14-B：`metrics.alloc` 增线程分桶（threads / thread_count / overflow_calls）。
     "kivo.p12c.decode/15",
+    # P14-I：`metrics.present_gap`（接收圈最长一次的构成）。
+    "kivo.p12c.decode/16",
     "kivo.p12c.sync/1",
     # P13-D：`av_drift` 的分位数改由"按媒体时间抽稀到 20 Hz"的分布给出，
     # 并新增 sampling / per_frame / trend 三块。`/1` 的证据不重写（重写等于伪造），
@@ -767,6 +769,12 @@ def layer4_reuse(report: Report) -> None:
     if p14f_files:
         run_sub("summarize_p14f_jumps",
                 [py, "tools/summarize_p14f_jumps.py", *p14f_files], report)
+
+    # P14-I：接收圈的停顿构成。只看结构，好坏由人判。
+    p14i_files = sorted(glob.glob("docs/evidence/p14i/*.json"))
+    if p14i_files:
+        run_sub("verify_p14i_gap",
+                [py, "tools/verify_p14i_gap.py", *p14i_files], report)
 
     # P14-H：守卫的 elapsed 修正。判"没有真跳变时不该有钳制"。
     p14h_files = sorted(glob.glob("docs/evidence/p14h/*-sync.json"))

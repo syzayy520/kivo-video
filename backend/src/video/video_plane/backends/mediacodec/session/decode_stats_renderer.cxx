@@ -45,12 +45,14 @@ namespace {
 ///   /5（C8）：加 `pace.clock_mix`（逐帧时钟分档）。
 ///            音画偏差**没有**加进这里：它等于 `lateness`，只在 `cpu_paced` 下成立，
 ///            单独放一份账会与 `lateness` 打架。要读它去看 `kivo.p12c.sync/1`。
+///   /16（P14-I）：`metrics.present_gap` —— 接收圈最长一次的构成
+///            （submit / pump / pace / release / unaccounted）。三段必须同圈。
 ///   /15（P14-B）：`metrics.alloc` 增 `threads[] / thread_count / overflow_calls` ——
 ///            把"5 次/秒"指认到具体线程。没有线程维度，G3 只能写"未达标"而无法指导改动。
 ///   /14（P14-A）：新增 `metrics` —— 三把以前没有的尺子（CPU 占比 / 堆分配次数 /
 ///            输出缓冲归属）。**每个都带可用性与理由**：这一族最容易把"没测到"
 ///            印成 0，而 0 看起来永远是好消息。
-constexpr const char* kSchema = "kivo.p12c.decode/15";
+constexpr const char* kSchema = "kivo.p12c.decode/16";
 
 /// 可选 int：`< 0` 一律写 `null`。
 /// E1 定的规矩（`08-p12-family-tree.md` §三之十二 第 3 条）：未知不写 0/-1，
@@ -389,7 +391,26 @@ std::string render_decode_stats_json(const DecodeStats& stats,
         << ", \"released\": " << stats.metrics.buffers.released
         << ", \"in_flight\": " << stats.metrics.buffers.in_flight
         << ", \"leaked\": " << stats.metrics.buffers.leaked
-        << ", \"reason\": " << "\"" << escape_json_string(stats.metrics.buffers.reason) << "\"" << "}\n";
+        << ", \"reason\": " << "\"" << escape_json_string(stats.metrics.buffers.reason) << "\"" << "},\n";
+    // P14-I：接收圈最长一次的构成。
+    //
+    // 与上面三条不同，这一块答的不是"达标没有"，而是"那 234 ms 花在哪"。
+    // 三段必须来自**同一圈** —— 拿三段各自的峰值相加是错的（设计卡 §一 算过：
+    // 那会得到 42 ms 去解释 253 ms 的停顿）。`unaccounted` 才是要找的那个量。
+    out << "    \"present_gap\": {\"iterations\": " << stats.metrics.present_gap.iterations
+        << ", \"long_gaps\": " << stats.metrics.present_gap.long_gaps
+        << ", \"max_gap_ns\": " << stats.metrics.present_gap.max_gap_ns
+        << ", \"worst_submit_ns\": " << stats.metrics.present_gap.worst_submit_ns
+        << ", \"worst_pump_ns\": " << stats.metrics.present_gap.worst_pump_ns
+        << ", \"worst_pace_ns\": " << stats.metrics.present_gap.worst_pace_ns
+        << ", \"worst_release_ns\": " << stats.metrics.present_gap.worst_release_ns
+        << ", \"worst_unaccounted_ns\": " << stats.metrics.present_gap.worst_unaccounted_ns
+        << ", \"buckets\": [";
+    for (std::int32_t index = 0; index < core::pace::kPresentGapBucketCount; ++index) {
+        out << (index == 0 ? "" : ", ")
+            << stats.metrics.present_gap.buckets[static_cast<std::size_t>(index)];
+    }
+    out << "]}\n";
     out << "  },\n";
 
     out << "  \"timing\": {\n";

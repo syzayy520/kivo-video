@@ -2290,6 +2290,7 @@ set(KIVO_P12C_CORE_PACE_SOURCES
   src/video/video_plane/core/pace/sampling_mode.cxx
   src/video/video_plane/core/pace/pace_drift_series.cxx
   src/video/video_plane/core/pace/pace_drift_trend.cxx
+  src/video/video_plane/core/pace/present_gap.cxx
   src/video/video_plane/core/pace/pace_drift_window.cxx
   src/video/video_plane/core/pace/pace_window_stats.cxx
   src/video/video_plane/core/pace/pace_hac.cxx

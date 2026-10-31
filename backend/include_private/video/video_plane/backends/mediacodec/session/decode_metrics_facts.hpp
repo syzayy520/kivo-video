@@ -3,6 +3,7 @@
 #include "video/video_plane/core/metrics/alloc_probe.hpp"
 #include "video/video_plane/core/metrics/buffer_lease_facts.hpp"
 #include "video/video_plane/core/metrics/cpu_time_facts.hpp"
+#include "video/video_plane/core/pace/present_gap.hpp"
 
 namespace kivo::video::mediacodec {
 
@@ -23,6 +24,10 @@ struct DecodeMetricsFacts {
 
     /// G4：输出缓冲归属账。`pool_owner = "codec"` 说明平台池不在我们手里。
     core::metrics::BufferLeaseFacts buffers{};
+
+    /// P14-I：接收圈最长一次的构成。跟 G2/G3/G4 无关，但它同样是"事实"：
+    /// 234 ms 的停顿到底花在送包、等帧、节拍还是圈外，只能逐次记。
+    core::pace::PresentGapFacts present_gap{};
 };
 
 }  // namespace kivo::video::mediacodec

@@ -44,6 +44,10 @@ constexpr std::int64_t kMaxScheduleLeadFrames = 3;
     return std::chrono::duration_cast<std::chrono::microseconds>(to - from).count();
 }
 
+[[nodiscard]] std::int64_t nanos_since(SteadyClock::time_point from) noexcept {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(SteadyClock::now() - from).count();
+}
+
 }  // namespace
 
 DecodeReceiveWorker::DecodeReceiveWorker(Deps deps)
@@ -52,17 +56,25 @@ DecodeReceiveWorker::DecodeReceiveWorker(Deps deps)
 StageStep DecodeReceiveWorker::pump(bool allow_wait) {
     DecodedFrame frame;
     const auto begin = SteadyClock::now();
+    // 每圈重置：`last_*` 描述的是"这一圈"，不是"上一圈留下的值"。
+    last_pace_ns_ = 0;
+    last_release_ns_ = 0;
+
     const DecodeOutcome outcome =
         deps_.decoder->receive(frame, allow_wait ? kReceiveWaitUs : 0);
     deps_.receive_cost->record(elapsed_us(begin, SteadyClock::now()));
 
+    StageStep step;
     if (outcome.ok() || outcome.end_of_stream()) {
-        return handle_frame(frame);
+        step = handle_frame(frame);
+    } else if (outcome.try_again()) {
+        step = check_eos_stall();
+    } else {
+        step = abort(outcome.message);
     }
-    if (outcome.try_again()) {
-        return check_eos_stall();
-    }
-    return abort(outcome.message);
+
+    last_pump_ns_ = nanos_since(begin);
+    return step;
 }
 
 void DecodeReceiveWorker::run() {
@@ -87,6 +99,7 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
         const auto release_begin = SteadyClock::now();
         const DecodeOutcome released = deps_.decoder->release_frame(frame.index, false);
         deps_.release_cost->record(elapsed_us(release_begin, SteadyClock::now()));
+        last_release_ns_ = nanos_since(release_begin);
         if (!released.ok()) {
             return abort(released.message);
         }
@@ -109,6 +122,7 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
     core::pace::PaceDecision decision;
     std::int64_t present_at_ns = 0;
     if (deps_.pacer != nullptr && deps_.present_frames) {
+        const auto pace_begin = SteadyClock::now();
         decision = deps_.pacer->arrive(frame.presentation_time_us * 1000);
         render = decision.action != core::pace::PaceAction::kDrop &&
                  decision.action != core::pace::PaceAction::kCatchUp;
@@ -127,6 +141,9 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
         // 呈现（或排程）在场的时刻：release 调用之前的瞬间。晚几微秒无所谓，
         // 但不能用 arrive() 内部睡醒的时刻 —— 那是"睡完了"，不是"交出去了"。
         present_at_ns = core::pace::monotonic_now_ns();
+        // 这一圈里"节拍决策"花了多久（含按节拍睡眠）。它是**有意的等待** ——
+        // 判读时要先看它有没有吃掉整圈，再谈别的。
+        last_pace_ns_ = nanos_since(pace_begin);
     }
 
     // P12-D1：面摘掉期间一律不渲染。
@@ -146,6 +163,7 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
         (at_time && render) ? deps_.decoder->release_frame_at(frame.index, decision.due_at_ns)
                             : deps_.decoder->release_frame(frame.index, render);
     deps_.release_cost->record(elapsed_us(release_begin, SteadyClock::now()));
+    last_release_ns_ = nanos_since(release_begin);
 
     if (!released.ok()) {
         // 这一帧没交出去：输出槽不会回收，继续跑只会越积越死。直接失败。

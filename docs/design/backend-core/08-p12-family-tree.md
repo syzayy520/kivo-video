@@ -908,6 +908,28 @@ run_session_teardown(plan, hooks)  // 唯一执行器；JNI 只提供七个函�
 
 ---
 
+### 三之二十六、接收圈的停顿构成（P14-I）
+
+```
+core/pace/
+└── present_gap.hpp/.cxx             # 一圈 = submit + pump(pace/release) + 圈外
+```
+
+| 文件 | 单一职责 | 不做什么 |
+| --- | --- | --- |
+| `present_gap.cxx` | 记一圈的 gap 与三段分段，**只保留最长那一圈的分段** | 不判"停顿好不好"；不拿时钟（分段由调用方给） |
+
+两条铁律：
+
+1. **只留最长那一圈的分段，不做各段独立取最大**（P14I-4）。三段最大值可以发生在
+   三个不同时刻，拼起来解释停顿是错的 —— 设计卡 §一 就是这么算出 42 ms 去解释 253 ms 的。
+2. **残差钳到 0，不出现负数**（P14I-3）。分段时钟与 gap 不同源，边界归属有半拍误差。
+
+> 记账点在 `DecodeSession::run_merged()`：只有它知道圈与圈之间还夹了一次批量送包。
+> worker 只报 `pump / pace / release`（`last_*_ns()`），不猜自己外面还有什么。
+
+证据：decode `kivo.p12c.decode/16` 的 `metrics.present_gap`。判定脚本 `tools/verify_p14i_gap.py`（P1–P6）。
+
 ### 三之二十五、时钟残差的尾部（P14-G）
 
 ```

@@ -23,6 +23,7 @@
 #include "video/video_plane/core/audio/clock/audio_clock_source.hpp"
 #include "video/video_plane/core/metrics/cpu_time_facts.hpp"
 #include "video/video_plane/core/pace/frame_pacer.hpp"
+#include "video/video_plane/core/pace/present_gap.hpp"
 
 namespace kivo::video::mediacodec {
 
@@ -243,6 +244,9 @@ private:
     StageCostMeter eos_cost_;
     StageCostMeter receive_cost_;
     StageCostMeter release_cost_;
+
+    /// P14-I：接收圈的停顿构成。只在合并循环那个线程里写。
+    core::pace::PresentGapTracker present_gap_;
 
     std::unique_ptr<DecodeSubmitWorker> submit_worker_;
     std::unique_ptr<DecodeReceiveWorker> receive_worker_;

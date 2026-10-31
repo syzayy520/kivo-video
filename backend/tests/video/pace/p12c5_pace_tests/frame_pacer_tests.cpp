@@ -17,6 +17,7 @@
 #include "video/video_plane/core/audio/clock/clock_offset_source.hpp"
 #include "video/video_plane/core/pace/clock_position_tracker.hpp"
 #include "video/video_plane/core/pace/frame_pacer.hpp"
+#include "video/video_plane/core/pace/present_gap.hpp"
 #include "video/video_plane/core/pace/pace_histogram.hpp"
 #include "video/video_plane/core/pace/pace_policy.hpp"
 
@@ -1039,6 +1040,72 @@ void s9_rate_error_is_tracked_only_with_gate() {
     CHECK(lead_off < 85'000'000);
 }
 
+// ── P14-I：接收圈的停顿构成 ──────────────────────────────────────
+
+constexpr std::int64_t kGapMs = 1'000'000;
+
+void g1_fully_accounted_gap_leaves_no_residue() {
+    pace::PresentGapTracker tracker;
+    // 一圈 100 ms：送包 10 + 收帧 90（其中节拍睡 30、交帧 5）。
+    tracker.note(100 * kGapMs, 10 * kGapMs, 90 * kGapMs, 30 * kGapMs, 5 * kGapMs);
+    const pace::PresentGapFacts facts = tracker.snapshot();
+    CHECK(facts.iterations == 1);
+    CHECK(facts.max_gap_ns == 100 * kGapMs);
+    CHECK(facts.worst_unaccounted_ns == 0);
+}
+
+void g2_unaccounted_gets_the_rest() {
+    pace::PresentGapTracker tracker;
+    // 一圈 240 ms，但送包 + 收帧只有 60 ms —— 剩下 180 ms 谁都认领不了。
+    tracker.note(240 * kGapMs, 20 * kGapMs, 40 * kGapMs, 10 * kGapMs, 3 * kGapMs);
+    const pace::PresentGapFacts facts = tracker.snapshot();
+    CHECK(facts.worst_unaccounted_ns == 180 * kGapMs);
+    CHECK(facts.long_gaps == 1);
+}
+
+void g3_segments_longer_than_gap_clamp_to_zero() {
+    pace::PresentGapTracker tracker;
+    // 两段耗时用的时钟与 gap 不同源，边界归属有半拍误差 —— 之和可能超过 gap。
+    // 这时残差必须是 0：负数会让读者以为量到了负时间。
+    tracker.note(50 * kGapMs, 40 * kGapMs, 30 * kGapMs, 0, 0);
+    const pace::PresentGapFacts facts = tracker.snapshot();
+    CHECK(facts.worst_unaccounted_ns == 0);
+}
+
+void g4_worst_gap_carries_its_own_segments_not_global_maxima() {
+    pace::PresentGapTracker tracker;
+    // 第 1 圈：短，但送包巨慢。
+    tracker.note(40 * kGapMs, 35 * kGapMs, 5 * kGapMs, 0, 0);
+    // 第 2 圈：最长，但送包几乎不花时间。
+    tracker.note(200 * kGapMs, 2 * kGapMs, 190 * kGapMs, 180 * kGapMs, 1 * kGapMs);
+    const pace::PresentGapFacts facts = tracker.snapshot();
+    CHECK(facts.max_gap_ns == 200 * kGapMs);
+    // 若把各段全局最大值拼起来，worst_submit 会是 35 ms —— 那不是这一圈的构成。
+    CHECK(facts.worst_submit_ns == 2 * kGapMs);
+    CHECK(facts.worst_pace_ns == 180 * kGapMs);
+    CHECK(facts.worst_unaccounted_ns == 8 * kGapMs);
+}
+
+void g5_buckets_are_left_closed_right_open() {
+    pace::PresentGapTracker tracker;
+    tracker.note(7 * kGapMs, 0, 0, 0, 0);       // 第 0 档 [0, 8)
+    tracker.note(8 * kGapMs, 0, 0, 0, 0);       // 第 1 档 [8, 16)
+    tracker.note(32 * kGapMs, 0, 0, 0, 0);      // 第 2 档 [16, 33)
+    tracker.note(33 * kGapMs, 0, 0, 0, 0);      // 第 3 档 [33, 66)
+    tracker.note(2'000 * kGapMs, 0, 0, 0, 0);   // 溢出档
+    const pace::PresentGapFacts facts = tracker.snapshot();
+    CHECK(facts.buckets[0] == 1);
+    CHECK(facts.buckets[1] == 1);
+    CHECK(facts.buckets[2] == 1);
+    CHECK(facts.buckets[3] == 1);
+    CHECK(facts.buckets[pace::kPresentGapBucketCount - 1] == 1);
+    std::int64_t total = 0;
+    for (std::int64_t value : facts.buckets) {
+        total += value;
+    }
+    CHECK(total == facts.iterations);
+}
+
 const TestCase kCases[] = {
     {"C5-1 首帧即刻到期", t1_first_frame_is_due_now},
     {"C5-2 早到则睡到到期", t2_early_frame_waits_until_due},
@@ -1074,6 +1141,12 @@ const TestCase kCases[] = {
     {"S7 时钟台阶注入且门只吃一次", s7_clock_offset_is_injected_and_gated_once},
     {"S8 迟滞带一次还完且稳态不触发", s8_hysteresis_band_settles_once},
     {"S9 速率误差：门开追住/门关涨到 ppm", s9_rate_error_is_tracked_only_with_gate},
+
+    {"P14I-1 三段占满整圈", g1_fully_accounted_gap_leaves_no_residue},
+    {"P14I-2 残差吃掉剩下的", g2_unaccounted_gets_the_rest},
+    {"P14I-3 分段超 gap 钳零", g3_segments_longer_than_gap_clamp_to_zero},
+    {"P14I-4 最差圈带自己的分段", g4_worst_gap_carries_its_own_segments_not_global_maxima},
+    {"P14I-5 分档左闭右开", g5_buckets_are_left_closed_right_open},
 };
 
 }  // namespace

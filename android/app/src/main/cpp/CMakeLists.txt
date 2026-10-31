@@ -33,6 +33,7 @@ add_library(kivo_core_pace STATIC
     # `undefined symbol: DriftSeries::note` —— 即"桌面全绿、APK 编不过"。
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_drift_series.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_drift_trend.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/present_gap.cxx"
 
     # P14-A：三把以前没有的尺子（G2/G3/G4）。
     # `alloc_probe_hook.cxx` 替换全局 `operator new` —— 它必须**直接**出现在这里，

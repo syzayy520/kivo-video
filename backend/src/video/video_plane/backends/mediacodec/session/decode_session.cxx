@@ -1,5 +1,7 @@
 #include "video/video_plane/backends/mediacodec/session/decode_session.hpp"
 
+#include "video/video_plane/core/pace/pace_now.hpp"
+
 #if defined(__ANDROID__) || defined(__linux__)
 #include <pthread.h>
 #endif
@@ -390,7 +392,12 @@ void DecodeSession::launch_workers() {
 }
 
 void DecodeSession::run_merged() {
+    // P14-I：一圈 = 一次批量送包 + 一次 pump。两段之间的差就是这一圈的耗时，
+    // 它必然由 `submit + pump + 圈外` 组成 —— 逐圈记，才知道 234 ms 花在哪。
+    std::int64_t previous_iteration_ns = 0;
     while (!gate_.stop_requested()) {
+        const std::int64_t iteration_begin_ns = core::pace::monotonic_now_ns();
+
         // 1. 连送一批（与 P12-B 的批量灌包等价）。
         int submitted = 0;
         while (submitted < kMergedSubmitBatch && !gate_.stop_requested()) {
@@ -399,9 +406,25 @@ void DecodeSession::run_merged() {
             }
             ++submitted;
         }
+        const std::int64_t submit_end_ns = core::pace::monotonic_now_ns();
+
         // 2. 收一帧。这里允许阻塞（2ms）：否则两段会在 TRY_AGAIN 上互相刷 CPU，
         //    而 P12-B/C5 的基线都是"没进展就阻塞一下"。
-        if (receive_worker_->pump(true) == StageStep::kDone) {
+        const StageStep step = receive_worker_->pump(true);
+        const std::int64_t iteration_end_ns = core::pace::monotonic_now_ns();
+
+        // 三段的边界：圈起点 / 送包结束（= 收帧开始）/ 收帧结束。
+        // `pace` 与 `release` 是收帧那段的**内部**，由 worker 自己报。
+        if (previous_iteration_ns > 0) {
+            present_gap_.note(iteration_end_ns - previous_iteration_ns,
+                              submit_end_ns - iteration_begin_ns,
+                              iteration_end_ns - submit_end_ns,
+                              receive_worker_->last_pace_ns(),
+                              receive_worker_->last_release_ns());
+        }
+        previous_iteration_ns = iteration_end_ns;
+
+        if (step == StageStep::kDone) {
             break;
         }
     }
@@ -484,6 +507,7 @@ DecodeStats DecodeSession::snapshot() const {
     stats.metrics.alloc = core::metrics::make_alloc_facts();
     stats.metrics.buffers = core::metrics::make_buffer_lease_facts(stats.frames_received,
                                                                    stats.frames_released);
+    stats.metrics.present_gap = present_gap_.snapshot();
 
     stats.error = failure_.text();
     stats.pace = pace_sampler_.read();

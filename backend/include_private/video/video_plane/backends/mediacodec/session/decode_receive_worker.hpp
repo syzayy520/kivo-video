@@ -74,6 +74,15 @@ public:
 
     void run();
 
+    /// 最近一次 `pump()` 的整段耗时（含等帧、节拍睡眠、交帧）。
+    /// 配合 `last_pace_ns()` / `last_release_ns()` 给出"这一圈的时间花在哪"。
+    ///
+    /// 为什么由调用方（`run_merged()`）来组合：只有它知道圈与圈之间还夹了一次
+    /// 批量送包 —— 那段时间不在 worker 里，worker 报不出来。
+    [[nodiscard]] std::int64_t last_pump_ns() const noexcept { return last_pump_ns_; }
+    [[nodiscard]] std::int64_t last_pace_ns() const noexcept { return last_pace_ns_; }
+    [[nodiscard]] std::int64_t last_release_ns() const noexcept { return last_release_ns_; }
+
     /// 落最终墙钟并补采一次节拍快照。可重复调用，只有第一次生效。
     ///
     /// 必须由"收帧段结束"那一方调用（split 模式下是 `run()` 的尾部，
@@ -97,6 +106,13 @@ private:
     std::chrono::steady_clock::time_point last_progress_at_{};
 
     std::int64_t frames_since_sample_ = 0;
+
+    // ── 一圈的耗时分解（P14-I）──
+    // 只描述**最近一次** `pump()`：停顿归因要的是"那一次"的构成，
+    // 平均值会把 234 ms 抹成 32 ms（而 32 ms 正是正常节拍等待）。
+    std::int64_t last_pump_ns_ = 0;
+    std::int64_t last_pace_ns_ = 0;
+    std::int64_t last_release_ns_ = 0;
 };
 
 }  // namespace kivo::video::mediacodec
