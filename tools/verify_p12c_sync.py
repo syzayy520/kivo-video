@@ -742,6 +742,41 @@ def check_discontinuity(data: dict, pace: dict, notes: list[str]) -> None:
         "position_step": int(block.get("stepped", 0)),
     }
 
+    # ── AD1（P14-AD）：注入了正台阶，账上就必须有这笔台阶 ──
+    #
+    # 探针（`step_repay = false`）是阶段幅度扫描的实验条件，它**只许改门的输入，
+    # 不许改账**。哪天它连记账一起关掉，B 臂就会显示"零事件" —— 而那正是
+    # P14-Y 花一整卡消掉的"沉默的零"。
+    #
+    # 只对**正**台阶生效：负台阶会被倒退钳制吞掉（`164-p14y-status.md` §三 的
+    # −86.6 ms 没进账），那是已登记的行为，不能拿它判红。
+    # 判的是"**注入的那一笔**在不在账上"，不是"账上只有注入这一笔"。
+    #
+    # 第一版写成后者（`|offset − 注入| ≤ 容差`），真机第一轮 300 ms 就把它打红：
+    # `p14ad-300ms-b1` 在 53.67 s 撞上一次**真实的**钟事件（位置倒退 300 ms 被拒，
+    # 再补回 334 ms），账上总额 634 = 300（注入）+ 334（真实）。总额这一条
+    # 会把"账记得更全"判成"账记错了" —— 判据的方向反了。
+    injection_ns = int((data.get("clock_injection") or {}).get("offset_ns") or 0)
+    gate_block = data.get("drift_gate") or {}
+    if injection_ns > 0 and gate_block.get("enabled") is True:
+        tolerance = int(gate_block.get("band_ns") or 0) + int(pace.get("frame_duration_ns") or 0)
+        steps = [abs(int(entry.get("step_ns") or 0)) for entry in recent]
+        if any(abs(step - injection_ns) <= tolerance for step in steps):
+            pass
+        elif events > len(recent):
+            # 环只有 8 格：事件多于 8 笔时，注入那一笔可能已经滚出去了。
+            # 这时**判不了**，说出来 —— 不能因为看不见就当它没发生。
+            notes.append(
+                f"AD1 判不了：events={events} 超过环长 {len(recent)}，注入那一笔可能已滚出"
+            )
+        else:
+            raise Failure(
+                f"AD1 注入 +{injection_ns / 1e6:.0f} ms 台阶，账上 {len(steps)} 笔里没有一笔对得上"
+                f"（容差 {tolerance / 1e6:.2f} ms = 带 + 一帧）："
+                + ", ".join(f"{step / 1e6:.2f}" for step in steps)
+                + " ms —— 探针改动了记账"
+            )
+
     # Y0：一次事件都没有 ⇒ 干净的空。有样本就是幽灵账。
     if events == 0:
         if offset_ns != 0 or sampled != 0 or recent or any(by_kind.values()):
