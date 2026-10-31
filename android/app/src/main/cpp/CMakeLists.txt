@@ -49,6 +49,10 @@ add_library(kivo_core_pace STATIC
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_window_stats.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_hac.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_halves_agreement.cxx"
+    # P14-L：派生量的可测性。由 `pace_stats.cxx` / `frame_pacer.cxx` 共用 ——
+    # 漏注册的报应与前几张卡一模一样：桌面全绿，arm64 链接时
+    # `undefined symbol: measured_missing`。
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_measurability.cxx"
     # P13-P：最差帧的前后邻帧。同样由 `pace_stats.cxx` 直接调用 ——
     # 漏注册的老报应：桌面全绿，arm64 链接时 `undefined symbol: WorstEpisodeRecorder::note`。
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_worst_episode.cxx"
@@ -56,6 +60,13 @@ add_library(kivo_core_pace STATIC
     # 漏注册的报应与前几张卡一模一样：桌面全绿，arm64 链接时
     # `undefined symbol: accumulate_drift`。
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_drift_budget.cxx"
+    # P14-U：钟领先量的逐帧轨迹 + 视频相对墙的偏移。
+    # 两份清单（这里与 backend/CMakeLists.txt）都要注册 ——
+    # 漏一处的报应是本项目反复踩到的那个：桌面全绿，arm64 链接时
+    # `undefined symbol: LeadTraceRecorder::note`。
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_lead_trace.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_wall_offset.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_gate_scale.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_now.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/clock_position_tracker.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/frame_pacer.cxx"

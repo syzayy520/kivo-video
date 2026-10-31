@@ -79,8 +79,12 @@ def verify(path: Path) -> str:
     p99 = int(pace["lateness_ns"]["p99"])
 
     timeline = data["timeline"]
-    ahead_ns = int(timeline["video_pts_span_ns"]) - int(timeline["corrected_wall_span_ns"])
-    rate = float(timeline["playback_rate"])
+    # P14-S：`/30` 起 `video_pts_span_ns` / `playback_rate` 改名为
+    # `nominal_span_ns` / `nominal_rate`（旧名在说谎：那个跨度是帧数乘出来的）。
+    # 两个名字都认，本脚本才不会被一张改名的报告绊倒。
+    nominal_span = int(timeline.get("nominal_span_ns", timeline.get("video_pts_span_ns")))
+    ahead_ns = nominal_span - int(timeline["corrected_wall_span_ns"])
+    rate = float(timeline.get("nominal_rate", timeline.get("playback_rate")))
 
     expected = predict_triggers(ppm, duration_s, limit_ns, band_ns) if enabled else 0
 

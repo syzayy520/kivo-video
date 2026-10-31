@@ -1,7 +1,9 @@
 #include "video/video_plane/backends/avsync/report/av_sync_report.hpp"
 
 #include "video/video_plane/backends/mediacodec/device/mediacodec_json_string_escaper.hpp"
+#include "video/video_plane/backends/mediacodec/session/session_end_reason.hpp"
 #include "video/video_plane/core/audio/pcm_format.hpp"
+#include "video/video_plane/core/pace/pace_gate_scale.hpp"
 #include "video/video_plane/core/pace/sampling_mode.hpp"
 
 #include <algorithm>
@@ -139,15 +141,235 @@ using core::pace::SignedHistogram;
 ///       按量级归档。82 分钟里只出现了 1 次钳制，而"多久一次"这个问题的
 ///       泊松区间是 [0.03, 5.6] —— 一个事件回答不了频率。尾部把问题从
 ///       "等第二个事件"改成"看分布尾巴有多长"，用已有的几万个样本换答案。
+///   /23、/24：`audio.clock.tail` 的两轮补充（P14-G / P14-J），细节见各自状态卡。
+///   /25（P14-N）：`over_budget_frames` 后接 `_measured` / `_reason`；
+///       `lateness_ns` 块内接 `measured` / `reason`（键名与 `decode/18` 逐字一致）。
+///       起因是一份**同一轮播放的两份证据说出两种可信度**：`decode/18` 已经会写
+///       "没量到，因为 `surface_at_time` 里上屏时刻由合成器决定"，而 `sync/24`
+///       把同一批字段印成裸数。真机同片源两档对照（`docs/evidence/p14l/`，
+///       1080p30）：
+///
+///         cpu_paced       lateness_ns.samples = 1800  p50 = 125000  max = 615260
+///         surface_at_time lateness_ns.samples =    0  p50 =      0  max =      0
+///
+///       右列那三个 0 不是"零延迟"，是空直方图的默认值 —— 而 `max = 0` 是最完美的
+///       最大值。`over_budget_frames` 由同一个空直方图派生（`count_abs_beyond`），
+///       于是 G6 在这个档上读着一个永远为 0 的数。
+///
+///       为什么 P14-L 当时做不了：`sync` 证据在 P14-M 之前根本没被判据看过
+///       （`SCHEMA_ORDER` 停在 `/13` 而报告已到 `/24`，总收口 `glob` 只扫 `p13*`）。
+///       在那种情况下加字段，等于让新字段带着一整块没人验的区域通过总收口。
+///       P14-M 把覆盖从 54 份补到 177 份之后，这一格才有意义。
+///
+///   /26（P14-O）：`p99` 后接 `p99_range_low_ns` / `p99_range_high_ns` /
+///       `p99_bucket_samples`（键名与 `p50` 那三格逐字对齐，只换前缀）。
+///       起因是 P14-M 让 D1/D2 的配对池第一次非空，撞上一条**判不了的判据**：
+///       1080p 60 s 的一对 30/60 fps 证据，p99 分别是 125 000 与 625 000，
+///       商 5.00x，判据要判"是否 ≤ 2x"。
+///
+///         30fps  p99 = 125000  落桶 512  那桶里 1196/1200 个样本  [0, 250000)
+///         60fps  p99 = 625000  落桶 514  那桶里    3/1200 个样本  [500000, 750000)
+///
+///       当时判据写了 `not_applicable`，理由是一句手算的形容词
+///       （"区间能差 20 倍"）。读者拿到 `/25` 的 JSON 核对不了这句话：
+///       `p99` 在那里是个裸整数，既没说它是桶中心，也没说桶有多宽。
+///       出版这三格之后，那个"不可判"变成一个算式 `[2.00x, 48.00x]`，
+///       任何人可以复算 ——**并且看得见区间下界正好压在门槛上**。
+///
+///       注意这一版没有把 D2 变成可判。真机上它仍然不可判，改的只是
+///       "不可判"的证据等级：从一句话，变成一个能被别人算出同一个数的区间。
+///       要真判得了，得细化桶宽（250 µs 比 30fps 侧的真值还大 8 倍），
+///       那是另一张卡。
+///
+///   /27（P14-P）：`pace.lateness_ns` 从一行裸数改成块，`p50` / `p99` 各接三格
+///       范围 + `bucket_width_ns`（键名与 `quantiles.<口径>` 逐字对齐）。
+///       起因是 `/26` 里**同一个直方图被印了两遍，只有一遍带误差棒**：
+///
+///         quantiles.per_frame.p99 = 125000  [15417, 250000)   ← 判据读这份
+///         pace.lateness_ns.p99    = 125000  （没有范围）        ← 门禁读这份
+///
+///       `verify_p13ae_gate.py` 的 F3 拿后者去和一帧比大小，而那个数的分辨力
+///       是一个桶（250 µs）。余量够用，但那一格没有能力说出自己没能力判。
+///       这是 P14-N 的同一课换个层次：那次修"没量到却印 0"，这次修"量到了
+///       却不说量到多粗"。
+///
+///       刻意**不**把 `histogram` 复制进这一块 —— 同一份 JSON 里出现两份逐桶
+///       分布，就是"两处出版"这个错的另一个方向。复算性改用 `R5` 从
+///       `quantiles.per_frame` 借：那 11 个数必须逐位相等，而它的三格已被
+///       N12/N13 按分布复算过。
+///
+///   /28（P14-Q）：`pace` 块加一格 `undelivered_frames`
+///       （`= frames_decided − presented − dropped`），紧跟那三格。
+///
+///       起因是一份真机证据：`decided = 1800 / presented = 84 / dropped = 0`、
+///       `drop_ratio = 0.0`。屏幕在第 2.8 秒熄灭，1716 帧凭空消失，而 `/27`
+///       的报告里**它们不占任何一格** —— 读者要自己在脑子里做减法才能发现。
+///
+///       这一版**不加 `measured`**：它不是测量，是三个计数器相减。
+///       给纯派生量配"我很确定"是 P14-L 反的那类东西。它的诚实性问题
+///       不在"测没测到"，在"差额有没有原因"—— 那由判据 `S2` 用
+///       `video.frames_discarded_no_surface` 跨块回答。
+///
+///       刻意**不**钳到 0：负数意味着 `presented + dropped > frames_decided`，
+///       那是重复记账的真缺陷。钳掉就是把病征擦掉。
+///
+///   /29（P14-R）：顶层 `completed` / `error` 之间补一格 `end_reason`
+///       （`completed` / `interrupted` / `failed`），紧跟在 `completed` 之后。
+///
+///       起因不是新功能，是**一个写不出来的状态**：`docs/evidence` 里 214 份
+///       `sync/*` 全部 `completed: true`，零份 `false`。而层 3 把
+///       「`completed=false` 且 `error` 为空」明确判为**静默失败** ——
+///       所以"被打断"这件事在今天的协议里没有合法写法：写出来是假故障，
+///       不写就什么都没发生。P14-Q 那轮切后台"报告没落盘"，一半原因是这个。
+///
+///       判据那边对这第三值**只免"你有没有报错"，不免任何一本账**：
+///       `S2`（`decided = presented + dropped + dns`）对三种收尾一视同仁，
+///       解码侧的四项闭合也一样严格 —— 只是 EOS 那一帧的 `+1` 换成 `+0`，
+///       因为被打断的会话根本没走到 EOS。这一条由 `verify_p12c_sync.py` 守。
+///
+///   /30（P14-S）：`timeline` 块的分子**改名**，并补上真正的那个跨度。
+///
+///       `video_pts_span_ns` → `nominal_span_ns`，`playback_rate` → `nominal_rate`；
+///       新增 `media_pts_span_ns` / `media_span_frames` / `media_rate` /
+///       `media_rate_measured` / `media_rate_reason`。
+///
+///       起因是放开判据的版本闸门之后，216 份证据里 15 份没过速率检查，而
+///       0.645 这种数不可能是"放慢了"。去看分子才明白：`video_pts_span_ns`
+///       **从来没有量过任何一帧的 pts**，它是
+///
+///           (frames_rendered + frames_dropped_late + frames_discarded_no_surface − 1)
+///               × frame_duration_ns
+///
+///       216 / 216 份逐份核对，一条不差。分子里的两个因子都来自节拍器自己 ——
+///       于是这条被写成"唯一不与节拍器结论循环"的检查，其实是循环的：
+///       它只是把帧数换算成秒，再除以墙钟。
+///
+///       而**真正的 pts 跨度同一份报告里就有**：`pace.pts_span_ns`
+///       （P13-R 为四跨度恒等式加的，`= last_pts − first_pts`，实测，可为负）。
+///       `/16` 起的 115 份证据都带着它。也就是说同一份 JSON 里有两个都叫
+///       「pts 跨度」的数，而读者看到的那个是乘法。
+///
+///       用它重算，P14-R 那条"打断轮的上界不成立"就没了依据：
+///       `p14r-interrupt` 的实测跨度 6 333 333 000 / 墙钟 6 333 166 196
+///       = **1.000026**，正中间。1.0316 是分子多算了 6 帧未上屏的 `dns`。
+///
+///       不改名只加字段是不行的：两个名字都叫"pts 跨度"时，第二个字段只会
+///       变成"另有一说"。名字必须跟着事实走。
+///
+///   /31（P14-T）：`pace` 块补一格 `clock_lead_ns`
+///       （`= elapsed_span_ns − arrive_mono_span_ns`），紧跟在四跨度之后。
+///
+///       起因是 `/30` 登记进表里的那 4 份越界（1.0212–1.0565），状态卡上写着
+///       "成因未查"。而答案就在同一个块里相邻的两格：**钟在墙上多走了 427 ms**，
+///       视频忠实地跟着它走，于是 8 秒的媒体被塞进 7.556 秒的墙钟。
+///       四份逐份核对，钟领先量与"墙钟比实测跨度短"相差不到一帧（97/54/58/189 µs）。
+///
+///       所以这一版**不改任何测量**，只给那个差一个名字。P14-O/P/Q/S 同一条路：
+///       能在报告层解决的，不动核心。
+///
+///       这一格还捎带一条不太好听的结论：`av_drift` 是"视频相对这只钟"，
+///       而本格是"这只钟相对墙"。前者**不含**后者 —— 这四轮真实听起来差
+///       427 ms，而 `av_drift` p50 是 125 µs。`lateness == 音画偏差` 只在
+///       "钟说的是真的"时成立，而那个前提此前没有任何判据守过。
+///
+///       与 `/28` 的 `undelivered_frames` 同一条纪律：**纯派生量不配 `measured`**。
+///       它的可测性由 `clock_supplied_frames` 守（为 0 时四跨度全 0，本格也必为 0，
+///       那个 0 不可读作"钟很准"）。
+///
+///   /32（P14-U）：`pace` 块补 `clock_lead_trace`，`av_drift` 块补 `reference` 与 `vs_wall`
+///
+///       上一版把"钟比墙多走了 427 ms"印出来了，但只印了一个末值，读者拿不到两件事：
+///       ① 那 427 ms 是**一次跳的**还是**一路跑偏的**（修法完全不同）；
+///       ② 既然钟是错的，**视频相对不撒谎的那个参考系**差多少。
+///
+///       于是本版并排出版第二份：`vs_wall = lateness − lead`，逐帧、
+///       只用已有的钟读数派生，**零新测量**。它答的是"如果钟在撒谎，
+///       画面究竟提前/滞后了多少"——`p13r-4k60-r3` 上这个数是 −427 ms 量级，
+///       而同一份的 `av_drift.p50` 是 125 µs。两句话出自同一批帧。
+///
+///       **名字是 `vs_wall` 不是 `vs_audio`。** 项目里只有一只钟（AAudio 时间戳），
+///       我们没有第二个信源去测 DAC 真正播到哪一帧。叫 `vs_audio` 就是把
+///       "相对墙的估计"冒充成"相对耳朵的测量"——P14-T 抓到的病正是
+///       "一个名字说得比它做的多"。替身的可信度明码标在
+///       `wall_reference_bound_ns` 上，连同那个假设（±50 ppm）一起出版。
+///
+///       `clock_lead_ns` 一个字不改：`/31` 的 110 份判据在读它。
+///
+///   /33（P14-V）：`drift_gate` 块补三对 `limit_ppm_equivalent*` 与
+///       `limit_reach_s*`。
+///
+///       `limit_ns` 恒定 45 000 000 出现在每一份里（65 份全同），读起来像
+///       "容差恒定"。它不是：门守的是**累积漂移**，而累积漂移 = 速率误差 × 时长，
+///       于是同一个 45 ms 在 6.3 s 的会话上等价于 7 138 ppm，在 1 800 s 上等价于
+///       25 ppm，摆 285 倍。25 ppm 已落进普通石英晶振的精度区 ——
+///       **播 30 分钟，一个完全正常的时钟就会撞门**。
+///
+///       而这个换算从来没人做过，因为 `limit_ns` 与 `pace.elapsed_span_ns`
+///       虽然并排印在同一份文件里，却从不互相比。
+///
+///       **一个阈值都没动。** `drift_limit_ns` 保持 45 ms —— 它是听感阈值，
+///       改它属于调参，`pace_policy.hpp` 第 11 行写明"调参必须另开卡给对照数据"。
+///       本版只把"这一次会话里 45 ms 到底有多严"算出来出版。
+///
+///       为此把 `media_rate` 的计算段从 `timeline` 之前**上移**约 600 行到
+///       `drift_gate` 之前（唯一改动位置的一处搬移）：`limit_reach_s` 需要它，
+///       而在两处各算一遍会让同一个数有两个实现。搬移后 `timeline` 块逐字未改。
 ///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/24";
+constexpr const char* kSchema = "kivo.p12c.sync/35";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
     std::snprintf(buffer, sizeof(buffer), "%.6f", value);
     return std::string(buffer);
+}
+
+/// 九位小数（P14-V）。
+///
+/// 6 位不够的那一格是 `media_rate`：它贴近 1，偏差往往只有几个 ppm，
+/// 于是 `0.999996` 这个印法只有一位有效数字。而 `limit_reach_s` 是
+/// `limit / |rate − 1|`，对偏差是**倒数**关系，6 位小数的舍入会被放大成 12%：
+/// 真机上 `p14u-control` 印出 rate = 0.999996 与 reach = 12 578.8 s，
+/// 用印出的数反算 reach 得 11 250 s —— 同一份证据里两个数互相解不开。
+///
+/// 证据的第一用途是**被人拿出来复算**。印出来的数互相解不开，就是证据自己不作证。
+/// 所以这一版把 `media_rate` 与由它派生的 `limit_reach_s` 一起印到 9 位，
+/// 并且**用同一个量化后的值去算**（见调用处的 `media_rate_published`）——
+/// 否则"印 9 位、算完整 double"仍然解不开，只是差得小一点而已。
+[[nodiscard]] std::string fixed9(double value) {
+    char buffer[40] = {};
+    std::snprintf(buffer, sizeof(buffer), "%.9f", value);
+    return std::string(buffer);
+}
+
+/// 把 `media_rate` 量化到公布的 9 位，**再用它算下游**。
+///
+/// 为什么要先量化：`limit_reach_s` 对偏差取倒数，6/9 位小数的舍入会被放大。
+/// 先量化再算，读者拿印出来的 `media_rate` 就能复算出印出来的 `limit_reach_s`，
+/// 一位不差。这不是为了好看 —— 是为了让"这份证据"能被自己验证。
+[[nodiscard]] double published_rate(double value) {
+    constexpr double kScale = 1e9;
+    return std::round(value * kScale) / kScale;
+}
+
+/// 领先量形状的字符串名（P14-U）。
+///
+/// 四态**不合并**：`unknown` 与 `steady` 在报告里都是"数很小"，
+/// 但一个是"没量到"、一个是"量到了很稳"。折在一起就是把假观测写成好消息。
+[[nodiscard]] const char* lead_verdict_name(core::pace::LeadVerdict verdict) {
+    using core::pace::LeadVerdict;
+    switch (verdict) {
+        case LeadVerdict::kSteady:
+            return "steady";
+        case LeadVerdict::kRamped:
+            return "ramped";
+        case LeadVerdict::kStepped:
+            return "stepped";
+        case LeadVerdict::kUnknown:
+            break;
+    }
+    return "unknown";
 }
 
 /// 变量名直出用，避免到处写 `<< escape_json_string(...)` 把行拉得很长。
@@ -186,6 +408,27 @@ void render_distribution(std::ostringstream& out, const SignedHistogram& histogr
         first = false;
     }
     out << "}\n";
+}
+
+/// "第 q 分位数可能是多少" —— 印三格：范围下界 / 上界 / 桶内样本数（P14-O）。
+///
+/// P13-N 时只有 `p50` 需要这件事，所以那三行是直接写在 `render_quantiles` 里的。
+/// P14-O 让 `p99` 也需要，于是收成这一个函数：复制两遍是这类字段最容易分家的
+/// 写法 —— 一次复制错前缀，`p99_range_low_ns` 里装的就会是 `p50` 的范围，
+/// 而 JSON 里它看起来完全正常，只有"从分布按 q 复算"的判据（N13）抓得住。
+///
+/// 它**只印，不算**：范围由 `SignedHistogram::percentile_range()` 给。
+/// 钳制逻辑写在这里没有桌面单测兜底（本文件只在 Android 侧编译），
+/// 这与 P13-N 把 `percentile_range` 放进 core 是同一条理由。
+///
+/// `bucket_width_ns` 不在这里印：它是整个块的公共定义，一个块只该有一份。
+void render_range_cells(std::ostringstream& out, const std::string& pad,
+                        const char* prefix, const SignedHistogram& histogram, double q) {
+    const SignedHistogram::PercentileRange range = histogram.percentile_range(q);
+    out << pad << "\"" << prefix << "_range_low_ns\": " << range.low_ns << ",\n";
+    out << pad << "\"" << prefix << "_range_high_ns\": " << range.high_ns << ",\n";
+    out << pad << "\"" << prefix << "_bucket_samples\": "
+        << histogram.percentile_bucket(q).samples << ",\n";
 }
 
 /// 分位数 + 分布的组合对象。
@@ -229,19 +472,29 @@ void render_quantiles(std::ostringstream& out, const SignedHistogram& histogram,
     //
     // 范围由 `SignedHistogram::percentile_range()` 算，不在这里算 ——
     // 这个文件只在 Android 侧编译，写在这里的钳制逻辑没有桌面单测兜底。
-    const core::pace::SignedHistogram::PercentileRange p50_range =
-        histogram.percentile_range(0.50);
-    out << pad << "\"p50_range_low_ns\": " << p50_range.low_ns << ",\n";
-    out << pad << "\"p50_range_high_ns\": " << p50_range.high_ns << ",\n";
-    out << pad << "\"p50_bucket_samples\": " << histogram.percentile_bucket(0.50).samples
-        << ",\n";
+    render_range_cells(out, pad, "p50", histogram, 0.50);
     // 桶宽无条件给：它是**定义**（`SignedHistogram::kBucketWidthNs`），
     // 不是一个观测。有了它，上面那个区间与 p50 的差就能自己复算，
     // 不必相信任何手填数字。
+    //
+    // 一个块里只印一次：`p99` 的三格用的是同一个桶宽，印第二遍就是同一定义
+    // 有两个副本，迟早有一次只改其中一处。
     out << pad << "\"bucket_width_ns\": " << SignedHistogram::kBucketWidthNs << ",\n";
 
     out << pad << "\"p95\": " << histogram.percentile_ns(0.95) << ",\n";
+
+    // ── `p99` 同样要说出它可能的范围（P14-O）──
+    //
+    // P13-N 只给了 `p50`。当时 `p99` 没有误读现场，只有一句"将来也会有人误读"。
+    // P14-M 的 D2 把它变成了现场：那一对 30/60 fps 证据里，
+    // 30fps 的 p99 落在桶 512（1196/1200 个样本在里面），60fps 的落在桶 514
+    // （桶里只有 3 个样本）。商的点估计 5.00x，而判据要判"是否 ≤ 2x" ——
+    // 没有范围就只能编一个方向。
+    //
+    // 现在这两格一出版，D2 的前提第一次是**可复算的**：见 `verify_p13d_drift.py`
+    // 的 D2 三段式。
     out << pad << "\"p99\": " << histogram.percentile_ns(0.99) << ",\n";
+    render_range_cells(out, pad, "p99", histogram, 0.99);
     out << pad << "\"max\": " << histogram.max_ns() << ",\n";
 
     // `worst`：最差那一下**在哪儿**（P13-F）。
@@ -353,12 +606,158 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "    \"rate_ppm\": " << stats.clock_injection.rate_ppm << "\n";
     out << "  },\n";
 
+    // ── 播放速率：唯一一个不与节拍器结论循环的检查 ──
+    //
+    // 分子是媒体时间（首帧→末帧的 pts），分母是墙钟时间（同一对帧的交出时刻）。
+    // `av_drift` / `schedule_lead` 都是拿节拍器自己的目标时刻当基准，所以节拍器
+    // 整体跑偏时它们可能依然"完美"；这个比值只看墙钟，跑偏就露出来。
+    //
+    // 刻意**不用**"音频时钟跨度 ÷ 视频 pts 跨度"来算：音频会话总比视频多活一会儿
+    // （排空、轮询间隔、收尾），那个差值里混的是收尾耗时，不是分叉。
+    // 第一版就是这么写出 35–104 ms 的假"分叉"的，而同轮 `av_drift.p99` 只有 0.125 ms ——
+    // 两个数自相矛盾，说明错在窗口。音频停止时刻的原始位置仍如实记录，供人自行核对。
+    // ⚠️ P14-S：这个跨度**不是**媒体时间，是「交出去的帧数 × 名义帧时长」。
+    //
+    // 它原来是按"上了屏的帧数"算的（D1 第一版据此把 0.92 报出来，而那 92%
+    // 只是换面空窗期的占比），P12-D1 起改成按交出去的帧数算 —— 两个都在数帧，
+    // 只是数的范围不同。216 份证据逐份核对，`== (handed_off − 1) × fd` 一条不差。
+    //
+    // 所以名字从 `/30` 起改成 `nominal_span_ns`。原来叫 `video_pts_span_ns`，
+    // 而它一个 pts 都没读过 —— 读者看到那个名字只会以为它是时间差。
+    const std::int64_t handed_off = video.frames_rendered + video.frames_dropped_late +
+                                    video.frames_discarded_no_surface;
+    const std::int64_t nominal_span_ns =
+        (handed_off > 1) ? (handed_off - 1) * pace.frame_duration_ns : 0;
+    const std::int64_t wall_span_ns = pace.last_present_mono_ns - pace.first_present_mono_ns;
+
+    // `surface_at_time` 路径的交出时刻比 `due_at` 早一个固定提前量，而且这个提前量
+    // 是**从 0 涨到 3 帧**的（首帧建锚时提前量为 0，之后被 cap 卡住）。
+    // 于是"首末交出时刻之差"比媒体跨度短了整整一个提前量 —— 直接算速率会读出 1.017，
+    // 看起来像"放快了 1.7%"，其实是提前量填进去的。
+    //
+    // 修正用 `schedule_lead` 的 p50（`cpu_paced` 路径没有样本 → 0 → 不修正）。
+    // 这是**减法**不是抹平：修正项单独报出来，读者可以拒绝它自己重算。
+    const std::int64_t lead_correction_ns =
+        (pace.scheduled_samples > 0 && pace.schedule_lead.percentile_ns(0.50) < 0)
+            ? -pace.schedule_lead.percentile_ns(0.50)
+            : 0;
+    const std::int64_t corrected_span_ns = wall_span_ns + lead_correction_ns;
+    const double nominal_rate = (corrected_span_ns > 0 && nominal_span_ns > 0)
+                                    ? static_cast<double>(nominal_span_ns) /
+                                          static_cast<double>(corrected_span_ns)
+                                    : 0.0;
+
+    // ── P14-S：真正的媒体跨度 ──
+    //
+    // `pace.pts_span_ns` 是 P13-R 为四跨度恒等式（`due_span == arrive_mono_span
+    // + pts_span − elapsed_span`）加的，算法就是 `last_pts − first_pts`（实打实读数）。
+    // 它一直在这份报告里，只是在 `pace` 块、名字里没有 `media`，而 `timeline` 块里
+    // 那个借了 "pts span" 名号的是乘法。两个都叫跨度，`nominal_rate` 用了错的那个。
+    //
+    // 用它做分子，分母不用动：`first_present..last_present` 与
+    // `first_pts..last_pts` 覆盖的是**同一批上过屏的帧**（`clock_supplied_frames`
+    // 就是这批帧的计数），所以两边同进同出 —— 丢帧、换面空窗、被打断都不再偏置比值。
+    //
+    // **可为负**：seek 回退之后末帧的 pts 早于首帧。负数不是错误，是一句事实。
+    const std::int64_t media_span_ns = pace.pts_span_ns;
+    const std::int64_t media_span_frames = pace.clock_supplied_frames;
+    const bool media_rate_measured = (media_span_frames >= 2) && (corrected_span_ns > 0);
+    const double media_rate = media_rate_measured
+                                  ? static_cast<double>(media_span_ns) /
+                                        static_cast<double>(corrected_span_ns)
+                                  : 0.0;
+    // 不可测时**必须说清是哪一格缺**。`surface_at_time` 档不提供钟读数，
+    // 四跨度就全是 0 —— 那正是 R1「接线自证」警告的假观测（"全 0 看起来像没动"）。
+    std::string media_rate_reason;
+    if (corrected_span_ns <= 0) {
+        media_rate_reason = "墙钟跨度 <= 0：只交出过一帧，或呈现时间戳缺失";
+    } else if (media_span_frames == 0) {
+        media_rate_reason =
+            "没有任何一帧带钟读数（surface_at_time 路径不提供）：实测 pts 跨度不存在，"
+            "四跨度全 0 不是'没动'";
+    } else if (media_span_frames == 1) {
+        media_rate_reason = "只有 1 帧带钟读数：一帧没有跨度";
+    }
+
+    // ── P14-V：公布口径 ──
+    //
+    // `media_rate` 贴近 1，偏差常常只有几个 ppm，6 位小数只剩一位有效数字；
+    // 而 `limit_reach_s` 对偏差取**倒数**，那个舍入会被放大。
+    // 真机上 `p14u-control` 就是这么露的：印出 rate = 0.999996 与 reach = 12 578.8 s，
+    // 拿印出的数反算 reach 得 11 250 s —— 同一份证据里两个数互相解不开。
+    //
+    // 所以：先量化到 9 位，**再用量化值算下游**，两格一起印 9 位。
+    // 这样读者拿 `media_rate` 就能复算出 `limit_reach_s`，一位不差。
+    const double media_rate_published =
+        media_rate_measured ? published_rate(media_rate) : 0.0;
+
+    // ── P14-V：门的量纲 ──
+    //
+    // `limit_ns` 恒定 45 000 000 出现在每一份证据里，读起来像"容差恒定"。
+    // 它不是：门守的是**累积漂移**，而累积漂移 = 速率误差 × 时长。
+    // 同一个 45 ms 在 8 s 的会话上等价于 5 648 ppm，在 1 800 s 上等价于 25 ppm，
+    // 摆 226 倍 —— 而 25 ppm 已经落进普通石英晶振的精度区间。
+    //
+    // `limit_ns` 与 `pace.elapsed_span_ns` 一直并排印在同一份文件里，却从不互相比。
+    // 这两格换算就是那件事：把"45 ms"翻译成这一次会话里它到底有多严。
+    // P14-W：把"门动过几次"一起传进去 —— 门动过之后，观测速率是**修正后**的，
+    // 再拿它算"多久撞门"会印出一个自相矛盾的大数（实测：动了 49 次，却算 63.6 s）。
+    const core::pace::GateScale gate_scale =
+        core::pace::gate_scale(pace.drift_limit_ns, pace.elapsed_span_ns, media_rate_published,
+                               media_rate_measured, pace.drift_rebases);
+
     // 门的配置（P13-AD）。校验器据此复算目标残差，不再硬编码 45/5；
     // 关着门的一轮也不会被读成"门判断沉默"。
     out << "  \"drift_gate\": {\n";
     out << "    \"enabled\": " << (pace.drift_gate_enabled ? "true" : "false") << ",\n";
     out << "    \"limit_ns\": " << pace.drift_limit_ns << ",\n";
-    out << "    \"band_ns\": " << pace.drift_band_ns << "\n";
+    out << "    \"band_ns\": " << pace.drift_band_ns << ",\n";
+    // P14-V：门限的等价速率。**0 不是"门严到不可用"，是"没记录时长，换算无从谈起"**
+    // —— 所以两格一起出版，与 `media_rate_measured` 同一条纪律。
+    out << "    \"limit_ppm_equivalent\": " << fixed9(gate_scale.limit_ppm_equivalent)
+        << ",\n";
+    out << "    \"limit_ppm_equivalent_measured\": "
+        << (gate_scale.ppm.measured ? "true" : "false") << ",\n";
+    out << "    \"limit_ppm_equivalent_reason\": " << quoted(gate_scale.ppm.reason) << ",\n";
+    // P14-V：以本轮的实测速率偏差，多久撞到门。与上一格回答不同的问题：
+    // 前者是"门限对应多严"，后者是"这次会话实际会用多久撞上"。
+    out << "    \"limit_reach_s\": " << fixed9(gate_scale.limit_reach_s) << ",\n";
+    out << "    \"limit_reach_s_measured\": " << (gate_scale.reach.measured ? "true" : "false")
+        << ",\n";
+    out << "    \"limit_reach_s_reason\": " << quoted(gate_scale.reach.reason) << ",\n";
+    out << "    \"note\": "
+        << quoted("limit_ns is an absolute time, but the gate guards cumulative drift; "
+                  "cumulative drift = rate error x duration. limit_ppm_equivalent = "
+                  "limit_ns / span, i.e. how much rate error this session's gate actually "
+                  "tolerates (5648 ppm at 8 s, 25 ppm at 1800 s). limit_reach_s = "
+                  "limit_ns / |media_rate - 1|, i.e. how long this session would take to "
+                  "reach the gate at its measured rate error. Neither is a pass/fail line")
+        << "\n";
+    out << "  },\n";
+
+    // ── 每次复位发生在什么时候（P14-X）──
+    //
+    // P14-W 在 4K30 的一轮里量到一次 104.71 ms 的修正（迟滞带是 5 ms）。
+    // 算术给出唯一自洽的解释：启动期盲区（首帧后 1 s）里攒的量在盲区结束
+    // 的第一次读上被一次还清 —— 但证据里没有时刻，所以它停在"解释"。
+    // 这一块给每一笔一个时刻，判据 X4 因此可以问"最大那笔是不是在启动期附近"。
+    out << "  \"drift_rebase_trace\": {\n";
+    out << "    \"rebases\": " << pace.drift_rebase_trace.rebases << ",\n";
+    out << "    \"sampled\": " << pace.drift_rebase_trace.sampled << ",\n";
+    out << "    \"first_at_ns\": " << pace.drift_rebase_trace.first_at_ns << ",\n";
+    out << "    \"max\": {\"at_ns\": " << pace.drift_rebase_trace.max.at_ns
+        << ", \"amount_ns\": " << pace.drift_rebase_trace.max.amount_ns
+        << ", \"lead_before_ns\": " << pace.drift_rebase_trace.max.lead_before_ns << "},\n";
+    out << "    \"recent\": [";
+    for (std::int64_t i = 0; i < pace.drift_rebase_trace.samples_used; ++i) {
+        const core::pace::RebaseSample& sample = pace.drift_rebase_trace.recent[i];
+        if (i != 0) {
+            out << ", ";
+        }
+        out << "{\"at_ns\": " << sample.at_ns << ", \"amount_ns\": " << sample.amount_ns
+            << ", \"lead_before_ns\": " << sample.lead_before_ns << "}";
+    }
+    out << "]\n";
     out << "  },\n";
 
     out << "  \"device\": {\n";
@@ -419,6 +818,14 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
         stats.has_audio && audio_clock && paced_at_present && pace.lateness.count() > 0;
 
     out << "  \"av_drift\": {\n";
+
+    // ── 这一份相对谁（P14-U）──
+    //
+    // 在 `/31` 之前，这个块里没有一个字说明它的参考系，而"`av_drift` = 音画偏差"
+    // 这句话写在多处注释里。P14-T 之后我们知道那句话只在"钟说的是真的"时成立。
+    // 参考系是一个**结构性的前提**，不是一句注释 —— 所以它印在最前面，
+    // 与下面的 `vs_wall.reference` 并排，读者第一眼就知道有两个答案。
+    out << "    \"reference\": " << quoted("audio_clock") << ",\n";
 
     // ── 口径先于数字，且结构上不可绕过 ──
     //
@@ -789,7 +1196,14 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
         out << "      \"window_quantiles\": {\n";
         render_quantiles(out, pace.window_lateness.lateness, kNoExtreme, "        ");
         out << "      }\n";
-        out << "    }\n";
+        // P14-U：`vs_wall` 是 `av_drift` 的最后一个兄弟，紧跟在这一块之后，
+        // 所以 trend 的闭合**必须带逗号**。
+        //
+        // 这个逗号漏过一次：三份真机证据全部 `Expecting ',' delimiter`，一份都读不出来。
+        // 而 P14-U 的判据变异自测 9/9 全过 —— 因为它跑在我手工构造的合成 JSON 上，
+        // 那份 JSON 的语法本来就是对的。**判据全绿不代表产出的文件能被解析**，
+        // 这两件事之间隔着"报告层有没有把括号配平"，而没有任何一条判据在看那里。
+        out << "    },\n";
     } else {
         // 这里**不能**再写一次 `"measurable": false` —— 它在上面 `sampling` 之前
         // 已经按同一个条件输出过了。重复键在 JSON 里是"后者覆盖前者"或直接报错，
@@ -815,7 +1229,66 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
         } else {
             out << quoted("no lateness samples were recorded at present time");
         }
+        // P14-U：同上，`vs_wall` 紧跟其后，这一格必须带逗号。
+        out << ",\n";
+    }
+
+    // ── P14-U：第二份答案 —— **相对墙** ──
+    //
+    // 上面那一整块（`sampling` / `quantiles` / `trend`）全是"视频相对这只钟"。
+    // 而 `due` 就是用这只钟算的，所以那块**结构性**看不见钟自己在跑偏：
+    // `p13r-4k60-r3` 上钟比墙多走了 426.7 ms，同块 `p50` 仍是 125 µs。
+    //
+    // 这一格是同一批帧的另一个参考系：`W = lateness − lead`。
+    // 两句话并排放在一份证据里，读者才有可能问出"那到底差多少"。
+    //
+    // **`measurable` 复用的正是上面那个 `drift_measurable`**，不另写一套条件：
+    // `surface_at_time` 下 `lateness` 本身等于提交提前量，扣掉 `lead` 也不会变成音画偏差。
+    // 两处各写一遍条件，迟早在某个档上分家 —— 而分家之后证据会同时说
+    // "av_drift 不可测"和"vs_wall 可测"，读者只会信后一个（它看起来更具体）。
+    {
+        const auto& wall = pace.wall_offset;
+        const bool wall_measurable = drift_measurable && wall.measured.measured;
+        out << "    \"vs_wall\": {\n";
+        out << "      \"reference\": " << quoted("monotonic_wall_clock") << ",\n";
+        out << "      \"definition\": "
+            << quoted("present_at - (baseline_mono + (pts - anchor_pts)) = lateness - "
+                      "clock_lead; positive means the picture is late against the wall clock")
+            << ",\n";
+        out << "      \"samples\": " << wall.samples << ",\n";
+        out << "      \"first_ns\": " << wall.first_ns << ",\n";
+        out << "      \"last_ns\": " << wall.last_ns << ",\n";
+        out << "      \"worst_ns\": " << wall.worst_ns << ",\n";
+        out << "      \"worst_media_ns\": " << wall.worst_media_ns << ",\n";
+        // 界必须紧挨着它界的那个数。分开印，读者会只抄 `worst_ns` 而漏掉这一格。
+        out << "      \"bound_ns\": " << pace.wall_reference_bound_ns << ",\n";
+        out << "      \"bound_ppm\": " << fixed6(core::pace::kWallReferencePpm) << ",\n";
+        out << "      \"bound_basis\": "
+            << quoted("max(one frame, bound_ppm x wall span): the wall clock stands in for the "
+                      "DAC, and the two can differ by the crystal skew; this is an assumption, "
+                      "not a measurement")
+            << ",\n";
+        out << "      \"measurable\": " << (wall_measurable ? "true" : "false") << ",\n";
+        out << "      \"note\": "
+            << quoted("this is NOT a DAC measurement: there is no second clock source in this "
+                      "pipeline, so read it as 'offset against the wall clock', not as 'offset "
+                      "against what you hear'")
+            << ",\n";
+        out << "      \"unavailable_reason\": ";
+        if (!wall_measurable) {
+            if (!drift_measurable) {
+                out << quoted("same reason as av_drift above: this run cannot attribute a "
+                              "per-frame offset to A/V sync at all, so subtracting the clock "
+                              "lead would not make it one");
+            } else {
+                out << quoted("no presentation carried a clock reading, so the lead that has to "
+                              "be subtracted was never recorded");
+            }
+        } else {
+            out << quoted("");
+        }
         out << "\n";
+        out << "    }\n";
     }
     out << "  },\n";
 
@@ -830,58 +1303,29 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     render_quantiles(out, pace.interval, kNoExtreme, "    ");
     out << "  },\n";
 
-    // ── 播放速率：唯一一个不与节拍器结论循环的检查 ──
-    //
-    // 分子是媒体时间（首帧→末帧的 pts），分母是墙钟时间（同一对帧的交出时刻）。
-    // `av_drift` / `schedule_lead` 都是拿节拍器自己的目标时刻当基准，所以节拍器
-    // 整体跑偏时它们可能依然"完美"；这个比值只看墙钟，跑偏就露出来。
-    //
-    // 刻意**不用**"音频时钟跨度 ÷ 视频 pts 跨度"来算：音频会话总比视频多活一会儿
-    // （排空、轮询间隔、收尾），那个差值里混的是收尾耗时，不是分叉。
-    // 第一版就是这么写出 35–104 ms 的假"分叉"的，而同轮 `av_drift.p99` 只有 0.125 ms ——
-    // 两个数自相矛盾，说明错在窗口。音频停止时刻的原始位置仍如实记录，供人自行核对。
-    // 媒体跨度按**交出去的帧数**算，不是按"上了屏的帧数"。
-    // 换面空窗期那几十帧没上屏，但 pts 照样走过去了（解码器把它们的缓冲还回来了）。
-    // 只数 `frames_rendered` 会把跨度算短，速率就被误判成"放慢了" ——
-    // D1 第一版就是这么把 0.92 报出来的，而那 92% 只是空窗期的占比。
-    const std::int64_t handed_off = video.frames_rendered + video.frames_dropped_late +
-                                    video.frames_discarded_no_surface;
-    const std::int64_t video_span_ns =
-        (handed_off > 1) ? (handed_off - 1) * pace.frame_duration_ns : 0;
-    const std::int64_t wall_span_ns = pace.last_present_mono_ns - pace.first_present_mono_ns;
-
-    // `surface_at_time` 路径的交出时刻比 `due_at` 早一个固定提前量，而且这个提前量
-    // 是**从 0 涨到 3 帧**的（首帧建锚时提前量为 0，之后被 cap 卡住）。
-    // 于是"首末交出时刻之差"比媒体跨度短了整整一个提前量 —— 直接算速率会读出 1.017，
-    // 看起来像"放快了 1.7%"，其实是提前量填进去的。
-    //
-    // 修正用 `schedule_lead` 的 p50（`cpu_paced` 路径没有样本 → 0 → 不修正）。
-    // 这是**减法**不是抹平：修正项单独报出来，读者可以拒绝它自己重算。
-    const std::int64_t lead_correction_ns =
-        (pace.scheduled_samples > 0 && pace.schedule_lead.percentile_ns(0.50) < 0)
-            ? -pace.schedule_lead.percentile_ns(0.50)
-            : 0;
-    const std::int64_t corrected_span_ns = wall_span_ns + lead_correction_ns;
-    const double playback_rate = (corrected_span_ns > 0 && video_span_ns > 0)
-                                     ? static_cast<double>(video_span_ns) /
-                                           static_cast<double>(corrected_span_ns)
-                                     : 0.0;
-
     out << "  \"timeline\": {\n";
-    out << "    \"video_pts_span_ns\": " << video_span_ns << ",\n";
+    out << "    \"nominal_span_ns\": " << nominal_span_ns << ",\n";
+    out << "    \"media_pts_span_ns\": " << media_span_ns << ",\n";
+    out << "    \"media_span_frames\": " << media_span_frames << ",\n";
     out << "    \"present_wall_span_ns\": " << wall_span_ns << ",\n";
     out << "    \"lead_correction_ns\": " << lead_correction_ns << ",\n";
     out << "    \"corrected_wall_span_ns\": " << corrected_span_ns << ",\n";
-    out << "    \"playback_rate\": " << fixed6(playback_rate) << ",\n";
+    out << "    \"nominal_rate\": " << fixed6(nominal_rate) << ",\n";
+    out << "    \"media_rate\": " << fixed9(media_rate_published) << ",\n";
+    out << "    \"media_rate_measured\": " << (media_rate_measured ? "true" : "false") << ",\n";
+    out << "    \"media_rate_reason\": " << quoted(media_rate_reason) << ",\n";
     // 原始事实照留：有人要按自己的窗口重算时用得上。
     out << "    \"anchor_audio_position_ns\": " << pace.anchor_position_ns << ",\n";
     out << "    \"audio_position_at_video_stop_ns\": "
         << stats.audio_position_at_video_stop_ns << ",\n";
     out << "    \"note\": "
-        << quoted("playback_rate = media time / wall time between first and last hand-off, "
-                  "with the submit-lead ramp removed. The audio position at video stop "
-                  "includes teardown latency (poll interval + drain) and must not be compared "
-                  "against the pts span directly")
+        << quoted("nominal_rate = (handed-off frames - 1) * frame_duration / wall time: "
+                  "it is a frame count in seconds, NOT media time. media_rate = "
+                  "measured pts span (first to last presented frame) / the same wall time, "
+                  "and is the only one of the two that can catch a clock running off. "
+                  "The audio position at video stop includes teardown latency "
+                  "(poll interval + drain) and must not be compared against either span "
+                  "directly")
         << "\n";
     out << "  },\n";
 
@@ -928,7 +1372,29 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "    \"frames_decided\": " << pace.frames_decided << ",\n";
     out << "    \"presented\": " << pace.presented << ",\n";
     out << "    \"dropped\": " << pace.dropped << ",\n";
+    // P14-Q：这三格必须连着读 —— `1800 = 1800 + 0 + 0`。
+    // 差额印在这里，是因为 `/27` 时它**不占任何一格**：真机出过一次
+    // `decided = 1800 / presented = 84 / dropped = 0`，1716 帧凭空消失，
+    // 而 `drop_ratio` 还写着 0.0。
+    //
+    // 值由 `FramePacer::summary()` 算（那里才看得到 `frames_decided_`）。
+    // 这一层只印，不判断 —— 判断留给 S2，用 `video.frames_discarded_no_surface`
+    // 跨块对账。两处各判一次，迟早在某个边界上分家。
+    out << "    \"undelivered_frames\": " << pace.undelivered_frames << ",\n";
+    // P14-N：这一格是 `lateness_` 直方图的派生量（`count_abs_beyond`），
+    // 上游一个样本都没有时它必然是 0 —— 而 0 读起来是"没有超预算帧"。
+    // 真机证据 `docs/evidence/p14l/p14l-attime-1080p30-sync.json`（`surface_at_time`）：
+    // `lateness_ns.samples = 0`，而这里印 0，G6 在本项目的默认排程档上
+    // 读着一个永远为 0 的数，通过着一次从未发生的检查。
+    //
+    // 判断不在这里做：值来自 `PaceSummary::over_budget_measured`（P14-L 已在
+    // `core::pace` 里填好）。报告层的职责是"把 `PaceSummary` 写成 JSON"，
+    // 不是"判断可测性"—— 两条链各判一次，迟早在某个边界上分家。
     out << "    \"over_budget_frames\": " << pace.over_budget_frames << ",\n";
+    out << "    \"over_budget_frames_measured\": "
+        << (pace.over_budget_measured.measured ? "true" : "false") << ",\n";
+    out << "    \"over_budget_frames_reason\": " << quoted(pace.over_budget_measured.reason)
+        << ",\n";
     // P13-P：目标时刻动过几帧，以及"这一路参数到底接没接上"。
     // 后者不是调试字段：`due_step_frames` 为 0 有两种读法（没位移 / 没接线），
     // 只出版前者，读者会永远读成第一种。`due_step_supplied < presented` 时，0 作废。
@@ -948,13 +1414,85 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "    \"elapsed_span_ns\": " << pace.elapsed_span_ns << ",\n";
     out << "    \"due_span_ns\": " << pace.due_span_ns << ",\n";
     out << "    \"pts_span_ns\": " << pace.pts_span_ns << ",\n";
+    // P14-T：钟相对墙的领先量。这一格是上面两格相减，印出来是因为**没有人减** ——
+    // `/30` 把 4 份越界登记进表里、写着"成因未查"，而答案就在相邻两格里。
+    //
+    // 它同时是 `av_drift` 的盲区说明书：`av_drift` 量的是"视频相对这只钟"，
+    // 不含"钟相对墙"。这一格非 0 时，`av_drift` 的分位数**不能**当音画偏差读。
+    out << "    \"clock_lead_ns\": " << pace.clock_lead_ns << ",\n";
+    // ── P14-U：那 427 ms 是怎么走过去的 ──
+    //
+    // 上一格只有首末两点，于是它答得出"多走了多少"，答不出"一次跳的还是匀速跑偏的"。
+    // 这两件事的修法完全不同：跳 = 设备报了个位移过的位置（要抓原始 `getTimestamp`）；
+    // 跑偏 = 采样率换算错了（要改换算）。`max_step_ns` 与 `step_frames` 就是那个分辨力。
+    //
+    // `verdict` 四态：`unknown`（帧数不足/缺帧长/零跨度）不与 `steady` 合并。
+    // `rate_ppm` 是"频差解释"的唯一入口：超过 2000 ppm 的偏移不可能是速率
+    // （消费级晶振 ±50 ppm 量级，判据 U4）。
+    {
+        const auto& trace = pace.lead_trace;
+        out << "    \"clock_lead_trace\": {\n";
+        out << "      \"samples\": " << trace.samples << ",\n";
+        out << "      \"frame_duration_ns\": " << trace.frame_duration_ns << ",\n";
+        // 基准两格是自证：不给基准，`last_ns` 只能被相信，不能被复算。
+        out << "      \"baseline_elapsed_ns\": " << trace.baseline_elapsed_ns << ",\n";
+        out << "      \"baseline_mono_ns\": " << trace.baseline_mono_ns << ",\n";
+        out << "      \"last_ns\": " << trace.last_ns << ",\n";
+        out << "      \"max_ns\": " << trace.max_ns << ",\n";
+        out << "      \"min_ns\": " << trace.min_ns << ",\n";
+        // 步与幅分开印：累积 300 帧、每帧涨 1 ms 也能到 300 ms，而每一步只有 1 ms。
+        // 只印 `max_ns − min_ns`，读者会把"幅"读成"跳"。
+        out << "      \"max_step_ns\": " << trace.max_step_ns << ",\n";
+        out << "      \"step_frames\": " << trace.step_frames << ",\n";
+        out << "      \"span_ns\": " << trace.span_ns << ",\n";
+        out << "      \"rate_ppm\": " << fixed6(trace.rate_ppm) << ",\n";
+        out << "      \"verdict\": " << quoted(lead_verdict_name(trace.verdict)) << ",\n";
+        out << "      \"verdict_reason\": " << quoted(trace.verdict_reason) << ",\n";
+        out << "      \"measured\": " << (trace.measured.measured ? "true" : "false") << ",\n";
+        out << "      \"reason\": " << quoted(trace.measured.reason) << "\n";
+        out << "    },\n";
+    }
     // 接线自证：小于 `presented` 时上面四格全是 0，那个 0 不可读作"没动"。
     out << "    \"clock_supplied_frames\": " << pace.clock_supplied_frames << ",\n";
     out << "    \"frame_duration_ns\": " << pace.frame_duration_ns << ",\n";
     out << "    \"derived_fps\": " << fixed6(pace.derived_fps) << ",\n";
-    out << "    \"lateness_ns\": {\"samples\": " << pace.latency_samples << ", \"p50\": "
-        << pace.lateness.percentile_ns(0.50) << ", \"p99\": " << pace.lateness.percentile_ns(0.99)
-        << ", \"max\": " << pace.lateness.max_ns() << "},\n";
+    // ── 同一批点的第二次印刷（P14-P）──
+    //
+    // 上面 `quantiles.per_frame` 印的就是**这一个** `pace.lateness`。两处必须给出
+    // 同样的数，因为差异只可能来自写法不同，不可能来自数据不同 —— `R5` 判这一条。
+    //
+    // 本卡补的是**分辨力**：`/26` 时这一块只有裸的 p50/p99，而同一个数在上面
+    // 带着 `[low, high)`。真机（`p14o-1080p30-sync.json`）：
+    //
+    //   quantiles.per_frame.p99 = 125000  [15417, 250000)
+    //   pace.lateness_ns.p99    = 125000  （没有范围）
+    //
+    // 而门禁 `verify_p13ae_gate.py` 的 F3 读的正是下面这一份 —— 它拿一个分辨力
+    // 250 µs 的桶中心去和一帧（33 333 333 ns）比大小。余量眼下够用，但那一格
+    // **没有能力说出自己没能力判**。P14-N 让"没量到"变显式，本卡让"量到多粗"变显式。
+    //
+    // 七格的排布与 `render_quantiles` 逐字对齐（三格紧跟各自解释的那个数，
+    // `bucket_width_ns` 跟在 `p50` 那组之后）：同一个概念在两处长成两个样子，
+    // 读者就要在脑子里做翻译，而翻译会出错。三格由 `render_range_cells` 印，
+    // 不在这里复制六行 —— 复制一次前缀写错，`p99_range_low_ns` 里就会装着 p50 的范围。
+    //
+    // `measured` / `reason` 仍在块末尾，与 `decode/18` 的字段顺序一致。
+    // `surface_at_time` 档下 `samples = 0`，于是整块**全是 0**（含新增四格），
+    // 而 0 是最完美的迟到分布。这些 0 不是测出来的，是空直方图吐出来的。
+    out << "    \"lateness_ns\": {\n";
+    out << "      \"samples\": " << pace.latency_samples << ",\n";
+    out << "      \"p50\": " << pace.lateness.percentile_ns(0.50) << ",\n";
+    render_range_cells(out, "      ", "p50", pace.lateness, 0.50);
+    // 桶宽无条件给：它是**定义**（`SignedHistogram::kBucketWidthNs`），不是一个观测。
+    // 与 `quantiles` 块里那一格同一个理由 —— 有了它，上面的范围与 p50 的差可以自己复算。
+    out << "      \"bucket_width_ns\": " << SignedHistogram::kBucketWidthNs << ",\n";
+    out << "      \"p99\": " << pace.lateness.percentile_ns(0.99) << ",\n";
+    render_range_cells(out, "      ", "p99", pace.lateness, 0.99);
+    out << "      \"max\": " << pace.lateness.max_ns() << ",\n";
+    out << "      \"measured\": "
+        << (pace.present_timestamp_measured.measured ? "true" : "false") << ",\n";
+    out << "      \"reason\": " << quoted(pace.present_timestamp_measured.reason) << "\n";
+    out << "    },\n";
     out << "    \"schedule_lead_ns\": {\"samples\": " << pace.scheduled_samples << ", \"p50\": "
         << pace.schedule_lead.percentile_ns(0.50) << ", \"spread\": "
         << (pace.schedule_lead.percentile_ns(0.90) - pace.schedule_lead.percentile_ns(0.10))
@@ -1074,6 +1612,16 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "  }},\n";
 
     out << "  \"completed\": " << (completed ? "true" : "false") << ",\n";
+    // P14-R：紧跟 `completed`。派生规则在 `session_end_reason.hpp` 里只有一处，
+    // 与 `decode/19` 的 `outcome.end_reason` 共用 —— 两份报告说的是同一个事实。
+    //
+    // 注意这里传的是**本报告**的 `completed`（`video.completed && audio.error.empty()`）
+    // 与**本报告**的 `error`（视频优先，音频兜底），不是 `video.completed`：
+    // 音频失败而视频跑完时，这份报告的收尾方式是 `failed`，不是 `completed`。
+    out << "  \"end_reason\": \""
+        << mediacodec::session_end_reason_name(
+               mediacodec::session_end_reason(completed, !error.empty()))
+        << "\",\n";
     out << "  \"error\": " << quoted(error) << "\n";
     out << "}\n";
     return out.str();

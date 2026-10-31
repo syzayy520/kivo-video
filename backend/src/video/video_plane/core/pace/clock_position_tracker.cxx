@@ -153,6 +153,9 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
             const std::int64_t target_ns = policy_.drift_limit_ns - policy_.drift_band_ns;
             const std::int64_t correction_ns = cum_drift_ns_ - target_ns;
             if (correction_ns > 0) {
+                // P14-X：先把现场记下来，再改状态 —— 记完再改的话，
+                // `lead_before` 就只能靠 `cum + correction` 反推，两处算同一个数。
+                record_rebase(mono_ns, correction_ns, cum_drift_ns_);
                 position_ns_ -= correction_ns;
                 cum_drift_ns_ -= correction_ns;
                 reading.backward_clamped = false;
@@ -182,6 +185,43 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
     return reading;
 }
 
+void ClockPositionTracker::record_rebase(std::int64_t mono_ns, std::int64_t amount_ns,
+                                         std::int64_t lead_before_ns) noexcept {
+    RebaseSample sample{};
+    // 相对首帧读数：绝对单调时钟在不同会话里差着开机时长，列出来没法读。
+    sample.at_ns = mono_ns - first_mono_ns_;
+    sample.amount_ns = amount_ns;
+    sample.lead_before_ns = lead_before_ns;
+
+    if (drift_rebases_ == 0) {
+        rebase_first_at_ns_ = sample.at_ns;
+    }
+    if (sample.amount_ns > rebase_max_.amount_ns) {
+        rebase_max_ = sample;
+    }
+    rebase_recent_[rebase_head_] = sample;
+    rebase_head_ = (rebase_head_ + 1) % 8;
+    if (rebase_count_ < 8) {
+        ++rebase_count_;
+    }
+}
+
+RebaseTrace ClockPositionTracker::rebase_trace() const noexcept {
+    RebaseTrace out{};
+    out.rebases = drift_rebases_;
+    out.first_at_ns = rebase_first_at_ns_;
+    out.max = rebase_max_;
+    out.sampled = rebase_count_;
+    out.samples_used = rebase_count_;
+    // 环按时间升序展开：`rebase_head_` 是"下一笔写到哪"，也就是最旧那一笔的位置
+    // （写满 8 笔之后）。没写满时最旧的是 0。
+    const std::int32_t oldest = rebase_count_ < 8 ? 0 : rebase_head_;
+    for (std::int32_t i = 0; i < rebase_count_; ++i) {
+        out.recent[i] = rebase_recent_[(oldest + i) % 8];
+    }
+    return out;
+}
+
 void ClockPositionTracker::anchor(std::int64_t pts_ns, const Reading& reading) noexcept {
     if (anchored_) {
         return;
@@ -200,6 +240,15 @@ void ClockPositionTracker::reset() noexcept {
     stale_since_mono_ns_ = 0;
     cum_drift_ns_ = 0;
     correcting_ = false;
+    rebase_first_at_ns_ = 0;
+    rebase_max_ = RebaseSample{};
+    // 数组不能整体赋值（C3863）。逐个清 —— 只有 8 个，不值得为它引入 `std::fill`
+    // 背后的头文件依赖（core/ 下刻意不用 `<algorithm>` 之外的容器设施）。
+    for (RebaseSample& sample : rebase_recent_) {
+        sample = RebaseSample{};
+    }
+    rebase_head_ = 0;
+    rebase_count_ = 0;
     anchored_ = false;
     anchor_pts_ns_ = 0;
     anchor_position_ns_ = 0;

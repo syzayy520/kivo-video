@@ -15,6 +15,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.kivo.cinema.bridge.MediaTrackProbe
 import com.kivo.cinema.bridge.NativePlayer
 import com.kivo.cinema.bridge.PlaybackSession
+import com.kivo.cinema.evidence.EvidencePaths
+import com.kivo.cinema.evidence.FailureEvidence
+import com.kivo.cinema.evidence.SessionFinalizer
 import java.io.File
 
 /**
@@ -48,15 +51,57 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
     private var playbackRunning = false
 
     /**
-     * 结束证据的落盘状态（P12-D4）。
+     * 证据落盘（P14-R）。**收尾顺序与封口标志都由它管**，Activity 只说"现在收尾"。
      *
-     * 两个标志分开，因为**失败要重试、成功不许重写**：
-     * 之前的写法是"每轮询一次写一次"，同一个文件被重写十几遍 —— 数字没变所以没人发现，
-     * 但"最后一次写"可能落在会话已经半停的时刻，那才是风险。
-     * 改成"成功才封口"之后，写失败的那次会留在下一轮重试，证据不会因为一次瞬时失败丢掉。
+     * 搬出去的理由不是行数：本卡给收尾加了第二个入口（被打断），
+     * 而两个入口的顺序规则必须一致 —— 一个已经扛着八件事的 Activity
+     * 里再加一个入口，就是第 N 次"顺手加一点"。
+     *
+     * `lateinit` 而不是可空：`installEvidenceSinks()` 在 `onCreate` 里**无条件**执行，
+     * 而所有使用者（`onStop` / `finishPlayback` / 失败证据）都在它之后。
+     * 写成可空只会给每个调用点添一次 `?.`，那层保护永远不会触发。
      */
-    private var statsWritten = false
-    private var syncWritten = false
+    private lateinit var finalizer: SessionFinalizer
+    private lateinit var evidencePaths: EvidencePaths
+
+    /**
+     * 把"证据写到哪、怎么收尾"两件事装起来（P14-R）。
+     *
+     * 必须在 [readProbeExtras] **之后**调用：文件名与"要不要写合并证据"都来自 Intent，
+     * 在此之前构造会用一份错误的缺省值把这一轮写进别的文件里。
+     */
+    private fun installEvidenceSinks() {
+        evidencePaths = EvidencePaths(filesDir)
+        finalizer = SessionFinalizer(
+            paths = evidencePaths,
+            statsName = evidenceName,
+            syncName = syncEvidenceName,
+            // 没开节拍就没有偏差样本：写一份全 0 的合并证据比不写更容易被误读成"零偏差"。
+            writesSync = pacingEnabled,
+        )
+    }
+
+    /**
+     * 中断收尾（P14-R，探针档）。
+     *
+     * `true` 时 Activity 进入后台（`onStop`）会把这一轮**当成一次收尾**：
+     * 停会话、写两份证据。默认 `false` —— 产品行为仍然是"后台继续播"
+     * （P12-D1 的 `rebuilds=1` / `frames_discarded ≈ 空窗×30` 就是按那条行为量的）。
+     *
+     * 为什么不能默认开：把"写一份闭合的账"和"后台继续播"放在一起是矛盾的 ——
+     * 闭合要求先 `stop()`，而 `stop()` 就结束了会话。要不要后台停播是**产品决策**，
+     * 取证档不替它做决定。
+     */
+    private var finalizeOnStop = false
+
+    /**
+     * 这条会话已经收尾、不再复活。
+     *
+     * 与 [playbackRunning] 不是一回事：后者说"在不在跑"，这个说"还准不准再起来"。
+     * 中断收尾之后面会重新可用（用户切回来），若没有这一格，`maybeStartPlayback()`
+     * 会从头再开一条会话 —— 而那条新会话播完时会**覆盖**刚写下的中断证据。
+     */
+    private var sessionEnded = false
 
     /**
      * seek 取证参数（P12-F1）。`-1` 表示不 seek。
@@ -206,7 +251,7 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
             val elapsedSec = ((System.currentTimeMillis() - soakStartedAtMs) / 1000).toInt()
             val name = prefix.replace(Regex("\\.json$"), "") +
                 "-t%04d.json".format(elapsedSec)
-            val rc = live.writeStats(File(evidenceDir(), name).absolutePath)
+            val rc = live.writeStats(evidencePaths.statsFile(name).absolutePath)
             Log.i(TAG, "soak sample #$soakIndex t=${elapsedSec}s rc=$rc -> $name")
             soakIndex += 1
             handler.postDelayed(this, soakIntervalMs)
@@ -218,6 +263,7 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         readProbeExtras()
+        installEvidenceSinks()
 
         surfaceView = PlayerSurfaceView(this).apply { listener = this@PlayerActivity }
 
@@ -310,6 +356,12 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
     }
 
     private fun maybeStartPlayback() {
+        // P14-R：中断收尾过的会话不再复活。否则切回前台会从头再开一条，
+        // 而那条新会话播完时会把刚写下的中断证据覆盖掉。
+        if (sessionEnded) {
+            Log.i(TAG, "playback not restarted: session already finalized on interrupt")
+            return
+        }
         if (!surfaceReady || playbackRequested) {
             return
         }
@@ -379,8 +431,7 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         }
 
         playbackRunning = true
-        statsWritten = false
-        syncWritten = false
+        finalizer.reset()
         Log.i(TAG, "playback started: ${media.absolutePath}")
         handler.post(pollRunnable)
 
@@ -427,42 +478,32 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         }
     }
 
+    /**
+     * 自然收尾（跑到 EOS）或出错之后的收尾。
+     *
+     * P14-R 之前这里自己管顺序与封口标志；现在只说"收尾"，其余交给 [SessionFinalizer]。
+     * **顺序变了**：从「写解码证据 → stop → 写合并证据」统一成「stop → 写两份」。
+     * 理由见那个类的注释 —— 一句话：写之前先让所有线程停下，这个规则对"为什么写"不作假设。
+     */
     private fun finishPlayback() {
         val live = session ?: return
-        val needsSync = pacingEnabled && !syncWritten
-        if (statsWritten && !needsSync) {
+        if (finalizer.sealed) {
             return
         }
         handler.removeCallbacks(soakRunnable)
 
-        if (!statsWritten) {
-            val statsFile = File(evidenceDir(), evidenceName)
-            val rc = live.writeStats(statsFile.absolutePath)
-            Log.i(TAG, "stats written rc=$rc -> ${statsFile.absolutePath}")
-            if (rc == 0) {
-                statsWritten = true
-                statusView.append("\nstats rc=$rc\n${statsFile.name}")
-            }
-        }
+        val outcome = finalizer.finalize(live)
 
-        // A/V 合并证据（P12-C8）。只在开了节拍时写：没有节拍器就没有偏差样本，
-        // 写出来只是一份"全是 0"的文件，比不写更容易被误读成"零偏差"。
-        // 必须在 stop 之后写 —— native 侧要读节拍器的完整直方图，
-        // 而 `stop()` 是把它写成终值的唯一时机（`PlaybackSession::stop` 幂等）。
-        if (needsSync) {
-            live.stop()
-            val syncFile = File(evidenceDir(), syncEvidenceName)
-            val syncRc = live.writeSyncStats(syncFile.absolutePath)
-            Log.i(TAG, "sync stats written rc=$syncRc -> ${syncFile.absolutePath}")
-            if (syncRc == 0) {
-                syncWritten = true
-                statusView.append("\nsync rc=$syncRc audio=$audioAttached\n${syncFile.name}")
-            }
+        if (outcome.statsRc == 0) {
+            statusView.append("\nstats rc=${outcome.statsRc}\n${outcome.statsFile.name}")
+        }
+        if (outcome.syncRc == 0 && outcome.syncFile != null) {
+            statusView.append("\nsync rc=${outcome.syncRc} audio=$audioAttached\n${outcome.syncFile.name}")
         }
 
         // 取证模式下写完就退出：adb 侧不用猜"这一轮结束没有"。
         // 注意判据是**两份都写完**，否则 sync 写失败时会被 finish() 带走，证据就丢了。
-        if (autoFinish && statsWritten && (!pacingEnabled || syncWritten)) {
+        if (autoFinish && finalizer.sealed) {
             handler.postDelayed({ finish() }, 500L)
         }
     }
@@ -504,12 +545,16 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         driftGate = intent.getStringExtra("kivo.drift_gate") != "off"
         seekTargetMs = intent.getIntExtra("kivo.seek.ms", -1).toLong()
         seekAtMs = intent.getIntExtra("kivo.seek.at.ms", 1500).toLong().coerceAtLeast(0L)
+        // P14-R：`--es kivo.finalize on_stop` 把"进入后台"当成一次收尾。
+        // 默认不开 —— 产品行为仍然是"后台继续播"，见 `onStop()` 的注释。
+        finalizeOnStop = intent.getStringExtra("kivo.finalize") == "on_stop"
         autoFinish = intent.hasExtra("kivo.evidence")
         if (overrideMediaPath != null || pacingEnabled) {
             Log.i(TAG, "probe extras: media=$overrideMediaPath pace=$pacingEnabled " +
                     "drop=$allowDrop fps=$targetFps split=$splitPipeline render=$presentFrames " +
                     "present=${if (atTimePresent) "at_time" else "cpu_paced"} " +
                     "audio=${if (audioEnabled) "auto" else "off"} " +
+                    "finalize=${if (finalizeOnStop) "on_stop" else "never"} " +
                     "evidence=$evidenceName sync=$syncEvidenceName")
         }
     }
@@ -521,26 +566,25 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
      * 屏幕上的一行字又会被下一次刷新覆盖。所以失败必须落成文件，
      * 否则等于「什么都没发生」——这正是 G9 禁止的静默失败。
      */
+    /**
+     * 失败也要留证据。
+     *
+     * 本机 HyperOS 对 adb 完全不开放 logcat（`adb logcat -d` 返回 0 行），
+     * 屏幕上的一行字又会被下一次刷新覆盖。所以失败必须落成文件，
+     * 否则等于「什么都没发生」——这正是 G9 禁止的静默失败。
+     *
+     * P14-R：写入细节搬到 `FailureEvidence`，与收尾落盘住同一格 ——
+     * 两处各自拼文件名的日子结束了（`p12f3` 那四条负向用例就是被这个坑覆盖过）。
+     */
     private fun writeFailureEvidence(stage: String, rc: Int, reason: String, media: File) {
-        // P12-F3：文件名带上用例名。没有用例名时退回旧名（保持 P12-B 起的既有约定）。
-        val fileName = if (caseName.isBlank()) "p12b-failure.json" else "p12f3-$caseName-failure.json"
-        val escaped = reason.replace("\\", "\\\\").replace("\"", "\\\"")
-        val payload = buildString {
-            appendLine("{")
-            appendLine("  \"schema\": \"kivo.p12f.negative/1\",")
-            // P12-F4 层 1：证据必须带实测时间戳，否则分不清真机产物与手写片段。
-            appendLine("  \"generated_at_unix_ms\": ${System.currentTimeMillis()},")
-            appendLine("  \"case\": \"${caseName.replace("\"", "\\\"")}\",")
-            appendLine("  \"stage\": \"$stage\",")
-            appendLine("  \"return_code\": $rc,")
-            appendLine("  \"media\": \"${media.name}\",")
-            appendLine("  \"reason\": \"$escaped\"")
-            appendLine("}")
-        }
-        runCatching {
-            File(evidenceDir(), fileName).writeText(payload)
-        }
-        Log.w(TAG, "failure evidence written: $fileName stage=$stage rc=$rc $reason")
+        FailureEvidence.write(
+            paths = evidencePaths,
+            caseName = caseName,
+            stage = stage,
+            returnCode = rc,
+            reason = reason,
+            mediaName = media.name,
+        )
     }
 
     private fun teardownSession() {
@@ -553,8 +597,9 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         session = null
         playbackRunning = false
         playbackRequested = false
-        statsWritten = false
-        syncWritten = false
+        if (::finalizer.isInitialized) {
+            finalizer.reset()
+        }
     }
 
     override fun onDestroy() {
@@ -562,9 +607,63 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         super.onDestroy()
     }
 
+    /**
+     * 进入后台（P14-R）。
+     *
+     * ## 为什么需要它
+     *
+     * 收尾本来是 400 ms 轮询里的一拍，而轮询只在 `completed=1` 时才写。
+     * 被打断的会话 `completed` 永远是 0 —— 于是**什么都不写**，
+     * 而进程被回收之后连"没写"这件事都看不出来（上一张卡的取证轮就是这么空的）。
+     *
+     * ## 为什么默认不这么做
+     *
+     * 写一份**闭合**的账要求先 `stop()`，而 `stop()` 就结束了会话；
+     * 产品行为是"后台继续播"（P12-D1 量的 `rebuilds=1` / `frames_discarded ≈ 空窗×30`）。
+     * 两者互斥。要不要"后台停播"是产品决策，取证档只提供 `--es kivo.finalize on_stop`
+     * 把这个形态**造出来**，不替产品做决定。
+     */
+    override fun onStop() {
+        if (finalizeOnStop) {
+            finalizeOnInterrupt()
+        }
+        super.onStop()
+    }
+
+    /**
+     * 把"进后台"当成一次收尾：停会话 → 写两份证据 → 关掉这条会话，不再复活。
+     *
+     * 与 [finishPlayback] 走**同一个** [SessionFinalizer]，所以顺序规则只有一份。
+     * 差别只在收尾之后：这条路径**不** `finish()`，也不允许 `maybeStartPlayback()`
+     * 重开（那会把刚写下的中断证据覆盖掉）。
+     */
+    private fun finalizeOnInterrupt() {
+        val live = session ?: return
+        if (!playbackRunning || finalizer.sealed) {
+            return
+        }
+        Log.i(TAG, "onStop: finalizing interrupted session")
+        handler.removeCallbacks(pollRunnable)
+        handler.removeCallbacks(soakRunnable)
+
+        val outcome = finalizer.finalize(live)
+
+        statusView.append(
+            "\ninterrupted: stats rc=${outcome.statsRc} sync rc=${outcome.syncRc}" +
+                "\n${outcome.statsFile.name}"
+        )
+
+        // 收尾之后这条会话已经没有下一天：关掉句柄与 fd，但保留 `playbackRequested`，
+        // 让 `maybeStartPlayback()` 连"要不要重开"都不必判断（`sessionEnded` 是第二道闩）。
+        sessionEnded = true
+        playbackRunning = false
+        live.close()
+        session = null
+    }
+
     // ---- 测试片源定位 ------------------------------------------------------
 
-    private fun evidenceDir(): File = File(filesDir, "evidence").apply { mkdirs() }
+    // 证据目录已归 `EvidencePaths`（P14-R）：`filesDir` 只在这里出现一次。
 
     private fun externalMediaDir(): File =
         File(getExternalFilesDir(null) ?: filesDir, "media").apply { mkdirs() }

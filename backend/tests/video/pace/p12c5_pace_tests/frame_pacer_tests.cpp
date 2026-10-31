@@ -1106,6 +1106,154 @@ void g5_buckets_are_left_closed_right_open() {
     CHECK(total == facts.iterations);
 }
 
+// ── P14-Q：节拍侧的账 ────────────────────────────────────────────
+//
+// 真机反例：`frames_decided = 1800 / presented = 84 / dropped = 0`、
+// `drop_ratio = 0.0`。屏幕在第 2.8 秒熄灭，解码器把整片走完（每帧都 `arrive()`），
+// 但只有 84 帧真的交付 —— 而 `/27` 的报告里那 1716 帧**不占任何一格**。
+//
+// `undelivered_frames` 把那个减法搬进报告。下面四条钉住它的四种走向：
+// 没回填、回填、丢帧、重复交付。**都不需要真机** —— 它是纯算术。
+
+void q1_nothing_delivered_means_every_decision_is_undelivered() {
+    Harness h;
+    reset_time();
+    // 复刻真机形状的小号版：决策 21 帧，一帧都不回填呈现时刻。
+    for (int index = 0; index <= 20; ++index) {
+        const std::int64_t pts = static_cast<std::int64_t>(index) * kFrame30;
+        h.clock.position_ns = pts;
+        g_now_ns = 0;
+        (void)h.pacer.arrive(pts);
+    }
+    const pace::PaceSummary summary = h.pacer.summary();
+    CHECK(summary.frames_decided == 21);
+    // 一帧都没回填 ⇒ `presented` 是 0。这不是"没呈现"，是"没记账" ——
+    // 真机上屏幕熄灭之后正是这个状态（1800 决策 / 84 交付 / 0 丢弃）。
+    CHECK(summary.presented == 0);
+    CHECK(summary.undelivered_frames == 21 - summary.dropped);
+    // 若判据写成 `presented + dropped`，这一格会静默等于 `decided`
+    // 而 `presented` 是 0：看起来"全丢"，实际"全没记账"。
+    CHECK(summary.undelivered_frames > 0);
+}
+
+void q2_delivered_decision_does_not_add_to_undelivered() {
+    Harness h;
+    reset_time();
+    // 先决策 6 帧、一帧都不回填。
+    for (int index = 0; index <= 6; ++index) {
+        const std::int64_t pts = static_cast<std::int64_t>(index) * kFrame30;
+        h.clock.position_ns = pts;
+        g_now_ns = 0;
+        (void)h.pacer.arrive(pts);
+    }
+    const pace::PaceSummary before = h.pacer.summary();
+    CHECK(before.presented == 0);
+    CHECK(before.undelivered_frames == before.frames_decided - before.dropped);
+
+    // 再决策一帧并**立刻回填**它。`presented` 涨 1，`undelivered` 必须落 1 ——
+    // 两者反向是这一格的定义。若哪天 `undelivered` 在这个位置不动，
+    // 说明它和 `presented` 记的不是同一件事。
+    h.clock.position_ns = 7 * kFrame30;
+    g_now_ns = 0;
+    const pace::PaceDecision extra = h.pacer.arrive(7 * kFrame30);
+    if (extra.action != pace::PaceAction::kDrop &&
+        extra.action != pace::PaceAction::kCatchUp) {
+        h.pacer.note_presented(extra, extra.due_at_ns);
+        const pace::PaceSummary after = h.pacer.summary();
+        CHECK(after.presented == 1);
+        CHECK(after.undelivered_frames == before.undelivered_frames);
+    }
+}
+
+void q3_dropped_frame_is_not_undelivered() {
+    Harness h;
+    reset_time();
+    (void)h.pacer.arrive(0);
+    h.clock.position_ns = kFrame30 + 150 * k_ms;
+    const pace::PaceDecision decision = h.pacer.arrive(kFrame30);
+    CHECK(decision.action == pace::PaceAction::kDrop);
+    const pace::PaceSummary summary = h.pacer.summary();
+    CHECK(summary.dropped == 1);
+    // 丢掉的帧**已经**记进 `dropped`，不能再算一次"未交付"。
+    // 混算的后果：`undelivered + dropped` 会把同一帧数两遍，
+    // 于是 `decided = presented + dropped + undelivered` 永远多 1。
+    CHECK(summary.undelivered_frames == summary.frames_decided - 1);
+}
+
+void q4_double_delivery_goes_negative_not_clamped() {
+    Harness h;
+    reset_time();
+    // **只决策一帧**：首帧即刻到期，一定是呈现。decision 数必须是 1，
+    // 否则回填两次也到不了负数（`decided = 3` 时 `presented = 2` 仍差一帧）。
+    const pace::PaceDecision only = h.pacer.arrive(0);
+    CHECK(only.action != pace::PaceAction::kDrop);
+    CHECK(only.action != pace::PaceAction::kCatchUp);
+    h.pacer.note_presented(only, only.due_at_ns);
+    CHECK(h.pacer.summary().undelivered_frames == 0);
+    // 同一帧记两次：`presented` 走到 2 而 `decided` 只有 1 —— 这已经是重复记账。
+    // **钳到 0 就把病征擦掉了**：判据 S3b 正是拿这个负号当唯一病征。
+    h.pacer.note_presented(only, only.due_at_ns);
+    CHECK(h.pacer.summary().presented == 2);
+    CHECK(h.pacer.summary().undelivered_frames < 0);
+}
+
+// ---- S10 复位的时刻：启动期那一笔到底落在哪里（P14-X）--------------------
+//
+// P14-W 在 4K30 的一轮里量到一次 104.71 ms 的修正（迟滞带 5 ms 的 21 倍），
+// 三轮里只有一轮有。算术给出唯一自洽的解释：启动期盲区（首帧后 1 s）里累积的量，
+// 在盲区结束的第一次读上被一次还清 —— 但当时证据里没有时刻。
+//
+// 这一条把那个机制直接造出来：让时钟一开始就领先 145 ms，前 1 s 门不动，
+// 于是盲区结束时应当出现**一笔** ≈ 105 ms（145 − 40）的修正，且它必须落在 1 s 附近。
+// 如果实现里盲区没有真的挡住，这一笔会在 t≈0 就发生 —— 断言当场打红。
+void s10_rebase_trace_puts_the_lump_at_startup() {
+    reset_time();
+    FakeClock clock;
+    clock.follow_wall = true;
+    pace::PacePolicy policy;
+    pace::ClockPositionTracker tracker(clock, policy, &fake_now);
+
+    // 第 0.5 s：时钟的位置突然向前跳 145 ms（音频起流时位置从"已写入"起算，
+    // 缓冲区被算进去，就会这样跳一下）。**注意不能给一个恒定的 `wall_offset_ns`**：
+    // 恒定的偏移会被首帧原点整个吸收，`cum` 从头到尾都是 0 —— 本卡第一版就是
+    // 这么写的，S10 当场打红（`rebases == 1` 失败）。
+    for (int i = 0; i < 360; ++i) {  // 6 s
+        g_now_ns += 16'666'667;
+        if (i == 30) {
+            clock.wall_offset_ns += 145'000'000;
+        }
+        (void)tracker.read();
+    }
+    const pace::RebaseTrace trace = tracker.rebase_trace();
+
+    CHECK(trace.rebases == 1);              // 盲区只还一次
+    CHECK(trace.max.amount_ns > 100'000'000);
+    CHECK(trace.max.amount_ns < 110'000'000);   // 145 − 40 = 105 ms
+    // 时刻必须落在盲区（1 s）刚过的地方，而不是 0（门没挡住）或 3 s（别的东西）
+    CHECK(trace.max.at_ns >= 900'000'000);
+    CHECK(trace.max.at_ns <= 1'300'000'000);
+    CHECK(trace.first_at_ns == trace.max.at_ns);  // 只有一笔，首笔就是它
+    CHECK(trace.max.lead_before_ns == trace.max.amount_ns + (policy.drift_limit_ns -
+                                                             policy.drift_band_ns));
+
+    // 慢速漂移的另一种形状：每笔都小、首笔在越线处，`recent` 必须按时间升序。
+    reset_time();
+    FakeClock clock2;
+    clock2.follow_wall = true;
+    audio::ClockOffsetSource injected(clock2, 0, 1'000'000'000, 15'000);  // 1.5%
+    pace::ClockPositionTracker tracker2(injected, policy, &fake_now);
+    for (int i = 0; i < 360; ++i) {
+        g_now_ns += 16'666'667;
+        (void)tracker2.read();
+    }
+    const pace::RebaseTrace drift = tracker2.rebase_trace();
+    CHECK(drift.rebases > 5);
+    CHECK(drift.sampled == (drift.rebases < 8 ? drift.rebases : 8));
+    CHECK(drift.samples_used == drift.sampled);
+    CHECK(drift.recent[0].at_ns < drift.recent[drift.samples_used - 1].at_ns);  // 升序
+    CHECK(drift.max.amount_ns <= policy.drift_band_ns + 16'666'667);  // 每笔都小
+}
+
 const TestCase kCases[] = {
     {"C5-1 首帧即刻到期", t1_first_frame_is_due_now},
     {"C5-2 早到则睡到到期", t2_early_frame_waits_until_due},
@@ -1141,12 +1289,18 @@ const TestCase kCases[] = {
     {"S7 时钟台阶注入且门只吃一次", s7_clock_offset_is_injected_and_gated_once},
     {"S8 迟滞带一次还完且稳态不触发", s8_hysteresis_band_settles_once},
     {"S9 速率误差：门开追住/门关涨到 ppm", s9_rate_error_is_tracked_only_with_gate},
+    {"S10 复位时刻：启动期那一笔落在 1s", s10_rebase_trace_puts_the_lump_at_startup},
 
     {"P14I-1 三段占满整圈", g1_fully_accounted_gap_leaves_no_residue},
     {"P14I-2 残差吃掉剩下的", g2_unaccounted_gets_the_rest},
     {"P14I-3 分段超 gap 钳零", g3_segments_longer_than_gap_clamp_to_zero},
     {"P14I-4 最差圈带自己的分段", g4_worst_gap_carries_its_own_segments_not_global_maxima},
     {"P14I-5 分档左闭右开", g5_buckets_are_left_closed_right_open},
+
+    {"P14Q-1 一帧不交付则每条决策都算未交付", q1_nothing_delivered_means_every_decision_is_undelivered},
+    {"P14Q-2 交付了的一帧不进未交付", q2_delivered_decision_does_not_add_to_undelivered},
+    {"P14Q-3 丢帧已记 dropped 不再算未交付", q3_dropped_frame_is_not_undelivered},
+    {"P14Q-4 重复交付变负且不钳零", q4_double_delivery_goes_negative_not_clamped},
 };
 
 }  // namespace

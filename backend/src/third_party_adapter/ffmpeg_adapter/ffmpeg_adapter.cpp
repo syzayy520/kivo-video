@@ -271,6 +271,15 @@ bool FfmpegAdapter::seek(FfmpegFormatHandle handle, double seconds) {
 
 namespace {
 
+// 只在启用 FFmpeg 时存在：参数类型 `AVCodecContext` / `AVCodec` 来自
+// `<libavcodec/avcodec.h>`，而那张头文件本身也在 `KIVO_ENABLE_FFMPEG` 里。
+//
+// 这里原来没有条件包裹，于是**没启用 FFmpeg 的构建目标一个都编不过**：
+// `AVCodecContext` 未声明 → C2182/C2065/C2059 连着报四条。
+// 桌面那三个 `kivo_p7*_local_media_*` 测试一直"Not Run"，根因就是它 ——
+// 缺二进制不是"没构建"，是**构建不出来**。
+// 两个调用点（286 / 304 行的 `#ifdef` 内）本来就只在启用时才会走到。
+#ifdef KIVO_ENABLE_FFMPEG
 void configure_video_decoder_threading(AVCodecContext* const ctx,
                                        const AVCodec* const codec) noexcept {
     if (ctx == nullptr || codec == nullptr || codec->type != AVMEDIA_TYPE_VIDEO) {
@@ -279,6 +288,7 @@ void configure_video_decoder_threading(AVCodecContext* const ctx,
     ctx->thread_count = 0;
     ctx->thread_type = FF_THREAD_FRAME | FF_THREAD_SLICE;
 }
+#endif
 
 }  // namespace
 

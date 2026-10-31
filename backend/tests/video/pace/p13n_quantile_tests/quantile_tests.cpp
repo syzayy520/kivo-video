@@ -11,6 +11,10 @@
 //      不是缺数据。把它也当成"量化过"会让人以为还有 0.25 ms 的不确定度。
 //   ⑤ **整批的精确参照与桶中心同秩口径。** 两套秩算出来的中位数，
 //      放在同一张表里就没法比了 —— 而这张卡存在的全部理由就是让它们能比。
+//   ⑥ **每个分位数带自己的范围，不是复制邻居的。**（P14-O）`p99` 的精度
+//      必须按 q=0.99 算：把 `p50` 那三格改个前缀抄过去，JSON 依然自洽
+//      （`p50 ≤ p99`，而 `p50` 的范围上界常常正好是 250 000），
+//      只有"按自己的 q 复算"能把它们分开。n12 钉这一条。
 //
 // 纯桌面计算：没有设备、没有时钟、没有睡眠。
 #include <cstdint>
@@ -340,6 +344,88 @@ void n11_a_rank_equal_to_the_below_count_stays_below() {
     CHECK(histogram.percentile_ns(0.50) != 125'000);
 }
 
+// ⑫ `p99` 的范围必须按 q=0.99 算，不能是 `p50` 的那一份（P14-O）。
+//
+// 这条守的是一个**只会在报告层犯、而且看起来完全正常**的错：把 `p50` 的三格
+// 复制一份、把键名前缀改成 `p99`。那样写出来的 JSON 自洽得很 —— `p50 ≤ p99`，
+// 而 `p50` 的范围上界常常正好是 250 000，于是"p99 落在自己的范围里"也成立。
+// 只有"按 q=0.99 独立算一遍"能把两个数分开。
+//
+// 分布刻意造得让两个分位数落在不同桶：980 个 73 µs（桶 512）+ 20 个 900 µs（桶 515）。
+// p99 的秩 990 落在后面那 20 个里 —— 也就是说 p99 由 2% 的样本决定，
+// 这正是尾部该有的样子。
+void n12_the_p99_range_is_computed_at_its_own_quantile() {
+    pace::SignedHistogram histogram;
+    for (int i = 0; i < 980; ++i) {
+        histogram.add(73'000);
+    }
+    for (int i = 0; i < 20; ++i) {
+        histogram.add(900'000);
+    }
+    CHECK(histogram.count() == 1000);
+
+    const pace::SignedHistogram::PercentileRange p50 = histogram.percentile_range(0.50);
+    const pace::SignedHistogram::PercentileRange p99 = histogram.percentile_range(0.99);
+
+    // p50：桶 512 的桶界 [0, 250 000) 与样本范围 [73 000, 900 000] 求交。
+    CHECK(p50.low_ns == 73'000);
+    CHECK(p50.high_ns == 250'000);
+
+    // p99：桶 515 的桶界 [750 000, 1 000 000) 与同一个样本范围求交 ——
+    // 上界被最大样本钳到 900 001（开界）。
+    CHECK(p99.low_ns == 750'000);
+    CHECK(p99.high_ns == 900'001);
+
+    // 两份范围必须不同。相等就意味着"报告层只调了一次 q"。
+    CHECK(p50.low_ns != p99.low_ns);
+    CHECK(p50.high_ns != p99.high_ns);
+
+    // 各自都含自己那个分位数 —— 范围不含被解释的数，读者就会认定整份证据不可信。
+    CHECK(p50.low_ns <= histogram.percentile_ns(0.50));
+    CHECK(histogram.percentile_ns(0.50) < p50.high_ns);
+    CHECK(p99.low_ns <= histogram.percentile_ns(0.99));
+    CHECK(histogram.percentile_ns(0.99) < p99.high_ns);
+
+    // p99 由 20 个样本决定（2%）。桶内样本数出版它，读者才知道这个"尾部"
+    // 有多少人投票 —— 真机上 60fps 那一份只有 3 个。
+    CHECK(histogram.percentile_bucket(0.99).samples == 20);
+    CHECK(histogram.percentile_bucket(0.50).samples == 980);
+}
+
+// ⑬ `p99` 落在溢出区时，范围退化成那个点（P14-O）。
+//
+// 与 ④ 是同一件事在另一个 q 上的确认：溢出时 `percentile_ns` 返回精确极值，
+// 没有量化误差可谈。若这里 `bounded` 为真，就说明 `percentile_range` 在
+// "不在桶里"的分支上漏了返回，编出了一个宽度。
+void n13_the_p99_range_degrades_to_a_point_in_the_overflow() {
+    pace::SignedHistogram histogram;
+    // 100 个在桶 512（0~250 µs），5 个在 +128 ms 以上（上溢区）。
+    for (int i = 0; i < 100; ++i) {
+        histogram.add(0);
+    }
+    for (int i = 0; i < 5; ++i) {
+        histogram.add(200 * kMs);
+    }
+    CHECK(histogram.count() == 105);
+    CHECK(histogram.above_count() == 5);
+
+    // 秩 ceil(0.99 × 105) = 104 > 100 —— 越过所有桶，落到上溢区。
+    const pace::PercentileBucket at = histogram.percentile_bucket(0.99);
+    CHECK(at.index == pace::SignedHistogram::kBucketCount);
+    CHECK(at.exact);
+    CHECK(at.samples == 5);
+
+    const pace::SignedHistogram::PercentileRange range = histogram.percentile_range(0.99);
+    CHECK(range.low_ns == range.high_ns);
+    CHECK(!range.bounded);
+    // 精确最大值，不是桶中心 —— 这才是"范围退化"的正确读法：更准，不是缺数据。
+    CHECK(range.low_ns == 200 * kMs);
+    CHECK(histogram.percentile_ns(0.99) == 200 * kMs);
+    // 而 p50 仍然在桶里，仍然量化着。两个分位数在同一份分布上的精度不同，
+    // 这正是"每个分位数都要自带精度"的理由。
+    CHECK(histogram.percentile_range(0.50).bounded);
+}
+
 
 
 }  // namespace
@@ -356,6 +442,8 @@ int main() {
     n09_the_gap_between_the_two_p50s_is_real_and_documented();
     n10_payload_stays_small();
     n11_a_rank_equal_to_the_below_count_stays_below();
+    n12_the_p99_range_is_computed_at_its_own_quantile();
+    n13_the_p99_range_degrades_to_a_point_in_the_overflow();
 
     std::printf("p13n quantile tests: %d checks, %d failed\n", g_checked, g_failed);
     return g_failed == 0 ? 0 : 1;

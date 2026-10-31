@@ -8,6 +8,10 @@
 #include "video/video_plane/core/pace/pace_drift_trend.hpp"
 #include "video/video_plane/core/pace/pace_drift_window.hpp"
 #include "video/video_plane/core/pace/pace_histogram.hpp"
+#include "video/video_plane/core/pace/pace_rebase_trace.hpp"
+#include "video/video_plane/core/pace/pace_lead_trace.hpp"
+#include "video/video_plane/core/pace/pace_measurability.hpp"
+#include "video/video_plane/core/pace/pace_wall_offset.hpp"
 #include "video/video_plane/core/pace/pace_worst_episode.hpp"
 
 namespace kivo::video::core::pace {
@@ -51,6 +55,26 @@ struct PaceSummary {
     std::int64_t frames_decided = 0;
     std::int64_t presented = 0;      ///< kWait + kPresent
     std::int64_t dropped = 0;        ///< kDrop + kCatchUp
+
+    /// **决策了、但没落地**的帧数（P14-Q）。`= frames_decided − presented − dropped`。
+    ///
+    /// 上面三格记的是**决策**，但 `kWait` / `kPresent` 之后还有一段路：
+    /// release → Surface → 真正显示。那段路上有两种结局没被 `presented` 记：
+    ///   ① 换面空窗期（`render` 被强制置 false）—— 已由
+    ///      `DecodeStats::frames_discarded_no_surface` 单独记，**合法**；
+    ///   ② 会话在交付之前结束（屏幕熄灭、切后台、异常退出）—— 没有计数器。
+    /// 两种在报告里长得一样，都是 `presented + dropped < frames_decided`。
+    ///
+    /// 这一格把那个差**印出来**，不让读者自己在脑子里减。
+    /// 它非 0 时只有一个合法的读法：**等于 `frames_discarded_no_surface`**
+    /// （判据 S2）。不等就是②——有帧连去向都没有。
+    ///
+    /// 真机反例（P14-P 取证事故）：`frames_decided = 1800 / presented = 84 /
+    /// dropped = 0`，差额 1716 帧在 `/27` 的报告里**不占任何一格**。
+    ///
+    /// **不带 `measured`**：这不是测量，是三个计数器的差。给一个纯派生量
+    /// 配"我很确定"，是 P14-L 反的那类东西（见 `147-p14q-design.md` §3.2）。
+    std::int64_t undelivered_frames = 0;
     std::int64_t catch_up_frames = 0;
     std::int64_t catch_up_events = 0;
     std::int64_t waited = 0;
@@ -73,6 +97,11 @@ struct PaceSummary {
     /// （单帧 ≤ 2 ms）。这两个数就是那件事的唯一判据。
     std::int64_t drift_max_correction_ns = 0;
     std::int64_t drift_corrected_total_ns = 0;
+
+    /// 每次复位的时刻与幅度（P14-X）。由 `FramePacer::summary()` 从 tracker 抄进来 ——
+    /// `PaceStats` 自己没有墙钟原点，它只有"第几帧"。**不在这里算**：
+    /// 算两次就是两个真相（`frame_worst` 与 `episode_` 的老账，P13-P）。
+    RebaseTrace drift_rebase_trace{};
 
     // ---- 门本身的配置（P13-AD）----
     //
@@ -217,12 +246,66 @@ struct PaceSummary {
     std::int64_t elapsed_span_ns = 0;
     std::int64_t due_span_ns = 0;
     std::int64_t pts_span_ns = 0;
+
+    /// **钟在墙上多走了多少**（P14-T）。`= elapsed_span_ns − arrive_mono_span_ns`。
+    ///
+    /// 正数 = 这只钟比墙钟快：同一段窗口里它自称走过的媒体时间更多。
+    ///
+    /// 为什么需要这个名字：这一格本来就是上面两个数之差，任何人看一眼都能减出来 ——
+    /// 但**没有人减**。P14-S 把 4 份越界登记进表里，状态卡上写着"成因未查"，
+    /// 而答案就在同一个 JSON 的相邻两格里：`p13r-4k60-r3` 的 426 703 545 ns
+    /// 与"墙钟比实测跨度短 427 ms"是同一件事。差一个名字，就差了整整一张卡。
+    ///
+    /// 它和 `av_drift` 的关系是本卡最要紧的一句话：
+    ///
+    /// · `av_drift`（= `lateness`）= **视频相对这只钟**走了偏多少；
+    /// · `clock_lead_ns`           = **这只钟相对墙**走了偏多少。
+    ///
+    /// 前者**不含**后者。钟自称走了 7.967 s、视频就按 7.967 s 排，两者之差永远是 125 µs；
+    /// 而真实听起来差的是 427 ms（`113` 卡的真机证据：`av_drift` p50 = 125 µs）。
+    /// 于是"`lateness` 等于音画偏差"这句话只在"钟说的是真的"时成立 ——
+    /// 而那个前提此前从未被判过。
+    ///
+    /// **不带 `measured`**：这是两个已出版的数相减，不是测量（与 `undelivered_frames`
+    /// 同一条理由）。真正的可测性由 `clock_supplied_frames` 守：它为 0 时四跨度全 0，
+    /// 本格也必然 0 —— 那个 0 不可读作"钟很准"。
+    std::int64_t clock_lead_ns = 0;
+
     /// 带上了钟读数的呈现帧数（`due_at_ns != 0`）。
     ///
     /// 小于 `presented` 只有一种原因：**调用方漏传** —— 那四格跨度会全是 0，
     /// 而"全 0"看起来像"这一轮没动"，正好是最容易被读错的那种假观测。
     /// 校验器 R1 拿它当接线自证（`86`/`88` 两张卡各撞到过一次同类漏接）。
     std::int64_t clock_supplied_frames = 0;
+
+    // ---- 参考系的两份答案（P14-U）----
+    //
+    // `av_drift` 是"视频相对这只钟"，而 `due` 由这只钟算出 —— 所以它**结构性**
+    // 看不见"钟本身跑偏"。P14-T 的真机证据把这句话钉死了：
+    // `p13r-4k60-r3` 的钟比墙多走了 426.7 ms，同轮 `av_drift.p50 = 125 µs`。
+    //
+    // 这两格是"另一个参考系"的那一份。它们不回填、不改任何已有字段：
+    // 第一份（`lateness` / `av_drift`）仍然是相对钟的，第二份是相对墙的，
+    // **并排印出来**才谈得上"音画偏差到底是多少"。
+
+    /// 钟相对墙的逐帧领先量轨迹。含"跳"还是"跑偏"的分辨力（`LeadVerdict`）。
+    ///
+    /// 与 `clock_lead_ns` 同量不同口径：那个用 arrive 首末两点，这个用 present 逐帧。
+    /// 两者之差应在一帧以内（判据 U1），**不合并成一个字段** ——
+    /// 一个是"整场多走了多少"，一个是"怎么走过去的"，答的是两个问题。
+    LeadTrace lead_trace{};
+
+    /// 视频相对**墙钟**的偏移摘要。`= lateness − lead`。
+    ///
+    /// 命名见 `pace_wall_offset.hpp`：它不叫 `vs_audio`，因为项目里没有第二个时钟源，
+    /// 我们没测到 DAC。它是"用墙钟当耳朵的替身"，替身的可信度在下一格。
+    WallOffset wall_offset{};
+
+    /// `wall_offset` 的误差上界（ns）：`max(一帧, kWallReferencePpm × 跨度)`。
+    ///
+    /// 出版它而不是写进文档，是因为它是一个**假设**（消费级晶振 ±50 ppm），
+    /// 不是实测。争这个数的人应该能看见它、改它，并立刻看到上界跟着变。
+    std::int64_t wall_reference_bound_ns = 0;
 
     /// 进了 `schedule_lead` 直方图的样本数。`kCpuPaced` 路径恒为 0。
     std::int64_t scheduled_samples = 0;
@@ -274,6 +357,28 @@ struct PaceSummary {
 
     // ---- 派生 ----
     double drop_ratio = 0.0;
+
+    // ---- 派生量各自量到没有（P14-L）----
+    //
+    // 上面那几格都是**算出来**的，不是直接观测的。它们的上游没样本时必然是 0，
+    // 而 0 在每一格里的含义都是"好消息"：
+    //
+    //   present_timestamp_measured  为 false ⇒ lateness 一个样本都没有
+    //   over_budget_measured        为 false ⇒ `over_budget_frames` 的 0 不是"没有超预算帧"
+    //   catch_up_measured           为 false ⇒ `catch_up_events` 的 0 不是"没有追赶"
+    //   drop_ratio_measured         为 false ⇒ `drop_ratio` 的 0.0 不是"零丢帧"
+    //
+    // 真机上的确发生过：`p14k-4k60`（`surface_at_time`）里 `lateness_ns.samples = 0`
+    // 而 `over_budget_frames = 0`，G6 的判据就读着这个 0 过去了 ——
+    // **G6 在默认排程档上从未被验证过**（见 `136-p14k-status.md` §三.2）。
+    //
+    // `over_budget_measured` **不是**独立判断出来的，它是 `present_timestamp_measured`
+    // 的复制：两条链各判一次，迟早会在某个边界上分家，而分家之后证据会同时说
+    // "lateness 没量到"和"超预算帧量到了"。
+    MeasuredCounter present_timestamp_measured{};
+    MeasuredCounter over_budget_measured{};
+    MeasuredCounter catch_up_measured{};
+    MeasuredCounter drop_ratio_measured{};
 };
 
 /// 聚合器。**非线程安全** —— 只该在决策它的那个线程里用。
@@ -355,6 +460,9 @@ private:
     std::int64_t last_due_ns_ = 0;
     std::int64_t last_pts_ns_ = 0;
     std::int64_t clock_supplied_frames_ = 0;
+    /// P14-U：两个参考系的记录器。与 `drift_` 一样只该在呈现线程里写。
+    LeadTraceRecorder lead_trace_{};
+    WallOffsetRecorder wall_offset_{};
     bool has_lateness_ = false;
     std::int64_t first_lateness_ns_ = 0;
     std::int64_t last_lateness_ns_ = 0;

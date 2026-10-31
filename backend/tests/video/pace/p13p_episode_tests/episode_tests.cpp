@@ -247,13 +247,22 @@ void t10_closure_gap_is_published() {
 // 这一条把"钟比墙快"与"帧到得早"分开：前者让 `elapsed_span > mono_span`。
 void t11_span_identity_and_clock_ahead() {
     const std::int64_t t = kFrame;
+
+    // **不要从零起**：`due_at_ns == 0` 是"这一帧没有钟读数"的哨兵 ——
+    // P14-U 把四个跨度整段挪进了 `if (step.due_at_ns != 0)` 的分支，于是
+    // 一条从 0 开始的合成序列，第一帧会被当成"没读数"跳过，跨度整整少一帧
+    // （3t 变成 2t）。这条用例最早就是那么写的，P14-U 之后才红。
+    //
+    // 用 1 s 做原点也更像真机：`mono` 是开机时长，永远不为 0；pts 也常常不从 0 起。
+    const std::int64_t origin = 1'000'000'000;
+
     // ① 钟与墙同步：due 跟着 pts 走，四个跨度全相等。
     {
         pace::PaceStats stats;
         for (std::int32_t i = 0; i < 4; ++i) {
-            const std::int64_t media = i * t;
-            const std::int64_t mono = i * t;
-            const std::int64_t elapsed = i * t;
+            const std::int64_t media = origin + i * t;
+            const std::int64_t mono = origin + i * t;
+            const std::int64_t elapsed = origin + i * t;
             stats.note_presented(0, media,
                                  pace::DueStep{.frame_duration_ns = t,
                                                .clock_mono_ns = mono,
@@ -273,9 +282,9 @@ void t11_span_identity_and_clock_ahead() {
     {
         pace::PaceStats stats;
         for (std::int32_t i = 0; i < 4; ++i) {
-            const std::int64_t media = i * t;
-            const std::int64_t mono = i * t;
-            const std::int64_t elapsed = i * t + i * 10 * kMs;
+            const std::int64_t media = origin + i * t;
+            const std::int64_t mono = origin + i * t;
+            const std::int64_t elapsed = origin + i * t + i * 10 * kMs;
             stats.note_presented(0, media,
                                  pace::DueStep{.frame_duration_ns = t,
                                                .clock_mono_ns = mono,

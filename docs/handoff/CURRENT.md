@@ -1,8 +1,14 @@
 # 交接快照 · Kivo Video Android 后端核心
 
-> 最后更新：2026-10-31 11:45（P14-K 收口：默认排程档 0 丢帧，但 lateness/over_budget 是沉默的零）
+> 最后更新：2026-10-31 22:12（P14-X 收口 + 接手复核：**上一张卡的假设被自己的数据推翻** ——
+> 那笔 146.75 ms 落在第 24.43 s，不在启动期；真正的共同点是那一轮有一次钟事件
+> `extrapolated=1 / monotonic_rejects=1`，六轮正常轮全是 0/0）
+>
+> **P14-U / V / W / X 四张卡都已 DONE**（`sync/35`）。真机十二轮已取到
+> （`docs/evidence/p14w/` 8 份、`p14x/` 8 份），总闸 20 个子校验器全部 exit 0。
 > 读这一份就能接手。**下一步做什么看 `TASKS.md`，本文只讲"现在在哪、怎么跑、哪里会踩坑"。**
-> 如果只给你 30 秒：读本文第一节，然后打开 `TASKS.md` 找 `P14-K`（已 DONE）；下一张卡看 §一 的"下一步做什么"。
+> 如果只给你 30 秒：读本文第一节，然后打开 `TASKS.md` 找 `P14-X`（已 DONE）；
+> 下一张卡是**「把钟的不连续从漂移里摘出来」**（见 `TASKS.md` 的 `### P14-X` 末尾）。
 
 ---
 
@@ -16,8 +22,8 @@
 | 问题 | 答案 |
 | --- | --- |
 | 项目是什么 | 自研播放器后端核心，**平台顺序 Android → iOS → 桌面**，当前只做后端，不做 UI |
-| 现在到哪了 | P12-A … P12-F 全部收口（P12 结题）；**P13-A … P13-AE 已收口；P14-A…K 与 P13-AF 已收口** |
-| 下一步做什么 | **给所有派生计数加 `measured`/`reason`**：P14-K 发现默认档下 `lateness` 零样本却印成 0（已修），`over_budget_frames` 由它派生、同样是沉默的零（未修）。`over_budget` / `catch_up_events` / `drop_ratio` 要一次改完，同一套写法，并让 P7/P8 覆盖它们。其次是**第二台机器**（`surface_at_time` 跨机型最可能变）。 |
+| 现在到哪了 | P12-A … P12-F 全部收口（P12 结题）；**P13-A … P13-AF 已收口；P14-A…X 已收口（schema `decode/19` + `sync/35`）**。`sync` 侧 **236 份**证据（另 3 份 `superseded/` 已作废、明确跳过）：账目全绿，媒体速率 123 判得动 / 108 不可判 / 5 已登记越界。**P14-V 之后，报告第一次说出"45 ms 在这次会话里等价多少 ppm、多久会撞到"** |
+| 下一步做什么 | ① **8 s 片源的量程不足**（P14-V 的直接产物，最硬）—— 实测注入 5 000 ppm 时 `limit_reach_s = 12.07 s` **比整段 8 s 还长**，所以门在 8 s 上"没触发"可能只是来不及。项目现有的**全部速率行为证据都在量程外**。要做的是换 ≥ 60 s 片源重跑三组，看门是否在第 12 秒附近动作（`158-p14v-status.md` §8 有开工步骤）。② **`av_drift` 该不该扶正成主答案** —— `vs_wall` 已出版（P14-U）但仍是"第二份"；提成主答案、把"相对钟"降级成诊断量，是产品判断。③ **红线扫描域** —— 30 条存量违规全在历史文档，`HEAD` 版本就已经是 `FAIL`；该决定它扫"交付物+本次改动"还是"全仓历史"。④ **`jumps_clamped = 3` 的线索** —— 当时 3 次、今天 0 次。⑤ **让 `surface_at_time` 也提供钟读数** —— 108 份"不可判"里它是默认档。⑥ **打断之后"回来从哪继续"** —— 需要 native 暴露 `position_us`。⑦ **32 位 Android**：CM311-1A 只有 `armeabi-v7a`，要先有 32 位 FFmpeg。 |
 | 代码在哪 | C++ 后端 `backend/`；Android 壳 `android/`。`android/app/src/main/cpp/CMakeLists.txt` 用 `${KIVO_ROOT}/backend/src/...` **逐条列源文件**（不是 `add_subdirectory`，也别去找那个），所以两个目录必须同一个仓库、相对位置不能变 |
 | 工作目录 | **`C:\kivo video` 整个仓库**。`android/` 单独拿出来会在 CMake 配置期 `FATAL_ERROR`。哪些目录必须一起给，见 `AGENTS.md` §零 |
 | 怎么验证 | 必须真机（Redmi K40，序列号 `b6e950ee`），模拟器数字一律无效 |
@@ -1177,6 +1183,19 @@ FFmpeg 走 `third_party/ffmpeg-sdk/`（**不要**再去动原 SDK 的权限，�
 | MSBuild 报 `MSB6001 命令行开关无效` | 实际原因是 `HTTP_PROXY` 与 `http_proxy` 同时存在，.NET 字典把它们当重名 | 构建前 `unset http_proxy https_proxy` |
 | 预灌放在 `start()` 之后 | 前 13 个 burst（2496 帧 / 52ms）被记成欠载，数字每次一模一样 | 预灌必须在 `session.start()` **之前** |
 | 供给线程用 `sleep_for` | 相对睡眠每轮略长，5 秒累积约 40ms 缺口，看起来像缓冲不够 | 用 `sleep_until(绝对截止时刻)` |
+| **取证时屏幕会睡** | 报告写出 `decided=1800 / presented=84 / dropped=0`、`drop_ratio = 0.0`，而**没有判据看这一条**；`lateness_ns.p99` 甚至到 43.6 ms。⚠️ P14-Q 之后要补一句：那些帧**很可能记在 `frames_discarded_no_surface` 里**（锁屏轮实测 1799 帧一帧不差），"凭空消失"是当时的推断而非实测 | 取证脚本开头先 `svc power stayon usb` + `input keyevent KEYCODE_WAKEUP` + `wm dismiss-keyguard`（见 `tools/run_p14p_lateness_range.sh`）。**别改系统的 `screen_off_timeout`**，那是用户的设置 |
+| **设备锁屏 ≠ 屏幕熄灭** | App 照样启动、`decided=1800`，但 `presented=1`、`dns=1799` —— 报告看起来像"节拍崩了"，实际是窗口不可见。更糟的是 `input swipe` / `wm dismiss-keyguard` / `input keyevent 82` / `locksettings set-disabled` / **重启**全部无效（MIUI 拦注入事件），只能人工解锁 | 取证前**先查 `dumpsys window \| grep mDreamingLockscreen`**，为 `true` 就 `exit 2`。`run_p14q_frame_accounting.sh` 与 `run_p14r_end_reason.sh` 都已加 |
+| **两份报告的 `frames_discarded_no_surface` 不在同一块** | 节拍报告的 `video` 块里有，解码报告**只有** `counters` 块里有。判据若只读前者，读不到就按 0 处理 —— 而"播完了"的时候差额本来就是 0，这个 0 永远不显形（P14-R 的第一份打断证据当场把它照出来） | 判据两处都要找（`video` → `counters`），且**两处都没有**时单独报"缺格"而不是"帧丢了" |
+| **`verify_p12c_sync.py` 只认 `sync/1`** | 四项闭合式（`rendered+dropped+dns+EOS == received`）在 `/2` 之后**从来没有判据在判**。扩到 `/29` 时它先报"缺 histogram"与 `KeyError('p50')` —— 那两个不是证据坏了，是脚本还在读 `/1` 的字段位置 | 升 sync 版本号时，除了 `KNOWN_SCHEMAS` 与 `SYNC_QUANTILE_BLOCK_SCHEMAS` **两张表**，还要看这个脚本认不认；P14-R 已扩到 `/29`，`/2`–`/28` 仍未判 |
+| **EOS 那一帧只在"自然结束"时存在** | `frames_received` 比 `rendered+dropped+dns` 多 1，那 1 是末尾的 EOS 缓冲。被打断的会话没有它 —— 判据若写死 `+1`，一份**本该通过**的打断证据会红，且方向指向"漏交缓冲" | 四项闭合的常数由 `end_reason` 决定：`completed` 才 `+1`（`verify_p12c_sync.py`） |
+| **`playback_rate` 的分子不是 pts** | `timeline.video_pts_span_ns` 这个名字说的是 pts 跨度，实际是 `(rendered+dropped+dns−1) × 名义帧时长` —— 216/216 份逐份核对，一条不差。于是那 15 份"速率越界"里 11 份是假的（0.645 那种数是帧数换成的秒除以墙钟） | `/30` 起改名 `nominal_span_ns` / `nominal_rate`，区间改给 `media_rate`（分子取 `pace.pts_span_ns`，实测、`/16` 起就在）。判据另外禁止 `/30` 上出现旧名 |
+| **"同一份报告里两个 pts 跨度"** | `timeline.video_pts_span_ns`（乘法）与 `pace.pts_span_ns`（实测）都自称跨度，读者看得见的是乘法那个。P14-R 那条"打断轮上界不成立"就是被它逼出来的：换实测跨度是 1.000026，正中间 | 一个量只有一个名字。改名而不是加字段 —— 两个名字指同一个数，读者没法知道该信哪个 |
+| **用文件名给证据做键会丢样本** | `p14g/p14g-long1800-r1-sync.json` 与 `p14g/pre/` 下那份同名，`seen[path.name]` 让 216 份只记了 215 条，而汇总行照样打印"合计 215 份" —— 判据在数自己的样本时丢了一份还报得很自信 | 键用 `docs/evidence/` 相对的**路径**，不用基名 |
+| **判据的版本范围放开了，喂它的文件清单没跟上** | `verify_p12c_sync.py` 扩到 `/1`–`/30`，层 4 仍只喂 `p12c/` 的 27 份 —— 189 份照样没人判，而输出上完全看不出来（通过的行长得一样）。这是 P13-F "两张表只更新一张"的老病换了个维度：从文件内的两张表变成两个文件之间 | 清单改成递归 + 子校验器用 `覆盖：N 份` 自报份数 |
+| **`av_drift` 是"相对钟"，不是"相对耳朵"** | 它量的是 `present − due`，而 `due` 由那只音频钟算出来。钟自称走了 7.967 s、视频就按 7.967 s 排，两者之差永远是 125 µs —— **而真实听起来差 427 ms**（`p13r-4k60-r3`：`clock_lead = 426.7 ms`）。所以"`lateness` 等于音画偏差"这句写在多处注释里的话，只在"钟说的是真的"时成立 | 读 `av_drift` 前先看 `pace.clock_lead_ns`；非 0 时分位数**不能**当音画偏差读 |
+| **变异写在了容差里** | P14-T 的 V3 想把"墙钟被截短"造出来，截了 10 ms —— 而一帧是 16.7 ms，判据的容差就是一帧，于是那条变异永远绿。**变异"通过"了，判据却没被测到** | 造变异先问"这一改动的是不是判据线的另一侧"，量要**跨过**容差，不是挨着它 |
+| **测试测错了对象** | P14-T 的 t1 想测"钟快 5% 时领先量是多少"，但没关漂移门 —— 门把领先量夹在 45 ms，量的其实是门限。默认策略里 `drift_gate_enabled = true`，写测试时很容易忘 | 单测里凡涉及"钟快/钟慢"，先明确门开不开；本卡的 `run()` 默认门关，t5 专门测门 |
+| **第二台设备装不上** | `CM311-1A` 的 `ro.product.cpu.abilist` 只有 `armeabi-v7a,armeabi`，而 `abiFilters` 只编 `arm64-v8a` → `INSTALL_FAILED_NO_MATCHING_ABIS` | 要覆盖它得加 32 位 ABI **和** 32 位 FFmpeg，不是改一行 gradle |
 
 ---
 
@@ -1221,6 +1240,17 @@ FFmpeg 走 `third_party/ffmpeg-sdk/`（**不要**再去动原 SDK 的权限，�
 - [ ] 若本轮要动 `core/`：桌面端 CMake + CTest 能跑通
 
 任何一项失败 → 先修环境，别往下写代码。
+
+**另外：`ctest` 的绿必须来自"刚重建过"的树。** 2026-10-31 复核时发现，
+`build/ninja-debug` 里 16 个测试有 13 个还是前一天（10-30 23:17）的产物，
+其中一个（`kivo_p13p_episode_tests`）从 P14-U 起就已经红了 —— 旧二进制把它盖住了，
+"16/16" 因此连着两轮被写成绿。判是否陈旧的一条命令：
+
+```bash
+find build/ninja-debug -name "kivo_p1*.exe" -newer backend/src/video/video_plane/core/pace/pace_stats.cxx
+```
+
+列不全就先把树重建，再谈绿不绿。
 
 ---
 

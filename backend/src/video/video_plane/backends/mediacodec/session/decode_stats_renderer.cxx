@@ -1,6 +1,7 @@
 #include "video/video_plane/backends/mediacodec/session/decode_stats_renderer.hpp"
 
 #include "video/video_plane/backends/mediacodec/decode/color_format_names.hpp"
+#include "video/video_plane/backends/mediacodec/session/session_end_reason.hpp"
 #include "video/video_plane/backends/mediacodec/source/encryption_facts.hpp"
 #include "video/video_plane/backends/mediacodec/source/encryption_key_names.hpp"
 #include "video/video_plane/core/seek/seek_budget.hpp"
@@ -48,6 +49,16 @@ namespace {
 ///   /17（P14-K）：`pace.lateness_ns` 增 `samples` / `measured` / `reason`。
 ///       起因：`surface_at_time` 下 `note_presented` 从不被调用，整块是**全零**，
 ///       而 `sampled_at_frames` 是 1800 —— "没测到"被印成了"零延迟"。
+///   /18（P14-L）：`drop_ratio` / `catch_up_{events,frames}` / `over_budget_frames`
+///       各增 `_measured` + `_reason`。P14-K 只补了 `lateness` 那一格，
+///       而 `over_budget_frames` **是从那个空直方图派生**的 —— G6 的判据
+///       因此在整个 `surface_at_time` 档上读着一个永远为 0 的数，通过了从未发生的检查。
+///       判断搬到 `core::pace`（`PaceStats::summary()`），本层只负责写出去。
+///   /19（P14-R）：`outcome` 增 `end_reason`（`completed` / `interrupted` / `failed`）。
+///       起因：`docs/evidence` 里 214 份 sync 证据**全部** `completed: true`，零份 `false` ——
+///       因为「停了、没报错、也没跑完」这一格在层 3 被明确判为**静默失败**。
+///       于是"被打断"这件事写不进报告：写了就是假故障，不写就什么都没有。
+///       这一格把那个落空的位置命名，判据才判得下去。
 ///   /16（P14-I）：`metrics.present_gap` —— 接收圈最长一次的构成
 ///            （submit / pump / pace / release / unaccounted）。三段必须同圈。
 ///   /15（P14-B）：`metrics.alloc` 增 `threads[] / thread_count / overflow_calls` ——
@@ -55,7 +66,7 @@ namespace {
 ///   /14（P14-A）：新增 `metrics` —— 三把以前没有的尺子（CPU 占比 / 堆分配次数 /
 ///            输出缓冲归属）。**每个都带可用性与理由**：这一族最容易把"没测到"
 ///            印成 0，而 0 看起来永远是好消息。
-constexpr const char* kSchema = "kivo.p12c.decode/17";
+constexpr const char* kSchema = "kivo.p12c.decode/19";
 
 /// 可选 int：`< 0` 一律写 `null`。
 /// E1 定的规矩（`08-p12-family-tree.md` §三之十二 第 3 条）：未知不写 0/-1，
@@ -447,6 +458,12 @@ std::string render_decode_stats_json(const DecodeStats& stats,
 
     out << "  \"outcome\": {\n";
     out << "    \"completed\": " << (stats.completed ? "true" : "false") << ",\n";
+    // P14-R：紧跟 `completed`。这两格回答同一件事 —— "跑到哪里为止" ——
+    // 隔开就成了一堆无主字段（与 P13-N 把 `p50_range` 紧跟 `p50` 同一条理由）。
+    // 派生规则在 `session_end_reason.hpp` 里只有一处，两份报告共用。
+    out << "    \"end_reason\": \""
+        << session_end_reason_name(session_end_reason(stats.completed, !stats.error.empty()))
+        << "\",\n";
     out << "    \"error\": \"" << escape_json_string(stats.error) << "\"\n";
     out << "  },\n";
 
@@ -463,25 +480,41 @@ std::string render_decode_stats_json(const DecodeStats& stats,
         out << "    \"presented\": " << pace.presented << ",\n";
         out << "    \"dropped\": " << pace.dropped << ",\n";
         out << "    \"drop_ratio\": " << fixed6(pace.drop_ratio) << ",\n";
+        // P14-L：下面三格都是**派生**计数，它们的 0 各自可能是三种完全不同的意思。
+        // 每格背后那一对 `_measured` / `_reason` 就是"这个 0 读不读得懂"。
+        out << "    \"drop_ratio_measured\": "
+            << (pace.drop_ratio_measured.measured ? "true" : "false") << ",\n";
+        out << "    \"drop_ratio_reason\": \""
+            << escape_json_string(pace.drop_ratio_measured.reason) << "\",\n";
         out << "    \"catch_up_events\": " << pace.catch_up_events << ",\n";
         out << "    \"catch_up_frames\": " << pace.catch_up_frames << ",\n";
+        // 两格共用一对标志：它们在同一个 `decide()` 分支上累加，一次为零必然一起为零。
+        // 分两对会让"事件有、帧没有"这种不可能的形态在 JSON 上看起来合法。
+        out << "    \"catch_up_measured\": "
+            << (pace.catch_up_measured.measured ? "true" : "false") << ",\n";
+        out << "    \"catch_up_reason\": \"" << escape_json_string(pace.catch_up_measured.reason)
+            << "\",\n";
         out << "    \"over_budget_frames\": " << pace.over_budget_frames << ",\n";
+        // G6 的判据就读这一格。它在 `surface_at_time` 下恒为 0，而 0 是最好看的值 ——
+        // 所以必须紧跟着说清"这个 0 是从一个空直方图里数出来的"。
+        out << "    \"over_budget_frames_measured\": "
+            << (pace.over_budget_measured.measured ? "true" : "false") << ",\n";
+        out << "    \"over_budget_frames_reason\": \""
+            << escape_json_string(pace.over_budget_measured.reason) << "\",\n";
         // P14-K：`lateness` 只在 `cpu_paced` 下才有样本（那档由我们睡到点、交出去）。
         // `surface_at_time` 交给合成器定时，我们只能测"提交提前量"（`schedule_lead_ns`），
         // 测不到"何时上屏"。此前这个块在那一档里**全零**，而 `sampled_at_frames`
         // 是 1800 —— 读者会把它读成"lateness 0，完美同步"，实际是一个样本都没有。
         // 这是 P14-A/P13-T 那类"没测到印成 0"的同一个病，所以：先出版样本数与理由。
-        const bool lateness_measured = pace.latency_samples > 0;
+        //
+        // P14-L：判断搬到 `core::pace`（`PaceStats::summary()`），这里只写出去。
+        // 判据与理由现在只有一个来源，`over_budget_frames` 复用同一句 —— 它是
+        // 从同一个空直方图派生的，两处各写一句理由迟早会写成两句不同的话。
+        const core::pace::MeasuredCounter& lateness_measured = pace.present_timestamp_measured;
         out << "    \"lateness_ns\": {\n";
         out << "      \"samples\": " << pace.latency_samples << ",\n";
-        out << "      \"measured\": " << (lateness_measured ? "true" : "false") << ",\n";
-        out << "      \"reason\": " << "\""
-            << (lateness_measured
-                    ? std::string()
-                    : std::string("no present-timestamp samples: in surface_at_time the "
-                                  "compositor decides when a frame is shown, so only the "
-                                  "submit lead (schedule_lead_ns) is observable"))
-            << "\",\n";
+        out << "      \"measured\": " << (lateness_measured.measured ? "true" : "false") << ",\n";
+        out << "      \"reason\": \"" << escape_json_string(lateness_measured.reason) << "\",\n";
         out << "      \"p50\": " << pace.lateness_p50_ns << ",\n";
         out << "      \"p95\": " << pace.lateness_p95_ns << ",\n";
         out << "      \"p99\": " << pace.lateness_p99_ns << ",\n";

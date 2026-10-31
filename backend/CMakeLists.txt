@@ -2295,8 +2295,16 @@ set(KIVO_P12C_CORE_PACE_SOURCES
   src/video/video_plane/core/pace/pace_window_stats.cxx
   src/video/video_plane/core/pace/pace_hac.cxx
   src/video/video_plane/core/pace/pace_halves_agreement.cxx
+  # P14-L：派生量的可测性。由 `pace_stats.cxx` 与 `frame_pacer.cxx` 共用 ——
+  # 理由字符串是静态字面量，放在一个单元里才不会两处各写一句话。
+  src/video/video_plane/core/pace/pace_measurability.cxx
   src/video/video_plane/core/pace/pace_worst_episode.cxx
   src/video/video_plane/core/pace/pace_drift_budget.cxx
+  # P14-U：参考系的第二份。由 `pace_stats.cxx` 直接调用 ——
+  # 漏注册不会在桌面暴露，只在 arm64 链接时报 `undefined symbol`。
+  src/video/video_plane/core/pace/pace_lead_trace.cxx
+  src/video/video_plane/core/pace/pace_wall_offset.cxx
+  src/video/video_plane/core/pace/pace_gate_scale.cxx
   src/video/video_plane/core/pace/pace_now.cxx
   src/video/video_plane/core/pace/clock_position_tracker.cxx
   src/video/video_plane/core/pace/frame_pacer.cxx
@@ -2722,3 +2730,76 @@ if(MSVC)
 endif()
 add_test(NAME kivo_p13p_episode_tests COMMAND kivo_p13p_episode_tests)
 set_tests_properties(kivo_p13p_episode_tests PROPERTIES TIMEOUT 60)
+
+# ─── P14-R: 会话的收尾方式（completed / interrupted / failed） ───
+#
+# 纯头文件、纯 constexpr，不碰 Android —— 派生规则与那三个词都能在桌面上钉死。
+#
+# 为什么值得一个独立目标：这一格是**两份报告共用的协议**（`decode/19` 与 `sync/29`），
+# 而它最容易出的错不是"算错"，是"两处各写一遍然后各自演化"和"复制粘贴忘改名字"。
+# 前者单测抓不到（两份都能跑），后者会静默失效（判据的字符串白名单照样通过）。
+# t5 逐字比对、t7 两两不同，就是为这两件事各钉一颗钉子。
+add_executable(kivo_p14r_end_reason_tests
+  tests/video/session/p14r_end_reason_tests/end_reason_tests.cpp
+)
+target_include_directories(kivo_p14r_end_reason_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p14r_end_reason_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p14r_end_reason_tests PRIVATE /utf-8 /W4)
+endif()
+add_test(NAME kivo_p14r_end_reason_tests COMMAND kivo_p14r_end_reason_tests)
+set_tests_properties(kivo_p14r_end_reason_tests PROPERTIES TIMEOUT 60)
+
+# ─── P14-T: 钟比墙快了多少（`clock_lead_ns`） ───
+#
+# 一格里装的是两个已出版的跨度之差，看起来不值一个目标。值得，因为：
+#   ① 它是 P14-S 那 4 份"成因未查"的答案，算错了报出来的仍然是"合理的小时数"；
+#   ② 它住在 `core::pace`，而**报告层只在 Android 侧编译** —— 不在桌面钉住，
+#      这一格就只被真机测过一次（P14-S 那轮手工算的 19 502 ns）；
+#   ③ 方向（正 = 钟快）是判据归因的全部依据，反了会把两种病报成一句话。
+add_executable(kivo_p14t_clock_lead_tests
+  tests/video/pace/p14t_clock_lead_tests/clock_lead_tests.cpp
+)
+target_link_libraries(kivo_p14t_clock_lead_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p14t_clock_lead_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p14t_clock_lead_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p14t_clock_lead_tests COMMAND kivo_p14t_clock_lead_tests)
+set_tests_properties(kivo_p14t_clock_lead_tests PROPERTIES TIMEOUT 60)
+
+# ---- P14-U：参考系的第二份 ------------------------------------------------
+#
+# 这一组测的不是"钟偏了多少"（上一组已经钉住了），而是"**怎么偏的**"：
+# 一次跳，还是一路跑偏。两者在末值上完全同形 —— 400 ms 的阶跃和 6000 ppm 的
+# 匀速跑偏在 8 秒后都能给出 400 ms 的末值，而修法一个是抓原始时间戳、
+# 一个是改采样率换算。区分它们只有一步之差的 `max_step_ns` 这一格。
+#
+# 另有三条只有这一个目标能守：
+#   ① 缺帧长时**不许**落到 `ramped`（缺参数给出的结论，方向指向硬件坏了）；
+#   ② `surface_at_time` 档一个样本都不许喂（喂 0 会造出 `steady` 的假观测）；
+#   ③ `PaceStats` 的接线真的接上了 —— 纯类测试测不出"忘了在 note_presented 里调用"。
+add_executable(kivo_p14u_lead_trace_tests
+  tests/video/pace/p14u_lead_trace_tests/lead_trace_tests.cpp
+)
+target_link_libraries(kivo_p14u_lead_trace_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p14u_lead_trace_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p14u_lead_trace_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p14u_lead_trace_tests COMMAND kivo_p14u_lead_trace_tests)
+set_tests_properties(kivo_p14u_lead_trace_tests PROPERTIES TIMEOUT 60)
+
+# P14-V：门限的量纲。纯换算，`kivo_p12c_core_pace` 里已经带着 `pace_gate_scale.cxx`。
+add_executable(kivo_p14v_gate_scale_tests
+  tests/video/pace/p14v_gate_scale_tests/gate_scale_tests.cpp
+)
+target_link_libraries(kivo_p14v_gate_scale_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p14v_gate_scale_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p14v_gate_scale_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p14v_gate_scale_tests COMMAND kivo_p14v_gate_scale_tests)
+set_tests_properties(kivo_p14v_gate_scale_tests PROPERTIES TIMEOUT 60)

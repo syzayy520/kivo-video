@@ -3,12 +3,12 @@
   "task_id": "P2-REDLINE-GATE-FOUNDATION",
   "scan_mode": "all",
   "classification": "FAIL",
-  "files_scanned": 229,
-  "violations_count": 16,
+  "files_scanned": 259,
+  "violations_count": 30,
   "violations_by_rule": {
     "SCHEMA": 1,
-    "R8": 5,
-    "R4": 10
+    "R8": 6,
+    "R4": 23
   },
   "violations": [
     {
@@ -92,6 +92,22 @@
       "evidence_excerpt_redacted": "[redacted]"
     },
     {
+      "rule_id": "R8",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p3_complete_line_v9_closure_report.md",
+      "field_path": "content",
+      "message": "premature claim: 'P3 COMPLETE'",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p4_playback_control_plane_execution_card.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
       "rule_id": "R4",
       "severity": "FAIL",
       "file": "C:/kivo video\\docs/roadmap\\p5_v2.2_execution_card.md",
@@ -113,6 +129,102 @@
       "file": "C:/kivo video\\docs/roadmap\\p6b_closure_report.md",
       "field_path": "content",
       "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p7a_baseline_replacement_decision.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p7a_planning_draft.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p7a_v1.9_to_v1.9.1_carryover_report.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p7_final_closure_report.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p8a_closure_report.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p8a_planning_draft.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p8d_closure_report.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p8e_closure_report.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p8f_closure_report.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p8_exit_criteria_s1_s30_matrix.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p8_final_closure_report.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:/kivo video\\docs/roadmap\\p8_v1.5.5_execution_card.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
       "evidence_excerpt_redacted": "[redacted]"
     },
     {
@@ -157,5 +269,5 @@
   "legacy_inventory": "backend/tools/governance/redline_gate/artifacts/legacy_evidence_violations.json",
   "allowed_claims": [],
   "forbidden_claims": [],
-  "timestamp_utc": "2026-06-28T17:46:29Z"
+  "timestamp_utc": "2026-10-31T14:08:18Z"
 }

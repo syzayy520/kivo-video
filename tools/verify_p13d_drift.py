@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""独立复算抽稀与漂移证据（`kivo.p12c.sync/3` 起，含 `/4` `/5` `/6` `/7`）。
+"""独立复算抽稀与漂移证据（`kivo.p12c.sync/3` 起，当前到 `/24`）。
 
 这个脚本存在的理由，是判据 D5 那句"逐位复算"必须真的有人能做到。
 
@@ -12,12 +12,26 @@
 `av_drift` 顶层只要出现 `p99` / `samples` / `per_frame` 这类不带口径的键就判红 ——
 本卡要消灭的就是"复制一个数、忘了它是哪套口径"这条路。
 
+── P14-M：这个脚本自己也要有人验 ──
+
+上一版有两个出口让证据**静默通过**：
+
+① `SCHEMA_ORDER` 手写到 `/13` 就停了，而报告层已经写到 `/24` ——
+   95 份 `p13*` 证据判"不适用"；
+② 总收口只 `glob("docs/evidence/p13*/*-sync.json")` ——
+   `p14*` 的 28 份证据一次都没被喂进来。
+
+合起来 123 份（占 189 份的 65%）从来没有被这里的判据看过，而总收口报"四层通过"。
+现在：版本表由 `SCHEMA_MIN`/`SCHEMA_LATEST` 生成，**认不出的新版本直接判红**
+（"脚本落后于实现"不是"不适用"）；输出里必有一行 `覆盖：N 份` 与
+`不适用：M 份 —— 这不是通过`，两行都会被总收口转述。
+
 D5 的坑：C++ 那边回归前把横坐标减去**首样本的媒体时刻** `t0`，否则 6e10 ns 量级
 平方后越过 `double` 的 53 位整数精度，斜率会自己漂。本脚本不能让 t 回到绝对量级，
 所以统一减去**最小窗口起点**作公共原点 —— 平移不改变斜率，但能把量级压回去。
 
 用法：
-    python tools/verify_p13d_drift.py docs/evidence/p13d/*.json
+    python tools/verify_p13d_drift.py docs/evidence/p1*/*-sync.json
     python tools/verify_p13d_drift.py a.json b.json      # 同时给两份可判 D1/D2
 """
 
@@ -181,6 +195,14 @@ class Report:
         # 把它算成失败会让跑整个 evidence 目录的人得到 24 条假红，
         # 而假红比漏报更快地训练人忽略告警。
         self.not_applicable = ""
+        # 「部分适用」（P14-Q）：某几组判据对这份证据**有**话说，其余没有。
+        #
+        # 为什么不能直接沿用 `not_applicable`：汇总里那一行是
+        # `if report.not_applicable: skipped...; continue` —— 一旦设了它，
+        # `rows` 整个被丢掉。于是"判据跑了、结论被吞"，比不跑更坏：
+        # 输出上看不出区别，而红的判据从此不存在。
+        # 这是 P14-N 的 Q 组「写在 return 之后」的同一个病的另一个方向。
+        self.partial_note = ""
 
     def add(self, name: str, ok: bool, detail: str = "") -> bool:
         self.rows.append((name, ok, detail))
@@ -229,7 +251,23 @@ MODES = (MODE_DECIMATED, MODE_PER_FRAME, MODE_NOT_MEASURED)
 # 全部字段），所以"从第 k 个版本起生效"可以机械展开。新增一个版本只需在
 # `SCHEMA_ORDER` 里加一项，五张表同时跟上 —— 这类漏改从**结构上**不再可能。
 SCHEMA_PREFIX = "kivo.p12c.sync"
-SCHEMA_ORDER = ("/3", "/4", "/5", "/6", "/7", "/8", "/9", "/10", "/11", "/12", "/13")
+
+# ── P14-M：版本表改成**区间**，并且「不认识的版本」从灰变红 ──
+#
+# 上一版是一张手写的元组 `("/3", …, "/13")`。P13-K 把「五张表各写各的」修成了
+# 「单点登记」，但那**只解决了五张表，没解决这张表本身谁来看**：`/14` 之后
+# 一路涨到 `/24`，没有人回来加过一项。后果是 95 份 `p13*` 证据判「不适用」，
+# 加上总收口 `glob("p13*")` 没扫到的 28 份 `p14*` 证据 —— **123 份 `sync` 证据
+# 从来没有被 D/E/F/G/H/I 判据看过一眼**，而总收口一直报「四层通过」。
+#
+# 两次修法的差别：
+#   P13-K 让「新增版本」不用改五张表；
+#   P14-M 让「忘了改这张表」变成一个**错误**，而不是一次**沉默**。
+#
+# 区间端点各自有名字，因为它们是两个不同的决定：
+SCHEMA_MIN = 3      # 再往前分位数挂在顶层、键名不带口径，判据结构上对不上
+SCHEMA_LATEST = 35  # 报告层当前写到哪一版。升 schema 时必须同步这一个数
+SCHEMA_ORDER = tuple(f"/{version}" for version in range(SCHEMA_MIN, SCHEMA_LATEST + 1))
 
 
 def _schemas_from(version: str) -> tuple[str, ...]:
@@ -237,6 +275,19 @@ def _schemas_from(version: str) -> tuple[str, ...]:
     if version not in SCHEMA_ORDER:
         raise ValueError(f"schema {version} 不在 SCHEMA_ORDER 里 —— 新增版本必须登记一次")
     return tuple(SCHEMA_PREFIX + item for item in SCHEMA_ORDER[SCHEMA_ORDER.index(version):])
+
+
+def _schema_version(schema: str) -> int:
+    """把 `kivo.p12c.sync/N` 解析成 `N`。解析不了时返回 0（当作「太旧，不认识」）。
+
+    单独一个函数而不是在 `check_file` 里就地 `split`：这个解析要用两次
+    （判断是否比脚本新、以及覆盖清单里的分组），写两遍迟早一处容错另一处抛异常。
+    """
+    tail = schema.rsplit("/", 1)[-1] if "/" in schema else ""
+    try:
+        return int(tail)
+    except ValueError:
+        return 0
 
 
 SUPPORTED_SCHEMAS = _schemas_from("/3")
@@ -275,6 +326,69 @@ SCHEMA_WITH_QUANTILE_RESOLUTION = _schemas_from("/12")
 # 起因：那个布尔在 13 份真机证据里报过 8 次 true，其中 3 份两半程量级差 5 倍以上，
 # 最极端的一份两半程都为正、全序列斜率却为负 —— 而它照样说 "agree"。
 SCHEMA_WITH_HALVES = _schemas_from("/13")
+# `/25`（P14-N）：`pace.over_budget_frames` 与 `pace.lateness_ns` 各带一对
+# `measured` / `reason`。
+# 起因是同一轮播放的两份证据对同一个概念说出两种可信度：`decode/18` 已经会写
+# "没量到，因为 surface_at_time 里上屏时刻由合成器决定"，而 `sync/24` 把同一批
+# 字段印成裸数。真机同片源两档（`docs/evidence/p14l/`，1080p30）：
+#
+#   cpu_paced        lateness_ns.samples = 1800   p50 = 125000   max = 615260
+#   surface_at_time  lateness_ns.samples =    0   p50 =      0   max =      0
+#
+# 右列那三个 0 不是"零延迟"，是空直方图的默认值；而 `max = 0` 是最完美的最大值。
+# `over_budget_frames` 由同一个空直方图派生（`count_abs_beyond`），于是 G6 在这个
+# 档上读着一个永远为 0 的数 —— 通过着一次从未发生的检查。
+SCHEMA_WITH_MEASURABILITY = _schemas_from("/25")
+# `/26`（P14-O）：`p99` 后接 `p99_range_low_ns` / `p99_range_high_ns` /
+# `p99_bucket_samples`（键名与 `p50` 那三格逐字对齐，只换前缀）。
+# 起因是 P14-M 让 D1/D2 的配对池第一次非空，撞上一条**判不了的判据**：
+# 1080p 60 s 的一对 30/60 fps，p99 分别是 125 000 与 625 000（商 5.00x），
+# 而判据要判"是否 ≤ 2x"。当时判据写的是 `not_applicable`，理由是一句手算的
+# 形容词"区间能差 20 倍" —— 读者在 `/25` 的 JSON 里核对不了这句话，因为
+# `p99` 在那里是个裸整数，既没说它是桶中心，也没说桶有多宽。
+#
+#   30fps  p99 = 125000  落桶 512  那桶里 1196/1200 个样本  [0, 250000)
+#   60fps  p99 = 625000  落桶 514  那桶里    3/1200 个样本  [500000, 750000)
+#
+# 三格出版之后，那个"不可判"变成一个算式 `[2.00x, 48.00x]`：
+# 下界正好压在门槛 2.0x 上，说明**最乐观的读法也没有余量**。这不是把 D2
+# 变成可判 —— 真机上它仍然不可判，改的只是"不可判"的证据等级。
+SCHEMA_WITH_P99_RANGE = _schemas_from("/26")
+# `/27`（P14-P）：`pace.lateness_ns` 从一行裸数改成块，`p50` / `p99` 各接三格
+# 范围 + `bucket_width_ns`（键名与 `quantiles.<口径>` 逐字对齐）。
+# 起因是同一个直方图在同一份 JSON 里被印了两遍，**只有一遍带误差棒**：
+#
+#   quantiles.per_frame.p99 = 125000  [15417, 250000)   ← N12/N13 按分布复算过
+#   pace.lateness_ns.p99    = 125000  （没有范围）        ← 门禁 F3 读这一份
+#
+# 而 `verify_p13ae_gate.py` 的 F3 拿后者去和一帧（33 333 333 ns）比大小，
+# 那个数的分辨力却是一个桶（250 µs）。余量眼下够用，但那一格**没有能力说出
+# 自己没能力判**。P14-O 把这件事做到了 `quantiles` 一侧并在设计卡 §二 明确
+# 把这一块留给"独立一张卡"，本卡就是那一项，理由一字未改。
+#
+# 这是 P14-N 的同一课换个层次：那次修"没量到却印 0"，这次修"量到了却不说量到多粗"。
+SCHEMA_WITH_LATENESS_RANGE = _schemas_from("/27")
+
+# `pace.undelivered_frames`（P14-Q）。**只有 S4 用这一组** ——
+# S1–S3 现算 `decided − presented − dropped` 就能判，从 `/3` 起全部适用。
+# 所以这里守的不是"能不能判"，是"报告层有没有漏印"（见 `check_frame_accounting`）。
+SCHEMA_WITH_FRAME_ACCOUNTING = _schemas_from("/28")
+
+# ---- P14-R：收尾方式（`end_reason`）----
+#
+# `/29` 起，`sync` 报告顶层多了 `end_reason`（`completed` / `interrupted` / `failed`）。
+#
+# 为什么值得两条独立判据：它守的**不是账**，是**叙述**。`end_reason` 与
+# `completed` / `error` 说同一件事，三个字段互相矛盾时任何一本账都还是对的 ——
+# 错的是读者会读出一个不存在的结论。这种错不会让任何别的判据变红。
+SCHEMA_WITH_END_REASON = _schemas_from("/29")
+
+# 取值与四条自洽关系住在 `tools/session_end_reason.py`：`verify_p12_all.py`
+# 判解码侧那一份时用的是同一个函数。**一份规则，两处使用** ——
+# 各写一遍的两份记忆迟早会在某一天给出两个不同的结论。
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from session_end_reason import END_REASONS, end_reason_problems  # noqa: E402
 
 # 段内允许的最大空洞（格点）。**必须与 `core/pace/pace_drift_series.hpp` 的
 # `kMaxContiguousGapCells` 相等** —— 写死在这里的全部意义就是"它被独立核对过一次"。
@@ -511,9 +625,25 @@ def check_media_span(report: Report, sampling: dict[str, Any], trend: dict[str, 
         # 精确上界：`accepted ≤ span/interval + segments`，两边同除 span 得到
         # `hz ≤ 1e9/interval + segments·1e9/span`。
         ceiling = 1e9 / interval + segments * 1e9 / media_span
+        #
+        # ── 容差（P14-M 修正）──
+        #
+        # 原来写 `ceiling * (1.0 + 1e-9)`，等于要求证据值与上界在**相对 1e-9**
+        # （20 Hz 上是 2e-8 Hz）内一致。而 `sampling.observed_hz` 是 `%.6f`
+        # 打印的，单个量化步长就是 1e-6 Hz —— **判据比它的输入精细 50 倍**。
+        #
+        # 后果很具体：60 fps 片源上每个格点恰好被覆盖时，`observed` 与 `ceiling`
+        # 精算下来**逐位相等**（都是 `1200 / 59.95 s`），但 20.0166805… 被印成
+        # 20.016681，四舍五入就把"落在边界上"判成了"越过边界"。
+        # 2 份证据（`p13af-b1080p60-r1/r2`）因此被咬红 —— **判据自己制造的红**。
+        #
+        # 放开到"一个量化步长"而不是百分比：`1e-6 Hz` 恰好吸收 `%.6f` 的舍入，
+        # 多一点都不给。真出错（分母取成窗口跨度）会差 1e-2 Hz 量级，拦得住。
+        quantization_step_hz = 1e-6
         report.add("H2 observed_hz 不超过格点目标速度",
-                   observed_hz <= ceiling * (1.0 + 1e-9),
+                   observed_hz <= ceiling + quantization_step_hz,
                    f"{observed_hz:.6f} Hz vs 上限 {ceiling:.6f} Hz（{segments} 段）"
+                   f"，差 {observed_hz - ceiling:+.2e} Hz（量化步长 {quantization_step_hz:.0e}）"
                    "（超了只能是分子分母不同源）")
 
     # ---- H3：两根尺子的关系 ----
@@ -886,13 +1016,23 @@ def check_hac(report: Report, trend: dict[str, Any]) -> None:
     # 膨胀比必须就是两个 SE 相除。它不是一个独立结论，而是那两个数的**读法**；
     # 若它走了另一条路径，读者看到的就是三个互不相干的数。
     #
-    # 容差 1e−5 而不是 1e−9：三个数都是 `%.6f` 打印的，`se/iid` 的相对误差
-    # 由三条舍入叠加而来（约 3e−6）。再紧会被浮点咬出一批假红 ——
-    # P13-J 的 `J2` 就用 2e−6，那是因为它只比一个加减，这里是除法。
+    # ── 容差（P14-M 修正）──
+    #
+    # 原来写 1e-5，注释里的推演是「三条舍入叠加约 3e−6」。**那道算术错了**：
+    # 两个 SE 都是 `%.6f`，本身只有 0.03–0.05 的量级，半个末位就是
+    # `5e-7 / 0.031 ≈ 1.6e-5` 的**相对**误差；除法把两个相对误差相加，
+    # 再乘回比值 1.24 —— 绝对误差约 3.6e-5。实测全量最大偏差 3.3e-5
+    # （`p14h-long1800-sync`），恰好越过 1e-5，于是 9 份证据被咬出假红。
+    #
+    # 1e-4 是**按打印精度推出来的地板**（3.3e-5 的 3 倍余量），不是随手放宽：
+    # 真走另一条公式（比如少开一次根号、分子分母写反）会差几个数量级，
+    # 这个容差拦不住的东西，1e-5 也拦不住。
     expect_inflation = (se / iid) if iid > 0.0 else 1.0
+    inflation_tolerance = 1e-4 * max(1.0, abs(expect_inflation))
     report.add("K3 膨胀比 = HAC_SE / IID_SE",
-               abs(inflation - expect_inflation) <= 1e-5,
-               f"证据 {inflation} vs 复算 {expect_inflation:.6f}："
+               abs(inflation - expect_inflation) <= inflation_tolerance,
+               f"证据 {inflation} vs 复算 {expect_inflation:.6f}"
+               f"（差 {abs(inflation - expect_inflation):.1e}，容差 {inflation_tolerance:.1e}）："
                "对不上说明膨胀比不是这两个数相除得来的")
 
     # ---- K4 ----
@@ -1175,22 +1315,41 @@ def check_budget(report: Report, trend: dict[str, Any]) -> None:
     # 三态必须与它自己的两个输入（上界、额度）以及可用性自洽。
     # `unknown` 单独一支：它**不是**"上界很小"，是"这份趋势没资格下结论"，
     # 把它和 `within_budget` 混成一个 `false` 就是让失败伪装成通过。
+    #
+    # ── P14-M：`unknown` 的成因从一个变成两个 ──
+    #
+    # 这一支原来写的是 `unknown ⇔ !usable`。那是 P13-L（`/10`）当时的语义：
+    # 趋势算不出来就没资格下结论。P13-O（`/13`）给 `unknown` 加了**第二个**
+    # 成因 —— 半程自相矛盾（`slope_halves_relation == "inconsistent"`）是**反证**，
+    # 全序列的 `usable` 仍然是 true，但结论必须撤掉（见 `pace_drift_trend.cxx`）。
+    #
+    # 判据没跟着改，于是 3 份真机证据（`p14e-jump300` / `p14f-r4` / `p14f-r6`）
+    # 被判成"趋势可用却判 unknown，是把一份能下结论的证据扔掉" ——
+    # **判据的假设过期了，而被它判红的那三份证据是对的。**
+    #
+    # 反向也要守：`within_budget` / `over_budget` 一旦出现，说明既可用、
+    # 半程也没翻脸 —— 少了任何一条都不该给出这两种结论。
+    halves_relation = str(trend.get("slope_halves_relation", "not_compared"))
+    halves_inconsistent = halves_relation == "inconsistent"
     if verdict not in BUDGET_VERDICTS:
         report.add("L5 三态与上界/额度/可用性自洽", False,
                    f"verdict={verdict!r} 不在 {BUDGET_VERDICTS} 里："
                    "报告层写出了一个没有定义过的判定")
     elif verdict == "unknown":
-        report.add("L5 unknown ⇔ 趋势不可用", not usable,
-                   f"verdict=unknown、usable={usable}："
-                   "趋势可用却判 unknown，是把一份能下结论的证据扔掉")
+        report.add("L5 unknown ⇔ 趋势不可用或半程自相矛盾",
+                   (not usable) or halves_inconsistent,
+                   f"verdict=unknown、usable={usable}、halves={halves_relation}："
+                   "两个成因都不成立却判 unknown，是把一份能下结论的证据扔掉")
     elif verdict == "within_budget":
         report.add("L5 within_budget ⇔ 上界未越额度且趋势可用",
-                   usable and upper <= budget,
-                   f"上界 {upper} vs 额度 {budget}、usable={usable}")
+                   usable and not halves_inconsistent and upper <= budget,
+                   f"上界 {upper} vs 额度 {budget}、usable={usable}、"
+                   f"halves={halves_relation}")
     else:  # over_budget
         report.add("L5 over_budget ⇔ 上界越过额度且趋势可用",
-                   usable and upper > budget,
-                   f"上界 {upper} vs 额度 {budget}、usable={usable}："
+                   usable and not halves_inconsistent and upper > budget,
+                   f"上界 {upper} vs 额度 {budget}、usable={usable}、"
+                   f"halves={halves_relation}："
                    "越过额度靠的是上界，不是点估计 —— 用点估计判会让一份"
                    "'可能听得出来'的证据被判成没问题")
 
@@ -1320,24 +1479,49 @@ def locate_bucket(hist: dict[str, Any], q: float) -> tuple[int, int]:
     return (bucket_count, int(hist["above"]))
 
 
-def replay_p50_range(hist: dict[str, Any]) -> tuple[int, int]:
-    """从导出的分布复算 `p50` 的**可能范围** `[low, high)`。
+def replay_percentile_range(hist: dict[str, Any], q: float) -> tuple[int, int]:
+    """从导出的分布复算第 `q` 分位数的**可能范围** `[low, high)`。
 
     与 `SignedHistogram::percentile_range()` 对齐：桶内时取"桶界 ∩ [min, max]"，
     下界取大、上界取 `max + 1`（开界）。落在溢出区或端点时范围退化成那个值本身。
+
+    P13-N 时这个函数叫 `replay_p50_range`，`q` 写死在函数体里。P14-O 要给
+    `p99` 复算同一件事 —— 于是把 `q` 提成参数，而不是复制一份把 0.50 改成 0.99。
+    复制的代价是具体的：两份代码在"秩怎么取整"上一旦分家（`int(q*count)`
+    还是 `ceil`），同一份证据会被算出两个 p99 范围，而"可复算"的全部意义
+    就是换一份代码算出来的数一字不差。
     """
     count = int(hist["count"])
     if count <= 0:
         return (0, 0)
-    p50 = replay_percentile(hist, 0.50)
-    index, _ = locate_bucket(hist, 0.50)
+    value = replay_percentile(hist, q)
+    index, _ = locate_bucket(hist, q)
     if not 0 <= index < int(hist["bucket_count"]):
-        return (p50, p50)
+        return (value, value)
     width = int(hist["bucket_width_ns"])
     low_ns = int(hist["low_ns"])
     low = max(low_ns + index * width, int(hist["min_ns"]))
     high = min(low_ns + (index + 1) * width, int(hist["max_ns"]) + 1)
     return (low, high)
+
+
+def quantile_blocks(quantiles: dict[str, Any],
+                    trend: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
+    """这一份证据里所有"分位数块"，带可读路径。
+
+    `p50` 那六条（N0–N6）与 `p99` 那六条（N8–N13）检查的是同一批块。
+    两处各写一遍收集逻辑，就会出现"一边收了 `trend.window_quantiles`、
+    另一边漏了"这种不对称 —— 而漏的那一边照样全绿。
+    """
+    blocks: list[tuple[str, dict[str, Any]]] = []
+    if isinstance(quantiles, dict):
+        for name, block in quantiles.items():
+            if isinstance(block, dict):
+                blocks.append((f"quantiles.{name}", block))
+    window_quantiles = trend.get("window_quantiles")
+    if isinstance(window_quantiles, dict):
+        blocks.append(("trend.window_quantiles", window_quantiles))
+    return blocks
 
 
 def check_quantile_resolution(report: Report, quantiles: dict[str, Any],
@@ -1367,14 +1551,7 @@ def check_quantile_resolution(report: Report, quantiles: dict[str, Any],
           `(n−1)//2` 个。秩口径写成 `n//2` 时（8 个窗取第 5 个而不是第 4 个）
           这条会红 —— 而两个中位数用两套秩，就没法放在同一张表里比了。
     """
-    blocks: list[tuple[str, dict[str, Any]]] = []
-    if isinstance(quantiles, dict):
-        for name, block in quantiles.items():
-            if isinstance(block, dict):
-                blocks.append((f"quantiles.{name}", block))
-    window_quantiles = trend.get("window_quantiles")
-    if isinstance(window_quantiles, dict):
-        blocks.append(("trend.window_quantiles", window_quantiles))
+    blocks = quantile_blocks(quantiles, trend)
 
     if not blocks:
         report.add("N0 有分位块可验", False,
@@ -1451,7 +1628,7 @@ def check_quantile_resolution(report: Report, quantiles: dict[str, Any],
             _, expect_samples = locate_bucket(hist, 0.50)
             if int(block["p50_bucket_samples"]) != expect_samples:
                 bad_bucket.append((label, int(block["p50_bucket_samples"]), expect_samples))
-            expect_low, expect_high = replay_p50_range(hist)
+            expect_low, expect_high = replay_percentile_range(hist, 0.50)
             if (int(block["p50_range_low_ns"]), int(block["p50_range_high_ns"])) != \
                     (expect_low, expect_high):
                 bad_range.append((label,
@@ -1486,6 +1663,590 @@ def check_quantile_resolution(report: Report, quantiles: dict[str, Any],
                    else f"{len(ordered)} 个窗口中位数 → 第 {(len(ordered) - 1) // 2} 个 = {expected}")
 
 
+def check_p99_resolution(report: Report, quantiles: dict[str, Any],
+                         trend: dict[str, Any]) -> None:
+    """N8–N13：`p99` 也要说出它可能的范围（P14-O，仅 `/26` 起）。
+
+    N0–N7 守的是 `p50`，那六条**一个字都没改**。这一组是新开的编号，因为它们
+    守的是另一个数：`p99` 落在分布的尾巴上，桶内样本数常常只有个位数
+    （真机那一份 60fps 证据里，p99 那个桶只装了 3 个样本），
+    所以"桶中心不是量出来的值"在它身上比在 `p50` 身上更严重。
+
+    为什么现在才做：P13-N 时 `p99` 只有一句"将来也会有人误读"的担忧，
+    没有现场。P14-M 让 D1/D2 的配对池第一次非空之后，D2 就是那个现场 ——
+    而且 D2 是**唯一**一个拿两个不同口径的 p99 相除的判据，分母越小，
+    同样的绝对量化误差被放大得越多。
+
+      N8  每个分位块都有 `p99` 三格（范围下界/上界/桶内样本数）。
+      N9  `p99 ∈ [low, high]`。
+      N10 `0 ≤ p99_bucket_samples ≤ samples`。
+      N11 `high − low ≤ 桶宽`。
+      N12 `p99_bucket_samples` 等于从 `histogram` 按 q=0.99 复算的桶计数。
+      N13 `(low, high)` 等于从 `histogram` 按 q=0.99 复算的范围。
+
+    N12/N13 是这一组的核心，抓的是同一个错：**把 `p50` 的三格原样写进 `p99`**。
+    那个错在 JSON 里几乎看不出来 —— `p50 ≤ p99`，而 `p50` 的范围上界常常
+    正好是 250 000，于是 N9 也会过。只有"按 q=0.99 从分布复算"能抓住它。
+    """
+    blocks = quantile_blocks(quantiles, trend)
+    if not blocks:
+        report.add("N8 p99 精度三格齐全", True,
+                   "一个分位块都没有：没有 `p99` 可验（N0 已在同一份证据上判过）")
+        return
+
+    required = ("p99_range_low_ns", "p99_range_high_ns", "p99_bucket_samples")
+    missing = [f"{label}.{key}" for label, block in blocks
+               for key in required if key not in block]
+    report.add("N8 p99 精度三格齐全", not missing,
+               f"缺 {missing}：`/26` 的每个分位块都要带这三格，"
+               "缺了说明报告层只改了 `p50` 那条路" if missing
+               else f"{len(blocks)} 个分位块各带三格")
+    if missing:
+        return
+
+    # ---- N9 ----
+    outside = [(label, int(block["p99"]), int(block["p99_range_low_ns"]),
+                int(block["p99_range_high_ns"])) for label, block in blocks
+               if not int(block["p99_range_low_ns"]) <= int(block["p99"])
+               <= int(block["p99_range_high_ns"])]
+    report.add("N9 p99 落在它自己声明的范围里", not outside,
+               f"{outside}：声明的范围不含它要解释的那个数，"
+               "读者只会认定整份证据不可信" if outside
+               else "每个 p99 都在自己的 [low, high] 内")
+
+    # ---- N10 ----
+    bad_share = [(label, int(block["p99_bucket_samples"]), int(block["samples"]))
+                 for label, block in blocks
+                 if not 0 <= int(block["p99_bucket_samples"]) <= int(block["samples"])]
+    report.add("N10 桶内样本数不超过总样本数", not bad_share,
+               f"{bad_share}：落在一个桶里的样本不可能多于全部样本" if bad_share
+               else "全部 ≤ samples")
+
+    # ---- N11 ----
+    too_wide = [(label, int(block["p99_range_high_ns"]) - int(block["p99_range_low_ns"]))
+                for label, block in blocks
+                if int(block["p99_range_high_ns"]) - int(block["p99_range_low_ns"])
+                > QUANTILE_BUCKET_WIDTH_NS]
+    report.add("N11 可能范围不宽于一个桶", not too_wide,
+               f"{too_wide}：与 `[min, max]` 求交只会让范围变窄，"
+               f"宽于 {QUANTILE_BUCKET_WIDTH_NS} ns 说明这一格不是求和交得来的"
+               if too_wide else "全部 ≤ 一个桶宽")
+
+    # ---- N12 / N13：从分布复算 ----
+    replayable = [(label, block) for label, block in blocks
+                  if isinstance(block.get("histogram"), dict)
+                  and int(block["histogram"].get("count", 0)) > 0]
+    unverified = [label for label, block in blocks
+                  if not (isinstance(block.get("histogram"), dict)
+                          and int(block["histogram"].get("count", 0)) > 0)]
+    if unverified:
+        report.add("N12 从分布复算桶内样本数", True,
+                   f"{unverified} 的样本数为 0，没有桶可复算（空分布谈不上精度）")
+        report.add("N13 从分布复算可能范围", True, f"{unverified} 同上")
+    else:
+        bad_bucket = []
+        bad_range = []
+        for label, block in replayable:
+            hist = block["histogram"]
+            _, expect_samples = locate_bucket(hist, 0.99)
+            if int(block["p99_bucket_samples"]) != expect_samples:
+                bad_bucket.append((label, int(block["p99_bucket_samples"]),
+                                   expect_samples))
+            expect_low, expect_high = replay_percentile_range(hist, 0.99)
+            if (int(block["p99_range_low_ns"]), int(block["p99_range_high_ns"])) != \
+                    (expect_low, expect_high):
+                bad_range.append((label,
+                                  (int(block["p99_range_low_ns"]),
+                                   int(block["p99_range_high_ns"])),
+                                  (expect_low, expect_high)))
+        report.add("N12 从分布复算桶内样本数", not bad_bucket,
+                   f"{bad_bucket}（证据值 vs 从 `histogram` 复算）："
+                   "对不上说明这一格不是由分布算出来的 —— 多半是抄了 `p50` 那一桶"
+                   if bad_bucket else "全部与分布复算一致")
+        report.add("N13 从分布复算可能范围", not bad_range,
+                   f"{bad_range}：范围必须等于「桶界 ∩ [min, max]」，"
+                   "且必须按 q=0.99 算 —— 抄 `p50` 的范围这一条立刻红"
+                   if bad_range else "全部与分布复算逐位相等")
+
+
+UNSPECIFIED_REASON = "unmeasured without a recorded reason"
+
+
+def check_measurability(report: Report, doc: dict[str, Any]) -> None:
+    """Q 组：`sync` 侧的可测性声明（P14-N，`/25` 起）。
+
+    与 `verify_p14i_gap.py` 的 P9–P11 是**同一批判据的两个座位**：那份守 `decode`，
+    这份守 `sync`。两边各写一遍不是重复 —— 两份报告由两个不同文件生成，
+    而 P14-L 的事实恰恰是「同一批字段只改了其中一份」。判据也一样：
+    只守一侧，另一侧就会安静地烂掉，而烂掉的表现是「全绿」。
+
+    Q3 抓的是一种比"沉默的零"更糟的形态：**没量到，却报了一个非零值**。
+    现有数据上它恒成立（空直方图吐不出非零），所以它防的是将来 ——
+    例如哪天有人把空直方图的 `max_ns()` 从 0 改成"返回桶上界"，
+    那个改动会让"没量到"伪装成一个实测值，而没有任何一条既有判据看得出来。
+    """
+    pace = doc.get("pace")
+    if not isinstance(pace, dict):
+        report.add("Q0 sync 带 pace 块", False,
+                   "`/25` 起 pace 块必须存在：没有它 Q 组无从判起，"
+                   "而「没有 pace 块」本身就该被看见，不该静默跳过")
+        return
+
+    # ---- Q0：两对字段齐全 ----
+    missing: list[str] = []
+    for key in ("over_budget_frames", "over_budget_frames_measured",
+                "over_budget_frames_reason"):
+        if key not in pace:
+            missing.append(f"pace.{key}")
+    lateness = pace.get("lateness_ns")
+    if not isinstance(lateness, dict):
+        missing.append("pace.lateness_ns（块缺失）")
+    else:
+        for key in ("samples", "p50", "p99", "max", "measured", "reason"):
+            if key not in lateness:
+                missing.append(f"pace.lateness_ns.{key}")
+    report.add("Q0 两处 measured/reason 齐全", not missing,
+               f"缺 {missing}：`/25` 必须写全 —— 缺一格就是让读者自己猜那个 0 是什么"
+               if missing
+               else "over_budget_frames 与 lateness_ns 各自带一对 measured/reason")
+
+    if missing:
+        # 后面每一条都读这些字段。缺了就停在这里，而不是让它们抛 KeyError ——
+        # 一个 traceback 会把"证据坏了"读成"脚本坏了"，那是另一种误导。
+        return
+
+    over_measured = bool(pace["over_budget_frames_measured"])
+    over_reason = str(pace["over_budget_frames_reason"])
+    late_measured = bool(lateness["measured"])
+    late_reason = str(lateness["reason"])
+    samples = int(lateness["samples"])
+
+    # ---- Q1：量到了就不该附理由 ----
+    contradictory: list[str] = []
+    if over_measured and over_reason != "":
+        contradictory.append(f"over_budget_frames_measured=true 却带理由 {over_reason!r}")
+    if late_measured and late_reason != "":
+        contradictory.append(f"lateness_ns.measured=true 却带理由 {late_reason!r}")
+    report.add("Q1 measured=true ⇒ reason 为空", not contradictory,
+               "；".join(contradictory) if contradictory
+               else "量到的那两格没有附理由（「量到了但附了理由」自相矛盾）")
+
+    # ---- Q2：没量到必须说清为什么 ----
+    #
+    # 空理由和那句证词同样不可接受：前者让读者只能猜（猜出来的通常是
+    # "大概是没触发吧"），后者说明代码路径上有个地方忘了填。
+    silent: list[str] = []
+    for name, measured, reason in (
+        ("over_budget_frames", over_measured, over_reason),
+        ("lateness_ns", late_measured, late_reason),
+    ):
+        if measured:
+            continue
+        if reason == "":
+            silent.append(f"{name} 没量到却留了空理由")
+        elif reason == UNSPECIFIED_REASON:
+            silent.append(f"{name} 的理由就是那句证词 {UNSPECIFIED_REASON!r}")
+    report.add("Q2 measured=false ⇒ 理由可读", not silent,
+               "；".join(silent) if silent
+               else "没量到的格都写了具体原因")
+
+    # ---- Q3：没量到 ⇒ 值必须全 0 ----
+    #
+    # 单向判：量到了也可以是 0（真的没有超预算帧 / 真的零迟到），所以反过来
+    # 「值全 0 ⇒ measured=false」不成立，不能写成双向。
+    lying: list[str] = []
+    if not over_measured and int(pace["over_budget_frames"]) != 0:
+        lying.append(f"over_budget_frames={pace['over_budget_frames']} 而 measured=false")
+    if not late_measured:
+        if samples != 0:
+            lying.append(f"lateness_ns.samples={samples} 而 measured=false")
+        for key in ("p50", "p99", "max"):
+            if int(lateness[key]) != 0:
+                lying.append(f"lateness_ns.{key}={lateness[key]} 而 measured=false")
+    report.add("Q3 measured=false ⇒ 值全为 0", not lying,
+               "；".join(lying) if lying
+               else "没量到的那两处没有印出非零值")
+
+    # ---- Q4：可测性 ⇔ 样本数 ----
+    #
+    # `lateness` 的可测性**只有一个**成因：直方图里有没有样本。
+    # 两者分家说明有人另判了一次（比如拿 `presented > 0` 当条件，
+    # 而 `surface_at_time` 档 `presented = 1800`、样本数却是 0）。
+    report.add("Q4 lateness.measured == (samples > 0)",
+               late_measured == (samples > 0),
+               f"measured={late_measured} 而 samples={samples}："
+               "可测性与样本数是同一件事，不该有两个答案")
+
+    # ---- Q5：两处同源 ----
+    #
+    # `over_budget_frames` 是 `count_abs_beyond(lateness_)` 的结果，
+    # 所以它的可测性与 `lateness` 的**必须是同一个值**。分家说明两条链各判了一次，
+    # 而各判一次的下场 P14-M 的 D2 已经演示过：分组键漏一项，配出一批假结论，
+    # 而结论本身看起来完全正常。
+    report.add("Q5 over_budget 与 lateness 同源", over_measured == late_measured,
+               f"over_budget_frames_measured={over_measured}、"
+               f"lateness_ns.measured={late_measured}："
+               "后者是前者的输入，两格不该给出不同答案")
+
+
+#: `pace.lateness_ns` 与 `quantiles.per_frame` 必须逐位相等的 11 个数。
+#:
+#: 两处印的是**同一个** `PaceSummary::lateness`：一处经 `render_quantiles()`，
+#: 一处直接调 `percentile_ns()` / `max_ns()`。所以差异只可能来自写法不同，
+#: 不可能来自数据不同 —— 这正是"同源"这个词能被判据用上的地方。
+#:
+#: 为什么连 `samples` 与 `bucket_width_ns` 也算进去：`samples` 是
+#: `latency_samples_`（`note_presented()` 里与 `lateness_.add()` 同一步递增，
+#: P14-P 读过那两行），`bucket_width_ns` 是同一个编译期常量。两者都不该分家。
+LATENESS_TWIN_FIELDS = (
+    "samples",
+    "p50",
+    "p50_range_low_ns",
+    "p50_range_high_ns",
+    "p50_bucket_samples",
+    "bucket_width_ns",
+    "p99",
+    "p99_range_low_ns",
+    "p99_range_high_ns",
+    "p99_bucket_samples",
+    "max",
+)
+
+#: `pace.lateness_ns` 本卡新增的四格。R4 要单独守它们：
+#: Q3 的清单只有 `samples / p50 / p99 / max`，新四格落在它视野外。
+LATENESS_RANGE_FIELDS = ("p50_range_low_ns", "p50_range_high_ns", "p50_bucket_samples",
+                         "p99_range_low_ns", "p99_range_high_ns", "p99_bucket_samples")
+
+
+def check_lateness_range(report: Report, doc: dict[str, Any]) -> None:
+    """R0–R5：`pace.lateness_ns` 必须说出自己的分辨力（P14-P，仅 `/27` 起）。
+
+    与 Q 组的分工：Q 管"量到没有"（`measured` / `reason` / 三个 0 的含义），
+    R 管"量到多粗"（范围 / 桶内样本数 / 桶宽）。两者读同一个块，问两个问题。
+
+    这块字段的来由（`/26` 现场，`docs/evidence/p14o/p14o-1080p30-sync.json`）：
+
+      quantiles.per_frame.p99 = 125000  [15417, 250000)   ← N12/N13 按分布复算过
+      pace.lateness_ns.p99    = 125000  （没有范围）        ← 门禁 F3 读这一份
+
+    同一批 1800 个点，一份说了它可能的范围，一份没说。而**门禁读的是没说的那份**。
+
+      R0  块在，且带七格（两个三格 + `bucket_width_ns`）。
+      R1  `bucket_width_ns == 250000`。在 Python 侧独立写死，不从证据读 ——
+          读出来再和它自己比只叫复述（P13-H 的 `observed_hz` 就是这么栽的）。
+      R2  `p50` / `p99` 各自落在自己声明的 `[low, high]` 内。
+      R3  `0 ≤ bucket_samples ≤ samples`（两处）。
+      R4  `measured == false ⇒ 七格全 0`。
+      R5  11 个数与 `quantiles.per_frame` **逐位相等** —— 本卡的核心。
+
+    R5 做两件事，缺一不可：
+
+    1. **抓分家。** 两处出版同一次测量，任何一处被单独改动都会立刻红。
+       这是 Q5 那招（同源的量不许给出两个答案）在数值层的同一句话。
+    2. **把复算性借过来。** 这块**没有** `histogram`，所以 N12/N13 那套按分布
+       复算在这里跑不了。但孪生块有分布，且它的三格已被那两条判据逐位复算过；
+       R5 把这条链传过来 —— 于是这一块**间接可复算**，而代价是零字节的重复数据。
+
+    已知盲区（必须写在这里，否则下一个人会以为 R5 比他以为的更强）：
+    真机上 `p50` 与 `p99` 同落在桶 512，此时"把 `p50` 的三格抄给 `p99`"与
+    "按 q=0.99 正确计算"**得到的结果本来相同**（P14-O 已记下同一课）。
+    所以真机证据无法区分这两种写法，只能靠变异自测（人为抬尾巴让两者分家）证伪。
+    """
+    pace = doc.get("pace")
+    if not isinstance(pace, dict):
+        report.add("R0 lateness_ns 带分辨力七格", False,
+                   "`pace` 块缺失：R 组无从判起。"
+                   "「没有 pace 块」本身就该被看见，不该静默跳过")
+        return
+
+    block = pace.get("lateness_ns")
+    if not isinstance(block, dict):
+        report.add("R0 lateness_ns 带分辨力七格", False,
+                   f"`pace.lateness_ns` 是 {type(block).__name__}：`/27` 起它必须是块")
+        return
+
+    required = LATENESS_RANGE_FIELDS + ("bucket_width_ns",)
+    missing = [key for key in required if key not in block]
+    report.add("R0 lateness_ns 带分辨力七格", not missing,
+               f"缺 {missing}：`/27` 的这一块要让每个分位数说出自己的范围，"
+               "缺了说明报告层只改了 `quantiles` 那条路" if missing
+               else f"lateness_ns 带两个三格 + `bucket_width_ns`（键名与 quantiles 逐字对齐）")
+    if missing:
+        return
+
+    # ---- R1：桶宽独立核对 ----
+    width = int(block["bucket_width_ns"])
+    report.add("R1 桶宽等于 250000", width == QUANTILE_BUCKET_WIDTH_NS,
+               f"证据 {width} vs 独立写死的 {QUANTILE_BUCKET_WIDTH_NS}："
+               "不同说明 `SignedHistogram::kBucketWidthNs` 被动过，"
+               "而那会让全部历史证据失去可比性")
+
+    # ---- R2：两个分位各自落在自己的范围里 ----
+    outside = []
+    for prefix in ("p50", "p99"):
+        value = int(block[prefix])
+        low = int(block[f"{prefix}_range_low_ns"])
+        high = int(block[f"{prefix}_range_high_ns"])
+        if not low <= value <= high:
+            outside.append((prefix, value, low, high))
+    report.add("R2 分位数落在它自己声明的范围里", not outside,
+               f"{outside}：声明的范围不含它要解释的那个数，"
+               "读者只会认定整块不可信" if outside
+               else "p50 / p99 都在各自的 [low, high] 内")
+
+    # ---- R3：桶内样本数 ----
+    samples = int(block["samples"])
+    bad_share = [(prefix, int(block[f"{prefix}_bucket_samples"]))
+                 for prefix in ("p50", "p99")
+                 if not 0 <= int(block[f"{prefix}_bucket_samples"]) <= samples]
+    report.add("R3 桶内样本数不超过总样本数", not bad_share,
+               f"{bad_share}（samples={samples}）：落在一个桶里的样本不可能多于全部样本"
+               if bad_share else "两处都 ≤ samples")
+
+    # ---- R4：没量到 ⇒ 七格全 0 ----
+    #
+    # 单向判，与 Q3 同形：量到了也可以是 0（真的零迟到），所以反过来不成立。
+    # 但**清单更长**：Q3 只守 `samples / p50 / p99 / max`，本卡新增的四格
+    # （两个范围、两个桶内样本数）不在它视野里 —— 不补这一条就是一个新的空洞。
+    if not bool(block.get("measured", False)):
+        lying = []
+        if samples != 0:
+            lying.append(f"samples={samples}")
+        for key in ("p50", "p99", "max") + LATENESS_RANGE_FIELDS:
+            if int(block[key]) != 0:
+                lying.append(f"{key}={block[key]}")
+        report.add("R4 measured=false ⇒ 七格全为 0", not lying,
+                   f"{lying} 而 measured=false：没量到却印出非零值，"
+                   "那是把'没量到'伪装成一个实测值" if lying
+                   else "没量到的块没有印出任何非零值（含新增四格）")
+    else:
+        report.add("R4 measured=false ⇒ 七格全为 0", True,
+                   "本轮 measured=true：这一条对它不设限（真零迟到也是合法的 0）")
+
+    # ---- R5：与孪生块逐位相等 ----
+    #
+    # 孪生块缺席有且只有一种合法原因：`drift_measurable == false` 时
+    # `av_drift.quantiles` 是空对象（`surface_at_time` 档正是如此）。
+    # 那种场合 R5 判"不可判" —— 措辞必须出现这三个字，不能写成一个干净的"通过"。
+    #
+    # 这里自己查一次 `quantiles.per_frame`，不复用 `check_file()` 里那个局部变量：
+    # 那一行在 `sampling` 缺失 / `mode == not_measured` 两处**提前 return 之后**。
+    # R 组完全不读 `av_drift`，就必须站在那些 return 前面（P14-N 的 Q 组第一次
+    # 写在所有 return 之后，六条判据一条都没跑到）。两次查同一个 JSON 路径
+    # 不会分家 —— 分家的是"算"，不是"取"。
+    quantiles = (doc.get("av_drift") or {}).get("quantiles") or {}
+    per_frame = quantiles.get(MODE_PER_FRAME) or {}
+    if not isinstance(per_frame, dict) or not per_frame:
+        report.add("R5 与 quantiles.per_frame 逐位相等", True,
+                   "不可判：本轮 `av_drift.quantiles` 是空对象（drift 不可测），"
+                   "没有孪生块可对。这不是一个'通过' —— 这一块的可复算性本轮无来源")
+        return
+
+    diff = [(key, block.get(key), per_frame.get(key)) for key in LATENESS_TWIN_FIELDS
+            if key not in per_frame or block.get(key) != per_frame[key]]
+    report.add("R5 与 quantiles.per_frame 逐位相等", not diff,
+               f"{diff}（`lateness_ns` vs `per_frame`）：两处印的是同一个直方图，"
+               "差异只可能来自写法不同 —— 而写法不同就会有一处是错的" if diff
+               else f"{len(LATENESS_TWIN_FIELDS)} 个数与 quantiles.per_frame 逐位相等"
+                    "（这一块的可复算性由此借用 N12/N13 的复算结果）")
+
+
+FRAME_ACCOUNTING_FIELDS = ("frames_decided", "presented", "dropped")
+
+
+def check_frame_accounting(report: Report, doc: dict[str, Any], schema: str) -> None:
+    """S0–S4：节拍侧那本账必须能加（P14-Q）。
+
+    一帧被 `arrive()` 决策之后，它的去向只有四种：呈现、丢弃、追帧、没有面。
+    前三者由 `presented` / `dropped` 记，第四种由 `video.frames_discarded_no_surface`
+    记。**四者之和必须等于 `frames_decided`** —— 不等就是有帧连去向都没有。
+
+    ── 与 Q 组 / R 组最大的不同：这一组对**全部版本**生效，不设 `_schemas_from` ──
+
+    理由不是在偷懒：这个等式从 `sync/1` 就成立，实测 213/213 份闭合。
+    本卡新增的 `undelivered_frames` 只是把差额**印出来**，判据自己现算即可，
+    不需要等新字段。按版本闸门会把 213 份证据的覆盖白白丢掉 ——
+    而 P14-M 整张卡的教训就是"别丢覆盖"：那次有 138 份证据从未被任何判据看过，
+    总收口却报四层通过。
+
+    S4 是唯一按版本闸门的一条，它守的是"/28 起这一格必须在场"。
+    """
+    pace = doc.get("pace") or {}
+    if not isinstance(pace, dict):
+        report.add("S0 节拍侧三格在场", False, "`pace` 不是对象")
+        return
+
+    missing = [key for key in FRAME_ACCOUNTING_FIELDS if not isinstance(pace.get(key), int)]
+    report.add("S0 节拍侧三格在场", not missing,
+               f"缺 {missing}：没有这三格就算不出'帧去哪了'，"
+               "而缺格会被下游读成 0（P14-M 的同一课）" if missing
+               else "frames_decided / presented / dropped 三格齐全")
+    if missing:
+        return
+
+    decided = int(pace["frames_decided"])
+    presented = int(pace["presented"])
+    dropped = int(pace["dropped"])
+    delivered = presented + dropped
+    diff = decided - delivered
+
+    # ---- 「没有面可上」的那一格住在两个不同的块里 ----
+    #
+    # `sync` 报告：`video.frames_discarded_no_surface`（解码侧的快照被整个搬进了 `video`）。
+    # `decode` 报告：`counters.frames_discarded_no_surface`（那个报告没有 `video` 块）。
+    #
+    # P14-R 之前这里**只读前者**，读不到就按 0 处理 —— 而所有解码报告在
+    # "播完了"的时候 `diff` 本来就是 0，于是那个 0 从来没显形。
+    # 第一份被打断的解码报告（`p14r-interrupt-1080p30.json`，差额 6）当场把它照出来：
+    # 6 帧的去向就写在同一个 JSON 的 `counters` 里，判据却读成"没有原因"。
+    #
+    # 这正是 S0 那句注释警告的事："缺格会被下游读成 0"—— 只不过缺的是**这一格**。
+    discarded_field = None
+    for holder, key in ((doc.get("video"), "video"), (doc.get("counters"), "counters")):
+        if isinstance(holder, dict) and isinstance(holder.get("frames_discarded_no_surface"), int):
+            discarded_field = key
+            discarded = int(holder["frames_discarded_no_surface"])
+            break
+    if discarded_field is None:
+        discarded = 0
+
+    # ---- S1：报告里那一格必须与三个源数自洽 ----
+    #
+    # 不设版本闸门（旧证据没有这一格，跳过并说明），因为它是**定义式**：
+    # `undelivered = decided − presented − dropped`。手改了这一格而没改三个源数，
+    # 报告就会印出一个加不起来的账 —— 这正是本卡要防的那种"看起来正常"。
+    if "undelivered_frames" in pace:
+        printed = pace["undelivered_frames"]
+        report.add("S1 undelivered 与三个源数自洽", printed == diff,
+                   f"报告印 undelivered={printed}，而 {decided} − {presented} − {dropped} "
+                   f"= {diff}：这一格是派生量，只能由三个源数算出来，不能单独填"
+                   if printed != diff
+                   else f"{decided} − {presented} − {dropped} = {diff}，与印出的值相等")
+    else:
+        report.add("S1 undelivered 与三个源数自洽", True,
+                   f"不可判：本轮 {schema} 没有 `undelivered_frames` 这一格"
+                   f"（/28 起才有）。现算差额为 {diff}")
+
+    # ---- S2：差额必须有一个解码侧的原因（本卡存在的理由）----
+    #
+    # 不用"差额必须为 0"：4 份 `p12d` 换面轮次的差额是 15/31/60/17，**合法**。
+    # 换面空窗期本来就不该记 presented，那些帧的去向由
+    # `frames_discarded_no_surface` 交代。写成"必须为 0"会误伤它们 ——
+    # 而判据一误伤，下一个人就会把它调松，然后就再也没人看它了。
+    #
+    # 真机反例（P14-P）：`decided=1800 / presented=84 / dropped=0`、dns=0，
+    # 差额 1716 帧没有任何原因。这一条会在那份证据上红。
+    #
+    # **差额为负时这一条让位**：`diff < 0` 是"同一帧被记了两次"，
+    # 病因在 S3。若这里也判，负差额必然 `!= dns`（dns >= 0）—— 于是 S3
+    # 永远无法单独红，而报错会指错方向（读者会去查"少记了原因"）。
+    # 判据的重叠区必须写清：每条要有**唯一**能抓它的样本。
+    if diff < 0:
+        report.add("S2 未交付帧数 = 没有面可上的帧数", True,
+                   f"不可判：差额 {diff} 为负（{presented} + {dropped} > {decided}），"
+                   "那不是'少记了原因'，是'同一帧被记了两次'—— 病因在 S3")
+    else:
+        # 一格都没找到、差额又非 0：报"缺格"而不是"帧丢了"。
+        # 两种病因的修法完全不同（一个去补字段，一个去查登记），报错要说对方向。
+        # 注意这里**不能 return**：S3/S4/S5/S6 与这一条无关，提前退出等于把它们关掉
+        # （P13-C 那次"判据写在 return 之后"是同一个病的另一种写法）。
+        if discarded_field is None and diff != 0:
+            report.add("S2 未交付帧数 = 没有面可上的帧数", False,
+                       f"差额 {diff}，而这一份里**根本没有** `frames_discarded_no_surface`"
+                       "（`video` 与 `counters` 都没有）：先确认这一格去哪了，"
+                       "再谈那几帧有没有原因")
+        else:
+            report.add("S2 未交付帧数 = 没有面可上的帧数", diff == discarded,
+                       f"差额 {diff}（{decided} 决策 − {presented} 呈现 − {dropped} 丢弃），"
+                       f"而 `frames_discarded_no_surface` = {discarded}"
+                       f"（读自 `{discarded_field}`）："
+                       f"{diff - discarded} 帧连去向都没有。这不是丢帧（那会记进 dropped），"
+                       "是决策之后、交付之前消失的帧" if diff != discarded
+                       else (f"差额 {diff} 全部由 `frames_discarded_no_surface` 交代"
+                             f"（读自 `{discarded_field}`）"
+                             if diff else f"{decided} 帧全部落地：{presented} 呈现 + {dropped} 丢弃"))
+
+    # ---- S3：账不能超（重复记账）----
+    #
+    # `delivered > decided` 只可能是一个原因：同一帧被记了两次（`presented`
+    # 或 `dropped` 里有一次是重复的）。此时差额为负 —— 而负数是一个真信息，
+    # `FramePacer::summary()` 刻意**不钳到 0**（钳掉就把病征擦了）。
+    report.add("S3 已交付帧数不超过决策帧数", delivered <= decided,
+               f"{presented} 呈现 + {dropped} 丢弃 = {delivered}，"
+               f"而 frames_decided = {decided}：超过 100% 只可能是重复记账"
+               f"（未交付 = {diff}，负号是唯一病征）"
+               if delivered > decided
+               else f"{delivered} / {decided}")
+
+    # ---- S4：`/28` 起这一格必须在场 ----
+    #
+    # 唯一按版本闸门的一条，守的是"报告层没漏印"。
+    # 与 Q/R 组不同，S1–S3 现算差额就能判，所以这里只补"出场"这一件事。
+    if schema in SCHEMA_WITH_FRAME_ACCOUNTING:
+        report.add("S4 /28 起必须印出 undelivered_frames", "undelivered_frames" in pace,
+                   "schema 是 /28 但报告里没有这一格："
+                   "读者又要在脑子里做那个减法（这正是本卡要消掉的东西）"
+                   if "undelivered_frames" not in pace
+                   else f"在场，值 {pace.get('undelivered_frames')}")
+    else:
+        report.add("S4 /28 起必须印出 undelivered_frames", True,
+                   f"不适用：本轮是 {schema}，这一格是 sync/28 新增的")
+
+
+def check_session_end(report: Report, doc: dict[str, Any], schema: str) -> None:
+    """S5–S6：这份报告说得清自己**为什么停在这里**吗（P14-R）。
+
+    ## 为什么需要这一组
+
+    报告里原本只有 `completed`（bool）与 `error`（字符串）。两者之间有一格落空：
+    「停了、没报错、也没跑完」。层 3 把这一格明确判为**静默失败** —— 判得对，
+    因为在 `/29` 之前它只有一个来源：某条链忘了写 reason。
+
+    但"被打断"不是失败。屏幕熄灭、切后台、用户退出都是正常收尾，只是没走到 EOS。
+    这个状态在 `/29` 之前**没有合法写法**：写出来是假故障，不写就什么都没发生。
+    `end_reason` 给了它名字。
+
+    ## 为什么是两条判据
+
+    S5 判"在场且合法"，S6 判"与 `completed` / `error` 不矛盾"。
+    合成一条的话，字段缺席与字段自相矛盾会报同一句话，而修法完全不同
+    （一个去补字段，一个去查派生逻辑）。判据的报错要说对病因 —— 与 S2/S3 同一条规矩。
+
+    ## 为什么它守的不是账
+
+    `end_reason` 与 `completed` / `error` 说同一件事。三者矛盾时任何一本账都还是对的，
+    错的是**叙述**。这种错不会让别的判据红 —— 它只会让读者读出一个不存在的结论，
+    而那种结论最贵（"这一轮跑完了" vs "这一轮在 6 秒时被打断"，两者的数字不该放在一起比）。
+    """
+    if schema not in SCHEMA_WITH_END_REASON:
+        report.add("S5 收尾方式在场且合法", True,
+                   f"不适用：本轮是 {schema}，`end_reason` 是 sync/29 新增的字段（旧证据不重写）")
+        report.add("S6 收尾方式与 completed/error 不矛盾", True,
+                   f"不适用：本轮是 {schema}，没有 `end_reason` 就没有第二个字段可矛盾")
+        return
+
+    reason = doc.get("end_reason")
+    present = reason in END_REASONS
+    report.add("S5 收尾方式在场且合法", present,
+               f"end_reason={reason!r}，不在 {END_REASONS} 里："
+               "认不出的收尾方式会被下游按字符串比对静默漏掉"
+               if not present else f"end_reason={reason!r}")
+
+    if not present:
+        # S5 已经红了，这里让位。两条都红会让报告出现两行同一病因，
+        # 而读者只需要知道"先补字段"。与 S2 让位给 S3 同一条理由。
+        report.add("S6 收尾方式与 completed/error 不矛盾", True,
+                   "不可判：S5 已经红了（没有合法取值就无从谈自洽）")
+        return
+
+    # 四条关系走 `tools/session_end_reason.py` 那一份 —— 与 `verify_p12_all.py`
+    # 判解码侧时用的是同一个函数。同一条规则在两个文件里各写一遍，迟早分叉。
+    problems = end_reason_problems(reason, doc.get("completed"), doc.get("error") or "")
+    report.add("S6 收尾方式与 completed/error 不矛盾", not problems,
+               "；".join(problems) if problems
+               else f"end_reason={reason!r} 与 completed={doc.get('completed')!r} 自洽")
+
+
 def check_file(path: Path) -> tuple[Report, dict[str, Any] | None]:
     report = Report(path)
     try:
@@ -1496,16 +2257,93 @@ def check_file(path: Path) -> tuple[Report, dict[str, Any] | None]:
 
     schema = doc.get("schema", "")
     if schema not in SUPPORTED_SCHEMAS:
+        # ── P14-M：分三种，不再一律「不适用」 ──
+        #
+        # 「不适用」原来是一个无差别的出口。这次统计下来 123 份证据从这个出口
+        # 溜走，而汇总里只有一句「另有 N 份不适用（不是失败）」——
+        # **一个不认识的新版本和一个旧格式，在这里长得一模一样**。
+        #
+        # 两者的性质完全不同：
+        #   · 旧版本（< /3）：字段确实不存在，判据对它没话说 —— 灰是诚实的；
+        #   · 新版本（> LATEST）：字段都在，是**脚本落后于实现** —— 灰是失职的。
+        # 后者必须红：否则下一个版本又会静默通过，这正是这一张卡的全部由来。
+        newer = _schema_version(schema) > SCHEMA_LATEST
+        if newer:
+            report.add(
+                "schema 不比脚本新",
+                False,
+                f"证据是 {schema!r}，脚本只认到 {SCHEMA_PREFIX}/{SCHEMA_LATEST}："
+                "判据落后于实现。这不是「不适用」，是**没有判据在守这一版**——"
+                f"把 tools/verify_p13d_drift.py 的 SCHEMA_LATEST 提到该版本并复跑",
+            )
+            return report, doc
         # `/1` 没有抽稀块，`/2` 有抽稀但分位数还挂在顶层（键名不带口径）。
         # 都不报失败也不报通过 —— 报"不适用"，并说明原因。
         # 判据 D1–D5 是对 `/3` 起的结构说的，拿它去判旧版只会产出一批假红。
-        report.not_applicable = (
-            f"schema 是 {schema!r}：D/E/F 判据只适用于 {SUPPORTED_SCHEMAS}"
-            "（/2 的分位数在顶层、键名不带口径，已由 /3 取代）"
+        #
+        # ── P14-Q：但 S 组（节拍侧账）对 `/1`、`/2` 有话说 ──
+        #
+        # 那个等式不依赖 `av_drift` 的任何结构，从 `/1` 就成立。而最值钱的
+        # 四条"差额非 0 且合法"的例子（15/31/60/17，换面轮次）**全在 `/1`**：
+        # 放弃这两版，S2 的"合法分支"就没有证据支撑，只剩一个从没被走过
+        # 的 `if`。所以在这里跑一遍，并用 `partial_note` 说明"只跑了这一组"。
+        check_frame_accounting(report, doc, schema)
+        report.partial_note = (
+            f"本份只跑了 S 组（节拍侧账）：schema 是 {schema!r}，早于 "
+            f"{SCHEMA_PREFIX}/{SCHEMA_MIN}，分位数相关的判据对它的结构没话说"
         )
         return report, doc
 
     report.add("schema 受支持", True, schema)
+
+    # ---- Q：`sync` 侧的可测性声明（P14-N，仅 `/25`）----
+    #
+    # **位置是判据的一部分。** 这一组读 `pace` 块，与下面全部 `av_drift` 判据
+    # 无任何依赖，所以必须放在**任何 `return` 之前**。
+    #
+    # 第一次写这张卡时它被放在函数末尾，结果是：`surface_at_time` 档的证据
+    # `av_drift.mode = not_measured`，而那条路在 F 段之前就 `return` 了 ——
+    # 于是 Q 组在**恰好最需要它的那批证据上根本没跑**，而输出仍是「全部通过」。
+    # 这正是 P14-M 那一整张卡的病：不是判据写错，是判据没被执行，而没人看得出来。
+    # 判据放在哪个位置，决定了它在哪些证据上存在。
+    if schema in SCHEMA_WITH_MEASURABILITY:
+        check_measurability(report, doc)
+    else:
+        report.add("Q 判据适用", True,
+                   f"不适用：本轮是 {schema}，`measured`/`reason` 是 sync/25 新增的字段"
+                   "（旧证据不重写）")
+
+    # ---- R：`pace.lateness_ns` 的分辨力（P14-P，仅 `/27`）----
+    #
+    # 与 Q 同一位置、同一理由：这一组读 `pace` 块与 `av_drift.quantiles`，
+    # **不读** `sampling` / `trend`，所以必须站在下面所有 `return` 之前。
+    # Q 组当年吃过一次"写在 return 之后，在最需要它的证据上根本没跑"；
+    # 门闩 `>= /27` 决定它适用哪些证据**版本**，位置决定它在哪些证据**形态**上存在。
+    if schema in SCHEMA_WITH_LATENESS_RANGE:
+        check_lateness_range(report, doc)
+    else:
+        report.add("R 判据适用", True,
+                   f"不适用：本轮是 {schema}，`lateness_ns` 的分辨力三格是 sync/27 "
+                   "新增的字段（旧证据不重写）")
+
+    # ---- S：节拍侧的账必须能加（P14-Q，全版本）----
+    #
+    # **这一组不设版本闸门**：`frames_decided == presented + dropped +
+    # frames_discarded_no_surface` 从 `/3` 起就成立（实测 213/213），
+    # 判据自己现算即可。只有 S4（"这一格必须在场"）按 `/28` 闸。
+    # 丢开这 213 份的覆盖，就是 P14-M 那张卡的全部教训。
+    #
+    # 位置同样在所有 `return` 之前：它只读 `pace` / `video` 两块，与 `av_drift` 无关。
+    check_frame_accounting(report, doc, schema)
+
+    # ---- S5–S6：收尾方式（P14-R，`/29` 起）----
+    #
+    # 与 S 组同一位置、同一理由：只读顶层 `end_reason` / `completed` / `error`，
+    # 与 `av_drift` 无关，所以必须站在下面所有 `return` 之前。
+    #
+    # 这两条**不**改变 S 组的严格性：被打断的报告照样要账闭合（S2 对三种收尾
+    # 一视同仁）。`end_reason` 免除的只是层 3 那句"你有没有报错"。
+    check_session_end(report, doc, schema)
 
     drift = doc.get("av_drift", {})
 
@@ -1803,6 +2641,12 @@ def check_file(path: Path) -> tuple[Report, dict[str, Any] | None]:
     if schema in SCHEMA_WITH_QUANTILE_RESOLUTION:
         check_quantile_resolution(report, quantiles, trend)
 
+    # ---- N8–N13：`p99` 的精度（P14-O，仅 `/26`）----
+    # 单独一组、单独门槛：`/12`–`/25` 的证据里 `p99` 是裸整数，
+    # 拿新判据去判只会产出一批假红，而那正是 P14-M 修掉的东西。
+    if schema in SCHEMA_WITH_P99_RANGE:
+        check_p99_resolution(report, quantiles, trend)
+
     # ---- F：最差那一下在哪儿（P13-F，仅 `/4`）----
     #
     # 放在最后是因为它依赖 quantiles 两个口径块都已就位。
@@ -1833,6 +2677,21 @@ def check_file(path: Path) -> tuple[Report, dict[str, Any] | None]:
 def frame_rate_of(doc: dict[str, Any]) -> float:
     duration = int(doc.get("pace", {}).get("frame_duration_ns", 0))
     return (1e9 / duration) if duration > 0 else 0.0
+
+
+def p99_range_of(doc: dict[str, Any]) -> tuple[int, int] | None:
+    """这一份证据说的 `p99` 可能落在什么范围（`/26` 起才有）。
+
+    `None` 表示"这一版没说" —— 与 `(0, 0)` 是两件事：后者是"范围退化成一个点"，
+    那是**更准**（溢出区返回精确极值），不是缺数据。用一个返回值代表两种情况，
+    配对池就会把"没有范围"和"范围极窄"当成同一回事。
+    """
+    block = ((doc.get("av_drift") or {}).get("quantiles") or {}).get(MODE_DECIMATED)
+    if not isinstance(block, dict):
+        return None
+    if "p99_range_low_ns" not in block or "p99_range_high_ns" not in block:
+        return None
+    return int(block["p99_range_low_ns"]), int(block["p99_range_high_ns"])
 
 
 def check_pair(reports: list[Report], docs: list[dict[str, Any]]) -> None:
@@ -1881,6 +2740,42 @@ def check_pair(reports: list[Report], docs: list[dict[str, Any]]) -> None:
         fast_docs = by_fps[fast]
         label = f"{width}x{height} {duration / 1e6:.0f}s"
 
+        # ── P14-O：只比同一个版本量出来的数 ──
+        #
+        # 一组里只要有一份带 `p99` 范围（`/26` 起），就只用带范围的那些。
+        # 不同 schema = 不同量具。把两把尺量出的数一起取中位数，得到的是
+        # **混合物的中位数** —— 这正是 P13-C 第一版"把所有 30fps 放一桶"
+        # 犯的错，只是换了个维度（那次混的是分辨率，这次混的是量具版本）。
+        #
+        # 份数下降本身是一个结论，所以打印出来，不安静地发生。
+        pool = slow_docs + fast_docs
+        ranged = [doc for doc in pool if p99_range_of(doc) is not None]
+        pool_note = ""
+        if ranged and len(ranged) < len(pool):
+            keep = {id(doc) for doc in ranged}
+            dropped_slow = len([doc for doc in slow_docs if id(doc) not in keep])
+            dropped_fast = len([doc for doc in fast_docs if id(doc) not in keep])
+            slow_docs = [doc for doc in slow_docs if id(doc) in keep]
+            fast_docs = [doc for doc in fast_docs if id(doc) in keep]
+            pool_note = (
+                f"只比 {len(ranged)}/{len(pool)} 份带 `p99` 范围的证据"
+                f"（{slow}fps 去掉 {dropped_slow} 份、{fast}fps 去掉 {dropped_fast} 份："
+                "`/26` 之前的证据没有 p99 范围，混进来就是混合物的中位数）"
+            )
+            if not slow_docs or not fast_docs:
+                # 一侧被清空 ⇒ 两个判据都无从谈起。不能只报 D2：
+                # D1 的 `rate([])` 会返回 0.0，然后拿 0 去比，判出一个假失败。
+                for code, what in (("D1", "抽稀节奏"),
+                                   ("D2", f"{MODE_DECIMATED}/p99 比值")):
+                    skipped = Report(Path(code))
+                    skipped.label = f"{code} {what}（{label}，{slow} vs {fast}fps）"
+                    skipped.not_applicable = (
+                        f"按版本过滤后有一侧为空（{pool_note}）："
+                        "同版本的两个帧率凑不齐，这一轮没有可比的一对"
+                    )
+                    reports.append(skipped)
+                continue
+
         def rate(items: list[dict[str, Any]]) -> float:
             values = []
             for doc in items:
@@ -1923,17 +2818,92 @@ def check_pair(reports: list[Report], docs: list[dict[str, Any]]) -> None:
         raw_slow = statistics.median([p99_of(d, MODE_PER_FRAME) for d in slow_docs])
         raw_fast = statistics.median([p99_of(d, MODE_PER_FRAME) for d in fast_docs])
         ratio = fast_p99 / slow_p99 if slow_p99 > 0 else float("inf")
-        # 判据名与输出一律带口径前缀：这张表存在的理由就是"不混口径"，
-        # 那它自己更不该写出一个不带口径的 p99。
+
+        def bucket_width_of(doc: dict[str, Any]) -> int:
+            quantile = doc["av_drift"]["quantiles"][MODE_DECIMATED]
+            return int(quantile.get("bucket_width_ns", 0))
+
+        # ── P14-O：三段式 —— 用区间判，不用形容词 ──
+        #
+        # P13-C 立的判据：抽稀口径下 60fps 的 p99 不应超过 30fps 的 2 倍。
+        # P14-M 发现这条判据在真机上**判不了**，当时的处理是写一句
+        # `not_applicable`，理由是手算的"区间能差 20 倍"。那句话读者核对不了：
+        # `/25` 的 JSON 里 `p99` 是个裸整数，既没说它是桶中心，也没说桶有多宽。
+        #
+        # `/26` 起 `p99` 自带范围，于是"不可判"可以算出来：
+        #
+        #     ratio_lo = fast_lo / slow_hi    最有利于"没漂移"的读法
+        #     ratio_hi = fast_hi / slow_lo    最不利于"没漂移"的读法
+        #
+        #   区间整个在门槛之上 → 失败（换个读法也过不了）
+        #   区间整个在门槛之下 → 通过
+        #   区间跨过门槛       → 不可判，但把区间印出来
+        #
+        # 第三种仍然是"不可判"，本卡没有把它变成可判 —— 改的是证据等级：
+        # 从一句话，变成一个别人能算出同一个数的区间。
         d2 = Report(Path("D2"))
         d2.label = f"D2 {MODE_DECIMATED}/p99 比值（{label}，{slow} vs {fast}fps）"
-        d2.add(
-            f"D2 {MODE_DECIMATED}/p99：{fast}fps ≤ {slow}fps 的 2x",
-            ratio <= 2.0,
-            f"{fast_p99 / 1e6:.3f} ms / {slow_p99 / 1e6:.3f} ms = {ratio:.2f}x"
-            f"（{MODE_PER_FRAME}/p99 {raw_fast / 1e6:.3f} / {raw_slow / 1e6:.3f} ms = "
-            f"{raw_fast / raw_slow if raw_slow else 0:.2f}x，仅作对照、不参与判定）",
-        )
+        name = f"D2 {MODE_DECIMATED}/p99：{fast}fps ≤ {slow}fps 的 2x"
+        suffix = f"；{pool_note}" if pool_note else ""
+
+        slow_ranges = [p99_range_of(doc) for doc in slow_docs]
+        fast_ranges = [p99_range_of(doc) for doc in fast_docs]
+        if all(item is not None for item in slow_ranges + fast_ranges):
+            slow_lo = statistics.median([item[0] for item in slow_ranges])
+            slow_hi = statistics.median([item[1] for item in slow_ranges])
+            fast_lo = statistics.median([item[0] for item in fast_ranges])
+            fast_hi = statistics.median([item[1] for item in fast_ranges])
+            ratio_lo = fast_lo / slow_hi if slow_hi > 0 else float("inf")
+            ratio_hi = fast_hi / slow_lo if slow_lo > 0 else float("inf")
+            detail = (
+                f"{fast_p99 / 1e6:.3f} ms / {slow_p99 / 1e6:.3f} ms = {ratio:.2f}x"
+                f"（点估计）；按范围读是 [{ratio_lo:.2f}x, {ratio_hi:.2f}x]"
+                f"（{slow}fps ∈ [{slow_lo}, {slow_hi})，"
+                f"{fast}fps ∈ [{fast_lo}, {fast_hi})）"
+            )
+            if ratio_lo > 2.0:
+                d2.add(name, False,
+                       detail + "：区间整个在门槛之上 —— 换个读法也过不了")
+            elif ratio_hi <= 2.0:
+                d2.add(name, True, detail + "：区间整个在门槛之下")
+            else:
+                # 下界正好压线要单独说：`ratio_lo == 2.0` 意味着最乐观的读法
+                # 也只是"恰好等于门槛"，任何量化误差都会让它超过去。
+                # 这不是巧合 —— 两侧 p99 分别落在桶 512 与 514 时，
+                # 下界就是两个桶界之比（500000 / 250000）。
+                flush = ""
+                if ratio_lo >= 2.0:
+                    flush = ("；下界正好等于门槛 2.0x —— 最乐观的读法也没有余量，"
+                             "真正要改的是桶宽（250 µs 比 30fps 侧的真值还大 8 倍）")
+                d2.not_applicable = detail + f"：区间跨过门槛 2.0x ⇒ 不可判{flush}{suffix}"
+        else:
+            # 老证据（`/26` 之前没有范围）：退回 P14-M 那条分辨力地板。
+            # 这条分支留着不是为了兼容 —— 是历史证据不重写，
+            # 而"重写旧证据让它符合新判据"就是伪造。
+            floor_ns = max([bucket_width_of(doc) for doc in slow_docs + fast_docs] or [0])
+            if floor_ns > 0 and (slow_p99 <= floor_ns or fast_p99 <= floor_ns):
+                at_floor = []
+                if slow_p99 <= floor_ns:
+                    at_floor.append(f"{slow}fps 的 p99 = {slow_p99 / 1e6:.3f} ms")
+                if fast_p99 <= floor_ns:
+                    at_floor.append(f"{fast}fps 的 p99 = {fast_p99 / 1e6:.3f} ms")
+                d2.not_applicable = (
+                    f"分辨力不足：{'、'.join(at_floor)}，落在桶宽 "
+                    f"{floor_ns / 1e6:.3f} ms 的桶里 —— 真实取值可以是整个桶里的"
+                    f"任何一个，商算出来是 {ratio:.2f}x 但区间能差 20 倍。"
+                    "这一对里没有 `/26` 的证据（p99 自带范围），所以判不了"
+                )
+            else:
+                # 判据名与输出一律带口径前缀：这张表存在的理由就是"不混口径"，
+                # 那它自己更不该写出一个不带口径的 p99。
+                d2.add(
+                    name,
+                    ratio <= 2.0,
+                    f"{fast_p99 / 1e6:.3f} ms / {slow_p99 / 1e6:.3f} ms = {ratio:.2f}x"
+                    f"（{MODE_PER_FRAME}/p99 {raw_fast / 1e6:.3f} / "
+                    f"{raw_slow / 1e6:.3f} ms = "
+                    f"{raw_fast / raw_slow if raw_slow else 0:.2f}x，仅作对照、不参与判定）",
+                )
         reports.append(d2)
 
 
@@ -1962,14 +2932,24 @@ def main(argv: list[str]) -> int:
     check_pair(reports, docs)
 
     failed = 0
-    skipped = 0
+    covered = 0
+    # ── P14-M：不适用必须**点名**，不能只给一个总数 ──
+    #
+    # 原来这里只印一句「另有 N 份不适用（不是失败）」。这句话在 123 份证据
+    # 从出口溜走的那一版里也照样印着，读起来像"一切正常，只是有几份用不上"。
+    # 改成按**理由**分组列出来：哪些文件、多少份、为什么 —— 灰也必须是**可查的灰**。
+    skipped: dict[str, list[Report]] = {}
     for report in reports:
         if report.not_applicable:
-            print(f"\n– {report.label}：不适用（{report.not_applicable}）")
-            skipped += 1
+            skipped.setdefault(report.not_applicable, []).append(report)
             continue
+        covered += 1
         status = "✓" if not report.failed else "✗"
         print(f"\n{status} {report.label}")
+        # 部分适用必须印出来：一张写着"✓"的小节，如果不说它只跑了六条，
+        # 读者会以为全部判据都过了 —— 那是另一种假绿。
+        if report.partial_note:
+            print(f"  （{report.partial_note}）")
         for name, ok, detail in report.rows:
             mark = "  ✓" if ok else "  ✗"
             line = f"{mark} {name}"
@@ -1979,8 +2959,15 @@ def main(argv: list[str]) -> int:
         failed += len(report.failed)
 
     print()
+    print(f"覆盖：{covered} 份（判据真的跑了）")
     if skipped:
-        print(f"另有 {skipped} 份不适用（不是失败）。")
+        total = sum(len(items) for items in skipped.values())
+        print(f"不适用：{total} 份 —— **这不是通过**，只是这些判据对它们没话说：")
+        for reason, items in sorted(skipped.items(), key=lambda pair: -len(pair[1])):
+            names = "、".join(item.label for item in items[:3])
+            suffix = f" 等 {len(items)} 份" if len(items) > 3 else ""
+            print(f"  · {len(items):3d} 份：{names}{suffix}")
+            print(f"        理由 —— {reason}")
     if failed:
         print(f"结论：{failed} 项未通过。")
         return 1

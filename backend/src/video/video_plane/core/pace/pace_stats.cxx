@@ -30,19 +30,42 @@ void PaceStats::note_presented(std::int64_t lateness_ns, std::int64_t media_ns,
 
     // P13-R：四个跨度。首个呈现帧定原点，之后每帧刷新末值 ——
     // 与累积账不同，这里只关心"整段走了多远"，不关心逐帧差。
-    if (!has_span_) {
-        has_span_ = true;
-        first_arrive_mono_ns_ = step.clock_mono_ns;
-        first_elapsed_ns_ = step.clock_elapsed_ns;
-        first_due_ns_ = step.due_at_ns;
-        first_pts_ns_ = media_ns;
-    }
-    last_arrive_mono_ns_ = step.clock_mono_ns;
-    last_elapsed_ns_ = step.clock_elapsed_ns;
-    last_due_ns_ = step.due_at_ns;
-    last_pts_ns_ = media_ns;
+    //
+    // P14-U：**整段挪进了"有钟读数"的分支**。原来它在分支外面，于是
+    // `surface_at_time` 或任何"第一帧还没钟"的轮次会把 0 当基准，
+    // 算出的 `clock_lead_ns` 是 `last_elapsed − last_mono`（一个凭空多出几秒的数）。
+    // 全帧都有读数的轮次行为**逐位不变**（每帧都进这个分支），
+    // 所以 P14-T 那 110 份证据的数一个没动 —— 判据 U1 现在能要求逐位相等。
     if (step.due_at_ns != 0) {
         ++clock_supplied_frames_;
+
+        if (!has_span_) {
+            has_span_ = true;
+            first_arrive_mono_ns_ = step.clock_mono_ns;
+            first_elapsed_ns_ = step.clock_elapsed_ns;
+            first_due_ns_ = step.due_at_ns;
+            first_pts_ns_ = media_ns;
+        }
+        last_arrive_mono_ns_ = step.clock_mono_ns;
+        last_elapsed_ns_ = step.clock_elapsed_ns;
+        last_due_ns_ = step.due_at_ns;
+        last_pts_ns_ = media_ns;
+
+        // P14-U：两个参考系。
+        //
+        // 门用的是 `due_at_ns != 0`，与上一行**同一个门**，不另立一套 ——
+        // 两个门写在两处，迟早会在 `surface_at_time` 这种"只给一半"的档上分家。
+        //
+        // 为什么必须在这个分支里喂：那个档不带钟读数，把 480 个 0 喂进来会让
+        // `max_step_ns = 0`、`verdict = steady` —— 一个漂亮、自信、完全假的观测。
+        if (step.frame_duration_ns > 0) {
+            lead_trace_.set_frame_duration(step.frame_duration_ns);
+        }
+        const std::int64_t lead_ns =
+            lead_trace_.note(step.clock_elapsed_ns, step.clock_mono_ns);
+        // `W = L − lead`。两个数各自独立测出来（一个来自交出时刻，一个来自钟与墙），
+        // 所以这个减法有内容，不是同义反复。
+        wall_offset_.note(lateness_ns - lead_ns, media_ns);
     }
 
     lateness_.add(lateness_ns);
@@ -210,7 +233,16 @@ PaceSummary PaceStats::summary(std::int64_t frame_duration_ns, ClockHealth healt
     out.elapsed_span_ns = last_elapsed_ns_ - first_elapsed_ns_;
     out.due_span_ns = last_due_ns_ - first_due_ns_;
     out.pts_span_ns = last_pts_ns_ - first_pts_ns_;
+    // P14-T：钟相对墙的领先量。派生，不是测量 —— 但它必须在这里算，
+    // 因为这是唯一同时握着两个跨度的层；渲染层只负责写出去。
+    out.clock_lead_ns = out.elapsed_span_ns - out.arrive_mono_span_ns;
     out.clock_supplied_frames = clock_supplied_frames_;
+    // P14-U：参考系的第二份。顺序有意为之 —— `span_ns` 从 `lead_trace` 出，
+    // 上界又用它，所以 `lead_trace` 必须先算完。写成两行就不会有人调换。
+    out.lead_trace = lead_trace_.summary();
+    out.wall_offset = wall_offset_.summary();
+    out.wall_reference_bound_ns =
+        wall_reference_bound_ns(frame_duration_ns, out.lead_trace.span_ns);
     out.clock_primary_frames = clock_primary_frames_;
     out.clock_fallback_frames = clock_fallback_frames_;
     out.clock_system_frames = clock_system_frames_;
@@ -234,6 +266,18 @@ PaceSummary PaceStats::summary(std::int64_t frame_duration_ns, ClockHealth healt
     if (frame_duration_ns > 0) {
         out.over_budget_frames = lateness_.count_abs_beyond(frame_duration_ns);
     }
+    // ── 派生量各自量到没有（P14-L）──
+    //
+    // 三格在这里填，第四格（`catch_up_measured`）在 `FramePacer::summary()`：
+    // `frames_decided` 由节拍器记账，这个类看不到它。
+    out.present_timestamp_measured = (latency_samples_ > 0)
+                                         ? measured_ok()
+                                         : measured_missing(kNoPresentTimestampReason);
+    // `over_budget_frames` 是 `lateness_` 的派生量，所以它的可测性与上游**同源**。
+    // 这里复制而不是重判：重判意味着"空直方图"这个条件被写在两个地方，
+    // 而两处条件迟早会分家（P13-H 的 `observed_hz` 就是这么栽的）。
+    out.over_budget_measured = out.present_timestamp_measured;
+    out.drop_ratio_measured = (total > 0) ? measured_ok() : measured_missing(kNoDenominatorReason);
     return out;
 }
 

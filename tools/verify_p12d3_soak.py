@@ -234,7 +234,9 @@ def check_sync(sync: dict) -> None:
     而"播放速率是否实时"这条判据只在那里。两个 schema 各管一摊，不硬凑。
     """
     timeline = sync["timeline"]
-    rate = float(timeline["playback_rate"])
+    # P14-S：`/30` 起改名（旧名 `playback_rate` 的分子是帧数，不是媒体时间）。
+    # 两个名字都认 —— 本脚本读的是 D3 长稳的历史证据。
+    rate = float(timeline.get("nominal_rate", timeline.get("playback_rate")))
     span = timeline["present_wall_span_ns"] / 1e9
     print(f"\n合并报表（kivo.p12c.sync/1）：")
     print(f"  播放速率 {rate:.6f}，呈现跨度 {span:.2f}s（片源 1800s）")

@@ -39,6 +39,14 @@ DecodePaceStats decode_pace_stats_from(const core::pace::PaceSummary& summary,
 
     out.over_budget_frames = summary.over_budget_frames;
 
+    // P14-L：可测性原样转发。这一层**不重新判断**任何条件 ——
+    // 判断属于 `core::pace`（那里知道 `lateness_` 有没有样本、
+    // `frames_decided_` 是多少）。这里再判一次，就是第二份条件。
+    out.present_timestamp_measured = summary.present_timestamp_measured;
+    out.over_budget_measured = summary.over_budget_measured;
+    out.catch_up_measured = summary.catch_up_measured;
+    out.drop_ratio_measured = summary.drop_ratio_measured;
+
     out.scheduled_samples = summary.scheduled_samples;
     if (summary.schedule_lead.count() > 0) {
         out.schedule_lead_p01_ns = summary.schedule_lead.percentile_ns(0.01);

@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <string>
 
+#include "video/video_plane/core/pace/pace_measurability.hpp"
+
 namespace kivo::video::mediacodec {
 
 /// 节拍相关的度量，作为 `DecodeStats` 的一部分进证据。
@@ -57,6 +59,19 @@ struct DecodePaceStats {
 
     /// `|lateness| > frame_duration` 的帧数。G6 的"抖动超过一帧"看它。
     std::int64_t over_budget_frames = 0;
+
+    // ---- 派生量各自量到没有（P14-L）----
+    //
+    // 由 `core::pace::PaceSummary` 原样转发，理由字符串是静态字面量 ——
+    // 渲染层直接写出去，不再自己判断、不再自己造句子。
+    //
+    // 为什么不在渲染层判：那会让"空直方图"这个条件被写在两个地方
+    // （`core/pace` 一处、`mediacodec` 一处），而两处条件迟早会分家。
+    // 判断属于知道这个数怎么来的那一层。
+    core::pace::MeasuredCounter present_timestamp_measured{};
+    core::pace::MeasuredCounter over_budget_measured{};
+    core::pace::MeasuredCounter catch_up_measured{};
+    core::pace::MeasuredCounter drop_ratio_measured{};
 
     // ---- 提交提前量（P12-C7，仅 `surface_at_time` 路径有样本）----
     //

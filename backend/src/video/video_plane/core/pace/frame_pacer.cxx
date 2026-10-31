@@ -253,7 +253,20 @@ void FramePacer::reset() noexcept {
 PaceSummary FramePacer::summary() const noexcept {
     PaceSummary out = stats_.summary(frame_duration_ns_, tracker_.last_health());
     out.frames_decided = frames_decided_;
+    // P14-Q：这一格只能在这里算 —— `frames_decided_` 是节拍器私有的，
+    // `PaceStats::summary()` 里它恒为 0，算出来的"未交付"会是 `−presented −dropped`。
+    // 同一个理由让 P14-L 把 `catch_up_measured` 也放在这里。
+    //
+    // **不钳到 0**：负数意味着 `presented + dropped > frames_decided`，
+    // 那是重复记账（同一帧被记了两次）—— 一个真缺陷。钳掉就把它藏起来，
+    // 而判据 S3 正是拿这个符号当病征。让负数活着，让判据去红。
+    out.undelivered_frames = frames_decided_ - out.presented - out.dropped;
     out.catch_up_events = catch_up_events_;
+    // P14-L：`catch_up` 两格的可测性只能在这里判 —— `frames_decided` 是节拍器私有的，
+    // `PaceStats::summary()` 看不到它（那里它恒为 0，判出来的永远是"没决策过"）。
+    // 放在"确实知道"的那一层，是 P13-M `note_anchor_reset()` 的同一个做法。
+    out.catch_up_measured = (frames_decided_ > 0) ? measured_ok()
+                                                  : measured_missing(kNoDecisionsReason);
     out.jump_rebases = tracker_.jump_rebases();
     out.stale_readings = tracker_.stale_readings();
     out.backward_clamps = tracker_.backward_clamps();
@@ -264,6 +277,7 @@ PaceSummary FramePacer::summary() const noexcept {
     out.anchor_position_ns = tracker_.anchor_position_ns();
     // P13-AD：把门的配置一并出版。校验器据此复算，不再硬编码 45/5；
     // 关着门的对照组也不会被误读成"门没触发"。
+    out.drift_rebase_trace = tracker_.rebase_trace();
     out.drift_gate_enabled = policy_.drift_gate_enabled;
     out.drift_limit_ns = policy_.drift_limit_ns;
     out.drift_band_ns = policy_.drift_band_ns;

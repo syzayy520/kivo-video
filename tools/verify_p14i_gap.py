@@ -14,6 +14,14 @@ P7 不自称测到   `lateness_ns.measured == (samples > 0)`，`measured=false` 
               不出版样本数与理由，"没测到"就会被读成"零延迟"。
 P8 有替代证据   `measured=false` 时 `schedule_lead_ns.samples > 0` ——
               否则这一档连"提交得多准时"都没有，G7 在这一档等于完全空白。
+P9 派生链同源   `over_budget_frames_measured == lateness_ns.measured`。
+              前者从后者的直方图数出来；两条链各判一次必然分家，
+              分家后证据会同时说"没量到"和"量到了"，而读者只看见后者。
+P10 分母自洽    `catch_up_measured == (frames_decided > 0)`、
+              `drop_ratio_measured == (presented + dropped > 0)`。
+P11 理由不许空  每格 `measured=true` 不许带理由（自相矛盾）；
+              `measured=false` 必须有理由，且不能是那句默认证词
+              （出现即说明这一格从来没被赋值）。
 P6 分段不重复计  `worst_pace_ns + worst_release_ns <= worst_pump_ns + 1 ms`
               —— pace/release 是 pump 的内部，超过就是把同一段时间算了两次
 
@@ -26,6 +34,11 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+
+# `MeasuredCounter::reason` 的 C++ 默认值（`core/pace/pace_measurability.hpp`）。
+# **必须逐字相等** —— 写成"从证据里读回来再和它自己比"就等于没判。
+# 它出现在证据里只有一个含义：某条链忘了赋值。
+UNSPECIFIED_REASON = "unmeasured without a recorded reason"
 
 EDGES_NS = [
     8_000_000,
@@ -115,6 +128,76 @@ def verify(path: Path) -> str | None:
             f"P6 pace+release({inner / 1e6:.1f} ms) 超过 pump"
             f"({int(gap['worst_pump_ns']) / 1e6:.1f} ms)：嵌套段被重复计入"
         )
+
+    # ── P9/P10/P11：派生计数不许"沉默的零"（decode/18 起才有这三格）──
+    #
+    # P14-K 只给 `lateness_ns` 补了 `measured`，而 `over_budget_frames`
+    # 是**从同一个空直方图数出来的** —— 在 `surface_at_time` 档里它恒为 0，
+    # 而 0 是 G6 最好看的值。这一组守的就是那条派生链。
+    if schema_index >= 18:
+        pace = document["pace"]
+
+        # ---- P9：派生链同源 ----
+        #
+        # 这条不判"值对不对"，判的是**两条链有没有分家**。分家的形态很具体：
+        # `lateness.measured = false` 却 `over_budget_frames_measured = true`，
+        # 于是证据同时说着"没量到"和"量到了"，而读者只会看见后者。
+        if "over_budget_frames_measured" not in pace:
+            raise Failure("P9 缺 over_budget_frames_measured：`/18` 必须带这一格")
+        # 独立读一次上游，不复用 P7 里的局部变量：P7 只在 `>= 17` 时执行，
+        # 借用它的变量会让这条判据的成立依赖另一条判据有没有被跳过。
+        lateness_measured = bool(document["pace"]["lateness_ns"].get("measured", False))
+        over_measured = bool(pace["over_budget_frames_measured"])
+        if over_measured != lateness_measured:
+            raise Failure(
+                f"P9 over_budget_frames_measured={over_measured} 与 "
+                f"lateness_ns.measured={lateness_measured} 不一致 —— "
+                "前者是从后者的直方图数出来的，两条链各判一次必然分家"
+            )
+        if not over_measured and int(pace["over_budget_frames"]) != 0:
+            raise Failure(
+                f"P9 没量到却报 over_budget_frames={pace['over_budget_frames']}："
+                "空直方图数不出非零而是一个有内容的数"
+            )
+
+        # ---- P10：分母自洽 ----
+        decided = int(pace["frames_decided"])
+        catch_up_measured = bool(pace["catch_up_measured"])
+        if catch_up_measured != (decided > 0):
+            raise Failure(
+                f"P10 catch_up_measured={catch_up_measured} 与 "
+                f"frames_decided={decided} 不一致 —— 一帧都没决策过就不会有追赶事件"
+            )
+        total_frames = int(pace["presented"]) + int(pace["dropped"])
+        ratio_measured = bool(pace["drop_ratio_measured"])
+        if ratio_measured != (total_frames > 0):
+            raise Failure(
+                f"P10 drop_ratio_measured={ratio_measured} 而 "
+                f"presented+dropped={total_frames}：分母为 0 时那个 0.0 不是"
+                "「零丢帧」，是无定义"
+            )
+
+        # ---- P11：没量到就必须说清为什么，且不许用那句证词 ----
+        #
+        # `UNSPECIFIED_REASON` 是 `MeasuredCounter::reason` 的默认值 ——
+        # 它出现在证据里只有一个含义：某条链忘了填。那不是"理由写得短"，
+        # 是"这一格从来没被赋值"，必须当场拦下。
+        for prefix, flag in (
+            ("over_budget_frames", over_measured),
+            ("catch_up", catch_up_measured),
+            ("drop_ratio", ratio_measured),
+        ):
+            reason = str(pace.get(f"{prefix}_reason", "")).strip()
+            if flag:
+                if reason:
+                    raise Failure(f"P11 {prefix}_measured=true 却带了理由 {reason!r}：自相矛盾")
+                continue
+            if not reason:
+                raise Failure(f"P11 {prefix}_measured=false 却没有 reason")
+            if reason == UNSPECIFIED_REASON:
+                raise Failure(
+                    f"P11 {prefix} 的理由就是那句默认证词 —— 说明这一格忘了赋值"
+                )
 
     return (
         f"{path.name}: OK  iters={iterations} long={long_gaps} "

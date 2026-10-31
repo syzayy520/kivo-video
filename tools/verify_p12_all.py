@@ -28,6 +28,11 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# 脚本目录进 `sys.path`：`session_end_reason` 是与子校验器共用的库，不是校验器本身。
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from session_end_reason import END_REASONS, end_reason_problems  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 EVIDENCE = ROOT / "docs" / "evidence"
 
@@ -60,7 +65,67 @@ SYNC_QUANTILE_BLOCK_SCHEMAS = (
     "kivo.p12c.sync/22",  # P14-G 中间形态：只有残差尾部（不参与判定，见 p14g/pre）
     "kivo.p12c.sync/24",  # P14-J：tail 加 span_ns 与长间隔发生位置
     "kivo.p12c.sync/23",  # P14-G 终版：+ 观测间隔 / 候选步长（钳制的充分条件）
+    # `av_drift` 的结构在 `/25` 一个字没变（P14-N 只动 `pace` 块），所以这一版
+    # 仍然走分块口径。**加这一行时全量校验是绿的** —— 因为 `/25` 的证据还不存在，
+    # 没有任何一份文件能让这条遗漏显形。这正是"用存在性推断不存在性"：
+    # 绿的证据不是"没问题"，是"还没有东西能暴露它"。
+    "kivo.p12c.sync/25",  # P14-N：pace 两处 measured/reason（不动 av_drift）
+    # P14-O：`p99` 后接三格范围。`av_drift` 的分块结构仍然没变。
+    "kivo.p12c.sync/26",
+    # P14-P：`pace.lateness_ns` 从裸数改成块。**只在 `pace` 块里加字段**，
+    # `av_drift` 的结构依然没变 —— 所以这一版继续走分块口径。
+    # 这个块是与 `quantiles.per_frame` 同一个直方图的第二次印刷，
+    # 两遍的 11 个数由 `verify_p13d_drift.py` 的 R5 逐位钉住。
+    "kivo.p12c.sync/27",
+    # P14-Q：`pace` 块加一格 `undelivered_frames`。**只加在 `pace` 块里**，
+    # `av_drift` 的结构依然没变 —— 这一版继续走分块口径。
+    "kivo.p12c.sync/28",
+    # P14-R：顶层 `completed` 后补一格 `end_reason`。**只加顶层一格**，
+    # `av_drift` 与 `pace` 都没动 —— 所以这一版继续走分块口径。
+    #
+    # 这张卡的教训值得单记一句：加这一行时全量校验是**红**的
+    # （`可测却没有样本: samples=None`），因为 `/29` 进了 `KNOWN_SCHEMAS`
+    # 却没进这张表 —— 两张表只更新一张，正是 P13-F 的老病第四次发作。
+    "kivo.p12c.sync/29",
+    # P14-S：`timeline` 的分子改名 + 补实测跨度。`av_drift` 与 `pace` 的结构
+    # 一个字没动 —— 所以这一版继续走分块口径。
+    #
+    # 这张卡的教训和上一张是**同一条**，但换了方向：上一张是"加了白名单忘了这张表"，
+    # 这一张是"这张表更新了，喂给子校验器的文件清单还是只有 p12c/"——
+    # `verify_p12c_sync` 放开到 /1–/30 之后，若层 4 仍只喂 27 份，
+    # 那 189 份照样没人判，而输出上完全看不出来。清单与版本范围必须一起改。
+    "kivo.p12c.sync/30",
+    #
+    # P14-T 只加一格 `clock_lead_ns`，`av_drift` 与 `quantiles` 一个字没动 ——
+    # 这一版继续走分块口径。**两张表这次一起改的**，并且换了个方向记：
+    # 上一张的教训是"两张表要一起改"，这一张的教训是"**加一格派生量也要过这两张表**"——
+    # 一个只在 `pace` 里多出来的整数，看起来和分块口径毫无关系，可它恰恰是
+    # `KNOWN_SCHEMAS` 与这张表最容易漏的一类。
+    "kivo.p12c.sync/31",
+    # P14-U：`pace` 补 `clock_lead_trace`、`av_drift` 补 `reference` 与 `vs_wall`。
+    # **`av_drift.quantiles` 的结构一个字没动** —— 这一版继续走分块口径；
+    # 新加的 `vs_wall` 是兄弟键，不是新的分位数口径，所以不进这张表。
+    # （反过来，`clock_lead_trace` 也不是分布，同样不进。）
+    "kivo.p12c.sync/32",
+    # P14-V：`drift_gate` 补三对换算字段。**`av_drift.quantiles` 的结构没动** ——
+    # 这一版换的是"门限有多严"的量纲，不是任何分布。
+    "kivo.p12c.sync/33",
+    # P14-W：**没有任何分布结构变化**。这一版只改了一个换算字段的语义 ——
+    # 门动过之后 `limit_reach_s` 判"不可算"并给理由（实测 49 次复位 vs 63.6 s）。
+    "kivo.p12c.sync/34",
+    # P14-X：顶层多 `drift_rebase_trace`（每一笔复位的时刻与幅度）。
+    # **分布结构仍然没动** —— 新块是兄弟键，不是新的分位数口径。
+    "kivo.p12c.sync/35",
 )
+
+# P14-R：哪几版报告带 `end_reason`。两个集合分开写而不是写一次"≥ /29"，
+# 是因为解码侧与节拍侧的版本号**各自独立**（`decode/19` 与 `sync/29`）——
+# 一个公式套两个计数器，迟早会在某一侧升版而另一侧没升的那一轮上判错。
+SCHEMAS_WITH_DECODE_END_REASON = {"kivo.p12c.decode/19"}
+SCHEMAS_WITH_SYNC_END_REASON = {"kivo.p12c.sync/29", "kivo.p12c.sync/30",
+                                 "kivo.p12c.sync/31", "kivo.p12c.sync/32",
+                                 "kivo.p12c.sync/33", "kivo.p12c.sync/34",
+                                 "kivo.p12c.sync/35"}
 
 # ── schema 白名单 ──────────────────────────────────────────────────────────
 # 硬编码是刻意的摩擦：新增卡片必须显式加进来，让"格式变更"被看见一次。
@@ -84,6 +149,14 @@ KNOWN_SCHEMAS = {
     "kivo.p12c.decode/16",
     # P14-K：`pace.lateness_ns` 增 samples/measured/reason（默认档下 lateness 无样本）。
     "kivo.p12c.decode/17",
+    # P14-L：`drop_ratio` / `catch_up_*` / `over_budget_frames` 各增 `_measured` +
+    # `_reason`。P14-K 只修了 lateness 那一格，而 over_budget 是从它派生的 ——
+    # 在 surface_at_time 档上 G6 一直读着一个永远为 0 的数。
+    "kivo.p12c.decode/18",
+    # P14-R：`outcome` 增 `end_reason`。`completed`（bool）+ `error`（字符串）之间
+    # 原本落空一格 —— 「停了、没报错、也没跑完」，而层 3 把它判为静默失败。
+    # 那一格就是"被打断"，它需要一个名字才写得进报告。
+    "kivo.p12c.decode/19",
     "kivo.p12c.sync/1",
     # P13-D：`av_drift` 的分位数改由"按媒体时间抽稀到 20 Hz"的分布给出，
     # 并新增 sampling / per_frame / trend 三块。`/1` 的证据不重写（重写等于伪造），
@@ -188,6 +261,54 @@ KNOWN_SCHEMAS = {
     "kivo.p12c.sync/22",  # P14-G 中间形态：只有残差尾部（证据存于 p14g/pre/，不参与判定）
     "kivo.p12c.sync/23",  # P14-G 终版：+ intervals / long_gaps / long_candidate_steps
     "kivo.p12c.sync/24",  # P14-J：tail 加 span_ns / 首末长间隔位置
+    # P14-N：`pace.over_budget_frames` 与 `pace.lateness_ns` 各带 `measured`/`reason`。
+    # 起因是同一轮播放两份报告给出两种可信度：`decode/18` 会写"没量到，因为……"，
+    # 而 `sync/24` 把同一批字段印成裸数（`surface_at_time` 档下 `max = 0`，
+    # 而 0 是最完美的最大值）。
+    "kivo.p12c.sync/25",
+    # P14-O：`p99` 后接 `p99_range_low_ns` / `p99_range_high_ns` /
+    # `p99_bucket_samples`。起因是 P14-M 让 D1/D2 的配对池第一次非空之后，
+    # D2 撞上一条**判不了的判据**（30/60fps 的 p99 商 5.00x，判据要判 ≤2x），
+    # 那时的 `not_applicable` 理由是一句手算的形容词。三格出版之后，
+    # 那个"不可判"变成可复算的区间 `[2.00x, 48.00x]` —— 下界正好压在门槛上。
+    "kivo.p12c.sync/26",
+    # P14-P：`pace.lateness_ns` 接上 `p50` / `p99` 各三格范围 + `bucket_width_ns`
+    # （键名与 `quantiles.<口径>` 逐字对齐）。起因是同一个直方图在同一份 JSON 里
+    # 被印了两遍、**只有一遍带误差棒** —— 而门禁 F3 读的正是没带的那一遍。
+    "kivo.p12c.sync/27",
+    # P14-Q：`pace` 块加一格 `undelivered_frames`（`= frames_decided − presented
+    # − dropped`）。起因是一份真机证据 `decided=1800 / presented=84 / dropped=0`、
+    # `drop_ratio = 0.0`：屏幕熄灭后 1716 帧凭空消失，而它们在 `/27` 里
+    # **不占任何一格**。这一格把那个减法从读者脑子里搬到报告里。
+    "kivo.p12c.sync/28",
+    # P14-R：顶层 `completed` 后补一格 `end_reason`（`completed` / `interrupted` /
+    # `failed`）。起因是**一个写不出来的状态**：214 份 sync 证据全部 `completed: true`，
+    # 因为「停了、没报错、也没跑完」在层 3 被明确判为静默失败。
+    # `av_drift` 的结构一个字没动 —— 这一版继续走分块口径。
+    "kivo.p12c.sync/29",
+    # P14-S：`timeline.video_pts_span_ns` → `nominal_span_ns`、
+    # `playback_rate` → `nominal_rate`，并新增实测跨度与 `media_rate`。
+    # 起因：那个"pts 跨度"是 `(帧数−1) × 名义帧时长` 乘出来的，216/216 份逐份核对；
+    # 而真正的 pts 跨度（`pace.pts_span_ns`）从 `/16` 起就在同一份报告里。
+    "kivo.p12c.sync/30",
+    # P14-T：`pace` 补一格 `clock_lead_ns`（`= elapsed_span − arrive_mono_span`）。
+    # 起因是 `/30` 登记的那 4 份越界——答案就在同一个块里相邻的两格：
+    # 钟在墙上多走了 427 ms，视频忠实地跟着它走。**测量一个字没改**，只是给差起了名字；
+    # 顺带说清 `av_drift` 与它的关系：前者是"视频相对这只钟"，后者是"钟相对墙"。
+    "kivo.p12c.sync/31",
+    # P14-U：`av_drift` 多了一个 `reference` 与一个 `vs_wall` 兄弟键；
+    # `pace` 多了 `clock_lead_trace`。**第一份（相对钟）逐位未改** ——
+    # 改的是"报告有没有把第二个参考系说对"，不是"第一份算得对不对"。
+    "kivo.p12c.sync/32",
+    # P14-V：`drift_gate` 多出 `limit_ppm_equivalent*` / `limit_reach_s*` 六格。
+    # 阈值一个没改（还是 45 ms / 5 ms），改的是"这一次会话里 45 ms 有多严"。
+    "kivo.p12c.sync/33",
+    # P14-W：`drift_gate.limit_reach_s_measured=false` 且理由为
+    # `kGateActedReason` —— 门动过之后，观测速率是修正后的，撞门时间问错了问题。
+    "kivo.p12c.sync/34",
+    # P14-X：`drift_rebase_trace` —— 把"最大那笔修正在第几秒"出版，
+    # 判据 X4 据此证伪"启动期盲区一次还清"这条解释。
+    "kivo.p12c.sync/35",
     "kivo.p12d5.present-timing/1",
     "kivo.p12e.color-probe/1",
     "kivo.p12e.hdr-probe/1", "kivo.p12e.hdr-probe/2", "kivo.p12e.hdr-probe/3",
@@ -242,6 +363,12 @@ class Finding:
 class Report:
     findings: list[Finding] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    # ── P14-M：子校验器自报"到底看了多少份" ──
+    #
+    # 这一格存在的理由很具体：`run_sub` 原来只在**失败**时转述子脚本的输出。
+    # 于是「验了 66 份」和「验了 189 份」在总收口上长得一模一样 ——
+    # 123 份 sync 证据从没人看过，而每一层都报"通过"，就是因为这个数从来没有出口。
+    coverage: list[str] = field(default_factory=list)
     counts: dict[str, int] = field(default_factory=dict)
 
     def fail(self, layer: int, subject: str, rule: str, detail: str) -> None:
@@ -461,6 +588,31 @@ def sync_sample_count(drift: dict, schema: str) -> object:
     return drift.get("samples")
 
 
+def check_end_reason(payload: dict, name: str, report: Report) -> None:
+    """`/19` 起解码侧必须说得清自己为什么停在那里（P14-R）。
+
+    这一条守的是**叙述**，不是账：`end_reason` 与 `completed` / `error` 说同一件事。
+    三者矛盾时任何一本账都还是对的 —— 错的是读者会读出一个不存在的结论。
+
+    层 2 在这里做**完整**的四条关系（解码报告只有这一层读它：
+    `verify_p13d_drift.py` 的 S5/S6 只读节拍侧那份，不读解码侧）。
+    两边共用 `tools/session_end_reason.py` 里那一份规则，不各写一遍。
+    """
+    outcome = payload.get("outcome")
+    if not isinstance(outcome, dict):
+        report.fail(2, name, "没有 outcome 段", "解码证据必须有 outcome.completed / end_reason")
+        return
+    if "end_reason" not in outcome:
+        report.fail(2, name, "收尾方式缺场",
+                    "/19 起 outcome.end_reason 必须在场：缺这一格，"
+                    "「停了、没报错、也没跑完」就又被读成静默失败")
+        return
+    problems = end_reason_problems(
+        outcome.get("end_reason"), outcome.get("completed"), outcome.get("error"))
+    if problems:
+        report.fail(2, name, "收尾方式自相矛盾", "；".join(problems))
+
+
 def check_sync(payload: dict, name: str, report: Report,
                schema: str = "kivo.p12c.sync/1") -> None:
     drift = payload.get("av_drift") or {}
@@ -514,6 +666,16 @@ def check_sync(payload: dict, name: str, report: Report,
         if bare:
             report.fail(2, name, "裸分位数",
                         f"av_drift 顶层出现 {bare}：分位数必须挂在 quantiles.<口径> 下")
+
+    # P14-R：`/29` 起顶层必须有 `end_reason`。
+    #
+    # **这里只判在场**，四条自洽关系在 `verify_p13d_drift.py` 的 S5/S6 里。
+    # 分两处不是偷懒：层 2 是粗筛（"格式变更被看见一次"），层 4 的子校验器才是复算。
+    # 同一条规则写两遍必然分叉 —— 而分叉之后，两处报的会是两句话，读者无从判断谁对。
+    if schema in SCHEMAS_WITH_SYNC_END_REASON and "end_reason" not in payload:
+        report.fail(2, name, "收尾方式缺场",
+                    "/29 起顶层 `end_reason` 必须在场：`completed` 与 `error` 之间"
+                    "还落着「停了、没报错、也没跑完」那一格")
 
 
 def check_audio_probe(payload: dict, name: str, report: Report) -> None:
@@ -593,6 +755,10 @@ def card_checks(payload: dict, name: str, report: Report) -> None:
         check_seek(payload, name, report)
         check_encryption(payload, name, report)
         check_tonemap(payload, name, report)
+        # P14-R：`/19` 起多一格 `outcome.end_reason`。旧版没有这一格，
+        # 对它报"缺场"就是把一次格式演进读成五处回归。
+        if schema in SCHEMAS_WITH_DECODE_END_REASON:
+            check_end_reason(payload, name, report)
     elif schema.startswith("kivo.p12c.sync/"):
         # 曾经这里只写了 `/1`，于是 `/2` 的证据**完全跳过了层 2**：
         # 能在白名单里、能过解析，但"可测却没有样本""不可测却无理由"一条都没查。
@@ -626,12 +792,23 @@ def layer3_red_lines(path: Path, payload: dict, report: Report) -> None:
     # **中途快照要排除**：D3 的 30min 长稳每 60s 拍一份 `-t####.json`，
     # 那些快照本来就是"还没跑完"，`completed=false` 是正确值。
     # 把它们当静默失败，会让一条正确的设计看起来像 bug。
+    #
+    # **P14-R：显式中断也要排除** —— 但排除的是"你有没有报错"这一问，
+    # 不是"账对不对"那一问。`end_reason=interrupted` 是报告自己写的证词
+    # （"我停了、没出错、也没跑完"），而它只在会话被主动收尾时才可能出现：
+    # 进程被杀写不出任何报告。所以这一格不是免死金牌，是一句具名的话。
+    #
+    # 关键区别仍然保留：`completed=false` + `error` 空 + **没有** `end_reason`
+    # 依旧是静默失败 —— 那种组合只可能来自"某条链忘了写 reason"。
     is_midrun_snapshot = bool(re.search(r"-t\d+\.json$", path.name))
     if is_midrun_snapshot:
         report.counts["midrun"] = report.counts.get("midrun", 0) + 1
     if not is_midrun_snapshot and dig(payload, ("outcome", "completed")) is False:
         if not dig(payload, ("outcome", "error")):
-            report.fail(3, name, "静默失败", "completed=false 但 error 为空")
+            if dig(payload, ("outcome", "end_reason")) == "interrupted":
+                report.counts["interrupted"] = report.counts.get("interrupted", 0) + 1
+            else:
+                report.fail(3, name, "静默失败", "completed=false 但 error 为空")
     for ok_path, msg_path in ((("open", "ok"), ("open", "message")),
                               (("start", "ok"), ("start", "message"))):
         if dig(payload, ok_path) is False and not dig(payload, msg_path):
@@ -672,6 +849,17 @@ def run_sub(name: str, argv: list[str], report: Report) -> None:
         tail = (proc.stdout or proc.stderr).strip().splitlines()[-3:]
         report.fail(4, name, "子校验器失败",
                     f"exit={proc.returncode} :: " + " | ".join(tail))
+    else:
+        # 约定：子校验器可以用 `覆盖：N 份` / `不适用：M 份` 两行自报
+        # "判据真的跑了多少份、有多少份没话说"。只认这两个前缀，不做通用解析 ——
+        # 20 个子脚本的输出格式各不一样，猜格式迟早猜错，
+        # 而猜错的表现正是"某一份没进来也没人说"。
+        #
+        # `不适用` 这一行尤其要给出口：它涨上去意味着覆盖面塌了，
+        # 而覆盖率塌掉的那一版，每一层都还报"通过"。
+        for line in (proc.stdout or "").splitlines():
+            if line.startswith("覆盖：") or line.startswith("不适用："):
+                report.coverage.append(f"{name} {line.strip()}")
     report.counts["sub"] = report.counts.get("sub", 0) + (0 if proc.returncode else 1)
 
 
@@ -679,11 +867,20 @@ def layer4_reuse(report: Report) -> None:
     py = sys.executable
     style = {"cwd": ROOT, "capture_output": True, "text": True}  # noqa: F841
 
-    sync_files = sorted(glob.glob("docs/evidence/p12c/*sync*.json"))
+    # 清单是**递归**的，不是 `p12c/*sync*.json`。P14-S 之前这里只喂 27 份，
+    # 于是 `verify_p12c_sync.py` 判得动多少版本都没用 —— 189 份节拍侧证据
+    # 从来没进过层 4。两张表（版本范围、文件清单）只要有一张没跟上，
+    # 输出上就完全看不出来，因为通过的行长得一模一样。
+    #
+    # `superseded/` 排除在外：那里放的是**已知作废**的坏证据（P14-P 的屏幕熄灭轮、
+    # P14-Q 的锁屏轮）。它们的价值是"留着能复查为什么作废"，不是"再判一次"。
+    sync_files = [path for path in
+                  sorted(glob.glob("docs/evidence/**/*-sync.json", recursive=True))
+                  if "superseded" not in path.replace("\\", "/").split("/")]
     if sync_files:
         run_sub("verify_p12c_sync", [py, "tools/verify_p12c_sync.py", *sync_files], report)
     else:
-        report.fail(4, "verify_p12c_sync", "找不到证据", "docs/evidence/p12c/*sync*.json 为空")
+        report.fail(4, "verify_p12c_sync", "找不到证据", "docs/evidence/**/*-sync.json 为空")
 
     d5_files = sorted(glob.glob("docs/evidence/p12d5/*.json"))
     if d5_files:
@@ -729,11 +926,23 @@ def layer4_reuse(report: Report) -> None:
     # 总收口照样报"四层通过 / 可交付"。这与 P13-E 抓到的"加 schema 忘了加分发"
     # 是同一个病：**白名单与分发是两张表，加了一张忘了另一张**。
     # 现在按目录模式扫，新增证据目录只要符合 `p1*f` 就自动纳入。
+    #
+    # ── P14-M：范围从 `p13*` 扩到 `p1*` ──
+    #
+    # 原来只扫 `docs/evidence/p13*/*-sync.json`，于是 **`p14*` 的 28 份 sync 证据
+    # 一次都没被喂进来过** —— 它们的 p14 专属校验器只看 `metrics` / `pace` 那几个键，
+    # 从不复算抽稀块与趋势。加上 `verify_p13d_drift.py` 自己的版本表停在 `/13`，
+    # 两者合起来让 123 份 sync 证据（占 189 份的 65%）从未被 drift 判据看过，
+    # 而总收口一直报「四层通过」。
+    #
+    # 代价是 `p12c` / `p12d` / `p12f3` 里 15 份 `/1` 旧证据也会进来，全部判「不适用」。
+    # **这正是要的**：它们本来就该在清单里被点名，而不是靠"glob 没扫到"消失。
+    drift_files = sorted(glob.glob("docs/evidence/p1*/*-sync.json"))
     p13_files = sorted(glob.glob("docs/evidence/p13*/*-sync.json"))
-    if p13_files:
-        run_sub("verify_p13d_drift", [py, "tools/verify_p13d_drift.py", *p13_files], report)
+    if drift_files:
+        run_sub("verify_p13d_drift", [py, "tools/verify_p13d_drift.py", *drift_files], report)
     else:
-        report.fail(4, "verify_p13d_drift", "找不到证据", "docs/evidence/p13*/*-sync.json 为空")
+        report.fail(4, "verify_p13d_drift", "找不到证据", "docs/evidence/p1*/*-sync.json 为空")
 
     # P13-P：恒等式 / 邻帧长度 / 归类的复算。同样按目录扫 ——
     # 上一卡的教训是"白名单与分发是两张表"，这一处只留一条路径。
@@ -967,6 +1176,14 @@ def main(argv: list[str]) -> int:
 
     # 豁免要显式列出：**任何"放过了什么"都必须能被看见**，
     # 否则"全绿"就是靠隐藏换来的，那比红更危险。
+    #
+    # P14-M：覆盖也属于这一类。它原本连一句话都没有 —— 子校验器只在失败时
+    # 才被转述，于是"扫了 189 份"与"扫了 66 份"在总收口上完全一样。
+    if report.coverage:
+        print("\n--- 覆盖（子校验器自报的份数）---")
+        for line in report.coverage:
+            print(f"  · {line}")
+
     exempt = []
     if report.counts.get("no_ts"):
         exempt.append(f"{report.counts['no_ts']} 份早期音频探针证据无时间戳"
@@ -977,6 +1194,10 @@ def main(argv: list[str]) -> int:
     if report.counts.get("midrun"):
         exempt.append(f"{report.counts['midrun']} 份长稳中途快照的 completed=false 不计为静默失败"
                       "（它们本来就没跑完）")
+    if report.counts.get("interrupted"):
+        exempt.append(f"{report.counts['interrupted']} 份"
+                      f"显式中断（`end_reason=interrupted`）的 completed=false 不计为静默失败"
+                      "（会话被停掉、没出错，P14-R）")
     if exempt:
         print("\n--- 豁免明细（不是失败，但要知道范围）---")
         for line in exempt:

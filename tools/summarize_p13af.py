@@ -81,8 +81,11 @@ def main(argv: list[str]) -> int:
             "first_corr_ms": max_corr / 1e6,
             "steady_avg_ms": ((total_corr - max_corr) / (rebases - 1) / 1e6) if rebases >= 2 else 0.0,
             "dropped": int(data["video"]["frames_dropped_late"]),
-            "ahead_ms": (int(timeline["video_pts_span_ns"]) - int(timeline["corrected_wall_span_ns"])) / 1e6,
-            "rate": float(timeline["playback_rate"]),
+            # P14-S：`/30` 起这两个键改了名（旧名说的是"pts 跨度"，而它从来不是）。
+            # 两个名字都认：本脚本读的是 p13a* 的历史证据，改名的报告不该让它崩。
+            "ahead_ms": (int(timeline.get("nominal_span_ns", timeline.get("video_pts_span_ns")))
+                         - int(timeline["corrected_wall_span_ns"])) / 1e6,
+            "rate": float(timeline.get("nominal_rate", timeline.get("playback_rate"))),
             "proc_cpu": float(cpu_metrics.get("process_ratio", 0.0)),
             "alloc_steady": steady,
         }

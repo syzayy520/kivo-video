@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "video/video_plane/core/audio/clock/audio_clock_source.hpp"
+#include "video/video_plane/core/pace/pace_rebase_trace.hpp"
 #include "video/video_plane/core/pace/pace_action.hpp"
 #include "video/video_plane/core/pace/pace_now.hpp"
 #include "video/video_plane/core/pace/pace_policy.hpp"
@@ -90,12 +91,19 @@ public:
     [[nodiscard]] std::int64_t drift_corrected_total_ns() const noexcept {
         return drift_corrected_total_ns_;
     }
+    /// 每次复位的时刻与幅度（P14-X）。回答"最大那一笔发生在什么时候" ——
+    /// P14-W 里那次 105 ms 到底是启动期盲区的一次还清，还是别的东西。
+    [[nodiscard]] RebaseTrace rebase_trace() const noexcept;
     [[nodiscard]] std::int64_t backward_clamps() const noexcept { return backward_clamps_; }
     [[nodiscard]] std::int64_t monotonic_rejects() const noexcept { return monotonic_rejects_; }
     [[nodiscard]] ClockHealth last_health() const noexcept { return last_health_; }
     [[nodiscard]] core::audio::AudioClockSourceKind last_kind() const noexcept { return last_kind_; }
 
 private:
+    /// 记一笔复位（P14-X）。只在 `read()` 的修正分支里调用。
+    void record_rebase(std::int64_t mono_ns, std::int64_t amount_ns,
+                       std::int64_t lead_before_ns) noexcept;
+
     core::audio::AudioClockSource& clock_;
     PacePolicy policy_;
     NowFn now_;
@@ -134,6 +142,16 @@ private:
     /// 可判定的问题 —— 只数次数是分不出"一帧削平"和"二十三帧摊平"的。
     std::int64_t drift_max_correction_ns_ = 0;
     std::int64_t drift_corrected_total_ns_ = 0;
+
+    // ---- 复位轨迹（P14-X）----
+    //
+    // 只留最近 8 笔 + 首笔 + 最大一笔。不做无界列表：两小时的会话会有上万个样本，
+    // 而"最大那笔在什么时候"只需要三个数就能回答。
+    std::int64_t rebase_first_at_ns_ = 0;
+    RebaseSample rebase_max_{};
+    RebaseSample rebase_recent_[8]{};
+    std::int32_t rebase_head_ = 0;   ///< 下一笔写到哪
+    std::int32_t rebase_count_ = 0;  ///< 环里已有几笔（≤ 8）
     std::int64_t backward_clamps_ = 0;
     std::int64_t monotonic_rejects_ = 0;
     ClockHealth last_health_ = ClockHealth::kFresh;
