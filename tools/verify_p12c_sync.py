@@ -684,6 +684,13 @@ def check_rebase_trace(
         events = (int(health.get("extrapolated_frames", 0))
                   + int(health.get("monotonic_rejects", 0))
                   + int(health.get("jump_rebases", 0)))
+        # P14-Y：**"钟事件"的定义在 /36 变宽了**。这一卡证明"位置台阶"也是一种钟事件
+        # （`position_step` / `backward_clamped`），而它们不算在那三个计数里。
+        # 不把它们算进来的话，P14-Y 自己的正向对照（注入 +120 ms 台阶）会被 X4 判红 ——
+        # 判据把"有事件"说成"没事件"，这比漏判更糟。
+        # 更细的一层仍由 Y3 守：大修正必须有一笔**够大**的 step 解释，不只是"有事件"。
+        disc = data.get("drift_discontinuity") or {}
+        events += int(disc.get("stepped", 0)) + int(disc.get("clamped", 0))
         if events == 0:
             raise Failure(
                 f"X4 单笔修正 {oversized_ns / 1e6:.2f} ms"
