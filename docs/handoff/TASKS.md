@@ -1414,9 +1414,25 @@ R4 `measured=false ⇒ 七格全 0`（Q3 的清单不含新增四格）/ **R5 �
 - **判据 AS1**（8 条变异全过）：没 seek 的轮次**不许**判通过且 reason 必须非空；
   有 seek 时 `landing ≤ target`、`pass` 与 `reason` 不许自相矛盾、判通过必须有 `total_us`。
 - **脚本**：`tools/run_p15a_seek.sh`（无 seek / 向前 seek 20 s / 向后 seek 5 s）。
-- **卡在**：设备锁屏（`mDreamingLockscreen=true`，`adb` 唤不醒，估计设了 PIN）。
-  三轮跑不了，所以**这一卡没有真机证据**，不能结题。
-- **数字（已有）**：`ctest` 286/286；旧证据（`/41`）不受影响。
+- **真机三轮已跑（解锁后）**：向前 seek 20 s → landing 20.000 s、prepare 35.1 ms、
+  **first_frame 8.4 ms、total 43.5 ms**；向后 seek 5 s → landing 4.000 s（`PREVIOUS_SYNC` 的定义）、
+  total **45.8 ms**；两轮都 `pass=true`，预算 150 ms。无 seek 那轮 `pass=false` + reason 非空 ✅。
+- **但这一卡不能结题**：两份 seek 证据在**既有**判据上红 —— **不是 G8 的问题**，
+  是 seek 撞出一个真 bug：`media_pts_span` 与 `present_wall_span` 不是同一段
+  （`media_rate` 实测 1.332 / 0.789，无 seek 时 1.000）。见 `178` §三。
+- **记录**：`178-p15a-p15c-progress.md`。
+
+### P15-A2 · 跨度改成"按段" —— **待设计**（P15-A 被它挡住）
+
+- **现象**：seek 之后 `media_pts_span` 从 seek 前的第一帧算到 seek 后的最后一帧，
+  而 `present_wall_span` 是真实时长 —— 两个数描述不同窗口，`media_rate` 变成 1.332 / 0.789。
+- **根因**：`PaceStats` 的 `first_pts_ns_ / first_arrive_mono_ns_` 在整场第一帧建立；
+  `note_anchor_reset()`（seek 时被 `FramePacer::reset()` 调用）只切了漂移序列的段，
+  **没重设跨度端点**。
+- **为什么不当场修**：清端点不清 `span_frames_` ⇒ `span_basis` 的判据失去意义；
+  `media_rate` 要重定义为"最后一段的速率"，而 R1 也在用 `span_frames`。**这是改口径，不是修 bug。**
+- **做法**：`note_anchor_reset()` 同时重置端点与 `span_frames_`；`media_rate` 明确为"最后一段"；
+  补判据"带 seek 的轮次，跨度必须从 seek 之后算"。做完 G8 的两份证据才能转绿、P15-A 才能结题。
 
 ### P15-C · G3 稳态零分配出版 —— **DOING**（2026-11-01，代码已落地，真机被锁屏挡住）
 
@@ -1428,7 +1444,11 @@ R4 `measured=false ⇒ 七格全 0`（Q3 的清单不含新增四格）/ **R5 �
 - **判据 AG3-1**（**先量后判**）：只判"这个 0 有没有资格被读成 0" ——
   `hook_installed` 必须为真（没链进来时 `calls_steady = 0` 是"没在数"），
   四格必须存在且非负；**不设阈值**，实测值写进 note，看够样本再定。
-- **卡在**：设备锁屏，没有真机数字。
+- **真机数字（第一次）**：`calls_steady` = **302 / 204 / 284**（无 seek / 前 / 后），
+  `calls_total` 309 / 209 / 289，`bytes_steady` 75.5 / 50.4 / 72.5 KB，`hook_installed = true`。
+  **G3 的口径是 0，实测是 200–300 次** —— 不是几万（热路径没在狂分配），也不是 0（确实还有几百次要查）。
+- **下一步**：`make_alloc_facts()` 已按线程分桶（P14-B），把那 8 格也出版就能回答"这 300 次是谁"。
+- **未结题**：阈值没定、按线程的分解没出版。见 `178` §二。
 
 ### P15-E · G4 标注"不适用" —— DONE（2026-11-01）
 
