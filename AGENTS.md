@@ -45,31 +45,29 @@ adb pull /sdcard/Android/data/com.kivo.cinema/files/media backup/media
 处理办法是安装的同时点「继续安装」（`adb shell input tap <x> <y>`，
 1080×2400 上约为 `347 2111`），不是去改系统设置。
 
-## 0.1 成果已入库，但**还没推送**（`git clone` 仍只能拿到 P10）
+## 0.1 成果已入库，**也已推送**（`git clone` 从 2026-10-31 起可用）
 
-**这是交接第一件要确认的事。** 2026-10-30 15:02–15:03 补了三个提交
-（`2c8eb9e` → `44a2b86` → `0f9f307`），把 P10→P13-C 的源码、证据、交接文档
-全部纳入版本库；工作区现在只剩 **13 项**待跟踪/改动。
-
-**但是 —— 分支从没推过。** `codex/kivo-video-p0-ui-01-playback-overlay-v13`
-没有配 upstream，`origin` 上的同名分支仍停在 `e1394ff`（P10 时代），
-本地比它**领先 4 个提交**。
+**这条 2026-10-31 22:20 变了。** 之前这里写的是"入库了但没推送、只能整目录拷" ——
+那个状态已经结束：`7b8c291` 把 P14-L…X 共 13 张卡（146 个文件）一次性提交并推上去，
+分支同时挂上了 upstream。现在 `git clone` 拿到的不再是 P10 基线。
 
 | 做法 | 结果 |
 | --- | --- |
-| `git clone` | ❌ 仍只拿到 P10 基线（除非先 `git push -u origin <分支>`） |
-| 整目录拷贝 | ✅ 立刻可用，但要排掉构建产物（见下） |
+| `git clone` + `git checkout codex/kivo-video-p0-ui-01-playback-overlay-v13` | ✅ 现在能拿到全部源码、证据与交接文档 |
+| 整目录拷贝 | ✅ 仍然可以，但要排掉构建产物（见下）；好处是 `.git` 历史一起带走 |
 
-三条命令自证（数字对不上就是这条已经过期了，别照抄结论）：
+三条命令自证（**不要照抄数字，跑一遍**；数字随提交变化）：
 
 ```bash
-git rev-parse HEAD                        # 0f9f307…（不是 2b5cfaa）
-git rev-list --count origin/codex/kivo-video-p0-ui-01-playback-overlay-v13..HEAD   # 4
-git status --porcelain | wc -l            # 13（不是 337）
+git rev-parse HEAD                        # 应包含 `7b8c291`（P14-L…X）或其之后的提交
+git rev-list --count origin/codex/kivo-video-p0-ui-01-playback-overlay-v13..HEAD   # 0 = 已同步
+git status --porcelain | wc -l            # 0 = 工作区干净
+git ls-files | wc -l                      # 3990 = 库里跟踪的文件数
 ```
 
 > ⚠️ **「已提交」不等于「已备份」。** 本地 `.git` 和源码在同一个磁盘上，
 > 磁盘坏 / 目录误删，两者一起没。真正的备份只有两种：`git push`，或者整目录拷到另一块盘。
+> 现在这条已经做到了（远端有 `7b8c291`），但**以后每张卡收口都要推**，别再攒成一次。
 
 > ⚠️ **本机 `git` 会直接罢工**：仓库属主是 `DESKTOP-UFK7V16/CodexAlt`，而当前登录用户是 `codex`，
 > 所以任何 `git` 命令都报
@@ -86,43 +84,24 @@ git status --porcelain | wc -l            # 13（不是 337）
 >
 > 不解决它，`git status` / `git diff` 全部不可用 —— 但**不影响编译、不影响 adb、不影响 ctest**。
 
-| 内容 | 状态（`0f9f307`） |
+| 内容 | 状态（`7b8c291`） |
 | --- | --- |
-| P12-A/B/C 的 C++ 源码（`core/audio/`、`backends/aaudio/`、`probe/audio/`） | ✅ 已入库 |
-| `docs/design/backend-core/`（含验收口径 G1–G10、家族树） | ✅ 已入库 |
-| `docs/evidence/`（A/B/C 全部真机证据） | ✅ 已入库 |
-| `android/` 整个 Gradle 工程 | ✅ 已入库 |
-| `docs/handoff/CURRENT.md`、`TASKS.md`（本文件旁边的接手文档） | ✅ 已入库 |
+| P12 / P13 / P14-A…X 的 C++ 源码（`backend/`） | ✅ 已入库并推送 |
+| `docs/design/backend-core/`（G1–G10、阶段口径、家族树、162 篇设计/状态稿） | ✅ 已入库并推送 |
+| `docs/evidence/`（698 份真机证据，另 3 份 `superseded/` 已作废） | ✅ 已入库并推送 |
+| `android/` 整个 Gradle 工程 | ✅ 已入库并推送 |
+| `docs/handoff/CURRENT.md`、`TASKS.md`（本文件旁边的接手文档） | ✅ 已入库并推送 |
 
-只是**入库了，没推出去**。所以拿到手的方式只有两种：
+拿到手之后核对"是不是全的"，**只认一条**：`git ls-files | wc -l` 必须等于 **3990**。
 
-- ✅ **整目录拷贝** `C:\kivo video`（连同 `.git`）
-- ✅ 拷的时候**排掉构建产物**：`build/`、`android/build/`、`android/app/build/`、
-  `android/.gradle/`、`android/.kotlin/`、`android/app/.cxx/`
-  —— 它们占了 `android/` 51 MB 里的绝大部分，而且 configuration-cache 里存的是本机绝对路径，
-  带过去只会重算或给出误导性报错
-- ❌ `git clone` / `git archive` —— 拿到的只是 P10 基线，
-  回来看不到交接文档、没有 `android/` 工程、没有一条 P12 证据
+> 原来这里是一张"每个目录几个文件"的清单（2026-10-29 E1 收口后实测）。
+> 它在 P14 的 13 张卡落地后立刻过期了 —— 现在 `docs/evidence` 早已不是 218。
+> 清单没法自证，一条 `git ls-files` 可以。
 
-拷完两边核对，文件数必须一致（下列为 **2026-10-29 E1 收口后** 实测）：
-
-| 路径 | 文件数 |
-| --- | --- |
-| `backend/src/video/video_plane/core/audio` | 6 |
-| `backend/src/video/video_plane/backends/aaudio` | 7 |
-| `backend/src/video/video_plane/probe/audio` | 6 |
-| `backend/src/video/video_plane/backends/avsync` | 2 |
-| `backend/src/video/video_plane/backends/mediacodec/session` | 11 |
-| `backend/include_private/video/video_plane/backends/aaudio` | 13 |
-| `backend/include_private/video/video_plane/backends/mediacodec/session` | 17 |
-| `backend/include_private/video/video_plane/backends/avsync` | 3 |
-| `backend/include_private/video/video_plane/core/audio` | 8 |
-| `docs/design/backend-core` | 37 |
-| `docs/evidence` | 218 |
-| `android/`（排除 `build/` `.gradle/` `.cxx/` `.kotlin/`） | 28 |
-| `tools/`（真机校验脚本） | 6 |
-| `docs/evidence/p12d5`（上屏时刻原始行） | 11 |
-| `docs/evidence/p12e`（颜色协商） | 5 |
+拷贝而不是克隆时，**排掉构建产物**：`build/`、`android/build/`、`android/app/build/`、
+`android/.gradle/`、`android/.kotlin/`、`android/app/.cxx/`
+—— 它们占了 `android/` 51 MB 里的绝大部分，而且 configuration-cache 里存的是本机绝对路径，
+带过去只会重算或给出误导性报错。
 
 备份 / 交接用这一条（Git Bash 里也能跑，把 `D:\` 换成目标盘）：
 
