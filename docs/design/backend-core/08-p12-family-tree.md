@@ -193,9 +193,16 @@ video_plane/
 | --- | --- | --- |
 | `core/audio/clock/audio_clock_types.hpp/.cxx` | 来源枚举 + 快照结构 + 可读名 | 不读数、不做判断 |
 | `core/audio/clock/audio_clock_source.hpp` | 注入接口（C5 只依赖这一层） | 不含任何实现 |
-| `core/audio/clock/monotonic_clock_guard.cxx` | 对外时间只增不减（拒绝倒退、钳制跳变） | 不构造时钟、不认识平台 |
+| `core/audio/clock/monotonic_clock_guard.cxx` | 对外时间只增不减（拒绝倒退、钳制跳变） | 不构造时钟、不认识平台；**也不拿时钟** —— `elapsed` 由调用方传（P14-H） |
 | `core/audio/clock/frame_position_extrapolator.cxx` | (frame,time) → now 的位置外推；采样率切换保持位置连续 | 不读设备 |
 | `core/audio/clock/system_clock_source.cxx` | 无音轨时的独立单调时钟 | 不冒充音频时钟（自报 `system`） |
+
+> **P14-H：跳变判据里的第三个量。** 旧写法 `advance > 200 ms` 把"查询间隔很小"当成了前提，
+> 真机用 121 分钟推翻了它：片尾等 EOS 的一次 383 ms 间隔里位置也前进 383 ms（残差 ≈ 0），
+> 却被判成跳变钳掉 200 ms。现在判 `advance > 200 ms + elapsed`，放行量同样是 `threshold + elapsed`。
+> 守卫保持纯逻辑（不碰时钟），`elapsed` 由 `AaudioClockSource` 传，且必须与 `tail` 的间隔同源。
+> 修好之后，`beyond_threshold >= jumps_clamped` 这条**当年被判红的判据重新成立** ——
+> 它当年红，不是判据错，是实现错。
 
 > **为什么这四组放 `core/`**：见本节三之二末尾的修正说明。判据只有一条 ——
 > **它认不认识平台类型**。不认识就进 core，iOS 与桌面共用同一份。

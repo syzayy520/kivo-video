@@ -100,3 +100,20 @@ P14-D 的证据里写着 `monotonic_rejects = 3`、`jumps_clamped = 1`、一次 
 4. **人为跳变 ≠ 设备跳变。** 前者由 `ClockOffsetSource` 叠加，形状是干净的阶跃；
    设备的跳变可能带噪声、可能连续几次。仪器对前者验证过，对后者只有原理上的适用性。
 5. **仍然只有 K40、只有 Debug。**
+
+## 八、更正（2026-10-31，P14-H 发现）
+
+本卡 §二 把 `jumps_clamped = 1` 归因给了"人为 300 ms 跳变"，**这个归因是错的**。
+
+`ClockOffsetSource` 包在 `AaudioClockSource` **外面**（`jni_session_handle.cxx:341`），
+台阶加在守卫的**下游** —— 守卫看到的 `candidate` 里从来没有注入值。
+P14-H 的注入轮给了直接证据：`offset_ns = 300 ms`，而守卫侧的
+`max_forward_ns` 只有 **82 µs**、`beyond_threshold = 0`。
+
+所以那一轮窗口里的 `candidate` 步长 +225.45 ms 是**原始流**上的一次跳变，
+与注入没有因果关系。它至今没有解释，与 P14-D 的 931 ms 一起挂进待查
+（`129-p14g-status.md` §六.3）。
+
+仪器本身（`audio.clock.trace`）没错，错的是**我把两个不同的量当成了一个**：
+"注入的台阶"和"守卫看到的跳变"是两条路上的事。这和 P14-G 里
+"残差越阈值 vs 间隔越阈值"是同一类错误 —— 一个计数背后混着两种成因。

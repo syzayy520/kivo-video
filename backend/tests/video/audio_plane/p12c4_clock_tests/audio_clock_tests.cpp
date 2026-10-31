@@ -495,6 +495,52 @@ void t23_first_mono_is_the_start_of_the_first_interval() {
     CHECK(tracker.snapshot().first_mono_ns == 5'000'000'000);
 }
 
+// ── P14-H：守卫要知道过了多久 ────────────────────────────────────
+
+void t24_long_gap_with_equal_advance_is_not_a_jump() {
+    core::MonotonicClockGuard guard;
+    guard.observe(60'000'000'000);
+    // P14-G r2 的实测形状：间隔 383 ms，位置也前进 383 ms（残差 ≈ 0）。
+    const auto decision = guard.observe(60'383'000'000, 383'000'000);
+    CHECK(!decision.clamped_jump);
+    CHECK(decision.position_ns == 60'383'000'000);
+    CHECK(guard.jump_clamps() == 0);
+}
+
+void t25_real_jump_after_a_normal_interval_is_still_clamped() {
+    core::MonotonicClockGuard guard;
+    guard.observe(60'000'000'000);
+    // P14-E 的注入形状：间隔 0.5 ms，位置跳 225.5 ms。
+    const auto decision = guard.observe(60'225'500'000, 500'000);
+    CHECK(decision.clamped_jump);
+    // 放行量必须是 **threshold + elapsed**（200.5 ms），不是裸阈值 200 ms ——
+    // 少了那 0.5 ms 就是凭空扣掉一段真实进度。
+    CHECK(decision.position_ns == 60'200'500'000);
+    CHECK(guard.jump_clamps() == 1);
+}
+
+void t26_gap_explains_most_of_the_advance_so_no_clamp() {
+    core::MonotonicClockGuard guard;
+    guard.observe(60'000'000'000);
+    // P14-G 首轮第三次钳制：间隔 190 ms、位置前进 210 ms。
+    // 残差只有 20 ms，间隔已经把它解释掉了 —— 旧逻辑会钳，新逻辑不钳。
+    const auto decision = guard.observe(60'210'000'000, 190'000'000);
+    CHECK(!decision.clamped_jump);
+    CHECK(decision.position_ns == 60'210'000'000);
+    CHECK(guard.jump_clamps() == 0);
+}
+
+void t27_clamped_position_advances_by_exactly_the_allowance() {
+    core::MonotonicClockGuard guard;
+    guard.observe(60'000'000'000);
+    const auto decision = guard.observe(61'000'000'000, 100'000'000);  // 跳 1 s，间隔 100 ms
+    CHECK(decision.clamped_jump);
+    // 300 ms = 200 ms 阈值 + 100 ms 间隔。断言这个等式而不是"约 200 ms"：
+    // 一旦有人把 allowance 写成裸阈值，这里立刻红。
+    CHECK(decision.position_ns == 60'300'000'000);
+    CHECK(guard.max_position_ns() == 60'300'000'000);
+}
+
 const TestCase kCases[] = {
     {"C1 时间戳倒退被拒绝", t1_backward_timestamp_is_rejected},
     {"C2 时间戳跳变被钳制", t2_jump_is_clamped},
@@ -520,6 +566,10 @@ const TestCase kCases[] = {
     {"C21 候选倒退也记间隔", t21_long_gap_is_counted_even_when_candidate_regresses},
     {"C22 间隔加残差可以一起越线", t22_gap_plus_residual_can_exceed_threshold_together},
     {"C23 零点取第一个间隔的起点", t23_first_mono_is_the_start_of_the_first_interval},
+    {"C24 长间隔等量前进不算跳变", t24_long_gap_with_equal_advance_is_not_a_jump},
+    {"C25 真跳变仍被钳制", t25_real_jump_after_a_normal_interval_is_still_clamped},
+    {"C26 间隔吃掉大部分前进不钳制", t26_gap_explains_most_of_the_advance_so_no_clamp},
+    {"C27 钳制后只放行 allowance", t27_clamped_position_advances_by_exactly_the_allowance},
 };
 
 }  // namespace

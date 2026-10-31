@@ -77,6 +77,11 @@ private:
     ClockTraceRing trace_ring_;
     /// 残差尾部累加器（P14-G）。
     ClockTailTracker tail_;
+
+    /// 上一次 `publish()` 的墙钟时刻，用来给守卫算 `elapsed`（P14-H）。
+    /// `has_last_publish_ == false` 表示还没有上一次 —— 此时传 0，按最保守的判。
+    std::int64_t last_publish_mono_ns_ = 0;
+    bool has_last_publish_ = false;
 };
 
 }  // namespace kivo::video::aaudio

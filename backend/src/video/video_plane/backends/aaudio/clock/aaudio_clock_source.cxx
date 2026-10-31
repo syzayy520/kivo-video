@@ -121,6 +121,9 @@ void AaudioClockSource::rebase(std::int64_t media_position_ns) noexcept {
     // 旧基线配新位置会算出一个"等于 seek 距离"的残差，把尾部统计污染成假异常。
     // 而已经采到的样本仍然属于"本次运行"，没有理由抹掉。
     tail_.drop_baseline();
+    // 守卫喂的是 elapsed，seek 之后也必须重设基线 —— 否则会把整段 seek 距离
+    // 当成一次间隔送给守卫，"允许前进量"变成几秒，跳变判定等于关掉。
+    has_last_publish_ = false;
 }
 
 void AaudioClockSource::set_sample_rate(std::int32_t sample_rate) noexcept {
@@ -141,7 +144,17 @@ void AaudioClockSource::set_sample_rate(std::int32_t sample_rate) noexcept {
 core::audio::AudioClockSnapshot AaudioClockSource::publish(std::int64_t candidate_ns,
                                                            core::audio::AudioClockSourceKind kind,
                                                            bool stale) {
-    const auto decision = guard_.observe(candidate_ns);
+    // P14-H：把"距上一次观测过了多久"告诉守卫。
+    //
+    // 这个 `elapsed` 必须与 `tail_` 用的间隔**同一个来源**（同一个 `last_mono_ns_`
+    // 与同一个上次时刻），否则两处记账会分叉：证据说"间隔 383 ms"，
+    // 守卫却按 33 ms 判 —— 那样修完还是误伤，只是没人看得出来。
+    const std::int64_t elapsed_ns =
+        has_last_publish_ ? (last_mono_ns_ - last_publish_mono_ns_) : 0;
+    last_publish_mono_ns_ = last_mono_ns_;
+    has_last_publish_ = true;
+
+    const auto decision = guard_.observe(candidate_ns, elapsed_ns);
     if (decision.rejected_backward) {
         ++stats_.monotonic_rejects;
     }

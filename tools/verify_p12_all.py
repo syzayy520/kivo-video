@@ -768,6 +768,12 @@ def layer4_reuse(report: Report) -> None:
         run_sub("summarize_p14f_jumps",
                 [py, "tools/summarize_p14f_jumps.py", *p14f_files], report)
 
+    # P14-H：守卫的 elapsed 修正。判"没有真跳变时不该有钳制"。
+    p14h_files = sorted(glob.glob("docs/evidence/p14h/*-sync.json"))
+    if p14h_files:
+        run_sub("verify_p14h_guard",
+                [py, "tools/verify_p14h_guard.py", *p14h_files], report)
+
     # P14-G：时钟残差尾部 + 观测间隔 + 候选步长。判"钳制有没有来由"。
     p14g_files = sorted(glob.glob("docs/evidence/p14g/*-sync.json"))
     if p14g_files:

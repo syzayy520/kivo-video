@@ -14,10 +14,18 @@ namespace kivo::video::core::audio {
 /// 纯逻辑、零平台依赖，因此"倒退/跳变"两类异常可以在桌面机器上断言到底。
 class MonotonicClockGuard {
 public:
-    /// 默认 200 ms 跳变阈值：
-    /// 远大于任何合理查询间隔（一个视频帧 16–42 ms），
-    /// 又远小于任何真实 seek 跳变（秒级）。P12-F 做 seek 时由上层重建时钟，不走这条路径。
+    /// 默认 200 ms 跳变阈值：**超出"这段时间本可以前进的量"多少才算跳变**。
+    ///
+    /// 它不是一个绝对的位置阈值 —— 判据是
+    /// `advance > kDefaultJumpThresholdNs + elapsed`，`elapsed` 是距上一次观测的墙钟增量。
+    /// 这一点是 P14-G 用真机 121 分钟证出来的：片尾等 EOS 的一次 383 ms 间隔里，
+    /// 位置也正常前进了 383 ms（残差 ≈ 0），旧逻辑却把它当成跳变钳掉。
+    /// 阈值只能和"过了多久"一起用，单独用就是把量纲搞错了。
     static constexpr std::int64_t kDefaultJumpThresholdNs = 200'000'000;
+
+    /// `elapsed` 的上限（1 小时）。只为防 `threshold + elapsed` 溢出 ——
+    /// 超过一小时的间隔已经不属于"播放中"，任何取值都不影响结论。
+    static constexpr std::int64_t kMaxElapsedNs = 3'600'000'000'000;
 
     /// 一次判定的结果。
     struct Decision {
@@ -30,7 +38,14 @@ public:
         std::int64_t jump_threshold_ns = kDefaultJumpThresholdNs) noexcept;
 
     /// 喂入一个候选位置，得到单调化后的位置。
-    [[nodiscard]] Decision observe(std::int64_t candidate_ns) noexcept;
+    ///
+    /// `elapsed_ns`：距**上一次 observe** 的墙钟增量（不知道就传 0）。
+    /// 传 0 是最保守的一侧：按"没过去时间"判，跳变阈值全额生效。
+    ///
+    /// 为什么这个量必须由调用方给：守卫是纯逻辑、不碰时钟，这是它能被桌面断言到底的前提。
+    /// 而"过了多久"只有持有墙钟的那一层知道。
+    [[nodiscard]] Decision observe(std::int64_t candidate_ns,
+                                   std::int64_t elapsed_ns = 0) noexcept;
 
     /// 重置到指定位置（换片源、seek 后重建时钟时调用）。
     /// 计数器不清零 —— 统计属于"本次运行"，重建不该把历史异常抹掉。
