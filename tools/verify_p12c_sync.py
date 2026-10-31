@@ -615,6 +615,38 @@ def check_gate_scale(
             )
 
 
+def _check_alloc(data: dict, notes: list[str]) -> None:
+    """AG3-1（P15-C / G3）：分配计数必须出版，而且"零"必须是真的零。
+
+    `alloc_probe` 从 P14-A 就在（会话 arm、首帧后 mark_steady），但从来没出版过。
+    **这一条判的不是"有没有分配"** —— 那个数还没看够，先量后判（`177` §三）。
+    它判的是"这个 0 有没有资格被读成 0"：替换实现没链进来时 `calls_steady = 0`
+    是"没在数"，不是"没有分配"。
+    """
+    video = data.get("video") or {}
+    block = video.get("alloc")
+    if not isinstance(block, dict):
+        raise Failure("AG3-1 `/42` 起 `video.alloc` 必须出版（G3 的事实）")
+
+    hook = block.get("hook_installed")
+    if hook is not True:
+        raise Failure(
+            f"AG3-1 `alloc.hook_installed`={hook!r}：替换实现没链进来，"
+            "`calls_steady = 0` 是'没在数'，不是'没有分配'"
+        )
+    for key in ("calls_total", "calls_steady", "bytes_steady", "overflow_calls"):
+        if key not in block:
+            raise Failure(f"AG3-1 `alloc.{key}` 缺失（缺格会被下游读成 0）")
+        if int(block[key]) < 0:
+            raise Failure(f"AG3-1 `alloc.{key}` = {block[key]} 为负")
+
+    # 先量后判：把数记进 note，阈值留到看够样本之后再定。
+    notes.append(
+        f"分配：稳态 {int(block['calls_steady'])} 次 / 总计 {int(block['calls_total'])} 次"
+        + (f"，溢出槽 {int(block['overflow_calls'])}" if int(block.get("overflow_calls") or 0) else "")
+    )
+
+
 def _check_seek(data: dict, notes: list[str]) -> None:
     """AS1（P15-A / G8）：seek 事实必须出版，且判定内部自洽。
 
@@ -1397,6 +1429,7 @@ def verify(path: Path) -> tuple[str, list[str], str]:
         _check_drop_events(data, notes)
     if version >= SCHEMA_WITH_SEEK:
         _check_seek(data, notes)
+        _check_alloc(data, notes)
 
     if version >= SCHEMA_WITH_SPAN_BASIS:
         # AA1：只要这一轮交过帧，跨度就必须有人喂 —— 否则又是"全 0 看起来像没动"。

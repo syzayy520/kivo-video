@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+
+#include "video/video_plane/core/metrics/alloc_probe.hpp"
 #include <string>
 
 #include "video/video_plane/backends/mediacodec/decode/hdr_delivery_facts.hpp"
@@ -19,6 +21,10 @@ namespace kivo::video::mediacodec {
 /// 全部是**事实计数**，不含评价。是否达标由证据层按 G1~G10 判定，
 /// 会话层只负责如实记录。
 struct DecodeStats {
+    /// 进程级分配计数（P15-C / G3）。**由会话在 `snapshot()` 里填**，
+    /// 与 `seek` 同一条理由：渲染层不该自己去问探针（它会拿到"此刻"而不是"这一轮"）。
+    core::metrics::AllocFacts alloc{};
+
     // ---- 输入侧 ----
     std::int64_t samples_submitted = 0;
     std::int64_t bytes_submitted = 0;

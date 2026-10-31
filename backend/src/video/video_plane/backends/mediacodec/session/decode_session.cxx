@@ -527,6 +527,9 @@ DecodeStats DecodeSession::snapshot() const {
             counters_.first_frame_pts_us.load(std::memory_order_relaxed);
     }
 
+    // P15-C：分配事实与 seek 同一条理由 —— 在会话里取一次，渲染层只负责印。
+    // 它是进程级的，所以"这一轮"与"这个进程"在这里是同一个数（杀进程才会归零）。
+    stats.alloc = core::metrics::make_alloc_facts();
     stats.pipeline_mode = pipeline_mode_name(mode_);
     stats.present_schedule = present_schedule_name(present_schedule_);
     stats.present_frames = present_frames_;

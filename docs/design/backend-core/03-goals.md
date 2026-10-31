@@ -52,6 +52,12 @@
 - 测量：池自报 `allocated / peak_allocated / leaked`，探针输出该三元组。
 - 反例条件：`leaked > 0` 即失败，不允许"轻微泄漏"。
 
+> **Android 侧处置（P15-E，2026-11-01）：不适用。**
+> 输出面由 `MediaCodec` + `Surface` 管理，本仓库**没有自研表面池**，
+> G4 的三个量（`allocated / peak_allocated / leaked`）在这里没有对应物。
+> 标成"不适用"而不是让它一直挂着"未验" —— **空着的验收项比错误的验收项更容易被忘掉**
+> （`177-p15-probe-plan.md` §五）。P11 的 Windows 参考实现仍然按本条验。
+
 ### G5 零拷贝上屏
 
 > 呈现路径上 CPU 侧像素拷贝次数 = **0**。

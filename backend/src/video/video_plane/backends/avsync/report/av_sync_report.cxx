@@ -1507,7 +1507,21 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "      \"assessment\": {\"total_us\": " << seek_check.total_us
         << ", \"pass\": " << (seek_check.pass ? "true" : "false")
         << ", \"reason\": " << quoted(seek_check.reason) << "}\n";
-    out << "    }\n";
+    out << "    },\n";
+
+    // ── P15-C（G3）：稳态零分配 ──
+    //
+    // `alloc_probe` 从 P14-A 就在（会话 `arm`、首帧后 `mark_steady`），但这些数
+    // 从来没出版过 —— 与 seek 同一个病：缺的不是测量，是"印出来"。
+    //
+    // `hook_installed` 必须与 `calls_steady` 一起读：替换实现没链进来时，
+    // `calls_steady = 0` 是"没在数"，不是"没有分配"。这一格就是防那个假零的。
+    out << "    \"alloc\": {\"hook_installed\": " << (video.alloc.hook_installed ? "true" : "false")
+        << ", \"armed\": " << (video.alloc.armed ? "true" : "false")
+        << ", \"calls_total\": " << video.alloc.calls_total
+        << ", \"calls_steady\": " << video.alloc.calls_steady
+        << ", \"bytes_steady\": " << video.alloc.bytes_steady
+        << ", \"overflow_calls\": " << video.alloc.overflow_calls << "}\n";
     out << "  },\n";
 
     // ── 节拍侧面 ──
