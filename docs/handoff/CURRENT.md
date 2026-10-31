@@ -29,7 +29,14 @@
    `|lead|` 中位数 **43.8 ms**、最大 **400 ms**。所以问题不是"谁更准"，
    而是**`av_drift` 单独不能下同步结论** —— 它只证明"视频跟住了这只钟"，
    不证明"这只钟说的是真的"。要动的是读法（`av_drift` 必须带 `|lead|` 前置条件），
-   不是把哪个数扶正。改动属产品口径，待拍板。③ **红线扫描域** —— 30 条存量违规全在历史文档，`HEAD` 版本就已经是 `FAIL`；该决定它扫"交付物+本次改动"还是"全仓历史"。④ **`jumps_clamped = 3` 的线索** —— 当时 3 次、今天 0 次。⑤ **让 `surface_at_time` 也提供钟读数** —— 但**不是 108 份**：拆开是 90 份旧格式（/1–/15，补不了）+ **18 份 at_time**（真的缺）。设计见 `167-p14aa-design.md`，里面还查出一个总闸覆盖洞：`p13p` 只扫 `p13*`，`p14k` 的 at_time 证据从没被扫过，手动跑当场红（P1 `due_step_supplied=0`）。⑥ **打断之后"回来从哪继续"** —— 需要 native 暴露 `position_us`。⑦ **32 位 Android**：CM311-1A 只有 `armeabi-v7a`，要先有 32 位 FFmpeg。 |
+   不是把哪个数扶正。改动属产品口径，待拍板。③ **红线扫描域** —— 现在有分项数字（2026-10-31 复核，`redline_gate_result.json`）：
+   **30 条违规 / 259 个被扫文件**，按位置是 `docs/` **26**（历史 roadmap）、
+   `.codebuddy/memory` **3**、`evidence/` **1**（旧 schema）；按规则是
+   R4 凭证路径 **23**、R8 提前宣称 **6**、SCHEMA **1**。
+   **`backend/`、`android/`、`docs/design/` 里一条都没有** —— 交付物本身是干净的。
+   所以这不是"要不要修 30 条"，而是"这条闸门要不要对历史负责"：
+   ①扫交付物+本次改动 → 今天就能绿，且新违规仍然拦得住；
+   ②全仓历史 → 永远红，除非改写历史文档（那等于伪造）。待拍板。④ **`jumps_clamped = 3` 的线索** —— 当时 3 次、今天 0 次。⑤ **让 `surface_at_time` 也提供钟读数** —— 但**不是 108 份**：拆开是 90 份旧格式（/1–/15，补不了）+ **18 份 at_time**（真的缺）。设计见 `167-p14aa-design.md`，里面还查出一个总闸覆盖洞：`p13p` 只扫 `p13*`，`p14k` 的 at_time 证据从没被扫过，手动跑当场红（P1 `due_step_supplied=0`）。⑥ **打断之后"回来从哪继续"** —— 需要 native 暴露 `position_us`。⑦ **32 位 Android**：CM311-1A 只有 `armeabi-v7a`，要先有 32 位 FFmpeg。 |
 | 代码在哪 | C++ 后端 `backend/`；Android 壳 `android/`。`android/app/src/main/cpp/CMakeLists.txt` 用 `${KIVO_ROOT}/backend/src/...` **逐条列源文件**（不是 `add_subdirectory`，也别去找那个），所以两个目录必须同一个仓库、相对位置不能变 |
 | 工作目录 | **`C:\kivo video` 整个仓库**。`android/` 单独拿出来会在 CMake 配置期 `FATAL_ERROR`。哪些目录必须一起给，见 `AGENTS.md` §零 |
 | 怎么验证 | 必须真机（Redmi K40，序列号 `b6e950ee`），模拟器数字一律无效 |
