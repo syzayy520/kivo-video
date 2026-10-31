@@ -1197,6 +1197,20 @@ R4 `measured=false ⇒ 七格全 0`（Q3 的清单不含新增四格）/ **R5 �
 - **待办**：B 臂两轮（脚本已就绪，设备锁屏卡住）→ 同构建 A 臂复跑 → 由数据决定默认值。
   半场记录见 `166-p14z-status.md`（含一次差点写下的"假零"：`present_jitter` 的键不带 `_ns`）。
 
+### P14-AA · `surface_at_time` 档的 DueStep 与跨度 —— TODO（设计已写，未动代码）
+
+- **数字先修正**：`CURRENT` 原来写"108 份不可判里 at_time 是默认档"，拆开是
+  **90 份旧格式（/1–/15，字段不存在，不补）+ 18 份 at_time（真的缺）**。
+- **根因**：`decode_receive_worker` 在 at_time 档走 `note_scheduled`，它只记
+  提交提前量与间隔，**`DueStep` 从不进入 `PaceStats`** ⇒ `due_step_supplied = 0`、
+  四跨度全 0、`media_rate` 无从算。
+- **顺手查出一个总闸覆盖洞**：`verify_p12_all` 只把 `p13*` 证据喂给
+  `verify_p13p_episode`，`p14k` 的 at_time 证据从没被扫过 —— 手动跑当场红
+  （`P1 due_step_supplied=0 != presented=480`）。"白名单与分发是两张表"的第四次发作。
+- **方案 B（设计稿 167）**：抽 `note_span()`，present 与 scheduled 都喂跨度；
+  `clock_supplied_frames` 含义不动，另出 `span_frames` / `span_basis`（schema `/38`）。
+- **不做**：不把提交提前量写成 lateness（会污染 G6）；不给旧 90 份补字段（等于伪造时间戳）。
+
 **下一张卡（历史指针，P14-B 已收口）：P14-B · 分配归因** —— 把计数按线程分桶，找出那 5 次/秒；
 查清楚之前 G3 不能判。
 
