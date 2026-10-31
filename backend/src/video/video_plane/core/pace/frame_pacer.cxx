@@ -282,6 +282,7 @@ PaceSummary FramePacer::summary() const noexcept {
     // 算两次就是两个真相 —— `frame_worst` 与 `episode_` 的老账（P13-P）就是这么来的。
     out.drift_discontinuity = tracker_.discontinuity_trace();
     out.drift_gate_enabled = policy_.drift_gate_enabled;
+    out.step_repay = policy_.step_repay;
     out.drift_limit_ns = policy_.drift_limit_ns;
     out.drift_band_ns = policy_.drift_band_ns;
     return out;

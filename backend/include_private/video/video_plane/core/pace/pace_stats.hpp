@@ -116,6 +116,9 @@ struct PaceSummary {
     // `drift_gate_enabled == false` 的轮次是对照组，它的 `drift_rebases = 0`
     // **不可读作"门判断沉默"** —— 那是"门被关掉了"。
     bool drift_gate_enabled = true;
+    /// P14-Z：这一轮台阶还不还（探针）。与上一格一起出版 —— 两臂的"零修正"
+    /// 读起来一样、意思相反，不写清楚就分不开。
+    bool step_repay = true;
     std::int64_t drift_limit_ns = 0;
     std::int64_t drift_band_ns = 0;
     ClockHealth health = ClockHealth::kFresh;

@@ -70,7 +70,7 @@ class Failure(Exception):
 #:
 #: `/2` **从未存在过**（`/1` 直接跳到 `/3`），所以它不是"漏了"，是当时就没写。
 MIN_SCHEMA_VERSION = 1
-MAX_SCHEMA_VERSION = 36
+MAX_SCHEMA_VERSION = 37
 ABSENT_SCHEMA_VERSIONS = frozenset({2})
 
 #: 从这一版起，`pace.pts_span_ns`（实测首末 pts 差）与 `pace.clock_supplied_frames`
@@ -105,6 +105,9 @@ SCHEMA_WITH_REBASE_TRACE = 35
 #: 从 `/36` 起顶层有 `drift_discontinuity`（P14-Y）：钟的不连续那本账 ——
 #: 每一笔台阶的墙钟增量、原始位置增量、以及它对领先量的贡献。
 SCHEMA_WITH_DISCONTINUITY = 36
+#: 从 `/37` 起 `drift_gate.step_repay` 出版（P14-Z）：台阶还掉还是不还。
+#: 两臂的"零修正"读起来一样、意思相反，不写清楚就分不开。
+SCHEMA_WITH_STEP_REPAY = 37
 
 #: 已知越界 —— **不是豁免判据，是登记在案的异常**。值是 `(说明, 钟领先量指纹)`。
 #:
@@ -1142,6 +1145,10 @@ def verify(path: Path) -> tuple[str, list[str], str]:
         check_rebase_trace(data, pace, notes)
     if version >= SCHEMA_WITH_DISCONTINUITY:
         check_discontinuity(data, pace, notes)
+    if version >= SCHEMA_WITH_STEP_REPAY:
+        gate = data.get("drift_gate") or {}
+        if not isinstance(gate.get("step_repay"), bool):
+            raise Failure("/37 起 drift_gate.step_repay 必须是布尔（哪一臂跑的要写在自己身上）")
 
     if data["completed"] and data["error"]:
         raise Failure("completed=true 却带着非空 error")

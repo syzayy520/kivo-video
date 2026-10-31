@@ -2820,3 +2820,17 @@ if(MSVC)
 endif()
 add_test(NAME kivo_p14y_discontinuity_tests COMMAND kivo_p14y_discontinuity_tests)
 set_tests_properties(kivo_p14y_discontinuity_tests PROPERTIES TIMEOUT 60)
+
+# ─── P14-Z: 台阶还不还（探针两臂）───
+# 同一份假时钟跑两臂：A 臂门还它一次，B 臂门一次不动而账照记。
+# 没有台阶的一轮两臂必须逐位相同 —— 探针不许动无关轮次。
+add_executable(kivo_p14z_step_repay_tests
+  tests/video/pace/p14z_step_repay_tests/step_repay_tests.cpp
+)
+target_link_libraries(kivo_p14z_step_repay_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p14z_step_repay_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p14z_step_repay_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p14z_step_repay_tests COMMAND kivo_p14z_step_repay_tests)
+set_tests_properties(kivo_p14z_step_repay_tests PROPERTIES TIMEOUT 60)

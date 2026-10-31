@@ -16,11 +16,15 @@ int main() {
     evidence.items.push_back(SourceEvidenceItem{
         SourceEvidencePassKind::contract_pass,
         SourceEvidenceKind::contract_declared,
+        // `operation` 是后来加进结构体的第三格（e9ac923）。这份夹具停在加它之前，
+        // 于是**从六月起就编不过** —— 只有干净重建才看得见（产物停在 2026-06-26）。
+        SourceEvidenceOperation::unknown,
         "contract skeleton defined", std::nullopt, std::nullopt, 1
     });
     evidence.items.push_back(SourceEvidenceItem{
         SourceEvidencePassKind::contract_pass,
         SourceEvidenceKind::cache_observed,
+        SourceEvidenceOperation::unknown,
         "cache hint observed", std::nullopt, std::nullopt, 2
     });
     CHECK_TRUE(evidence.is_contract_pass_only());

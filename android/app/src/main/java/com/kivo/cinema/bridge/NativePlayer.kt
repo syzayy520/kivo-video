@@ -126,6 +126,8 @@ object NativePlayer {
      *        真实事件的形状是**渐变**（8 秒慢慢长到几十毫秒），不是瞬时台阶，
      *        所以这一格比 [clockOffsetMs] 更接近现场。
      * @param driftGate 漂移门开关。false = 对照组，证据里 `drift_gate.enabled` 写 false。
+     * @param stepRepay 台阶还不还（P14-Z 探针）。true = P13-W 的行为（默认）；
+     *        false 只用于对照轮，证据里 `drift_gate.step_repay` 写 false。
      */
     external fun nativeSessionSetPacing(
         handle: Long,
@@ -135,6 +137,7 @@ object NativePlayer {
         clockOffsetAtMs: Int,
         clockRatePpm: Int,
         driftGate: Boolean,
+        stepRepay: Boolean,
     ): Int
 
     /**

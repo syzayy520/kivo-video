@@ -184,12 +184,14 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
             discontinuities_.note(discontinuity, mono_ns - first_mono_ns_, wall_delta_ns,
                                   raw_delta_ns, step_ns, raw_lead_ns - step_ns, raw_lead_ns);
         }
-        // 门的输入：**仍是原始领先量**，一个字节都没改。
+        // 门的输入：**默认仍是原始领先量**。
         //
-        // 初版写成 `raw_lead - offset`（真把台阶摘出去），S5–S7 立刻红：
-        // 那三条是 P13-S/AB 的契约（"台阶必须被门还掉"），改它要单独一张卡。
-        // 本卡只观测，理由与数据见 `163-p14y-design.md` §七.1。
-        cum_drift_ns_ = raw_lead_ns;
+        // P14-Z 把它做成探针（`step_repay`）：默认 `true` = 台阶进 `cum`、门照旧还它
+        // （P13-W/S5 的契约）；`false` = 台阶先被摘掉，门不为它动作。
+        // 两臂只差这一个开关，其余（门开、注入、片源）完全相同 —— 否则比的不是这件事。
+        cum_drift_ns_ = policy_.step_repay
+                            ? raw_lead_ns
+                            : raw_lead_ns - discontinuities_.offset_ns();
         // P13-AC：真正的迟滞是**两个阈值**，不是一个阈值加一个目标。
         //
         // 第一版写成"`cum > limit` 就修到 `limit − band`"，可每帧只修 2 ms，

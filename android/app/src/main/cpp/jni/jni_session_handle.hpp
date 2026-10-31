@@ -71,9 +71,12 @@ void session_stop(SessionHandle* handle);
 ///        （8 秒里慢慢长到几十毫秒），与 `clock_offset_ms` 的瞬时台阶互补。
 /// @param drift_gate      漂移门开关（P13-AD）。false = 对照组，证据里 `drift_gate.enabled`
 ///        会写 false，它的 `drift_rebases = 0` 不可读作"门判断沉默"。
+/// @param step_repay      台阶还不还（P14-Z 探针）。默认 true = P13-W 的行为；
+///        false 只用于对照轮，证据里 `drift_gate.step_repay` 写 false。
 [[nodiscard]] int session_set_pacing(SessionHandle* handle, int target_fps, bool allow_drop,
                                     int clock_offset_ms, int clock_offset_at_ms,
-                                    int clock_rate_ppm, bool drift_gate, std::string& error);
+                                    int clock_rate_ppm, bool drift_gate, bool step_repay,
+                                    std::string& error);
 
 /// 打开音轨并起流（P12-C8）。必须在 `session_set_pacing` 与 `session_start` 之前调用。
 ///

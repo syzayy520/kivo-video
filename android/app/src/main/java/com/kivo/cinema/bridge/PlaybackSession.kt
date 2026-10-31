@@ -165,6 +165,7 @@ class PlaybackSession(
         clockOffsetAtMs: Int = 2_000,
         clockRatePpm: Int = 0,
         driftGate: Boolean = true,
+        stepRepay: Boolean = true,
     ): Int {
         if (handle == 0L) {
             lastError = "configurePacing before openVideo"
@@ -173,7 +174,7 @@ class PlaybackSession(
         val rc = runCatching {
             NativePlayer.nativeSessionSetPacing(
                 handle, targetFps, allowDrop, clockOffsetMs, clockOffsetAtMs,
-                clockRatePpm, driftGate
+                clockRatePpm, driftGate, stepRepay
             )
         }.getOrElse { -1 }
         if (rc != 0) {

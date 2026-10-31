@@ -147,6 +147,9 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
     /** 漂移门开关（P13-AD）。false = 对照组；证据里 `drift_gate.enabled` 会写 false。 */
     private var driftGate = true
 
+    /** 台阶还不还（P14-Z 探针）。false 只用于对照轮，证据里会写 `drift_gate.step_repay`。 */
+    private var stepRepay = true
+
     /**
      * 长稳采样前缀（P12-D3）。非空时每 [soakIntervalMs] 写一份**中途快照**。
      *
@@ -406,7 +409,8 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         // 节拍必须在 start 之前挂上：start 之后就起解码线程了，再挂等于半路改规则。
         if (pacingEnabled) {
             val pacingRc = live.configurePacing(
-                targetFps, allowDrop, clockOffsetMs, clockOffsetAtMs, clockRatePpm, driftGate
+                targetFps, allowDrop, clockOffsetMs, clockOffsetAtMs, clockRatePpm, driftGate,
+                stepRepay
             )
             if (pacingRc != 0) {
                 failStart("pacing", pacingRc, live, media)
@@ -543,6 +547,9 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         clockRatePpm = intent.getIntExtra("kivo.clock_rate_ppm", 0)
         // 传 `--es kivo.drift_gate off` 关掉漂移门（对照组）。
         driftGate = intent.getStringExtra("kivo.drift_gate") != "off"
+        // 传 `--es kivo.step_repay off` 让台阶不进门（P14-Z 的 B 臂）。
+        // 默认 true = P13-W 的行为；证据里 `drift_gate.step_repay` 会写出来。
+        stepRepay = intent.getStringExtra("kivo.step_repay") != "off"
         seekTargetMs = intent.getIntExtra("kivo.seek.ms", -1).toLong()
         seekAtMs = intent.getIntExtra("kivo.seek.at.ms", 1500).toLong().coerceAtLeast(0L)
         // P14-R：`--es kivo.finalize on_stop` 把"进入后台"当成一次收尾。

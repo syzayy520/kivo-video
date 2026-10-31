@@ -313,7 +313,7 @@ void session_stop(SessionHandle* handle) {
 
 int session_set_pacing(SessionHandle* handle, int target_fps, bool allow_drop,
                        int clock_offset_ms, int clock_offset_at_ms, int clock_rate_ppm,
-                       bool drift_gate, std::string& error) {
+                       bool drift_gate, bool step_repay, std::string& error) {
     if (handle == nullptr || !handle->session) {
         error = "session handle is null";
         return 1;
@@ -350,6 +350,8 @@ int session_set_pacing(SessionHandle* handle, int target_fps, bool allow_drop,
     // P13-AD：门关 = 对照组。位置完全按时钟走，门一次都不触发 ——
     // 没有这一组，"门没触发"就分不清"该沉默时沉默"和"根本没接上"。
     setup.policy.drift_gate_enabled = drift_gate;
+    // P14-Z：台阶还不还。默认 true；false 只用于对照轮，且会出版到证据里。
+    setup.policy.step_repay = step_repay;
     if (target_fps > 0) {
         // 只是首帧兜底：真实帧时长由 pts 差值观测得出，不信这里传的值。
         setup.policy.default_frame_duration_ns = 1'000'000'000 / target_fps;

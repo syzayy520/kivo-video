@@ -317,7 +317,7 @@ using core::pace::SignedHistogram;
 ///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/36";
+constexpr const char* kSchema = "kivo.p12c.sync/37";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -710,6 +710,10 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     // 关着门的一轮也不会被读成"门判断沉默"。
     out << "  \"drift_gate\": {\n";
     out << "    \"enabled\": " << (pace.drift_gate_enabled ? "true" : "false") << ",\n";
+    // P14-Z：台阶还掉还是不还。默认 true 是 P13-W 的行为；false 只用于对照轮。
+    // 出版它，是因为"没有修正"在两臂里意思完全不同：A 臂是"门判断沉默"，
+    // B 臂是"门被要求不要动"，读数一样、结论相反。
+    out << "    \"step_repay\": " << (pace.step_repay ? "true" : "false") << ",\n";
     out << "    \"limit_ns\": " << pace.drift_limit_ns << ",\n";
     out << "    \"band_ns\": " << pace.drift_band_ns << ",\n";
     // P14-V：门限的等价速率。**0 不是"门严到不可用"，是"没记录时长，换算无从谈起"**
