@@ -116,6 +116,9 @@ SYNC_QUANTILE_BLOCK_SCHEMAS = (
     # P14-X：顶层多 `drift_rebase_trace`（每一笔复位的时刻与幅度）。
     # **分布结构仍然没动** —— 新块是兄弟键，不是新的分位数口径。
     "kivo.p12c.sync/35",
+    # P14-Y：顶层多 `drift_discontinuity`（钟的不连续那本账）。
+    # 同样只是兄弟键；`av_drift.quantiles` 一个字节没动。
+    "kivo.p12c.sync/36",
 )
 
 # P14-R：哪几版报告带 `end_reason`。两个集合分开写而不是写一次"≥ /29"，
@@ -125,7 +128,7 @@ SCHEMAS_WITH_DECODE_END_REASON = {"kivo.p12c.decode/19"}
 SCHEMAS_WITH_SYNC_END_REASON = {"kivo.p12c.sync/29", "kivo.p12c.sync/30",
                                  "kivo.p12c.sync/31", "kivo.p12c.sync/32",
                                  "kivo.p12c.sync/33", "kivo.p12c.sync/34",
-                                 "kivo.p12c.sync/35"}
+                                 "kivo.p12c.sync/35", "kivo.p12c.sync/36"}
 
 # ── schema 白名单 ──────────────────────────────────────────────────────────
 # 硬编码是刻意的摩擦：新增卡片必须显式加进来，让"格式变更"被看见一次。
@@ -309,6 +312,9 @@ KNOWN_SCHEMAS = {
     # P14-X：`drift_rebase_trace` —— 把"最大那笔修正在第几秒"出版，
     # 判据 X4 据此证伪"启动期盲区一次还清"这条解释。
     "kivo.p12c.sync/35",
+    # P14-Y：`drift_discontinuity` —— 每一笔台阶的墙钟 / 原始位置 / 贡献量，
+    # 把 P14-X 剩下的 113 ms 变成可复算的现场。
+    "kivo.p12c.sync/36",
     "kivo.p12d5.present-timing/1",
     "kivo.p12e.color-probe/1",
     "kivo.p12e.hdr-probe/1", "kivo.p12e.hdr-probe/2", "kivo.p12e.hdr-probe/3",

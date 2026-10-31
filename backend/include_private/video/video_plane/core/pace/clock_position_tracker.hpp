@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "video/video_plane/core/audio/clock/audio_clock_source.hpp"
+#include "video/video_plane/core/pace/pace_discontinuity_ledger.hpp"
 #include "video/video_plane/core/pace/pace_rebase_trace.hpp"
 #include "video/video_plane/core/pace/pace_action.hpp"
 #include "video/video_plane/core/pace/pace_now.hpp"
@@ -94,6 +95,9 @@ public:
     /// 每次复位的时刻与幅度（P14-X）。回答"最大那一笔发生在什么时候" ——
     /// P14-W 里那次 105 ms 到底是启动期盲区的一次还清，还是别的东西。
     [[nodiscard]] RebaseTrace rebase_trace() const noexcept;
+    /// 钟的不连续那本账（P14-Y）。回答"这些台阶一共吃掉多少领先量、最大那笔长什么样"。
+    /// 门每帧从 `offset_ns()` 里减 —— 台阶不该被当成本事（漂移）还掉。
+    [[nodiscard]] DiscontinuityTrace discontinuity_trace() const noexcept;
     [[nodiscard]] std::int64_t backward_clamps() const noexcept { return backward_clamps_; }
     [[nodiscard]] std::int64_t monotonic_rejects() const noexcept { return monotonic_rejects_; }
     [[nodiscard]] ClockHealth last_health() const noexcept { return last_health_; }
@@ -154,6 +158,9 @@ private:
     std::int32_t rebase_count_ = 0;  ///< 环里已有几笔（≤ 8）
     std::int64_t backward_clamps_ = 0;
     std::int64_t monotonic_rejects_ = 0;
+    /// 不连续那本账（P14-Y）。**单独一个类而不是再塞一个环**：这条文件已经 257 行，
+    /// 两个环、两套分类、两处累计混在一起，改哪个都得先把整段读完。
+    DiscontinuityLedger discontinuities_;
     ClockHealth last_health_ = ClockHealth::kFresh;
     core::audio::AudioClockSourceKind last_kind_ = core::audio::AudioClockSourceKind::kSystem;
 };

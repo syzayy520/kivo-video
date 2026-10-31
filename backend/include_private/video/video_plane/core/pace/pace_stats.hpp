@@ -8,6 +8,7 @@
 #include "video/video_plane/core/pace/pace_drift_trend.hpp"
 #include "video/video_plane/core/pace/pace_drift_window.hpp"
 #include "video/video_plane/core/pace/pace_histogram.hpp"
+#include "video/video_plane/core/pace/pace_discontinuity.hpp"
 #include "video/video_plane/core/pace/pace_rebase_trace.hpp"
 #include "video/video_plane/core/pace/pace_lead_trace.hpp"
 #include "video/video_plane/core/pace/pace_measurability.hpp"
@@ -102,6 +103,11 @@ struct PaceSummary {
     /// `PaceStats` 自己没有墙钟原点，它只有"第几帧"。**不在这里算**：
     /// 算两次就是两个真相（`frame_worst` 与 `episode_` 的老账，P13-P）。
     RebaseTrace drift_rebase_trace{};
+
+    /// 钟的不连续那本账（P14-Y）。与上一格同样由 `FramePacer::summary()` 抄进来。
+    /// 它回答的是另一件事：**领先量里有多少根本不是速率**（钟停过、补回来过、被钳过）。
+    /// 门从 `cum` 里减掉的就是 `offset_ns` —— 减掉多少、为什么减，都在这本账里。
+    DiscontinuityTrace drift_discontinuity{};
 
     // ---- 门本身的配置（P13-AD）----
     //

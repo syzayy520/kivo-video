@@ -14,12 +14,52 @@ namespace {
 /// 改成按"单帧贡献"区分：60 fps 下 1.5% 的快钟每帧只多 250 µs，10% 也只有 1.7 ms，
 /// 离 30 ms 差一个数量级；而设备重建 / 锚点重算的台阶通常在几十到几百毫秒。
 /// 台阶归 `jump_limit_ns`（> 1 s）与基线吸收，不计入累积。
+///
+/// **P14-Y：这个常量在 P13-V 就被写下，但一直没人用** —— "台阶不计入累积"当时只是意图。
+/// 现在它成了分界线：单帧偏离超过它就是 `kPositionStep`。30 ms 对 30 fps 接近一帧，
+/// 而速率误差单帧只有几十微秒，差三个数量级。
 constexpr std::int64_t kStepDriftNs = 30'000'000;
 
 /// 启动期多长之内的台阶不算数（P13-W）。首帧解码、Surface 首建、音频首包都会让
 /// 时钟与墙钟在头一秒里对不齐，那不是"钟坏了"。C5-4/C5-5 那两条测试的台阶也落在这一段
 /// （它们在第 1–2 帧就压 50 ms 进去），所以这条保护顺带把测试语义保住了。
 constexpr std::int64_t kStepBlindPeriodNs = 1'000'000'000;
+
+/// 这一帧的不连续属于哪一类（P14-Y）。**一帧只认一类**，优先级从高到低 ——
+/// 同一帧既被拒又被钳时记两笔，会把同一段墙时算两次，账直接翻倍。
+///
+/// 最后一类 `kPositionStep` 没有自己的标志位：它是"钟停了一下又补回来"的那一帧，
+/// 落在正常分支里，只有比对位置增量与墙增量才看得见 —— P14-X 缺的 113 ms 就在这里。
+DiscontinuityKind classify_discontinuity(const ClockPositionTracker::Reading& reading,
+                                         std::int64_t step_ns, bool past_startup) noexcept {
+    // 自由运行 = 已经不信这只钟了：位置是冻住的，领先量在这个档上没有意义，
+    // 记进来只会每帧一笔把账冲垮（时钟停 10 s 就是 300 笔）。它归 `free_run_frames`。
+    if (reading.health == ClockHealth::kFreeRun) {
+        return DiscontinuityKind::kNone;
+    }
+    // 启动期（首帧后 1 s）不记账，与"启动期不拦"同一个约定（P13-W）：
+    // 首帧解码 / Surface 首建 / 首包音频都会让位置与墙在第一秒里对不齐，
+    // 那不是钟的不连续。这一段照旧留在原始领先量里，由门在盲区结束后处理。
+    if (!past_startup) {
+        return DiscontinuityKind::kNone;
+    }
+    if (reading.monotonic_rejected) {
+        return DiscontinuityKind::kMonotonicRejected;
+    }
+    if (reading.backward_clamped) {
+        return DiscontinuityKind::kBackwardClamped;
+    }
+    if (reading.jump_rebased) {
+        return DiscontinuityKind::kJumpRebased;
+    }
+    if (reading.health == ClockHealth::kExtrapolated) {
+        return DiscontinuityKind::kExtrapolated;
+    }
+    if (step_ns > kStepDriftNs || step_ns < -kStepDriftNs) {
+        return DiscontinuityKind::kPositionStep;
+    }
+    return DiscontinuityKind::kNone;
+}
 
 }  // namespace
 
@@ -57,6 +97,9 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
     } else {
         const std::int64_t wall_delta_ns = std::max<std::int64_t>(0, mono_ns - previous_mono_ns_);
         const std::int64_t raw_delta_ns = snapshot.position_ns - previous_raw_ns_;
+        // P14-Y：这一帧开始时位置在哪。`step` 要的是"实际推进了多少"，
+        // 而三条分支（外推 / 跳变 / 正常）各自推进方式不同，事后再算就算不清了。
+        const std::int64_t position_before_ns = position_ns_;
         // P13-S：这一帧要减掉的超前量（0 = 不复位）。声明在分支外，
         // 因为减法必须发生在倒退钳制**之后**，而钳制在分支外。
         std::int64_t rebase_excess_ns = 0;
@@ -120,10 +163,33 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
         //
         // 三条分支怎么推都不影响这条式子，因为它不从增量算，只从两端算。
         const std::int64_t wall_total_ns = mono_ns - origin_mono_ns_;
-        cum_drift_ns_ = position_ns_ - (origin_position_ns_ + wall_total_ns);
+        // 原始领先量：**不做任何扣除**。它就是 P14-T 以来一直出版的那个量，
+        // 台阶摘不摘都在这里，读者永远能看到没被"加工"的那个数。
+        const std::int64_t raw_lead_ns = position_ns_ - (origin_position_ns_ + wall_total_ns);
+
+        // P14-Y：先认这一帧的台阶，再改 cum。
+        //
+        // `step = 位置实际推进 − 墙钟推进`。跳变与外推两条分支本来按墙推进，step 恒 0；
+        // 停滞 / 钳制 / 补回来 这三类不是 0，而它们都不是速率误差 ——
+        // 门把它们当漂移还掉，就是 P14-X 那笔 146.75 ms 的来源。
+        const std::int64_t step_ns = (position_ns_ - position_before_ns) - wall_delta_ns;
         // 启动期不拦（P13-W 的约定）：首帧解码 / Surface 首建会让位置与墙在第一秒里
-        // 对不齐，C5-4/C5-5 的 50 ms 台阶也落在这一段。
+        // 对不齐，C5-4/C5-5 的 50 ms 台阶也落在这一段。记账与拦截共用同一个门。
         const bool past_startup = mono_ns - origin_mono_ns_ > kStepBlindPeriodNs;
+        const DiscontinuityKind discontinuity =
+            classify_discontinuity(reading, step_ns, past_startup);
+        if (discontinuity != DiscontinuityKind::kNone) {
+            // 记的是"这一帧之前 / 之后的原始领先量"，不是改过的 cum ——
+            // 用改过的值反推 `before`，就是两处算同一个数（P14-X 的教训）。
+            discontinuities_.note(discontinuity, mono_ns - first_mono_ns_, wall_delta_ns,
+                                  raw_delta_ns, step_ns, raw_lead_ns - step_ns, raw_lead_ns);
+        }
+        // 门的输入：**仍是原始领先量**，一个字节都没改。
+        //
+        // 初版写成 `raw_lead - offset`（真把台阶摘出去），S5–S7 立刻红：
+        // 那三条是 P13-S/AB 的契约（"台阶必须被门还掉"），改它要单独一张卡。
+        // 本卡只观测，理由与数据见 `163-p14y-design.md` §七.1。
+        cum_drift_ns_ = raw_lead_ns;
         // P13-AC：真正的迟滞是**两个阈值**，不是一个阈值加一个目标。
         //
         // 第一版写成"`cum > limit` 就修到 `limit − band`"，可每帧只修 2 ms，
@@ -222,6 +288,10 @@ RebaseTrace ClockPositionTracker::rebase_trace() const noexcept {
     return out;
 }
 
+DiscontinuityTrace ClockPositionTracker::discontinuity_trace() const noexcept {
+    return discontinuities_.trace();
+}
+
 void ClockPositionTracker::anchor(std::int64_t pts_ns, const Reading& reading) noexcept {
     if (anchored_) {
         return;
@@ -249,6 +319,9 @@ void ClockPositionTracker::reset() noexcept {
     }
     rebase_head_ = 0;
     rebase_count_ = 0;
+    // P14-Y：不连续那本账与复位轨迹同寿命 —— 换片源之后，"上一段吃过多少台阶"
+    // 不能接着算进这一段的门里。
+    discontinuities_.reset();
     anchored_ = false;
     anchor_pts_ns_ = 0;
     anchor_position_ns_ = 0;

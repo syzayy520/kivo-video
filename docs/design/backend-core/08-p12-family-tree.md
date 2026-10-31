@@ -380,6 +380,8 @@ core/pace/
 ├── pace_hac.hpp/.cxx           # P13-K：给**已拟合的直线**算 Newey–West 斜率标准误 + 带宽 + ρ1
 ├── pace_drift_budget.hpp/.cxx  # P13-L：斜率 → 累积纳秒 + 对着 45 ms 额度判三态（看得见 ≠ 要紧）
 ├── clock_position_tracker.hpp/.cxx  # 陈旧外推 / 跳变重锚 / 倒退钳制
+├── pace_discontinuity.hpp      # P14-Y：钟的不连续 —— 五类事件 + 一笔现场 + 轨迹结构
+├── pace_discontinuity_ledger.hpp/.cxx  # P14-Y：不连续那本账 —— 定长环 8 + 累计 offset + 分类计数
 ├── frame_pacer.hpp/.cxx        # 编排：pts → due_at → 动作 → 等待 → 记账
 └── pace_now.hpp/.cxx           # NowFn / WaitFn（可注入，单测不真睡）
 ```
@@ -398,6 +400,8 @@ core/pace/
 | `pace_hac.cxx` | 给一条**已经拟合好**的直线算 HAC（Bartlett 核）斜率标准误，附带宽 `L`、残差一阶自相关 ρ1、与 IID 方差之比。回答"这个斜率有多准" | 不拟合斜率、不改 r2、不认识窗口 —— 斜率由 `pace_drift_trend` 传进来 |
 | `pace_drift_budget.cxx` | 把 `ppm` 积回纳秒（点估计 + 置信带远端的保守上界），对着 45 ms 额度判 `unknown` / `within_budget` / `over_budget`。回答"看得见的那个漂移要紧吗" | 不改斜率、不改 SE、不判绝对偏移（那是分位数的事）、不做跨轮汇总 |
 | `clock_position_tracker.cxx` | 把 `AudioClockSource` 变成"可信、非递减的位置" | 不算 `due_at` |
+| `pace_discontinuity.hpp`〔P14-Y〕 | 定义"不连续有哪几种、一笔现场记什么、轨迹怎么摆"（纯数据，无 .cxx） | 不记账、不算 `offset`、不认识阈值 |
+| `pace_discontinuity_ledger.cxx`〔P14-Y〕 | 不连续那本账：定长环 8 + 累计 `offset` + 分类计数 + 升序展开 | 不改位置、不解释事件、不管出版格式 |
 | `frame_pacer.cxx` | 建锚点、算 `due_at`、编排等待与记账 | 不碰 MediaCodec、不认识 `ANativeWindow` |
 | `pace_now.cxx` | `steady_clock` 纳秒 + `sleep_until` | 不含策略 |
 

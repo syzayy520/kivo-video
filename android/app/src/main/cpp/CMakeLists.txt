@@ -66,6 +66,7 @@ add_library(kivo_core_pace STATIC
     # `undefined symbol: LeadTraceRecorder::note`。
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_lead_trace.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_wall_offset.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_discontinuity_ledger.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_gate_scale.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/pace_now.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pace/clock_position_tracker.cxx"

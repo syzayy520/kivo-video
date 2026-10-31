@@ -317,7 +317,7 @@ using core::pace::SignedHistogram;
 ///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/35";
+constexpr const char* kSchema = "kivo.p12c.sync/36";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -756,6 +756,51 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
         }
         out << "{\"at_ns\": " << sample.at_ns << ", \"amount_ns\": " << sample.amount_ns
             << ", \"lead_before_ns\": " << sample.lead_before_ns << "}";
+    }
+    out << "]\n";
+    out << "  },\n";
+
+    // ── 钟的不连续（P14-Y）──
+    //
+    // P14-X 把"大修正"和"钟事件"绑在了一起，但它只能证明两者同轮出现：
+    // 146.75 ms 的修正里只有约 33 ms 能由一次外推解释，剩下 113 ms 没有证据。
+    // 这一块就是那 113 ms 的入口：每一笔台阶都留下"墙走了多少、原始位置走了多少、
+    // 位置实际走了多少"，于是"停了一下"（raw = 0）与"补了一刀"（raw 很大）能分开。
+    //
+    // `offset_ns` 是**这门从 cum 里减掉的总量**。原始领先量照旧出版（见 `clock_lead`），
+    // 所以"减了多少"永远可以核对，不存在把钱藏起来这回事。
+    const core::pace::DiscontinuityTrace& discontinuity = pace.drift_discontinuity;
+    out << "  \"drift_discontinuity\": {\n";
+    out << "    \"events\": " << discontinuity.events << ",\n";
+    out << "    \"extrapolated\": " << discontinuity.extrapolated << ",\n";
+    out << "    \"rejected\": " << discontinuity.rejected << ",\n";
+    out << "    \"clamped\": " << discontinuity.clamped << ",\n";
+    out << "    \"jumped\": " << discontinuity.jumped << ",\n";
+    out << "    \"stepped\": " << discontinuity.stepped << ",\n";
+    out << "    \"offset_ns\": " << discontinuity.offset_ns << ",\n";
+    out << "    \"sampled_offset_ns\": " << discontinuity.sampled_offset_ns << ",\n";
+    out << "    \"sampled\": " << discontinuity.sampled << ",\n";
+    out << "    \"first_at_ns\": " << discontinuity.first_at_ns << ",\n";
+    out << "    \"max\": {\"at_ns\": " << discontinuity.max.at_ns << ", \"kind\": "
+        << quoted(core::pace::discontinuity_kind_name(discontinuity.max.kind))
+        << ", \"wall_delta_ns\": " << discontinuity.max.wall_delta_ns
+        << ", \"raw_delta_ns\": " << discontinuity.max.raw_delta_ns
+        << ", \"step_ns\": " << discontinuity.max.step_ns
+        << ", \"lead_before_ns\": " << discontinuity.max.lead_before_ns
+        << ", \"lead_after_ns\": " << discontinuity.max.lead_after_ns << "},\n";
+    out << "    \"recent\": [";
+    for (std::int64_t i = 0; i < discontinuity.samples_used; ++i) {
+        const core::pace::DiscontinuitySample& sample = discontinuity.recent[i];
+        if (i != 0) {
+            out << ", ";
+        }
+        out << "{\"at_ns\": " << sample.at_ns << ", \"kind\": "
+            << quoted(core::pace::discontinuity_kind_name(sample.kind))
+            << ", \"wall_delta_ns\": " << sample.wall_delta_ns
+            << ", \"raw_delta_ns\": " << sample.raw_delta_ns
+            << ", \"step_ns\": " << sample.step_ns
+            << ", \"lead_before_ns\": " << sample.lead_before_ns
+            << ", \"lead_after_ns\": " << sample.lead_after_ns << "}";
     }
     out << "]\n";
     out << "  },\n";

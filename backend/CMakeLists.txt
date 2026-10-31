@@ -2304,6 +2304,9 @@ set(KIVO_P12C_CORE_PACE_SOURCES
   # 漏注册不会在桌面暴露，只在 arm64 链接时报 `undefined symbol`。
   src/video/video_plane/core/pace/pace_lead_trace.cxx
   src/video/video_plane/core/pace/pace_wall_offset.cxx
+  # P14-Y：不连续那本账。与上面两行同一个坑 —— 漏注册桌面照样编过，
+  # 只有 arm64 链接时才会报 `undefined symbol`。
+  src/video/video_plane/core/pace/pace_discontinuity_ledger.cxx
   src/video/video_plane/core/pace/pace_gate_scale.cxx
   src/video/video_plane/core/pace/pace_now.cxx
   src/video/video_plane/core/pace/clock_position_tracker.cxx
@@ -2803,3 +2806,17 @@ if(MSVC)
 endif()
 add_test(NAME kivo_p14v_gate_scale_tests COMMAND kivo_p14v_gate_scale_tests)
 set_tests_properties(kivo_p14v_gate_scale_tests PROPERTIES TIMEOUT 60)
+
+# ─── P14-Y: 钟的不连续那本账 ───
+# 纯账本 + tracker 集成，零平台依赖：喂一笔"假事件"就能验账，
+# 不必构造时钟 —— "账对不对"与"分类对不对"因此可以分开验。
+add_executable(kivo_p14y_discontinuity_tests
+  tests/video/pace/p14y_discontinuity_tests/discontinuity_tests.cpp
+)
+target_link_libraries(kivo_p14y_discontinuity_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p14y_discontinuity_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p14y_discontinuity_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p14y_discontinuity_tests COMMAND kivo_p14y_discontinuity_tests)
+set_tests_properties(kivo_p14y_discontinuity_tests PROPERTIES TIMEOUT 60)

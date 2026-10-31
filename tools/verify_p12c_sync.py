@@ -70,7 +70,7 @@ class Failure(Exception):
 #:
 #: `/2` **从未存在过**（`/1` 直接跳到 `/3`），所以它不是"漏了"，是当时就没写。
 MIN_SCHEMA_VERSION = 1
-MAX_SCHEMA_VERSION = 35
+MAX_SCHEMA_VERSION = 36
 ABSENT_SCHEMA_VERSIONS = frozenset({2})
 
 #: 从这一版起，`pace.pts_span_ns`（实测首末 pts 差）与 `pace.clock_supplied_frames`
@@ -102,6 +102,9 @@ SCHEMA_WITH_GATE_SCALE = 33
 SCHEMA_WITH_GATE_ACTED = 34
 #: 从 `/35` 起顶层有 `drift_rebase_trace`（P14-X）：每一笔复位的时刻与幅度。
 SCHEMA_WITH_REBASE_TRACE = 35
+#: 从 `/36` 起顶层有 `drift_discontinuity`（P14-Y）：钟的不连续那本账 ——
+#: 每一笔台阶的墙钟增量、原始位置增量、以及它对领先量的贡献。
+SCHEMA_WITH_DISCONTINUITY = 36
 
 #: 已知越界 —— **不是豁免判据，是登记在案的异常**。值是 `(说明, 钟领先量指纹)`。
 #:
@@ -695,6 +698,109 @@ def check_rebase_trace(
     )
 
 
+def check_discontinuity(data: dict, pace: dict, notes: list[str]) -> None:
+    """Y 组：钟的不连续那本账（P14-Y，`/36` 起）。
+
+    X 组证明了"大修正与钟事件同轮出现"，但只能解释约一帧；146.75 ms 里剩下的
+    113 ms 当时没有证据 —— 因为轨迹只记了**修正**，没记那一刻的原始位置与墙钟。
+    这一组判的就是那本账本身对不对：它记的每一笔，`Σstep` 必须等于 `offset`，
+    分类计数必须等于 `events`，而"大修正"必须能在同一轮里找到一笔够大的台阶。
+    """
+    block = data.get("drift_discontinuity")
+    if not isinstance(block, dict):
+        raise Failure("/36 起 drift_discontinuity 必须存在")
+
+    events = int(block.get("events", -1))
+    offset_ns = int(block.get("offset_ns", 0))
+    sampled = int(block.get("sampled", -1))
+    sampled_offset_ns = int(block.get("sampled_offset_ns", 0))
+    recent = block.get("recent")
+    if not isinstance(recent, list):
+        raise Failure("Y0 drift_discontinuity.recent 必须是数组（没有也要给空数组）")
+
+    by_kind = {
+        "extrapolated": int(block.get("extrapolated", 0)),
+        "monotonic_rejected": int(block.get("rejected", 0)),
+        "backward_clamped": int(block.get("clamped", 0)),
+        "jump_rebased": int(block.get("jumped", 0)),
+        "position_step": int(block.get("stepped", 0)),
+    }
+
+    # Y0：一次事件都没有 ⇒ 干净的空。有样本就是幽灵账。
+    if events == 0:
+        if offset_ns != 0 or sampled != 0 or recent or any(by_kind.values()):
+            raise Failure("Y0 一次事件都没有，账里却有东西")
+        notes.append("不连续账：零事件")
+        return
+
+    # Y2：分类计数必须解释 `events`，环的长度必须解释 `sampled`。
+    if events != sum(by_kind.values()):
+        raise Failure(
+            f"Y2 events={events} 与五个分类之和 {sum(by_kind.values())} 不一致：{by_kind}"
+        )
+    expected_sampled = min(events, 8)
+    if sampled != expected_sampled or len(recent) != expected_sampled:
+        raise Failure(
+            f"Y2 sampled={sampled}、recent={len(recent)} 笔，按 events={events} 应为 "
+            f"{expected_sampled}"
+        )
+
+    # Y1：环内 `Σstep` 必须等于 `sampled_offset_ns`；事件不超过环长时，两者都等于总账。
+    ring_sum = 0
+    previous_at = -1
+    for index, sample in enumerate(recent):
+        at_ns = int(sample["at_ns"])
+        step_ns = int(sample["step_ns"])
+        if at_ns <= previous_at:
+            raise Failure(f"Y2 recent[{index}].at_ns={at_ns} 不是严格升序（上一笔 {previous_at}）")
+        previous_at = at_ns
+        if sample.get("kind") not in by_kind:
+            raise Failure(f"Y2 recent[{index}].kind={sample.get('kind')!r} 不在白名单里")
+        ring_sum += step_ns
+    if ring_sum != sampled_offset_ns:
+        raise Failure(
+            f"Y1 环内 Σstep={ring_sum} 与 sampled_offset_ns={sampled_offset_ns} 不一致"
+            " —— 环回绕时没把被挤走那一笔扣回来"
+        )
+    if events <= 8 and sampled_offset_ns != offset_ns:
+        raise Failure(
+            f"Y1 events={events} ≤ 8，环内累计 {sampled_offset_ns} 必须等于总账 {offset_ns}"
+        )
+
+    # Y4：`max` 必须是环里 |step| 最大的那一笔。不更新它，读者会盯着一个小的。
+    max_step = int(block["max"]["step_ns"])
+    worst = max((abs(int(s["step_ns"])) for s in recent), default=0)
+    if abs(max_step) != worst:
+        raise Failure(
+            f"Y4 max.step_ns={max_step}，但环里绝对值最大的是 {worst}"
+            " —— max 没跟着更新"
+        )
+
+    # Y3（本组的意义）：单笔大修正必须能被同一轮的一笔台阶解释。
+    #
+    # 阈值照旧从证据里读（band + 一帧），不硬编码；"解释"定义为
+    # `|step| ≥ 修正 − (带 + 帧)`，即扣掉正常波动后剩下的量必须有出处。
+    gate = data.get("drift_gate") or {}
+    band_ns = int(gate.get("band_ns", 0))
+    frame_ns = int(pace.get("frame_duration_ns") or 0)
+    health = pace.get("clock_health") or {}
+    correction_ns = int(health.get("drift_max_correction_ns", 0))
+    if frame_ns > 0 and correction_ns > band_ns + frame_ns:
+        need_ns = correction_ns - (band_ns + frame_ns)
+        worst_step = max((abs(int(s["step_ns"])) for s in recent), default=0)
+        if worst_step < need_ns:
+            raise Failure(
+                f"Y3 单笔修正 {correction_ns / 1e6:.2f} ms，扣掉迟滞带 + 一帧后仍有 "
+                f"{need_ns / 1e6:.2f} ms 没有出处；环里最大台阶只有 "
+                f"{worst_step / 1e6:.2f} ms"
+            )
+
+    notes.append(
+        f"不连续账：{events} 笔，累计 {offset_ns / 1e6:.2f} ms，"
+        f"最大 {max_step / 1e6:.2f} ms（{block['max'].get('kind')}）"
+    )
+
+
 def verify(path: Path) -> tuple[str, list[str], str]:
     """判一份证据。返回 `(摘要, 说明, 速率结局)`。
 
@@ -1027,6 +1133,8 @@ def verify(path: Path) -> tuple[str, list[str], str]:
         check_gate_scale(data, pace, notes)
     if version >= SCHEMA_WITH_REBASE_TRACE:
         check_rebase_trace(data, pace, notes)
+    if version >= SCHEMA_WITH_DISCONTINUITY:
+        check_discontinuity(data, pace, notes)
 
     if data["completed"] and data["error"]:
         raise Failure("completed=true 却带着非空 error")

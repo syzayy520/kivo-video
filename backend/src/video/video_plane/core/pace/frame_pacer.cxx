@@ -278,6 +278,9 @@ PaceSummary FramePacer::summary() const noexcept {
     // P13-AD：把门的配置一并出版。校验器据此复算，不再硬编码 45/5；
     // 关着门的对照组也不会被误读成"门没触发"。
     out.drift_rebase_trace = tracker_.rebase_trace();
+    // P14-Y：不连续那本账也**照抄**，不在 `PaceStats` 里重算。
+    // 算两次就是两个真相 —— `frame_worst` 与 `episode_` 的老账（P13-P）就是这么来的。
+    out.drift_discontinuity = tracker_.discontinuity_trace();
     out.drift_gate_enabled = policy_.drift_gate_enabled;
     out.drift_limit_ns = policy_.drift_limit_ns;
     out.drift_band_ns = policy_.drift_band_ns;
