@@ -3,7 +3,7 @@
   "task_id": "P2-REDLINE-GATE-FOUNDATION",
   "scan_mode": "delivery",
   "classification": "PASS",
-  "files_scanned": 2299,
+  "files_scanned": 2303,
   "violations_count": 0,
   "violations_by_rule": {},
   "violations": [],
@@ -11,5 +11,5 @@
   "legacy_inventory": "backend/tools/governance/redline_gate/artifacts/legacy_evidence_violations.json",
   "allowed_claims": [],
   "forbidden_claims": [],
-  "timestamp_utc": "2026-10-31T16:40:51Z"
+  "timestamp_utc": "2026-10-31T16:51:34Z"
 }

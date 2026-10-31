@@ -92,15 +92,17 @@ void PaceStats::note_anchor_reset() noexcept {
     drift_.break_segment();
 }
 
-void PaceStats::note_dropped(std::int64_t lateness_ns) noexcept {
+void PaceStats::note_dropped(std::int64_t lateness_ns, std::int64_t media_ns) noexcept {
     ++dropped_;
     dropped_lateness_.add(lateness_ns);
+    drop_ring_.note(media_ns, lateness_ns);
 }
 
-void PaceStats::note_catch_up_frame(std::int64_t lateness_ns) noexcept {
+void PaceStats::note_catch_up_frame(std::int64_t lateness_ns, std::int64_t media_ns) noexcept {
     ++dropped_;
     ++catch_up_frames_;
     dropped_lateness_.add(lateness_ns);
+    drop_ring_.note(media_ns, lateness_ns);
 }
 
 void PaceStats::note_interval(std::int64_t deviation_ns) noexcept {
@@ -285,6 +287,7 @@ PaceSummary PaceStats::summary(std::int64_t frame_duration_ns, ClockHealth healt
     out.clock_system_frames = clock_system_frames_;
     // P13-S：漂移门的触发帧数。`FramePacer::summary()` 会把它连同 tracker 的四个计数
     // 一起交给证据层 —— 但**不是**从 tracker 取的（tracker 不知道自己被统计了几次）。
+    out.drop_events = drop_ring_.trace();
     out.drift_rebases = drift_rebases_;
     out.drift_max_correction_ns = drift_max_correction_ns_;
     out.drift_corrected_total_ns = drift_corrected_total_ns_;

@@ -156,13 +156,13 @@ PaceDecision FramePacer::arrive(std::int64_t pts_ns) noexcept {
             ++consecutive_late_;
             ++frames_since_present_;
             decision.reason = "late beyond drop threshold";
-            stats_.note_dropped(lateness_ns);
+            stats_.note_dropped(lateness_ns, pts_ns);
             break;
         case PaceAction::kCatchUp:
             ++consecutive_late_;
             ++frames_since_present_;
             decision.reason = "catching up after consecutive lateness";
-            stats_.note_catch_up_frame(lateness_ns);
+            stats_.note_catch_up_frame(lateness_ns, pts_ns);
             break;
     }
 

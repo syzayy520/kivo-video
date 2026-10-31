@@ -127,6 +127,8 @@ SYNC_QUANTILE_BLOCK_SCHEMAS = (
     "kivo.p12c.sync/39",
     # P14-AF：`drift_discontinuity` 多 `jump_max_ns`；跳变轮的 verdict 改成 unknown。
     "kivo.p12c.sync/40",
+    # P14-AG：top-level `dropped_events` —— 丢掉的帧在哪几秒。
+    "kivo.p12c.sync/41",
 )
 
 # P14-R：哪几版报告带 `end_reason`。两个集合分开写而不是写一次"≥ /29"，
@@ -138,7 +140,8 @@ SCHEMAS_WITH_SYNC_END_REASON = {"kivo.p12c.sync/29", "kivo.p12c.sync/30",
                                  "kivo.p12c.sync/33", "kivo.p12c.sync/34",
                                  "kivo.p12c.sync/35", "kivo.p12c.sync/36",
                                  "kivo.p12c.sync/37", "kivo.p12c.sync/38",
-                                 "kivo.p12c.sync/39", "kivo.p12c.sync/40"}
+                                 "kivo.p12c.sync/39", "kivo.p12c.sync/40",
+                                 "kivo.p12c.sync/41"}
 
 # ── schema 白名单 ──────────────────────────────────────────────────────────
 # 硬编码是刻意的摩擦：新增卡片必须显式加进来，让"格式变更"被看见一次。
@@ -333,6 +336,8 @@ KNOWN_SCHEMAS = {
     "kivo.p12c.sync/39",
     # P14-AF：`jump_max_ns` —— 被丢掉的 1 s 要在顶层看得见。
     "kivo.p12c.sync/40",
+    # P14-AG：`dropped_events` —— 丢帧的位置，不只是一个计数。
+    "kivo.p12c.sync/41",
     "kivo.p12d5.present-timing/1",
     "kivo.p12e.color-probe/1",
     "kivo.p12e.hdr-probe/1", "kivo.p12e.hdr-probe/2", "kivo.p12e.hdr-probe/3",

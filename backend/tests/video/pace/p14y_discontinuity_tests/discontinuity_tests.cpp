@@ -13,6 +13,8 @@
 //   ⑦ 门关着时账照记 —— 记账不该被门的状态污染。
 //   ⑧ 稳态一轮：零事件、零 offset、门零动作。改了记账不许影响正常轮次。
 //   ⑨ `reset()` 把账清干净：换片源之后"上一段吃过多少台阶"不能算进这一段。
+//   ⑪ 丢帧要有现场（P14-AG）：环留 16 笔、`truncated` 在 17 笔置位、
+//      按时间升序、`reset` 清零。计数之外还要"在哪儿"，否则"丢了 24 帧"没法判读。
 //   ⑩ 跳变被丢掉多少要单独记（P14-AF）：`jump_max_ns` 取**绝对值最大**的那一笔、
 //      **带符号**保留方向，且只有跳变进这一格（台阶走 `offset_ns`，两者不许混）。
 //
@@ -23,6 +25,7 @@
 #include "video/video_plane/core/audio/clock/audio_clock_source.hpp"
 #include "video/video_plane/core/pace/clock_position_tracker.hpp"
 #include "video/video_plane/core/pace/pace_discontinuity_ledger.hpp"
+#include "video/video_plane/core/pace/pace_drop_trace.hpp"
 #include "video/video_plane/core/pace/pace_policy.hpp"
 
 namespace pace = kivo::video::core::pace;
@@ -183,6 +186,42 @@ void t10_jump_max_keeps_the_largest_discarded() {
     CHECK(ledger.trace().jump_max_ns == 0);
 }
 
+// ---- ⑪ 丢帧现场：环 16 笔、truncated、升序 ----------------------------------
+
+void t11_drop_ring_keeps_the_shape() {
+    pace::DropRing ring;
+    ring.note(20 * kMs, 130 * kMs);
+    ring.note(21 * kMs, 140 * kMs);
+    auto trace = ring.trace();
+    CHECK(trace.total == 2);
+    CHECK(trace.sampled == 2);
+    CHECK(!trace.truncated);
+    CHECK(trace.recent[0].media_ns == 20 * kMs);
+    CHECK(trace.recent[1].lateness_ns == 140 * kMs);
+
+    // 写到 17 笔：环里只剩最后 16 笔，`truncated` 必须置位 ——
+    // 不置位就等于拿"看得见的 16 笔"冒充全部 17 笔。
+    for (std::int32_t i = 0; i < 15; ++i) {
+        ring.note((22 + i) * kMs, 120 * kMs);
+    }
+    trace = ring.trace();
+    CHECK(trace.total == 17);
+    CHECK(trace.sampled == 16);
+    CHECK(trace.truncated);
+    // 升序：最旧的一笔是第 2 笔（21 ms），最新的是第 17 笔（36 ms）。
+    CHECK(trace.recent[0].media_ns == 21 * kMs);
+    CHECK(trace.recent[15].media_ns == 36 * kMs);
+    for (std::int32_t i = 1; i < 16; ++i) {
+        CHECK(trace.recent[i].media_ns >= trace.recent[i - 1].media_ns);
+    }
+
+    ring.reset();
+    trace = ring.trace();
+    CHECK(trace.total == 0);
+    CHECK(trace.sampled == 0);
+    CHECK(!trace.truncated);
+}
+
 // ---- ④ 停一次再补回来：门一次都不用动 ----------------------------------------
 
 void t04_stall_then_catch_up_is_booked_but_still_repaid() {
@@ -318,6 +357,7 @@ int main() {
     t08_steady_clock_books_nothing();
     t09_tracker_reset_clears_the_ledger();
     t10_jump_max_keeps_the_largest_discarded();
+    t11_drop_ring_keeps_the_shape();
 
     if (g_failed == 0) {
         std::printf("P14-Y discontinuity: %d checked, 0 failed\n", g_checked);

@@ -317,7 +317,7 @@ using core::pace::SignedHistogram;
 ///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/40";
+constexpr const char* kSchema = "kivo.p12c.sync/41";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -1399,6 +1399,28 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     // 调用方不给媒体时刻。传一个 invalid 的极值 = 不写 `worst` 键，
     // 而不是写一个零 —— 零会被读成"最差发生在第 0 个样本"。
     render_quantiles(out, pace.interval, kNoExtreme, "    ");
+    out << "  },\n";
+
+    // ── P14-AG：丢掉的那几帧在哪儿 ──
+    //
+    // `pace.dropped` 只有计数。一份证据说"丢了 24 帧"，却回答不了
+    // "是注入后 100 ms 内一次性丢的，还是分散在整段里"—— 而这两种形状
+    // 的判读完全相反（台阶被跳掉 / 基准一直在飘）。环只留最后 16 笔，
+    // `truncated` 说明还有多少没留下：不拿"看得见的 16 笔"冒充全部。
+    out << "  \"dropped_events\": {\n";
+    out << "    \"total\": " << pace.drop_events.total << ",\n";
+    out << "    \"sampled\": " << pace.drop_events.sampled << ",\n";
+    out << "    \"truncated\": " << (pace.drop_events.truncated ? "true" : "false") << ",\n";
+    out << "    \"recent\": [";
+    for (std::int64_t i = 0; i < pace.drop_events.sampled; ++i) {
+        const core::pace::DropSample& drop = pace.drop_events.recent[i];
+        if (i != 0) {
+            out << ", ";
+        }
+        out << "{\"media_ns\": " << drop.media_ns
+            << ", \"lateness_ns\": " << drop.lateness_ns << "}";
+    }
+    out << "]\n";
     out << "  },\n";
 
     out << "  \"timeline\": {\n";

@@ -70,7 +70,7 @@ class Failure(Exception):
 #:
 #: `/2` **从未存在过**（`/1` 直接跳到 `/3`），所以它不是"漏了"，是当时就没写。
 MIN_SCHEMA_VERSION = 1
-MAX_SCHEMA_VERSION = 40
+MAX_SCHEMA_VERSION = 41
 ABSENT_SCHEMA_VERSIONS = frozenset({2})
 
 #: 从这一版起，`pace.pts_span_ns`（实测首末 pts 差）与 `pace.clock_supplied_frames`
@@ -117,6 +117,9 @@ SCHEMA_WITH_SYNC_VERDICT = 39
 #: 从 `/40` 起 `drift_discontinuity.jump_max_ns` 出版（P14-AF），且跳变轮的
 #: `sync_verdict` 不许说 `av_synced` —— `lead = 0` 在那条分支上有两种来历。
 SCHEMA_WITH_JUMP_MAX = 40
+#: 从 `/41` 起出版 `dropped_events`（P14-AG）：丢掉的那几帧**在哪儿**。
+#: 计数之外还要有现场 —— 否则"丢了 24 帧"回答不了"一簇还是两簇"。
+SCHEMA_WITH_DROP_EVENTS = 41
 
 #: 已知越界 —— **不是豁免判据，是登记在案的异常**。值是 `(说明, 钟领先量指纹)`。
 #:
@@ -607,6 +610,50 @@ def check_gate_scale(
             raise Failure(
                 "V5 门一次都没复位，reach 却说是'修完之后剩下的速率'（开关传反了）"
             )
+
+
+def _check_drop_events(data: dict, notes: list[str]) -> None:
+    """AG1 / AG2（P14-AG）：丢帧要有现场，而且现场必须与计数自洽。
+
+    `pace.dropped` 只有计数时，一份证据说"丢了 24 帧"却回答不了
+    "是注入后一次性丢的，还是分散在整段里"—— 这两种形状的判读完全相反。
+    """
+    block = data.get("dropped_events")
+    if not isinstance(block, dict):
+        raise Failure("/41 起必须有 `dropped_events`（丢帧现场）")
+
+    total = int(block.get("total", -1))
+    sampled = int(block.get("sampled", -1))
+    truncated = block.get("truncated")
+    recent = block.get("recent")
+    if not isinstance(recent, list):
+        raise Failure("AG1 `dropped_events.recent` 必须是数组（没有也要给空数组）")
+
+    # AG2：现场的总数必须等于帧数里那一格 —— 两处各数一遍就是两个真相。
+    dropped = int(data.get("frames_dropped", 0))
+    if total != dropped:
+        raise Failure(
+            f"AG2 `dropped_events.total`={total} 与 `frames_dropped`={dropped} 不一致"
+        )
+
+    if sampled != min(total, 16):
+        raise Failure(f"AG1 sampled={sampled} 应为 min(total={total}, 16)")
+    if truncated is not (total > 16):
+        raise Failure(f"AG1 truncated={truncated} 与 total={total} 对不上（>16 才置位）")
+    if len(recent) != sampled:
+        raise Failure(f"AG1 recent 有 {len(recent)} 笔，sampled 说 {sampled} 笔")
+
+    previous_media = -1
+    for entry in recent:
+        media = int(entry.get("media_ns", -1))
+        lateness = int(entry.get("lateness_ns", 0))
+        if media < previous_media:
+            raise Failure("AG1 recent 必须按时间升序（media_ns 非递减）")
+        previous_media = media
+        # 丢的定义就是"迟到"：符号反了说明有人把 lateness 的约定写倒了。
+        # 不在这里硬编码 `late_drop_ns`（那是策略，不是定义）。
+        if lateness <= 0:
+            raise Failure(f"AG1 丢帧的 lateness 应为正，得到 {lateness} ns")
 
 
 def _check_jump_max(data: dict, notes: list[str]) -> None:
@@ -1295,6 +1342,8 @@ def verify(path: Path) -> tuple[str, list[str], str]:
                 )
     if version >= SCHEMA_WITH_JUMP_MAX:
         _check_jump_max(data, notes)
+    if version >= SCHEMA_WITH_DROP_EVENTS:
+        _check_drop_events(data, notes)
 
     if version >= SCHEMA_WITH_SPAN_BASIS:
         # AA1：只要这一轮交过帧，跨度就必须有人喂 —— 否则又是"全 0 看起来像没动"。

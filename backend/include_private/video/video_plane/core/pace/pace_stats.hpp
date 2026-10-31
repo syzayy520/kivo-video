@@ -9,6 +9,7 @@
 #include "video/video_plane/core/pace/pace_drift_window.hpp"
 #include "video/video_plane/core/pace/pace_histogram.hpp"
 #include "video/video_plane/core/pace/pace_discontinuity.hpp"
+#include "video/video_plane/core/pace/pace_drop_trace.hpp"
 #include "video/video_plane/core/pace/pace_rebase_trace.hpp"
 #include "video/video_plane/core/pace/pace_lead_trace.hpp"
 #include "video/video_plane/core/pace/pace_measurability.hpp"
@@ -132,6 +133,9 @@ struct PaceSummary {
     /// 被丢弃帧的迟到量。与 `lateness` 分开：混在一起会把 p99 抬到"丢帧的迟到"上，
     /// 而 G6 关心的是**实际呈现**的抖动。
     SignedHistogram dropped_lateness{};
+    /// 丢掉的那几帧**在哪儿**（P14-AG）。`dropped` 只有计数时，"丢了 24 帧"
+    /// 无法回答"是一簇还是两簇"——而这两种形状的判读完全相反。
+    DropTrace drop_events{};
 
     /// `submit_at - due_at`（P12-C7 的 `kSurfaceAtTime` 路径）：提交时刻相对目标显示时刻的偏移。
     ///
@@ -419,8 +423,9 @@ public:
     /// 只切漂移序列的段：`lateness` 的零点换了，跨过这一刻的回归拟合的是
     /// 两个零点之间的跳变，不只是速率差。累计计数一律不动。
     void note_anchor_reset() noexcept;
-    void note_dropped(std::int64_t lateness_ns) noexcept;
-    void note_catch_up_frame(std::int64_t lateness_ns) noexcept;
+    /// `media_ns` 是被丢掉那一帧的 pts：环用它回答"丢在哪几秒"。
+    void note_dropped(std::int64_t lateness_ns, std::int64_t media_ns) noexcept;
+    void note_catch_up_frame(std::int64_t lateness_ns, std::int64_t media_ns) noexcept;
     void note_interval(std::int64_t deviation_ns) noexcept;
     void note_health(ClockHealth health) noexcept;
 
@@ -459,6 +464,7 @@ private:
     SignedHistogram lateness_{};
     SignedHistogram interval_{};
     SignedHistogram dropped_lateness_{};
+    DropRing drop_ring_{};
     SignedHistogram schedule_lead_{};
     std::int64_t scheduled_samples_ = 0;
     SignedHistogram sampled_lateness_{};

@@ -382,6 +382,7 @@ core/pace/
 ├── clock_position_tracker.hpp/.cxx  # 陈旧外推 / 跳变重锚 / 倒退钳制
 ├── pace_discontinuity.hpp      # P14-Y：钟的不连续 —— 五类事件 + 一笔现场 + 轨迹结构
 ├── pace_discontinuity_ledger.hpp/.cxx  # P14-Y：不连续那本账 —— 定长环 8 + 累计 offset + 分类计数
+├── pace_drop_trace.hpp         # P14-AG：丢掉的帧在哪几秒 —— 定长环 16 + total/sampled/truncated
 ├── frame_pacer.hpp/.cxx        # 编排：pts → due_at → 动作 → 等待 → 记账
 └── pace_now.hpp/.cxx           # NowFn / WaitFn（可注入，单测不真睡）
 ```
@@ -402,6 +403,7 @@ core/pace/
 | `clock_position_tracker.cxx` | 把 `AudioClockSource` 变成"可信、非递减的位置" | 不算 `due_at` |
 | `pace_discontinuity.hpp`〔P14-Y〕 | 定义"不连续有哪几种、一笔现场记什么、轨迹怎么摆"（纯数据，无 .cxx） | 不记账、不算 `offset`、不认识阈值 |
 | `pace_discontinuity_ledger.cxx`〔P14-Y〕 | 不连续那本账：定长环 8 + 累计 `offset` + 分类计数 + 升序展开 | 不改位置、不解释事件、不管出版格式 |
+| `pace_drop_trace.hpp`〔P14-AG〕 | 丢掉的帧在哪几秒：定长环 16（`media_ns` + `lateness_ns`）+ `total/sampled/truncated`（纯数据，无 .cxx） | 不判断该不该丢、不改判据、不存全量时间轴 |
 | `frame_pacer.cxx` | 建锚点、算 `due_at`、编排等待与记账 | 不碰 MediaCodec、不认识 `ANativeWindow` |
 | `pace_now.cxx` | `steady_clock` 纳秒 + `sleep_until` | 不含策略 |
 
