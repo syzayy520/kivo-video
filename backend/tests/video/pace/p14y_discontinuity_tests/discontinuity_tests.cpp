@@ -13,6 +13,8 @@
 //   ⑦ 门关着时账照记 —— 记账不该被门的状态污染。
 //   ⑧ 稳态一轮：零事件、零 offset、门零动作。改了记账不许影响正常轮次。
 //   ⑨ `reset()` 把账清干净：换片源之后"上一段吃过多少台阶"不能算进这一段。
+//   ⑩ 跳变被丢掉多少要单独记（P14-AF）：`jump_max_ns` 取**绝对值最大**的那一笔、
+//      **带符号**保留方向，且只有跳变进这一格（台阶走 `offset_ns`，两者不许混）。
 //
 // 纯计算：假时钟 + 假墙钟，不依赖真实时间、不需要设备。
 #include <cstdint>
@@ -153,6 +155,34 @@ void t03_reset_clears_everything() {
     CHECK(trace.first_at_ns == 0);
 }
 
+// ---- ⑩ 被跳变丢掉的量：取绝对最大、带符号、只认跳变 --------------------------
+
+void t10_jump_max_keeps_the_largest_discarded() {
+    pace::DiscontinuityLedger ledger;
+    // 一次往前跳 1500 ms（被丢掉），再一次往回跳 800 ms（绝对值更小，不该换）。
+    ledger.note(pace::DiscontinuityKind::kJumpRebased, 20 * kMs, kFrame30, kFrame30 + 1500 * kMs,
+                0, 0, 0);
+    CHECK(ledger.trace().jump_max_ns == 1500 * kMs);
+    ledger.note(pace::DiscontinuityKind::kJumpRebased, 30 * kMs, kFrame30, kFrame30 - 800 * kMs,
+                0, 0, 0);
+    CHECK(ledger.trace().jump_max_ns == 1500 * kMs);
+
+    // 再来一次 −2000 ms：绝对值更大 ⇒ 替换，且**符号保留**（负 = 钟往回跳）。
+    ledger.note(pace::DiscontinuityKind::kJumpRebased, 40 * kMs, kFrame30, kFrame30 - 2000 * kMs,
+                0, 0, 0);
+    CHECK(ledger.trace().jump_max_ns == -2000 * kMs);
+
+    // 台阶不该污染这一格：它走 `offset_ns`，两份账不能混。
+    ledger.note(pace::DiscontinuityKind::kPositionStep, 50 * kMs, kFrame30, kFrame30 + 900 * kMs,
+                900 * kMs, 0, 900 * kMs);
+    CHECK(ledger.trace().jump_max_ns == -2000 * kMs);
+    CHECK(ledger.trace().offset_ns == 900 * kMs);
+
+    // reset 之后归零 —— 否则换片源会把上一段的最大跳变带进来。
+    ledger.reset();
+    CHECK(ledger.trace().jump_max_ns == 0);
+}
+
 // ---- ④ 停一次再补回来：门一次都不用动 ----------------------------------------
 
 void t04_stall_then_catch_up_is_booked_but_still_repaid() {
@@ -287,6 +317,7 @@ int main() {
     t07_ledger_ignores_gate_state();
     t08_steady_clock_books_nothing();
     t09_tracker_reset_clears_the_ledger();
+    t10_jump_max_keeps_the_largest_discarded();
 
     if (g_failed == 0) {
         std::printf("P14-Y discontinuity: %d checked, 0 failed\n", g_checked);

@@ -317,7 +317,7 @@ using core::pace::SignedHistogram;
 ///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/39";
+constexpr const char* kSchema = "kivo.p12c.sync/40";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -786,6 +786,9 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "    \"rejected\": " << discontinuity.rejected << ",\n";
     out << "    \"clamped\": " << discontinuity.clamped << ",\n";
     out << "    \"jumped\": " << discontinuity.jumped << ",\n";
+    // P14-AF：被跳变分支丢掉的**那一笔有多大**（带符号）。没有它，"lead = 0"
+    // 的两种来历（真对齐 / 被丢掉）在顶层分不开 —— P14-AE §五。
+    out << "    \"jump_max_ns\": " << discontinuity.jump_max_ns << ",\n";
     out << "    \"stepped\": " << discontinuity.stepped << ",\n";
     out << "    \"offset_ns\": " << discontinuity.offset_ns << ",\n";
     out << "    \"sampled_offset_ns\": " << discontinuity.sampled_offset_ns << ",\n";
@@ -897,8 +900,19 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     const bool lead_measured = pace.lead_trace.samples > 0 && lead_bound_ns > 0;
     const char* sync_verdict = "unknown";
     std::string sync_reason;
+    // P14-AF：这一轮有过 ≥ 1 s 的跳变被当作**合法不连续**丢掉（`jump_rebased`）。
+    // 那种轮次的 `lead` 归零是**丢出来的**，不是对上了 —— 所以它没有资格说 `av_synced`。
+    //
+    // 只在"本来会说 av_synced"的地方改成 unknown：若领先量本来就超过一帧，
+    // `clock_off` 仍然是有证据的结论（那 1 帧是真量到的），不该被跳变盖掉。
+    const bool had_jump = pace.jump_rebases > 0;
     if (!lead_measured) {
         sync_reason = "钟与墙的领先量没有样本：同步结论给不出";
+    } else if (had_jump && lead_abs_ns <= lead_bound_ns) {
+        sync_verdict = "unknown";
+        sync_reason = "这一轮有过 ≥ 1 s 的跳变被当作合法不连续处理"
+                      "（drift_discontinuity.jumped > 0，幅度见 jump_max_ns）："
+                      "领先量归零可能来自'真的对上'，也可能来自'被丢掉'，报告分不出";
     } else if (lead_abs_ns <= lead_bound_ns) {
         sync_verdict = "av_synced";
         sync_reason = "领先量在一帧以内：此时 av_drift 可以读成同步结论";

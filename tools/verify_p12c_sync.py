@@ -70,7 +70,7 @@ class Failure(Exception):
 #:
 #: `/2` **从未存在过**（`/1` 直接跳到 `/3`），所以它不是"漏了"，是当时就没写。
 MIN_SCHEMA_VERSION = 1
-MAX_SCHEMA_VERSION = 39
+MAX_SCHEMA_VERSION = 40
 ABSENT_SCHEMA_VERSIONS = frozenset({2})
 
 #: 从这一版起，`pace.pts_span_ns`（实测首末 pts 差）与 `pace.clock_supplied_frames`
@@ -114,6 +114,9 @@ SCHEMA_WITH_SPAN_BASIS = 38
 #: 从 `/39` 起 `av_drift` 自带使用条件（P14-AC）：`sync_verdict` 与 `lead_ns`。
 #: `av_drift` 很小只证明视频跟住了钟，不证明钟是对的 —— 22 轮里 17 轮两者相反。
 SCHEMA_WITH_SYNC_VERDICT = 39
+#: 从 `/40` 起 `drift_discontinuity.jump_max_ns` 出版（P14-AF），且跳变轮的
+#: `sync_verdict` 不许说 `av_synced` —— `lead = 0` 在那条分支上有两种来历。
+SCHEMA_WITH_JUMP_MAX = 40
 
 #: 已知越界 —— **不是豁免判据，是登记在案的异常**。值是 `(说明, 钟领先量指纹)`。
 #:
@@ -604,6 +607,53 @@ def check_gate_scale(
             raise Failure(
                 "V5 门一次都没复位，reach 却说是'修完之后剩下的速率'（开关传反了）"
             )
+
+
+def _check_jump_max(data: dict, notes: list[str]) -> None:
+    """AF1 / AF2（P14-AF）：被丢掉的跳变量要出版，并且那一轮不许说"同步"。
+
+    P14-AE 量到：≥ 1 s 的跳变走 `position += wall_delta`，台阶被**丢掉**，`raw_lead` 归 0。
+    于是 `lead = 0` 有两种来历（真对齐 / 被丢掉），顶层只有 `jump_rebases` 一个计数区分不了。
+    AF1 要的是"这一格能被账解释"，AF2 要的是"那一轮没有资格说 av_synced"。
+    """
+    block = data.get("drift_discontinuity") or {}
+    jumped = int(block.get("jumped") or 0)
+    jump_max = int(block.get("jump_max_ns") or 0)
+    recent = block.get("recent") or []
+    jumps = [int(entry.get("raw_delta_ns") or 0) - int(entry.get("wall_delta_ns") or 0)
+             for entry in recent if entry.get("kind") == "jump_rebased"]
+
+    if jumped == 0:
+        if jump_max != 0:
+            raise Failure(
+                f"AF1 这一轮没有跳变（jumped=0），`jump_max_ns` 却是 {jump_max / 1e6:.2f} ms"
+            )
+        return
+
+    if not jumps:
+        raise Failure(
+            f"AF1 jumped={jumped}，但 `recent` 里一笔 `jump_rebased` 都没有 —— 账解释不了这一格"
+        )
+    if jumped <= len(recent):
+        biggest = max(jumps, key=abs)
+        if abs(biggest - jump_max) > 1_000_000:
+            raise Failure(
+                f"AF1 `jump_max_ns`={jump_max / 1e6:.2f} ms 与环里最大的那一笔 "
+                f"{biggest / 1e6:.2f} ms 对不上（容差 1 ms）"
+            )
+    else:
+        # 环只有 8 格：跳变多于 8 笔时，最大那一笔可能已经滚出去了。
+        notes.append(f"AF1 判不了：jumped={jumped} 超过环长 {len(recent)}，最大那一笔可能已滚出")
+
+    drift = data.get("av_drift") or {}
+    verdict = drift.get("sync_verdict")
+    bound = int(drift.get("lead_bound_ns") or 0)
+    lead = abs(int(drift.get("lead_ns") or 0))
+    if bound > 0 and lead <= bound and verdict != "unknown":
+        raise Failure(
+            f"AF2 这一轮有 {jumped} 次跳变（最大 {jump_max / 1e6:.2f} ms）、领先量 {lead / 1e6:.2f} ms"
+            f" 在界内，`sync_verdict` 却是 {verdict!r} —— 归零可能是丢出来的，没资格说同步"
+        )
 
 
 def check_rebase_trace(
@@ -1243,6 +1293,9 @@ def verify(path: Path) -> tuple[str, list[str], str]:
                     f"AC2 判成 clock_off，但领先量 {lead / 1e6:.2f} ms 在一帧以内"
                     " —— 结论比证据悲观，同样是错的"
                 )
+    if version >= SCHEMA_WITH_JUMP_MAX:
+        _check_jump_max(data, notes)
+
     if version >= SCHEMA_WITH_SPAN_BASIS:
         # AA1：只要这一轮交过帧，跨度就必须有人喂 —— 否则又是"全 0 看起来像没动"。
         span_frames = int(pace.get("span_frames", 0))

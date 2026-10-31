@@ -32,9 +32,19 @@ void DiscontinuityLedger::note(DiscontinuityKind kind, std::int64_t at_ns,
         case DiscontinuityKind::kBackwardClamped:
             ++clamped_;
             break;
-        case DiscontinuityKind::kJumpRebased:
+        case DiscontinuityKind::kJumpRebased: {
             ++jumped_;
+            // 跳变分支把台阶**丢掉**了（`position += wall_delta`），`step` 恒 0 ——
+            // "被丢掉多少"只能从原始量算：`raw_delta − wall_delta`。
+            // 带符号保留方向；只在**绝对值**更大时替换，因为两笔反向跳变加起来会互相抵消。
+            const std::int64_t discarded_ns = raw_delta_ns - wall_delta_ns;
+            const std::int64_t abs_discarded = discarded_ns < 0 ? -discarded_ns : discarded_ns;
+            const std::int64_t abs_kept = jump_max_ns_ < 0 ? -jump_max_ns_ : jump_max_ns_;
+            if (jumped_ == 1 || abs_discarded > abs_kept) {
+                jump_max_ns_ = discarded_ns;
+            }
             break;
+        }
         case DiscontinuityKind::kPositionStep:
             ++stepped_;
             break;
@@ -83,6 +93,7 @@ DiscontinuityTrace DiscontinuityLedger::trace() const noexcept {
     out.sampled = count_;
     out.samples_used = count_;
     out.first_at_ns = first_at_ns_;
+    out.jump_max_ns = jump_max_ns_;
     out.max = max_;
     // 环按时间升序展开：`head_` 是"下一笔写到哪"，写满之后它正好是最旧那一笔。
     const std::int32_t oldest = count_ < kRingSize ? 0 : head_;
@@ -102,6 +113,7 @@ void DiscontinuityLedger::reset() noexcept {
     offset_ns_ = 0;
     sampled_offset_ns_ = 0;
     first_at_ns_ = 0;
+    jump_max_ns_ = 0;
     max_ = DiscontinuitySample{};
     for (DiscontinuitySample& sample : recent_) {
         sample = DiscontinuitySample{};

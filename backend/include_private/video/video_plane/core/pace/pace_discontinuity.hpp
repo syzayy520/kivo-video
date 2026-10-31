@@ -81,6 +81,12 @@ struct DiscontinuityTrace {
     std::int64_t clamped = 0;
     std::int64_t jumped = 0;
     std::int64_t stepped = 0;
+    /// 被跳变分支**丢掉**的最大那一笔（带符号：正 = 钟往前跳，负 = 往回跳）。
+    ///
+    /// 为什么单独一格：跳变走的是 `position += wall_delta`，`step` 恒 0，所以它
+    /// 不进 `offset_ns` —— 于是"这一轮到底丢了多少"在顶层看不见，只能翻 `recent`。
+    /// P14-AE 量到 `lead = 0` 有两种来历（真对齐 / 被丢掉），这一格就是把后者说出来的地方。
+    std::int64_t jump_max_ns = 0;
     /// 累计偏移：`Σ step`。门用它把台阶从漂移里摘出去。
     std::int64_t offset_ns = 0;
     /// 环里这几笔的 `Σ step`。环只留 8 笔，所以它只在 `events ≤ 8` 时等于 `offset_ns` ——

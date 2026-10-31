@@ -42,6 +42,8 @@ private:
     std::int64_t offset_ns_ = 0;
     std::int64_t sampled_offset_ns_ = 0;
     std::int64_t first_at_ns_ = 0;
+    /// 被跳变分支丢掉的最大一笔（带符号，`raw_delta − wall_delta`）。
+    std::int64_t jump_max_ns_ = 0;
     DiscontinuitySample max_{};
     DiscontinuitySample recent_[8]{};
     std::int32_t head_ = 0;   ///< 下一笔写到哪
