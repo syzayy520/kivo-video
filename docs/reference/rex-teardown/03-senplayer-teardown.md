@@ -102,3 +102,21 @@ base.BaseKit  log.LogKit
 - [x] 脚本引擎种类（仍未定，但已排除 JS/V8/Hermes/Lua 明文——【未知】维持，需动态分析）
 - [ ] 脚本引擎种类（【未知】：需动态分析）
 - [ ] UI 视觉参数（【未知】：需截图或运行观察）
+
+## 七、DV 逆向收线（2026-11-07 补验，二进制级）
+
+按交接计划对 `libMLibKit.so` 做了完整 Ghidra 分析（成功入库）+ pyghidra 全函数扫描：
+**460 个函数 0 个 dovi/vivid/tone/ICtCp 命中**——业务库里没有 DV 代码，与 §六 判定一致。
+
+随后分析真正的解码库 `libFFmpegKit.so`（54MB，Ghidra 全量分析成功入库），
+`llvm-nm` 双重确认：**stripped（no symbols），dynsym 里 dovi/rpu/ictcp 零命中**；
+仅存 2–3 处日志字符串（`dovi_rpu`/`dv_profile`/`ICtCp`）。按名字匹配的函数级提取
+在这份库上没有可行路径（内部符号全无），且预期价值低——
+
+**结论（【实测】）**：SenPlayer 的 DV 实现不超过「dvcC/dvh1 解析 + 兼容层透传」，
+**没有 Rex 式 RPU 映射/曲线代码**。233（DV-B 真映射）的曲线公式来源维持
+`01-dv-pipeline-teardown.md` 的 Rex DoviMatrix 产出，SenPlayer 侧不再深挖。
+（工具链遗留：`C:\re-tools\ghidra-projects\SenProject` 内有 libMLibKit.so 与
+libFFmpegKit.so 两份已分析程序，pyghidra 提取先例见 `re-tools/ffmpegkit-extract.log`；
+注意 pyghidra CLI `--skip-analysis + 二进制路径` 打开的是**新导入骨架**（函数数 ~600），
+不是工程内已分析程序——要开已分析程序需走 GhidraProject.openProgram 路线。）
