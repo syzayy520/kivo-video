@@ -61,6 +61,9 @@ template <class R>
         return kNativeExceptionCode;
     } else if constexpr (std::is_same_v<R, jlong>) {
         return static_cast<jlong>(0);  // 空句柄：创建失败，调用方不会再拿它去 destroy
+    } else if constexpr (std::is_same_v<R, jboolean>) {
+        // 211 的 Running 查询走这里：异常时按"没在跑"处理，调用方走收尾分支。
+        return static_cast<jboolean>(JNI_FALSE);
     } else if constexpr (std::is_same_v<R, jstring>) {
         char buffer[256];
         std::snprintf(buffer, sizeof(buffer), "native exception in %s: %.160s", where, what);

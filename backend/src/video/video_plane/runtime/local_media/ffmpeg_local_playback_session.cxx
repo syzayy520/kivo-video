@@ -106,6 +106,9 @@ FfmpegSessionOutcome FfmpegLocalPlaybackSession::stop(std::string& evidence_json
     json += "  },\n";
     json += "  \"render\": { \"sink\": \"" + std::string(sink_ ? sink_->name() : "none") +
             "\" },\n";
+    json += "  \"routing\": { \"backend_decision\": \"" +
+            escape_json(config_.routing_decision) + "\", \"reason\": \"" +
+            escape_json(config_.routing_reason) + "\" },\n";
     json += "  \"pacing\": \"pts_sleep_simple\",\n";
     json += "  \"end_reason\": \"" + escape_json(end_reason_) + "\",\n";
     json += "  \"first_error\": " +

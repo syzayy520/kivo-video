@@ -8,21 +8,9 @@
 #include "kivo/cinema_engine/decode_core/real_software_decode_runtime.hpp"
 #include "kivo/cinema_engine/third_party_adapter/ffmpeg_adapter/ffmpeg_adapter.hpp"
 #include "video/video_plane/runtime/local_media/ffmpeg_fd_callbacks.hpp"
+#include "video/video_plane/runtime/local_media/ffmpeg_frame_sink.hpp"
 
 namespace kivo::video::video_plane::runtime::local_media {
-
-/// 呈现接缝：会话只认这个接口。
-/// 桌面测试注入计数 sink；Android 注入 `FfmpegWindowSink`（ANativeWindow 直写）。
-/// 接口保持可移植——**这里不许出现任何 Android 类型**（P12 架构红线同款纪律）。
-class IFfFrameSink {
-public:
-    virtual ~IFfFrameSink() = default;
-    virtual bool render(const kivo::cinema_engine::DecodedFrame& frame,
-                        std::string& error) = 0;
-    [[nodiscard]] virtual std::int64_t rendered_frames() const = 0;
-    /// 证据出版用：sink 自报身份（如 "anative_window_cpu" / "counting"）。
-    [[nodiscard]] virtual const char* name() const = 0;
-};
 
 struct FfmpegSessionOutcome {
     enum class Code {
@@ -67,6 +55,10 @@ public:
         std::int64_t offset = 0;     ///< 数据起点
         std::int64_t length = -1;    ///< 数据长度；-1 = 量到 fd 末尾
         std::string label;           ///< 证据里的媒体名（显示用）
+        /// 路由事实（211 AC5）：Kotlin 侧路由判定把「走了哪条、为什么」传进来，
+        /// 会话原样出版进证据（会话自己不做路由判定——判定在 Java 平台 API 上）。
+        std::string routing_decision;  ///< "mediacodec" / "ffmpeg"
+        std::string routing_reason;    ///< 非空：判据原文（容器不可解/无解码器/…）
     };
 
     FfmpegLocalPlaybackSession() = default;

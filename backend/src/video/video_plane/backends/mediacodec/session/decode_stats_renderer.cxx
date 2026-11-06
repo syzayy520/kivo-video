@@ -163,6 +163,7 @@ std::string render_decode_stats_json(const DecodeStats& stats,
     out << "  },\n";
 
     out << "  \"decoder\": {\n";
+    out << "    \"backend\": \"" << escape_json_string(stats.decoder_backend) << "\",\n";
     out << "    \"codec_name\": \"" << escape_json_string(stats.codec_name) << "\",\n";
     out << "    \"output_target\": \"surface\"\n";
     out << "  },\n";

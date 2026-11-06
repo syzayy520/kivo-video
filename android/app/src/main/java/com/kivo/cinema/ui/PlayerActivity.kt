@@ -12,6 +12,8 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.kivo.cinema.bridge.FfmpegPlaybackSession
+import com.kivo.cinema.bridge.FfmpegRouting
 import com.kivo.cinema.bridge.MediaTrackProbe
 import com.kivo.cinema.bridge.NativePlayer
 import com.kivo.cinema.bridge.PlaybackSession
@@ -40,6 +42,12 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
      */
     private var session: PlaybackSession? = null
     private var surfaceReady = false
+
+    /**
+     * 软解兜底会话（211）。与硬解 [session] 互斥——路由判定决定走哪条，
+     * 同一时刻只有一条活跃。路由在 `maybeStartPlayback` 里、起播之前做（D1）。
+     */
+    private var ffmpegSession: FfmpegPlaybackSession? = null
 
     /**
      * 会话是否已经起跑（P12-D1）。
@@ -403,6 +411,16 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         }
         playbackRequested = true
 
+        // ---- 211 路由（D1）：起播之前判定，两条判据按序（容器可解 → 解码可解），
+        // 理由原样出版进证据（AC5）。历史片源两条全过 → 走原路径，行为零回归。
+        val routing = FfmpegRouting.probe(media)
+        if (routing.useFfmpeg) {
+            Log.i(TAG, "routing: ffmpeg (${routing.reason})")
+            startFfmpegPlayback(media, routing)
+            return
+        }
+        Log.i(TAG, "routing: mediacodec (${routing.reason})")
+
         // 从这一刻起，句柄与两个 fd 全归 `PlaybackSession` 管。
         // Activity 只决定"要不要开音频""挂不挂节拍""用哪种排程"，不碰释放。
         val live = PlaybackSession(0, media, media.name)
@@ -496,6 +514,66 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         statusView.text = "$stage failed rc=$rc\n${media.name}\n$reason"
         writeFailureEvidence(stage, rc, reason, media)
         teardownSession()
+    }
+
+    // ---- 211：软解兜底路径。与硬解路径刻意分开——生命周期、证据、轮询都是另一套，
+    // 混进 startPlaybackIfNeeded 只会让两条互相缠住。 ----
+
+    private val ffmpegPollRunnable = object : Runnable {
+        override fun run() {
+            val live = ffmpegSession ?: return
+            if (live.isRunning()) {
+                handler.postDelayed(this, POLL_INTERVAL_MS)
+                return
+            }
+            // 自然 EOS / 中断：收证据 → 关会话 → 结束本轮。
+            val evidence = live.stopAndCollectEvidence()
+            val name = evidenceName.ifBlank { "p211-ffmpeg.json" }
+            runCatching {
+                java.io.File(evidencePaths.dir, name).writeText(evidence)
+            }.onSuccess {
+                Log.i(TAG, "ffmpeg evidence written: $name")
+            }.onFailure { e ->
+                Log.w(TAG, "ffmpeg evidence write failed: ${e.message}")
+            }
+            ffmpegSession?.close()
+            ffmpegSession = null
+            finish()
+        }
+    }
+
+    private fun startFfmpegPlayback(media: File, routing: FfmpegRouting.Decision) {
+        val surface = surfaceView.holder.surface
+        if (surface == null || !surface.isValid) {
+            statusView.text = "ffmpeg route: surface not ready"
+            writeFailureEvidence("ffmpeg-surface", -1, "surface not ready", media)
+            finish()
+            return
+        }
+        val live = FfmpegPlaybackSession(media, media.name, routing.decision, routing.reason)
+        ffmpegSession = live
+
+        val openRc = live.openVideo(surface)
+        if (openRc != 0) {
+            statusView.text = "ffmpeg open failed rc=$openRc\n${live.nativeError()}"
+            writeFailureEvidence("ffmpeg-open", openRc, live.nativeError(), media)
+            ffmpegSession?.close()
+            ffmpegSession = null
+            finish()
+            return
+        }
+        val startRc = live.start()
+        if (startRc != 0) {
+            statusView.text = "ffmpeg start failed rc=$startRc\n${live.nativeError()}"
+            writeFailureEvidence("ffmpeg-start", startRc, live.nativeError(), media)
+            ffmpegSession?.close()
+            ffmpegSession = null
+            finish()
+            return
+        }
+        Log.i(TAG, "ffmpeg playback started: ${media.absolutePath}")
+        statusView.text = "ffmpeg 软解播放中\n${media.name}\n${routing.reason}"
+        handler.post(ffmpegPollRunnable)
     }
 
     private fun refreshStatus() {
@@ -645,6 +723,10 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
     }
 
     override fun onDestroy() {
+        // 软解路径的收尾：拆轮询、停会话、关句柄（证据在正常轮询里已收走）。
+        handler.removeCallbacks(ffmpegPollRunnable)
+        ffmpegSession?.close()
+        ffmpegSession = null
         teardownSession()
         super.onDestroy()
     }

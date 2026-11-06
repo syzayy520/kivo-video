@@ -6,6 +6,7 @@
 #include <string>
 
 #include "kivo/cinema_engine/decode_core/decoded_frame.hpp"
+#include "video/video_plane/runtime/local_media/ffmpeg_frame_sink.hpp"
 
 namespace kivo::video::video_plane::runtime::local_media {
 
@@ -17,19 +18,27 @@ namespace kivo::video::video_plane::runtime::local_media {
 ///
 /// 每帧成本 = 一次 lock + 一次按行 memcpy + 一次 post；
 /// 窗口尺寸变化时重设一次 buffer geometry（其余帧直接写）。
-class FfmpegWindowSink {
+class FfmpegWindowSink final : public IFfFrameSink {
 public:
     /// 构造时 `ANativeWindow_acquire`，析构时 release（所有权在本类）。
     explicit FfmpegWindowSink(ANativeWindow* window);
-    ~FfmpegWindowSink();
+    ~FfmpegWindowSink() override;
     FfmpegWindowSink(const FfmpegWindowSink&) = delete;
     FfmpegWindowSink& operator=(const FfmpegWindowSink&) = delete;
 
     /// 渲染一帧。frame 必须是 rgba（`decode_video_rgba` 的输出）；
     /// 尺寸与窗口不符时自动重设 geometry。失败原因写入 `error`。
-    bool render(const kivo::cinema_engine::DecodedFrame& frame, std::string& error);
+    bool render(const kivo::cinema_engine::DecodedFrame& frame,
+                std::string& error) override;
 
-    [[nodiscard]] std::int64_t rendered_frames() const noexcept { return rendered_; }
+    [[nodiscard]] std::int64_t rendered_frames() const noexcept override
+    {
+        return rendered_;
+    }
+    [[nodiscard]] const char* name() const noexcept override
+    {
+        return "anative_window_cpu";
+    }
 
 private:
     bool ensure_geometry(int width, int height, std::string& error);

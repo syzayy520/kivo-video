@@ -313,35 +313,43 @@ target_link_libraries(kivo_hdr_probe PRIVATE
 set(KIVO_FFMPEG_ANDROID_DIST "C:/re-tools/ffmpeg-android/dist" CACHE PATH
     "FFmpeg Android 静态库产物目录（third_party/ffmpeg-android/build.sh 生成）")
 if(EXISTS "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavcodec.a")
-    add_executable(kivo_sd_probe
-        "${KIVO_BACKEND}/src/video/video_plane/probe/sd_probe_main.cxx"
+    # 软解家族（211）：fd 回调 + adapter 三件套 + runtime + 会话 + 窗口 sink。
+    # 探针与 kivo_player（JNI 桥）共用这一个库；FFmpeg 头/库只在这里出现。
+    add_library(kivo_backend_ffmpeg STATIC
         "${KIVO_BACKEND}/src/video/video_plane/runtime/local_media/ffmpeg_fd_callbacks.cxx"
+        "${KIVO_BACKEND}/src/video/video_plane/runtime/local_media/ffmpeg_local_playback_session.cxx"
+        "${KIVO_BACKEND}/src/video/video_plane/runtime/local_media/ffmpeg_render_sink.cxx"
         "${KIVO_BACKEND}/src/third_party_adapter/ffmpeg_adapter/ffmpeg_adapter.cpp"
         "${KIVO_BACKEND}/src/third_party_adapter/ffmpeg_adapter/ffmpeg_custom_io.cpp"
         "${KIVO_BACKEND}/src/third_party_adapter/ffmpeg_adapter/ffmpeg_product_log_filter.cpp"
         "${KIVO_BACKEND}/src/decode_core/real_software_decode_runtime.cpp"
     )
-    target_include_directories(kivo_sd_probe PRIVATE
+    target_include_directories(kivo_backend_ffmpeg PUBLIC
         "${KIVO_BACKEND}/include_private"
         "${KIVO_BACKEND}/include"
         "${KIVO_FFMPEG_ANDROID_DIST}/include"
     )
-    target_compile_definitions(kivo_sd_probe PRIVATE KIVO_ENABLE_FFMPEG)
+    target_compile_definitions(kivo_backend_ffmpeg PUBLIC KIVO_ENABLE_FFMPEG)
+    target_compile_features(kivo_backend_ffmpeg PUBLIC cxx_std_23)
+    target_compile_options(kivo_backend_ffmpeg PRIVATE -Wall -Wextra -Wpedantic -Wshadow)
+    target_link_directories(kivo_backend_ffmpeg PUBLIC "${KIVO_FFMPEG_ANDROID_DIST}/lib")
+    target_link_libraries(kivo_backend_ffmpeg PUBLIC
+        avformat avcodec swscale swresample avutil z log
+    )
+
+    add_executable(kivo_sd_probe
+        "${KIVO_BACKEND}/src/video/video_plane/probe/sd_probe_main.cxx"
+    )
     target_compile_features(kivo_sd_probe PRIVATE cxx_std_23)
     target_compile_options(kivo_sd_probe PRIVATE
         -Wall -Wextra -Wpedantic -Wshadow
     )
     target_link_libraries(kivo_sd_probe PRIVATE
-        "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavformat.a"
-        "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavcodec.a"
-        "${KIVO_FFMPEG_ANDROID_DIST}/lib/libswscale.a"
-        "${KIVO_FFMPEG_ANDROID_DIST}/lib/libswresample.a"
-        "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavutil.a"
-        z
+        kivo_backend_ffmpeg
         log
     )
 else()
-    message(STATUS "kivo_sd_probe skipped: FFmpeg Android dist not found at ${KIVO_FFMPEG_ANDROID_DIST}")
+    message(STATUS "kivo_sd_probe/kivo_backend_ffmpeg skipped: FFmpeg Android dist not found at ${KIVO_FFMPEG_ANDROID_DIST}")
 endif()
 
 # ---------------------------------------------------------------------------
@@ -400,6 +408,7 @@ target_link_libraries(kivo_backend_avsync PUBLIC
 add_library(kivo_player SHARED
     "jni/jni_player_bridge.cxx"
     "jni/jni_session_handle.cxx"
+    "jni/jni_ffmpeg_bridge.cxx"
 )
 
 target_include_directories(kivo_player PRIVATE
@@ -416,3 +425,13 @@ target_link_libraries(kivo_player PRIVATE
     android
     log
 )
+
+# 软解兜底（211）：FFmpeg dist 存在时才链（无 dist 的机器构建照常）。
+if(TARGET kivo_backend_ffmpeg)
+    target_link_libraries(kivo_player PRIVATE kivo_backend_ffmpeg)
+    # ffmpeg 静态库的默认可见性符号（如 ff_tx_tab_32_float）在共享库链接里
+    # 是可抢占的，adrp+add 直连会报 "relocation cannot be used ... recompile
+    # with -fPIC"。本工程没有也不允许任何符号插体（symbol interposition），
+    # -Bsymbolic 把引用绑到本地定义——标准且安全的修法。
+    target_link_options(kivo_player PRIVATE "-Wl,-Bsymbolic")
+endif()

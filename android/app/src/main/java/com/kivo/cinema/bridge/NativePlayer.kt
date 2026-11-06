@@ -196,4 +196,38 @@ object NativePlayer {
 
     /** 最近一次失败原因。本机 logcat 不可用，失败原因只能走这条通道回传。 */
     external fun nativeSessionLastError(handle: Long): String
+
+    // ---- 211：软解兜底（FFmpeg 旁路会话）。句柄与硬解会话互不相通。 ----
+
+    /** 创建软解会话句柄。返回 0 表示创建失败。 */
+    external fun nativeFfmpegCreate(): Long
+
+    /**
+     * 打开软解会话（demux + 解码器都延迟到 start 的线程上建）。
+     * fd 与 [nativeSessionOpen] 同款借用约定：Java 侧持有，close 在 stop/destroy 之后。
+     */
+    external fun nativeFfmpegOpen(
+        handle: Long,
+        label: String,
+        fd: Int,
+        length: Long,
+        surface: Surface,
+        routingDecision: String,
+        routingReason: String
+    ): Int
+
+    /** 起解线程（FFmpeg 全生命周期都在该线程上）。 */
+    external fun nativeFfmpegStart(handle: Long): Int
+
+    /** 线程是否还在跑（自然 EOS 后为 false，不必等 stop）。 */
+    external fun nativeFfmpegRunning(handle: Long): Boolean
+
+    /** 停线程并返回证据 JSON（`kivo.p211.decode/1`）。 */
+    external fun nativeFfmpegStop(handle: Long): String
+
+    /** 销毁句柄（证据被丢弃——正常路径先走 [nativeFfmpegStop]）。 */
+    external fun nativeFfmpegDestroy(handle: Long)
+
+    /** 最近一次失败原因（G9 通道，与硬解侧同款）。 */
+    external fun nativeFfmpegLastError(handle: Long): String
 }

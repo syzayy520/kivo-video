@@ -78,7 +78,11 @@ struct DecodeStats {
     std::string mime;
     std::int32_t width = 0;
     std::int32_t height = 0;
-    std::string codec_name; ///< 平台实选，可能为空（API 26/27）
+    std::string codec_name;  ///< 平台实选，可能为空（API 26/27）
+    /// 解码后端自报（211）：本结构属于 MediaCodec 硬解会话，恒为 "mediacodec"；
+    /// 软解旁路会话的证据（kivo.p211.decode/1）里写 "ffmpeg"。两条路径都能
+    /// 说出自己是谁，AC3 的对照判据才有据可查。
+    std::string decoder_backend = "mediacodec";
 
     /// 流水线模式（P12-C6）：`split` / `merged`。取证必须能分辨这两档，
     /// 否则同一份表格里两组数字没法归因。
