@@ -510,6 +510,24 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         val subtitleSibling = sequenceOf(".ass", ".srt")
             .map { File(media.absolutePath + it) }
             .firstOrNull { it.isFile }
+        // PGS/图像字幕提示（对齐 Rex image_selection_conflict 语义）：
+        // 容器里有图像类字幕轨 → 用户可见提示（不假装支持，也不静默）。
+        runCatching {
+            val extractor = android.media.MediaExtractor()
+            extractor.setDataSource(media.absolutePath)
+            for (i in 0 until extractor.trackCount) {
+                val mime = extractor.getTrackFormat(i)
+                    .getString(android.media.MediaFormat.KEY_MIME) ?: continue
+                if (mime.contains("pgs", ignoreCase = true) ||
+                    mime.contains("dvdsub", ignoreCase = true) ||
+                    mime.contains("dvb", ignoreCase = true)) {
+                    statusView.text = "⚠ 图像字幕轨 ($mime) 暂不支持——文本外挂字幕可正常显示"
+                    Log.i(TAG, "image subtitle track detected: $mime")
+                    break
+                }
+            }
+            extractor.release()
+        }.onFailure { e -> Log.w(TAG, "pgs probe failed: ${e.message}") }
         if (subtitleSibling != null) {
             val controller = SubtitleOverlayController(
                 subtitleFile = subtitleSibling,
