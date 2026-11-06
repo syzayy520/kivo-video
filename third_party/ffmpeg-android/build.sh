@@ -43,6 +43,21 @@ ZIG_EXE="${ZIG_EXE:-$(ls /c/re-tools/zig-windows-x86_64-*/zig.exe 2>/dev/null | 
 printf '#!/usr/bin/env bash\nexec "%s" cc "$@"\n' "$ZIG_EXE" > "$BUILD/zigcc"
 chmod +x "$BUILD/zigcc"
 
+# ar 包装：libavcodec 有几百个 .o，ar 命令行超出 Windows CreateProcess 的
+# 32K 上限，**输出文件名会被截断**（实测：`llvm-ar: error: libavcode: No such
+# file or directory`——libavcodec.a 尾字符没了）。把对象列表转成 @response
+# 文件（llvm-ar 原生支持）绕过。
+export LLVM_AR="$TOOLCHAIN/bin/llvm-ar.exe"
+cat > "$BUILD/ar" << ARWRAPPER
+#!/usr/bin/env bash
+set -e
+mode="\$1"; out="\$2"; shift 2
+rsp="\$out.rsp"
+{ printf '%s\n' "\$mode"; printf '%s\n' "\$out"; printf '%s\n' "\$@"; } > "\$rsp"
+exec "$LLVM_AR" "@\$rsp"
+ARWRAPPER
+chmod +x "$BUILD/ar"
+
 echo "== 解包 $(basename "$TAR") =="
 tar -xf "$TAR" -C "$BUILD" --strip-components=1
 
@@ -56,7 +71,7 @@ PATH="$TOOLCHAIN/bin:$PATH" ./configure \
   --extra-cflags="--target=aarch64-linux-android$API -fPIC -O2" \
   --extra-cxxflags="--target=aarch64-linux-android$API" \
   --extra-ldflags="--target=aarch64-linux-android$API" \
-  --ar="$TOOLCHAIN/bin/llvm-ar.exe" --nm="$TOOLCHAIN/bin/llvm-nm.exe" \
+  --ar="$BUILD/ar" --nm="$TOOLCHAIN/bin/llvm-nm.exe" \
   --ranlib="$TOOLCHAIN/bin/llvm-ranlib.exe" --strip="$TOOLCHAIN/bin/llvm-strip.exe" \
   --host-cc="$BUILD/zigcc" \
   --disable-shared --enable-static --enable-pic \
