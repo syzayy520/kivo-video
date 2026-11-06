@@ -298,6 +298,17 @@ struct PaceSummary {
     /// 读者会把 at_time 档的跨度当成"呈现时刻"的跨度。
     const char* span_basis = "none";
 
+    /// 这一场被切成几段（P15-A2）。1 = 从没 seek 过。
+    ///
+    /// **跨度是段内的，不是整场的**：`pts_span_ns` 把"被跳过的那 20 秒"算成
+    /// 播过的时长，而墙钟跨度是真实时长 —— 两者相除就是 1.332 / 0.789 这种垃圾。
+    /// 这一格出版出来，读者才知道上面那三个跨度描述的是哪一段。
+    ///
+    /// 为什么不是"清空重来就好"：`presented` / 直方图 / `episode` 记的是
+    /// **整场发生过什么**，它们与"这一段走了多远"是两个作用域。
+    /// 这一卡的规矩是「窗口量按段，生命周期量按场」。
+    std::int64_t span_segments = 0;
+
     // ---- 参考系的两份答案（P14-U）----
     //
     // `av_drift` 是"视频相对这只钟"，而 `due` 由这只钟算出 —— 所以它**结构性**
@@ -491,6 +502,9 @@ private:
 
     std::int64_t clock_supplied_frames_ = 0;
     std::int64_t span_frames_ = 0;
+    /// 已经关闭的段数（P15-A2）。起跑那次 `reset()` 不算段 —— 那时一帧都没有。
+    /// 出版值 = 本格 + （当前段有帧 ? 1 : 0）。
+    std::int64_t closed_segments_ = 0;
     /// P14-U：两个参考系的记录器。与 `drift_` 一样只该在呈现线程里写。
     LeadTraceRecorder lead_trace_{};
     WallOffsetRecorder wall_offset_{};

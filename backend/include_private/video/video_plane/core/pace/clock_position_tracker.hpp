@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "video/video_plane/core/audio/clock/audio_clock_source.hpp"
+#include "video/video_plane/core/audio/clock/clock_rate_estimator.hpp"
 #include "video/video_plane/core/pace/pace_discontinuity_ledger.hpp"
 #include "video/video_plane/core/pace/pace_rebase_trace.hpp"
 #include "video/video_plane/core/pace/pace_action.hpp"
@@ -47,6 +48,14 @@ public:
         std::int64_t drift_correction_ns = 0;
         bool backward_clamped = false;
         bool monotonic_rejected = false;
+
+        // ---- P16-P1B11：频差观测（只算，不出版）----
+        // 与 `ClockRateEstimator` 同一个低通估计；接线是为了让它在真实播放中每帧运行，
+        // 出版要碰 `pace_stats.*`（他人主线），留到让出后。
+        /// 低通后的速率偏差（ppm）。正数 = 音频钟比墙钟快。
+        double rate_ppm = 0.0;
+        /// 累计相位误差：位置 − 首样本位置 − 墙钟增量（与派生 lead 同式）。
+        std::int64_t phase_error_ns = 0;
     };
 
     ClockPositionTracker(core::audio::AudioClockSource& clock, const PacePolicy& policy,
@@ -70,6 +79,21 @@ public:
 
     /// seek / 换片源：丢掉锚点与历史，下次 `read()` 当首次处理。
     void reset() noexcept;
+
+    /// P16-P1B32：pause 之后"跳过这段墙钟"，**不动**位置、锚点与漂移账。
+    ///
+    /// 为什么必须做：pause 期间视频线程停了、音频 timestamp 也冻住，
+    /// resume 后第一次 `read()` 看到 `wall_delta = pause 时长`（实测 2.044 s）。
+    /// 那一刻 timestamp 往往还是 stale，于是走**外推**分支
+    /// `position_ns_ += wall_delta_ns` —— 位置凭空前进 2 秒，
+    /// tracker 从此**永久超前**，视频为了追上丢掉 58 帧（实测值）。
+    ///
+    /// 做法只有一句：把上一帧的单调时刻前移到 now。这样 resume 后第一次读到的
+    /// `wall_delta` 只剩 resume 之后那几毫秒，外推量回到正常范围。
+    ///
+    /// 不能改用 `reset()`：那会清锚点与 `cum_drift`，resume 首帧会被判迟到
+    /// —— 正是 P1B29 引入 `preserve_stats` 要避免的。
+    void skip_pause(std::int64_t now_ns) noexcept;
 
     // ---- 计数（进证据） ----
     [[nodiscard]] std::int64_t stale_readings() const noexcept { return stale_readings_; }
@@ -146,6 +170,10 @@ private:
     /// 可判定的问题 —— 只数次数是分不出"一帧削平"和"二十三帧摊平"的。
     std::int64_t drift_max_correction_ns_ = 0;
     std::int64_t drift_corrected_total_ns_ = 0;
+
+    /// P16-P1B11：频差观测。只算、不参与任何判定 ——
+    /// 接线的目的是让它在真实播放里每帧跑起来，为将来换速率伺服攒数据。
+    core::audio::ClockRateEstimator rate_estimator_;
 
     // ---- 复位轨迹（P14-X）----
     //

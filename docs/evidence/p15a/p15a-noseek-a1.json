@@ -1,6 +1,6 @@
 {
   "schema": "kivo.p12c.decode/19",
-  "generated_at_unix_ms": 1793467386259,
+  "generated_at_unix_ms": 1793533314777,
   "source": {
     "mime": "video/avc",
     "width": 3840,
@@ -98,28 +98,28 @@
     "present": true,
     "present_schedule": "cpu_paced",
     "submit": {
-      "calls": 3307,
-      "mean_us": 271.748715,
-      "total_us": 898673,
-      "max_us": 5381
+      "calls": 3595,
+      "mean_us": 545.650348,
+      "total_us": 1961613,
+      "max_us": 13098
     },
     "eos": {
       "calls": 1,
-      "mean_us": 219.000000,
-      "total_us": 219,
-      "max_us": 219
+      "mean_us": 6196.000000,
+      "total_us": 6196,
+      "max_us": 6196
     },
     "receive": {
-      "calls": 1816,
-      "mean_us": 140.053965,
-      "total_us": 254338,
-      "max_us": 6036
+      "calls": 1825,
+      "mean_us": 236.793425,
+      "total_us": 432148,
+      "max_us": 5274
     },
     "release": {
       "calls": 1801,
-      "mean_us": 153.935036,
-      "total_us": 277237,
-      "max_us": 2641
+      "mean_us": 449.857857,
+      "total_us": 810194,
+      "max_us": 4926
     }
   },
   "surface_rebuild": {
@@ -129,20 +129,20 @@
     "frames_lead": 0
   },
   "metrics": {
-    "cpu": {"valid": true, "reason": "", "wall_ns": 60230139873, "thread_cpu_ns": 763816085, "process_cpu_ns": 11747679562, "thread_ratio": 0.012682, "process_ratio": 0.195047},
-    "alloc": {"hook_installed": true, "armed": false, "calls_total": 309, "calls_steady": 302, "bytes_total": 76336, "bytes_steady": 75536, "thread_count": 3, "overflow_calls": 0, "threads": [{"tid": 26185, "name": "com.kivo.cinema", "calls": 307, "bytes": 76272, "calls_steady": 300, "bytes_steady": 75472}, {"tid": 26250, "name": "kivo-decode", "calls": 1, "bytes": 32, "calls_steady": 1, "bytes_steady": 32}, {"tid": 26249, "name": "", "calls": 1, "bytes": 32, "calls_steady": 1, "bytes_steady": 32}]},
+    "cpu": {"valid": true, "reason": "", "wall_ns": 60434469612, "thread_cpu_ns": 1424801550, "process_cpu_ns": 16541796949, "thread_ratio": 0.023576, "process_ratio": 0.273715},
+    "alloc": {"hook_installed": true, "armed": false, "calls_total": 309, "calls_steady": 304, "bytes_total": 77520, "bytes_steady": 77184, "thread_count": 3, "overflow_calls": 0, "threads": [{"tid": 20976, "name": "com.kivo.cinema", "calls": 307, "bytes": 77456, "calls_steady": 302, "bytes_steady": 77120}, {"tid": 21193, "name": "kivo-decode", "calls": 1, "bytes": 32, "calls_steady": 1, "bytes_steady": 32}, {"tid": 21180, "name": "", "calls": 1, "bytes": 32, "calls_steady": 1, "bytes_steady": 32}]},
     "buffers": {"pool_owner": "codec", "received": 1801, "released": 1801, "in_flight": 0, "leaked": 0, "reason": ""},
-    "present_gap": {"iterations": 1815, "long_gaps": 0, "max_gap_ns": 37068021, "worst_submit_ns": 103958, "worst_pump_ns": 36962604, "worst_pace_ns": 32979687, "worst_release_ns": 210781, "worst_unaccounted_ns": 1459, "buckets": [16, 0, 73, 1726, 0, 0, 0, 0, 0]}
+    "present_gap": {"iterations": 1824, "long_gaps": 0, "max_gap_ns": 44487917, "worst_submit_ns": 1829532, "worst_pump_ns": 42653906, "worst_pace_ns": 29659583, "worst_release_ns": 524792, "worst_unaccounted_ns": 4479, "buckets": [24, 1, 389, 1410, 0, 0, 0, 0, 0]}
   },
   "timing": {
-    "wall_us": 60036786,
-    "first_frame_latency_us": 65205,
-    "decode_fps": 29.981618,
-    "speed_vs_realtime": 0.999387
+    "wall_us": 60075993,
+    "first_frame_latency_us": 103749,
+    "decode_fps": 29.962052,
+    "speed_vs_realtime": 0.998735
   },
   "cold_start": {
     "applicable": true,
-    "first_frame_us": 65205,
+    "first_frame_us": 103749,
     "budget_us": 300000,
     "pass": true,
     "reason": null
@@ -175,16 +175,16 @@
       "measured": true,
       "reason": "",
       "p50": 125000,
-      "p95": 125000,
-      "p99": 125000,
-      "min": 15260,
-      "max": 496657
+      "p95": 375000,
+      "p99": 875000,
+      "min": -1154667,
+      "max": 8668407
     },
     "interval_ns": {
-      "p50": 125000,
-      "p95": 125000,
-      "p99": 125000,
-      "max": 428667
+      "p50": -125000,
+      "p95": 375000,
+      "p99": 875000,
+      "max": 8576011
     },
     "clock_mix": {
       "primary_frames": 1800,
@@ -210,8 +210,8 @@
       "stale_readings": 0
     },
     "wait": {
-      "count": 1799,
-      "total_ns": 57141284809
+      "count": 1794,
+      "total_ns": 53736106400
     },
     "sampled_at_frames": 1800
   }

@@ -175,6 +175,11 @@ PaceDecision FramePacer::arrive(std::int64_t pts_ns) noexcept {
     has_last_due_ = true;
     last_due_ns_ = due_at_ns;
     last_health_ = reading.health;
+    // P16-P1B12：把频差观测抄一份，供收帧线程交给采样器（只转发，不参与上面的决策）。
+    last_rate_ppm_ = reading.rate_ppm;
+    last_phase_error_ns_ = reading.phase_error_ns;
+    // P16-P1B26：把当前位置发布给跨线程查询（`snapshot()` / UI 进度条）。
+    position_ns_.store(reading.position_ns, std::memory_order_release);
     return decision;
 }
 
@@ -238,6 +243,23 @@ void FramePacer::note_scheduled(const PaceDecision& decision,
     frames_since_present_ = 0;
 }
 
+void FramePacer::resume_at(std::int64_t now_ns) noexcept {
+    // 只推"锚点"，不动 `frame_duration_` / 统计 / 帧计数。
+    has_last_due_ = true;
+    last_due_ns_ = now_ns;
+    if (has_last_present_) {
+        // 呈现锚点同理：不推的话 `note_interval` 会算出"停了 2 秒"的巨大间隔。
+        last_present_ns_ = now_ns;
+    }
+    // pause 不该算进"连续迟到"，否则 resume 后立刻进追帧模式。
+    consecutive_late_ = 0;
+    catching_up_ = false;
+    // P16-P1B32：跳过 pause 那段墙钟，并让频差观测重来。
+    // 不做的话 resume 后第一次读的 `wall_delta` 就是 pause 时长，
+    // stale 外推会把位置凭空推前 2 秒（实测 2.044 s → 丢 58 帧）。
+    tracker_.skip_pause(now_ns);
+}
+
 void FramePacer::reset() noexcept {
     tracker_.reset();
     // 锚点没了 ⇒ `lateness = present_at − due_at` 的零点没了 ⇒ 漂移序列必须
@@ -260,6 +282,9 @@ void FramePacer::reset() noexcept {
     consecutive_late_ = 0;
     catching_up_ = false;
     last_health_ = ClockHealth::kFresh;
+    last_rate_ppm_ = 0.0;
+    last_phase_error_ns_ = 0;
+    position_ns_.store(0, std::memory_order_release);
 }
 
 PaceSummary FramePacer::summary() const noexcept {

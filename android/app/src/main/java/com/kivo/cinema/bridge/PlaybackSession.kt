@@ -157,6 +157,29 @@ class PlaybackSession(
         return 0
     }
 
+    /**
+     * P16-P1B31：暂停。保留 codec / extractor / surface，不清帧计数。
+     *
+     * native 侧复用 `stop()`（它只停线程），所以没有重建流的间隙。
+     */
+    fun pause(): Int = setPaused(true)
+
+    /** P16-P1B31：从暂停处继续。会先把节拍器的 due 锚点推到 now。 */
+    fun resume(): Int = setPaused(false)
+
+    private fun setPaused(paused: Boolean): Int {
+        if (handle == 0L) {
+            lastError = "setPaused before openVideo"
+            return -1
+        }
+        val rc = runCatching { NativePlayer.nativeSessionSetPaused(handle, paused) }.getOrElse { -1 }
+        if (rc != 0) {
+            lastError = nativeErrorOr("setPaused($paused) failed rc=$rc")
+            return rc
+        }
+        return 0
+    }
+
     /** 挂节拍。**必须在 [start] 之前**：起播之后再挂等于半路改规则。 */
     fun configurePacing(
         targetFps: Int,
@@ -166,6 +189,7 @@ class PlaybackSession(
         clockRatePpm: Int = 0,
         driftGate: Boolean = true,
         stepRepay: Boolean = true,
+        driftBandMs: Int = 5,
     ): Int {
         if (handle == 0L) {
             lastError = "configurePacing before openVideo"
@@ -174,7 +198,7 @@ class PlaybackSession(
         val rc = runCatching {
             NativePlayer.nativeSessionSetPacing(
                 handle, targetFps, allowDrop, clockOffsetMs, clockOffsetAtMs,
-                clockRatePpm, driftGate, stepRepay
+                clockRatePpm, driftGate, stepRepay, driftBandMs
             )
         }.getOrElse { -1 }
         if (rc != 0) {

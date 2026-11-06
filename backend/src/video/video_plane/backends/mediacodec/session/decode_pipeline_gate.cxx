@@ -30,9 +30,31 @@ void DecodePipelineGate::note_submit_finished() noexcept {
     submit_finished_.store(true, std::memory_order_release);
 }
 
+void DecodePipelineGate::note_worker_exited() noexcept {
+    workers_exited_.fetch_add(1, std::memory_order_release);
+    exit_cv_.notify_all();
+}
+
+bool DecodePipelineGate::wait_for_workers(std::int32_t expected,
+                                          std::int64_t timeout_us) noexcept {
+    if (expected <= 0) {
+        return true;
+    }
+    try {
+        std::unique_lock<std::mutex> lock(mutex_);
+        return exit_cv_.wait_for(lock, std::chrono::microseconds(timeout_us), [this, expected] {
+            return workers_exited_.load(std::memory_order_acquire) >= expected;
+        });
+    } catch (...) {
+        // 底层等待本身失败：不吞掉这件事，交给调用方写 reason。
+        return false;
+    }
+}
+
 void DecodePipelineGate::reset_for_start() noexcept {
     stop_.store(false, std::memory_order_release);
     submit_finished_.store(false, std::memory_order_release);
+    workers_exited_.store(0, std::memory_order_release);
 }
 
 }  // namespace kivo::video::mediacodec

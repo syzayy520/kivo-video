@@ -53,6 +53,16 @@ public:
     /// 请求停止并等待状态落定。可重复调用。
     void stop();
 
+    /// P16-P1B27：暂停 / 恢复（实验性，产品路径尚未调用）。
+    ///
+    /// 与 `stop()` 的区别：`requestStop` 之后**帧位置会归零**，而 `requestPause`
+    /// 理论上保留位置与 timestamp。这个行为**从未在本项目验证过** ——
+    /// 本卡先把它暴露出来，用探针确认，再决定 pause-resume 走哪条路。
+    ///
+    /// @return 平台是否接受了请求（不代表状态已落定，调用方需要再看 `clock()`）。
+    [[nodiscard]] bool pause();
+    [[nodiscard]] bool resume();
+
     /// 停止并释放流。析构会自动调用。
     void close();
 

@@ -5,6 +5,9 @@ namespace {
 
 /// 两个 burst 还没更新就算卡住。一个 burst 的陈旧是正常的（下一个还没来）。
 constexpr std::int64_t kStaleBursts = 2;
+/// P16-P1B2：仅作"其它调用方传 0"时的自卫（防非正陈旧阈值），产品路径不会走到 ——
+/// AaudioOutputSession::open() 已在拿不到设备真值时明确失败并带 reason（G9）。
+/// 用了它就必须能被 used_fallback() 查到，不许伪装成设备协商结果。
 constexpr std::int32_t kDefaultFramesPerBurst = 192;  // 48 kHz 下 4 ms
 constexpr std::int64_t kNanosPerSecond = 1'000'000'000;
 
@@ -22,11 +25,19 @@ AaudioClockSource::AaudioClockSource(AaudioClockProbe& probe,
     : probe_(probe),
       now_fn_(now_fn != nullptr ? now_fn : &monotonic_now_ns),
       sample_rate_(sample_rate > 0 ? sample_rate : 48000),
-      frames_per_burst_(frames_per_burst > 0 ? frames_per_burst : kDefaultFramesPerBurst),
+      used_fallback_(frames_per_burst <= 0),
+      frames_per_burst_(used_fallback_ ? kDefaultFramesPerBurst : frames_per_burst),
       stale_after_ns_(stale_threshold_ns(frames_per_burst_,
                                          sample_rate > 0 ? sample_rate : 48000)),
       extrapolator_(sample_rate > 0 ? sample_rate : 48000, stale_after_ns_) {
     stats_.sample_rate = sample_rate_;
+}
+
+const char* AaudioClockSource::fallback_reason() const noexcept {
+    return used_fallback_
+               ? "device frames_per_burst unavailable; fell back to 192 (48 kHz / 4 ms) "
+                 "for stale-threshold safety only"
+               : "device";
 }
 
 core::audio::AudioClockSnapshot AaudioClockSource::now() {

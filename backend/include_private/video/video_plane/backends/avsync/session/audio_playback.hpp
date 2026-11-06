@@ -80,6 +80,14 @@ public:
     /// 反过来（先停流）会让环里剩的数据永远没人取，被如实记成大量欠载。
     void stop();
 
+    /// P16-P1B32：暂停 / 恢复音频输出。
+    ///
+    /// **pause 必须同时停音频**，否则视频线程停了、声音还在放。
+    /// 用 `AAudioStream_requestPause`（不是 `stop`）—— 后者会让帧位置归零，
+    /// 前者保留位置与 timestamp（已在 `dd137cf7` 上验证：pause 2 秒位置完全冻结）。
+    [[nodiscard]] bool pause();
+    [[nodiscard]] bool resume();
+
     [[nodiscard]] bool is_open() const noexcept { return opened_; }
     [[nodiscard]] bool is_started() const noexcept { return started_; }
 

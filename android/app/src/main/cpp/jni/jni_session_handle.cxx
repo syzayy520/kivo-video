@@ -311,9 +311,40 @@ void session_stop(SessionHandle* handle) {
         kivo::video::mediacodec::session_stop_plan(), hooks);
 }
 
+int session_set_paused(SessionHandle* handle, bool paused, std::string& error) {
+    if (handle == nullptr || !handle->session) {
+        error = "session handle is null";
+        return 1;
+    }
+    if (paused) {
+        // P16-P1B32：**先停音频**（立刻静音），再停视频线程。
+        // 只停视频的话声音会继续放 —— 这是 P1B31 的遗漏，静态审查才发现。
+        if (handle->audio) {
+            // 音频停不下来不阻塞视频暂停：画面停住比声音多放一秒更重要。
+            // 平台拒绝时 `AaudioOutputSession::pause()` 已返回 false，这里不额外造错误码。
+            (void)handle->audio->pause();
+        }
+        handle->session->pause();
+        handle->last_error.clear();
+        return 0;
+    }
+    // 恢复：先起音频（时钟先走），再起视频线程 —— 与 `seek_to` 的顺序一致。
+    if (handle->audio) {
+        (void)handle->audio->resume();
+    }
+    const auto outcome = handle->session->resume();
+    if (!outcome.ok()) {
+        error = outcome.message;
+        return fail(handle, 12, "resume: " + error);
+    }
+    handle->last_error.clear();
+    return 0;
+}
+
 int session_set_pacing(SessionHandle* handle, int target_fps, bool allow_drop,
                        int clock_offset_ms, int clock_offset_at_ms, int clock_rate_ppm,
-                       bool drift_gate, bool step_repay, std::string& error) {
+                       bool drift_gate, bool step_repay, int drift_band_ms,
+                       std::string& error) {
     if (handle == nullptr || !handle->session) {
         error = "session handle is null";
         return 1;
@@ -352,6 +383,13 @@ int session_set_pacing(SessionHandle* handle, int target_fps, bool allow_drop,
     setup.policy.drift_gate_enabled = drift_gate;
     // P14-Z：台阶还不还。默认 true；false 只用于对照轮，且会出版到证据里。
     setup.policy.step_repay = step_repay;
+    // P16-P1B17：迟滞带可调。默认 5 ms（不传 = 行为不变）。
+    // 调大能把"小步高频"换成"大步低频"（`197` 的推演），代价是单次修正更大。
+    // 只用于对照实验；必须小于门限，否则 `target = limit − band` 会变成负数。
+    const std::int64_t band_ns = static_cast<std::int64_t>(drift_band_ms) * 1'000'000;
+    if (band_ns > 0 && band_ns < setup.policy.drift_limit_ns) {
+        setup.policy.drift_band_ns = band_ns;
+    }
     if (target_fps > 0) {
         // 只是首帧兜底：真实帧时长由 pts 差值观测得出，不信这里传的值。
         setup.policy.default_frame_duration_ns = 1'000'000'000 / target_fps;
@@ -519,6 +557,23 @@ std::string session_last_error(SessionHandle* handle) {
         return "session handle is null";
     }
     return handle->last_error;
+}
+
+void session_record_native_error(SessionHandle* handle, const char* where,
+                                 const char* what) noexcept {
+    if (handle == nullptr) {
+        return;  // 无句柄的导出函数：原因已由 KIVO_LOGW 留下，没有可回传的通道
+    }
+    // 逐段 append 而不是一次拼接：即使这里在极端 OOM 下再次抛，
+    // 也被吞掉并保住 noexcept 边界 —— 宁可丢了原因，不能让进程 terminate。
+    try {
+        std::string& out = handle->last_error;
+        out = "native exception in ";
+        out += where != nullptr ? where : "unknown entry";
+        out += ": ";
+        out += what != nullptr ? what : "no detail";
+    } catch (...) {
+    }
 }
 
 }  // namespace kivo::jni_bridge

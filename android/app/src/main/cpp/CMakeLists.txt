@@ -15,6 +15,14 @@ if(NOT EXISTS "${KIVO_BACKEND}/src/video/video_plane")
 endif()
 
 # ---------------------------------------------------------------------------
+# P16-P0 / D3：进程级 operator new 拦截只该出现在取证构建里。
+# 默认 ON —— 全部既有 G2/G3/G4 证据都由这个配置产出，不许悄悄改口径。
+# release flavor 由 build.gradle.kts 传 OFF；OFF 时 hook_installed=false，
+# 该构建不得产出 G3 证据（见 alloc_probe_hook.cxx 的注释）。
+# ---------------------------------------------------------------------------
+option(KIVO_ENABLE_GLOBAL_ALLOC_HOOK "Install process-wide operator new probe" ON)
+
+# ---------------------------------------------------------------------------
 # kivo_core_pace —— 可移植呈现节拍器（P12-C5）
 # 零平台依赖（只用 steady_clock + int64 纳秒），桌面 MSVC 与 arm64 编同一份源。
 # 与 kivo_core_audio 一样刻意不放 backends/：iOS / 桌面要共用同一套节拍逻辑。
@@ -80,6 +88,11 @@ target_include_directories(kivo_core_pace
 target_compile_options(kivo_core_pace PRIVATE
     -Wall -Wextra -Wpedantic -Wshadow
 )
+
+# alloc_probe_hook.cxx 就在这个 target 里，编译定义只需下传到这里。
+if(NOT KIVO_ENABLE_GLOBAL_ALLOC_HOOK)
+    target_compile_definitions(kivo_core_pace PRIVATE KIVO_DISABLE_GLOBAL_ALLOC_HOOK)
+endif()
 
 target_link_libraries(kivo_core_pace PUBLIC kivo_core_audio)
 

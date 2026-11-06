@@ -69,7 +69,12 @@ android {
             isMinifyEnabled = false
             externalNativeBuild {
                 cmake {
-                    arguments += listOf("-DCMAKE_BUILD_TYPE=RelWithDebInfo")
+                    // P16-P0 / D3：release 不背取证用的进程级分配器拦截。
+                    // debug 不变（保持 ON），所以所有真机取证口径逐位不变。
+                    arguments += listOf(
+                        "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+                        "-DKIVO_ENABLE_GLOBAL_ALLOC_HOOK=OFF"
+                    )
                 }
             }
         }

@@ -207,9 +207,29 @@ AudioPlayback::SeekResult AudioPlayback::seek_to(std::int64_t target_us) {
     // 于是改用**静音栅栏**：读者被挡住（`render()` 直接返回 0，一次不碰环），
     // 写者 join 掉，此时清环就是安全的 —— 不需要停流，时间戳不会断。
 
-    // 1. 拉下栅栏，并等一个在途回调退出（K40 burst 192 帧 ≈ 4 ms，取 10 ms 留余量）。
+    // 1. P16-P1B7 / A2：显式凭据替代固定睡眠。
+    //
+    // 参考 F:\kivo 的 drain 契约（Q3/Q4）：完成由**控制线程**判定，音频回调不写完成状态；
+    // 超时是带 deadline 的预算，不是固定 sleep，且必须有独立分类。
+    //
+    // 为什么 in_flight()==0 就够：计数递增早于判空（189 O1），覆盖"已过判空、还没读环"
+    // 的窗口；set_muted 是 release store、回调 acquire load，此后进入的回调必被挡住、不碰环。
+    // 因此归零时没有任何读者在动环，下面的 ring_->reset() 才安全。
     ring_source_->set_muted(true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    constexpr auto kSeekGateBudget = std::chrono::milliseconds(10);
+    const auto gate_deadline = std::chrono::steady_clock::now() + kSeekGateBudget;
+    while (ring_source_->in_flight() != 0 &&
+           std::chrono::steady_clock::now() < gate_deadline) {
+        std::this_thread::yield();
+    }
+    if (ring_source_->in_flight() != 0) {
+        // G9：不带着在途读者 reset 环；先解除静音，把非空 reason 交给上层决定是否中止。
+        // 上层 resume_after_seek() 无条件执行，会话不会卡在"线程已 join"的状态。
+        out.reason = "seek gate timeout: audio callback still inside render() after 10 ms; "
+                     "refusing to reset the SPSC ring";
+        ring_source_->set_muted(false);
+        return out;
+    }
 
     // 2. 停写者。此后没有任何人碰环。
     feeder_->stop();
@@ -238,6 +258,24 @@ AudioPlayback::SeekResult AudioPlayback::seek_to(std::int64_t target_us) {
                                  : ("audio decoder flush failed: " + flushed.message);
     }
     return out;
+}
+
+bool AudioPlayback::pause() {
+    // 先停供给再停流：反过来的话环会继续被填，resume 时听到的是一段"补上的旧声音"。
+    if (feeder_) {
+        feeder_->stop();
+    }
+    return output_ ? output_->pause() : false;
+}
+
+bool AudioPlayback::resume() {
+    if (!output_ || !output_->resume()) {
+        return false;
+    }
+    if (feeder_) {
+        feeder_->start();  // 返回 void：起不来会在下一次 render 里表现为欠载
+    }
+    return true;
 }
 
 void AudioPlayback::stop() {

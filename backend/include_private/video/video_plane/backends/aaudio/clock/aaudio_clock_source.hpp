@@ -50,6 +50,16 @@ public:
     [[nodiscard]] AaudioClockStats stats() const noexcept { return stats_; }
     [[nodiscard]] std::int32_t sample_rate() const noexcept { return sample_rate_; }
 
+    /// P16-P1B2：这次构造是否用了 192 兜底。
+    ///
+    /// 产品路径不会走到 true —— `AaudioOutputSession::open()` 在拿不到设备真值时
+    /// 已经明确失败（G9）。这里保留兜底只是为了防止探针 / 桌面对照传 0 时算出
+    /// 非正的陈旧阈值；一旦用了，调用方必须能查到，不许"看起来像正常协商"。
+    [[nodiscard]] bool used_fallback() const noexcept { return used_fallback_; }
+
+    /// 非空、可读的兜底原因；未兜底时返回空串语义的 "device" 标记。
+    [[nodiscard]] const char* fallback_reason() const noexcept;
+
 private:
     [[nodiscard]] core::audio::AudioClockSnapshot publish(std::int64_t candidate_ns,
                                                           core::audio::AudioClockSourceKind kind,
@@ -60,6 +70,7 @@ private:
     AaudioClockProbe& probe_;
     NowFn now_fn_;
     std::int32_t sample_rate_;
+    bool used_fallback_ = false;  ///< 必须先于 frames_per_burst_ 初始化（构造列表按声明顺序）
     std::int32_t frames_per_burst_;
     std::int64_t stale_after_ns_;
 

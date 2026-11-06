@@ -73,10 +73,16 @@ void session_stop(SessionHandle* handle);
 ///        会写 false，它的 `drift_rebases = 0` 不可读作"门判断沉默"。
 /// @param step_repay      台阶还不还（P14-Z 探针）。默认 true = P13-W 的行为；
 ///        false 只用于对照轮，证据里 `drift_gate.step_repay` 写 false。
+/// P16-P1B31：pause / resume（`paused=true` 暂停，`false` 恢复）。
+///
+/// 两者都走 `DecodeSession`，复用 `stop()`（不释放 codec/extractor）与
+/// `begin_run(preserve_stats=true)`（不清帧计数）。
+[[nodiscard]] int session_set_paused(SessionHandle* handle, bool paused, std::string& error);
+
 [[nodiscard]] int session_set_pacing(SessionHandle* handle, int target_fps, bool allow_drop,
                                     int clock_offset_ms, int clock_offset_at_ms,
                                     int clock_rate_ppm, bool drift_gate, bool step_repay,
-                                    std::string& error);
+                                    int drift_band_ms, std::string& error);
 
 /// 打开音轨并起流（P12-C8）。必须在 `session_set_pacing` 与 `session_start` 之前调用。
 ///
@@ -123,5 +129,12 @@ void session_stop(SessionHandle* handle);
 /// 之所以必须有这条通道：本机（HyperOS）的 logcat 对 adb 完全不可见，
 /// 日志一行都取不到。失败原因若不通过句柄回传，就只能靠猜。
 [[nodiscard]] std::string session_last_error(SessionHandle* handle);
+
+/// 记录一次 native 层未捕获异常（P16-P0 / D1），写入与上面同一条 last_error 通道。
+///
+/// 由 `jni_call_guard.hpp` 在 catch 里调用；`handle` 允许为空（无会话句柄的导出函数，
+/// 例如能力探针）。**必须不抛**：它自己就站在异常边界上，再抛就是 terminate。
+void session_record_native_error(SessionHandle* handle, const char* where,
+                                 const char* what) noexcept;
 
 }  // namespace kivo::jni_bridge

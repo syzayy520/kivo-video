@@ -316,9 +316,27 @@ using core::pace::SignedHistogram;
 ///       `drift_gate` 之前（唯一改动位置的一处搬移）：`limit_reach_s` 需要它，
 ///       而在两处各算一遍会让同一个数有两个实现。搬移后 `timeline` 块逐字未改。
 ///
+///       `/43`（P15-A2）：`pace.span_segments` + `timeline.media_rate_scope`。
+///
+///       起因是两次 seek 的真机证据：`media_rate` 读出 **1.332 / 0.789**，
+///       而无 seek 那轮是 1.000。差的正好是 seek 的距离。
+///
+///       根因不是速率，是**作用域**：四个跨度的端点建在整场第一帧，
+///       而 `note_anchor_reset()`（seek / 暂停恢复 / 起跑三条路都走）
+///       只切了漂移序列的段。于是 `pts_span` 把"被跳过的那 20 秒"算成播过的时长，
+///       墙钟跨度却是真实时长 —— 两个数描述不同窗口，相除就是垃圾。
+///
+///       这一版把「这一段走了多远」的六个持有者（四跨度端点 / `span_frames` /
+///       `clock_supplied_frames` / 领先量基准 / 墙偏移）在锚点重建时一起重启，
+///       而把「整场发生过什么」（`presented` / 直方图 / `episode` / `drift_rebases`）
+///       留在整场作用域。规矩一句话：**窗口量按段，生命周期量按场。**
+///
+///       同时出版 `span_segments`：不写给段数，`media_rate` 就是一个没有窗口的比值。
+///       无 seek 的轮次 `span_segments = 1`，所有字段**逐位不变**。
+///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/42";
+constexpr const char* kSchema = "kivo.p12c.sync/43";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -1434,6 +1452,13 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "    \"nominal_rate\": " << fixed6(nominal_rate) << ",\n";
     out << "    \"media_rate\": " << fixed9(media_rate_published) << ",\n";
     out << "    \"media_rate_measured\": " << (media_rate_measured ? "true" : "false") << ",\n";
+    // P15-A2：这份速率描述的是哪一段时间。
+    //
+    // 不写这一格，`media_rate` 就是一个**没有窗口的比值** —— 而 seek 之后
+    // 整场跨度与段内跨度不是一回事（真机实测 1.332 vs 1.000）。
+    // 与 `pace.span_segments` 成对读：段数 ≥ 2 就必须是 `last_segment`。
+    out << "    \"media_rate_scope\": "
+        << quoted(pace.span_segments >= 2 ? "last_segment" : "session") << ",\n";
     out << "    \"media_rate_reason\": " << quoted(media_rate_reason) << ",\n";
     // 原始事实照留：有人要按自己的窗口重算时用得上。
     out << "    \"anchor_audio_position_ns\": " << pace.anchor_position_ns << ",\n";
@@ -1573,6 +1598,7 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     // P14-AA：跨度是几帧撑起来的、由哪条路喂的。不写清楚，
     // at_time 档的跨度会被读成"呈现时刻"的跨度。
     out << "    \"span_frames\": " << pace.span_frames << ",\n";
+    out << "    \"span_segments\": " << pace.span_segments << ",\n";
     out << "    \"span_basis\": " << quoted(pace.span_basis) << ",\n";
     out << "    \"arrive_mono_span_ns\": " << pace.arrive_mono_span_ns << ",\n";
     out << "    \"elapsed_span_ns\": " << pace.elapsed_span_ns << ",\n";

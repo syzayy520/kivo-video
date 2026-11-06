@@ -49,6 +49,19 @@ public:
 
     [[nodiscard]] std::int64_t last_ns() const noexcept { return last_ns_; }
 
+    /// 换时间轴时清空（P15-A2）。与 `LeadTraceRecorder::restart()` 同一条理由：
+    /// `vs_wall` 是"这一段视频相对墙偏了多少"，跨 seek 累加会把两段的首末
+    /// 拼成一个不存在的跨度 —— 而它印出来的 `last_ns` 会被当成"此刻偏多少"读。
+    void restart() noexcept {
+        samples_ = 0;
+        first_ns_ = 0;
+        last_ns_ = 0;
+        worst_ns_ = 0;
+        worst_media_ns_ = 0;
+        worst_index_ = 0;
+        has_worst_ = false;
+    }
+
     [[nodiscard]] WallOffset summary() const noexcept;
 
 private:

@@ -1,55 +1,37 @@
-#include "jni_session_handle.hpp"
+// Java NativePlayer 的全部 native 实现（家族树 §四）。
+//
+// P16-P0 / D1：每个导出都是**函数 try 块**，一对边界宏贴在函数签名行末与结尾，
+// 原函数体逐字不变、行数不增。边界定义见 `jni_call_guard.hpp`，
+// 字符串转换见 `jni_string_convert.hpp`。本文件不含任何解码/渲染逻辑。
+
+#include "jni_call_guard.hpp"
 #include "jni_string_convert.hpp"
 
 #include "video/video_plane/backends/mediacodec/device/mediacodec_capability_probe.hpp"
 #include "video/video_plane/backends/mediacodec/device/mediacodec_framerate_capability.hpp"
-
-#include <android/log.h>
-#include <jni.h>
 
 #include <string>
 #include <vector>
 
 namespace {
 
-constexpr const char* kLogTag = "KivoCinema";
 constexpr const char* kBackendVersion = "p12b/0.2.0";
-
-#define KIVO_LOGI(...) __android_log_print(ANDROID_LOG_INFO, kLogTag, __VA_ARGS__)
-#define KIVO_LOGW(...) __android_log_print(ANDROID_LOG_WARN, kLogTag, __VA_ARGS__)
-
-[[nodiscard]] std::vector<std::string> to_string_vector(JNIEnv* env, jobjectArray array) {
-    std::vector<std::string> out;
-    if (array == nullptr) {
-        return out;
-    }
-    const jsize length = env->GetArrayLength(array);
-    out.reserve(static_cast<std::size_t>(length));
-    for (jsize index = 0; index < length; ++index) {
-        auto element = static_cast<jstring>(env->GetObjectArrayElement(array, index));
-        if (element == nullptr) {
-            continue;
-        }
-        out.push_back(kivo::jni_bridge::to_utf8(env, element));
-        env->DeleteLocalRef(element);
-    }
-    return out;
-}
 
 }  // namespace
 
 extern "C" {
 
 JNIEXPORT jstring JNICALL
-Java_com_kivo_cinema_bridge_NativePlayer_nativeVersion(JNIEnv* env, jobject /*thiz*/) {
+Java_com_kivo_cinema_bridge_NativePlayer_nativeVersion(JNIEnv* env, jobject /*thiz*/) KIVO_JNI_BEGIN
     return kivo::jni_bridge::to_jstring(env, kBackendVersion);
-}
+    KIVO_JNI_END_STRING(env, nullptr, "nativeVersion")
 
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeProbeCapabilities(
-    JNIEnv* env, jobject /*thiz*/, jstring output_json_path, jobjectArray inventory) {
+    JNIEnv* env, jobject /*thiz*/, jstring output_json_path, jobjectArray inventory) KIVO_JNI_BEGIN
     const std::string path = kivo::jni_bridge::to_utf8(env, output_json_path);
-    const std::vector<std::string> records = to_string_vector(env, inventory);
+    const std::vector<std::string> records =
+        kivo::jni_bridge::to_string_vector(env, inventory);
 
     KIVO_LOGI("probe start: records=%zu path=%s", records.size(), path.c_str());
 
@@ -66,13 +48,13 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeProbeCapabilities(
               outcome.hardware_decoder_records,
               outcome.decoder_10bit_records);
     return 0;
-}
+    KIVO_JNI_END_INT(env, nullptr, "nativeProbeCapabilities")
 
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeProbeFramerates(
-    JNIEnv* env, jobject /*thiz*/, jstring output_json_path, jobjectArray records) {
+    JNIEnv* env, jobject /*thiz*/, jstring output_json_path, jobjectArray records) KIVO_JNI_BEGIN
     const std::string path = kivo::jni_bridge::to_utf8(env, output_json_path);
-    const std::vector<std::string> lines = to_string_vector(env, records);
+    const std::vector<std::string> lines = kivo::jni_bridge::to_string_vector(env, records);
 
     KIVO_LOGI("framerate probe start: records=%zu path=%s", lines.size(), path.c_str());
 
@@ -88,34 +70,37 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeProbeFramerates(
     KIVO_LOGI("framerate probe ok: parsed=%zu rejected=%zu", outcome.parsed_records,
               outcome.rejected_records);
     return 0;
-}
+    KIVO_JNI_END_INT(env, nullptr, "nativeProbeFramerates")
 
 // ---- 解码会话 ------------------------------------------------------------
 // 句柄是不透明指针，Kotlin 侧只有一个 Long。释放顺序由 jni_session_handle 统一负责。
 
 JNIEXPORT jlong JNICALL
-Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionCreate(JNIEnv* /*env*/,
-                                                             jobject /*thiz*/) {
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionCreate(JNIEnv* env,
+                                                             jobject /*thiz*/) KIVO_JNI_BEGIN
+    // session_create() 内部会 new，同样在函数 try 块里：抛 bad_alloc 也不越过 JNI 帧。
     auto* handle = kivo::jni_bridge::session_create();
     KIVO_LOGI("session create: %p", static_cast<void*>(handle));
     return reinterpret_cast<jlong>(handle);
-}
+    KIVO_JNI_END_LONG(env, nullptr, "nativeSessionCreate")
 
 JNIEXPORT void JNICALL
-Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionDestroy(JNIEnv* /*env*/, jobject /*thiz*/,
-                                                              jlong handle) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionDestroy(JNIEnv* env, jobject /*thiz*/,
+                                                              jlong handle) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     if (session != nullptr) {
         kivo::jni_bridge::session_destroy(session);
         KIVO_LOGI("session destroyed");
     }
-}
+    // 传 nullptr 而不是 session：若 session_destroy 内部抛了，句柄可能已经释放，
+    // 往 last_error 里写就是 UAF。原因由 KIVO_LOGW 留下即可。
+    KIVO_JNI_END_VOID(env, nullptr, "nativeSessionDestroy")
 
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionOpen(JNIEnv* env, jobject /*thiz*/,
                                                            jlong handle, jstring label, jint fd,
-                                                           jlong length, jobject surface) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+                                                           jlong length, jobject surface) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     const std::string media_label = kivo::jni_bridge::to_utf8(env, label);
 
     std::string error;
@@ -129,12 +114,12 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionOpen(JNIEnv* env, jobject 
     KIVO_LOGI("session open ok: %s (fd=%d bytes=%lld)", media_label.c_str(),
               static_cast<int>(fd), static_cast<long long>(length));
     return 0;
-}
+    KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionOpen")
 
 JNIEXPORT jint JNICALL
-Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionStart(JNIEnv* /*env*/, jobject /*thiz*/,
-                                                            jlong handle) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionStart(JNIEnv* env, jobject /*thiz*/,
+                                                            jlong handle) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     std::string error;
     const int code = kivo::jni_bridge::session_start(session, error);
     if (code != 0) {
@@ -143,24 +128,25 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionStart(JNIEnv* /*env*/, job
     }
     KIVO_LOGI("session start ok");
     return 0;
-}
+    KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionStart")
 
 JNIEXPORT jint JNICALL
-Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSetPacing(JNIEnv* /*env*/, jobject /*thiz*/,
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSetPacing(JNIEnv* env, jobject /*thiz*/,
                                                                jlong handle, jint target_fps,
                                                                jboolean allow_drop,
                                                                jint clock_offset_ms,
                                                                jint clock_offset_at_ms,
                                                                jint clock_rate_ppm,
                                                                jboolean drift_gate,
-                                                               jboolean step_repay) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+                                                               jboolean step_repay,
+                                                               jint drift_band_ms) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     std::string error;
     const int code = kivo::jni_bridge::session_set_pacing(
         session, static_cast<int>(target_fps), allow_drop == JNI_TRUE,
         static_cast<int>(clock_offset_ms), static_cast<int>(clock_offset_at_ms),
         static_cast<int>(clock_rate_ppm), drift_gate == JNI_TRUE, step_repay == JNI_TRUE,
-        error);
+        static_cast<int>(drift_band_ms), error);
     if (code != 0) {
         KIVO_LOGW("session pacing failed: code=%d reason=%s", code, error.c_str());
         return static_cast<jint>(code);
@@ -172,15 +158,26 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSetPacing(JNIEnv* /*env*/,
               static_cast<int>(clock_rate_ppm), drift_gate == JNI_TRUE ? 1 : 0,
               step_repay == JNI_TRUE ? 1 : 0);
     return 0;
-}
+    KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionSetPacing")
 
 JNIEXPORT jint JNICALL
-Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSetPipeline(JNIEnv* /*env*/,
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSetPaused(JNIEnv* env, jobject /*thiz*/,
+                                                                jlong handle,
+                                                                jboolean paused) KIVO_JNI_BEGIN
+    std::string error;
+    const int code =
+        kivo::jni_bridge::session_set_paused(KIVO_JNI_SESSION(handle), paused == JNI_TRUE, error);
+    // 失败原因由 `session_set_paused` 写进 `last_error`，这里不再多打一行（bridge 有 300 行硬线）。
+    return code;
+    KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionSetPaused")
+
+JNIEXPORT jint JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSetPipeline(JNIEnv* env,
                                                                  jobject /*thiz*/, jlong handle,
                                                                  jboolean split,
                                                                  jboolean present,
-                                                                 jboolean at_time) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+                                                                 jboolean at_time) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     std::string error;
     const int code = kivo::jni_bridge::session_set_pipeline(
         session, split == JNI_TRUE, present == JNI_TRUE, at_time == JNI_TRUE, error);
@@ -191,12 +188,12 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSetPipeline(JNIEnv* /*env*
     KIVO_LOGI("session pipeline: %s present=%d schedule=%s", split == JNI_TRUE ? "split" : "merged",
               present == JNI_TRUE ? 1 : 0, at_time == JNI_TRUE ? "surface_at_time" : "cpu_paced");
     return 0;
-}
+    KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionSetPipeline")
 
 JNIEXPORT jint JNICALL
-Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSeek(JNIEnv* /*env*/, jobject /*thiz*/,
-                                                           jlong handle, jlong target_us) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSeek(JNIEnv* env, jobject /*thiz*/,
+                                                           jlong handle, jlong target_us) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     std::string error;
     const int code =
         kivo::jni_bridge::session_seek(session, static_cast<std::int64_t>(target_us), error);
@@ -206,21 +203,21 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSeek(JNIEnv* /*env*/, jobj
     }
     KIVO_LOGI("session seek ok: target=%lld us", static_cast<long long>(target_us));
     return 0;
-}
+    KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionSeek")
 
 JNIEXPORT void JNICALL
-Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionStop(JNIEnv* /*env*/, jobject /*thiz*/,
-                                                           jlong handle) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionStop(JNIEnv* env, jobject /*thiz*/,
+                                                           jlong handle) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     kivo::jni_bridge::session_stop(session);
     KIVO_LOGI("session stopped: %s", kivo::jni_bridge::session_summary(session).c_str());
-}
+    KIVO_JNI_END_VOID(env, nullptr, "nativeSessionStop")
 
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionRebindSurface(JNIEnv* env, jobject /*thiz*/,
                                                                    jlong handle, jstring label,
-                                                                   jobject surface) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+                                                                   jobject surface) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     const std::string media_label = kivo::jni_bridge::to_utf8(env, label);
 
     std::string error;
@@ -232,13 +229,13 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionRebindSurface(JNIEnv* env,
     KIVO_LOGI("session rebind ok: %s surface=%s", media_label.c_str(),
               surface == nullptr ? "detached" : "attached");
     return 0;
-}
+    KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionRebindSurface")
 
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionOpenAudio(JNIEnv* env, jobject /*thiz*/,
                                                                jlong handle, jstring label,
-                                                               jint fd, jlong length) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+                                                               jint fd, jlong length) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     const std::string audio_label = kivo::jni_bridge::to_utf8(env, label);
 
     std::string error;
@@ -251,12 +248,12 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionOpenAudio(JNIEnv* env, job
     KIVO_LOGI("session audio ok: %s (fd=%d bytes=%lld)", audio_label.c_str(),
               static_cast<int>(fd), static_cast<long long>(length));
     return 0;
-}
+    KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionOpenAudio")
 
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionWriteSyncStats(JNIEnv* env, jobject /*thiz*/,
-                                                                    jlong handle, jstring path) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+                                                                    jlong handle, jstring path) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     const std::string stats_path = kivo::jni_bridge::to_utf8(env, path);
 
     std::string error;
@@ -267,12 +264,12 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionWriteSyncStats(JNIEnv* env
     }
     KIVO_LOGI("write sync stats ok: %s", stats_path.c_str());
     return 0;
-}
+    KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionWriteSyncStats")
 
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionWriteStats(JNIEnv* env, jobject /*thiz*/,
-                                                                 jlong handle, jstring path) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+                                                                 jlong handle, jstring path) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     const std::string stats_path = kivo::jni_bridge::to_utf8(env, path);
 
     std::string error;
@@ -283,20 +280,20 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionWriteStats(JNIEnv* env, jo
     }
     KIVO_LOGI("write stats ok: %s", stats_path.c_str());
     return 0;
-}
+    KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionWriteStats")
 
 JNIEXPORT jstring JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSummary(JNIEnv* env, jobject /*thiz*/,
-                                                              jlong handle) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+                                                              jlong handle) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     return kivo::jni_bridge::to_jstring(env, kivo::jni_bridge::session_summary(session));
-}
+    KIVO_JNI_END_STRING(env, KIVO_JNI_SESSION(handle), "nativeSessionSummary")
 
 JNIEXPORT jstring JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionLastError(JNIEnv* env, jobject /*thiz*/,
-                                                                jlong handle) {
-    auto* session = reinterpret_cast<kivo::jni_bridge::SessionHandle*>(handle);
+                                                                jlong handle) KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
     return kivo::jni_bridge::to_jstring(env, kivo::jni_bridge::session_last_error(session));
-}
+    KIVO_JNI_END_STRING(env, KIVO_JNI_SESSION(handle), "nativeSessionLastError")
 
 }  // extern "C"

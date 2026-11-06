@@ -16,7 +16,12 @@ namespace kivo::video::mediacodec {
 class DecodePaceSampler {
 public:
     /// 由收帧段调用。内部把 `PaceSummary` 转成证据形状后再上锁。
-    void publish(const core::pace::PaceSummary& summary);
+    ///
+    /// P16-P1B12：`rate_ppm` / `phase_error_ns` 由**同一个收帧线程**从
+    /// `FramePacer::last_rate_ppm()` 取来一并发布 —— 节拍器不加锁，
+    /// 跨线程直接读它就是数据竞争，所以必须在这一侧随摘要一起拷走。
+    void publish(const core::pace::PaceSummary& summary, double rate_ppm,
+                 std::int64_t phase_error_ns);
 
     /// 由 `DecodeSession::snapshot()` 调用。
     [[nodiscard]] DecodePaceStats read() const;

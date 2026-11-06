@@ -90,6 +90,25 @@ void PaceStats::note_anchor_reset() noexcept {
     // 只动段，不动任何累计计数：`presented_` / `sampled_samples_` / 直方图
     // 回答的是"整场发生过什么"，与本卡无关。
     drift_.break_segment();
+
+    // ── P15-A2：窗口量必须一起切 ──
+    //
+    // 只切漂移段是不够的：四个跨度的端点在**整场第一帧**建立，于是 seek 之后
+    // `pts_span` 从 seek 前算起、`present_wall_span` 是真实时长 ——
+    // 两个数描述不同窗口，相除得到 1.332 / 0.789（`178` §三，真机实测）。
+    //
+    // 下面这一段把「这一段走了多远」的六个持有者全部重启。少重启任何一个，
+    // 它就会与其余五个不同段，而**那种错不会自己报出来** ——
+    // 它只会让某个判据红，然后让人以为是判据的问题。
+    if (span_frames_ > 0) {
+        ++closed_segments_;  // 只有真正喂过帧的段才计数，起跑那次 reset 不算
+    }
+    has_span_ = false;
+    span_frames_ = 0;
+    clock_supplied_frames_ = 0;
+    has_present_mono_ = false;
+    lead_trace_.restart();
+    wall_offset_.restart();
 }
 
 void PaceStats::note_dropped(std::int64_t lateness_ns, std::int64_t media_ns) noexcept {
@@ -258,6 +277,9 @@ PaceSummary PaceStats::summary(std::int64_t frame_duration_ns, ClockHealth healt
     } else {
         out.span_basis = "none";
     }
+    // P15-A2：段数。当前这一段只在真的有帧时才算数 —— 否则"起跑即 reset"的
+    // 普通轮次会被读成 2 段，而 2 段意味着"seek 过"，那是另一件事。
+    out.span_segments = closed_segments_ + (span_frames_ > 0 ? 1 : 0);
     // P13-Q：跨帧账。`closure_gap_ns` 是那条恒等式的残差 —— 出版它而不是断言它为 0，
     // 因为"记账中间漏了一帧"（丢帧 / 锚点重建）是真实会发生的事，读者需要看见。
     out.first_lateness_ns = first_lateness_ns_;

@@ -6,7 +6,8 @@ name: P2 Foundation CI Build & Test
 
 on:
   push:
-    branches: [master, 'kivo-video-p2-*']
+    # P16-P0：当前开发分支走 codex/**，不补这条则下面的 hard-gates 永远不会触发。
+    branches: [master, 'kivo-video-p2-*', 'codex/**']
   pull_request:
     branches: [master]
   workflow_dispatch:
@@ -213,3 +214,88 @@ jobs:
           path: |
             artifacts/
           retention-days: 7
+
+  # ─── Hard Gates (P16-P0) ───
+  # 与上面的 gate-checks 不同：这里每一步失败都让 job 红，不设 continue-on-error。
+  # 设计口径见 docs/design/backend-core/181-p16-p0-hardening-plan.md 第五节。
+  # 刻意不把 FFmpeg BLOCKED_ENV 的已知环境阻塞挪进来 —— 那不是代码缺陷。
+  hard-gates:
+    name: Hard Gates (fail closed)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Source manifest consistency (with mutation self-test)
+        shell: bash
+        run: |
+          python tools/verify_source_manifest.py --self-test
+          python tools/verify_source_manifest.py
+
+      - name: P0 hardening gates (with mutation self-test)
+        shell: bash
+        run: |
+          python tools/verify_p16_p0_gates.py --self-test
+          python tools/verify_p16_p0_gates.py
+
+      - name: P13 rate-event ledger (with mutation self-test)
+        shell: bash
+        run: |
+          python tools/verify_p16_rate_events.py --self-test
+          python tools/verify_p16_rate_events.py
+
+      - name: Burst fallback G9 gate (with mutation self-test)
+        shell: bash
+        run: |
+          python tools/verify_p16_burst_gate.py --self-test
+          python tools/verify_p16_burst_gate.py
+
+      - name: Tools portability gate (with mutation self-test)
+        shell: bash
+        run: |
+          python tools/verify_tools_portability.py --self-test
+          python tools/verify_tools_portability.py
+
+      - name: Seek gate explicit-credential check (with mutation self-test)
+        shell: bash
+        run: |
+          python tools/verify_p16_seek_gate.py --self-test
+          python tools/verify_p16_seek_gate.py
+
+      - name: Perf baseline gate (with mutation self-test)
+        shell: bash
+        run: |
+          python tools/verify_p16_perf_baseline.py --self-test
+          python tools/verify_p16_perf_baseline.py
+
+      - name: Pause-resume gate (with mutation self-test)
+        shell: bash
+        run: |
+          python tools/verify_p16_pause_gate.py --self-test
+          python tools/verify_p16_pause_gate.py
+
+      - name: Core has zero platform headers
+        shell: bash
+        run: |
+          python - <<'PY'
+          import pathlib, re, sys
+          root = pathlib.Path("backend/src/video/video_plane/core")
+          pattern = re.compile(r'#include\s*[<"](?:android|media|aaudio|GLES|EGL|jni|SLES)[/\w.]*[>"]')
+          hits = []
+          for path in sorted(root.rglob("*")):
+              if path.suffix not in (".hpp", ".h", ".cxx", ".cpp"):
+                  continue
+              for number, line in enumerate(path.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
+                  if pattern.search(line):
+                      hits.append(f"{path}:{number}: {line.strip()}")
+          if hits:
+              print("FAIL: core/ 出现平台头（家族树铁律第 6 条）")
+              print("\n".join(hits))
+              sys.exit(1)
+          print("PASS: core/ 零平台头")
+          PY

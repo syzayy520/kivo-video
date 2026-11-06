@@ -191,6 +191,15 @@ public:
     /// 请求停止并等待线程退出。可重复调用。
     void stop();
 
+    /// P16-P1B31：pause-resume。
+    ///
+    /// `pause()` 复用 `stop()` —— 后者只停线程、`disarm()` 分配计数、把 `started_` 置 false，
+    /// **不释放 codec / extractor**（`seek_to` 的注释 `decode_session.cxx:244-246` 已确认）。
+    /// `resume()` 用 `begin_run(preserve_stats=true)` 重启线程（它会重新 `arm()`），
+    /// 并先把 `pacer` 的 due 锚点推到 now，否则 pause > 500 ms 后第一帧会迟到。
+    void pause();
+    [[nodiscard]] SessionOutcome resume();
+
     /// 取统计快照。线程安全，可在任意线程调用。
     [[nodiscard]] DecodeStats snapshot() const;
 
@@ -209,7 +218,17 @@ private:
     ///
     /// 抽出来的理由只有一个：**两条路径必须逐字相同**。手写两遍的下场是
     /// seek 之后少了 `pacer_->reset()`，首帧被判迟到，而"首帧时延"这个数字看起来还正常。
-    [[nodiscard]] SessionOutcome begin_run();
+    /// P16-P1B29：`preserve_stats = true` 时**不清帧计数、不重锚节拍**。
+    ///
+    /// 这是 pause-resume 的前提：`start()` / `resume_after_seek()` 走默认 `false`（行为不变），
+    /// pause 后的 restart 走 `true`，否则 `counters_.reset()` 会让证据里 pause 前那段消失。
+    ///
+    /// **注意**：`wall_us` 的语义是**播放时长**（扣除累计 pause），不是会话时长。
+    /// P16-P1B32 真机实测：`preserve_stats=true` 时若把 `run_started_at_` 重置到 resume 时刻，
+    /// `wall_us` 会只剩 resume 之后那段（实测 5.02 s / 片源 35 s），
+    /// 于是 `speed_vs_realtime` 算出 6.97 —— 那个数字会被读成"播快了 7 倍"。
+    /// 现在改为：`run_started_at_` 只在非 preserve 时重置，`started_at` 再加回累计 pause。
+    [[nodiscard]] SessionOutcome begin_run(bool preserve_stats = false);
 
     /// merged 模式：两段在同一线程里交替泵。判据见设计文档 §7。
     void run_merged();
@@ -275,6 +294,15 @@ private:
 
     std::chrono::steady_clock::time_point run_started_at_{};
 
+    /// P16-P1B32：累计 pause 时长（纳秒）。`wall_us` 要扣掉它才是"播放时长"。
+    /// `started_at = run_started_at_ + paused_total_ns_` 是等价写法 ——
+    /// worker 里 `wall_micros = elapsed_us(started_at, now)` 不用改。
+    std::int64_t paused_total_ns_ = 0;
+    /// 本次 pause 的起点（0 = 当前没在 pause）。与 pacer 用同一个单调钟。
+    std::int64_t pause_started_ns_ = 0;
+    /// P16-P1B32：pause 次数，随证据出版 —— 让 `clock_off` 有上下文。
+    std::int64_t pause_count_ = 0;
+
     /// CPU 时间起点（P14-A）。**只在第一次 `begin_run()` 时取**：
     /// seek 会再进一次 `begin_run()`，如果每次都重置，G2 的账就只剩"最后一次 seek 之后"，
     /// 而那是整场里最没有代表性的一段。
@@ -282,6 +310,8 @@ private:
 
     bool opened_ = false;
     bool started_ = false;
+    /// P16-P1B31：pause 之后为 true。`stop()` 不置它（那是"结束"，不是"暂停"）。
+    bool paused_ = false;
 };
 
 }  // namespace kivo::video::mediacodec

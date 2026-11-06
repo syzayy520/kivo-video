@@ -44,6 +44,20 @@ struct DecodeStats {
     ///          + frames_discarded_no_surface + 1`（末尾 EOS 缓冲）。
     std::int64_t frames_discarded_no_surface = 0;
     std::int64_t first_frame_latency_us = -1; ///< 从开始送包到首帧上屏；-1 表示无帧
+
+    /// P16-P1B26：当前媒体位置（µs）。`-1` = 还没起播（与 0 µs 严格区分）。
+    /// 评审："打断之后回来从哪继续"需要它；UI 进度条也用它。
+    std::int64_t position_us = -1;
+
+    /// P16-P1B32：pause 账。`wall_us` 已扣除累计 pause（它是"播放时长"），
+    /// 但**音画账不会自动对齐**：pause 期间音频位置冻结、视频 pts 连续，
+    /// 于是 sync 证据的 `av_drift.lead_ns` 会累积出 −pause 的偏移，
+    /// verdict 判成 `clock_off`。那不是时钟跑偏，是"这一段没播"。
+    ///
+    /// 出版这两个数，读证据的人才能把 `clock_off` 打折；
+    /// 不给的话，pause 之后的每一轮证据都会带着一个假的失步结论。
+    std::int64_t pause_count = 0;
+    std::int64_t pause_total_us = 0;
     /// **冷启动**首帧时延（P13-B）。与上面那个不是一回事：
     /// 那个在 seek 之后会被 `begin_run()` 重置并重新计，只反映"最后一段"；
     /// 这个只在第一次 `start()` 时取值，seek 不会覆盖它。

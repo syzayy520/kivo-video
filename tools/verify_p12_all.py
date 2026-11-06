@@ -131,6 +131,10 @@ SYNC_QUANTILE_BLOCK_SCHEMAS = (
     "kivo.p12c.sync/41",
     # P15-A：`video.seek` —— G8 的事实与判定（SeekFacts 一直在，只是没印）。
     "kivo.p12c.sync/42",
+    # P15-A2：`pace.span_segments` + `timeline.media_rate_scope`。
+    # **`av_drift.quantiles` 的结构一个字没动** —— 这一版改的是"跨度描述哪一段"，
+    # 不是任何分布。所以它照样进分块口径表。
+    "kivo.p12c.sync/43",
 )
 
 # P14-R：哪几版报告带 `end_reason`。两个集合分开写而不是写一次"≥ /29"，
@@ -143,7 +147,8 @@ SCHEMAS_WITH_SYNC_END_REASON = {"kivo.p12c.sync/29", "kivo.p12c.sync/30",
                                  "kivo.p12c.sync/35", "kivo.p12c.sync/36",
                                  "kivo.p12c.sync/37", "kivo.p12c.sync/38",
                                  "kivo.p12c.sync/39", "kivo.p12c.sync/40",
-                                 "kivo.p12c.sync/41", "kivo.p12c.sync/42"}
+                                 "kivo.p12c.sync/41", "kivo.p12c.sync/42",
+                                 "kivo.p12c.sync/43"}
 
 # ── schema 白名单 ──────────────────────────────────────────────────────────
 # 硬编码是刻意的摩擦：新增卡片必须显式加进来，让"格式变更"被看见一次。
@@ -342,6 +347,9 @@ KNOWN_SCHEMAS = {
     "kivo.p12c.sync/41",
     # P15-A：`video.seek` —— G8 第一次有证据。
     "kivo.p12c.sync/42",
+    # P15-A2：`pace` 多 `span_segments`，`timeline` 多 `media_rate_scope`。
+    # 阈值、分位数、门限一个都没动 —— 动的是"这个比值描述哪一段时间"。
+    "kivo.p12c.sync/43",
     "kivo.p12d5.present-timing/1",
     "kivo.p12e.color-probe/1",
     "kivo.p12e.hdr-probe/1", "kivo.p12e.hdr-probe/2", "kivo.p12e.hdr-probe/3",

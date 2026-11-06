@@ -152,7 +152,9 @@ SessionOutcome DecodeSession::attach_pacing(const PacingSetup& setup) {
 
     // 先发布一次"零态"快照：没开跑之前读 `snapshot()` 也该看到 enabled=true 与真实时钟名，
     // 而不是一片空白 —— 空白会被读成"没开节拍"。
-    pace_sampler_.publish(pacer_->summary());
+    // P16-P1B12：频差观测与摘要同批发布（同一线程读 pacer，不跨线程）。
+    pace_sampler_.publish(pacer_->summary(), pacer_->last_rate_ppm(),
+                          pacer_->last_phase_error_ns());
     return {};
 }
 
@@ -280,6 +282,45 @@ SessionOutcome DecodeSession::seek_to(std::int64_t target_us, bool defer_start) 
     return resumed;
 }
 
+void DecodeSession::pause() {
+    if (!started_ || paused_) {
+        return;
+    }
+    // P16-P1B32：从"按下的那一刻"起算，`stop()` 里 join 线程的几毫秒也算 pause
+    // —— 那段时间画面确实没在推进。
+    pause_started_ns_ = core::pace::monotonic_now_ns();
+    ++pause_count_;
+    // `stop()` 只停线程、disarm 分配计数、置 `started_=false`；codec / extractor / surface
+    // 都保留 —— 这正是 `seek_to` 敢在 `stop()` 之后直接 `begin_run()` 的原因。
+    stop();
+    paused_ = true;
+}
+
+SessionOutcome DecodeSession::resume() {
+    if (!paused_) {
+        return {SessionOutcome::Code::kSeekRejected, "resume called without pause"};
+    }
+    if (!opened_) {
+        return {SessionOutcome::Code::kNotOpen, "resume called before open"};
+    }
+    // P16-P1B32：先把本次 pause 的时长入账，再 `begin_run()` ——
+    // 它要用 `paused_total_ns_` 算 `started_at`。
+    if (pause_started_ns_ > 0) {
+        paused_total_ns_ += core::pace::monotonic_now_ns() - pause_started_ns_;
+        pause_started_ns_ = 0;
+    }
+    // 先把 due 锚点推到 now：pause 超过 500 ms 时音频钟会 stale -> FreeRun，
+    // 那里 `due_at = last_due + fd`，旧锚点会让第一帧迟到几百毫秒。
+    if (pacer_) {
+        pacer_->resume_at(core::pace::monotonic_now_ns());
+    }
+    const SessionOutcome outcome = begin_run(/*preserve_stats=*/true);
+    if (outcome.ok()) {
+        paused_ = false;
+    }
+    return outcome;
+}
+
 void DecodeSession::record_audio_seek(bool present, std::int64_t landing_us) {
     seek_.audio_present = present;
     seek_.audio_landing_us = landing_us;
@@ -295,15 +336,33 @@ SessionOutcome DecodeSession::resume_after_seek() {
     return begin_run();
 }
 
-SessionOutcome DecodeSession::begin_run() {
-    counters_.reset();
-    gate_.reset_for_start();
-    if (pacer_) {
-        // 锚点必须在首帧到达时建立；上一轮留下的历史会让首帧被判迟到（C5 的结论）。
-        pacer_->reset();
+SessionOutcome DecodeSession::begin_run(bool preserve_stats) {
+    // P16-P1B29：pause-resume 走 `preserve_stats=true` —— 不清计数、不重锚节拍。
+    // `start()` 与 `resume_after_seek()` 仍走默认 `false`，行为逐位不变。
+    if (!preserve_stats) {
+        counters_.reset();
+        if (pacer_) {
+            // 锚点必须在首帧到达时建立；上一轮留下的历史会让首帧被判迟到（C5 的结论）。
+            pacer_->reset();
+        }
     }
+    // 无论是否保留统计，worker 计数都必须复位 —— 新线程要重新报数。
+    gate_.reset_for_start();
 
-    run_started_at_ = SteadyClock::now();
+    if (!preserve_stats) {
+        run_started_at_ = SteadyClock::now();
+        paused_total_ns_ = 0;
+        pause_started_ns_ = 0;
+        pause_count_ = 0;
+    } else {
+        // P16-P1B32：`finish()` 里的 `wall_micros` 是"只让第一次生效"
+        // （`compare_exchange_strong(expected=0, ...)`）。pause 那一段已经写过一次
+        // 5.0 s，resume 后 CAS 必然失败，`wall_us` 就永远停在 5.0 s。
+        // 这里单独清零（**不是** `counters_.reset()`，那会抹掉帧计数），
+        // 让 resume 后的 `finish()` 重新写入 —— 而它的 `started_at` 已含累计 pause 偏移，
+        // 所以写进来的是"播放时长"。
+        counters_.wall_micros.store(0, std::memory_order_relaxed);
+    }
 
     // P14-A：三条以前没有的尺子的起点。
     //
@@ -341,7 +400,10 @@ SessionOutcome DecodeSession::begin_run() {
     receive_deps.pace_sampler = pacer_ ? &pace_sampler_ : nullptr;
     receive_deps.rebuild_tracker = &rebuild_tracker_;
     receive_deps.surface_detached = &surface_detached_;
-    receive_deps.started_at = run_started_at_;
+    // P16-P1B32：`started_at` 往后挪累计 pause 时长 —— 于是 worker 的
+    // `wall_micros = elapsed_us(started_at, now)` 自动变成"播放时长"，
+    // pause 那 2 秒不会被算进 `speed_vs_realtime` 的分母。
+    receive_deps.started_at = run_started_at_ + std::chrono::nanoseconds(paused_total_ns_);
     receive_worker_ = std::make_unique<DecodeReceiveWorker>(receive_deps);
 
     started_ = true;
@@ -371,15 +433,19 @@ void name_current_thread(const char* name) noexcept {
 }  // namespace
 
 void DecodeSession::launch_workers() {
+    // P16-P0 / D2：每个线程体退出前报一次数，让 stop() 能做有界等待。
+    // 报数放在 run() 之后、线程真正结束之前；它不抛、不分配、不碰平台。
     if (mode_ == PipelineMode::kSplit) {
         // 起来顺序无关紧要：两段都靠平台队列互相驱动，谁先起都不影响正确性。
         submit_thread_ = std::thread([this] {
             name_current_thread("kivo-submit");
             submit_worker_->run();
+            gate_.note_worker_exited();
         });
         receive_thread_ = std::thread([this] {
             name_current_thread("kivo-recv");
             receive_worker_->run();
+            gate_.note_worker_exited();
         });
         return;
     }
@@ -388,6 +454,7 @@ void DecodeSession::launch_workers() {
     merged_thread_ = std::thread([this] {
         name_current_thread("kivo-decode");
         run_merged();
+        gate_.note_worker_exited();
     });
 }
 
@@ -433,6 +500,20 @@ void DecodeSession::run_merged() {
 
 void DecodeSession::stop() {
     gate_.request_stop();
+
+    // P16-P0 / D2：join 之前先做一次有界等待。
+    //
+    // 目的不是"打断卡死的平台调用"（那需要平台调用级超时 + 看门狗，属 P1），
+    // 而是让「线程没按时退」留下一条可读原因：failure_ 的 text() 由 snapshot()
+    // 写进 DecodeStats::error，再经 JNI 的 last_error / 证据落到用户可见处。
+    // 正常路径下 worker 在几毫秒内退出，这段等待解析为 true，行为逐位不变。
+    constexpr std::int64_t kStopJoinBudgetUs = 500'000;
+    const std::int32_t expected_workers =
+        started_ ? (mode_ == PipelineMode::kSplit ? 2 : 1) : 0;
+    if (!gate_.wait_for_workers(expected_workers, kStopJoinBudgetUs)) {
+        failure_.mark("stop join timeout: worker threads did not exit within 500 ms; "
+                      "join may block on a platform call");
+    }
 
     // join 顺序固定 submit 在前：反过来的话，送包段可能正卡在"等输入空位"上，
     // 而空位的唯一来源（收帧段的 release）已经退出 —— 靠超时也能醒，但那是运气。
@@ -512,6 +593,11 @@ DecodeStats DecodeSession::snapshot() const {
     stats.error = failure_.text();
     stats.pace = pace_sampler_.read();
     stats.surface_rebuild = rebuild_tracker_.snapshot();
+    // P16-P1B26：当前媒体位置。`pacer_` 用 atomic 暴露，跨线程读无竞争。
+    stats.position_us = pacer_ ? pacer_->position_ns() / 1000 : -1;
+    // P16-P1B32：pause 账随证据一起出版 —— 否则 `clock_off` 没有上下文可读。
+    stats.pause_count = pause_count_;
+    stats.pause_total_us = paused_total_ns_ / 1000;
     // P12-F3B：加密事实原样带上，判定留给 renderer（与 color/seek 同一条理由）。
     stats.encryption = source_.track_encryption();
     stats.color = decoder_.color_facts();

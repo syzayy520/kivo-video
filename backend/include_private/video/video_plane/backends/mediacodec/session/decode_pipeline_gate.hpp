@@ -48,12 +48,24 @@ public:
     /// 起新一轮之前清账。只允许在没有 worker 运行时调用。
     void reset_for_start() noexcept;
 
+    /// 工作线程退出时各调一次（P16-P0 / D2）。
+    /// stop() 用它做有界等待，让「线程没按时退」这件事留下一条可读原因。
+    /// **不打断、不 detach、不改 join 顺序** —— 彻底解除卡死需要平台调用级超时，属 P1。
+    void note_worker_exited() noexcept;
+
+    /// 等 expected 个工作线程报数，最多等 timeout_us 微秒。
+    /// @return true = 全部退出（或 expected <= 0）；false = 超时或底层等待失败。
+    [[nodiscard]] bool wait_for_workers(std::int32_t expected,
+                                        std::int64_t timeout_us) noexcept;
+
 private:
     std::atomic<bool> stop_{false};
     std::atomic<bool> submit_finished_{false};
+    std::atomic<std::int32_t> workers_exited_{0};
 
     std::mutex mutex_;
     std::condition_variable room_cv_;
+    std::condition_variable exit_cv_;
 };
 
 }  // namespace kivo::video::mediacodec

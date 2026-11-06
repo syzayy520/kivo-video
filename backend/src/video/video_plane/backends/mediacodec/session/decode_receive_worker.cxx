@@ -233,7 +233,8 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
         ++frames_since_sample_;
         if (frames_since_sample_ >= kPaceSnapshotIntervalFrames) {
             frames_since_sample_ = 0;
-            deps_.pace_sampler->publish(deps_.pacer->summary());
+            deps_.pace_sampler->publish(deps_.pacer->summary(), deps_.pacer->last_rate_ppm(),
+                                    deps_.pacer->last_phase_error_ns());
         }
     }
 
@@ -267,7 +268,8 @@ void DecodeReceiveWorker::finish() {
     if (deps_.pacer != nullptr && deps_.pace_sampler != nullptr) {
         // 收尾补采一次：否则最后不足 30 帧的那一截不会出现在证据里。
         frames_since_sample_ = 0;
-        deps_.pace_sampler->publish(deps_.pacer->summary());
+        deps_.pace_sampler->publish(deps_.pacer->summary(), deps_.pacer->last_rate_ppm(),
+                                    deps_.pacer->last_phase_error_ns());
     }
 }
 

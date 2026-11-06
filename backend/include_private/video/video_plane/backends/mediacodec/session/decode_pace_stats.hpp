@@ -23,6 +23,21 @@ struct DecodePaceStats {
     std::int64_t frame_duration_ns = 0;
     double derived_fps = 0.0;
 
+    // ---- P16-P1B12：频差观测（只出版，不参与任何判定）----
+    //
+    // 为什么出版它：`184` 证明"门漏事件"用的是事后算的 `playback_rate`，
+    // 那不是逐帧可用的量。这两格是**决策那一刻**的估计，将来换速率伺服时
+    // 要拿它做 A/B；现在先让它出现在证据里，否则接线等于白跑。
+    /// 低通后的速率偏差（ppm）。正数 = 音频钟比墙钟快。
+    double rate_ppm = 0.0;
+    /// 累计相位误差：位置 − 首样本位置 − 墙钟增量。
+    std::int64_t phase_error_ns = 0;
+
+    /// P16-P1B25：`publish()` 一次的实际耗时（纳秒）。
+    /// 评审说取证统计"侵入热路径"但从未量化 —— 这一格就是量它。
+    /// 只出版、不判定：快不快由证据层按帧间隔对比。
+    std::int64_t publish_cost_ns = 0;
+
     // ---- 决策计数 ----
     std::int64_t frames_decided = 0;
     std::int64_t presented = 0;

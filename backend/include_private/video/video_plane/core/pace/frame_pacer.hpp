@@ -97,6 +97,27 @@ public:
     [[nodiscard]] const ClockPositionTracker& tracker() const noexcept { return tracker_; }
     [[nodiscard]] std::int64_t frame_duration_ns() const noexcept { return frame_duration_ns_; }
 
+    /// P16-P1B12：本帧的频差观测（由 `arrive()` 同线程写入，只转发、不参与判定）。
+    /// 由收帧线程在 `publish()` 时读走，**不要跨线程直接读** —— 节拍器不加锁。
+    [[nodiscard]] double last_rate_ppm() const noexcept { return last_rate_ppm_; }
+    [[nodiscard]] std::int64_t last_phase_error_ns() const noexcept {
+        return last_phase_error_ns_;
+    }
+
+    /// P16-P1B29：pause 恢复时把 due 锚点推到"现在"。
+    ///
+    /// pause 超过 500 ms 时音频钟会 stale → `FreeRun` 分支，那里
+    /// `due_at = last_due + frame_duration`（`frame_pacer.cxx:83`），
+    /// 旧锚点会让 resume 后第一帧迟到几百毫秒。这里只推锚点，
+    /// **不清** `frame_duration` / 统计 / 帧计数 —— 那正是它和 `reset()` 的区别。
+    void resume_at(std::int64_t now_ns) noexcept;
+
+    /// P16-P1B26：最近一次 `arrive()` 读到的媒体位置（纳秒）。
+    /// 用 atomic 暴露是为了让 `snapshot()` 能跨线程读 —— 节拍器本身不加锁。
+    [[nodiscard]] std::int64_t position_ns() const noexcept {
+        return position_ns_.load(std::memory_order_acquire);
+    }
+
 private:
     void sleep_until(std::int64_t deadline_ns) noexcept;
     /// present 与 scheduled 两条记账路共用同一个 DueStep 构造（P14-AA）。
@@ -135,6 +156,15 @@ private:
 
     ClockHealth last_health_ = ClockHealth::kFresh;
     std::int64_t frame_duration_ns_ = 40'000'000;
+
+    /// P16-P1B12：本帧从 `ClockPositionTracker::Reading` 抄下来的频差观测。
+    /// 存一份是为了让收帧线程能无竞争地交给 `DecodePaceSampler`；
+    /// 它**不参与**任何决策（丢帧、追帧、门限都不看它）。
+    double last_rate_ppm_ = 0.0;
+    std::int64_t last_phase_error_ns_ = 0;
+
+    /// P16-P1B26：跨线程可读的当前媒体位置。`arrive()` store、`snapshot()` load。
+    std::atomic<std::int64_t> position_ns_{0};
 };
 
 }  // namespace kivo::video::core::pace

@@ -53,6 +53,27 @@ AaudioOpenOutcome AaudioOutputSession::open(const AaudioStreamConfig& config, Sa
         return outcome_;
     }
 
+    // P16-P1B2 / G9：burst 是时钟陈旧阈值的输入，取不到就不能猜。
+    //
+    // 旧行为是让 AaudioClockSource 悄悄退回 192（K40 在 48 kHz 下的 4 ms）：
+    // 证据里会写成"协商到 192"，与真协商到 192 无法区分；而别的设备上
+    // stale_after_ns = 2 × burst / sample_rate 会把"新鲜"误判成"陈旧"，
+    // 进而触发 FreeRun 降级，G7 的数字跟着失真。
+    //
+    // 按 Direct Play First 的既有约定（AudioPlayback::open 对采样率不一致直接拒绝），
+    // 这里也明确失败，并带非空 reason 走既有失败链：
+    //   message → stats_.error → av_sync 的 audio.error / completed=false → last_error → UI。
+    // 检查必须放在 stream_ 赋值之前，失败路径与上面 format 分支逐字一致。
+    if (outcome_.frames_per_burst <= 0) {
+        AAudioStream_close(stream);
+        outcome_.code = AaudioOpenOutcome::Code::kOpenFailed;
+        outcome_.message = "AAudioStream_getFramesPerBurst returned " +
+                           std::to_string(outcome_.frames_per_burst) +
+                           "; refusing to fall back to 192 because device burst is required "
+                           "for the audio clock stale threshold (G9: no silent downgrade)";
+        return outcome_;
+    }
+
     stream_ = stream;
     source_ = &source;
 
@@ -106,6 +127,28 @@ AaudioOpenOutcome AaudioOutputSession::start() {
 
     started_ = true;
     return outcome_;
+}
+
+bool AaudioOutputSession::pause() {
+    if (stream_ == nullptr || !started_) {
+        return false;
+    }
+    if (AAudioStream_requestPause(stream_) != AAUDIO_OK) {
+        return false;
+    }
+    aaudio_stream_state_t state = AAudioStream_getState(stream_);
+    if (state == AAUDIO_STREAM_STATE_PAUSING) {
+        aaudio_stream_state_t next = state;
+        AAudioStream_waitForStateChange(stream_, state, &next, kStateWaitNanos);
+    }
+    return true;
+}
+
+bool AaudioOutputSession::resume() {
+    if (stream_ == nullptr) {
+        return false;
+    }
+    return AAudioStream_requestStart(stream_) == AAUDIO_OK;
 }
 
 void AaudioOutputSession::stop() {

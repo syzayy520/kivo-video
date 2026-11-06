@@ -70,7 +70,7 @@ class Failure(Exception):
 #:
 #: `/2` **从未存在过**（`/1` 直接跳到 `/3`），所以它不是"漏了"，是当时就没写。
 MIN_SCHEMA_VERSION = 1
-MAX_SCHEMA_VERSION = 42
+MAX_SCHEMA_VERSION = 43
 ABSENT_SCHEMA_VERSIONS = frozenset({2})
 
 #: 从这一版起，`pace.pts_span_ns`（实测首末 pts 差）与 `pace.clock_supplied_frames`
@@ -111,6 +111,11 @@ SCHEMA_WITH_STEP_REPAY = 37
 #: 从 `/38` 起跨度有"是谁喂的"这一格（P14-AA）：presented 还是 scheduled。
 #: 以前 at_time 档压根不喂 DueStep，四跨度恒 0、`media_rate` 无从算。
 SCHEMA_WITH_SPAN_BASIS = 38
+#: 从这一版起 `pace.span_segments` 与 `timeline.media_rate_scope` 在场（P15-A2）。
+#: 两个字段必须成对读：段数说"切了几段"，口径说"这个速率描述哪一段"。
+#: 少了任何一个，`media_rate` 就是一个**没有窗口的比值** ——
+#: seek 之后整场跨度与段内跨度不是一回事（真机 1.332 vs 1.000）。
+SCHEMA_WITH_SPAN_SEGMENTS = 43
 #: 从 `/39` 起 `av_drift` 自带使用条件（P14-AC）：`sync_verdict` 与 `lead_ns`。
 #: `av_drift` 很小只证明视频跟住了钟，不证明钟是对的 —— 22 轮里 17 轮两者相反。
 SCHEMA_WITH_SYNC_VERDICT = 39
@@ -1057,6 +1062,72 @@ def check_discontinuity(data: dict, pace: dict, notes: list[str]) -> None:
     )
 
 
+def _check_span_scope(data: dict, pace: dict, notes: list[str]) -> None:
+    """A2 组（P15-A2）：跨度描述的是哪一段，以及那个比值配不配得上"速率"。
+
+    起因是两次 seek 的真机证据：`media_rate` 读出 1.332 / 0.789，而无 seek 那轮
+    是 1.000，差的正好是 seek 的距离。根因是四跨度端点建在整场第一帧，
+    而 seek 只切了漂移序列的段 —— 两个跨度描述不同窗口。
+
+    这一组判的不是"数对不对"，而是"数说的是哪段时间"。少了这一层，
+    1.332 会被当成"播放速度变了"，然后有人去调解码器。
+    """
+    segments = pace.get("span_segments")
+    if not isinstance(segments, int) or isinstance(segments, bool):
+        raise Failure("A2 /43 起 `pace.span_segments` 必须是整数（段数）")
+    if segments < 1:
+        raise Failure(f"A2 span_segments={segments}：交过帧就至少 1 段")
+
+    timeline = data.get("timeline") or {}
+    scope = timeline.get("media_rate_scope")
+    if scope not in ("session", "last_segment"):
+        raise Failure(f"A2 `media_rate_scope`={scope!r} 不在白名单里")
+
+    # A2-3：口径与段数必须自洽。段数 ≥ 2 却说"session"，就是这次 bug 的原文。
+    expected = "last_segment" if segments >= 2 else "session"
+    if scope != expected:
+        raise Failure(
+            f"A2 span_segments={segments} 却说 media_rate_scope={scope!r}"
+            f"（应为 {expected!r}）—— 段数与口径不自洽"
+        )
+
+    presented = int(pace.get("presented", 0))
+    span_frames = int(pace.get("span_frames", 0))
+
+    # A2-2：seek 过就必须真有第二段。清端点却忘了计数，会得到"1 段 + 段内跨度"，
+    # 那种组合的 media_rate 又变回一个没有窗口的比值。
+    video = data.get("video") or {}
+    requests = int((video.get("seek") or {}).get("requests", 0) or 0)
+    if requests > 0 and presented > 0 and segments < 2:
+        raise Failure(
+            f"A2 seek.requests={requests} 但 span_segments={segments}"
+            " —— 锚点重建没有切段，跨度会跨过 seek 的距离"
+        )
+
+    # A2-4：这一卡要修的那个数。有过 seek 时速率必须回到 1 附近（±2% 与
+    # `KNOWN_OUT_OF_BAND` 同一条线），否则就是跨段相除的产物。
+    if segments >= 2 and bool(timeline.get("media_rate_measured", False)):
+        rate = float(timeline.get("media_rate", 0.0))
+        if abs(rate - 1.0) > 0.02:
+            raise Failure(
+                f"A2 seek 轮 media_rate={rate:.6f}，偏离 1 超过 2% —— "
+                "分子与分母仍在描述不同窗口"
+            )
+
+    # A2-5（反向）：段内帧数必然少于全场帧数。只查 A2-4 的话，
+    # 一个"永远报 1.000"的实现也能过；这一条要求段真的切了。
+    if segments >= 2 and presented >= 10 and span_frames >= presented:
+        raise Failure(
+            f"A2 span_segments={segments} 但段内帧数 {span_frames} ≥ 全场 {presented}"
+            " —— 段没有真的切"
+        )
+
+    notes.append(
+        f"跨度作用域：{segments} 段 / {scope}；段内 {span_frames} 帧、"
+        f"全场 {presented} 帧"
+    )
+
+
 def verify(path: Path) -> tuple[str, list[str], str]:
     """判一份证据。返回 `(摘要, 说明, 速率结局)`。
 
@@ -1443,6 +1514,9 @@ def verify(path: Path) -> tuple[str, list[str], str]:
                 f"AA1 presented={presented} 却没有任何一帧喂过跨度（span_frames=0）"
                 " —— 四个跨度全 0 不可读作'没动'"
             )
+
+    if version >= SCHEMA_WITH_SPAN_SEGMENTS:
+        _check_span_scope(data, pace, notes)
 
     if data["completed"] and data["error"]:
         raise Failure("completed=true 却带着非空 error")

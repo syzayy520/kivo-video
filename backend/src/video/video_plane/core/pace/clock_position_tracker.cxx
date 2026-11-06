@@ -133,6 +133,11 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
                 position_ns_ += wall_delta_ns;
                 reading.jump_rebased = true;
                 ++jump_rebases_;
+                // P16-P1B32：估计器的基准必须跟着 rebase 一起重来。
+                // 不重置的话 pause 那 2 秒会被记成"位置比墙钟少了 2 秒"，
+                // 于是 `phase_error_ns` 一直挂着 -2 s（真机实测 -1,999,989,569）。
+                // 这不是时钟的相位差，是"这一段没播"。
+                rate_estimator_.reset();
             } else {
                 // P13-S：累积漂移门。`jump_limit_ns` 只管"一次跳 1 秒"，
                 // 管不到"每帧只快 1.5%" —— 那种误差攒 8 秒就是 119 ms，
@@ -250,6 +255,18 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
 
     reading.position_ns = position_ns_;
     reading.elapsed_ns = anchored_ ? (position_ns_ - anchor_position_ns_) : 0;
+
+    // P16-P1B11 / P16-P1B13：频差观测。**只算，不参与任何判定**。
+    //
+    // 关键：喂**原始位置** `snapshot.position_ns`，不能喂修正后的 `position_ns_`。
+    // 漂移门每次复位都会把 `position_ns_` 减一截，若拿它算速率，
+    // 估计器会把"门在修正"误读成"钟突然变慢" —— P1B13 注入 2000 ppm 时实测
+    // `rate_ppm=-3123`、注入 5000 ppm 时 `-945`，既不匹配也不单调，就是这么来的。
+    // 速率是**钟本身的属性**，必须在门动它之前测量。
+    const auto rate = rate_estimator_.note({mono_ns, snapshot.position_ns});
+    reading.rate_ppm = rate.rate_ppm;
+    reading.phase_error_ns = rate.phase_error_ns;
+
     return reading;
 }
 
@@ -303,6 +320,19 @@ void ClockPositionTracker::anchor(std::int64_t pts_ns, const Reading& reading) n
     anchor_position_ns_ = reading.position_ns;
 }
 
+void ClockPositionTracker::skip_pause(std::int64_t now_ns) noexcept {
+    // 上一帧的时刻前移到 now —— pause 那一段墙钟不进 `wall_delta`，
+    // 于是 stale 外推分支拿不到那 2 秒，位置不会被凭空推前。
+    if (has_previous_) {
+        previous_mono_ns_ = now_ns;
+    }
+    // pause 期间不该被算作"时钟停更"，否则 resume 后 stale 计时从 pause 起点算，
+    // 一上来就可能越过 `stale_extrapolate_limit_ns` 直接进 FreeRun。
+    stale_since_mono_ns_ = 0;
+    // 频差观测重来：pause 的空白会被估计器读成"钟停了"，`phase_error` 会挂着 −2 s。
+    rate_estimator_.reset();
+}
+
 void ClockPositionTracker::reset() noexcept {
     has_previous_ = false;
     previous_mono_ns_ = 0;
@@ -327,6 +357,8 @@ void ClockPositionTracker::reset() noexcept {
     anchored_ = false;
     anchor_pts_ns_ = 0;
     anchor_position_ns_ = 0;
+    // P16-P1B11：频差估计与位置同寿命 —— 换片源之后，"上一段快多少"不能接着算。
+    rate_estimator_.reset();
 }
 
 }  // namespace kivo::video::core::pace

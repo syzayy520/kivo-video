@@ -138,6 +138,8 @@ object NativePlayer {
         clockRatePpm: Int,
         driftGate: Boolean,
         stepRepay: Boolean,
+        /** P16-P1B17：迟滞带（ms），默认 5。只用于调参对照实验。 */
+        driftBandMs: Int,
     ): Int
 
     /**
@@ -151,6 +153,9 @@ object NativePlayer {
      *        （**默认**）；false = CPU 睡到到期时刻再交（C5 结构，回退路径）。
      *        只在 present=true 且有节拍时有意义。默认 true 的依据见 23-p12c7-status.md §五。
      */
+    /** P16-P1B31：pause / resume。`true` = 暂停，`false` = 恢复。 */
+    external fun nativeSessionSetPaused(handle: Long, paused: Boolean): Int
+
     external fun nativeSessionSetPipeline(
         handle: Long,
         split: Boolean,

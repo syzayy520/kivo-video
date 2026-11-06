@@ -35,6 +35,26 @@ SeekAssessment assess_seek(const SeekFacts& facts, std::int64_t budget_us) {
     }
 
     out.total_us = facts.prepare_us + facts.first_frame_us;
+
+    // P16-P1B8：首帧 pts 落在 target **之后**，说明"落点 ≤ target"这条语义没兑现。
+    //
+    // 这不是"解码慢"，是实际起点跑到了后面：解封装器按 PREVIOUS_SYNC 落 0，
+    // 但 flush 后必须等下一个关键帧才能出帧，于是首帧 pts 成了 9 s 而 first_frame_us
+    // 被算成 9 秒。把两件事混在一起，读证据的人会被引向错误的排查方向。
+    //
+    // 历史 42 轮里这条分支一次都没触发（全部 pts ≤ target），所以不重算任何历史 pass。
+    if (facts.video_first_pts_us >= 0 && facts.target_us >= 0 &&
+        facts.video_first_pts_us > facts.target_us) {
+        out.reason = "first frame pts " + std::to_string(facts.video_first_pts_us) + " us is " +
+                     std::to_string(facts.video_first_pts_us - facts.target_us) +
+                     " us after target " + std::to_string(facts.target_us) +
+                     " us (extractor landed at " + std::to_string(facts.landing_us) +
+                     " us) — the decoder started at a later keyframe, so this is a landing / "
+                     "keyframe-spacing problem, not decode latency (total " +
+                     std::to_string(out.total_us) + " us)";
+        return out;
+    }
+
     if (out.total_us <= budget_us) {
         out.pass = true;
         return out;

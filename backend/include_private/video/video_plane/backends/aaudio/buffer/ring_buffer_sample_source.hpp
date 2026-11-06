@@ -29,12 +29,28 @@ public:
     /// 这让"清空环"这件事不必再要求"读者线程停掉"—— 读者被挡住即可。
     /// 语义上等价于"这次没有数据"，由会话补静音并计入 `frames_silenced`。
     ///
-    /// 实现在实时线程上跑：只多一次 acquire 读，不加锁、不分配。
+    /// 实现在实时线程上跑：不加锁、不分配、不打日志。
+    ///
+    /// P16-P1B6：计数**必须早于判空**。若放在 `muted_.load()` 之后，
+    /// 那些"已经过了判空那行、还没读环"的回调不计入 —— 而 `set_muted()` 的注释
+    /// 点名的正是这个窗口。两条 relaxed/release atomic 与 SPSC 环的索引同类，
+    /// 不改变判空/读环逻辑，只让"在途"变得可观测。
     std::int32_t render(float* interleaved, std::int32_t frame_count) override {
+        in_flight_.fetch_add(1, std::memory_order_relaxed);
         if (muted_.load(std::memory_order_acquire)) {
+            in_flight_.fetch_sub(1, std::memory_order_release);
             return 0;
         }
-        return ring_.read(interleaved, frame_count);
+        const std::int32_t read = ring_.read(interleaved, frame_count);
+        in_flight_.fetch_sub(1, std::memory_order_release);
+        return read;
+    }
+
+    /// 只读观测：当前有多少回调处在 `render()` 内（含"已过判空、还没读环"的窗口）。
+    /// 本卡只用它测量，不拿它做同步 —— 若将来用做同步，需按 SPSC 环的惯例
+    /// 给 `in_flight_` 加 `alignas(64)` 防止与 `muted_` 伪共享。
+    [[nodiscard]] std::int32_t in_flight() const noexcept {
+        return in_flight_.load(std::memory_order_acquire);
     }
 
     /// 拉下/解除静音栅栏。**调用方负责在拉下之后等一个 burst 再动环**
@@ -48,6 +64,7 @@ public:
 private:
     core::audio::SpscAudioRingBuffer& ring_;
     std::atomic<bool> muted_{false};
+    std::atomic<std::int32_t> in_flight_{0};
 };
 
 }  // namespace kivo::video::aaudio

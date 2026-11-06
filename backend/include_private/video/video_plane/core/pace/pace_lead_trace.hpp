@@ -107,6 +107,29 @@ public:
         frame_duration_ns_ = frame_duration_ns;
     }
 
+    /// 换时间轴（seek / 锚点重建）时清空，**重新立基准**（P15-A2）。
+    ///
+    /// 为什么必须一起切：`lead = elapsed − (mono − mono_0)`，基准帧 `mono_0` 若留在
+    /// seek 之前，算出来的就是"两次锚点之间钟多走了多少"，而不是"这一段"。
+    /// 而 `clock_lead_ns`（跨度相减）在 seek 后会按段算 —— 两支尺子不同段，
+    /// 判据 U1「逐位相等」当场红，而红得**没有任何信息量**（它只会说"两个数不等"）。
+    ///
+    /// 帧长不清：它是配置，不是观测。
+    void restart() noexcept {
+        has_baseline_ = false;
+        has_previous_ = false;
+        baseline_elapsed_ns_ = 0;
+        baseline_mono_ns_ = 0;
+        last_mono_ns_ = 0;
+        previous_lead_ns_ = 0;
+        last_lead_ns_ = 0;
+        max_lead_ns_ = 0;
+        min_lead_ns_ = 0;
+        max_step_ns_ = 0;
+        step_frames_ = 0;
+        samples_ = 0;
+    }
+
     /// 最近一帧的领先量。没喂过帧时为 0。
     [[nodiscard]] std::int64_t current_ns() const noexcept { return has_baseline_ ? last_lead_ns_ : 0; }
 

@@ -429,9 +429,16 @@ std::string render_decode_stats_json(const DecodeStats& stats,
 
     out << "  \"timing\": {\n";
     out << "    \"wall_us\": " << stats.wall_micros << ",\n";
+    // P16-P1B26：当前媒体位置（µs）。与 `wall_us`（会话墙钟）不是一回事。
+    out << "    \"position_us\": " << stats.position_us << ",\n";
     out << "    \"first_frame_latency_us\": " << stats.first_frame_latency_us << ",\n";
     out << "    \"decode_fps\": " << fixed6(stats.decode_fps) << ",\n";
-    out << "    \"speed_vs_realtime\": " << fixed6(stats.speed_vs_realtime) << "\n";
+    out << "    \"speed_vs_realtime\": " << fixed6(stats.speed_vs_realtime) << ",\n";
+    // P16-P1B32：pause 账。`wall_us` 已扣掉累计 pause（是"播放时长"），
+    // 但 sync 证据的 `av_drift.lead_ns` 会累积出 −pause 的偏移并判成 `clock_off`。
+    // 这两个数就是给那条 verdict 的上下文：pause_total_us ≈ |lead_ns| 时不是失步。
+    out << "    \"pause_count\": " << stats.pause_count << ",\n";
+    out << "    \"pause_total_us\": " << stats.pause_total_us << "\n";
     out << "  },\n";
 
     // P13-B：G8a —— 冷启动首帧。判定在这里算，与 `assess_cold_start()` 同源。
@@ -474,6 +481,12 @@ std::string render_decode_stats_json(const DecodeStats& stats,
     out << "    \"enabled\": " << (pace.enabled ? "true" : "false") << ",\n";
     if (pace.enabled) {
         out << "    \"clock_source\": \"" << escape_json_string(pace.clock_source) << "\",\n";
+        // P16-P1B12：决策那一刻的频差观测。只出版、不参与判定；
+        // `184` 的 `playback_rate` 是事后对照量，这两格是逐帧可用的估计。
+        out << "    \"rate_ppm\": " << fixed6(pace.rate_ppm) << ",\n";
+        out << "    \"phase_error_ns\": " << pace.phase_error_ns << ",\n";
+        // P16-P1B25：取证统计本身的开销。与 `frame_duration_ns` 对比就知道侵不侵入热路径。
+        out << "    \"publish_cost_ns\": " << pace.publish_cost_ns << ",\n";
         out << "    \"frame_duration_ns\": " << pace.frame_duration_ns << ",\n";
         out << "    \"derived_fps\": " << fixed6(pace.derived_fps) << ",\n";
         out << "    \"frames_decided\": " << pace.frames_decided << ",\n";

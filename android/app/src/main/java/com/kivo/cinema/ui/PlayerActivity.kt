@@ -110,6 +110,10 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
      * 节拍锚点混在一起，量出来的不是"seek 的时延"而是"冷启动 + seek"。
      * 默认等 1.5 s，让第一段先稳态跑起来。
      */
+    /** P16-P1B31：定时 pause/resume，只用于真机验证（不接 UI）。 */
+    private var pauseAtMs = -1L
+    private var pauseForMs = 0L
+
     private var seekTargetMs = -1L
     private var seekAtMs = 1500L
 
@@ -143,6 +147,9 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
      * 速率考验"能不能一直追住"—— 这是两种不同的输入，不能互相代替。
      */
     private var clockRatePpm = 0
+
+    /** P16-P1B17：迟滞带（ms）。默认 5 = 现有行为；只用于调参对照实验。 */
+    private var driftBandMs = 5
 
     /** 漂移门开关（P13-AD）。false = 对照组；证据里 `drift_gate.enabled` 会写 false。 */
     private var driftGate = true
@@ -344,6 +351,26 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
      * 失败不改控制流 —— 只把原因写到屏幕上，证据里 `seek.pass` 会是 false 且带 reason。
      * "seek 失败导致整轮作废"的判据在 `assess_seek()` 里，不在这里重复判断。
      */
+    /**
+     * P16-P1B31：定时 pause，等 [pauseForMs] 后 resume。只用于真机验证。
+     *
+     * 不用 UI 按钮：`--es kivo.pause.at.ms` / `--es kivo.pause.ms` 就能复算，
+     * 且不会把"暂停"这件事绑到某一次手动点击上。
+     */
+    private val pauseRunnable = Runnable {
+        val live = session ?: return@Runnable
+        if (!playbackRunning) {
+            Log.w(TAG, "pause skipped: playback is not running")
+            return@Runnable
+        }
+        val rc = live.pause()
+        Log.i(TAG, "pause rc=$rc")
+        handler.postDelayed({
+            val resumeRc = session?.resume() ?: -1
+            Log.i(TAG, "resume rc=$resumeRc")
+        }, pauseForMs)
+    }
+
     private val seekRunnable = Runnable {
         val live = session ?: return@Runnable
         if (!playbackRunning) {
@@ -410,7 +437,7 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         if (pacingEnabled) {
             val pacingRc = live.configurePacing(
                 targetFps, allowDrop, clockOffsetMs, clockOffsetAtMs, clockRatePpm, driftGate,
-                stepRepay
+                stepRepay, driftBandMs
             )
             if (pacingRc != 0) {
                 failStart("pacing", pacingRc, live, media)
@@ -438,6 +465,11 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         finalizer.reset()
         Log.i(TAG, "playback started: ${media.absolutePath}")
         handler.post(pollRunnable)
+
+        if (pauseAtMs >= 0 && pauseForMs > 0) {
+            handler.postDelayed(pauseRunnable, pauseAtMs)
+            Log.i(TAG, "pause scheduled: at=${pauseAtMs}ms for=${pauseForMs}ms")
+        }
 
         if (seekTargetMs >= 0) {
             handler.postDelayed(seekRunnable, seekAtMs)
@@ -545,11 +577,14 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         clockOffsetMs = intent.getIntExtra("kivo.clock_offset_ms", 0)
         clockOffsetAtMs = intent.getIntExtra("kivo.clock_offset_at_ms", 2_000)
         clockRatePpm = intent.getIntExtra("kivo.clock_rate_ppm", 0)
+        driftBandMs = intent.getIntExtra("kivo.drift_band_ms", 5)
         // 传 `--es kivo.drift_gate off` 关掉漂移门（对照组）。
         driftGate = intent.getStringExtra("kivo.drift_gate") != "off"
         // 传 `--es kivo.step_repay off` 让台阶不进门（P14-Z 的 B 臂）。
         // 默认 true = P13-W 的行为；证据里 `drift_gate.step_repay` 会写出来。
         stepRepay = intent.getStringExtra("kivo.step_repay") != "off"
+        pauseAtMs = intent.getIntExtra("kivo.pause.at.ms", -1).toLong()
+        pauseForMs = intent.getIntExtra("kivo.pause.ms", 0).toLong()
         seekTargetMs = intent.getIntExtra("kivo.seek.ms", -1).toLong()
         seekAtMs = intent.getIntExtra("kivo.seek.at.ms", 1500).toLong().coerceAtLeast(0L)
         // P14-R：`--es kivo.finalize on_stop` 把"进入后台"当成一次收尾。

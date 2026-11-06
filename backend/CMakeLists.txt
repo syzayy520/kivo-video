@@ -2795,6 +2795,18 @@ endif()
 add_test(NAME kivo_p14u_lead_trace_tests COMMAND kivo_p14u_lead_trace_tests)
 set_tests_properties(kivo_p14u_lead_trace_tests PROPERTIES TIMEOUT 60)
 
+# P15-A2：跨度按段。窗口量按段、生命周期量按场 —— 这一组守那条界线。
+add_executable(kivo_p15a2_span_segments_tests
+  tests/video/pace/p15a2_span_segments_tests/span_segments_tests.cpp
+)
+target_link_libraries(kivo_p15a2_span_segments_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_p15a2_span_segments_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p15a2_span_segments_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p15a2_span_segments_tests COMMAND kivo_p15a2_span_segments_tests)
+set_tests_properties(kivo_p15a2_span_segments_tests PROPERTIES TIMEOUT 60)
+
 # P14-V：门限的量纲。纯换算，`kivo_p12c_core_pace` 里已经带着 `pace_gate_scale.cxx`。
 add_executable(kivo_p14v_gate_scale_tests
   tests/video/pace/p14v_gate_scale_tests/gate_scale_tests.cpp

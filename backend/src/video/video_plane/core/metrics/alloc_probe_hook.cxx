@@ -29,6 +29,14 @@
 // 迟早踩坏堆。所以 Windows 上这个文件**故意为空**，桌面只跑单测、不测这条尺子。
 #if defined(__ANDROID__) || defined(__linux__)
 
+// P16-P0 / D3：进程级 operator new 拦截可关闭。
+//
+// 默认 **ON** —— 现有 G2/G3/G4 证据全部由这个配置产出，口径必须逐位不变。
+// OFF 时连 HookRegistrar 都不注册，证据里 hook_installed 会是 false：那是如实说明
+// "这把尺子没装"，因此 OFF 构建**不得**用来产出 G3 证据，也不该被 M1 判据放行。
+// 开关由 Android CMake 的 KIVO_ENABLE_GLOBAL_ALLOC_HOOK 下传，release flavor 关掉它。
+#if !defined(KIVO_DISABLE_GLOBAL_ALLOC_HOOK)
+
 namespace {
 
 /// 登记"钩子装上了"。没有这一步，`calls_steady = 0` 就分不清
@@ -147,4 +155,5 @@ void operator delete[](void* pointer, std::align_val_t, const std::nothrow_t&) n
     std::free(pointer);
 }
 
+#endif  // !KIVO_DISABLE_GLOBAL_ALLOC_HOOK
 #endif  // __ANDROID__ || __linux__
