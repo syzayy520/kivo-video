@@ -73,9 +73,16 @@ class PlaybackSession(
      * 这里不做重试：seek 失败通常是片源问题（目标超出范围），重试只会拖时间。
      */
     /** 当前媒体位置（µs；-1 = 未起播）。212 字幕叠加的时间源。 */
-    fun positionUs(): Long = runCatching {
-        NativePlayer.nativeSessionPositionUs(handle)
-    }.getOrDefault(-1L)
+    fun positionUs(): Long {
+        val rc = runCatching {
+            NativePlayer.nativeSessionPositionUs(handle)
+        }.getOrElse {
+            android.util.Log.w("KivoCinema", "positionUs exception: ${it.message}")
+            -1L
+        }
+        android.util.Log.w("KivoCinema", "positionUs: handle=$handle rc=$rc")
+        return rc
+    }
 
     fun seekTo(positionUs: Long): Int {
         if (!running) {

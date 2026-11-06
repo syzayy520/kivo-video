@@ -316,6 +316,8 @@ if(EXISTS "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavcodec.a")
     # 软解家族（211）：fd 回调 + adapter 三件套 + runtime + 会话 + 窗口 sink。
     # 探针与 kivo_player（JNI 桥）共用这一个库；FFmpeg 头/库只在这里出现。
     add_library(kivo_backend_ffmpeg STATIC
+        "${KIVO_BACKEND}/src/video/subtitle_plane/render/libass_renderer.cxx"
+        "${KIVO_BACKEND}/src/video/subtitle_plane/render/srt_convert.cxx"
         "${KIVO_BACKEND}/src/video/video_plane/runtime/local_media/ffmpeg_fd_callbacks.cxx"
         "${KIVO_BACKEND}/src/video/video_plane/runtime/local_media/ffmpeg_local_playback_session.cxx"
         "${KIVO_BACKEND}/src/video/video_plane/runtime/local_media/ffmpeg_render_sink.cxx"
@@ -333,8 +335,15 @@ if(EXISTS "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavcodec.a")
     target_compile_features(kivo_backend_ffmpeg PUBLIC cxx_std_23)
     target_compile_options(kivo_backend_ffmpeg PRIVATE -Wall -Wextra -Wpedantic -Wshadow)
     target_link_directories(kivo_backend_ffmpeg PUBLIC "${KIVO_FFMPEG_ANDROID_DIST}/lib")
+    target_link_directories(kivo_backend_ffmpeg PUBLIC "${KIVO_LIBASS_ANDROID_DIST}/lib")
+    target_include_directories(kivo_backend_ffmpeg PUBLIC
+        "${KIVO_LIBASS_ANDROID_DIST}/include"
+    )
     target_link_libraries(kivo_backend_ffmpeg PUBLIC
-        avformat avcodec swscale swresample avutil z log
+        avformat avcodec swscale swresample avutil
+        ass freetype fribidi
+        z
+        log
     )
 
     add_executable(kivo_sd_probe
@@ -409,6 +418,7 @@ add_library(kivo_player SHARED
     "jni/jni_player_bridge.cxx"
     "jni/jni_session_handle.cxx"
     "jni/jni_ffmpeg_bridge.cxx"
+    "jni/jni_subtitle_bridge.cxx"
 )
 
 target_include_directories(kivo_player PRIVATE
@@ -434,4 +444,21 @@ if(TARGET kivo_backend_ffmpeg)
     # with -fPIC"。本工程没有也不允许任何符号插体（symbol interposition），
     # -Bsymbolic 把引用绑到本地定义——标准且安全的修法。
     target_link_options(kivo_player PRIVATE "-Wl,-Bsymbolic")
+endif()
+
+# 字幕渲染（212）：libass dist 存在时才编 JNI 桥（无 dist 照常跳过）。
+set(KIVO_LIBASS_ANDROID_DIST "C:/re-tools/libass-android/dist" CACHE PATH
+    "libass Android 静态库产物目录（third_party/libass-android/build.sh 生成）")
+if(TARGET kivo_backend_ffmpeg AND EXISTS "${KIVO_LIBASS_ANDROID_DIST}/lib/libass.a")
+    target_include_directories(kivo_player PRIVATE
+        "${KIVO_LIBASS_ANDROID_DIST}/include"
+    )
+    target_link_libraries(kivo_player PRIVATE
+        "${KIVO_LIBASS_ANDROID_DIST}/lib/libass.a"
+        "${KIVO_LIBASS_ANDROID_DIST}/lib/libfreetype.a"
+        "${KIVO_LIBASS_ANDROID_DIST}/lib/libfribidi.a"
+        "${KIVO_LIBASS_ANDROID_DIST}/lib/libharfbuzz.a"
+    )
+elseif(NOT TARGET kivo_backend_ffmpeg)
+    message(STATUS "subtitle JNI skipped: kivo_backend_ffmpeg absent")
 endif()

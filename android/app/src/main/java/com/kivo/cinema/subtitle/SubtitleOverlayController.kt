@@ -34,6 +34,7 @@ class SubtitleOverlayController(
     private var lastRenderPositionUs = -1L
     private var running = false
     private var fontCount = 0
+    private var pollCount = 0
 
     private val pollRunnable = object : Runnable {
         override fun run() {
@@ -41,6 +42,10 @@ class SubtitleOverlayController(
                 return
             }
             val positionUs = positionUsSupplier()
+            if (pollCount < 5) {
+                Log.w(TAG, "poll#$pollCount posUs=$positionUs handle=$handle")
+                ++pollCount
+            }
             if (positionUs >= 0) {
                 val dims = IntArray(3)
                 val buffer = runCatching {

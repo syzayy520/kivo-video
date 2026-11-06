@@ -28,7 +28,7 @@ struct SubtitleHandle {
 
     void record_error(const char* where, const std::string& message) {
         last_error = std::string(where) + ": " + message;
-        __android_log_print(ANDROID_LOG_WARN, kSubtitleLogTag, "%s", last_error.c_str());
+        __android_log_print(ANDROID_LOG_WARN, "KivoSubtitle", "%s", last_error.c_str());
     }
 };
 
@@ -49,7 +49,7 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSubtitleCreate(JNIEnv* env,
             std::make_unique<kivo::video::subtitle_plane::render::LibassRenderer>();
         return reinterpret_cast<jlong>(handle);
     } catch (const std::exception& e) {
-        __android_log_print(ANDROID_LOG_WARN, kSubtitleLogTag, "subtitleCreate: %s",
+        __android_log_print(ANDROID_LOG_WARN, "KivoSubtitle", "subtitleCreate: %s",
                             e.what());
         return 0;
     } catch (...) {
@@ -85,7 +85,7 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSubtitleAddFont(JNIEnv* env,
     }
     return 0;
 } catch (const std::exception& e) {
-    __android_log_print(ANDROID_LOG_WARN, kSubtitleLogTag, "subtitleAddFont: %s", e.what());
+    __android_log_print(ANDROID_LOG_WARN, "KivoSubtitle", "subtitleAddFont: %s", e.what());
     return -1;
 } catch (...) {
     return -1;
@@ -110,7 +110,7 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSubtitleLoad(JNIEnv* env, jobject
     }
     return events;
 } catch (const std::exception& e) {
-    __android_log_print(ANDROID_LOG_WARN, kSubtitleLogTag, "subtitleLoad: %s", e.what());
+    __android_log_print(ANDROID_LOG_WARN, "KivoSubtitle", "subtitleLoad: %s", e.what());
     return -1;
 } catch (...) {
     return -1;
@@ -138,7 +138,7 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSubtitleRender(JNIEnv* env,
     return env->NewDirectByteBuffer(bitmap.rgba.data(),
                                     static_cast<jlong>(bitmap.rgba.size()));
 } catch (const std::exception& e) {
-    __android_log_print(ANDROID_LOG_WARN, kSubtitleLogTag, "subtitleRender: %s", e.what());
+    __android_log_print(ANDROID_LOG_WARN, "KivoSubtitle", "subtitleRender: %s", e.what());
     return nullptr;
 } catch (...) {
     return nullptr;

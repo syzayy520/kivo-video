@@ -1,18 +1,35 @@
 #include "video/subtitle_plane/render/libass_renderer.hpp"
+#include "video/subtitle_plane/render/overlay_blend.hpp"
+#include "video/subtitle_plane/render/srt_convert.hpp"
 
 #include <algorithm>
+#include <android/log.h>
+#include <cctype>
+#include <cstdarg>
 #include <cstring>
 
 namespace kivo::video::subtitle_plane::render {
 
+// libass 的自述通道（MSGL 0-7）：真机 logcat 不可用时这是唯一诊断面，
+// 全量转发 Android log——load/render 的任何"为什么"都在这里。
+static void libass_message_cb(int level, const char* fmt, va_list va, void* /*data*/) {
+    char buffer[512];
+    vsnprintf(buffer, sizeof(buffer), fmt, va);
+    __android_log_print(level <= 3 ? ANDROID_LOG_WARN : ANDROID_LOG_INFO,
+                        "KivoLibass", "[lv%d] %s", level, buffer);
+}
+
 LibassRenderer::LibassRenderer() {
     library_ = ass_library_init();
     if (library_ != nullptr) {
-        // 无系统字体提供者（Android 无 fontconfig；设计稿 D4）：
-        // 全部字体走 add_font_file 内存注入。
-        ass_set_fonts(library_, nullptr, nullptr, ASS_FONTPROVIDER_NONE, nullptr, 1);
+        ass_set_message_cb(library_, libass_message_cb, nullptr);
         renderer_ = ass_renderer_init(library_);
         if (renderer_ != nullptr) {
+            // 顺序硬约束：ass_set_fonts 第一个参数是 renderer——首版在
+            // renderer_init 之前调它（空指针）→ 真机段错误。
+            // 无系统字体提供者（Android 无 fontconfig；设计稿 D4）：全部字体走
+            // add_font_file 内存注入。provider 数值 0 = ASS_FONTPROVIDER_NONE。
+            ass_set_fonts(renderer_, nullptr, nullptr, 0, nullptr, 0);
             ass_set_frame_size(renderer_, 1920, 1080);  // 默认画布；真机按视频尺寸重设
         }
     }
@@ -62,8 +79,15 @@ bool LibassRenderer::add_font_file(const std::string& path, std::string& error) 
         return false;
     }
     // 名字参数只是提示（libass 用字体内部名匹配为主）。
-    ass_add_font(library_, "injected", font_storage_.back().data(),
+    ass_add_font(library_, "injected",
+                 reinterpret_cast<const char*>(font_storage_.back().data()),
                  static_cast<int>(font_storage_.back().size()));
+    // 首个成功注入的字体回填为 default_font：样式家族名（如 sans-serif）
+    // 无匹配时 libass 用它兜底——否则渲染链为空（真机实证）。
+    if (default_font_path_.empty()) {
+        default_font_path_ = path;
+        ass_set_fonts(renderer_, default_font_path_.c_str(), nullptr, 0, nullptr, 0);
+    }
     return true;
 }
 
@@ -86,10 +110,54 @@ int LibassRenderer::load(const std::string& path, std::string& error) {
     }();
     const bool is_ass = lower.size() >= 4 && lower.compare(lower.size() - 4, 4, ".ass") == 0;
     track_format_ = is_ass ? "ass" : "srt";
-    track_ = ass_read_file(library_, const_cast<char*>(path.c_str()),
-                           const_cast<char*>(is_ass ? "ass" : "srt"));
+    // 不走 ass_read_file（其 fopen 对 FUSE 路径的失败模式不透明）：
+    // **自己 stdio 读字节 → ass_read_memory**，读失败时报 errno。
+    FILE* fp = std::fopen(path.c_str(), "rb");
+    if (fp == nullptr) {
+        error = "fopen failed for " + path + " (errno=" + std::to_string(errno) + " " +
+                std::strerror(errno) + ")";
+        return -1;
+    }
+    std::fseek(fp, 0, SEEK_END);
+    const long size = std::ftell(fp);
+    std::fseek(fp, 0, SEEK_SET);
+    if (size <= 0) {
+        std::fclose(fp);
+        error = "subtitle file empty: " + path;
+        return -1;
+    }
+    std::vector<char> bytes(static_cast<std::size_t>(size));
+    const auto read_n = std::fread(bytes.data(), 1, bytes.size(), fp);
+    std::fclose(fp);
+    if (read_n != bytes.size()) {
+        error = "short read on " + path;
+        return -1;
+    }
+    // 代码页 NULL = libass 自行检测（素材全 UTF-8）。
+    std::string head;
+    for (int i = 0; i < 16 && i < static_cast<int>(bytes.size()); ++i) {
+        char b[8];
+        std::snprintf(b, sizeof(b), "%02x ", static_cast<unsigned char>(bytes[i]));
+        head += b;
+    }
+    std::vector<char> ass_bytes;
+    if (is_ass) {
+        ass_bytes.assign(bytes.begin(), bytes.end());
+    } else {
+        // libass 不解析 SRT（0.16 全库无 TRACK_TYPE_SRT）——srt→ass 转换在本层。
+        const std::string converted =
+            srt_to_ass(std::string(bytes.data(), bytes.size()));
+        if (converted.find("Dialogue:") == std::string::npos) {
+            error = "srt converted to 0 dialogue lines: " + path;
+            return -1;
+        }
+        ass_bytes.assign(converted.begin(), converted.end());
+    }
+    track_ = ass_read_memory(library_, ass_bytes.data(), ass_bytes.size(), nullptr);
     if (track_ == nullptr) {
-        error = "ass_read_file failed for " + path;
+        error = "ass_read_memory failed for " + path + " (ass_bytes=" +
+                std::to_string(ass_bytes.size()) + " head=" + head +
+                " lib=" + (library_ != nullptr ? "ok" : "null") + ")";
         return -1;
     }
     return track_->n_events;
@@ -102,12 +170,17 @@ OverlayBitmap LibassRenderer::render(int now_ms, bool* detect_change) {
     }
     int change = 0;
     ASS_Image* images = ass_render_frame(renderer_, track_, now_ms, &change);
-    if (detect_change != nullptr) {
-        *detect_change = change != 0;
-    }
     if (images == nullptr) {
+        __android_log_print(ANDROID_LOG_WARN, "KivoLibass",
+                            "render(%d ms): empty chain (events=%d)", now_ms,
+                            track_->n_events);
+        if (detect_change != nullptr) {
+            *detect_change = change != 0;
+        }
         return out;  // 该时刻无字幕：空位图
     }
+    __android_log_print(ANDROID_LOG_INFO, "KivoLibass", "render(%d ms): chain non-empty",
+                        now_ms);
     // 两遍：先从 ASS_Image 链求包围盒（链上各块尺寸/位置任意），
     // 再分配目标位图、逐块混合。
     int min_x = 1 << 30;

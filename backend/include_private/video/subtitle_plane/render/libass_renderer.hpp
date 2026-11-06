@@ -49,6 +49,7 @@ private:
     ASS_Library* library_ = nullptr;
     ASS_Renderer* renderer_ = nullptr;
     ASS_Track* track_ = nullptr;
+    std::string default_font_path_;  ///< 首个成功注入的字体（ass_set_fonts 的回退字体）
     std::vector<std::vector<std::uint8_t>> font_storage_;  // ass_add_font 不拷贝，字节归本类
     std::string track_format_;
 };
