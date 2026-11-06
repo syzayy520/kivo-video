@@ -1,0 +1,26 @@
+{
+  "schema": "kivo.p211.sd-probe/1",
+  "ok": true,
+  "media": "/data/local/tmp/p211_wmv2_asf.wmv",
+  "container": "asf",
+  "duration_s": 5.092,
+  "video_stream": 0,
+  "codec": "wmv2",
+  "source_width": 640,
+  "source_height": 360,
+  "source_fps": 30.000,
+  "source_pixel": "yuv420p",
+  "packets_read": 52,
+  "video_packets": 30,
+  "keyframes": 3,
+  "frames_decoded": 30,
+  "first_frame": {
+    "width": 640,
+    "height": 360,
+    "pixel_format": "rgba",
+    "bytes": 921600
+  },
+  "decode_ms_avg": 8.227,
+  "errors": [],
+  "generated_at_unix_ms": 1793988269000
+}

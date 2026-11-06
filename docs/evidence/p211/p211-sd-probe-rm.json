@@ -1,0 +1,26 @@
+{
+  "schema": "kivo.p211.sd-probe/1",
+  "ok": true,
+  "media": "/data/local/tmp/p211_rv10.rm",
+  "container": "rm",
+  "duration_s": 5.000,
+  "video_stream": 0,
+  "codec": "rv10",
+  "source_width": 640,
+  "source_height": 352,
+  "source_fps": 30.000,
+  "source_pixel": "yuv420p",
+  "packets_read": 30,
+  "video_packets": 30,
+  "keyframes": 3,
+  "frames_decoded": 30,
+  "first_frame": {
+    "width": 640,
+    "height": 352,
+    "pixel_format": "rgba",
+    "bytes": 901120
+  },
+  "decode_ms_avg": 8.857,
+  "errors": [],
+  "generated_at_unix_ms": 1793988269000
+}

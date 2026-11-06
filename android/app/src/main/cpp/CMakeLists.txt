@@ -303,6 +303,48 @@ target_link_libraries(kivo_hdr_probe PRIVATE
 )
 
 # ---------------------------------------------------------------------------
+# kivo_sd_probe —— 211 软解兜底探针（可执行）
+# 验证 FFmpeg 静态库在 Android 真机上的整条链路：
+# fd 回调 → demux → 软解 → RGBA 帧（不碰 Surface，证据打 stdout）。
+# FFmpeg 产物由 third_party/ffmpeg-android/build.sh 生成（默认
+# C:/re-tools/ffmpeg-android/dist，无空格路径——原因见 build.sh 注释）；
+# 目录不存在时整个目标静默跳过，其余构建不受影响。
+# ---------------------------------------------------------------------------
+set(KIVO_FFMPEG_ANDROID_DIST "C:/re-tools/ffmpeg-android/dist" CACHE PATH
+    "FFmpeg Android 静态库产物目录（third_party/ffmpeg-android/build.sh 生成）")
+if(EXISTS "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavcodec.a")
+    add_executable(kivo_sd_probe
+        "${KIVO_BACKEND}/src/video/video_plane/probe/sd_probe_main.cxx"
+        "${KIVO_BACKEND}/src/video/video_plane/runtime/local_media/ffmpeg_fd_callbacks.cxx"
+        "${KIVO_BACKEND}/src/third_party_adapter/ffmpeg_adapter/ffmpeg_adapter.cpp"
+        "${KIVO_BACKEND}/src/third_party_adapter/ffmpeg_adapter/ffmpeg_custom_io.cpp"
+        "${KIVO_BACKEND}/src/third_party_adapter/ffmpeg_adapter/ffmpeg_product_log_filter.cpp"
+        "${KIVO_BACKEND}/src/decode_core/real_software_decode_runtime.cpp"
+    )
+    target_include_directories(kivo_sd_probe PRIVATE
+        "${KIVO_BACKEND}/include_private"
+        "${KIVO_BACKEND}/include"
+        "${KIVO_FFMPEG_ANDROID_DIST}/include"
+    )
+    target_compile_definitions(kivo_sd_probe PRIVATE KIVO_ENABLE_FFMPEG)
+    target_compile_features(kivo_sd_probe PRIVATE cxx_std_23)
+    target_compile_options(kivo_sd_probe PRIVATE
+        -Wall -Wextra -Wpedantic -Wshadow
+    )
+    target_link_libraries(kivo_sd_probe PRIVATE
+        "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavformat.a"
+        "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavcodec.a"
+        "${KIVO_FFMPEG_ANDROID_DIST}/lib/libswscale.a"
+        "${KIVO_FFMPEG_ANDROID_DIST}/lib/libswresample.a"
+        "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavutil.a"
+        z
+        log
+    )
+else()
+    message(STATUS "kivo_sd_probe skipped: FFmpeg Android dist not found at ${KIVO_FFMPEG_ANDROID_DIST}")
+endif()
+
+# ---------------------------------------------------------------------------
 # kivo_audio_file_probe —— P12-C3 真实音轨探针（可执行）
 # 与 kivo_audio_probe 分开：那个验证的是"输出链路"（正弦），
 # 这个验证的是"解码链路"（解封装 → 音频解码 → 转 float → 环 → 出声）。
