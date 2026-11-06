@@ -111,8 +111,6 @@ int main() {
         std::vector<std::uint8_t> dst(2 * 2 * 4, 9);
         sp::AssImageSpan span = solid_span(mask, 2, 2, 255, 255, 255, 0, 0, 0);
         span.stride = 4;
-                    span.width, span.height, span.stride, span.a, span.bitmap[4],
-                    span.bitmap[5]);
         sp::blend_ass_image(dst.data(), 2, 2, 8, span);
         // 布局：像素 (x,y) 在 (y*2+x)*4。(0,0)→[0..3]，(1,0)→[4..7]，
         // (0,1)→[8..11]，(1,1)→[12..15]。
