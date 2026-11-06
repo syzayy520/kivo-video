@@ -127,3 +127,17 @@ UI（213 才开始；**Rex UI 拆解推迟到 213 开工时再做**——用户 
 3. 最小可播探针（软解一帧 → ANativeWindow 出图）；
 4. 会话 + 路由 + 证据面；
 5. 真机取证 AC1–AC6。
+
+---
+
+## 八、复用面定稿（2026-11-07 凌晨实读，§四 必读项完成）
+
+| 单元 | 实测形状 | 结论 |
+| --- | --- | --- |
+| `cinema_engine/decode_core/real_software_decode_runtime`（370 行） | `open(codec_name)/decode(KivoPacket)/flush/close` + 元数据；**已内置 `decode_video_rgba()`**（sws 转换在Runtime 内） | 直接复用；D3 的呈现 sink 退化为 **RGBA → ANativeWindow 直写**（比 YUV+sws 更薄） |
+| `video/source_runtime/local_media/local_media_source_session`（179 行） | demux 会话，产出 `KivoPacket` | 直接复用 |
+| `third_party_adapter/ffmpeg_adapter`（661 行 + custom_io） | 唯一碰 `AV*` 的层，自有类型边界（`FfmpegFormatHandle`/`KivoPacket`/`DecodeResult`） | 直接复用；Android 差异（custom_io 的 fd 桥、线程假设）接入时实测，差异写更正块 |
+
+架构红线核对：三件套无任何 Android 依赖（`KIVO_ENABLE_FFMPEG` 门控的纯 C++），
+`core/` 不受影响——软解家族落 `runtime/local_media/`（§四 家族树不变，
+`ffmpeg_render_sink` 的职责收窄为"RGBA 直写窗口"）。
