@@ -18,7 +18,6 @@ SRC_DIR="${FFMPEG_SRC_DIR:-/c/re-tools/ffmpeg-src}"
 API=26
 
 TOOLCHAIN="$NDK/toolchains/llvm/prebuilt/windows-x86_64"
-MAKE="$NDK/prebuilt/windows-x86_64/bin/make.exe"
 CLANG="$TOOLCHAIN/bin/clang.exe"
 CLANGXX="$TOOLCHAIN/bin/clang++.exe"
 SYSROOT="$TOOLCHAIN/sysroot"
@@ -29,8 +28,24 @@ TAR="$(ls "$SRC_DIR"/ffmpeg-7.1.tar.xz "$SRC_DIR"/ffmpeg-7.1.tar.gz "$SRC_DIR"/f
 [ -n "$TAR" ] || { echo "找不到 ffmpeg-7.1 源码 tarball（$SRC_DIR）"; exit 2; }
 [ -x "$CLANG" ] || { echo "NDK clang 不存在：$CLANG"; exit 2; }
 
-BUILD="$HERE/build"
-DIST="$HERE/dist"
+# make/sh 必须同属一个 msys 运行时：NDK 的 native make 在 spawn sh 时撞
+# Windows 32K 命令行上限，libavcodec 的 ar 行（几百个 .o）**在参数进到 sh 之前
+# 就被截断**——ar 层的 @response 包装救不了（它收到的参数已经是断的）。
+# MSYS2 的 make+sh 内部 spawn 不经 CreateProcess，无此限制（ar 包装继续保留，
+# 作为 msys→native 最后一跳的兜底）。脚本应从 MSYS2 bash 里跑：
+#   /c/msys64/usr/bin/bash -lc 'cd "/c/kivo video" && bash third_party/ffmpeg-android/build.sh'
+if [ -d /c/msys64/usr/bin ]; then
+  export PATH="/c/msys64/usr/bin:$PATH"
+fi
+MAKE="$(command -v make || true)"
+[ -n "$MAKE" ] || MAKE="$NDK/prebuilt/windows-x86_64/bin/make.exe"
+
+# 构建目录**必须在无空格路径**：ffmpeg 的构建系统（生成的 config.sh / make 规则）
+# 内部不做引号保护，仓库路径 "C:\kivo video" 的空格会把它打碎
+# （实测：config.sh 第 4 行被空格劈成两个词、$(AR) 带空格路径无法执行）。
+# 所以 BUILD/DIST 默认落在 /c/re-tools/ 下；仓库里只保留本脚本与 README。
+BUILD="${FFMPEG_BUILD_DIR:-/c/re-tools/ffmpeg-android/build}"
+DIST="${FFMPEG_DIST_DIR:-/c/re-tools/ffmpeg-android/dist}"
 rm -rf "$BUILD" "$DIST"
 mkdir -p "$BUILD" "$DIST"
 
@@ -40,6 +55,9 @@ mkdir -p "$BUILD" "$DIST"
 # 带空格的 "zig cc" 会在部分位置被拆词）。
 ZIG_EXE="${ZIG_EXE:-$(ls /c/re-tools/zig-windows-x86_64-*/zig.exe 2>/dev/null | head -1 || true)}"
 [ -n "$ZIG_EXE" ] || { echo "找不到 zig.exe（宿主编译器，装到 /c/re-tools/ 或设 ZIG_EXE）"; exit 2; }
+# zig 要全局缓存目录：MSYS2 登录 shell 不带 APPDATA，zig 会报
+# `error: AppDataDirUnavailable` 然后整个 configure 死在宿主编译器探测。
+export ZIG_GLOBAL_CACHE_DIR="${ZIG_GLOBAL_CACHE_DIR:-/c/re-tools/ffmpeg-android/zig-cache}"
 printf '#!/usr/bin/env bash\nexec "%s" cc "$@"\n' "$ZIG_EXE" > "$BUILD/zigcc"
 chmod +x "$BUILD/zigcc"
 
@@ -97,9 +115,11 @@ for lib in libavformat libavcodec libswscale libavutil; do
   [ -f "$f" ] || { echo "缺 $f"; exit 1; }
   echo "  $f  $(du -h "$f" | cut -f1)"
 done
-# 能力自证：rv10/wmv3/cook 三个符号必须在（对照 tests/real/sd211 两支片）
+# 能力自证：rv10/wmv3/cook 三个符号必须在（对照 tests/real/sd211 两支片）。
+# 不能用 `nm | grep -q`：pipefail 下 grep 提前退出会给 nm 送 SIGPIPE，
+# 18MB 的符号表一匹配就死，管道按失败算——"自检失败"全是这个假象。
 for sym in ff_rv10_decoder ff_wmv3_decoder ff_cook_decoder; do
-  "$TOOLCHAIN/bin/llvm-nm.exe" "$DIST/lib/libavcodec.a" 2>/dev/null | grep -q "$sym" \
-    || { echo "自检失败：$sym 不在 libavcodec.a"; exit 1; }
+  cnt=$("$TOOLCHAIN/bin/llvm-nm.exe" "$DIST/lib/libavcodec.a" 2>/dev/null | grep -c "$sym" || true)
+  [ "${cnt:-0}" -ge 1 ] || { echo "自检失败：$sym 不在 libavcodec.a"; exit 1; }
 done
 echo "OK：dist/ 就绪（静态库 + 头文件），LGPL 合规要求见同目录 README.md"
