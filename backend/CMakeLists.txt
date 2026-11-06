@@ -2695,6 +2695,37 @@ endif()
 add_test(NAME kivo_p211_fd_callbacks_tests COMMAND kivo_p211_fd_callbacks_tests)
 set_tests_properties(kivo_p211_fd_callbacks_tests PROPERTIES TIMEOUT 60)
 
+# ─── 211: 软解旁路会话（端到端，KIVO_ENABLE_FFMPEG 门控）───
+# 桌面真 FFmpeg 跑完整链路：open → start → 计数 sink 收帧 → stop → 证据。
+# 用 vs-debug-ffmpeg 预设构建（FFMPEG_ROOT 由预设提供）；无 FFmpeg 时整块跳过，
+# 全仓构建照常（P6C 先例）。呈现 sink 走接口注入，桌面用计数 sink——
+# ANativeWindow sink 只在 Android 侧编译（android/app/src/main/cpp/CMakeLists.txt）。
+if(KIVO_ENABLE_FFMPEG AND FFMPEG_ROOT AND EXISTS "${FFMPEG_ROOT}/include/libavcodec/avcodec.h")
+  add_executable(kivo_p211_local_session_tests
+    tests/video/local_media/ffmpeg_local_playback_session_tests.cpp
+    src/video/video_plane/runtime/local_media/ffmpeg_local_playback_session.cxx
+    src/video/video_plane/runtime/local_media/ffmpeg_fd_callbacks.cxx
+  )
+  target_include_directories(kivo_p211_local_session_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/backend/include
+    ${CMAKE_SOURCE_DIR}/backend/include_private
+    ${FFMPEG_ROOT}/include
+  )
+  target_compile_features(kivo_p211_local_session_tests PRIVATE cxx_std_23)
+  if(MSVC)
+    target_compile_options(kivo_p211_local_session_tests PRIVATE /utf-8)
+  endif()
+  target_link_libraries(kivo_p211_local_session_tests PRIVATE
+    kivo_cinema_engine
+  )
+  kivo_add_ffmpeg_runtime_deploy(kivo_p211_local_session_tests)
+  add_test(NAME kivo_p211_local_session_tests COMMAND kivo_p211_local_session_tests)
+  set_tests_properties(kivo_p211_local_session_tests PROPERTIES TIMEOUT 120
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    ENVIRONMENT "PATH=${FFMPEG_ROOT}/bin;%PATH%")
+endif()
+
 # ─── P12-F1: seek 预算判定 ───
 # G8（首帧 < 150 ms）的判定是纯函数：它只吃"四个耗时 + 两个位置"，不碰平台。
 # 抽出来的理由与 C5/C6 相同：判定规则要能在桌面上被钉住，真机只负责提供数字。
