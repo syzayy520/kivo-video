@@ -18,6 +18,8 @@ import com.kivo.cinema.bridge.MediaTrackProbe
 import com.kivo.cinema.bridge.NativePlayer
 import com.kivo.cinema.bridge.PlaybackSession
 import com.kivo.cinema.evidence.EvidencePaths
+import com.kivo.cinema.subtitle.SubtitleOverlayController
+import com.kivo.cinema.subtitle.SubtitleOverlayView
 import com.kivo.cinema.evidence.FailureEvidence
 import com.kivo.cinema.evidence.SessionFinalizer
 import java.io.File
@@ -48,6 +50,14 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
      * 同一时刻只有一条活跃。路由在 `maybeStartPlayback` 里、起播之前做（D1）。
      */
     private var ffmpegSession: FfmpegPlaybackSession? = null
+
+    /**
+     * 字幕叠加（212）：与解码会话解耦（只吃 position_us）。
+     * `subtitleController != null` 当且仅当本片有同名外挂 srt/ass。
+     */
+    private var subtitleController: SubtitleOverlayController? = null
+    private var overlayView: SubtitleOverlayView? = null
+    private var controllerSubTitleFile = "" 
 
     /**
      * 会话是否已经起跑（P12-D1）。
@@ -300,6 +310,16 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
         )
+        // 212：字幕叠加层——浮在视频之上、状态文字之下。
+        val subtitleOverlay = SubtitleOverlayView(this)
+        overlayView = subtitleOverlay
+        root.addView(
+            subtitleOverlay,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        )
         root.addView(
             statusView,
             FrameLayout.LayoutParams(
@@ -484,6 +504,34 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         Log.i(TAG, "playback started: ${media.absolutePath}")
         handler.post(pollRunnable)
 
+        // ---- 212：外挂字幕接线（硬解路径；软解路径 M1 不接，差异出版）----
+        // 字幕文件 = 视频同名 + .srt/.ass；position 源 = PlaybackSession.positionUs。
+        // 字体：设备 /system/fonts 的候选列表逐个注入，失败不静默（证据计数）。
+        val subtitleSibling = sequenceOf(".ass", ".srt")
+            .map { File(media.absolutePath + it) }
+            .firstOrNull { it.isFile }
+        if (subtitleSibling != null) {
+            val controller = SubtitleOverlayController(
+                subtitleFile = subtitleSibling,
+                view = overlayView ?: return,
+                positionUsSupplier = { live.positionUs() },
+                handler = handler
+            )
+            val fonts = listOf(
+                "/system/fonts/NotoSansCJK-Regular.ttc",
+                "/system/fonts/NotoSansCJKjp-Regular.otf",
+                "/system/fonts/Roboto-Regular.ttf",
+                "C:/Windows/Fonts/arial.ttf"
+            )
+            val fontCount = controller.loadFonts(fonts)
+            val eventCount = controller.load()
+            controller.start()
+            subtitleController = controller
+            controllerSubTitleFile = subtitleSibling.name
+            Log.i(TAG, "subtitles: file=${subtitleSibling.name} events=$eventCount fonts=$fontCount")
+            statusView.text = "字幕: ${subtitleSibling.name} events=$eventCount fonts=$fontCount\n" + statusView.text
+        }
+
         if (pauseAtMs >= 0 && pauseForMs > 0) {
             handler.postDelayed(pauseRunnable, pauseAtMs)
             Log.i(TAG, "pause scheduled: at=${pauseAtMs}ms for=${pauseForMs}ms")
@@ -608,6 +656,24 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
 
         val outcome = finalizer.finalize(live)
 
+        // ---- 212：字幕证据（kivo.p212.subtitle/1）——在控制器 stop 之前收计数。
+        subtitleController?.let { controller ->
+            val stats = controller.stop()
+            subtitleController = null
+            val json = "{\n" +
+                "  \"schema\": \"kivo.p212.subtitle/1\",\n" +
+                "  \"file\": \"" + controllerSubTitleFile + "\",\n" +
+                "  \"events\": " + stats.events + ",\n" +
+                "  \"rendered_frames\": " + stats.renderedFrames + ",\n" +
+                "  \"last_render_position_us\": " + stats.lastRenderPositionUs + ",\n" +
+                "  \"fonts_injected\": " + stats.fontCount + "\n" +
+                "}\n"
+            runCatching {
+                java.io.File(evidencePaths.dir, "p212-subtitle.json").writeText(json)
+                Log.i(TAG, "subtitle evidence written: p212-subtitle.json")
+            }.onFailure { e -> Log.w(TAG, "subtitle evidence write failed: ${e.message}") }
+        }
+
         if (outcome.statsRc == 0) {
             statusView.append("\nstats rc=${outcome.statsRc}\n${outcome.statsFile.name}")
         }
@@ -727,6 +793,9 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         handler.removeCallbacks(ffmpegPollRunnable)
         ffmpegSession?.close()
         ffmpegSession = null
+        // 字幕控制器（212）：轮询与句柄一并拆（叠加 View 随 Activity 销毁）。
+        subtitleController?.stop()
+        subtitleController = null
         teardownSession()
         super.onDestroy()
     }

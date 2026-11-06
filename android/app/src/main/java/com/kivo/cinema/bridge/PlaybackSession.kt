@@ -72,6 +72,11 @@ class PlaybackSession(
      * 失败时把原因记进 [lastError] 并返回非 0；调用方决定是中止还是继续播。
      * 这里不做重试：seek 失败通常是片源问题（目标超出范围），重试只会拖时间。
      */
+    /** 当前媒体位置（µs；-1 = 未起播）。212 字幕叠加的时间源。 */
+    fun positionUs(): Long = runCatching {
+        NativePlayer.nativeSessionPositionUs(handle)
+    }.getOrDefault(-1L)
+
     fun seekTo(positionUs: Long): Int {
         if (!running) {
             lastError = "seekTo called before start"

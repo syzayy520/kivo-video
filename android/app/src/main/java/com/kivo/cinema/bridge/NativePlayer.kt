@@ -230,4 +230,31 @@ object NativePlayer {
 
     /** 最近一次失败原因（G9 通道，与硬解侧同款）。 */
     external fun nativeFfmpegLastError(handle: Long): String
+
+    // ---- 212：字幕渲染（libass 桥）。句柄与两个播放会话完全独立。 ----
+
+    /** 创建字幕渲染器句柄。返回 0 表示失败。 */
+    external fun nativeSubtitleCreate(): Long
+
+    /** 注入字体文件（ttf/ttc/otf）；返回 0 成功。可多次调用。 */
+    external fun nativeSubtitleAddFont(handle: Long, path: String): Int
+
+    /** 加载字幕文件（.ass / .srt 按扩展名分派）；返回事件数，-1 失败。 */
+    external fun nativeSubtitleLoad(handle: Long, path: String): Int
+
+    /**
+     * 渲染 `nowMs` 时刻。返回 DirectByteBuffer（RGBA；**下次渲染前有效**，
+     * 调用方当帧拷贝），尺寸写进 [outDims]（w/h/stride 字节）；无字幕返回 null。
+     */
+    external fun nativeSubtitleRender(handle: Long, nowMs: Int, outDims: IntArray):
+        java.nio.ByteBuffer?
+
+    /** 销毁句柄。 */
+    external fun nativeSubtitleDestroy(handle: Long)
+
+    /** 最近一次失败原因（G9 通道）。 */
+    external fun nativeSubtitleLastError(handle: Long): String
+
+    /** 当前媒体位置（µs，P16-P1B26 的 position_us 通道；-1 = 未起播）。 */
+    external fun nativeSessionPositionUs(handle: Long): Long
 }

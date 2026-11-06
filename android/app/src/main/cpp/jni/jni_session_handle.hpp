@@ -124,6 +124,10 @@ void session_stop(SessionHandle* handle);
 /// 供日志使用的一行摘要（不含 JSON）。
 [[nodiscard]] std::string session_summary(SessionHandle* handle);
 
+/// 当前媒体位置（µs，212 字幕时间轴驱动源）。`-1` = 未起播。
+/// 快照取自 `session_summary` 同一条通道（P16-P1B26 的 position_us）。
+[[nodiscard]] std::int64_t session_position_us(SessionHandle* handle);
+
 /// 最近一次失败的原因。
 ///
 /// 之所以必须有这条通道：本机（HyperOS）的 logcat 对 adb 完全不可见，

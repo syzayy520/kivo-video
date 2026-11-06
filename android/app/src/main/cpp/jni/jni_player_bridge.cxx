@@ -205,6 +205,16 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSeek(JNIEnv* env, jobject 
     return 0;
     KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionSeek")
 
+// 212：当前媒体位置（µs）——字幕叠加控制器的时间源（P16-P1B26 的 position_us）。
+JNIEXPORT jlong JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionPositionUs(JNIEnv* env,
+                                                                 jobject /*thiz*/,
+                                                                 jlong handle)
+    KIVO_JNI_BEGIN
+    auto* session = KIVO_JNI_SESSION(handle);
+    return static_cast<jlong>(kivo::jni_bridge::session_position_us(session));
+    KIVO_JNI_END_LONG(env, KIVO_JNI_SESSION(handle), "nativeSessionPositionUs")
+
 JNIEXPORT void JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionStop(JNIEnv* env, jobject /*thiz*/,
                                                            jlong handle) KIVO_JNI_BEGIN

@@ -557,6 +557,13 @@ std::string session_summary(SessionHandle* handle) {
     return std::string(buffer);
 }
 
+std::int64_t session_position_us(SessionHandle* handle) {
+    if (handle == nullptr || !handle->session) {
+        return -1;
+    }
+    return handle->session->snapshot().position_us;
+}
+
 std::string session_last_error(SessionHandle* handle) {
     if (handle == nullptr) {
         return "session handle is null";
