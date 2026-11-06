@@ -16,6 +16,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.padding
 import com.kivo.cinema.bridge.FfmpegRouting
 import com.kivo.cinema.bridge.PlaybackSession
 import com.kivo.cinema.ui.PlayerSurfaceView
@@ -30,9 +32,8 @@ import com.kivo.cinema.ui.PlayerSurfaceView
  * M1 明确不做：字幕叠加的 Compose 集成（Android 侧 SubtitleOverlayView 仍可用，
  * Compose 集成后续卡）、音频分离控制、横竖屏切换。
  */
-class PlayerComposeActivity : ComponentActivity(), PlayerSurfaceView.Listener {
+class PlayerComposeActivity : ComponentActivity() {
 
-    private lateinit var surfaceView: PlayerSurfaceView
     private var playbackSession: PlaybackSession? = null
     private var surfaceReady = false
     private var playbackStarted = false
@@ -45,6 +46,7 @@ class PlayerComposeActivity : ComponentActivity(), PlayerSurfaceView.Listener {
     private var controlsVisible by mutableStateOf(true)
     private var positionMs by mutableStateOf(0L)
     private var durationMs by mutableStateOf(0L)
+    private var statusText by mutableStateOf("starting...")
 
     private val positionPoll = object : Runnable {
         override fun run() {
@@ -68,8 +70,6 @@ class PlayerComposeActivity : ComponentActivity(), PlayerSurfaceView.Listener {
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         readProbeExtras()
 
-        surfaceView = PlayerSurfaceView(this).apply { listener = this@PlayerComposeActivity }
-
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
                 Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
@@ -84,6 +84,15 @@ class PlayerComposeActivity : ComponentActivity(), PlayerSurfaceView.Listener {
                             lastTouchMs = System.currentTimeMillis()
                             togglePlayPause()
                         },
+                    )
+                    // 诊断状态（M1 临时：K40 logcat 不可用的实时替代）
+                    androidx.compose.material3.Text(
+                        text = statusText,
+                        color = Color.White,
+                        fontSize = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp),
+                        modifier = Modifier.align(androidx.compose.ui.Alignment.TopStart)
+                            .background(Color.Black.copy(alpha = 0.7f))
+                            .padding(4.dp)
                     )
                     if (controlsVisible) {
                         PlayerControls(
@@ -100,30 +109,36 @@ class PlayerComposeActivity : ComponentActivity(), PlayerSurfaceView.Listener {
         }
     }
 
-    // PlayerSurfaceView.Listener（AndroidView 内部的 Surface 回调）
-    override fun onSurfaceAvailable(holder: SurfaceHolder) {
+    // PlayerSurfaceView.Listener 的回调（由 AndroidView 工厂里的匿名 Listener 转发）
+    fun onSurfaceAvailable(holder: SurfaceHolder) {
         surfaceReady = true
         maybeStartPlayback(holder)
     }
 
-    override fun onSurfaceLost() {
+    fun onSurfaceLost() {
         surfaceReady = false
     }
 
     private fun maybeStartPlayback(holder: SurfaceHolder) {
-        if (!surfaceReady || playbackStarted) return
+        // surface 回调本身就是"面可用"的证明——不再依赖 Listener 的 surfaceReady 标志
+        surfaceReady = true
+        if (playbackStarted) return
         val media = mediaOverridePath.takeIf { it.isNotBlank() }
             ?.let { java.io.File(it) }?.takeIf { it.isFile }
             ?: locateTestMedia() ?: return
         playbackStarted = true
 
+        statusText = "surface ok, probing..."
         val routing = FfmpegRouting.probe(media)
+        statusText = "route=${routing.decision} reason=${routing.reason}"
         Log.i(TAG, "routing: ${routing.decision} (${routing.reason})")
 
         val session = PlaybackSession(0, media, media.name)
         playbackSession = session
 
+        statusText = "openVideo..."
         val rc = session.openVideo(holder.surface)
+        statusText = "openVideo rc=$rc lastError=${session.lastError}"
         if (rc != 0) {
             Log.e(TAG, "openVideo failed rc=$rc: ${session.lastError}")
             session.close()
@@ -136,7 +151,9 @@ class PlayerComposeActivity : ComponentActivity(), PlayerSurfaceView.Listener {
         session.configurePacing(targetFps = 0, allowDrop = true)
         session.configurePipeline(split = false, present = true, atTime = true)
 
+        statusText = "starting..."
         val startRc = session.start()
+        statusText = "start rc=$startRc"
         if (startRc != 0) {
             Log.e(TAG, "start failed rc=$startRc")
             session.close()
@@ -147,6 +164,7 @@ class PlayerComposeActivity : ComponentActivity(), PlayerSurfaceView.Listener {
         isPlaying = true
         lastTouchMs = System.currentTimeMillis()
         android.os.Handler(mainLooper).post(positionPoll)
+        statusText = "playing ${media.name}"
         Log.i(TAG, "playback started: ${media.absolutePath}")
     }
 
