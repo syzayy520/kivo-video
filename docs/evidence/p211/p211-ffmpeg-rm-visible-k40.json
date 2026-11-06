@@ -1,0 +1,25 @@
+{
+  "schema": "kivo.p211.decode/1",
+  "decoder": { "backend": "ffmpeg", "codec": "rv10" },
+  "media": "a211rm.rm",
+  "container": "rm",
+  "source": { "width": 640, "height": 352 },
+  "counters": {
+    "packets_read": 150,
+    "video_packets": 150,
+    "keyframes": 13,
+    "frames_decoded": 150,
+    "frames_rendered": 150,
+    "render_failures": 0,
+    "read_errors": 0
+  },
+  "timing": {
+    "wall_us": 4993814,
+    "decode_ms_total": 2169.148175
+  },
+  "render": { "sink": "anative_window_cpu" },
+  "routing": { "backend_decision": "ffmpeg", "reason": "MediaExtractor.setDataSource failed (container unsupported)" },
+  "pacing": "pts_sleep_simple",
+  "end_reason": "completed",
+  "first_error": null
+}

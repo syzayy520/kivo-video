@@ -1,0 +1,25 @@
+{
+  "schema": "kivo.p211.decode/1",
+  "decoder": { "backend": "ffmpeg", "codec": "wmv2" },
+  "media": "a211wmv.wmv",
+  "container": "asf",
+  "source": { "width": 640, "height": 360 },
+  "counters": {
+    "packets_read": 258,
+    "video_packets": 150,
+    "keyframes": 13,
+    "frames_decoded": 150,
+    "frames_rendered": 2,
+    "render_failures": 148,
+    "read_errors": 0
+  },
+  "timing": {
+    "wall_us": 6322491,
+    "decode_ms_total": 3861.585615
+  },
+  "render": { "sink": "anative_window_cpu" },
+  "routing": { "backend_decision": "ffmpeg", "reason": "MediaExtractor found no video track (container likely unsupported)" },
+  "pacing": "pts_sleep_simple",
+  "end_reason": "completed",
+  "first_error": "ANativeWindow_lock failed"
+}

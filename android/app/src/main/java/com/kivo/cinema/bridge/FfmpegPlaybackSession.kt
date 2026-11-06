@@ -112,8 +112,21 @@ object FfmpegRouting {
 
     fun probe(media: File): Decision {
         val extractor = android.media.MediaExtractor()
-        return try {
+        // 判据 1（容器可解）：setDataSource 抛异常 = 平台明说"读不了" → 软解。
+        // 首版这里把整个探测体包进一个大 catch、一律回 mediacodec——
+        // 结果 rm 片（setDataSource 直接抛）被误路由进硬解路径然后 open 失败，
+        // 真机当场暴露。判据的两层失败各有归属，不许合并成一个 catch。
+        val containerOk = runCatching {
             extractor.setDataSource(media.absolutePath)
+        }.isSuccess
+        if (!containerOk) {
+            runCatching { extractor.release() }
+            return Decision(
+                true, "ffmpeg",
+                "MediaExtractor.setDataSource failed (container unsupported)"
+            )
+        }
+        return try {
             var videoFormat: android.media.MediaFormat? = null
             for (i in 0 until extractor.trackCount) {
                 val format = extractor.getTrackFormat(i)
@@ -130,6 +143,7 @@ object FfmpegRouting {
                     "MediaExtractor found no video track (container likely unsupported)"
                 )
             } else {
+                // 判据 2（解码可解）：平台找不到解码器（含软解解码器）→ 软解。
                 val mime = format.getString(android.media.MediaFormat.KEY_MIME) ?: "?"
                 val decoderName = runCatching {
                     android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
@@ -141,9 +155,6 @@ object FfmpegRouting {
                     Decision(false, "mediacodec", "decoder '$decoderName' available for $mime")
                 }
             }
-        } catch (e: Exception) {
-            // setDataSource/枚举失败：无法证明 MediaCodec 不行 → 走历史路径（零回归）。
-            Decision(false, "mediacodec", "routing probe failed (${e.message}); using default path")
         } finally {
             runCatching { extractor.release() }
         }
