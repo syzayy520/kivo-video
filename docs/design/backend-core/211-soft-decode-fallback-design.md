@@ -141,3 +141,21 @@ UI（213 才开始；**Rex UI 拆解推迟到 213 开工时再做**——用户 
 架构红线核对：三件套无任何 Android 依赖（`KIVO_ENABLE_FFMPEG` 门控的纯 C++），
 `core/` 不受影响——软解家族落 `runtime/local_media/`（§四 家族树不变，
 `ffmpeg_render_sink` 的职责收窄为"RGBA 直写窗口"）。
+
+---
+
+## 九、Android fd 桥定稿（2026-11-07 实读 ffmpeg_adapter/custom_io）
+
+桌面软解路径**本来就是回调 IO**，不走 `fopen`：
+`FfmpegAdapter::open_custom_io(FfmpegInputConfig)`（`avio_alloc_context` + 回调，
+`ffmpeg_custom_io.cpp`，129 行）+ `LocalMediaSourceSession::ffmpeg_callbacks()`
+（`read_callback`/`seek_callback` 静态函数，背后是 `LocalFileSessionStore` + `SourceSession`）。
+
+**Android 侧的接入面因此只有一格**：实现一个 fd 版的 `FfmpegInputCallbacks`
+（`pread(fd, …)` + `lseek`，fd/offset/length 语义与 `MediaExtractorSource::open_fd`
+完全同款——JNI 传进来的就是这三个值）。预计 ≤60 行，落
+`runtime/local_media/ffmpeg_fd_callbacks.{hpp,cxx}`。
+`LocalFileSessionStore`/`SourceSession`（providers 族）桌面专用，不复用。
+
+修正 §八 的一处预期：Android 差异不是"custom_io 的 fd 桥待接"，
+而是"**回调接口已存在，只差一个 fd 实现**"。
