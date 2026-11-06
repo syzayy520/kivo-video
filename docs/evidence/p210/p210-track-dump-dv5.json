@@ -1,0 +1,70 @@
+{
+  "schema": "kivo.p12e.hdr-probe/3",
+  "generated_at_unix_ms": 1793978821291,
+  "media": "/data/local/tmp/dv210_dv5.mp4",
+  "mime": "video/dolby-vision",
+  "width": 1920,
+  "height": 1080,
+  "source_profile": 32,
+  "source_color_standard": null,
+  "source_color_transfer": null,
+  "source_color_range": null,
+  "hdr_static_info_bytes": null,
+  "hdr_kind": "sdr",
+  "hdr_kind_reason": "track format carries neither color-standard nor color-transfer; nothing to classify or deliver (this is not a claim that the source is SDR)",
+  "track_format_dump": "mime: string(video/dolby-vision), durationUs: int64(10000000), frame-count: int32(300), max-bitrate: int32(8235489), track-id: int32(1), language: string(und), width: int32(1920), height: int32(1080), display-width: int32(1920), display-height: int32(1080), sar-width: int32(1), sar-height: int32(1), max-input-size: int32(79656), frame-rate: int32(30), csd-0: data, profile: int32(32), level: int32(32), csd-2: data}",
+  "first_sample": {
+    "read_ok": true,
+    "is_encrypted": false,
+    "is_sync": true,
+    "size": 66466
+  },
+  "attempts": [
+    {
+      "case": "track_format_as_is",
+      "configure_ok": false,
+      "configure_status": "createDecoderByType returned null",
+      "start_ok": false,
+      "output_read_ok": false,
+      "output_color_standard": null,
+      "output_color_transfer": null,
+      "output_color_range": null,
+      "note": null
+    },
+    {
+      "case": "explicit_color_write",
+      "configure_ok": false,
+      "configure_status": "createDecoderByType returned null",
+      "start_ok": false,
+      "output_read_ok": false,
+      "output_color_standard": null,
+      "output_color_transfer": null,
+      "output_color_range": null,
+      "note": null
+    },
+    {
+      "case": "request_sdr_transfer",
+      "configure_ok": false,
+      "configure_status": "createDecoderByType returned null",
+      "start_ok": false,
+      "output_read_ok": false,
+      "output_color_standard": null,
+      "output_color_transfer": null,
+      "output_color_range": null,
+      "note": null
+    }
+  ],
+  "verdict": {
+    "both_started": false,
+    "same_color_after_start": null,
+    "reading": "at least one attempt failed to start; no comparison can be made"
+  },
+  "sdr_transfer_request": {
+    "requested_transfer": 3,
+    "start_ok": false,
+    "output_transfer": null,
+    "honoured": false,
+    "reading": "the decoder kept the source transfer after start, so the SDR output request was ignored; decoder-side tone mapping is not available on this component"
+  },
+  "scope": "this probe configures WITHOUT a window (ByteBuffer mode); it does not prove what the Surface playback path negotiates"
+}

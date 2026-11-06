@@ -15,6 +15,9 @@ enum class HdrKind : std::int32_t {
     kSdr = 0,
     kHdr10 = 1,  ///< transfer = ST2084 (PQ)，standard = BT2020
     kHlg = 2,    ///< transfer = HLG，standard = BT2020
+    /// DV profile 8.x（210）。**枚举值只能往后加**（既有证据里存的是旧数值）。
+    /// A 档语义：BL 是 HDR10 兼容流，按 HDR10 透传；RPU 不处理（没有映射层）。
+    kDolbyVision = 3,
 };
 
 [[nodiscard]] inline const char* hdr_kind_name(HdrKind kind) noexcept {
@@ -25,6 +28,8 @@ enum class HdrKind : std::int32_t {
             return "hdr10";
         case HdrKind::kHlg:
             return "hlg";
+        case HdrKind::kDolbyVision:
+            return "dolby_vision";
     }
     return "unknown";
 }

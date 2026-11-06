@@ -6,7 +6,9 @@
 #include <pthread.h>
 #endif
 
+#include "video/video_plane/backends/mediacodec/decode/dv_config_facts.hpp"
 #include "video/video_plane/backends/mediacodec/decode/mediaformat_color_io.hpp"
+#include "video/video_plane/backends/mediacodec/decode/mediaformat_dv_io.hpp"
 #include "video/video_plane/backends/mediacodec/decode/mediacodec_format_guard.hpp"
 #include "video/video_plane/backends/mediacodec/source/encryption_facts.hpp"
 #include "video/video_plane/backends/mediacodec/present/surface_dataspace.hpp"
@@ -77,6 +79,27 @@ SessionOutcome DecodeSession::open(int fd, std::int64_t offset, std::int64_t len
         return {SessionOutcome::Code::kEncryptedUnsupported, encryption.reason};
     }
 
+    // 210：DV 识别，**早于颜色分类**。
+    //
+    // 为什么在前：dv5 片源轨道上连颜色键都没有，`classify_hdr` 会判 sdr 放过去，
+    // 最后死在模糊的"没有解码器"上（探针实测：createDecoderByType 对
+    // video/dolby-vision 返回 null）—— 那正是这张卡要消灭的失败形状。
+    // 判定与理由全部来自 `assess_dv`（纯逻辑，桌面单测钉住）；这里只接线。
+    const DvTrackKeys dv_keys = read_dv_track_keys(source_.track_format());
+    std::vector<std::uint8_t> csd0_bytes;
+    const bool has_csd0 = read_csd0_bytes(source_.track_format(), csd0_bytes);
+    const BlCodec bl_codec =
+        has_csd0 ? sniff_bl_codec(csd0_bytes.data(), csd0_bytes.size()) : BlCodec::kUnknown;
+    const DvAssessment dv = assess_dv(source_.track_info().mime, dv_keys, bl_codec);
+    if (dv.verdict == DvVerdict::kUnsupported) {
+        return {SessionOutcome::Code::kDolbyVisionUnsupported, dv.reason};
+    }
+    context_.dv.verdict = dv.verdict;
+    context_.dv.dv_profile = dv.dv_profile;
+    context_.dv.dv_level = dv.dv_level;
+    context_.dv.bl_compatibility_id = dv_keys.bl_compatibility_id;
+    context_.dv.reason = dv.reason;
+
     // P12-E2：先判 HDR 类型，再设 dataspace，最后才 configure。
     //
     // 顺序是硬要求：dataspace 决定之后从 BufferQueue dequeue 出来的缓冲被标成什么。
@@ -88,7 +111,16 @@ SessionOutcome DecodeSession::open(int fd, std::int64_t offset, std::int64_t len
     source_facts.source_color_standard = source_tags.standard;
     source_facts.source_color_transfer = source_tags.transfer;
     source_facts.source_color_range = source_tags.range;
-    const HdrAssessment hdr = classify_hdr(source_facts);
+    HdrAssessment hdr;
+    if (dv.verdict == DvVerdict::kPassthroughHdr10) {
+        // DV 8.x：kind 由 DV 事实决定，不让色彩键的 hdr10 结论盖过去 ——
+        // 证据里 kind=dolby_vision 才能说清"这是 DV 片源按 HDR10 透传"，
+        // 与真 HDR10 片源是两回事（dataspace 动作相同，来源不同）。
+        hdr.kind = HdrKind::kDolbyVision;
+        hdr.reason = dv.reason;
+    } else {
+        hdr = classify_hdr(source_facts);
+    }
 
     context_.hdr.kind = hdr.kind;
     context_.hdr.kind_reason = hdr.reason;
@@ -111,8 +143,28 @@ SessionOutcome DecodeSession::open(int fd, std::int64_t offset, std::int64_t len
               "kivo_hdr_probe, honoured=false), so no HDR-to-SDR mapping happens here";
 
     const VideoTrackInfo& info = source_.track_info();
-    const DecodeOutcome configured =
-        decoder_.configure(info.mime, source_.track_format(), window);
+    // 210：8.x 透传的 configure 用**重建格式 + 覆盖 mime**：
+    // - mime 不重写就是"识别了却播不了"（这颗设备没有 dolby-vision 解码器，探针实测）；
+    // - 重建格式（make_configure_format 家族）天然不抄 csd-2 与 DV 专有键
+    //   （profile=256 这类 DV 位标志对 HEVC 解码器是毒键：它不是合法 HEVC profile）。
+    const bool dv_passthrough = dv.verdict == DvVerdict::kPassthroughHdr10;
+    DecodeOutcome configured;
+    if (dv_passthrough) {
+        AMediaFormat* rebuilt =
+            make_configure_format_with_mime(source_.track_format(), source_tags,
+                                            dv.bl_mime.c_str());
+        if (rebuilt == nullptr) {
+            return {SessionOutcome::Code::kConfigureFailed,
+                    "decoder: rebuilding the DV passthrough configure format failed"};
+        }
+        context_.dv.bl_mime = dv.bl_mime;
+        context_.dv.configure_format_rebuilt = true;
+        configured = decoder_.configure(dv.bl_mime, rebuilt, window);
+        // configure 不接管所有权（P12-E2 记过这条 API 29 教训）：用完即删。
+        AMediaFormat_delete(rebuilt);
+    } else {
+        configured = decoder_.configure(info.mime, source_.track_format(), window);
+    }
     if (!configured.ok()) {
         return {SessionOutcome::Code::kConfigureFailed, "decoder: " + configured.message};
     }

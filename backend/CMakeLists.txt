@@ -2639,6 +2639,34 @@ endif()
 add_test(NAME kivo_p12f3b_encryption_tests COMMAND kivo_p12f3b_encryption_tests)
 set_tests_properties(kivo_p12f3b_encryption_tests PROPERTIES TIMEOUT 60)
 
+# ─── 210: DV-A 识别 + 透传 ───
+# 判定层的输入是平台键（mime / profile / level / bl_compatibility_id），规则是纯函数
+# —— 桌面钉住判定，真机只负责键值（`mediaformat_dv_io.cxx` 碰 `AMediaFormat`，只在
+# Android 侧编译，注册在 `android/app/src/main/cpp/CMakeLists.txt`）。
+# 实测依据（键编码 / 无 DV 解码器）：`docs/evidence/p210/p210-track-dump-*.json`。
+set(KIVO_P210_DV_SOURCES
+  src/video/video_plane/backends/mediacodec/decode/dv_config_facts.cxx
+)
+add_library(kivo_p210_dv STATIC ${KIVO_P210_DV_SOURCES})
+target_include_directories(kivo_p210_dv PUBLIC
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p210_dv PUBLIC cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p210_dv PRIVATE /utf-8 /W4)
+endif()
+
+add_executable(kivo_p210_dv_tests
+  tests/video/decode/p210_dv_tests/dv_config_facts_tests.cpp
+)
+target_link_libraries(kivo_p210_dv_tests PRIVATE kivo_p210_dv)
+target_compile_features(kivo_p210_dv_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p210_dv_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p210_dv_tests COMMAND kivo_p210_dv_tests)
+set_tests_properties(kivo_p210_dv_tests PROPERTIES TIMEOUT 60)
+
 # ─── P12-F1: seek 预算判定 ───
 # G8（首帧 < 150 ms）的判定是纯函数：它只吃"四个耗时 + 两个位置"，不碰平台。
 # 抽出来的理由与 C5/C6 相同：判定规则要能在桌面上被钉住，真机只负责提供数字。

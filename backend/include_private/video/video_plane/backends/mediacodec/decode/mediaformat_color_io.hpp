@@ -30,6 +30,14 @@ namespace kivo::video::mediacodec {
 [[nodiscard]] AMediaFormat* make_configure_format(const AMediaFormat* track_format,
                                                  const SourceColorTags& tags);
 
+/// 同 `make_configure_format`，但 mime 用调用方给的值（210 DV 透传）。
+/// `mime_override` 非空时，重建格式里不抄轨道的 mime —— 8.x 的 BL 要以
+/// `video/hevc` 的身份进 HEVC 解码器；其余键的取舍规则一字不差
+/// （csd-2 与 DV 专有键本来就不在抄写清单里，正好是透传需要的干净格式）。
+[[nodiscard]] AMediaFormat* make_configure_format_with_mime(const AMediaFormat* track_format,
+                                                           const SourceColorTags& tags,
+                                                           const char* mime_override);
+
 /// 在"复制再写"的格式上加一个 `color-transfer-request`（P12-E4）。
 ///
 /// **这条键与 `color-format` 是两件独立的事**：E1 已证这颗 OMX 组件在 configure 阶段

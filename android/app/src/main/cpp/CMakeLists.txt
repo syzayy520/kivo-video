@@ -149,6 +149,8 @@ add_library(kivo_backend_mediacodec STATIC
     "${KIVO_BACKEND}/src/video/video_plane/backends/mediacodec/decode/color_format_names.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/backends/mediacodec/decode/video_color_facts.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/backends/mediacodec/decode/mediaformat_color_io.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/backends/mediacodec/decode/mediaformat_dv_io.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/backends/mediacodec/decode/dv_config_facts.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/backends/mediacodec/decode/mediacodec_output_pcm_format.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/backends/mediacodec/decode/mediacodec_audio_decoder.cxx"
 

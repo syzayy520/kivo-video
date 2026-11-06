@@ -5,6 +5,7 @@
 #include "video/video_plane/core/metrics/alloc_probe.hpp"
 #include <string>
 
+#include "video/video_plane/backends/mediacodec/decode/dv_config_facts.hpp"
 #include "video/video_plane/backends/mediacodec/decode/hdr_delivery_facts.hpp"
 #include "video/video_plane/backends/mediacodec/source/encryption_facts.hpp"
 #include "video/video_plane/core/seek/seek_budget.hpp"
@@ -121,6 +122,10 @@ struct DecodeStats {
     /// HDR 交付事实（P12-E2）：分类依据、静态元数据字节数、dataspace 设置结果。
     /// 与 `color` 分开：`color` 说的是"位深协商"，这里说的是"HDR 标记有没有送到显示链路"。
     HdrDeliveryFacts hdr;
+
+    /// DV 交付事实（210）：判定 + 透传动作。非 DV 片源也出版（verdict=not_dolby_vision），
+    /// 否则"没印"和"没查"分不开 —— 与 hdr.kind 的成对铁律同源。
+    DvFacts dv;
 
     // ---- 终态 ----
     bool completed = false; ///< true 表示跑到自然结束

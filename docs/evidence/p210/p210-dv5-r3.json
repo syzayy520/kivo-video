@@ -1,0 +1,9 @@
+{
+  "schema": "kivo.p12f.negative/1",
+  "generated_at_unix_ms": 1793981044819,
+  "case": "dv-profile5",
+  "stage": "open",
+  "return_code": 13,
+  "media": "a210dv5.mp4",
+  "reason": "open(a210dv5.mp4): dv_profile=5 (IPT-coded BL, not backward-compatible with HDR10); refused before configure so the failure names the profile instead of a generic decoder error"
+}

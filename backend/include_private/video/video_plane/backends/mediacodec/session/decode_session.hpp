@@ -43,6 +43,10 @@ struct SessionOutcome {
         /// 轨道声明了 sample 级加密（P12-F3B）。**在 `configure()` 之前就拒绝** ——
         /// 加密轨配解码器只会得到垃圾帧，那比直接拒绝更糟（看起来像"播了"）。
         kEncryptedUnsupported = 11,
+        /// DV 片源但 A 档不收（210）。同样**在 `configure()` 之前就拒绝**：
+        /// profile 5 的 BL 是 IPT 编码，配进 HEVC 解码器只会出垃圾色；
+        /// 拒绝时 reason 点名 dv_profile，而不是让用户看到模糊的"没有解码器"。
+        kDolbyVisionUnsupported = 12,
     };
 
     Code code = Code::kOk;

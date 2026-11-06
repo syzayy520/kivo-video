@@ -68,6 +68,12 @@ SourceColorTags read_source_color_tags(const AMediaFormat* track_format) {
 
 AMediaFormat* make_configure_format(const AMediaFormat* track_format,
                                    const SourceColorTags& tags) {
+    return make_configure_format_with_mime(track_format, tags, nullptr);
+}
+
+AMediaFormat* make_configure_format_with_mime(const AMediaFormat* track_format,
+                                             const SourceColorTags& tags,
+                                             const char* mime_override) {
     if (track_format == nullptr) {
         return nullptr;
     }
@@ -79,9 +85,15 @@ AMediaFormat* make_configure_format(const AMediaFormat* track_format,
 
     // 关键几项：mime / 几何 / 参数集 / 输入缓冲上界。
     // csd-0 必须抄 —— AVC/HEVC 没有 SPS/PPS 连 configure 都过不去（E1 探针已验证）。
-    const char* mime = nullptr;
-    if (AMediaFormat_getString(from, AMEDIAFORMAT_KEY_MIME, &mime) && mime != nullptr) {
-        AMediaFormat_setString(out, AMEDIAFORMAT_KEY_MIME, mime);
+    // 210：mime_override 非空时用调用方的（DV 8.x 的 BL 以 video/hevc 进 HEVC 解码器），
+    // 否则照抄轨道 mime。
+    if (mime_override != nullptr) {
+        AMediaFormat_setString(out, AMEDIAFORMAT_KEY_MIME, mime_override);
+    } else {
+        const char* mime = nullptr;
+        if (AMediaFormat_getString(from, AMEDIAFORMAT_KEY_MIME, &mime) && mime != nullptr) {
+            AMediaFormat_setString(out, AMEDIAFORMAT_KEY_MIME, mime);
+        }
     }
     copy_int32_if_present(from, out, AMEDIAFORMAT_KEY_WIDTH);
     copy_int32_if_present(from, out, AMEDIAFORMAT_KEY_HEIGHT);

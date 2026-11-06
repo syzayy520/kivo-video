@@ -168,7 +168,12 @@ int session_open(SessionHandle* handle, JNIEnv* env, jobject surface, int fd,
         // 第四条判据只能靠翻 reason 字符串，而那正是最容易出错的地方。
         const bool encrypted = outcome.code ==
             kivo::video::mediacodec::SessionOutcome::Code::kEncryptedUnsupported;
-        return fail(handle, encrypted ? 12 : 5, "open(" + label + "): " + error);
+        // 210：DV 拒绝给单独返回码（13），理由同加密那条：取证要能按码分开统计，
+        // "这是 DV 档位不收"和"这份文件打不开"不能共用一个码。
+        const bool dolby_vision_unsupported = outcome.code ==
+            kivo::video::mediacodec::SessionOutcome::Code::kDolbyVisionUnsupported;
+        return fail(handle, encrypted ? 12 : (dolby_vision_unsupported ? 13 : 5),
+                    "open(" + label + "): " + error);
     }
     handle->last_error.clear();
     handle->source_bytes = length;

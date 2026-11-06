@@ -119,8 +119,10 @@ DataSpaceOutcome apply_surface_dataspace(ANativeWindow* window, HdrKind kind) {
         return out;
     }
 
+    // 210：kDolbyVision 落 PQ 不是巧合 —— A 档的定义就是"profile 8.x 的 BL 本来是
+    // BT2020/PQ 的 HDR10 流，按 HDR10 透传"，RPU 不处理（没有映射层就是 A 档）。
     const std::int32_t data_space =
-        kind == HdrKind::kHdr10 ? ADATASPACE_BT2020_PQ : ADATASPACE_BT2020_HLG;
+        kind == HdrKind::kHlg ? ADATASPACE_BT2020_HLG : ADATASPACE_BT2020_PQ;
 
     const SetBuffersDataSpaceFn fn = resolved_symbol().fn;
     if (fn == nullptr) {

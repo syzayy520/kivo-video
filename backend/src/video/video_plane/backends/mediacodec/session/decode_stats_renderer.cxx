@@ -1,6 +1,7 @@
 #include "video/video_plane/backends/mediacodec/session/decode_stats_renderer.hpp"
 
 #include "video/video_plane/backends/mediacodec/decode/color_format_names.hpp"
+#include "video/video_plane/backends/mediacodec/decode/dv_config_facts.hpp"
 #include "video/video_plane/backends/mediacodec/session/session_end_reason.hpp"
 #include "video/video_plane/backends/mediacodec/source/encryption_facts.hpp"
 #include "video/video_plane/backends/mediacodec/source/encryption_key_names.hpp"
@@ -266,6 +267,38 @@ std::string render_decode_stats_json(const DecodeStats& stats,
         << ",\n";
     out << "        \"reason\": \"" << escape_json_string(stats.hdr.tonemap.reason) << "\"\n";
     out << "      }\n";
+    out << "    },\n";
+
+    // 210：DV 事实。verdict 与 reason 成对（hdr.kind 的铁律同源）；
+    // 非 DV 片源也要印 —— 否则"没印"和"没查"分不开。
+    out << "    \"dv\": {\n";
+    out << "      \"verdict\": \"" << dv_verdict_name(stats.dv.verdict) << "\",\n";
+    auto optional_dv_int = [&out](const char* key, std::int32_t value, bool comma) {
+        out << "      \"" << key << "\": ";
+        if (value < 0) {
+            out << "null";
+        } else {
+            out << value;
+        }
+        out << (comma ? "," : "") << "\n";
+    };
+    optional_dv_int("dv_profile", stats.dv.dv_profile, true);
+    optional_dv_int("dv_level", stats.dv.dv_level, true);
+    optional_dv_int("bl_compatibility_id", stats.dv.bl_compatibility_id, true);
+    out << "      \"bl_mime\": ";
+    if (stats.dv.bl_mime.empty()) {
+        out << "null,\n";
+    } else {
+        out << "\"" << escape_json_string(stats.dv.bl_mime) << "\",\n";
+    }
+    out << "      \"configure_format_rebuilt\": "
+        << (stats.dv.configure_format_rebuilt ? "true" : "false") << ",\n";
+    out << "      \"reason\": ";
+    if (stats.dv.reason.empty()) {
+        out << "null\n";
+    } else {
+        out << "\"" << escape_json_string(stats.dv.reason) << "\"\n";
+    }
     out << "    },\n";
 
     out << "    \"verdict\": \"" << color_verdict_name(color.verdict) << "\",\n";

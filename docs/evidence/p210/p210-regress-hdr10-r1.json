@@ -1,0 +1,171 @@
+{
+  "schema": "kivo.p12c.decode/19",
+  "generated_at_unix_ms": 1793981655842,
+  "source": {
+    "mime": "video/hevc",
+    "width": 1920,
+    "height": 1080,
+    "duration_us": 10000000,
+    "encryption": {
+      "crypto_mode_present": false,
+      "crypto_mode": null,
+      "crypto_mode_name": null,
+      "default_iv_size": null,
+      "key_declared": false,
+      "verdict": "unknown",
+      "reason": "track format carries no crypto-mode key, so the platform did not declare whether this track is encrypted; playback continues, but this run cannot prove the track was clear"
+    }
+  },
+  "decoder": {
+    "codec_name": "OMX.qcom.video.decoder.hevc",
+    "output_target": "surface"
+  },
+  "color": {
+    "source_mime": "video/hevc",
+    "source_profile": 4096,
+    "source_is_10bit": true,
+    "negotiated_format": 2141391878,
+    "negotiated_name": "qcom_private",
+    "negotiated_bit_depth": null,
+    "color_standard": 6,
+    "color_transfer": 6,
+    "color_range": 2,
+    "source_color_standard": 6,
+    "source_color_transfer": 6,
+    "source_color_range": 2,
+    "delivered_color_standard": 6,
+    "delivered_color_transfer": 6,
+    "delivered_color_range": 2,
+    "configure_format": {
+      "copied": true,
+      "fallback_reason": null
+    },
+    "hdr": {
+      "kind": "hdr10",
+      "kind_reason": "standard=6(bt2020), transfer=6(st2084(pq))",
+      "static_info_bytes": null,
+      "dataspace": {
+        "applied": true,
+        "value": 163971072,
+        "reason": null
+      },
+      "dataspace_readback": {
+        "ok": true,
+        "value": 163971072,
+        "reason": null
+      },
+      "tonemap": {
+        "implemented": false,
+        "reason": "not implemented: this pipeline writes decoded frames straight to the Surface, so there is no pixel access; the decoder also ignored color-transfer-request (probe kivo_hdr_probe, honoured=false), so no HDR-to-SDR mapping happens here"
+      }
+    },
+    "dv": {
+      "verdict": "not_dolby_vision",
+      "dv_profile": null,
+      "dv_level": null,
+      "bl_compatibility_id": null,
+      "bl_mime": null,
+      "configure_format_rebuilt": false,
+      "reason": "mime is video/hevc; not a Dolby Vision track"
+    },
+    "verdict": "indeterminate",
+    "reason": "source is 10-bit (profile 4096) but the negotiated output is qcom_private(2141391878) [vendor-private: does not express bit depth] — bit depth is not expressed by this value, so 10-bit delivery is unverified on this path"
+  },
+  "seek": {
+    "requests": 0,
+    "target_us": null,
+    "landing_us": null,
+    "prepare_us": null,
+    "first_frame_us": null,
+    "total_us": null,
+    "budget_us": 150000,
+    "pass": false,
+    "video_first_pts_us": null,
+    "reason": "no seek happened in this run; the 150 ms budget cannot be judged from a run without a seek",
+    "av": {
+      "applicable": false,
+      "audio_present": false,
+    "audio_landing_us": null,
+      "gap_us": -1,
+      "limit_us": 40000,
+      "pass": false,
+      "reason": "source has no audio track (or audio was not attached); the A/V criterion does not apply to this run — this is not a pass"
+    }
+  },
+  "counters": {
+    "samples_submitted": 300,
+    "samples_rejected": 0,
+    "bytes_submitted": 9419770,
+    "frames_received": 301,
+    "frames_released": 301,
+    "frames_rendered": 300,
+    "frames_dropped_late": 0,
+    "frames_discarded_no_surface": 0
+  },
+  "pipeline": {
+    "mode": "merged",
+    "present": true,
+    "present_schedule": "surface_at_time",
+    "submit": {
+      "calls": 1095,
+      "mean_us": 185.020091,
+      "total_us": 202597,
+      "max_us": 27008
+    },
+    "eos": {
+      "calls": 1,
+      "mean_us": 109.000000,
+      "total_us": 109,
+      "max_us": 109
+    },
+    "receive": {
+      "calls": 892,
+      "mean_us": 1569.915919,
+      "total_us": 1400365,
+      "max_us": 14318
+    },
+    "release": {
+      "calls": 301,
+      "mean_us": 100.122924,
+      "total_us": 30137,
+      "max_us": 6271
+    }
+  },
+  "surface_rebuild": {
+    "rebuilds": 0,
+    "gap_ms": -1,
+    "resume_ms": -1,
+    "frames_lead": 0
+  },
+  "metrics": {
+    "cpu": {"valid": true, "reason": "", "wall_ns": 2037922916, "thread_cpu_ns": 45894373, "process_cpu_ns": 570711600, "thread_ratio": 0.022520, "process_ratio": 0.280046},
+    "alloc": {"hook_installed": true, "armed": false, "calls_total": 18, "calls_steady": 11, "bytes_total": 3232, "bytes_steady": 2432, "thread_count": 2, "overflow_calls": 0, "threads": [{"tid": 2363, "name": "com.kivo.cinema", "calls": 17, "bytes": 3200, "calls_steady": 10, "bytes_steady": 2400}, {"tid": 2592, "name": "kivo-decode", "calls": 1, "bytes": 32, "calls_steady": 1, "bytes_steady": 32}]},
+    "buffers": {"pool_owner": "codec", "received": 301, "released": 301, "in_flight": 0, "leaked": 0, "reason": ""},
+    "present_gap": {"iterations": 891, "long_gaps": 0, "max_gap_ns": 27795573, "worst_submit_ns": 27019218, "worst_pump_ns": 775625, "worst_pace_ns": 0, "worst_release_ns": 204062, "worst_unaccounted_ns": 730, "buckets": [883, 7, 1, 0, 0, 0, 0, 0, 0]}
+  },
+  "timing": {
+    "wall_us": 1698339,
+    "position_us": -1,
+    "first_frame_latency_us": 80135,
+    "decode_fps": 176.643179,
+    "speed_vs_realtime": 5.888106,
+    "pause_count": 0,
+    "pause_total_us": 0
+  },
+  "cold_start": {
+    "applicable": true,
+    "first_frame_us": 80135,
+    "budget_us": 300000,
+    "pass": true,
+    "reason": null
+  },
+  "outcome": {
+    "completed": true,
+    "end_reason": "completed",
+    "error": ""
+  },
+  "pace": {
+    "enabled": false,
+    "reason": "pacing not attached"
+  }
+}
