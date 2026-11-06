@@ -12,3 +12,6 @@ androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "a
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+# 213：Compose Compiler Gradle 插件（Kotlin 2.0 起 compose=true 必须配它）。
+# 版本 = Kotlin 版本；AGP 9.4.1 内置 Kotlin 2.1.x，compose-compiler 2.1.21 兼容。
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version = "2.1.21" }

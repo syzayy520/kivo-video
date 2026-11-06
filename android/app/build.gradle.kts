@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.compose.compiler)
 }
 
 // AGP 9.x：Kotlin 编译内置，无需 kotlin-android 插件。
@@ -94,10 +95,18 @@ android {
     buildFeatures {
         prefab = false
         buildConfig = true
+        compose = true
     }
 }
 
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+    // 213：Compose 播放页骨架（BOM 统一版本，material3 + activity-compose）
+    val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
+    implementation(composeBom)
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.activity:activity-compose:1.9.3")
 }
