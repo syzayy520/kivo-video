@@ -165,7 +165,12 @@ class PlayerComposeActivity : ComponentActivity() {
         lastTouchMs = System.currentTimeMillis()
         android.os.Handler(mainLooper).post(positionPoll)
         statusText = "playing ${media.name}"
-        Log.i(TAG, "playback started: ${media.absolutePath}")
+        // 214：会话所有权转移给 Foreground Service——Activity 销毁后会话不死。
+        com.kivo.cinema.playback.PlaybackSessionHolder.offer(session)
+        startForegroundService(
+            android.content.Intent(this, com.kivo.cinema.playback.PlaybackService::class.java)
+        )
+        Log.i(TAG, "playback started: ${media.absolutePath} (service adopted)")
     }
 
     private fun togglePlayPause() {

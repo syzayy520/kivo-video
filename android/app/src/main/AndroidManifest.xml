@@ -5,7 +5,9 @@
         android:name="android.hardware.vulkan.version"
         android:required="false" />
 
-    <application
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+<application
         android:allowBackup="false"
         android:label="Kivo Cinema"
         android:supportsRtl="true"
@@ -43,6 +45,10 @@
             android:exported="true"
             android:screenOrientation="landscape" />
 
+            <service
+            android:name=".playback.PlaybackService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="false" />
     </application>
 
 </manifest>
