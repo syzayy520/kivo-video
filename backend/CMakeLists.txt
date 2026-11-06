@@ -2726,6 +2726,23 @@ if(KIVO_ENABLE_FFMPEG AND FFMPEG_ROOT AND EXISTS "${FFMPEG_ROOT}/include/libavco
     ENVIRONMENT "PATH=${FFMPEG_ROOT}/bin;%PATH%")
 endif()
 
+# ─── 212: 字幕位图合成（纯函数，零依赖）───
+# 混合公式 + alpha 方向（VSFilter 惯例：color 低字节 0=不透明）的桌面钉子。
+# libass 桥（libass_renderer）只在 Android 侧链接（dist 是 arm64），
+# 其中的逻辑部分全部下沉到本单元。
+add_executable(kivo_p212_overlay_blend_tests
+  tests/video/subtitle_plane/overlay_blend_tests.cpp
+)
+target_include_directories(kivo_p212_overlay_blend_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/backend/include_private
+)
+target_compile_features(kivo_p212_overlay_blend_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p212_overlay_blend_tests PRIVATE /utf-8 /W4)
+endif()
+add_test(NAME kivo_p212_overlay_blend_tests COMMAND kivo_p212_overlay_blend_tests)
+set_tests_properties(kivo_p212_overlay_blend_tests PROPERTIES TIMEOUT 60)
+
 # ─── P12-F1: seek 预算判定 ───
 # G8（首帧 < 150 ms）的判定是纯函数：它只吃"四个耗时 + 两个位置"，不碰平台。
 # 抽出来的理由与 C5/C6 相同：判定规则要能在桌面上被钉住，真机只负责提供数字。
