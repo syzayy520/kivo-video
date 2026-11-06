@@ -72,3 +72,18 @@ python tools/inject_dvcc.py tests/real/dv210/host_hdr10_safe.mp4 out.mp4 --profi
   postScript 在 Ghidra 12.2 上会因 PyGhidra 未启用而失败）。
 - `classify_hdr` 与 DV 判定的优先级已定死：DV 事实（mime=dolby-vision）先于色彩键——
   dv5 片源没有颜色键，旧分类会判 sdr 放过去，这是本卡消灭的失败形状。
+
+## 七、跨设备补验（2026-11-07，华为 MatePad MRR-W29）
+
+§三 的"单机"条目补上对照数据：**MRR-W29（Android 12 / EMUI 12 / kona）上行为与 K40 逐位一致**——
+
+| 轮 | 结果 |
+| --- | --- |
+| dv5-matepad | rc=13、reason 点名 `dv_profile=5`（拒绝逻辑跨厂商一致） |
+| dv81-matepad | kind=`dolby_vision`、verdict=`passthrough_hdr10`、dataspace=163971072、OMX.qcom…hevc、301/300/**0** |
+
+平台事实（`mime=video/dolby-vision`、位标志键 `1<<profile`）在 Android 12/华为栈上同样成立。
+证据：`docs/evidence/p210/p210-{dv5,dv81}-matepad-r1.json`（判定器覆盖：12 份 / 116 项全 PASS）。
+注意：MRR-W29 是 **kona 平台（骁龙 865）**——与 K40 同 SoC，**不构成机型矩阵（241）的新 SoC**；
+它补充的是 OS 版本（12 vs 13）与 OEM 栈（华为 vs MIUI）维度。校验器未改：文件名含
+`dv81`/`dv5` 即按同一判据查，跨设备证据零改动通过。

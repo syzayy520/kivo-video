@@ -1,0 +1,171 @@
+{
+  "schema": "kivo.p12c.decode/19",
+  "generated_at_unix_ms": 1793984428821,
+  "source": {
+    "mime": "video/dolby-vision",
+    "width": 1920,
+    "height": 1080,
+    "duration_us": 10000000,
+    "encryption": {
+      "crypto_mode_present": false,
+      "crypto_mode": null,
+      "crypto_mode_name": null,
+      "default_iv_size": null,
+      "key_declared": false,
+      "verdict": "unknown",
+      "reason": "track format carries no crypto-mode key, so the platform did not declare whether this track is encrypted; playback continues, but this run cannot prove the track was clear"
+    }
+  },
+  "decoder": {
+    "codec_name": "OMX.qcom.video.decoder.hevc",
+    "output_target": "surface"
+  },
+  "color": {
+    "source_mime": "video/hevc",
+    "source_profile": null,
+    "source_is_10bit": null,
+    "negotiated_format": 2141391878,
+    "negotiated_name": "qcom_private",
+    "negotiated_bit_depth": null,
+    "color_standard": 6,
+    "color_transfer": 6,
+    "color_range": 2,
+    "source_color_standard": 6,
+    "source_color_transfer": 6,
+    "source_color_range": 2,
+    "delivered_color_standard": 6,
+    "delivered_color_transfer": 6,
+    "delivered_color_range": 2,
+    "configure_format": {
+      "copied": true,
+      "fallback_reason": null
+    },
+    "hdr": {
+      "kind": "dolby_vision",
+      "kind_reason": "dv_profile=8 (HDR10-compatible BL); this device has no dolby-vision decoder (probe track_format_dump: createDecoderByType returned null), so the BL is handed to the HEVC decoder with the mime rewritten; RPU NALs stay in-stream and are dropped by the decoder; DV metadata itself is not interpreted (tier A has no mapping layer)",
+      "static_info_bytes": null,
+      "dataspace": {
+        "applied": true,
+        "value": 163971072,
+        "reason": null
+      },
+      "dataspace_readback": {
+        "ok": true,
+        "value": 163971072,
+        "reason": null
+      },
+      "tonemap": {
+        "implemented": false,
+        "reason": "not implemented: this pipeline writes decoded frames straight to the Surface, so there is no pixel access; the decoder also ignored color-transfer-request (probe kivo_hdr_probe, honoured=false), so no HDR-to-SDR mapping happens here"
+      }
+    },
+    "dv": {
+      "verdict": "passthrough_hdr10",
+      "dv_profile": 8,
+      "dv_level": 1,
+      "bl_compatibility_id": 1,
+      "bl_mime": "video/hevc",
+      "configure_format_rebuilt": true,
+      "reason": "dv_profile=8 (HDR10-compatible BL); this device has no dolby-vision decoder (probe track_format_dump: createDecoderByType returned null), so the BL is handed to the HEVC decoder with the mime rewritten; RPU NALs stay in-stream and are dropped by the decoder; DV metadata itself is not interpreted (tier A has no mapping layer)"
+    },
+    "verdict": "indeterminate",
+    "reason": "source codec/profile is not in the known table (mime=video/hevc, profile=-1); cannot say whether 10-bit is expected"
+  },
+  "seek": {
+    "requests": 0,
+    "target_us": null,
+    "landing_us": null,
+    "prepare_us": null,
+    "first_frame_us": null,
+    "total_us": null,
+    "budget_us": 150000,
+    "pass": false,
+    "video_first_pts_us": null,
+    "reason": "no seek happened in this run; the 150 ms budget cannot be judged from a run without a seek",
+    "av": {
+      "applicable": false,
+      "audio_present": false,
+    "audio_landing_us": null,
+      "gap_us": -1,
+      "limit_us": 40000,
+      "pass": false,
+      "reason": "source has no audio track (or audio was not attached); the A/V criterion does not apply to this run — this is not a pass"
+    }
+  },
+  "counters": {
+    "samples_submitted": 300,
+    "samples_rejected": 0,
+    "bytes_submitted": 9419770,
+    "frames_received": 301,
+    "frames_released": 301,
+    "frames_rendered": 300,
+    "frames_dropped_late": 0,
+    "frames_discarded_no_surface": 0
+  },
+  "pipeline": {
+    "mode": "merged",
+    "present": true,
+    "present_schedule": "surface_at_time",
+    "submit": {
+      "calls": 1506,
+      "mean_us": 68.355246,
+      "total_us": 102943,
+      "max_us": 3775
+    },
+    "eos": {
+      "calls": 2,
+      "mean_us": 7509.500000,
+      "total_us": 15019,
+      "max_us": 8129
+    },
+    "receive": {
+      "calls": 1338,
+      "mean_us": 1706.050075,
+      "total_us": 2282695,
+      "max_us": 4772
+    },
+    "release": {
+      "calls": 301,
+      "mean_us": 35.322259,
+      "total_us": 10632,
+      "max_us": 416
+    }
+  },
+  "surface_rebuild": {
+    "rebuilds": 0,
+    "gap_ms": -1,
+    "resume_ms": -1,
+    "frames_lead": 0
+  },
+  "metrics": {
+    "cpu": {"valid": true, "reason": "", "wall_ns": 2834576822, "thread_cpu_ns": 72869792, "process_cpu_ns": 503890671, "thread_ratio": 0.025707, "process_ratio": 0.177766},
+    "alloc": {"hook_installed": true, "armed": false, "calls_total": 23, "calls_steady": 16, "bytes_total": 4352, "bytes_steady": 3536, "thread_count": 2, "overflow_calls": 0, "threads": [{"tid": 20593, "name": "com.kivo.cinema", "calls": 21, "bytes": 4288, "calls_steady": 14, "bytes_steady": 3472}, {"tid": 20645, "name": "kivo-decode", "calls": 2, "bytes": 64, "calls_steady": 2, "bytes_steady": 64}]},
+    "buffers": {"pool_owner": "codec", "received": 301, "released": 301, "in_flight": 0, "leaked": 0, "reason": ""},
+    "present_gap": {"iterations": 1337, "long_gaps": 0, "max_gap_ns": 8465260, "worst_submit_ns": 8359584, "worst_pump_ns": 104739, "worst_pace_ns": 0, "worst_release_ns": 30625, "worst_unaccounted_ns": 937, "buckets": [1336, 1, 0, 0, 0, 0, 0, 0, 0]}
+  },
+  "timing": {
+    "wall_us": 2478780,
+    "position_us": -1,
+    "first_frame_latency_us": 23607,
+    "decode_fps": 121.027280,
+    "speed_vs_realtime": 4.034243,
+    "pause_count": 0,
+    "pause_total_us": 0
+  },
+  "cold_start": {
+    "applicable": true,
+    "first_frame_us": 23607,
+    "budget_us": 300000,
+    "pass": true,
+    "reason": null
+  },
+  "outcome": {
+    "completed": true,
+    "end_reason": "completed",
+    "error": ""
+  },
+  "pace": {
+    "enabled": false,
+    "reason": "pacing not attached"
+  }
+}
