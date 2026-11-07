@@ -173,6 +173,16 @@ class PlayerComposeActivity : ComponentActivity() {
             return
         }
 
+        // 220 AC5：通用 URL 直开（file:// 本地对照 / http:// 本地代理）——
+        // 与 SMB 路径同会话类同解码器，传输层唯一变量。
+        val playUrl = intent.getStringExtra("kivo.playurl")
+        if (playUrl != null) {
+            startUrlPlayback(holder, playUrl,
+                intent.getStringExtra("kivo.label") ?: playUrl,
+                intent.getStringExtra("kivo.routing") ?: "file")
+            return
+        }
+
         statusText = "surface ok, probing..."
         val routing = FfmpegRouting.probe(media)
         statusText = "route=${routing.decision} reason=${routing.reason}"
@@ -315,6 +325,41 @@ class PlayerComposeActivity : ComponentActivity() {
             runCatching { smbProxy?.close() }
             finish()
         }
+    }
+
+    /** 通用 URL 直开（AC5 对照测量用）：与 SMB 路径共用 FfmpegPlaybackSession。 */
+    private fun startUrlPlayback(holder: SurfaceHolder, url: String, label: String,
+                                 routing: String) {
+        playbackStarted = true
+        smbTrace("url-play begin url=$url")
+        val fsession = com.kivo.cinema.bridge.FfmpegPlaybackSession(
+            java.io.File(label), label,
+            routingDecision = "ffmpeg",
+            routingReason = "playurl: $url"
+        )
+        smbFfSession = fsession
+        val rc = fsession.openUrlVideo(url, holder.surface)
+        smbTrace("url-play openUrlVideo rc=$rc")
+        if (rc != 0) {
+            statusText = "URL open failed: ${fsession.lastError}"
+            fsession.close()
+            smbFfSession = null
+            finish()
+            return
+        }
+        val started = fsession.start()
+        smbTrace("url-play start rc=$started")
+        if (started != 0) {
+            runCatching { fsession.stopAndCollectEvidence() }
+            finish()
+            return
+        }
+        isPlaying = true
+        smbStarted = System.currentTimeMillis()
+        lastTouchMs = smbStarted
+        durationMs = fsession.durationUs() / 1000
+        statusText = "playing $url"
+        android.os.Handler(mainLooper).post(positionPoll)
     }
 
     private fun togglePlayPause() {

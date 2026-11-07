@@ -15,6 +15,7 @@
         android:theme="@style/Theme.KivoCinema">
 
                 <activity android:name=".smb.SmbSpikeActivity" android:exported="true"/>
+                <activity android:name=".smb.SmbActivity" android:exported="true"/>
 <activity
             android:name=".ui.compose.PlayerComposeActivity"
             android:screenOrientation="landscape"
