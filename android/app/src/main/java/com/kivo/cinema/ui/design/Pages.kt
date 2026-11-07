@@ -184,13 +184,10 @@ internal fun relDays(addedSec: Long): String {
 @Composable
 internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>,
                           onAmbient: (Color) -> Unit = {}) {
-    // 手动轮播（用户实拍证伪自动滚动；M04-S01 的「自动计时」设置默认关）
+    // 手动轮播（用户实拍证伪自动滚动）
     val pagerState = androidx.compose.foundation.pager.rememberPagerState(
         pageCount = { candidates.size })
-    val conf = androidx.compose.ui.platform.LocalConfiguration.current
-    val heroH = (conf.screenHeightDp * 0.53f).dp
     var fgLight by remember { mutableStateOf(true) }
-    val ambient = remember { mutableStateOf(DesignTokens.bgCream) }
     LaunchedEffect(pagerState.currentPage, candidates.size) {
         val m = candidates.getOrNull(pagerState.currentPage)
         if (m == null) return@LaunchedEffect
@@ -200,8 +197,7 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>,
         }
         bmp?.let {
             fgLight = luminanceBelow(it) < 0.55f
-            ambient.value = ambientBelow(it)   // 第一屏背景 = 海报调色板（自适应）
-            onAmbient(ambient.value)
+            onAmbient(ambientBelow(it))
         }
     }
     val fg = if (fgLight) Color.White else DesignTokens.textMain
@@ -213,58 +209,39 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>,
             modifier = Modifier.fillMaxWidth(),
         ) { idx ->
             val m = candidates[idx]
-            Box(
+            // backdrop 16:9 顶宽——标题烙在素材 key art 里，Rex 不渲染 hero 标题
+            TmdbImage(m.backdropUrl, m.title,
                 Modifier
                     .fillMaxWidth()
-                    .height(heroH)
+                    .aspectRatio(16f / 9f))
+        }
+        Spacer(Modifier.height(12.dp))
+        val cur = candidates.getOrNull(pagerState.currentPage) ?: candidates.firstOrNull()
+        if (cur != null) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                TmdbImage(m.backdropUrl, m.title, Modifier.fillMaxSize())
-                // 底部融进第一屏环境色（海报与页面无硬边——参照自适应背景）
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(heroH * 0.3f)
-                        .align(Alignment.BottomCenter)
-                        .background(androidx.compose.ui.graphics.Brush.verticalGradient(
-                            listOf(Color.Transparent, ambient.value)))
-                )
-                // 内容层：标题大字（62% 高度）→ 类型·日期 → 简介 → 评分行（全部图内自适应色）
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Spacer(Modifier.weight(0.62f))
-                    Text(m.title, fontSize = 52.sp, fontWeight = FontWeight.Bold,
-                        color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        style = androidx.compose.ui.text.TextStyle(
-                            shadow = androidx.compose.ui.graphics.Shadow(
-                                color = Color.Black.copy(alpha = 0.35f),
-                                blurRadius = 12f)),
+                Text(cur.date, fontSize = DesignTokens.fontHeroMeta.sp,
+                    color = fgSub, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth())
+                Spacer(Modifier.height(6.dp))
+                if (cur.overview.isNotBlank()) {
+                    Text(cur.overview, fontSize = DesignTokens.fontHeroSynopsis.sp,
+                        color = fgSub, maxLines = 2,
+                        overflow = TextOverflow.Ellipsis, lineHeight = 21.sp,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         modifier = Modifier.fillMaxWidth())
-                    Spacer(Modifier.height(10.dp))
-                    Text(m.date, fontSize = DesignTokens.fontHeroMeta.sp,
-                        color = fgSub, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(6.dp))
-                    if (m.overview.isNotBlank()) {
-                        Text(m.overview, fontSize = DesignTokens.fontHeroSynopsis.sp,
-                            color = fgSub, maxLines = 2,
-                            overflow = TextOverflow.Ellipsis, lineHeight = 21.sp,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth())
-                        Spacer(Modifier.height(6.dp))
-                    }
-                    RatingBadges(listOf("TMDB" to m.rating),
-                        modifier = Modifier.fillMaxWidth(), alignCenter = true,
-                        adaptiveLight = fgLight)
                 }
+                RatingBadges(listOf("TMDB" to cur.rating),
+                    modifier = Modifier.fillMaxWidth(), alignCenter = true,
+                    adaptiveLight = fgLight)
             }
         }
-        Spacer(Modifier.height(10.dp))
-        // 圆点（hero 块外；色随前景）
+        Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()) {
             candidates.forEachIndexed { i, _ ->
@@ -274,7 +251,7 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>,
                         .size(if (i == pagerState.currentPage) 9.dp else 6.dp)
                         .clip(CircleShape)
                         .background(if (i == pagerState.currentPage) fg
-                            else if (fgLight) Color(0xFFB9B9BE) else Color(0xFF5A5A5E))
+                            else if (fgLight) Color(0xFFB9B9BE) else Color(0xFF6A6A6E))
                 )
             }
         }
