@@ -1,0 +1,33 @@
+{
+  "card": "p231-private-zone",
+  "date": "2026-11-08",
+  "device": "Redmi K40 (b6e950ee) — 测试期由用户/助手协作设了锁屏 PIN 并录入一枚指纹（之前设备无任何锁屏凭据）",
+  "evidence_anchor": "Rex NSFaceIDUsageDescription：unlock protected viewing environments；蓝图 R6",
+  "ac1_gate": {
+    "prompt_texts": "私密区 / 请触摸指纹传感器 / 取消（p231-prompt-dump.txt，系统窗 FLAG_SECURE 截屏为 0 字节的替代证据）",
+    "cancel_reason": "未进入私密区：已取消（G9 用户可见）",
+    "success": "真指纹触摸解锁（用户配合，两轮）",
+    "noenrolled_reason": "私密区不可用：canAuthenticate=11（NONE_ENROLLED）——录入前的负路径"
+  },
+  "ac2_hide": {
+    "before": "本地视频 159 个（1080p30 首位）",
+    "after": "标记后 1080p30 从主网格消失，首位移给 1gb_720p（p231-hidden.png）"
+  },
+  "ac3_zone": {
+    "unlocked_status": "已解锁：1 个私密条目",
+    "grid": "只含 1080p30_60s.mp4（p231-grid.png）"
+  },
+  "ac4_roundtrip": {
+    "remove": "私密区内长按→移出私密区→「已解锁：0 个私密条目」+ private.json=[]",
+    "restore": "主网格 159 个且 1080p30 回首位（p231-restored2.png）"
+  },
+  "store_final": "private.json = []（往返净效应为零）",
+  "screenshot_sha256": {
+    "p231-menu.png": "9979cc35b0690bfb9835439d2ad6aed75c85920bc05d5907a90df689100735a7",
+    "p231-hidden.png": "9979cc35b0690bfb9835439d2ad6aed75c85920bc05d5907a90df689100735a7",
+    "p231-grid.png": "243fdb894af6bffb09ce7789b375a06adeea1b38dcf648b641ef61f9314eb757",
+    "p231-after-remove.png": "d11de6de5ae8168b666b6416500bdcfcec370cd1878da51adc48d8bdd637166a",
+    "p231-restored2.png": "5b05836aeb21be3ad39f3fa2a068e48f529b9c40808395a272771b6bbb706aa3",
+    "p231-noenrolled.png": "d4f11ee7435d13f37feb9ce4957f7d268b32bf546bd59a49cb721444aca09dcc"
+  }
+}

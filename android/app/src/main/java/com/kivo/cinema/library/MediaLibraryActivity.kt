@@ -10,9 +10,11 @@ import android.provider.MediaStore as MS
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +62,12 @@ class MediaLibraryActivity : ComponentActivity() {
     private var status by mutableStateOf("请求权限中…")
     private var permissionGranted by mutableStateOf(false)
 
+    // 231 私密区：标记存储 + 重组计数（增删后 ++ 触发主网格过滤重算）
+    private val privStore by lazy { com.kivo.cinema.privatezone.PrivateStore(this) }
+    private val privGate = com.kivo.cinema.privatezone.PrivateGate()
+    private var privEpoch by mutableStateOf(0)
+    private var menuFor by mutableStateOf<MediaItem?>(null)
+
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -74,6 +83,13 @@ class MediaLibraryActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent { MediaLibraryScreen() }
         requestPermission()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 私密区里可能加/移出过条目——回库强制重算过滤与计数（231 跨页状态同步）
+        privEpoch++
+        status = "本地视频 ${visibleItems().size} 个"
     }
 
     private fun requestPermission() {
@@ -139,6 +155,47 @@ class MediaLibraryActivity : ComponentActivity() {
         startActivity(Intent(this, com.kivo.cinema.emby.EmbyActivity::class.java))
     }
 
+    // ---- 231 私密区 ----
+
+    private fun openPrivateZone() {
+        // G9：按钮常开，点进去再探测——reason 用状态栏明示（禁用态按钮会静默吞点击）
+        if (!privGate.available(this)) {
+            val bm = getSystemService(android.hardware.biometrics.BiometricManager::class.java)
+            val code = bm?.canAuthenticate(
+                android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK)
+                ?: -999
+            status = "私密区不可用：canAuthenticate=$code（" + when (code) {
+                0 -> "SUCCESS"
+                1 -> "硬件不支持"
+                11 -> "NONE_ENROLLED 未录入"
+                12 -> "NO_HARDWARE"
+                14 -> "HARDWARE_MISSING"
+                else -> "见 AOSP BiometricManager 常量"
+            } + "）"
+            return
+        }
+        startActivity(Intent(this, com.kivo.cinema.privatezone.PrivateActivity::class.java))
+    }
+
+    private fun togglePrivate(item: MediaItem) {
+        val id = item.id.toString()
+        if (privStore.contains(id)) {
+            privStore.remove(id)
+        } else {
+            privStore.add(id)
+        }
+        privEpoch++
+        menuFor = null
+        status = "私密区标记已更新：${privStore.all().size} 个"
+    }
+
+    /** 主网格可见条目 = 全量 − 私密（231 设计稿 D3：标记后即时隐藏）。 */
+    private fun visibleItems(): List<MediaItem> {
+        val hidden = privStore.all()
+        return if (hidden.isEmpty()) items
+        else items.filterNot { hidden.contains(it.id.toString()) }
+    }
+
     // ---- UI ----
 
     @Composable
@@ -170,6 +227,15 @@ class MediaLibraryActivity : ComponentActivity() {
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(
                         horizontal = 14.dp, vertical = 6.dp)
                 ) { Text("Emby", fontSize = 13.sp) }
+                Spacer(Modifier.width(8.dp))
+                Button(
+                    onClick = { openPrivateZone() },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF34C759)
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                        horizontal = 14.dp, vertical = 6.dp)
+                ) { Text("私密区", fontSize = 13.sp) }
             }
             Spacer(Modifier.height(4.dp))
             Text(status, fontSize = 13.sp, color = Color(0xFF8A8A8E))
@@ -182,25 +248,51 @@ class MediaLibraryActivity : ComponentActivity() {
                 }
             }
         }
+        // 231：长按标记菜单
+        menuFor?.let { target ->
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { menuFor = null },
+                title = { Text(target.title, fontSize = 16.sp, maxLines = 1) },
+                text = { Text("将这条视频从私密区加入或移出？", fontSize = 13.sp) },
+                confirmButton = {
+                    Button(onClick = { togglePrivate(target) }) {
+                        Text(if (privStore.contains(target.id.toString())) "移出私密区"
+                             else "加入私密区", fontSize = 13.sp)
+                    }
+                },
+                dismissButton = {
+                    Text("取消", fontSize = 13.sp, color = Color(0xFF8A8A8E),
+                        modifier = Modifier
+                            .clickable { menuFor = null }
+                            .padding(8.dp))
+                }
+            )
+        }
     }
 
     @Composable
     private fun PosterWall() {
+        // privEpoch 参与取值：增删标记后强制重算过滤（231 即时隐藏）
+        // remember 必须在 LazyGridScope content 外（那里不是 composable 上下文）
+        val visible = remember(privEpoch, items) { visibleItems() }
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            items(items) { item ->
-                PosterCard(item) { openPlayer(item) }
+            items(visible) { item ->
+                PosterCard(item, onLongClick = { menuFor = item }) { openPlayer(item) }
             }
         }
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    private fun PosterCard(item: MediaItem, onClick: () -> Unit) {
+    private fun PosterCard(item: MediaItem, onLongClick: () -> Unit,
+                           onClick: () -> Unit) {
         Column(
-            modifier = Modifier.clickable { onClick() }
+            modifier = Modifier.combinedClickable(
+                onClick = onClick, onLongClick = onLongClick)
         ) {
             // 缩略图：MediaStore thumbnail
             val bitmap = android.media.ThumbnailUtils.createVideoThumbnail(
