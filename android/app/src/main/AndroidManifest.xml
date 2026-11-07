@@ -12,7 +12,7 @@
         android:allowBackup="false"
         android:label="Kivo Cinema"
         android:supportsRtl="true"
-        android:theme="@style/Theme.KivoCinema">
+        android:theme="@style/Theme.KivoCinema" android:usesCleartextTraffic="true">
 
                 <activity android:name=".smb.SmbSpikeActivity" android:exported="true"/>
                 <activity android:name=".smb.SmbActivity" android:exported="true"/>

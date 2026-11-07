@@ -54,6 +54,16 @@ class PlayerComposeActivity : ComponentActivity() {
 
     private val positionPoll = object : Runnable {
         override fun run() {
+            val netSession = smbNetSession
+            if (netSession != null) {
+                // 220b：硬解会话的位置上报
+                positionMs = (netSession.positionUs / 1000).coerceAtMost(durationMs)
+                if (System.currentTimeMillis() - lastTouchMs > 3000) {
+                    controlsVisible = false
+                }
+                android.os.Handler(mainLooper).postDelayed(this, 100)
+                return
+            }
             val ffSession = smbFfSession
             if (ffSession != null) {
                 // 220：SMB 路径的位置/结束上报；durationMs 兜底（open 后异步才可知）
@@ -65,6 +75,11 @@ class PlayerComposeActivity : ComponentActivity() {
                 if (!ffSession.isRunning() && smbStarted != 0L) {
                     val reason = runCatching { ffSession.stopAndCollectEvidence() }
                         .getOrElse { "stop failed" }
+                    // 证据落盘（断连/结束原因可复算）
+                    try {
+                        val dir = java.io.File(getExternalFilesDir(null), "evidence").apply { mkdirs() }
+                        java.io.File(dir, "p220-end.json").writeText(reason)
+                    } catch (e: Exception) { }
                     statusText = "SMB 播放结束: ${reason.takeLast(60)}"
                     smbFfSession = null
                     runCatching { smbProxy?.close() }
@@ -131,7 +146,8 @@ class PlayerComposeActivity : ComponentActivity() {
                             durationMs = durationMs,
                             onPlayPause = { togglePlayPause() },
                             onSeek = { ms ->
-                                smbFfSession?.seekTo(ms * 1000)
+                                smbNetSession?.seekTo(ms * 1000)
+                                    ?: smbFfSession?.seekTo(ms * 1000)
                                     ?: playbackSession?.seekTo(ms * 1000)
                             },
                             onScrub = { ms ->
@@ -245,6 +261,7 @@ class PlayerComposeActivity : ComponentActivity() {
     private var smbSource: com.kivo.cinema.smb.Smb2Native.Source? = null
     private var smbProxy: com.kivo.cinema.net.LocalRangeProxy? = null
     private var smbFfSession: com.kivo.cinema.bridge.FfmpegPlaybackSession? = null
+    private var smbNetSession: com.kivo.cinema.playback.NetworkPlaybackSession? = null
     private var smbStarted = 0L
 
     private fun smbTrace(msg: String) {
@@ -282,7 +299,40 @@ class PlayerComposeActivity : ComponentActivity() {
             val port = proxy.start()
             val url = "http://127.0.0.1:$port/kivo"
             smbTrace("proxy port=$port url=$url")
-            statusText = "proxy :$port, opening ffmpeg..."
+            statusText = "proxy :$port, opening..."
+
+            // 220b：硬解优先（MediaExtractor http URL → MediaCodec Surface），
+            // 失败回退 220 v1 软解 URL 通道（G9 reason 路由出版）
+            val netSession = com.kivo.cinema.playback.NetworkPlaybackSession(url, displayName)
+            smbNetSession = netSession
+            val netRc = netSession.start(holder.surface)
+            if (netRc == 0) {
+                smbTrace("network harddec start ok ${netSession.width}x${netSession.height}")
+                durationMs = netSession.durationUs / 1000
+                statusText = "playing smb://${cfg.host}/${cfg.share}/${cfg.path} (harddec)"
+                isPlaying = true
+                smbStarted = System.currentTimeMillis()
+                lastTouchMs = smbStarted
+                android.os.Handler(mainLooper).post(positionPoll)
+                // 诊断：40s 后停 + 落节拍曲线（220b 速率验证）
+                android.os.Handler(mainLooper).postDelayed({
+                    smbNetSession?.let { ns ->
+                        val curve = ns.paceCurve()
+                        val json = org.json.JSONArray()
+                        curve.forEach { (w, m) -> json.put(listOf(w, m)) }
+                        try {
+                            val dir = java.io.File(getExternalFilesDir(null), "evidence").apply { mkdirs() }
+                            java.io.File(dir, "p220b-pace.json").writeText(json.toString())
+                        } catch (e: Exception) { }
+                        statusText = "pace diagnostic written (${curve.size} samples)"
+                    }
+                }, 40000)
+                return
+            }
+            smbTrace("harddec failed rc=$netRc err=${netSession.lastError} - softdec fallback")
+            statusText = "硬解不可用（${netSession.lastError}），回退软解…"
+            runCatching { netSession.stop() }
+            smbNetSession = null
 
             val fsession = com.kivo.cinema.bridge.FfmpegPlaybackSession(
                 media ?: java.io.File("."),
@@ -317,6 +367,17 @@ class PlayerComposeActivity : ComponentActivity() {
             Log.i(TAG, "SMB playback started: $url durationMs=$durationMs")
             // positionPoll：SMB 会话的位置/断连上报全靠它
             android.os.Handler(mainLooper).post(positionPoll)
+            // 诊断：40s 后自动停（读节拍曲线）——220 定位节拍失效用
+            android.os.Handler(mainLooper).postDelayed({
+                smbFfSession?.let { s ->
+                    val ev = runCatching { s.stopAndCollectEvidence() }.getOrElse { "stop failed" }
+                    try {
+                        val dir = java.io.File(getExternalFilesDir(null), "evidence").apply { mkdirs() }
+                        java.io.File(dir, "p220-pace-720p.json").writeText(ev)
+                    } catch (e: Exception) { }
+                    statusText = "pace diagnostic written"
+                }
+            }, 40000)
         } catch (e: Exception) {
             Log.e(TAG, "smb failed", e)
             smbTrace("EXCEPTION ${e.javaClass.name}: ${e.message}")
@@ -468,6 +529,8 @@ class PlayerComposeActivity : ComponentActivity() {
         android.os.Handler(mainLooper).removeCallbacks(positionPoll)
         smbFfSession?.let { s -> runCatching { s.stopAndCollectEvidence() } }
         smbFfSession = null
+        smbNetSession?.let { s -> runCatching { s.stop() } }
+        smbNetSession = null
         runCatching { smbProxy?.close() }
         smbProxy = null
         runCatching { smbSource?.close() }

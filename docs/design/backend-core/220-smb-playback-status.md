@@ -28,8 +28,10 @@ AC5：SMB 1GB 起播 62ms vs 本地 10ms（差 52ms ≪ 2s）——Windows 共�
 
 | # | 问题 | 影响 | 后续 |
 | --- | --- | --- | --- |
-| 1 | **软解受限 0.37×**（真机仪表实证）：720p30 SMB 播放 wall 40s / decode 27.4s（68%）/ 447 帧 = 61ms/帧 = 16fps < 30fps；节拍曲线（pace_curve）恒定 0.35-0.37× | 720p SMB 播放慢于实时 | **硬解过代理卡**：MediaExtractor.setDataSource(http://127.0.0.1) → MediaCodec 硬解 → SurfaceView（架构预留通道）；软解仅兜底小片 |
-| 2 | 位置显示曾观测 0.5×/2.2× 两方向 | 时间显示曾不准 | **已解决**：pace_curve 仪表落地后判定为解码受限（0.37× 恒定），此前截图读数不可靠 |
+| 1 | ~~软解受限 0.37×~~ → **已由 220b 硬解解决**：NetworkPlaybackSession（MediaExtractor http URL → MediaCodec Surface）+ pts 节拍 → **实测 1.00× 恒定**（12 采样 min 1.00 max 1.01） | 720p SMB 播放实时 ✓ | 220b 已完成（本表更新） |
+| 2 | ~~位置显示 0.5×/2.2×~~ → **已解决**：根因是 URL 软解无节拍自由跑（6.0×）或解码受限（0.37×）；硬解 + 节拍后位置显示准确 | 已修 | 无需开发 |
+| 2b | **新发现：MediaExtractor 需 cleartext**——Android 9+ 默认禁明文 http，127.0.0.1 本地代理也被拦 | 硬解打不开网络源 | 已修：manifest usesCleartextTraffic（仅本地代理用） |
+| 2c | **新发现：硬解码循环需要显式 pts 节拍**——MediaCodec 6.0× 自由跑（软解有 pts sleep、硬解原生无） | 无节拍则音画/进度全错 | 已修：decodeLoop 内 nano 级 pts sleep（标准播放器做法） |
 | 3 | 视频/音乐 共享匿名被拒（小米路由共享级 ACL） | 用户需填凭据（表单已支持） | 无需开发 |
 | 4 | SmbActivity 非应用入口（adb 启动） | 用户无法从应用内到达 | 222 媒体库卡做入口集成 |
 | 5 | AC5 的 Windows 共享走机器缓存 | 数字偏乐观 | 路由器侧复测（冷却缓存后） |
