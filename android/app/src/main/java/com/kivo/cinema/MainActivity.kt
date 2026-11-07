@@ -41,15 +41,24 @@ class MainActivity : ComponentActivity() {
     private var items by mutableStateOf(listOf<MediaItem>())
     private val thumbCache = HashMap<Long, android.graphics.Bitmap?>()
 
-    // 237-A：观看数据域 + 评分源
+    // 237-A：观看数据域 + 评分源 + 首页 TMDB 节
     private val watchStore by lazy { com.kivo.cinema.stats.WatchStore(this) }
     private val tmdb by lazy { com.kivo.cinema.tmdb.TmdbClient(this) }
+    private val tmdbHome by lazy { com.kivo.cinema.tmdb.TmdbHome(tmdb) }
+    private var heroCandidates by mutableStateOf(
+        listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
+    private var nowPlaying by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
+    private var onTheAir by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
+    private var trending by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
     private var continueItems by mutableStateOf(
         listOf<Pair<MediaItem, com.kivo.cinema.stats.WatchStore.Progress>>())
     private var heroRating by mutableStateOf<Pair<String, Float>?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.kivo.cinema.ui.design.TmdbImageCache.diskDir = cacheDir
+        com.kivo.cinema.tmdb.TmdbClient.setShared(
+            com.kivo.cinema.tmdb.TmdbClient(this))
         scanVideos()
         setContent { Shell() }
     }
@@ -57,7 +66,22 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         refreshContinue()
-        refreshHeroRating()
+        refreshTmdb()
+    }
+
+    private fun refreshTmdb() {
+        Thread {
+            val hero = tmdbHome.heroCandidates()
+            val np = tmdbHome.nowPlaying()
+            val oa = tmdbHome.onTheAir()
+            val tr = tmdbHome.trendingWeek()
+            runOnUiThread {
+                heroCandidates = hero
+                nowPlaying = np
+                onTheAir = oa
+                trending = tr
+            }
+        }.start()
     }
 
     private fun refreshContinue() {
@@ -77,14 +101,6 @@ class MainActivity : ComponentActivity() {
     private fun normPath(p: String): String = when {
         p.startsWith("/sdcard/") -> "/storage/emulated/0/" + p.removePrefix("/sdcard/")
         else -> p
-    }
-
-    private fun refreshHeroRating() {
-        val hero = items.firstOrNull() ?: return
-        Thread {
-            val r = tmdb.ratingFor(hero.title, null)
-            runOnUiThread { heroRating = r?.let { it.source to it.score } }
-        }.start()
     }
 
     private fun scanVideos() {
@@ -144,10 +160,14 @@ class MainActivity : ComponentActivity() {
                         0 -> DiscoverPage(
                             items = items,
                             continueItems = continueItems,
-                            heroRating = heroRating,
+                            heroCandidates = heroCandidates,
+                            nowPlaying = nowPlaying,
+                            onTheAir = onTheAir,
+                            trending = trending,
                             posterOf = { posterBlockOf(it) },
                             onOpenItem = { openPlayer(it) },
                             onOpenLibrary = { openLibrary() },
+                            onOpenTmdbItem = { },
                         )
                         1 -> ProfilePage(items.size)
                         2 -> SourcesPage(

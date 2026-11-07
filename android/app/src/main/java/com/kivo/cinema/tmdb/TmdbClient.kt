@@ -16,6 +16,14 @@ import java.net.URL
  */
 class TmdbClient(context: Context) {
 
+    companion object {
+        @Volatile private var shared: TmdbClient? = null
+        fun setShared(c: TmdbClient) { shared = c }
+        fun staticOpen(urlStr: String): HttpURLConnection =
+            shared?.openConnection(urlStr)
+                ?: URL(urlStr).openConnection() as HttpURLConnection
+    }
+
     data class Rating(val source: String, val score: Float)   // source="TMDB"
 
     private val keyFile = File(context.filesDir, "tmdb_key.txt")
@@ -27,6 +35,28 @@ class TmdbClient(context: Context) {
     fun apiKey(): String = runCatching {
         if (keyFile.exists()) keyFile.readText().trim() else ""
     }.getOrDefault("")
+
+    /** 代理（可选）：filesDir/tmdb_proxy.txt 写 "host:port"（SOCKS）。
+     *  仅 TMDB 域走代理——SMB/Emby 等内网源不受影响。开发期可用 adb reverse。 */
+    private val proxyFile = File(context.filesDir, "tmdb_proxy.txt")
+
+    @Synchronized
+    fun proxyAddr(): String? = runCatching {
+        if (proxyFile.exists()) proxyFile.readText().trim().takeIf { it.isNotBlank() } else null
+    }.getOrNull()
+
+    /** 统一出网口：有代理则 SOCKS，否则直连。 */
+    fun openConnection(urlStr: String): HttpURLConnection {
+        val url = URL(urlStr)
+        val proxied = proxyAddr()?.let { addr ->
+            val host = addr.substringBeforeLast(':')
+            val port = addr.substringAfterLast(':').toIntOrNull() ?: 10808
+            java.net.Proxy(java.net.Proxy.Type.SOCKS,
+                java.net.InetSocketAddress(host, port))
+        }
+        return (proxied?.let { url.openConnection(it) } ?: url.openConnection())
+            as HttpURLConnection
+    }
 
     @Synchronized
     private fun loadCache() {
@@ -62,7 +92,7 @@ class TmdbClient(context: Context) {
             val yq = year?.let { "&year=$it" } ?: ""
             val url = "https://api.themoviedb.org/3/search/movie?api_key=${apiKey()}" +
                 "&language=zh-CN&query=$q$yq"
-            val conn = URL(url).openConnection() as HttpURLConnection
+            val conn = openConnection(url)
             conn.connectTimeout = 8000
             conn.readTimeout = 15000
             val code = conn.responseCode

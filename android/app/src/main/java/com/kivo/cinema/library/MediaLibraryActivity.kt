@@ -231,7 +231,7 @@ class MediaLibraryActivity : ComponentActivity() {
                     modifier = Modifier.clickable { finish() }
                 ) { Text("‹", fontSize = 22.sp, color = Color(0xFF1A1A1A)) }
                 Spacer(Modifier.weight(1f))
-                Text("媒体库", fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                Text("本地影片", fontSize = 17.sp, fontWeight = FontWeight.Bold,
                     color = Color(0xFF1A1A1A))
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.width(DesignTokens.circleButton.dp))
