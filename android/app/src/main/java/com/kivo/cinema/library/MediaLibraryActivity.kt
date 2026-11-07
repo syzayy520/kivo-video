@@ -115,6 +115,7 @@ class MediaLibraryActivity : ComponentActivity() {
             MS.Video.Media.DURATION,
             MS.Video.Media.WIDTH,
             MS.Video.Media.HEIGHT,
+            MS.Video.Media.DATE_ADDED,
         )
         try {
             contentResolver.query(
@@ -130,6 +131,7 @@ class MediaLibraryActivity : ComponentActivity() {
                         durationMs = cursor.getLong(3),
                         width = cursor.getInt(4),
                         height = cursor.getInt(5),
+                        addedSec = cursor.getLong(6),
                     ))
                 }
             }
@@ -333,10 +335,25 @@ class MediaLibraryActivity : ComponentActivity() {
             Spacer(Modifier.height(4.dp))
             Text(
                 item.title,
-                fontSize = 12.sp, fontWeight = FontWeight.Medium,
+                fontSize = 15.sp, fontWeight = FontWeight.Bold,
                 color = Color(0xFF1A1A1A),
-                maxLines = 1, overflow = TextOverflow.Ellipsis
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                formatDate(item.addedSec),
+                fontSize = 13.sp, color = Color(0xFF8A8A8E),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
+}
+
+private fun formatDate(addedSec: Long): String {
+    val d = java.util.Calendar.getInstance()
+    d.timeInMillis = addedSec * 1000L
+    return "%04d-%02d-%02d".format(d.get(java.util.Calendar.YEAR),
+        d.get(java.util.Calendar.MONTH) + 1, d.get(java.util.Calendar.DAY_OF_MONTH))
 }

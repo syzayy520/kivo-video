@@ -8,6 +8,7 @@ data class MediaItem(
     val durationMs: Long,
     val width: Int,
     val height: Int,
+    val addedSec: Long = 0,     // DATE_ADDED（236：媒体库日期行/发现页排序用）
 ) {
     fun formatDuration(): String {
         val s = durationMs / 1000
