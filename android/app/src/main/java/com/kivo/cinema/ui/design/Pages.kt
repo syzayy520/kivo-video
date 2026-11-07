@@ -25,6 +25,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -154,10 +158,19 @@ internal fun relDays(addedSec: Long): String {
     }
 }
 
-/** hero 轮播（grid_01 帧结构 + M04-S01 动效参数：0.4s spring(0.5,0.85)，自动 5s，swipe 打断）。 */
+/**
+ * hero 轮播 v2（hero_8/grid_01 帧实测吃透版）：
+ * ① 全出血 高=53%屏高（黑鸽帧 y0→427pt / 844pt 屏）
+ * ② 标题 ~55sp 白/黑自适应叠印在 62% 高度处居中（黑鸽=白字、狗狗圣诞=黑字）
+ * ③ 类型·日期 17pt / 简介 15pt 两行 / 评分徽章行——全部在图内、同自适应色
+ * ④ 自适应 = backdrop 下半区平均亮度采样（<0.55 → 白字）
+ * ⑤ 圆点在 hero 块外（活动点=前景色）
+ * ⑥ 轮播 0.4s spring(0.5,0.85)，自动 5s，swipe 打断（M04-S01 CSV）
+ */
 @Composable
 internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>) {
-    val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { candidates.size })
+    val pagerState = androidx.compose.foundation.pager.rememberPagerState(
+        pageCount = { candidates.size })
     LaunchedEffect(candidates.size) {
         if (candidates.size > 1) {
             while (true) {
@@ -169,6 +182,22 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>) 
             }
         }
     }
+    val conf = androidx.compose.ui.platform.LocalConfiguration.current
+    val heroH = (conf.screenHeightDp * 0.53f).dp
+    // 自适应前景色状态（按当前页 backdrop 亮度）
+    var fgLight by remember { mutableStateOf(true) }
+    LaunchedEffect(pagerState.currentPage, candidates.size) {
+        val m = candidates.getOrNull(pagerState.currentPage)
+        if (m == null) return@LaunchedEffect
+        val bmp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            com.kivo.cinema.ui.design.TmdbImageCache.get(m.backdropUrl)
+                ?: com.kivo.cinema.tmdb.TmdbClient.staticBitmap(m.backdropUrl)
+        }
+        bmp?.let { fgLight = luminanceBelow(it) < 0.55f }
+    }
+    val fg = if (fgLight) Color.White else DesignTokens.textMain
+    val fgSub = if (fgLight) Color.White.copy(alpha = 0.85f) else DesignTokens.textMain
+
     Column {
         androidx.compose.foundation.pager.HorizontalPager(
             state = pagerState,
@@ -178,46 +207,46 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>) 
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .aspectRatio(16f / 10f)
+                    .height(heroH)
             ) {
                 TmdbImage(m.backdropUrl, m.title, Modifier.fillMaxSize())
-                Box(
+                // 内容层：标题大字（62% 高度）→ 类型·日期 → 简介 → 评分行（全部图内自适应色）
+                Column(
                     Modifier
                         .fillMaxSize()
-                        .background(androidx.compose.ui.graphics.Brush.verticalGradient(
-                            listOf(Color.Transparent,
-                                Color.Black.copy(alpha = 0.45f),
-                                Color.Transparent)))
-                )
-                Text(m.title, fontSize = 30.sp, fontWeight = FontWeight.Bold,
-                    color = Color.White, maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(horizontal = pad, vertical = 10.dp))
+                        .padding(horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Spacer(Modifier.weight(0.62f))
+                    Text(m.title, fontSize = 52.sp, fontWeight = FontWeight.Bold,
+                        color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        style = androidx.compose.ui.text.TextStyle(
+                            shadow = androidx.compose.ui.graphics.Shadow(
+                                color = Color.Black.copy(alpha = 0.35f),
+                                blurRadius = 12f)),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(10.dp))
+                    Text(m.date, fontSize = DesignTokens.fontHeroMeta.sp,
+                        color = fgSub, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(6.dp))
+                    if (m.overview.isNotBlank()) {
+                        Text(m.overview, fontSize = DesignTokens.fontHeroSynopsis.sp,
+                            color = fgSub, maxLines = 2,
+                            overflow = TextOverflow.Ellipsis, lineHeight = 21.sp,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth())
+                        Spacer(Modifier.height(6.dp))
+                    }
+                    RatingBadges(listOf("TMDB" to m.rating),
+                        modifier = Modifier.fillMaxWidth(), alignCenter = true,
+                        adaptiveLight = fgLight)
+                }
             }
         }
         Spacer(Modifier.height(10.dp))
-        val cur = candidates.getOrNull(pagerState.currentPage) ?: candidates.firstOrNull()
-        if (cur != null) {
-            Text(cur.date, fontSize = DesignTokens.fontHeroMeta.sp,
-                color = DesignTokens.textMain,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-            Spacer(Modifier.height(6.dp))
-            if (cur.overview.isNotBlank()) {
-                Text(cur.overview, fontSize = DesignTokens.fontHeroSynopsis.sp,
-                    color = DesignTokens.textMain, maxLines = 2,
-                    overflow = TextOverflow.Ellipsis, lineHeight = 21.sp,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                Spacer(Modifier.height(6.dp))
-            }
-            RatingBadges(listOf("TMDB" to cur.rating),
-                modifier = Modifier.fillMaxWidth(), alignCenter = true)
-            Spacer(Modifier.height(10.dp))
-        }
-        // 圆点指示器（活动黑大，帧实测 ~11 点）
+        // 圆点（hero 块外；色随前景）
         Row(horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()) {
             candidates.forEachIndexed { i, _ ->
@@ -226,12 +255,32 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>) 
                         .padding(horizontal = 4.dp)
                         .size(if (i == pagerState.currentPage) 9.dp else 6.dp)
                         .clip(CircleShape)
-                        .background(if (i == pagerState.currentPage)
-                            DesignTokens.textMain else Color(0xFFB9B9BE))
+                        .background(if (i == pagerState.currentPage) fg
+                            else if (fgLight) Color(0xFFB9B9BE) else Color(0xFF5A5A5E))
                 )
             }
         }
     }
+}
+
+/** backdrop 下半区平均亮度（0-1）——文字黑白自适应依据。 */
+internal fun luminanceBelow(bmp: android.graphics.Bitmap): Float {
+    val y0 = bmp.height / 2
+    var sum = 0f; var n = 0
+    var y = y0
+    while (y < bmp.height) {
+        var x = 0
+        while (x < bmp.width) {
+            val c = bmp.getPixel(x, y)
+            val l = (0.299f * (c shr 16 and 0xFF) +
+                     0.587f * (c shr 8 and 0xFF) +
+                     0.114f * (c and 0xFF)) / 255f
+            sum += l; n++
+            x += 24
+        }
+        y += 24
+    }
+    return if (n == 0) 0.5f else sum / n
 }
 
 /** TMDB 海报卡（同 DesignPosterCard 规格：90pt 2:3 居中标题/日期）。 */
@@ -388,7 +437,8 @@ fun ProfilePage(videoCount: Int) {
 
 internal fun fmtSeen(positionMs: Long): String {
     val s = positionMs / 1000
-    return "%d:%02d".format(s / 60, s % 60)
+    return if (s >= 3600) "%d:%02d:%02d".format(s / 3600, s / 60 % 60, s % 60)
+    else "%d:%02d".format(s / 60, s % 60)
 }
 
 internal fun formatDate(addedSec: Long): String {

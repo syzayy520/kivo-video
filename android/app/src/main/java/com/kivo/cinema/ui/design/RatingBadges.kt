@@ -23,6 +23,7 @@ fun RatingBadges(
     ratings: List<Pair<String, Float>>,   // (来源名, 分数)
     modifier: Modifier = Modifier,
     alignCenter: Boolean = false,
+    adaptiveLight: Boolean = false,       // hero 图内自适应：数值用白/黑
 ) {
     if (ratings.isEmpty()) return
     Row(

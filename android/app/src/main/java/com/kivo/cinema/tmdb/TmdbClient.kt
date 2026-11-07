@@ -22,6 +22,13 @@ class TmdbClient(context: Context) {
         fun staticOpen(urlStr: String): HttpURLConnection =
             shared?.openConnection(urlStr)
                 ?: URL(urlStr).openConnection() as HttpURLConnection
+
+        fun staticBitmap(urlStr: String): android.graphics.Bitmap? = try {
+            val conn = staticOpen(urlStr)
+            if (conn.responseCode in 200..299) {
+                android.graphics.BitmapFactory.decodeStream(conn.inputStream)
+            } else null
+        } catch (e: Exception) { null }
     }
 
     data class Rating(val source: String, val score: Float)   // source="TMDB"

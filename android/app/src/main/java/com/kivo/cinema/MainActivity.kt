@@ -56,6 +56,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // edge-to-edge（hero 顶入状态栏下——237 hero v2）
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
         com.kivo.cinema.ui.design.TmdbImageCache.diskDir = cacheDir
         com.kivo.cinema.tmdb.TmdbClient.setShared(
             com.kivo.cinema.tmdb.TmdbClient(this))
