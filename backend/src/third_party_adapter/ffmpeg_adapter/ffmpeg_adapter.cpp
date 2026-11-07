@@ -4,6 +4,7 @@
 
 #ifdef KIVO_ENABLE_FFMPEG
 extern "C" {
+#include <android/log.h>
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/avutil.h>
@@ -46,9 +47,22 @@ FfmpegFormatHandle FfmpegAdapter::open_url(const std::string& url) {
     ffmpeg_adapter::install_product_log_filter();
     AVFormatContext* ctx = nullptr;
     int ret = avformat_open_input(&ctx, url.c_str(), nullptr, nullptr);
-    if (ret < 0) return {nullptr};
+    if (ret < 0) {
+        char errbuf[256];
+        av_strerror(ret, errbuf, sizeof(errbuf));
+        __android_log_print(ANDROID_LOG_ERROR, "KivoFfmpeg",
+                            "open_url failed: %s (%s)", url.c_str(), errbuf);
+        return {nullptr};
+    }
     ret = avformat_find_stream_info(ctx, nullptr);
-    if (ret < 0) { avformat_close_input(&ctx); return {nullptr}; }
+    if (ret < 0) {
+        char errbuf[256];
+        av_strerror(ret, errbuf, sizeof(errbuf));
+        __android_log_print(ANDROID_LOG_ERROR, "KivoFfmpeg",
+                            "find_stream_info failed: %s (%s)", url.c_str(), errbuf);
+        avformat_close_input(&ctx);
+        return {nullptr};
+    }
     return {ctx};
 #else
     return {nullptr};

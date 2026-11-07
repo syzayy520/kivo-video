@@ -393,10 +393,30 @@ class PlayerComposeActivity : ComponentActivity() {
                                  routing: String) {
         playbackStarted = true
         smbTrace("url-play begin url=$url")
+
+        // 220b 路由：硬解优先（MediaExtractor http URL → MediaCodec Surface）
+        val netSession = com.kivo.cinema.playback.NetworkPlaybackSession(url, label)
+        smbNetSession = netSession
+        val netRc = netSession.start(holder.surface)
+        if (netRc == 0) {
+            smbTrace("url-play harddec ok ${netSession.width}x${netSession.height}")
+            durationMs = netSession.durationUs / 1000
+            statusText = "playing $url (harddec)"
+            isPlaying = true
+            smbStarted = System.currentTimeMillis()
+            lastTouchMs = smbStarted
+            android.os.Handler(mainLooper).post(positionPoll)
+            return
+        }
+        smbTrace("url-play harddec failed rc=$netRc err=${netSession.lastError} → softdec")
+        runCatching { netSession.stop() }
+        smbNetSession = null
+
+        // 软解回退（220 v1 通道）
         val fsession = com.kivo.cinema.bridge.FfmpegPlaybackSession(
             java.io.File(label), label,
             routingDecision = "ffmpeg",
-            routingReason = "playurl: $url"
+            routingReason = "playurl: $url (harddec failed: ${netSession.lastError})"
         )
         smbFfSession = fsession
         val rc = fsession.openUrlVideo(url, holder.surface)
@@ -419,7 +439,7 @@ class PlayerComposeActivity : ComponentActivity() {
         smbStarted = System.currentTimeMillis()
         lastTouchMs = smbStarted
         durationMs = fsession.durationUs() / 1000
-        statusText = "playing $url"
+        statusText = "playing $url (softdec)"
         android.os.Handler(mainLooper).post(positionPoll)
     }
 

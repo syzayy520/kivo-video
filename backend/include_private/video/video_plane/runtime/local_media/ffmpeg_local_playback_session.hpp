@@ -110,6 +110,8 @@ private:
     std::atomic<std::int64_t> seek_request_us_{-1};   // -1 = 无请求
     std::atomic<std::int64_t> position_us_{-1};
     std::atomic<std::int64_t> duration_us_{-1};
+    /// 节拍曲线采样（220 诊断）：每 100 帧记录 (wall_ms, media_s)，stop 时随证据出版
+    std::vector<std::pair<std::int64_t, double>> pace_samples_;
     kivo::cinema_engine::FfmpegFormatHandle format_{};
     int video_stream_ = -1;
     std::string codec_name_;

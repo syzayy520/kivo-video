@@ -120,6 +120,18 @@ FfmpegSessionOutcome FfmpegLocalPlaybackSession::stop(std::string& evidence_json
             escape_json(config_.routing_decision) + "\", \"reason\": \"" +
             escape_json(config_.routing_reason) + "\" },\n";
     json += "  \"pacing\": \"pts_sleep_simple\",\n";
+    // 节拍曲线（220 诊断）：[wall_ms, media_s] 采样对
+    json += "  \"pace_curve\": [";
+    {
+        bool first_sample = true;
+        for (const auto& sample : pace_samples_) {
+            if (!first_sample) json += ",";
+            first_sample = false;
+            json += "[" + std::to_string(sample.first) + "," +
+                    std::to_string(sample.second) + "]";
+        }
+    }
+    json += "],\n";
     json += "  \"end_reason\": \"" + escape_json(end_reason_) + "\",\n";
     json += "  \"first_error\": " +
             std::string(first_error_.empty() ? "null" : "\"" + escape_json(first_error_) + "\"") +
@@ -301,6 +313,11 @@ void FfmpegLocalPlaybackSession::run_loop_() {
                 format_, video_stream_, pts, media_us) &&
             media_us > 0) {
             position_us_.store(media_us, std::memory_order_relaxed);
+            // 节拍曲线采样（220 诊断）：每 100 帧记 (wall_ms, media_s)
+            if (counters_.frames_decoded % 100 == 0) {
+                pace_samples_.emplace_back((steady_us() - started_us) / 1000,
+                                           media_us / 1e6);
+            }
             if (first_pts_us < 0) {
                 first_pts_us = media_us;
                 pace_origin_us = steady_us();
