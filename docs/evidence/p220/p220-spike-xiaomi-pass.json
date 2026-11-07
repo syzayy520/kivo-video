@@ -1,6 +1,6 @@
 {
   "schema": "kivo.p220.spike\/1",
-  "generated_at_unix_ms": 1794054021175,
+  "generated_at_unix_ms": 1794068911901,
   "meta": {
     "host": "192.168.5.1",
     "port": 445,
@@ -10,8 +10,27 @@
   },
   "libsmb2": {
     "entries": 17,
+    "names": [
+      "D .tunneluploads",
+      "D 下载",
+      "D 文档",
+      "D timecapsule",
+      "D .systemconfig",
+      "D .filetransfer_tmp",
+      "D 图片",
+      "D 摄像机监控视频",
+      "D TDDOWNLOAD",
+      "D .torrents",
+      "D lost+found",
+      "D .sysapihttpd",
+      "D 音乐",
+      "D 视频",
+      "D ThunderDB",
+      "D .upload_tmp",
+      "D 共享"
+    ],
     "step": "libsmb2_user_(null)",
-    "elapsed_ms": 1245,
+    "elapsed_ms": 4358,
     "ok": true
   },
   "libsmb2_matrix": [],
@@ -20,14 +39,33 @@
   "steps": [
     {
       "entries": 17,
+      "names": [
+        "D .tunneluploads",
+        "D 下载",
+        "D 文档",
+        "D timecapsule",
+        "D .systemconfig",
+        "D .filetransfer_tmp",
+        "D 图片",
+        "D 摄像机监控视频",
+        "D TDDOWNLOAD",
+        "D .torrents",
+        "D lost+found",
+        "D .sysapihttpd",
+        "D 音乐",
+        "D 视频",
+        "D ThunderDB",
+        "D .upload_tmp",
+        "D 共享"
+      ],
       "step": "libsmb2_user_(null)",
-      "elapsed_ms": 1245,
+      "elapsed_ms": 4358,
       "ok": true
     },
     {
       "count": 17,
       "step": "browse_root",
-      "elapsed_ms": 232,
+      "elapsed_ms": 3526,
       "ok": true
     },
     {
@@ -35,7 +73,7 @@
       "dir": ".tunneluploads",
       "file": "MfylLgzBQlmgXh70yeZjqQ.tmp",
       "step": "browse_sub",
-      "elapsed_ms": 219,
+      "elapsed_ms": 3510,
       "ok": true
     },
     {
@@ -43,9 +81,9 @@
       "size": 25086600,
       "offset": 1048576,
       "bytes_read": 1048576,
-      "mbps": 4.9504950495049505,
+      "mbps": 0.2870264064293915,
       "step": "read_at",
-      "elapsed_ms": 205,
+      "elapsed_ms": 3492,
       "ok": true
     }
   ]
