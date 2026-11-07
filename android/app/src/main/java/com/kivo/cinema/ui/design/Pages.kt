@@ -69,6 +69,8 @@ fun DiscoverPage(
     onOpenLibrary: () -> Unit,
     onOpenTmdbItem: (com.kivo.cinema.tmdb.TmdbHome.Item) -> Unit,
     onAmbient: (Color) -> Unit = {},
+    tmdbError: String? = null,
+    onRetryTmdb: () -> Unit = {},
 ) {
     val pad = DesignTokens.screenPad.dp
     // 第一屏背景自适应（黑鸽页全暗/狗狗页全米——帧实证；固定渐变仅其余 tab 使用）
@@ -119,24 +121,57 @@ fun DiscoverPage(
             }
         }
         // TMDB 三节（帧序：正在热映 → 正在播出 → 本周趋势）
-        listOf("正在热映" to nowPlaying, "正在播出" to onTheAir, "本周趋势" to trending)
-            .forEach { (title, list) ->
-                if (list.isNotEmpty()) {
-                    item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                        Column {
-                            Spacer(Modifier.height(10.dp))
-                            SectionHeader(title, onMore = null)
-                            Spacer(Modifier.height(10.dp))
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(pad),
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = pad)) {
-                                rowItems(list) { m ->
-                                    TmdbPosterCard(m) { onOpenTmdbItem(m) }
-                                }
+        listOf(
+            "正在热映" to nowPlaying,
+            "正在播出" to onTheAir,
+            "本周趋势" to trending,
+        ).forEach { (title, list) ->
+            if (list.isNotEmpty()) {
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    Column {
+                        Spacer(Modifier.height(10.dp))
+                        SectionHeader(title, onMore = null)
+                        Spacer(Modifier.height(10.dp))
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(pad),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = pad)) {
+                            rowItems(list) { m ->
+                                TmdbPosterCard(m) { onOpenTmdbItem(m) }
                             }
                         }
                     }
                 }
             }
+        }
+        // 错误态（home.error.network.* 五类原文 + 重试——拆解 M04-S04）
+        if (nowPlaying.isEmpty() && onTheAir.isEmpty() && trending.isEmpty() && tmdbError != null) {
+            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                val kindText = when (tmdbError) {
+                    "timeout" -> "连接超时，请稍后重试"
+                    "offline" -> "网络未连接，请检查网络后重试"
+                    "secure" -> "无法建立安全连接，请检查服务器设置"
+                    "server" -> "无法连接服务器，请稍后重试"
+                    else -> "网络连接已中断，请重试"
+                }
+                GlassSurface(Modifier.fillMaxWidth().padding(horizontal = DesignTokens.screenPad.dp)) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text("无法加载 TMDB 内容", fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold, color = DesignTokens.textMain)
+                        Spacer(Modifier.height(4.dp))
+                        Text(kindText, fontSize = 13.sp, color = DesignTokens.textSub)
+                        Spacer(Modifier.height(10.dp))
+                        Text("重试", fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                            color = DesignTokens.accentGreen,
+                            modifier = Modifier
+                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                                .clickable { onRetryTmdb() }
+                                .padding(horizontal = 16.dp, vertical = 6.dp))
+                    }
+                }
+            }
+        }
         // 本地影片节
         if (items.isNotEmpty()) {
             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
@@ -192,8 +227,8 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>,
         val m = candidates.getOrNull(pagerState.currentPage)
         if (m == null) return@LaunchedEffect
         val bmp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            com.kivo.cinema.ui.design.TmdbImageCache.get(m.backdropUrl)
-                ?: com.kivo.cinema.tmdb.TmdbClient.staticBitmap(m.backdropUrl)
+            com.kivo.cinema.ui.design.TmdbImageCache.get(m.posterUrl)
+                ?: com.kivo.cinema.tmdb.TmdbClient.staticBitmap(m.posterUrl)
         }
         bmp?.let {
             fgLight = luminanceBelow(it) < 0.55f
@@ -201,58 +236,63 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>,
         }
     }
     val fg = if (fgLight) Color.White else DesignTokens.textMain
-    val fgSub = if (fgLight) Color.White.copy(alpha = 0.85f) else DesignTokens.textMain
 
-    Column {
-        androidx.compose.foundation.pager.HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxWidth(),
-        ) { idx ->
-            val m = candidates[idx]
-            // backdrop 16:9 顶宽——标题烙在素材 key art 里，Rex 不渲染 hero 标题
-            TmdbImage(m.backdropUrl, m.title,
+    androidx.compose.foundation.pager.HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxWidth(),
+    ) { idx ->
+        val m = candidates[idx]
+        // hero v5（IMG_0082 帧机制）：海报 2:3 铺满全宽，下半渐暗，内容叠印在海报下部
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .aspectRatio(2f / 3f)
+        ) {
+            TmdbImage(m.posterUrl, m.title, Modifier.fillMaxSize())
+            // 渐暗遮罩：55% 处开始向底部压暗（文字可读性——IMG_0082 实证）
+            Box(
                 Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f))
-        }
-        Spacer(Modifier.height(12.dp))
-        val cur = candidates.getOrNull(pagerState.currentPage) ?: candidates.firstOrNull()
-        if (cur != null) {
+                    .fillMaxSize()
+                    .background(androidx.compose.ui.graphics.Brush.verticalGradient(
+                        0.5f to Color.Transparent,
+                        1f to Color.Black.copy(alpha = 0.45f))))
             Column(
                 Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(cur.date, fontSize = DesignTokens.fontHeroMeta.sp,
-                    color = fgSub, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                Spacer(Modifier.weight(0.62f))
+                Text(m.date, fontSize = DesignTokens.fontHeroMeta.sp,
+                    color = Color.White, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(6.dp))
-                if (cur.overview.isNotBlank()) {
-                    Text(cur.overview, fontSize = DesignTokens.fontHeroSynopsis.sp,
-                        color = fgSub, maxLines = 2,
+                if (m.overview.isNotBlank()) {
+                    Text(m.overview, fontSize = DesignTokens.fontHeroSynopsis.sp,
+                        color = Color.White.copy(alpha = 0.92f), maxLines = 2,
                         overflow = TextOverflow.Ellipsis, lineHeight = 21.sp,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(6.dp))
                 }
-                RatingBadges(listOf("TMDB" to cur.rating),
+                RatingBadges(listOf("TMDB" to m.rating),
                     modifier = Modifier.fillMaxWidth(), alignCenter = true,
-                    adaptiveLight = fgLight)
-            }
-        }
-        Spacer(Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()) {
-            candidates.forEachIndexed { i, _ ->
-                Box(
-                    Modifier
-                        .padding(horizontal = 4.dp)
-                        .size(if (i == pagerState.currentPage) 9.dp else 6.dp)
-                        .clip(CircleShape)
-                        .background(if (i == pagerState.currentPage) fg
-                            else if (fgLight) Color(0xFFB9B9BE) else Color(0xFF6A6A6E))
-                )
+                    adaptiveLight = true)
+                Spacer(Modifier.height(10.dp))
+                // 圆点叠印海报底部（IMG_0082：活动点白）
+                Row(horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()) {
+                    candidates.forEachIndexed { i, _ ->
+                        Box(
+                            Modifier
+                                .padding(horizontal = 4.dp)
+                                .size(if (i == pagerState.currentPage) 9.dp else 6.dp)
+                                .clip(CircleShape)
+                                .background(if (i == pagerState.currentPage) Color.White
+                                    else Color.White.copy(alpha = 0.35f))
+                        )
+                    }
+                }
             }
         }
     }

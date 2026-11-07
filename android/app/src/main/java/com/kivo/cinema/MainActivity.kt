@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
     private var nowPlaying by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
     private var onTheAir by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
     private var trending by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
+    private var tmdbError by mutableStateOf<String?>(null)   // home.error.network.* 键尾
     private var continueItems by mutableStateOf(
         listOf<Pair<MediaItem, com.kivo.cinema.stats.WatchStore.Progress>>())
     private var heroRating by mutableStateOf<Pair<String, Float>?>(null)
@@ -81,9 +82,12 @@ class MainActivity : ComponentActivity() {
             val tr = tmdbHome.trendingWeek()
             runOnUiThread {
                 heroCandidates = hero
-                nowPlaying = np
-                onTheAir = oa
-                trending = tr
+                nowPlaying = np.items
+                onTheAir = oa.items
+                trending = tr.items
+                // 五类错误取首个非空（重试按钮共用 refreshTmdb）
+                tmdbError = listOf(np.errorKind, oa.errorKind, tr.errorKind)
+                    .firstOrNull { it != null }
             }
         }.start()
     }
@@ -185,6 +189,8 @@ class MainActivity : ComponentActivity() {
                             onOpenItem = { openPlayer(it) },
                             onOpenLibrary = { openLibrary() },
                             onOpenTmdbItem = { },
+                            tmdbError = tmdbError,
+                            onRetryTmdb = { refreshTmdb() },
                         )
                         2 -> com.kivo.cinema.ui.design.WatchingPage(
                             continueItems = continueItems,

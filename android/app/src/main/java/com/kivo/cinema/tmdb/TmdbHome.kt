@@ -34,8 +34,19 @@ class TmdbHome(private val client: TmdbClient) {
         if (url.contains("?")) "$url&api_key=${client.apiKey()}"
         else "$url?api_key=${client.apiKey()}"
 
-    private fun get(path: String): JSONObject? {
-        if (client.apiKey().isEmpty()) return null
+    data class HomeData(val items: List<Item>, val errorKind: String?)
+
+    /** 错误五类（home.error.network.* 原文键）——按异常类型映射。 */
+    private fun kindOf(e: Exception): String = when (e) {
+        is java.net.SocketTimeoutException -> "timeout"
+        is java.net.UnknownHostException -> "offline"
+        is javax.net.ssl.SSLException -> "secure"
+        is java.net.ConnectException -> "server"
+        else -> "lost"
+    }
+
+    private fun get(path: String): Pair<JSONObject?, String?> {
+        if (client.apiKey().isEmpty()) return null to "offline"
         return try {
             val conn = client.openConnection(auth("https://api.themoviedb.org/3$path"))
             conn.connectTimeout = 8000
@@ -43,9 +54,9 @@ class TmdbHome(private val client: TmdbClient) {
             val code = conn.responseCode
             val body = (if (code in 200..299) conn.inputStream else conn.errorStream)
                 ?.bufferedReader()?.readText() ?: ""
-            if (code !in 200..299) null else JSONObject(body)
+            if (code !in 200..299) null to "server" else JSONObject(body) to null
         } catch (e: Exception) {
-            null
+            null to kindOf(e)
         }
     }
 
@@ -75,19 +86,19 @@ class TmdbHome(private val client: TmdbClient) {
     }
 
     /** 首页三节（网络调用，调用方备线程）。失败返回空表——UI 对应节隐藏。 */
-    fun nowPlaying(): List<Item> =
-        get("/movie/now_playing?language=zh-CN")?.optJSONArray("results")
-            ?.let { parseItems(it) } ?: emptyList()
+    fun nowPlaying(): HomeData =
+        get("/movie/now_playing?language=zh-CN").let { (j, err) ->
+            HomeData(j?.optJSONArray("results")?.let { parseItems(it) } ?: emptyList(), err) }
 
-    fun onTheAir(): List<Item> =
-        get("/tv/on_the_air?language=zh-CN")?.optJSONArray("results")
-            ?.let { parseItems(it) } ?: emptyList()
+    fun onTheAir(): HomeData =
+        get("/tv/on_the_air?language=zh-CN").let { (j, err) ->
+            HomeData(j?.optJSONArray("results")?.let { parseItems(it) } ?: emptyList(), err) }
 
-    fun trendingWeek(): List<Item> =
-        get("/trending/all/week?language=zh-CN")?.optJSONArray("results")
-            ?.let { parseItems(it) } ?: emptyList()
+    fun trendingWeek(): HomeData =
+        get("/trending/all/week?language=zh-CN").let { (j, err) ->
+            HomeData(j?.optJSONArray("results")?.let { parseItems(it) } ?: emptyList(), err) }
 
     /** hero 候选：本周趋势前 11 个（grid_01 实测 ~11 圆点），须有 backdrop。 */
     fun heroCandidates(limit: Int = 11): List<Item> =
-        trendingWeek().filter { it.backdropUrl.isNotBlank() }.take(limit)
+        trendingWeek().items.filter { it.backdropUrl.isNotBlank() }.take(limit)
 }
