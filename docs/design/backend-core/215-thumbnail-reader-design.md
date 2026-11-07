@@ -41,13 +41,14 @@ MediaCodec 非线程安全，串行队列天然保证。
 
 | 文件 | 新/旧 | 单一职责 |
 | --- | --- | --- |
-| `thumbnail/ThumbnailReader.kt` | **新** | 独立 MediaExtractor+MediaCodec 实例，seek→decode→Bitmap，LRU 缓存 |
-| `ui/compose/PlayerControls.kt` | 旧（小改） | 拖动时显示缩略图浮窗 |
+| `thumbnail/ThumbnailReader.kt` | **新** | 独立 MediaExtractor+MediaCodec 实例，seek→decode→Bitmap，LRU 缓存；内嵌取证计数（AC1 延迟 / AC3 LRU 淘汰） |
+| `ui/compose/PlayerControls.kt` | 旧（小改） | 拖动时显示缩略图浮窗；拖动中只更新本地值、松手才提交 seek（修掉逐 tick seek 的主链路干扰源） |
+| `ui/compose/PlayerComposeActivity.kt` | 旧（小改） | 创建/释放 reader、拖动回调接线；`kivo.evidence=p215` 时跑取证 harness（60 点扫描 + `writeStats` 主链路对照） |
 
 ## 四、验收判据
 
 | # | 判据 | 通过条件 |
 | --- | --- | --- |
-| AC1 | 首现 ≤500ms | 拖动开始 → 缩略图位图非空 ≤500ms |
-| AC2 | 主链路零干扰 | 主会话丢帧率不回退（前后各 60s 对照） |
-| AC3 | LRU 淘汰 | >50 次不同位置 seek → 缓存不无限增长 |
+| AC1 | 首现 ≤500ms | 拖动开始 → 缩略图位图非空 ≤500ms（冷启动含解码器 init 单列） |
+| AC2 | 主链路零干扰 | 取证扫描期间主会话 `writeStats` 丢帧不回退（对照基线轮） |
+| AC3 | LRU 淘汰 | >50 次不同位置 seek → 淘汰计数 >0、缓存占用 ≤50 |

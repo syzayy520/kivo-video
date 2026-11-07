@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "device_model": "M2012K11AC",
+    "device_product": "alioth",
+    "media": "\/sdcard\/Android\/data\/com.kivo.cinema\/files\/media\/p13af_1080p30_60s_av.mp4",
+    "stress_points": 60,
+    "scan_spacing_ms": 250
+  },
+  "thumbnail": {
+    "requests": 61,
+    "cache_hits": 1,
+    "decode_failures": 1,
+    "evictions": 9,
+    "cache_size_final": 50,
+    "cache_max": 50,
+    "cold_first_latency_ms": 71,
+    "warm_count": 59,
+    "warm_p50_ms": 41,
+    "warm_p95_ms": 48,
+    "warm_max_ms": 50
+  }
+}

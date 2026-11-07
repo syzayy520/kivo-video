@@ -40,6 +40,8 @@ class PlayerComposeActivity : ComponentActivity() {
 
     private var mediaOverridePath = ""
     private var evidenceName = ""
+    private var thumbnailReader: com.kivo.cinema.thumbnail.ThumbnailReader? = null
+    private var stressDone = false
 
     // Compose 状态（D4：控制层 + 播放状态）
     private var isPlaying by mutableStateOf(false)
@@ -47,13 +49,16 @@ class PlayerComposeActivity : ComponentActivity() {
     private var positionMs by mutableStateOf(0L)
     private var durationMs by mutableStateOf(0L)
     private var statusText by mutableStateOf("starting...")
+    private var thumbnailBitmap by mutableStateOf<android.graphics.Bitmap?>(null)
+    private var previewMs by mutableStateOf(-1L)
 
     private val positionPoll = object : Runnable {
         override fun run() {
             val session = playbackSession ?: return
-            positionMs = session.positionUs() / 1000
-            // 3s 无操作自动隐藏（D4）
-            if (System.currentTimeMillis() - lastTouchMs > 3000) {
+            // EOS 后时钟外推会越过片长（真机实测 205s/60s 片）——clamp 到时长
+            positionMs = (session.positionUs() / 1000).coerceAtMost(durationMs)
+            // 3s 无操作自动隐藏（D4）；预览窗口期间不隐藏（取证 harness 需要）
+            if (previewMs < 0 && System.currentTimeMillis() - lastTouchMs > 3000) {
                 controlsVisible = false
             }
             android.os.Handler(mainLooper).postDelayed(this, 100)
@@ -101,6 +106,12 @@ class PlayerComposeActivity : ComponentActivity() {
                             durationMs = durationMs,
                             onPlayPause = { togglePlayPause() },
                             onSeek = { ms -> playbackSession?.seekTo(ms * 1000) },
+                            onScrub = { ms ->
+                                lastTouchMs = System.currentTimeMillis()   // 拖动也算触摸，防 3s 自动隐藏打断长拖
+                                thumbnailReader?.seekTo(ms * 1000)
+                            },
+                            thumbnailBitmap = thumbnailBitmap,
+                            previewMs = previewMs,
                             modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter),
                         )
                     }
@@ -164,7 +175,20 @@ class PlayerComposeActivity : ComponentActivity() {
         isPlaying = true
         lastTouchMs = System.currentTimeMillis()
         android.os.Handler(mainLooper).post(positionPoll)
+        // 时长：一次性 extractor 探测（215 拖动预览需要；顺带修掉控制条时长恒 0:00:00 的 213 缺口）
+        durationMs = probeDurationUs(media.absolutePath) / 1000
         statusText = "playing ${media.name}"
+
+        // 215：独立缩略图读取器（懒初始化；与主会话完全解耦）
+        val reader = com.kivo.cinema.thumbnail.ThumbnailReader(media.absolutePath)
+        thumbnailReader = reader
+        reader.onThumbnailReady = { _, bitmap ->
+            android.os.Handler(mainLooper).post { thumbnailBitmap = bitmap }
+        }
+
+        // 215 取证 harness：`kivo.evidence=p215` 时自动跑 60 点扫描 + 主链路对照
+        if (evidenceName == "p215") scheduleP215Stress()
+
         // 214：会话所有权转移给 Foreground Service——Activity 销毁后会话不死。
         com.kivo.cinema.playback.PlaybackSessionHolder.offer(session)
         startForegroundService(
@@ -179,6 +203,90 @@ class PlayerComposeActivity : ComponentActivity() {
         if (isPlaying) session.resume() else session.pause()
     }
 
+    // ---- 215 取证 harness（`kivo.evidence=p215`）：60 点扫描 + 主链路 writeStats 对照 ----
+    private var stressDurationUs = -1L
+
+    private fun scheduleP215Stress() {
+        android.os.Handler(mainLooper).postDelayed({ runP215Stress(0) }, 2000)
+    }
+
+    /** 片长：harness 自己开一次性 extractor 读 KEY_DURATION。
+     *  不经 [thumbnailReader]——reader 的第一次使用必须留给第一个 seekTo（AC1 冷启动含 init 才诚实）。 */
+    private fun probeDurationUs(path: String): Long {
+        return try {
+            val ex = android.media.MediaExtractor()
+            ex.setDataSource(path)
+            var dur = -1L
+            for (i in 0 until ex.trackCount) {
+                val f = ex.getTrackFormat(i)
+                if (f.getString(android.media.MediaFormat.KEY_MIME)?.startsWith("video/") == true) {
+                    dur = f.getLong(android.media.MediaFormat.KEY_DURATION)
+                    break
+                }
+            }
+            ex.release()
+            dur
+        } catch (e: Exception) {
+            -1L
+        }
+    }
+
+    private fun runP215Stress(index: Int) {
+        val session = playbackSession ?: return
+        val reader = thumbnailReader ?: return
+        val evidenceDir = java.io.File(getExternalFilesDir(null), "evidence").apply { mkdirs() }
+        if (index == 0) {
+            statusText = "p215 baseline writeStats..."
+            session.writeStats("${evidenceDir.absolutePath}/p215-stats-baseline.json")
+            stressDurationUs = probeDurationUs(currentMediaPath())
+        }
+        if (index >= 60) {
+            // 扫描完：补一次已缓存位置（cache_hit 通道），然后收证据
+            statusText = "p215 scan done, cache-hit probe..."
+            reader.seekTo(stressDurationUs / 4)   // 60 点覆盖全片，1/4 处必已缓存
+            android.os.Handler(mainLooper).postDelayed({ finishP215Stress(evidenceDir) }, 1500)
+            return
+        }
+        if (index == 30 && evidenceName == "p215") {
+            // 预览演示窗口：与拖动共用同一条浮窗 UI（3s，给截图留确定性窗口）
+            previewMs = (stressDurationUs / 2) / 1000
+            controlsVisible = true
+            android.os.Handler(mainLooper).postDelayed({ previewMs = -1L }, 4000)
+        }
+        if (stressDurationUs > 0) {
+            val posUs = ((index + 0.5) / 60.0 * stressDurationUs).toLong()
+            reader.seekTo(posUs)
+        }
+        statusText = "p215 scan ${index + 1}/60"
+        android.os.Handler(mainLooper).postDelayed({ runP215Stress(index + 1) }, 250)
+    }
+
+    private fun currentMediaPath(): String {
+        mediaOverridePath.takeIf { it.isNotBlank() }?.let { return it }
+        return locateTestMedia()?.absolutePath ?: ""
+    }
+
+    private fun finishP215Stress(evidenceDir: java.io.File) {
+        val session = playbackSession ?: return
+        val reader = thumbnailReader ?: return
+        session.writeStats("${evidenceDir.absolutePath}/p215-stats-stress.json")
+        val thumb = org.json.JSONObject(reader.evidenceJson())
+        val meta = org.json.JSONObject()
+        meta.put("device_model", android.os.Build.MODEL)
+        meta.put("device_product", android.os.Build.PRODUCT)
+        meta.put("media", mediaOverridePath.ifBlank { "located-test-media" })
+        meta.put("stress_points", 60)
+        meta.put("scan_spacing_ms", 250)
+        val root = org.json.JSONObject()
+        root.put("meta", meta)
+        root.put("thumbnail", thumb)
+        val out = java.io.File(evidenceDir, "p215-thumb.json")
+        out.writeText(root.toString(2))
+        stressDone = true
+        statusText = "p215 evidence written: ${out.name}"
+        Log.i(TAG, "p215 evidence: $out")
+    }
+
     private fun readProbeExtras() {
         mediaOverridePath = intent.getStringExtra("kivo.media") ?: ""
         evidenceName = intent.getStringExtra("kivo.evidence") ?: ""
@@ -191,6 +299,8 @@ class PlayerComposeActivity : ComponentActivity() {
 
     override fun onDestroy() {
         android.os.Handler(mainLooper).removeCallbacks(positionPoll)
+        thumbnailReader?.release()
+        thumbnailReader = null
         playbackSession?.close()
         playbackSession = null
         super.onDestroy()
