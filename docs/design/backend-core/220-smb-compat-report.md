@@ -103,6 +103,23 @@ libsmb2 connect ✓ → smb2_open ✓ (size=33056861)
   ② positionUs 导出（SMB 路径时间显示恒 0 的缺口）③ AC4 完整断连错误上报
   ④ Rex 表单/浏览 UI ⑤ AC5 1GB 起播差测量。
 
+## 五点八、位置/时长/seek 全套导出（2026-11-07 收官）
+
+双帧对照实证（p1-time/p2-time.png，6s 间隔）：**`0:00:02 / 0:03:46` → `0:00:06 / 0:03:46`**
+—— positionUs 随解码帧推进、容器时长 3:46 正确（durationUs 来自 probe_container，
+不是文件大小）。
+
+- session：`seekTo`（异步请求 → worker 线程 avformat_seek_file 最近关键帧 +
+  解码器 flush×16 + 节拍重锚）/ `positionUs`（渲染帧 media_us 原子出版）/
+  `durationUs`（probe 结果）/ `end_reason`（断连上报：连续读失败 >200 次 →
+  "error: read failed repeatedly (...)"）+ `completed()` 区分 EOS
+- JNI：nativeFfmpegSeekTo/PositionUs/DurationUs；Kotlin 对位
+- Activity：SMB 分支接 positionPoll（位置/时长/断连全绿路径）+
+  PlayerControls seek 路由（smbFfSession 优先，本地会话回退）
+- 连续读失败阈值 200 次的依据：单次 read 失败可能是瞬时抖动（proxy 重试），
+  200 次 ≈ 数秒持续断网；end_reason 在 poll 的 isRunning=false 时经
+  stopAndCollectEvidence() 出版到证据 JSON 并展示在 statusText（G9 ✓）
+
 ## 六、结论与最小修复（待定案）
 
 | 假设 | 证据强度 | 下一步 |

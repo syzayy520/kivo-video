@@ -93,6 +93,21 @@ class FfmpegPlaybackSession(
         return rc
     }
 
+    /** seek（220）：异步请求——worker 线程内执行（avformat_seek_file + flush + 重锚）。 */
+    fun seekTo(targetUs: Long) {
+        runCatching { NativePlayer.nativeFfmpegSeekTo(handle, targetUs) }
+    }
+
+    /** 当前媒体位置（µs）；-1 = 未知。 */
+    fun positionUs(): Long = runCatching {
+        NativePlayer.nativeFfmpegPositionUs(handle)
+    }.getOrElse { -1L }
+
+    /** 容器时长（µs）；-1 = 未知。 */
+    fun durationUs(): Long = runCatching {
+        NativePlayer.nativeFfmpegDurationUs(handle)
+    }.getOrElse { -1L }
+
     /** 起解线程。 */
     fun start(): Int = runCatching {
         NativePlayer.nativeFfmpegStart(handle)

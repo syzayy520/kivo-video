@@ -54,6 +54,31 @@ class PlayerComposeActivity : ComponentActivity() {
 
     private val positionPoll = object : Runnable {
         override fun run() {
+            val ffSession = smbFfSession
+            if (ffSession != null) {
+                // 220：SMB 路径的位置/结束上报；durationMs 兜底（open 后异步才可知）
+                if (durationMs <= 0) {
+                    val d = ffSession.durationUs() / 1000
+                    if (d > 0) durationMs = d
+                }
+                positionMs = (ffSession.positionUs() / 1000).coerceAtMost(durationMs)
+                if (!ffSession.isRunning() && smbStarted != 0L) {
+                    val reason = runCatching { ffSession.stopAndCollectEvidence() }
+                        .getOrElse { "stop failed" }
+                    statusText = "SMB 播放结束: ${reason.takeLast(60)}"
+                    smbFfSession = null
+                    runCatching { smbProxy?.close() }
+                    runCatching { smbSource?.close() }
+                    isPlaying = false
+                    controlsVisible = true
+                    return
+                }
+                // SMB v1：控制条常显（自动隐藏留到 UI 卡统一做——tap 翻转与
+                // 100ms 轮询的时序在截屏取证里互相干扰，本轮先保证判据可读）
+                controlsVisible = true
+                android.os.Handler(mainLooper).postDelayed(this, 100)
+                return
+            }
             val session = playbackSession ?: return
             // EOS 后时钟外推会越过片长（真机实测 205s/60s 片）——clamp 到时长
             positionMs = (session.positionUs() / 1000).coerceAtMost(durationMs)
@@ -105,7 +130,10 @@ class PlayerComposeActivity : ComponentActivity() {
                             positionMs = positionMs,
                             durationMs = durationMs,
                             onPlayPause = { togglePlayPause() },
-                            onSeek = { ms -> playbackSession?.seekTo(ms * 1000) },
+                            onSeek = { ms ->
+                                smbFfSession?.seekTo(ms * 1000)
+                                    ?: playbackSession?.seekTo(ms * 1000)
+                            },
                             onScrub = { ms ->
                                 lastTouchMs = System.currentTimeMillis()   // 拖动也算触摸，防 3s 自动隐藏打断长拖
                                 thumbnailReader?.seekTo(ms * 1000)
@@ -207,6 +235,7 @@ class PlayerComposeActivity : ComponentActivity() {
     private var smbSource: com.kivo.cinema.smb.Smb2Native.Source? = null
     private var smbProxy: com.kivo.cinema.net.LocalRangeProxy? = null
     private var smbFfSession: com.kivo.cinema.bridge.FfmpegPlaybackSession? = null
+    private var smbStarted = 0L
 
     private fun smbTrace(msg: String) {
         Log.i(TAG, msg)
@@ -262,18 +291,22 @@ class PlayerComposeActivity : ComponentActivity() {
                 finish()
                 return
             }
-            val started = fsession.start()
-            smbTrace("start rc=$started")
-            if (started != 0) {
-                statusText = "smb start failed rc=$started"
+            val startRc = fsession.start()
+            smbTrace("start rc=$startRc")
+            if (startRc != 0) {
+                statusText = "smb start failed rc=$startRc"
                 runCatching { fsession.stopAndCollectEvidence() }
                 finish()
                 return
             }
             isPlaying = true
-            lastTouchMs = System.currentTimeMillis()
+            smbStarted = System.currentTimeMillis()
+            lastTouchMs = smbStarted
+            durationMs = fsession.durationUs() / 1000
             statusText = "playing smb://${cfg.host}/${cfg.share}/${cfg.path}"
-            Log.i(TAG, "SMB playback started: $url")
+            Log.i(TAG, "SMB playback started: $url durationMs=$durationMs")
+            // positionPoll：SMB 会话的位置/断连上报全靠它
+            android.os.Handler(mainLooper).post(positionPoll)
         } catch (e: Exception) {
             Log.e(TAG, "smb failed", e)
             smbTrace("EXCEPTION ${e.javaClass.name}: ${e.message}")

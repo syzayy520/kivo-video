@@ -226,6 +226,12 @@ object NativePlayer {
         routingReason: String
     ): Int
 
+    external fun nativeFfmpegSeekTo(handle: Long, targetUs: Long)
+
+    external fun nativeFfmpegPositionUs(handle: Long): Long
+
+    external fun nativeFfmpegDurationUs(handle: Long): Long
+
     external fun nativeFfmpegStart(handle: Long): Int
 
     /** 线程是否还在跑（自然 EOS 后为 false，不必等 stop）。 */

@@ -165,6 +165,34 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegOpenUrl(JNIEnv* env, jobjec
     return 0;
 KIVO_JNI_END_INT(env, nullptr, "nativeFfmpegOpenUrl")
 
+JNIEXPORT void JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegSeekTo(JNIEnv* env, jobject /*thiz*/,
+                                                            jlong raw, jlong targetUs)
+    KIVO_JNI_BEGIN
+    auto* handle = ffmpeg_handle(raw);
+    if (handle == nullptr || handle->session == nullptr) return;
+    (void)handle->session->seekTo(static_cast<std::int64_t>(targetUs));
+    KIVO_JNI_END_VOID(env, nullptr, "nativeFfmpegSeekTo")
+
+JNIEXPORT jlong JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegPositionUs(JNIEnv* env, jobject /*thiz*/,
+                                                                jlong raw)
+    KIVO_JNI_BEGIN
+    auto* handle = ffmpeg_handle(raw);
+    if (handle == nullptr || handle->session == nullptr) return -1;
+    return static_cast<jlong>(handle->session->positionUs());
+    KIVO_JNI_END_LONG(env, nullptr, "nativeFfmpegPositionUs")
+
+JNIEXPORT jlong JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegDurationUs(JNIEnv* env, jobject /*thiz*/,
+                                                                jlong raw)
+    KIVO_JNI_BEGIN
+    auto* handle = ffmpeg_handle(raw);
+    if (handle == nullptr || handle->session == nullptr) return -1;
+    return static_cast<jlong>(handle->session->durationUs());
+    KIVO_JNI_END_LONG(env, nullptr, "nativeFfmpegDurationUs")
+
+
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegStart(JNIEnv* env, jobject /*thiz*/,
                                                            jlong raw) KIVO_JNI_BEGIN

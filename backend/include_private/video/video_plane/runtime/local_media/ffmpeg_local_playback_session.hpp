@@ -54,6 +54,9 @@ public:
         int fd = -1;                 ///< 借用的文件描述符
         std::int64_t offset = 0;     ///< 数据起点
         std::int64_t length = -1;    ///< 数据长度；-1 = 量到 fd 末尾
+        /// URL 输入（220）：非空时走 avformat URL 直开（http://127.0.0.1 本地
+        /// Range 代理），fd 三项被忽略。与 fd 路径二选一。
+        std::string url;
         std::string label;           ///< 证据里的媒体名（显示用）
         /// 路由事实（211 AC5）：Kotlin 侧路由判定把「走了哪条、为什么」传进来，
         /// 会话原样出版进证据（会话自己不做路由判定——判定在 Java 平台 API 上）。
@@ -81,13 +84,32 @@ public:
     [[nodiscard]] std::int64_t source_width() const noexcept { return source_width_; }
     [[nodiscard]] std::int64_t source_height() const noexcept { return source_height_; }
 
+    /// seek（220）：异步请求——run_loop 每轮检查（worker 线程内执行真正的
+    /// avformat_seek_file + 解码器 flush + 节拍重锚）。fd/URL 两种输入都支持。
+    [[nodiscard]] FfmpegSessionOutcome seekTo(std::int64_t target_us);
+    /// 当前媒体位置（µs；最后渲染帧的 media 时间；seek 后即目标值）。-1 = 未知。
+    [[nodiscard]] std::int64_t positionUs() const noexcept {
+        return position_us_.load(std::memory_order_relaxed);
+    }
+    /// 容器时长（µs；open 时 probe_container 得出）。-1 = 未知。
+    [[nodiscard]] std::int64_t durationUs() const noexcept {
+        return duration_us_.load(std::memory_order_relaxed);
+    }
+    /// 结束原因（"completed"/"interrupted"/"error: ..."）——断连上报（AC4）用。
+    [[nodiscard]] std::string end_reason() const noexcept { return end_reason_; }
+    [[nodiscard]] bool completed() const noexcept { return completed_; }
+
 private:
     void run_loop_();
 
     bool opened_ = false;
+    bool completed_ = false;
     Config config_{};
     IFfFrameSink* sink_ = nullptr;  // 借用
     FfFdSource fd_source_{};
+    std::atomic<std::int64_t> seek_request_us_{-1};   // -1 = 无请求
+    std::atomic<std::int64_t> position_us_{-1};
+    std::atomic<std::int64_t> duration_us_{-1};
     kivo::cinema_engine::FfmpegFormatHandle format_{};
     int video_stream_ = -1;
     std::string codec_name_;

@@ -41,6 +41,20 @@ FfmpegFormatHandle FfmpegAdapter::open_file(const std::string& path) {
 #endif
 }
 
+FfmpegFormatHandle FfmpegAdapter::open_url(const std::string& url) {
+#ifdef KIVO_ENABLE_FFMPEG
+    ffmpeg_adapter::install_product_log_filter();
+    AVFormatContext* ctx = nullptr;
+    int ret = avformat_open_input(&ctx, url.c_str(), nullptr, nullptr);
+    if (ret < 0) return {nullptr};
+    ret = avformat_find_stream_info(ctx, nullptr);
+    if (ret < 0) { avformat_close_input(&ctx); return {nullptr}; }
+    return {ctx};
+#else
+    return {nullptr};
+#endif
+}
+
 void FfmpegAdapter::free_format_context(FfmpegFormatHandle& handle) {
 #ifdef KIVO_ENABLE_FFMPEG
     if (handle.native) {
@@ -593,6 +607,22 @@ bool FfmpegAdapter::receive_frame_rgba(FfmpegCodecHandle codec_handle,
         return false;
     }
     return true;
+#else
+    return false;
+#endif
+}
+
+bool FfmpegAdapter::seek_file_us(FfmpegFormatHandle handle, int stream_index,
+                                 std::int64_t target_us) {
+#ifdef KIVO_ENABLE_FFMPEG
+    if (!handle.native || stream_index < 0) return false;
+    auto* ctx = static_cast<AVFormatContext*>(handle.native);
+    if (stream_index >= static_cast<int>(ctx->nb_streams)) return false;
+    const AVRational tb = ctx->streams[stream_index]->time_base;
+    const std::int64_t ts = av_rescale_q(target_us, AVRational{1, 1000000}, tb);
+    // 时间戳边界：前后都放开（INT64_MIN/MAX），让 avformat 选最近关键帧
+    const int ret = avformat_seek_file(ctx, stream_index, INT64_MIN, ts, INT64_MAX, 0);
+    return ret >= 0;
 #else
     return false;
 #endif

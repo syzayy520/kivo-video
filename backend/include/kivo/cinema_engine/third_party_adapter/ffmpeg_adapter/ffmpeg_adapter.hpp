@@ -105,6 +105,8 @@ public:
 
     // --- Format context lifecycle ---
     static FfmpegFormatHandle open_file(const std::string& path);
+    /// URL 打开（220）：http://127.0.0.1:port/... 本地 Range 代理（network+http 协议需启用）。
+    static FfmpegFormatHandle open_url(const std::string& url);
     static FfmpegFormatHandle open_custom_io(const FfmpegInputConfig& config);
     static void free_format_context(FfmpegFormatHandle& handle);
 
@@ -159,6 +161,9 @@ public:
     static bool receive_frame_rgba(FfmpegCodecHandle codec_handle,
                                    FfmpegFrameResult& result);
     static void flush_decoder(FfmpegCodecHandle codec_handle);
+    /// URL/fd 通用 seek（220）：按流 timebase 重算目标时间戳后 avformat_seek_file。
+    static bool seek_file_us(FfmpegFormatHandle handle, int stream_index,
+                             std::int64_t target_us);
 
     // --- Utility ---
     static std::string map_error(int ffmpeg_error);

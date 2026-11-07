@@ -48,7 +48,9 @@ FfmpegSessionOutcome FfmpegLocalPlaybackSession::open(const Config& config,
     if (running_.load(std::memory_order_relaxed)) {
         return {FfmpegSessionOutcome::Code::kAlreadyRunning, "session is running"};
     }
-    if (config.fd < 0) {
+    // fd 校验仅适用于 fd 输入路径（211 本地文件）；URL 输入（220 SMB/本地代理）
+    // 无 fd——url 非空即视为合法输入。
+    if (config.fd < 0 && config.url.empty()) {
         return {FfmpegSessionOutcome::Code::kOpenFailed, "fd is negative"};
     }
     if (sink == nullptr) {
@@ -57,6 +59,14 @@ FfmpegSessionOutcome FfmpegLocalPlaybackSession::open(const Config& config,
     config_ = config;
     sink_ = sink;
     opened_ = true;
+    return {};
+}
+
+FfmpegSessionOutcome FfmpegLocalPlaybackSession::seekTo(std::int64_t target_us) {
+    if (!opened_) {
+        return {FfmpegSessionOutcome::Code::kNotStarted, "open() first"};
+    }
+    seek_request_us_.store(target_us, std::memory_order_relaxed);
     return {};
 }
 
@@ -131,20 +141,29 @@ void FfmpegLocalPlaybackSession::run_loop_() {
     bool completed = false;
     bool error_reported = false;
 
-    // 1. fd 回调 → 自定义 AVIO → demux（本线程）。
-    fd_source_.fd = config_.fd;
-    fd_source_.offset = config_.offset;
-    fd_source_.length = config_.length;
-    fd_source_.cursor = 0;
-    auto callbacks = make_ff_fd_callbacks(&fd_source_);
-    kivo::cinema_engine::FfmpegInputConfig io_config;
-    io_config.callbacks = callbacks;
-    format_ = kivo::cinema_engine::FfmpegAdapter::open_custom_io(io_config);
+    // 1. 输入源二选一：URL 直开（220 SMB 本地代理）或 fd 回调（211 本地文件）。
+    if (!config_.url.empty()) {
+        format_ = kivo::cinema_engine::FfmpegAdapter::open_url(config_.url);
+    } else {
+        fd_source_.fd = config_.fd;
+        fd_source_.offset = config_.offset;
+        fd_source_.length = config_.length;
+        fd_source_.cursor = 0;
+        auto callbacks = make_ff_fd_callbacks(&fd_source_);
+        kivo::cinema_engine::FfmpegInputConfig io_config;
+        io_config.callbacks = callbacks;
+        format_ = kivo::cinema_engine::FfmpegAdapter::open_custom_io(io_config);
+    }
     double duration = 0;
     std::int64_t bitrate = 0;
-    if (format_.native == nullptr ||
-        !kivo::cinema_engine::FfmpegAdapter::probe_container(format_, container_,
-                                                             duration, bitrate)) {
+    const bool probe_ok = format_.native != nullptr &&
+        kivo::cinema_engine::FfmpegAdapter::probe_container(format_, container_,
+                                                            duration, bitrate);
+    if (probe_ok && duration > 0) {
+        duration_us_.store(static_cast<std::int64_t>(duration * 1e6),
+                           std::memory_order_relaxed);
+    }
+    if (format_.native == nullptr || !probe_ok) {
         counters_.wall_us = steady_us() - started_us;
         end_reason_ = "error: demux open/probe failed";
         if (format_.native != nullptr) {
@@ -185,8 +204,47 @@ void FfmpegLocalPlaybackSession::run_loop_() {
     }
 
     // 2. 解码循环（本线程）。
+    int consecutive_read_errors = 0;
     while (running_.load(std::memory_order_relaxed)) {
+        // seek 请求（220）：worker 线程内执行——avformat_seek_file（选最近关键帧）
+        // + 解码器 flush（丢弃 seek 前残留帧）+ 节拍重锚到目标位置。
+        if (const auto req = seek_request_us_.exchange(-1, std::memory_order_relaxed);
+            req >= 0) {
+            if (kivo::cinema_engine::FfmpegAdapter::seek_file_us(
+                    format_, video_stream_, req)) {
+                for (int i = 0; i < 16; ++i) {
+                    auto fr = decoder_.flush("p220_seek");
+                    if (!fr.success || fr.frame.frame_data.empty()) break;
+                }
+                first_pts_us = req;
+                pace_origin_us = steady_us();
+                position_us_.store(req, std::memory_order_relaxed);
+            } else {
+                seek_request_us_.store(req, std::memory_order_relaxed);  // 失败重试下一轮
+            }
+        }
         auto read_result = kivo::cinema_engine::FfmpegAdapter::read_packet(format_);
+        if (read_result.eof) {
+            completed = true;
+            break;
+        }
+        if (!read_result.success) {
+            ++counters_.read_errors;
+            // 断连上报（AC4）：连续读失败超阈值 → 终止循环并出版 reason
+            if (++consecutive_read_errors > 200) {
+                end_reason_ = "error: read failed repeatedly (" +
+                              (read_result.error_message.empty() ? "no msg"
+                                                                 : read_result.error_message) +
+                              ")";
+                break;
+            }
+            if (!error_reported && !read_result.error_message.empty()) {
+                first_error_ = read_result.error_message;
+                error_reported = true;
+            }
+            continue;
+        }
+        consecutive_read_errors = 0;
         if (read_result.eof) {
             completed = true;
             break;
@@ -242,6 +300,7 @@ void FfmpegLocalPlaybackSession::run_loop_() {
         if (kivo::cinema_engine::FfmpegAdapter::rescale_stream_timestamp_us(
                 format_, video_stream_, pts, media_us) &&
             media_us > 0) {
+            position_us_.store(media_us, std::memory_order_relaxed);
             if (first_pts_us < 0) {
                 first_pts_us = media_us;
                 pace_origin_us = steady_us();
@@ -271,7 +330,14 @@ void FfmpegLocalPlaybackSession::run_loop_() {
         kivo::cinema_engine::FfmpegAdapter::free_format_context(format_);
     }
     counters_.wall_us = steady_us() - started_us;
-    end_reason_ = completed ? "completed" : "interrupted";
+    completed_ = completed;
+    if (completed) {
+        end_reason_ = "completed";
+    } else if (!end_reason_.empty() && end_reason_[0] == 'e') {
+        // 已带 error 前缀（如断连上报）——保留
+    } else {
+        end_reason_ = "interrupted";
+    }
     // 自然 EOS 也算停了：is_running() 的语义是"线程还活着"，
     // 不清标志会让调用方在 EOS 后白等到 stop()（桌面测试当场暴露）。
     running_.store(false, std::memory_order_relaxed);
