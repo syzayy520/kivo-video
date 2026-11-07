@@ -1,4 +1,4 @@
-package com.kivo.cinema.ui.rex
+package com.kivo.cinema.ui.design
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.sin
 
 /**
- * Rex 组件族（236 设计稿 §四）：AnimatedGradientBg / GlassSurface / RexCircleButton /
- * RexPosterCard / SectionHeader / ContinueCard。
+ * 设计稿 组件族（236 设计稿 §四）：AnimatedGradientBg / GlassSurface / GlassCircleButton /
+ * DesignPosterCard / SectionHeader / ContinueCard。
  * 数值全部来自帧实测，禁止偏离。
  */
 
@@ -48,14 +48,14 @@ fun AnimatedGradientBg(content: @Composable () -> Unit) {
             kotlinx.coroutines.delay(100)
         }
     }
-    // 三色沿相位漂移的插值——每 20s 完成一个整循环，慢到几乎不可见（Rex 同气质）
+    // 三色沿相位漂移的插值——每 20s 完成一个整循环，慢到几乎不可见（同气质）
     val phase = t.floatValue * (Math.PI.toFloat() * 2f / 20f)
     val p1 = (sin(phase) * 0.5f + 0.5f) * 0.35f
     val p2 = (sin(phase + 2.1f) * 0.5f + 0.5f) * 0.35f
     val p3 = (sin(phase + 4.2f) * 0.5f + 0.5f) * 0.35f
-    val lav = RexTokens.bgLavender
-    val pink = RexTokens.bgPink
-    val cream = RexTokens.bgCream
+    val lav = DesignTokens.bgLavender
+    val pink = DesignTokens.bgPink
+    val cream = DesignTokens.bgCream
     val c1 = lerp3(lav, pink, cream, p1)
     val c2 = lerp3(lav, pink, cream, p2)
     val c3 = lerp3(lav, pink, cream, p3)
@@ -84,8 +84,8 @@ private fun lerp(a: Color, b: Color, t: Float): Color = Color(
 @Composable
 fun GlassSurface(
     modifier: Modifier = Modifier,
-    radius: Float = RexTokens.radiusCard,
-    alpha: Float = RexTokens.glassAlpha,
+    radius: Float = DesignTokens.radiusCard,
+    alpha: Float = DesignTokens.glassAlpha,
     content: @Composable () -> Unit,
 ) {
     Box(
@@ -97,12 +97,12 @@ fun GlassSurface(
 
 /** 毛玻璃圆钮（返回/搜索/"…"/排序，Ø50pt——lib_01/grid_02 实测）。 */
 @Composable
-fun RexCircleButton(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun GlassCircleButton(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     GlassSurface(
         modifier = modifier
-            .size(RexTokens.circleButton.dp)
+            .size(DesignTokens.circleButton.dp)
             .clip(CircleShape),
-        radius = RexTokens.circleButton,
+        radius = DesignTokens.circleButton,
     ) {
         Box(contentAlignment = Alignment.Center) { content() }
     }
@@ -112,11 +112,11 @@ fun RexCircleButton(modifier: Modifier = Modifier, content: @Composable () -> Un
 @Composable
 fun SectionHeader(title: String, onMore: (() -> Unit)? = null) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, fontSize = RexTokens.fontSectionHeader.sp,
-            fontWeight = FontWeight.Bold, color = RexTokens.textMain)
+        Text(title, fontSize = DesignTokens.fontSectionHeader.sp,
+            fontWeight = FontWeight.Bold, color = DesignTokens.textMain)
         Spacer(Modifier.weight(1f))
         if (onMore != null) {
-            Text("›", fontSize = 26.sp, color = RexTokens.textMain,
+            Text("›", fontSize = 26.sp, color = DesignTokens.textMain,
                 modifier = Modifier
                     .clip(CircleShape)
                     .clickable { onMore() }
@@ -127,20 +127,20 @@ fun SectionHeader(title: String, onMore: (() -> Unit)? = null) {
 
 /** 海报卡（lib_02 实测：90pt 宽 2:3 圆角 10pt + 标题 15–16pt 粗体居中 + 日期 13pt 灰居中）。 */
 @Composable
-fun RexPosterCard(title: String, date: String, poster: Painter? = null,
+fun DesignPosterCard(title: String, date: String, poster: Painter? = null,
                   posterBlock: (@Composable () -> Unit)? = null,
-                  onClick: () -> Unit, width: Float = RexTokens.posterWidth) {
+                  onClick: () -> Unit, width: Float = DesignTokens.posterWidth) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .width(width.dp)
             .clickable { onClick() }
     ) {
-        GlassSurface(radius = RexTokens.radiusPoster, alpha = 0f) {
+        GlassSurface(radius = DesignTokens.radiusPoster, alpha = 0f) {
             Box(
                 Modifier
                     .size(width.dp, (width * 1.5f).dp)
-                    .clip(RoundedCornerShape(RexTokens.radiusPoster.dp))
+                    .clip(RoundedCornerShape(DesignTokens.radiusPoster.dp))
                     .background(Color(0xFFE3DEEA))
             ) {
                 if (posterBlock != null) posterBlock!!() else poster?.let {
@@ -154,9 +154,9 @@ fun RexPosterCard(title: String, date: String, poster: Painter? = null,
             }
         }
         Spacer(Modifier.height(6.dp))
-        Text(title, fontSize = RexTokens.fontPosterTitle.sp, fontWeight = FontWeight.Bold,
-            color = RexTokens.textMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(date, fontSize = RexTokens.fontPosterDate.sp, color = RexTokens.textSub)
+        Text(title, fontSize = DesignTokens.fontPosterTitle.sp, fontWeight = FontWeight.Bold,
+            color = DesignTokens.textMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(date, fontSize = DesignTokens.fontPosterDate.sp, color = DesignTokens.textSub)
     }
 }
 
@@ -168,15 +168,15 @@ fun ContinueCard(title: String, meta: String, seenText: String?,
                  onClick: () -> Unit) {
     Column(
         Modifier
-            .width(RexTokens.continueCardWidth.dp)
+            .width(DesignTokens.continueCardWidth.dp)
             .clickable { onClick() }
     ) {
-        GlassSurface(radius = RexTokens.radiusCard) {
+        GlassSurface(radius = DesignTokens.radiusCard) {
             Box(
                 Modifier
-                    .size(RexTokens.continueCardWidth.dp,
-                        (RexTokens.continueCardWidth * 9f / 16f).dp)
-                    .clip(RoundedCornerShape(RexTokens.radiusCard.dp))
+                    .size(DesignTokens.continueCardWidth.dp,
+                        (DesignTokens.continueCardWidth * 9f / 16f).dp)
+                    .clip(RoundedCornerShape(DesignTokens.radiusCard.dp))
                     .background(Color(0xFF24242A))
             ) {
                 if (posterBlock != null) posterBlock!!() else poster?.let {
@@ -202,8 +202,8 @@ fun ContinueCard(title: String, meta: String, seenText: String?,
             }
         }
         Spacer(Modifier.height(6.dp))
-        Text(title, fontSize = RexTokens.fontRowTitle.sp, fontWeight = FontWeight.Bold,
-            color = RexTokens.textMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(meta, fontSize = 12.sp, color = RexTokens.textSub, maxLines = 1)
+        Text(title, fontSize = DesignTokens.fontRowTitle.sp, fontWeight = FontWeight.Bold,
+            color = DesignTokens.textMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(meta, fontSize = 12.sp, color = DesignTokens.textSub, maxLines = 1)
     }
 }

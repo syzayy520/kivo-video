@@ -39,12 +39,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * SMB 源管理 UI（220 设计稿 D4，Rex 0114 实拍规格）：
+ * SMB 源管理 UI（220 设计稿 D4，表单实测规格）：
  *
  * FORM 态：表单（主机/端口/共享/路径/用户/密码）+ 测试连通性（连上即进 BROWSE）
  * BROWSE 态：目录列表（文件夹/文件），点目录进入、点文件起播、返回上一级
  *
- * Rex 规格（05 号文档 §三/§6.5）：浅色渐变背景、白色圆角行、左标签右值、
+ * 设计稿 规格（05 号文档 §三/§6.5）：浅色渐变背景、白色圆角行、左标签右值、
  * 行高 ~59pt（Android 88dp 近似）、错误 reason 用户可见（G9）。
  *
  * 单一职责：SMB 源的表单/浏览/起播转发——协议逻辑全在 Smb2Native.Source。
@@ -93,13 +93,13 @@ class SmbActivity : ComponentActivity() {
             entries = e
             status = "目录：/${currentPath}（${e.size} 项）"
         } catch (e: Exception) {
-            status = "无法读取文件夹：${e.message}"   // Rex R3 文案
+            status = "无法读取文件夹：${e.message}"   // 设计稿 R3 文案
         }
     }
 
     private fun testAndBrowse() {
         testing = true
-        status = "正在测试…"   // Rex R2: library.form.testingConnectivity
+        status = "正在测试…"   // 设计稿 R2: library.form.testingConnectivity
         Thread {
             try {
                 val c = SmbConfig(
@@ -116,9 +116,9 @@ class SmbActivity : ComponentActivity() {
                 currentPath = ""
                 entries = root
                 browsing = true
-                status = "可连接（${root.size} 项）"   // Rex R2: reachable
+                status = "可连接（${root.size} 项）"   // 设计稿 R2: reachable
             } catch (e: Exception) {
-                status = "无法连接服务器，请检查地址与网络。（${e.message}）"   // Rex R3
+                status = "无法连接服务器，请检查地址与网络。（${e.message}）"   // 设计稿 R3
             }
             testing = false
         }.start()
@@ -143,7 +143,7 @@ class SmbActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    Color(0xFFF2F2F7)   // Rex groupedFill 浅色（05 号文档 §二）
+                    Color(0xFFF2F2F7)   // 设计稿 groupedFill 浅色（05 号文档 §二）
                 )
                 .padding(16.dp)
         ) {
@@ -215,7 +215,7 @@ class SmbActivity : ComponentActivity() {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Button(
                     onClick = {
-                        // 上一级（Rex R5）
+                        // 上一级（设计稿 R5）
                         val parent = currentPath.substringBeforeLast('/', missingDelimiterValue = "")
                         navigate(parent)
                     },

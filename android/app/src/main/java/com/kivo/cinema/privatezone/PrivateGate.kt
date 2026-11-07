@@ -12,7 +12,7 @@ import android.os.CancellationSignal
  * 选型注（2026-11-08）：SDK 37 的 Builder 方法面是 setNegativeButton(CharSequence, Executor,
  * Listener)——老教程里的 setNegativeButtonText 不存在；deprecated 的 FingerprintManager 类
  * 在 SDK 37 存根里已被移除。均 javap 实证。
- * 每次进入都验证（对齐 Rex "unlock protected viewing environments" 语义）。
+ * 每次进入都验证（对齐 设计稿 "unlock protected viewing environments" 语义）。
  */
 class PrivateGate {
 

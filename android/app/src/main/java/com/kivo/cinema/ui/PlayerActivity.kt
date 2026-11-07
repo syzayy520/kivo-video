@@ -510,7 +510,7 @@ class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
         val subtitleSibling = sequenceOf(".ass", ".srt")
             .map { File(media.absolutePath + it) }
             .firstOrNull { it.isFile }
-        // PGS/图像字幕提示（对齐 Rex image_selection_conflict 语义）：
+        // PGS/图像字幕提示（对齐 设计稿 image_selection_conflict 语义）：
         // 容器里有图像类字幕轨 → 用户可见提示（不假装支持，也不静默）。
         runCatching {
             val extractor = android.media.MediaExtractor()

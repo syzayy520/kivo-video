@@ -1,4 +1,4 @@
-package com.kivo.cinema.ui.rex
+package com.kivo.cinema.ui.design
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * 底部导航（grid_02/rex_browse_a 帧实测）：单个白玻璃胶囊 4 tab + 分离搜索圆钮。
+ * 底部导航（grid_02 帧实测）：单个白玻璃胶囊 4 tab + 分离搜索圆钮。
  * 胶囊高 50pt、距底 22pt、左右 16pt；图标 ~26pt + label 10pt；tab 间距均分。
  */
 @Composable
@@ -36,14 +36,14 @@ fun CapsuleNavBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = RexTokens.navSidePad.dp),
+            .padding(horizontal = DesignTokens.navSidePad.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         GlassSurface(
             modifier = Modifier
                 .weight(1f)
-                .height(RexTokens.navHeight.dp),
+                .height(DesignTokens.navHeight.dp),
             radius = 25f,
         ) {
             Row(
@@ -61,10 +61,10 @@ fun CapsuleNavBar(
                             .clickable { onSelect(i) }
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
-                        Text(icon, fontSize = 22.sp, color = RexTokens.textMain)
-                        Text(label, fontSize = RexTokens.fontNavLabel.sp,
-                            color = if (i == selected) RexTokens.textMain
-                                    else RexTokens.textSub)
+                        Text(icon, fontSize = 22.sp, color = DesignTokens.textMain)
+                        Text(label, fontSize = DesignTokens.fontNavLabel.sp,
+                            color = if (i == selected) DesignTokens.textMain
+                                    else DesignTokens.textSub)
                     }
                 }
             }
@@ -72,10 +72,10 @@ fun CapsuleNavBar(
         // 分离搜索圆钮（帧实测 Ø50pt，不进胶囊）
         GlassSurface(
             modifier = Modifier
-                .size(RexTokens.circleButton.dp)
+                .size(DesignTokens.circleButton.dp)
                 .clip(CircleShape)
                 .clickable { onSearch() },
-            radius = RexTokens.circleButton,
+            radius = DesignTokens.circleButton,
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Text("🔍", fontSize = 20.sp)

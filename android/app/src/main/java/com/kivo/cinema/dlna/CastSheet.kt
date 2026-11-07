@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.sp
 /**
  * 投屏设备选择 sheet（230 设计稿 D5）。
  *
- * UI 锚点说明（设计稿 §二明示）：Rex 无 DLNA（iOS 走 AirPlay），本 sheet 按播放器暗色
- * chrome token（#1C1C1E 底 + 白行文字）与 Rex 05 规格的行高/圆角补位，不自造样式。
+ * UI 锚点说明（设计稿 §二明示）：设计稿 无 DLNA（iOS 走 AirPlay），本 sheet 按播放器暗色
+ * chrome token（#1C1C1E 底 + 白行文字）与 规格 05 规格的行高/圆角补位，不自造样式。
  */
 @Composable
 fun CastSheet(

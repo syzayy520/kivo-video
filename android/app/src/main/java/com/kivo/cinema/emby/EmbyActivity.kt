@@ -49,13 +49,13 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
 /**
- * Emby 客户端 UI（224 设计稿 D4，Rex 0114 表单规格 + 222 海报墙规格）：
+ * Emby 客户端 UI（224 设计稿 D4，设计稿 0114 表单规格 + 222 海报墙规格）：
  *
  * FORM 态：服务器/用户/密码 + 测试连接（连上即进海报墙）
  * LIBRARY 态：电影海报墙（2:3 卡 3 列，名称 + 年份徽标），点卡片直连流起播
  *
- * 证据锚：Rex §6.2 库类型枚举 Emby/Jellyfin 首位；表单规格 = SmbActivity 同款
- * （05 号文档 §三）；海报墙 = MediaLibraryActivity 同款（Rex 2:3 卡）。
+ * 证据锚：规格 §6.2 库类型枚举 Emby/Jellyfin 首位；表单规格 = SmbActivity 同款
+ * （05 号文档 §三）；海报墙 = MediaLibraryActivity 同款（2:3 卡）。
  * 错误 reason 用户可见（G9）；直连失败不静默降级（G3，回退 reason 由会话出版）。
  */
 class EmbyActivity : ComponentActivity() {
@@ -147,7 +147,7 @@ class EmbyActivity : ComponentActivity() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF2F2F7))   // Rex groupedFill（05 号文档 §二）
+                .background(Color(0xFFF2F2F7))   // 设计稿 groupedFill（05 号文档 §二）
                 .padding(16.dp)
         ) {
             if (!inLibrary) FormView() else LibraryView()
@@ -236,7 +236,7 @@ class EmbyActivity : ComponentActivity() {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(2f / 3f)   // Rex 2:3 海报卡
+                    .aspectRatio(2f / 3f)   // 设计稿 2:3 海报卡
                     .background(
                         if (bmp != null) Color(0xFFDDDDDE) else Color(0xFFC8C8CC),
                         RoundedCornerShape(10.dp)

@@ -1,12 +1,12 @@
-package com.kivo.cinema.ui.rex
+package com.kivo.cinema.ui.design
 
 import androidx.compose.ui.graphics.Color
 
 /**
- * Rex 全局 tokens（236 设计稿 §二，帧实测 @3x÷3）。
- * 数值出处：Pictures/REX/frames/{grid_02,lib_02,set_a,rex_browse_a} + 05 号文档。
+ * 全局 tokens（236 设计稿 §二，帧实测 @3x÷3）。
+ * 数值出处：Pictures/参照素材/frames/{grid_02, lib_02, set_a 等} + 05 号文档。
  */
-object RexTokens {
+object DesignTokens {
     // 背景动画渐变三色（05 §二：淡紫→淡粉→米白）
     val bgLavender = Color(0xFFEAE4F5)
     val bgPink = Color(0xFFF4E3EA)

@@ -38,12 +38,12 @@ import androidx.compose.ui.unit.sp
 
 /**
  * 控制层（212 设计稿 D4）：底部渐变 scrim + 进度条 + 时间 + 播放/暂停。
- * Rex 视觉 token：深色 scrim + 白色控件 + 无多余 chrome（store-2/3）。
+ * 设计稿 视觉 token：深色 scrim + 白色控件 + 无多余 chrome（store-2/3）。
  *
  * 215 拖动预览（家族树"小改"）：
  * - 拖动中只更新本地 [dragValueMs] 并经 [onScrub] 请求缩略图——不打主链路；
  * - 松手（[Slider.onValueChangeFinished]）才提交 [onSeek]；
- * - 浮窗规格对齐 Rex 实测（05 号文档 §6.2）：16:9 白描边圆角卡，中心随拖点。
+ * - 浮窗规格对齐 设计稿 实测（05 号文档 §6.2）：16:9 白描边圆角卡，中心随拖点。
  */
 @Composable
 fun PlayerControls(
@@ -82,7 +82,7 @@ fun PlayerControls(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.Bottom,
     ) {
-        // 缩略图浮窗（215）：中心跟随拖点，白色描边 + 圆角（Rex 05 §6.2）
+        // 缩略图浮窗（215）：中心跟随拖点，白色描边 + 圆角（05 §6.2）
         androidx.compose.foundation.layout.BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
@@ -141,7 +141,7 @@ fun PlayerControls(
                     tint = Color.White,
                 )
             }
-            // 弹幕开关（223）：圆圈"弹"字（Rex 同款）
+            // 弹幕开关（223）：圆圈"弹"字（同款规格）
             IconButton(onClick = onDanmakuToggle) {
                 Text(
                     "弹",
@@ -157,7 +157,7 @@ fun PlayerControls(
                         .padding(4.dp)
                 )
             }
-            // 投屏按钮（230）：与「弹」同排同规格（Rex 05 token）
+            // 投屏按钮（230）：与「弹」同排同规格（05 token）
             IconButton(onClick = onCastClick) {
                 Text(
                     "投",
@@ -173,7 +173,7 @@ fun PlayerControls(
                         .padding(4.dp)
                 )
             }
-            // 时间（拖动中显示拖动目标时间——对齐 Rex 05 §6.2）
+            // 时间（拖动中显示拖动目标时间——对齐 规格 05 §6.2）
             Text(
                 text = "${formatTime(shownMs)} / ${formatTime(durationMs)}",
                 color = Color.White,

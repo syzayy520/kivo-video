@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
  * 私密区海报墙（231 设计稿 D4）：BiometricPrompt 解锁后只渲染 private.json 里的条目。
  *
  * 门在入口（每次进入都验证，PrivateGate），播放层无感知（kivo.media 照常）。
- * 网格规格 = 222 媒体库同款（Rex 2:3 卡 3 列）。
+ * 网格规格 = 222 媒体库同款（2:3 卡 3 列）。
  */
 class PrivateActivity : ComponentActivity() {
 

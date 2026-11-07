@@ -4,7 +4,7 @@ import org.json.JSONObject
 
 /**
  * SMB 连接描述（220 设计稿 D1/D5）：纯数据，无协议逻辑。
- * 字段对齐 Rex 表单键（rex-package Library.json `library.form.*`）：
+ * 字段对齐 设计稿 表单键（参照素材 Library.json `library.form.*`）：
  * host/端口/路径/用户名/密码；domain 可选；名称自动获取（浏览首层后回填）。
  */
 data class SmbConfig(

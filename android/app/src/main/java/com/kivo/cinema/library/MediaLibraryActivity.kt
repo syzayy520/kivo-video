@@ -51,7 +51,7 @@ import androidx.compose.foundation.layout.height
 /**
  * 本地媒体库（222 设计稿）：MediaStore 查询 + LazyVerticalGrid 海报墙。
  *
- * Rex 规格（§4）：卡片 2:3、3 列网格、标题 12sp 粗体 + 元信息 10sp 灰。
+ * 设计稿 规格（§4）：卡片 2:3、3 列网格、标题 12sp 粗体 + 元信息 10sp 灰。
  * D1 MediaStore 查询：content://media/external/video → [MediaItem] 列表。
  * D2 缩略图：MediaStore.Video.Thumbnails（系统缓存）。
  * 点击 → PlayerComposeActivity（213 管线）。
@@ -303,7 +303,7 @@ class MediaLibraryActivity : ComponentActivity() {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(2f / 3f)   // Rex §4: 2:3
+                    .aspectRatio(2f / 3f)   // 规格 §4: 2:3
                     .clip(RoundedCornerShape(8.dp))
                     .background(Color(0xFFE0E0E0))
             ) {

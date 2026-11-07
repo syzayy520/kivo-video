@@ -1,4 +1,4 @@
-package com.kivo.cinema.ui.rex
+package com.kivo.cinema.ui.design
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -41,7 +41,7 @@ import com.kivo.cinema.library.MediaItem
  * 数值全部帧实测；内容图给色、chrome 退后。
  * 发现页数据 = 本地媒体库（TMDB 元数据未接——hero 的评分行 v1 留空位，明示）。
  */
-private val pad = RexTokens.screenPad.dp
+private val pad = DesignTokens.screenPad.dp
 
 /** 发现首页（grid_02 帧）：hero（首个条目全出血）+ 最近添加横滑 + 全部网格节。 */
 @Composable
@@ -55,7 +55,7 @@ fun DiscoverPage(
         if (items.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("还没有视频——先在资源库添加片源或下载",
-                    fontSize = 14.sp, color = RexTokens.textSub)
+                    fontSize = 14.sp, color = DesignTokens.textSub)
             }
             return
         }
@@ -70,8 +70,8 @@ fun DiscoverPage(
                 Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 10f)
-                    .clip(RoundedCornerShape(bottomStart = RexTokens.radiusCard.dp,
-                        bottomEnd = RexTokens.radiusCard.dp))
+                    .clip(RoundedCornerShape(bottomStart = DesignTokens.radiusCard.dp,
+                        bottomEnd = DesignTokens.radiusCard.dp))
                     .background(Color(0xFF24242A))
             ) {
                 posterOf(hero)?.invoke()
@@ -89,9 +89,9 @@ fun DiscoverPage(
                         .padding(pad))
             }
             Spacer(Modifier.height(10.dp))
-            // 类型·日期 行（17pt 居中——Rex hero 语义；本地数据用 添加日期 顶位，明示）
+            // 类型·日期 行（17pt 居中——设计稿 hero 语义；本地数据用 添加日期 顶位，明示）
             Text("${hero.width}×${hero.height} · ${formatDate(hero.addedSec)}",
-                fontSize = RexTokens.fontHeroMeta.sp, color = RexTokens.textMain,
+                fontSize = DesignTokens.fontHeroMeta.sp, color = DesignTokens.textMain,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             Spacer(Modifier.height(6.dp))
@@ -102,7 +102,7 @@ fun DiscoverPage(
                     Modifier
                         .size(9.dp)
                         .clip(CircleShape)
-                        .background(RexTokens.textMain)
+                        .background(DesignTokens.textMain)
                 )
             }
         }
@@ -130,14 +130,14 @@ fun DiscoverPage(
         Spacer(Modifier.height(10.dp))
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
-            horizontalArrangement = Arrangement.spacedBy(RexTokens.gap.dp),
-            verticalArrangement = Arrangement.spacedBy(RexTokens.gap.dp),
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.gap.dp),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.gap.dp),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                 horizontal = pad, vertical = pad),
             modifier = Modifier.fillMaxSize(),
         ) {
             items(items.take(12)) { item ->
-                RexPosterCard(
+                DesignPosterCard(
                     title = item.title,
                     date = formatDate(item.addedSec),
                     poster = null,
@@ -149,7 +149,7 @@ fun DiscoverPage(
     }
 }
 
-/** 资源库页（Rex 云服务矩阵语义 + 我们的源集合；玻璃卡矩阵）。 */
+/** 资源库页（云服务矩阵语义 + 我们的源集合；玻璃卡矩阵）。 */
 @Composable
 fun SourcesPage(
     onOpenSmb: () -> Unit,
@@ -161,17 +161,17 @@ fun SourcesPage(
     Column(Modifier.fillMaxSize().padding(horizontal = pad)) {
         Spacer(Modifier.height(8.dp))
         Text("资源库", fontSize = 28.sp, fontWeight = FontWeight.Bold,
-            color = RexTokens.textMain)
+            color = DesignTokens.textMain)
         Spacer(Modifier.height(4.dp))
         Text("本地 ${videoCount} 个视频 · 云端与网络源", fontSize = 12.sp,
-            color = RexTokens.textSub)
+            color = DesignTokens.textSub)
         Spacer(Modifier.height(14.dp))
         SourceCard("本地媒体库", "MediaStore 扫描 · 海报墙 · 点播", "📁") { onOpenLibrary() }
-        Spacer(Modifier.height(RexTokens.gap.dp))
+        Spacer(Modifier.height(DesignTokens.gap.dp))
         SourceCard("SMB / 网络共享", "libsmb2 直连 · 硬解过本地代理 · 断点下载", "🗄") { onOpenSmb() }
-        Spacer(Modifier.height(RexTokens.gap.dp))
+        Spacer(Modifier.height(DesignTokens.gap.dp))
         SourceCard("Emby / Jellyfin", "AuthenticateByName 登录 · 直连流播放", "☁") { onOpenEmby() }
-        Spacer(Modifier.height(RexTokens.gap.dp))
+        Spacer(Modifier.height(DesignTokens.gap.dp))
         SourceCard("私密区", "生物特征门 · 受保护观看空间", "🔒") { onOpenPrivate() }
     }
 }
@@ -189,12 +189,12 @@ private fun SourceCard(title: String, desc: String, icon: String, onClick: () ->
             ) { Text(icon, fontSize = 20.sp) }
             Spacer(Modifier.width(12.dp))
             Column {
-                Text(title, fontSize = RexTokens.fontRowTitle.sp, fontWeight = FontWeight.Bold,
-                    color = RexTokens.textMain)
-                Text(desc, fontSize = 11.sp, color = RexTokens.textSub)
+                Text(title, fontSize = DesignTokens.fontRowTitle.sp, fontWeight = FontWeight.Bold,
+                    color = DesignTokens.textMain)
+                Text(desc, fontSize = 11.sp, color = DesignTokens.textSub)
             }
             Spacer(Modifier.weight(1f))
-            Text("›", fontSize = 22.sp, color = RexTokens.textSub)
+            Text("›", fontSize = 22.sp, color = DesignTokens.textSub)
         }
     }
 }
@@ -205,7 +205,7 @@ fun SettingsPage(clearTextOk: Boolean, buildLabel: String) {
     Column(Modifier.fillMaxSize().padding(horizontal = pad)) {
         Spacer(Modifier.height(8.dp))
         Text("设置", fontSize = 28.sp, fontWeight = FontWeight.Bold,
-            color = RexTokens.textMain)
+            color = DesignTokens.textMain)
         Spacer(Modifier.height(14.dp))
         GroupSection("播放") {
             GroupRow("网络明文传输", if (clearTextOk) "已开启" else "已关闭")
@@ -213,23 +213,23 @@ fun SettingsPage(clearTextOk: Boolean, buildLabel: String) {
         }
         Spacer(Modifier.height(8.dp))
         Text("本卡为设置页骨架：播放/字幕/解码各组随功能卡逐项接入（236 §六）。",
-            fontSize = RexTokens.fontFootnote.sp, color = RexTokens.textSub,
+            fontSize = DesignTokens.fontFootnote.sp, color = DesignTokens.textSub,
             lineHeight = 15.sp)
         Spacer(Modifier.height(14.dp))
         GroupSection("关于") {
             GroupRow("构建", buildLabel)
-            GroupRow("UI 对齐", "Rex 1.1 录屏规格（236 卡）")
+            GroupRow("UI 对齐", "设计稿 1.1 录屏规格（236 卡）")
         }
         Spacer(Modifier.height(8.dp))
-        Text("kivo video 的界面规格来自 Rex 真机录屏逐帧拆解；所有数值为实测。",
-            fontSize = RexTokens.fontFootnote.sp, color = RexTokens.textSub,
+        Text("kivo video 的界面规格来自 设计稿 真机录屏逐帧拆解；所有数值为实测。",
+            fontSize = DesignTokens.fontFootnote.sp, color = DesignTokens.textSub,
             lineHeight = 15.sp)
     }
 }
 
 @Composable
 private fun GroupSection(header: String, content: @Composable () -> Unit) {
-    Text(header, fontSize = 13.sp, color = RexTokens.textSub,
+    Text(header, fontSize = 13.sp, color = DesignTokens.textSub,
         modifier = Modifier.padding(start = 4.dp))
     Spacer(Modifier.height(6.dp))
     GlassSurface(Modifier.fillMaxWidth()) { Column { content() } }
@@ -240,23 +240,23 @@ private fun GroupRow(title: String, value: String) {
     Row(
         Modifier
             .fillMaxWidth()
-            .height(RexTokens.rowHeight.dp)
+            .height(DesignTokens.rowHeight.dp)
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, fontSize = RexTokens.fontRowTitle.sp, color = RexTokens.textMain)
+        Text(title, fontSize = DesignTokens.fontRowTitle.sp, color = DesignTokens.textMain)
         Spacer(Modifier.weight(1f))
-        Text(value, fontSize = 15.sp, color = RexTokens.textSub)
+        Text(value, fontSize = 15.sp, color = DesignTokens.textSub)
     }
 }
 
-/** 我的页（Rex 有观看统计/Pro——数据未建，v1 极简档案位，明示占位）。 */
+/** 我的页（有观看统计/Pro——数据未建，v1 极简档案位，明示占位）。 */
 @Composable
 fun ProfilePage(videoCount: Int) {
     Column(Modifier.fillMaxSize().padding(horizontal = pad)) {
         Spacer(Modifier.height(8.dp))
         Text("我的", fontSize = 28.sp, fontWeight = FontWeight.Bold,
-            color = RexTokens.textMain)
+            color = DesignTokens.textMain)
         Spacer(Modifier.height(14.dp))
         GlassSurface(Modifier.fillMaxWidth()) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -266,10 +266,10 @@ fun ProfilePage(videoCount: Int) {
                 ) { Text("👤", fontSize = 26.sp) }
                 Spacer(Modifier.width(12.dp))
                 Column {
-                    Text("kivo 观众", fontSize = RexTokens.fontRowTitle.sp,
-                        fontWeight = FontWeight.Bold, color = RexTokens.textMain)
+                    Text("kivo 观众", fontSize = DesignTokens.fontRowTitle.sp,
+                        fontWeight = FontWeight.Bold, color = DesignTokens.textMain)
                     Text("媒体库 ${videoCount} 个视频 · 统计随功能接入",
-                        fontSize = 11.sp, color = RexTokens.textSub)
+                        fontSize = 11.sp, color = DesignTokens.textSub)
                 }
             }
         }

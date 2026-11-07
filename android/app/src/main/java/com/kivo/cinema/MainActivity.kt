@@ -24,12 +24,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.library.MediaItem
-import com.kivo.cinema.ui.rex.AnimatedGradientBg
-import com.kivo.cinema.ui.rex.CapsuleNavBar
-import com.kivo.cinema.ui.rex.DiscoverPage
-import com.kivo.cinema.ui.rex.ProfilePage
-import com.kivo.cinema.ui.rex.SettingsPage
-import com.kivo.cinema.ui.rex.SourcesPage
+import com.kivo.cinema.ui.design.AnimatedGradientBg
+import com.kivo.cinema.ui.design.CapsuleNavBar
+import com.kivo.cinema.ui.design.DiscoverPage
+import com.kivo.cinema.ui.design.ProfilePage
+import com.kivo.cinema.ui.design.SettingsPage
+import com.kivo.cinema.ui.design.SourcesPage
 
 /**
  * App Shell（236 设计稿 §三）：动画渐变背景 + 4 页路由 + 底部胶囊导航。
