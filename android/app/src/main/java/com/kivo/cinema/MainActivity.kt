@@ -41,10 +41,50 @@ class MainActivity : ComponentActivity() {
     private var items by mutableStateOf(listOf<MediaItem>())
     private val thumbCache = HashMap<Long, android.graphics.Bitmap?>()
 
+    // 237-A：观看数据域 + 评分源
+    private val watchStore by lazy { com.kivo.cinema.stats.WatchStore(this) }
+    private val tmdb by lazy { com.kivo.cinema.tmdb.TmdbClient(this) }
+    private var continueItems by mutableStateOf(
+        listOf<Pair<MediaItem, com.kivo.cinema.stats.WatchStore.Progress>>())
+    private var heroRating by mutableStateOf<Pair<String, Float>?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         scanVideos()
         setContent { Shell() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshContinue()
+        refreshHeroRating()
+    }
+
+    private fun refreshContinue() {
+        Thread {
+            val pairs = watchStore.recentKeys(10).mapNotNull { key ->
+                val prog = watchStore.progressOf(key) ?: return@mapNotNull null
+                val nk = normPath(key)
+                val item = items.firstOrNull { normPath(it.path) == nk }
+                    ?: return@mapNotNull null
+                item to prog
+            }
+            runOnUiThread { continueItems = pairs }
+        }.start()
+    }
+
+    /** /sdcard 与 /storage/emulated/0 是同一文件的两个别名——统一后比较。 */
+    private fun normPath(p: String): String = when {
+        p.startsWith("/sdcard/") -> "/storage/emulated/0/" + p.removePrefix("/sdcard/")
+        else -> p
+    }
+
+    private fun refreshHeroRating() {
+        val hero = items.firstOrNull() ?: return
+        Thread {
+            val r = tmdb.ratingFor(hero.title, null)
+            runOnUiThread { heroRating = r?.let { it.source to it.score } }
+        }.start()
     }
 
     private fun scanVideos() {
@@ -103,6 +143,8 @@ class MainActivity : ComponentActivity() {
                     when (page) {
                         0 -> DiscoverPage(
                             items = items,
+                            continueItems = continueItems,
+                            heroRating = heroRating,
                             posterOf = { posterBlockOf(it) },
                             onOpenItem = { openPlayer(it) },
                             onOpenLibrary = { openLibrary() },

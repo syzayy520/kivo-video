@@ -114,6 +114,7 @@ class PlayerComposeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         readProbeExtras()
+        android.os.Handler(mainLooper).post(watchPoll)   // 237-A：观看数据域轮询
 
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
@@ -492,6 +493,36 @@ class PlayerComposeActivity : ComponentActivity() {
         if (isPlaying) session.resume() else session.pause()
     }
 
+    // ---- 237-A：观看数据域（进度 + 统计时长）----
+    private val watchStore by lazy { com.kivo.cinema.stats.WatchStore(this) }
+    private var watchLastPosMs = 0L
+    private var watchAccumMs = 0L
+
+    private val watchPoll = object : Runnable {
+        override fun run() {
+            if (isPlaying && durationMs > 0) {
+                val delta = positionMs - watchLastPosMs
+                if (delta in 1..1500) watchAccumMs += delta   // seek 大跳不计入观看时长
+            }
+            watchLastPosMs = positionMs
+            if (watchAccumMs >= 10_000) {
+                watchStore.report(watchKey(), positionMs, durationMs, watchAccumMs)
+                watchAccumMs = 0
+            }
+            android.os.Handler(mainLooper).postDelayed(this, 1000)
+        }
+    }
+
+    private fun watchKey(): String =
+        currentMediaPath().ifBlank { playUrlOverride }
+
+    private fun flushWatch() {
+        if (watchLastPosMs > 0 && durationMs > 0) {
+            watchStore.report(watchKey(), positionMs, durationMs, watchAccumMs)
+            watchAccumMs = 0
+        }
+    }
+
     // ---- 230：DLNA 投屏（按钮→sheet→CastController）----
     private val castController by lazy { com.kivo.cinema.dlna.CastController(this) }
     private var castSheetVisible by mutableStateOf(false)
@@ -654,6 +685,8 @@ class PlayerComposeActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        android.os.Handler(mainLooper).removeCallbacks(watchPoll)
+        runCatching { flushWatch() }
         android.os.Handler(mainLooper).removeCallbacks(positionPoll)
         // 230：离场收投屏（Stop SOAP + 关 LAN 代理），渲染端不悬挂
         if (castDevice != null) {

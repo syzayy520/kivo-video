@@ -47,6 +47,8 @@ private val pad = DesignTokens.screenPad.dp
 @Composable
 fun DiscoverPage(
     items: List<MediaItem>,
+    continueItems: List<Pair<MediaItem, com.kivo.cinema.stats.WatchStore.Progress>>,
+    heroRating: Pair<String, Float>?,
     posterOf: @Composable (MediaItem) -> (@Composable () -> Unit)?,
     onOpenItem: (MediaItem) -> Unit,
     onOpenLibrary: () -> Unit,
@@ -95,6 +97,10 @@ fun DiscoverPage(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             Spacer(Modifier.height(6.dp))
+            RatingBadges(if (heroRating != null) listOf(heroRating) else emptyList(),
+                modifier = Modifier.fillMaxWidth(),
+                alignCenter = true)
+            Spacer(Modifier.height(6.dp))
             // 圆点指示器（活动点黑且大——v1 静态 1/1）
             Row(horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()) {
@@ -107,21 +113,40 @@ fun DiscoverPage(
             }
         }
         Spacer(Modifier.height(14.dp))
-        // 最近添加（继续观看位的 v1 形态：无进度数据——进度条 0，明示）
-        SectionHeader("最近添加", onMore = onOpenLibrary)
-        Spacer(Modifier.height(10.dp))
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(pad),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = pad)) {
-            rowItems(items.take(10)) { item ->
-                ContinueCard(
-                    title = item.title,
-                    meta = formatDate(item.addedSec),
-                    seenText = null,
-                    progress = 0f,
-                    poster = null,
-                    posterBlock = { posterOf(item)?.invoke() },
-                    onClick = { onOpenItem(item) },
-                )
+        if (continueItems.isNotEmpty()) {
+            // 继续观看（grid_02 帧："看到 hh:mm" + 进度条永远在）
+            SectionHeader("继续观看", onMore = onOpenLibrary)
+            Spacer(Modifier.height(10.dp))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(pad),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = pad)) {
+                rowItems(continueItems) { (item, prog) ->
+                    ContinueCard(
+                        title = item.title,
+                        meta = formatDate(item.addedSec),
+                        seenText = "看到 " + fmtSeen(prog.positionMs),
+                        progress = if (prog.durationMs > 0)
+                            prog.positionMs.toFloat() / prog.durationMs else 0f,
+                        posterBlock = { posterOf(item)?.invoke() },
+                        onClick = { onOpenItem(item) },
+                    )
+                }
+            }
+        } else {
+            // 回退：最近添加（无进度数据）
+            SectionHeader("最近添加", onMore = onOpenLibrary)
+            Spacer(Modifier.height(10.dp))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(pad),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = pad)) {
+                rowItems(items.take(10)) { item ->
+                    ContinueCard(
+                        title = item.title,
+                        meta = formatDate(item.addedSec),
+                        seenText = null,
+                        progress = 0f,
+                        posterBlock = { posterOf(item)?.invoke() },
+                        onClick = { onOpenItem(item) },
+                    )
+                }
             }
         }
         Spacer(Modifier.height(14.dp))
@@ -274,6 +299,11 @@ fun ProfilePage(videoCount: Int) {
             }
         }
     }
+}
+
+internal fun fmtSeen(positionMs: Long): String {
+    val s = positionMs / 1000
+    return "%d:%02d".format(s / 60, s % 60)
 }
 
 internal fun formatDate(addedSec: Long): String {
