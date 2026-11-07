@@ -79,18 +79,23 @@ fun DiscoverPage(
     val ambientAnim = ambient.value
     LazyVerticalGrid(
         columns = GridCells.Fixed(1),
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(DesignTokens.pageBackground),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 10.dp),
     ) {
         // hero（TMDB）——环境色只覆盖首屏高度，下滑马上出正常渐变（用户实拍行为）
         if (heroCandidates.isNotEmpty()) {
             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                // 1.5 屏高渐变块：环境色保持 → washFill 洗色 → 渐白（无硬边，随内容滚动逐渐变白）
                 val screenH = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
                 Box(
                     Modifier
                         .fillMaxWidth()
-                        .height(screenH)
-                        .background(ambientAnim)
+                        .height(screenH * 1.5f)
+                        .background(androidx.compose.ui.graphics.Brush.verticalGradient(
+                            0f to ambientAnim,
+                            0.55f to ambientAnim,
+                            0.8f to DesignTokens.washFill,
+                            1f to DesignTokens.pageBackground))
                 ) {
                     HeroCarousel(heroCandidates, onAmbient = { ambient.value = it })
                 }
