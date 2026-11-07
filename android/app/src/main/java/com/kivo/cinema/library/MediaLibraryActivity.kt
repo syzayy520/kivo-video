@@ -12,6 +12,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import com.kivo.cinema.ui.design.DesignTokens
+import com.kivo.cinema.ui.design.GlassCircleButton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -67,6 +69,7 @@ class MediaLibraryActivity : ComponentActivity() {
     private val privGate = com.kivo.cinema.privatezone.PrivateGate()
     private var privEpoch by mutableStateOf(0)
     private var menuFor by mutableStateOf<MediaItem?>(null)
+    private var sortDesc by mutableStateOf(true)
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -121,7 +124,7 @@ class MediaLibraryActivity : ComponentActivity() {
             contentResolver.query(
                 MS.Video.Media.EXTERNAL_CONTENT_URI,
                 projection, null, null,
-                "${MS.Video.Media.DATE_ADDED} DESC"
+                "${MS.Video.Media.DATE_ADDED} " + if (sortDesc) "DESC" else "ASC"
             )?.use { cursor: Cursor ->
                 while (cursor.moveToNext()) {
                     list.add(MediaItem(
@@ -144,8 +147,10 @@ class MediaLibraryActivity : ComponentActivity() {
     }
 
     private fun openPlayer(item: MediaItem) {
-        val intent = Intent(this, com.kivo.cinema.ui.compose.PlayerComposeActivity::class.java)
+        // 237-C：海报点 → 详情页（详情内直接播放）
+        val intent = Intent(this, com.kivo.cinema.ui.detail.DetailActivity::class.java)
             .putExtra("kivo.media", item.path)
+            .putExtra("kivo.durationMs", item.durationMs)
         startActivity(intent)
     }
 
@@ -202,46 +207,12 @@ class MediaLibraryActivity : ComponentActivity() {
 
     @Composable
     private fun MediaLibraryScreen() {
-        Column(
+        // lib_01/lib_02 帧规格：网格全屏铺底，控制钮全部悬浮
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF2F2F7))
-                .padding(12.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("媒体库", fontSize = 28.sp, fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1A1A))
-                Spacer(Modifier.weight(1f))
-                Button(
-                    onClick = { openSmb() },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF34C759)
-                    ),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = 14.dp, vertical = 6.dp)
-                ) { Text("SMB", fontSize = 13.sp) }
-                Spacer(Modifier.width(8.dp))
-                Button(
-                    onClick = { openEmby() },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF34C759)
-                    ),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = 14.dp, vertical = 6.dp)
-                ) { Text("Emby", fontSize = 13.sp) }
-                Spacer(Modifier.width(8.dp))
-                Button(
-                    onClick = { openPrivateZone() },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF34C759)
-                    ),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = 14.dp, vertical = 6.dp)
-                ) { Text("私密区", fontSize = 13.sp) }
-            }
-            Spacer(Modifier.height(4.dp))
-            Text(status, fontSize = 13.sp, color = Color(0xFF8A8A8E))
-            Spacer(Modifier.height(8.dp))
             if (permissionGranted && items.isNotEmpty()) {
                 PosterWall()
             } else if (permissionGranted) {
@@ -249,6 +220,34 @@ class MediaLibraryActivity : ComponentActivity() {
                     Text("没有找到视频文件", fontSize = 15.sp, color = Color(0xFF8A8A8E))
                 }
             }
+            // 顶部：毛玻璃返回钮（左）+ 标题（中）
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 13.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                GlassCircleButton(
+                    modifier = Modifier.clickable { finish() }
+                ) { Text("‹", fontSize = 22.sp, color = Color(0xFF1A1A1A)) }
+                Spacer(Modifier.weight(1f))
+                Text("媒体库", fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A1A1A))
+                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.width(DesignTokens.circleButton.dp))
+            }
+            // 底部右：排序浮钮（真实功能：日期升/降切换）
+            GlassCircleButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(13.dp)
+                    .clickable { sortDesc = !sortDesc; scanVideos() }
+            ) { Text(if (sortDesc) "↓" else "↑", fontSize = 20.sp, color = Color(0xFF1A1A1A)) }
+            // 底部左：状态行
+            Text(status, fontSize = 13.sp, color = Color(0xFF8A8A8E),
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(13.dp))
         }
         // 231：长按标记菜单
         menuFor?.let { target ->

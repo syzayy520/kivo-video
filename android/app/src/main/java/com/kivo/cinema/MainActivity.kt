@@ -191,7 +191,8 @@ class MainActivity : ComponentActivity() {
 
     private fun openPlayer(item: MediaItem) {
         startActivity(android.content.Intent(this,
-            com.kivo.cinema.ui.compose.PlayerComposeActivity::class.java)
-            .putExtra("kivo.media", item.path))
+            com.kivo.cinema.ui.detail.DetailActivity::class.java)
+            .putExtra("kivo.media", item.path)
+            .putExtra("kivo.durationMs", item.durationMs))
     }
 }
