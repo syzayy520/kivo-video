@@ -208,3 +208,29 @@ kivo 已有 236 第一波（Shell/组件族/四页）——**骨架对、细节�
 G5 深色（v1 浅色 only）、G6 横屏断点（设计建议待验证）、播放器视觉帧（238 前置）。
 **最少必要问题（用户可一次补齐）**：请再录三段 iPhone 短屏——① 资源库 tab ② 我的/观看统计 ③ 搜索；
 详情页/movie 的 22 帧已在手，无需重录。
+
+---
+
+## 8. 拆解文档对照勘误表（2026-11-08 通读两份核心文档后追加）
+
+> 前情：此前实现仅基于帧测与文档片段，未系统通读 `Rex_动效与交互全量拆解.md`（466 行）
+> 与 `Rex_UI结构复刻说明书.md`（352 行）。通读后修正如下——凡与帧测冲突处，以随包硬参数为准。
+
+| # | 拆解硬参数（✅ 可复算） | 此前实现 | 修正动作 | 阶段 |
+| --- | --- | --- | --- | --- |
+| 1 | 4 Tab = 资源库/发现/在看/我的（AppShell.strings，无设置 tab；◐顺序） | 发现/我的/资源库/设置 | Shell 重排 + 「在看」页（147 键语义：卡片流/折叠记录/追剧日历/弃剧） | C2 |
+| 2 | 语义色板 5 色×明暗：canvasFill #FFFFFF/#222222、groupedFill #F2F2F7/#1C1C1E、pageBackground #F2F2F7/#000000、hairline 黑5%/白10%、washFill #EDEDFB@50%（P3） | 自造「三色动画渐变」 | DesignTokens 重构为语义板 + washFill 叠加层（首页自适应背景的机制） | C2 |
+| 3 | hero = 16:9 backdrop + 向下渐变到 pageBackground；文字骑在渐变区 | 53% 屏高整块图+文字全叠图内 | HeroCarousel v3：图 16:9 + 渐变区文字（黑鸽/狗狗两帧由此统一） | C2 |
+| 4 | 首页 = 用户可自定义模块流（HomeEditor 161 键，15 种样式枚举 + 分区操作含拖拽/隐藏/删除二次确认） | 写死节序 | v1 先做默认模块流 + 预留编辑器位（默认顺序 ❌ 需首启录屏） | C3 |
+| 5 | 内置模块源 37 键全集：继续观看/近一月热门剧集/综艺/今日趋势/本周趋势/高分剧集电影/备受欢迎电影/热门人物/正在播出/正在热映/最新电影/今日动漫/分类浏览/电影公司/播出平台/20+ 类型平台 | 仅 3 节 | TmdbHome 补齐：high_score/trending/day/airing_today/latest 等 | C3 |
+| 6 | 详情主操作 Watch/Mark as Watched/Favorite/Watchlist + 长按替换 | 直接播放+私密区 | 详情页主操作对齐（播放走 Watch 位） | C3 |
+| 7 | 顶部环境切换器（环境名+头像）跨页全局 | 无 | Shell 顶栏补切换器（v1 单环境） | C2 |
+| 8 | home.error.network.{timeout,lost,offline,secure,server} 5 类 + loading.code/retry 独立文案+重试 | 失败整节隐藏 | TMDB 节错误态组件（分类文案+重试） | C2 |
+| 9 | RexBadgeCore 40+ 徽章 webp（4K/HDR/DoVi/Atmos/Netflix），高度锁定宽度自适应 | 仅评分 | 媒体徽章行组件（文件信息位） | C3 |
+| 10 | P02 标准按压 s:1→0.94→1 spring(0.25,0.7) 全 tap；P03/P04 弹入/Sheet 参数；G1 减弱动画每动效降级；G2 触觉三态 | 无 | 通用 press 修饰符 + Reduce-Motion 开关（设置项）+ 触觉策略 | C2 |
+| 11 | 轮播自动计时（CSV ◐）与用户实拍「不自动滚」冲突 | 已去自动 | 以实拍为准；「开启轮播图」设为设置位（homeEditor.copy.enable.carousel） | C3 |
+| 12 | TMDB 数据源 = rex-tmdb.js JS widget（RexScript 机制） | TmdbClient Kotlin 直连 | 保持 Kotlin（架构不同属允许偏离，记录） | — |
+| 13 | KSPlayer glsl=超分着色器，非 UI 动效 | 未误用 ✓ | — | — |
+| 14 | 393pt 设计基准、系统字体、2:3/16:9 比例体系 | ✓ 已一致 | — | — |
+
+> P 系列动效参数（P01–P12）已全部收录为本项目动效基线；Reduce Motion 降级矩阵见拆解文档 §4 末行。
