@@ -118,8 +118,14 @@ class SmbSpikeActivity : ComponentActivity() {
                     src = Smb2Native.Source(cfg.copy(username = u))
                     src.connect()
                     val entries = src.list()
+                    val names = org.json.JSONArray()
+                    entries.forEach { e ->
+                        names.put((if (e.isDirectory) "D " else "F ") + e.name +
+                                  (if (!e.isDirectory) " (${e.size})" else ""))
+                    }
                     s.ok = true
                     s.info.put("entries", entries.size)
+                    s.info.put("names", names)
                     winner = src
                     libsmb2Step = s
                     break

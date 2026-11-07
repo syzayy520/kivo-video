@@ -66,6 +66,33 @@ class FfmpegPlaybackSession(
         return 0
     }
 
+    /**
+     * URL 输入（220）：本地 Range 代理（http://127.0.0.1:port/...）走 FFmpeg
+     * network+http 协议直开。fd 相关逻辑全部不参与。
+     */
+    fun openUrlVideo(url: String, surface: Surface): Int {
+        if (handle != 0L) {
+            lastError = "openUrlVideo called twice"
+            return -1
+        }
+        handle = NativePlayer.nativeFfmpegCreate()
+        if (handle == 0L) {
+            lastError = "nativeFfmpegCreate failed"
+            return -1
+        }
+        val rc = NativePlayer.nativeFfmpegOpenUrl(
+            handle, displayName, url, surface, routingDecision, routingReason
+        )
+        if (rc != 0) {
+            lastError = runCatching {
+                NativePlayer.nativeFfmpegLastError(handle)
+            }.getOrElse { "openUrlVideo failed rc=$rc" }
+            NativePlayer.nativeFfmpegDestroy(handle)
+            handle = 0L
+        }
+        return rc
+    }
+
     /** 起解线程。 */
     fun start(): Int = runCatching {
         NativePlayer.nativeFfmpegStart(handle)

@@ -75,6 +75,25 @@ nPlayer：同路由可用（用户陈述；native 拆解待补）。
   JNI 桥跑同一 spike 流程。**通过 → 与 SenPlayer 同库同行为，根因链闭合；不通过 → 排除库因素，
   转向路由器设备授权方向（需用户在路由器管理页核对 SMB 匿名/设备白名单设置）。**
 
+## 五点五、播放链路打通（2026-11-07 深夜，K40 实机状态日志）
+
+libsmb2 选型 + 匿名修复后，全链路真机打通（仙草冻.mp4 33MB，小米路由/XiaoMi 共享）：
+
+```
+libsmb2 connect ✓ → smb2_open ✓ (size=33056861)
+→ LocalRangeProxy 127.0.0.1:42705 ✓（HTTP/1.1 + Range）
+→ FFmpeg http://127.0.0.1:42705/kivo 打开 ✓（openUrlVideo rc=0，network+http 重编译版）
+→ 软解线程起跑 ✓（start rc=0）
+```
+
+途中修掉两处：
+1. session open() 的 fd 前置校验挡住 URL 路径 → url 非空即合法（fd 校验仅限 fd 路径）；
+2. XiaoMi 共享根 = "视频"共享的根目录——path 需带 "视频/" 前缀
+   （首轮 OBJECT_PATH_NOT_FOUND 的根因）。
+
+证据：`docs/evidence/p220/p220-status-log-capture.md`（shell 直读原文；
+设备 USB 闪断，整文件拉取与截图待设备回连后补）。
+
 ## 六、结论与最小修复（待定案）
 
 | 假设 | 证据强度 | 下一步 |

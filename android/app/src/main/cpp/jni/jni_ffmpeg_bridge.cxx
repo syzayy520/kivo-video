@@ -126,6 +126,46 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegOpen(JNIEnv* env, jobject /
 KIVO_JNI_END_INT(env, nullptr, "ffmpegOpen")
 
 JNIEXPORT jint JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegOpenUrl(JNIEnv* env, jobject /*thiz*/,
+                                                             jlong raw, jstring label,
+                                                             jstring url, jobject surface,
+                                                             jstring routing_decision,
+                                                             jstring routing_reason)
+    KIVO_JNI_BEGIN
+    auto* handle = ffmpeg_handle(raw);
+    if (handle == nullptr || handle->session == nullptr) {
+        return 1;
+    }
+    if (surface == nullptr) {
+        handle->record_error("ffmpegOpenUrl", "surface is null");
+        return 2;
+    }
+    ANativeWindow* window = ANativeWindow_fromSurface(env, surface);
+    if (window == nullptr) {
+        handle->record_error("ffmpegOpenUrl", "ANativeWindow_fromSurface failed");
+        return 2;
+    }
+    handle->sink = std::make_unique<kivo::video::video_plane::runtime::local_media::
+                                        FfmpegWindowSink>(window);
+    ANativeWindow_release(window);
+
+    kivo::video::video_plane::runtime::local_media::
+        FfmpegLocalPlaybackSession::Config config;
+    config.url = to_std_string(env, url);
+    config.label = to_std_string(env, label);
+    config.routing_decision = to_std_string(env, routing_decision);
+    config.routing_reason = to_std_string(env, routing_reason);
+
+    const auto outcome = handle->session->open(config, handle->sink.get());
+    if (!outcome.ok()) {
+        handle->record_error("ffmpegOpenUrl", outcome.message);
+        handle->sink.reset();
+        return 3;
+    }
+    return 0;
+KIVO_JNI_END_INT(env, nullptr, "nativeFfmpegOpenUrl")
+
+JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegStart(JNIEnv* env, jobject /*thiz*/,
                                                            jlong raw) KIVO_JNI_BEGIN
     auto* handle = ffmpeg_handle(raw);

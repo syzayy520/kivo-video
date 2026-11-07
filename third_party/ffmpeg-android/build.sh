@@ -12,10 +12,12 @@
 # 幂等：重跑会清掉 build/ 与 dist/ 重建。
 set -euo pipefail
 
+
 NDK="${NDK:-/c/Android/sdk/ndk/30.0.16248370}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SRC_DIR="${FFMPEG_SRC_DIR:-/c/re-tools/ffmpeg-src}"
 API=26
+
 
 TOOLCHAIN="$NDK/toolchains/llvm/prebuilt/windows-x86_64"
 CLANG="$TOOLCHAIN/bin/clang.exe"
@@ -48,6 +50,17 @@ BUILD="${FFMPEG_BUILD_DIR:-/c/re-tools/ffmpeg-android/build}"
 DIST="${FFMPEG_DIST_DIR:-/c/re-tools/ffmpeg-android/dist}"
 rm -rf "$BUILD" "$DIST"
 mkdir -p "$BUILD" "$DIST"
+# 坑 8：TMPDIR 的坑有两种形态——ZCode 会话设空串（mktemp 全失败）；
+# 默认 /tmp 在长 configure 尾部偶发 mktemp 失败（疑似杀软锁 ffconf* 模板）。
+# 统一指向构建盘自己的 tmp 目录（确保存在且无历史 ffconf 残留）。
+# 位置必须无空格：FFmpeg configure 的 tmpfile() 对 $tmp 不加引号，
+# 路径含空格（如 "C:/kivo video"）会在 exec > 处碎裂——本轮五连败的最后一环。
+FFMPEG_TMP="${BUILD}/tmp"   # 必须在无空格路径（/c/re-tools/...）——"C:/kivo video" 的空格会撕碎 configure 里不带引号的 exec > $tmp
+rm -rf "$FFMPEG_TMP"
+mkdir -p "$FFMPEG_TMP"
+export TMPDIR="$FFMPEG_TMP"
+# （坑 8 的 mkdir 必须在 rm -rf $BUILD 之后——tmp 建在 $BUILD 里，会被上面的 rm 一起删掉）
+
 
 # 宿主编译器：本机没有 gcc（交叉编译的 configure 要一个 C11 宿主编译器做探测），
 # 用 zig cc —— 单文件自带 mingw 运行时，语义与 gcc 兼容。封装成包装脚本，
@@ -57,8 +70,35 @@ ZIG_EXE="${ZIG_EXE:-$(ls /c/re-tools/zig-windows-x86_64-*/zig.exe 2>/dev/null | 
 [ -n "$ZIG_EXE" ] || { echo "找不到 zig.exe（宿主编译器，装到 /c/re-tools/ 或设 ZIG_EXE）"; exit 2; }
 # zig 要全局缓存目录：MSYS2 登录 shell 不带 APPDATA，zig 会报
 # `error: AppDataDirUnavailable` 然后整个 configure 死在宿主编译器探测。
-export ZIG_GLOBAL_CACHE_DIR="${ZIG_GLOBAL_CACHE_DIR:-/c/re-tools/ffmpeg-android/zig-cache}"
-printf '#!/usr/bin/env bash\nexec "%s" cc "$@"\n' "$ZIG_EXE" > "$BUILD/zigcc"
+# 必须用 Windows 路径形式（C:/...）：MSYS 不转换环境变量的值，
+# zig.exe（原生程序）拿到 /c/... 形式会静默失败（configure 内零输出 rc≠0）。
+export ZIG_GLOBAL_CACHE_DIR="${ZIG_GLOBAL_CACHE_DIR:-C:/re-tools/ffmpeg-android/zig-cache}"
+# 同理：TEMP/TMP 在部分会话里是 /tmp（MSYS 形式），zig 的临时文件也会受害
+export TEMP="C:/re-tools/ffmpeg-android/build/tmp-win"
+export TMP="C:/re-tools/ffmpeg-android/build/tmp-win"
+mkdir -p "$TEMP"
+cat > "$BUILD/zigcc" << ZWRAP
+#!/usr/bin/env bash
+# 诊断版 wrapper（220 定位 configure 内静默失败）：记录参数/cwd/rc/完整输出
+LOG=/c/re-tools/ffmpeg-android/zigcc-calls.log
+ZIG="$ZIG_EXE"
+{
+  echo "=== \$(date +%T) cwd=\$(pwd)"
+  echo "args: \$*"
+  echo "env_count=\$(env | wc -l)"
+  env | sort | head -20
+} >> "\$LOG" 2>&1
+"\$ZIG" cc "\$@" > /tmp/zigcc-out.log 2>&1
+rc=\$?
+{
+  echo "rc=\$rc"
+  head -c 1200 /tmp/zigcc-out.log
+  echo
+} >> "\$LOG" 2>&1
+cat /tmp/zigcc-out.log
+exit \$rc
+ZWRAP
+sed -i "1s|.*|#!$BASH|" "$BUILD/zigcc" 2>/dev/null
 chmod +x "$BUILD/zigcc"
 
 # ar 包装：libavcodec 有几百个 .o，ar 命令行超出 Windows CreateProcess 的
@@ -81,7 +121,11 @@ tar -xf "$TAR" -C "$BUILD" --strip-components=1
 
 echo "== configure（arm64-v8a / API $API / 静态库 / 只开 demux+decode+swscale）=="
 cd "$BUILD"
-PATH="$TOOLCHAIN/bin:$PATH" ./configure \
+# 坑 9：configure 的 shebang #!/bin/sh 会被 PATH 里前置的 MSYS2 sh 抢走，
+# MSYS2 /etc/profile 重建环境（只剩 10 个变量：HOME=/home/...、MSYSTEM 等），
+# APPDATA/TEMP/ZIG_GLOBAL_CACHE_DIR 全丢 → zig 宿主编译器 AppDataDirUnavailable。
+# 显式用当前 bash 跑 configure，保证 build.sh 的 export 原样进入子进程。
+PATH="$TOOLCHAIN/bin:$PATH" "$BASH" ./configure \
   --prefix="$DIST" \
   --target-os=linux --arch=aarch64 --cpu=armv8-a --enable-cross-compile \
   --sysroot="$SYSROOT" \
@@ -95,9 +139,10 @@ PATH="$TOOLCHAIN/bin:$PATH" ./configure \
   --disable-shared --enable-static --enable-pic \
   --disable-programs --disable-doc --disable-debug \
   --disable-avdevice --disable-postproc --disable-avfilter \
-  --disable-network --disable-autodetect --enable-zlib \
+  --enable-network --disable-autodetect --enable-zlib \
   --enable-avformat --enable-avcodec --enable-swscale \
-  --enable-protocol=file \
+  --enable-protocol=file --enable-protocol=tcp --enable-protocol=http \
+  --enable-demuxer=hls \
   --enable-demuxer=rm,asf,avi,flv,matroska,mov,mpegts,mpegvideo,mp3,wav,ogg,aac \
   --enable-decoder=rv10,rv20,rv30,rv40,cook,sipr,atrac3,atrac3p,wmv1,wmv2,wmv3,vc1,wmav1,wmav2,wmavoice,wmapro,wmalossless,msmpeg4v2,msmpeg4v3,mpeg4,h264,hevc,aac,mp3,flv1,vp6,mjpeg,png \
   | tail -5

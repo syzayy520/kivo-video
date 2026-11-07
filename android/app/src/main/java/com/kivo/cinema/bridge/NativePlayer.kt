@@ -217,6 +217,15 @@ object NativePlayer {
     ): Int
 
     /** 起解线程（FFmpeg 全生命周期都在该线程上）。 */
+    external fun nativeFfmpegOpenUrl(
+        handle: Long,
+        label: String,
+        url: String,
+        surface: Surface,
+        routingDecision: String,
+        routingReason: String
+    ): Int
+
     external fun nativeFfmpegStart(handle: Long): Int
 
     /** 线程是否还在跑（自然 EOS 后为 false，不必等 stop）。 */

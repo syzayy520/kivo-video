@@ -139,35 +139,41 @@ class PlayerComposeActivity : ComponentActivity() {
             ?: locateTestMedia() ?: return
         playbackStarted = true
 
+        val smbJson = intent.getStringExtra("kivo.smb") ?: ""
+        if (smbJson.isNotBlank()) {
+            startSmbPlayback(holder, smbJson)
+            return
+        }
+
         statusText = "surface ok, probing..."
         val routing = FfmpegRouting.probe(media)
         statusText = "route=${routing.decision} reason=${routing.reason}"
         Log.i(TAG, "routing: ${routing.decision} (${routing.reason})")
 
-        val session = PlaybackSession(0, media, media.name)
-        playbackSession = session
+        val localSession = PlaybackSession(0, media, media.name)
+        playbackSession = localSession
 
         statusText = "openVideo..."
-        val rc = session.openVideo(holder.surface)
-        statusText = "openVideo rc=$rc lastError=${session.lastError}"
+        val rc = localSession.openVideo(holder.surface)
+        statusText = "openVideo rc=$rc lastError=${localSession.lastError}"
         if (rc != 0) {
-            Log.e(TAG, "openVideo failed rc=$rc: ${session.lastError}")
-            session.close()
+            Log.e(TAG, "openVideo failed rc=$rc: ${localSession.lastError}")
+            localSession.close()
             playbackSession = null
             finish()
             return
         }
 
         // 节拍（字幕 position_us 的时间源；不加节拍时 position_us 恒 -1）
-        session.configurePacing(targetFps = 0, allowDrop = true)
-        session.configurePipeline(split = false, present = true, atTime = true)
+        localSession.configurePacing(targetFps = 0, allowDrop = true)
+        localSession.configurePipeline(split = false, present = true, atTime = true)
 
         statusText = "starting..."
-        val startRc = session.start()
+        val startRc = localSession.start()
         statusText = "start rc=$startRc"
         if (startRc != 0) {
             Log.e(TAG, "start failed rc=$startRc")
-            session.close()
+            localSession.close()
             playbackSession = null
             finish()
             return
@@ -190,11 +196,92 @@ class PlayerComposeActivity : ComponentActivity() {
         if (evidenceName == "p215") scheduleP215Stress()
 
         // 214：会话所有权转移给 Foreground Service——Activity 销毁后会话不死。
-        com.kivo.cinema.playback.PlaybackSessionHolder.offer(session)
+        com.kivo.cinema.playback.PlaybackSessionHolder.offer(localSession)
         startForegroundService(
             android.content.Intent(this, com.kivo.cinema.playback.PlaybackService::class.java)
         )
         Log.i(TAG, "playback started: ${media.absolutePath} (service adopted)")
+    }
+
+    // ---- 220：SMB 片源播放（libsmb2 → 本地 Range 代理 → FFmpeg http）----
+    private var smbSource: com.kivo.cinema.smb.Smb2Native.Source? = null
+    private var smbProxy: com.kivo.cinema.net.LocalRangeProxy? = null
+    private var smbFfSession: com.kivo.cinema.bridge.FfmpegPlaybackSession? = null
+
+    private fun smbTrace(msg: String) {
+        Log.i(TAG, msg)
+        try {
+            val dir = java.io.File(getExternalFilesDir(null), "evidence").apply { mkdirs() }
+            java.io.File(dir, "p220-status.log")
+                .appendText("${System.currentTimeMillis()} $msg\n")
+        } catch (e: Exception) { }
+    }
+
+    private fun startSmbPlayback(holder: SurfaceHolder, smbJson: String) {
+        val media = mediaOverridePath.takeIf { it.isNotBlank() }
+            ?.let { java.io.File(it) }?.takeIf { it.isFile }
+        val displayName = media?.name ?: "smb"
+        playbackStarted = true
+        smbTrace("startSmbPlayback begin")
+
+        val cfg = com.kivo.cinema.smb.SmbConfig.fromJson(smbJson)
+        if (cfg == null) {
+            statusText = "bad kivo.smb json"
+            finish()
+            return
+        }
+        statusText = "smb connect ${cfg.host}/${cfg.share}..."
+        val source = com.kivo.cinema.smb.Smb2Native.Source(cfg)
+        try {
+            source.connect()
+            smbSource = source
+            val opened = source.openForRead(cfg.path)
+            smbTrace("smb size=${opened.size()}")
+            statusText = "smb size=${opened.size()}"
+            val proxy = com.kivo.cinema.net.LocalRangeProxy(opened)
+            smbProxy = proxy
+            val port = proxy.start()
+            val url = "http://127.0.0.1:$port/kivo"
+            smbTrace("proxy port=$port url=$url")
+            statusText = "proxy :$port, opening ffmpeg..."
+
+            val fsession = com.kivo.cinema.bridge.FfmpegPlaybackSession(
+                media ?: java.io.File("."),
+                displayName,
+                routingDecision = "ffmpeg",
+                routingReason = "smb via local range proxy (220)"
+            )
+            smbFfSession = fsession
+            val rc = fsession.openUrlVideo(url, holder.surface)
+            smbTrace("openUrlVideo rc=$rc err=${fsession.lastError}")
+            if (rc != 0) {
+                Log.e(TAG, "openUrlVideo failed rc=$rc: ${fsession.lastError}")
+                statusText = "SMB open failed: ${fsession.lastError}"
+                proxy.close()
+                source.close()
+                finish()
+                return
+            }
+            val started = fsession.start()
+            smbTrace("start rc=$started")
+            if (started != 0) {
+                statusText = "smb start failed rc=$started"
+                runCatching { fsession.stopAndCollectEvidence() }
+                finish()
+                return
+            }
+            isPlaying = true
+            lastTouchMs = System.currentTimeMillis()
+            statusText = "playing smb://${cfg.host}/${cfg.share}/${cfg.path}"
+            Log.i(TAG, "SMB playback started: $url")
+        } catch (e: Exception) {
+            Log.e(TAG, "smb failed", e)
+            smbTrace("EXCEPTION ${e.javaClass.name}: ${e.message}")
+            statusText = "SMB failed: ${e.message}"
+            runCatching { source.close() }
+            runCatching { smbProxy?.close() }
+            finish()
+        }
     }
 
     private fun togglePlayPause() {
@@ -301,6 +388,12 @@ class PlayerComposeActivity : ComponentActivity() {
 
     override fun onDestroy() {
         android.os.Handler(mainLooper).removeCallbacks(positionPoll)
+        smbFfSession?.let { s -> runCatching { s.stopAndCollectEvidence() } }
+        smbFfSession = null
+        runCatching { smbProxy?.close() }
+        smbProxy = null
+        runCatching { smbSource?.close() }
+        smbSource = null
         thumbnailReader?.release()
         thumbnailReader = null
         playbackSession?.close()
