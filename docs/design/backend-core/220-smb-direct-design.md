@@ -1,92 +1,147 @@
-# 220 · SMB 直连 —— 设计稿
+# 220 · SMB 直连 —— 设计稿 v2（实证版）
 
-> 状态：**设计完成，实现未开工**。M2 第一张卡。
-> 卡片原文：SMB 直连（smbj/JCIFS-NG 选型）——浏览/起播/断点。依赖 211 软解兜底 ✓（已收口）。
-> 参照：Rex 用 **AMSMB2.framework**（Mac 拆解实证，06 号文档 §二）；Rex 表单规格 05 号文档 §6.5；
-> Rex 有"预缓冲到本地文件（Beta）"独立开关（本卡不做）。
+> 状态：**设计完成，实现未开工**。M2 第一张卡。v1（f3dd844）被用户叫停——
+> "功能参照 SenPlayer 来，UI 参照 Rex"。v2 每条决策都挂在两个拆解源的证据上。
+> 依赖 211 软解兜底 ✓（已收口）。
+
+---
+
+## 零、参照物实证（本稿的地基）
+
+### 0.1 SenPlayer 侧（功能参照）—— 本轮深拆新证据
+
+拆解产物 `build/rea-senplayer/raw/`（dex 三表 + libMLibKit.so 符号/字节串扫描，2026-11-07）：
+
+| # | 实证 | 证据 |
+| --- | --- | --- |
+| S1 | SMB 是**独立 native 模块**：`com.mlibkit.smb.SMBClient`（dex 单类壳，实现经 RegisterNatives 在 libMLibKit.so） | dex class_defs + `Java_com_mlibkit_smb_*` 导出符号 |
+| S2 | **API 全功能面**：`create / invoke / fileRead / fileWrite / readBlock / writeBlock / progressCore / cancelCore`——**含写、块读（随机访问）、进度回调、可取消** | libMLibKit.so 导出符号全列 |
+| S3 | **播放通道 = 本地 HTTP Range 代理**：libMLibKit.so 内嵌 `HTTP/1.1 1xx/2xx` 响应串 + `Content-Range` + `Accept-Ranges`；FFmpegKit.so 含 `127.0.0.1`。FFmpegKit **无** libsmbclient（smb:// 不可用）→ SMB 字节必经本地代理喂给播放内核 | 字节串扫描 |
+| S4 | 下载是**独立模块 + Service**：`DownloadClient` + `DownloadService` + `DownloadJobService`（后台续传）——对应 kivo 的 225 卡 | dex 类表 + 导出符号 |
+| S5 | 协议栈不可复用：自研 native SMB + 脚本总线（加密脚本串 `s1:` 前缀）——**学架构，不学实现** | 03 拆解 §二/§五 |
+
+**S3 是本轮最重要发现**：本地 HTTP Range 代理是 SenPlayer 一切远端源（SMB/网盘/Emby）
+的统一网关，也是硬解的唯一可行通道（`MediaExtractor.setDataSource("http://127.0.0.1:port/…")`
+原生支持 Range 流）。kivo 的 221 WebDAV / 224 Emby 将直接复用这个代理。
+
+### 0.2 Rex 侧（UI 参照）—— 既有证据 + 本轮补抽
+
+| # | 实证 | 证据 |
+| --- | --- | --- |
+| R1 | 添加资源库表单：取消/保存玻璃胶囊导航 + **可用地址胶囊**（自动发现的地址候选）+ 服务器/端口/用户名/密码输入行 + 测试连通性 + 隐私脚注 + 底部 连接/信息/iCloud/高级 分段 | 用户截图 `IMG_0114.PNG`（真机实拍） |
+| R2 | 表单字段语义全集：`名称（自动获取）/ Host（服务域名或 IP）/ 端口 / 路径（例如 dav）/ 用户名 / 密码 / HTTPS 开关 / 粘贴并识别 / 备用线路（主+备）/ 测试状态（正在测试…→可连接 reachable）` | `rex-package/strings/zh-Hans__Library.json` `library.form.*`（460 键 Library 模块） |
+| R3 | SMB 专属验证文案：`invalidSMBServer=请输入有效的 SMB 服务器地址，端口可选`、`missingUsername`、`connectionFailed=无法连接服务器，请检查地址与网络`、`unable.to.read.folder=无法读取文件夹`、`folderLoading=正在读取目录…` | 同上 `library.validation.*` / `library.error.*` / `library.file.match.*` |
+| R4 | 空目录态：`这个目录中没有子目录或 Rex 支持的视频文件` | 同上 |
+| R5 | 浏览语义：`文件浏览`（fileBrowser）+ `上一级`（back）——目录树两级导航 | 同上 `library.drivemby.*` / `library.scrapeFolder.*` |
 
 ---
 
 ## 一、一句话目标
 
-**真机经 SMB（局域网）浏览共享目录、点开片源直接播放、seek 正常、
-断网/权限失败有非空 reason（G9）——M2「生态与内容」的第一块地基。**
+**真机经 SMB 浏览共享目录（Rex 表单/浏览 UI）、点开片源经本地 Range 代理流式播放
+（SenPlayer 架构）、seek 正常、错误路径全部非空 reason（G9）——M2 生态地基。**
 
-## 二、设计决策
+## 二、设计决策（每条挂证据）
 
-### D1 协议库：jcifs-ng（codelibs fork）主选，smbj 备选
+### D1 SMB 客户端：jcifs-ng（codelibs），API 面对齐 SenPlayer S2
 
-- **jcifs-ng**（`codelibs:jcifs`）：纯 Java、Android 实战最多、SMB1/2/3、
-  `SmbRandomAccessFile` 天然带 offset 读（seek 就是协议能力）；
-- smbj 备选（若 jcifs-ng 在 API 26 上有依赖冲突再切）；
-- AMSMB2 是 Swift 侧答案——iOS 期直接对位复用结论，本卡不引入 KMP
-  （协议逻辑 KMP 化推迟到 iOS 期一起定，避免现在为了"将来"拆两遍）。
-- **AC0 选型 spike 先行**：设备上连接→列目录→offset 读 1MB 各跑通才定库。
+- Android 无 AMSMB2（Swift 专用）；SenPlayer 自研 native 栈不可复制（S5）；
+- jcifs-ng（纯 Java，`SmbRandomAccessFile` offset 读 / `SmbFileOutputStream` 写 / list 浏览）
+  对位 SenPlayer API 面 S2 一一映射：
 
-### D2 播放通道：FFmpeg 软解 + SMB avio 适配（native 会话一行不动）
+| SenPlayer SMBClient | kivo SmbSource |
+| --- | --- |
+| `create` | `connect(config)` |
+| `invoke`（浏览等） | `list(path): List<SmbEntry>` |
+| `fileRead` / `readBlock` | `readAt(offset, buf): Int`（ByteSource 接口） |
+| `fileWrite` / `writeBlock` | `writeAt`（本卡只读路径不触，接口预留） |
+| `progressCore` | `onProgress` 回调（播放/后续下载卡共用） |
+| `cancelCore` | `cancel()` |
+| —（销毁） | `close()` |
 
-SMB 没有 fd，而 211 的软解会话吃 `fd+length`。两条路里选：
+- smbj 备选（jcifs-ng 在 API 26 冒烟失败才切）；**AC0 spike 先行**。
 
-| 方案 | 内容 | 取舍 |
-| --- | --- | --- |
-| **B1 avio up-call（本卡）** | FFmpeg 自定义 avio 的 read/seek/size 回调经 JNI 调 Kotlin `SmbSource.readAt` | 真·流式随机读；native 会话零改动；只覆盖软解通道 |
-| B2 预缓冲到本地 | SMB→cache 文件→复用 fd 通道（硬解也能吃） | 起播要等拷贝；1GB 差 ≤2s 的口径基本到不了；是 Rex 的"预缓冲"开关，**列独立后续卡** |
+### D2 播放通道：本地 HTTP Range 代理（照 SenPlayer S3 架构）
 
-本卡 **B1**。证据发布 `decoder_backend=ffmpeg` + reason 写明 SMB 通道（G9：不是静默降级，
-硬解-over-SMB 需要 MediaDataSource→MediaExtractor 的 Kotlin 侧解封装管线，**明确不做**，列后续卡）。
+```
+SmbSource(ByteSource) ──► LocalRangeProxy(127.0.0.1 随机端口)
+                              │  HTTP/1.1 + Range: bytes=x-y + Content-Range/Accept-Ranges
+                              ▼
+            软解：FFmpeg avformat open "http://127.0.0.1:port/…"（本卡）
+            硬解：MediaExtractor.setDataSource(http://…)（后续卡，唯一远端硬解通道）
+```
 
-### D3 avio 回调的 JNI 形态
+- **为什么不是 avio 直连**（v1 方案，撤）：avio up-call 只喂软解，硬解永远开不了；
+  221/224 每个源都要重做一遍适配。本地代理是统一网关，且是 SenPlayer 生产验证过的形态。
+- **FFmpeg 重编译**：Android 版当前只有 file 协议（build.sh L100），需加
+  `--enable-network --enable-protocol=tcp,http`（脚本化一次投资；重编译后 211 证据回归）。
+- 代理自写最小实现（Kotlin `ServerSocket` + 单请求线程池；Range/HEAD/GET/404/416），
+  不引 HTTP 框架——它只服务本机 127.0.0.1。
+- `ByteSource` 接口：`size() / readAt(off, buf): Int / close()`——220 SMB 第一个实现，
+  221 WebDAV / 224 Emby 后续逐个实现同一接口。
 
-- native avio 持 `jobject`（SmbSource 全局引用）+ `JavaVM`；
-- 回调线程（FFmpeg worker）首次调用时 `AttachCurrentThread`，线程退出 Detach；
-- read 粒度 32KB；seek = jcifs offset read；`AVERROR_IO`/`AVERROR(EINTR)` 映射；
-- 连接断开 → avio 返回错误 → 会话 `lastError` 非空 reason（G9）；错误文案带主机与阶段（connect/read/seek）。
+### D3 G9 错误路径：文案对齐 Rex R3，阶段点名
 
-### D4 浏览与表单 UI（Compose，照抄 Rex 规格）
+| 阶段 | reason（对齐 Rex 文案） |
+| --- | --- |
+| 表单校验 | `请输入有效的 SMB 服务器地址，端口可选` / `请输入用户名。` |
+| 连接失败 | `无法连接服务器，请检查地址与网络。` + 主机:端口 |
+| 认证失败 | `用户名或密码不正确`（Rex 无 SMB 认证专属键，用通用登录失败语义） |
+| 目录读取失败 | `无法读取文件夹` + 路径 |
+| 空目录 | `这个目录中没有子目录或 Kivo 支持的视频文件` |
+| 播放中断连 | `SMB 连接中断：<阶段>` + 可重试 |
 
-- 表单（05 §6.5 实测）：取消/保存玻璃胶囊导航 + 全宽圆角输入行（高 ~59pt）
-  + **测试连通性**文字按钮 + 脚注（隐私话术：只上传文件夹与文件名）；
-- 字段：主机 / 端口(默认 445) / 共享名 / 路径 / 域(可选) / 用户名 / 密码（可见性切换）；
-- 浏览页：目录列表（文件夹/文件双形态、文件名+大小），点文件 → `PlayerComposeActivity`
-  传 `kivo.smb`（SmbConfig JSON extra）；
-- 入口 Activity：`SmbActivity`（横屏同播放页）。
+### D4 UI：照 Rex R1/R2 表单 + R5 浏览语义（Compose，05 号文档 token）
 
-### D5 凭据与状态
+- 表单（R1 实拍 + R2 键）：取消/保存胶囊导航 → 可用地址胶囊（可先留空，mDNS 后续卡）
+  → 名称（自动获取）→ Host → 端口(445) → 路径 → 用户名 → 密码（可见性切换）→
+  测试连通性（正在测试…→可连接/失败原因）→ 保存；
+- 首行输入完成后整行白圆角 59pt、左标签右值，与 0114 实拍一致；
+- 浏览页（R5）：目录/文件列表（文件夹行 + 文件行[名称+大小]）、上一级导航、
+  空目录态 R4、点文件起播；布局按 05 号文档毛玻璃卡片规格。
 
-- SmbConfig：host/port/share/path/domain/user/pass（data class + JSON 序列化）；
-- 本卡存内存 + SharedPreferences 单源槽位（重进回填表单）；多源管理归 222。
+### D5 凭据存储
+
+- SmbConfig JSON + SharedPreferences 单槽位（表单回填）；多源管理 = 222 卡。
+
+### D6 硬解-over-SMB：不做（本卡），但代理即为其铺路
+
+- `MediaExtractor.setDataSource(http://127.0.0.1)` + Kotlin 解封装管线 = 独立后续卡；
+- 本卡证据 `decoder_backend=ffmpeg` + reason `smb via local range proxy`（G9 显式，非静默）。
 
 ## 三、家族树
 
 | 文件 | 新/旧 | 单一职责 |
 | --- | --- | --- |
-| `smb/SmbConfig.kt` | **新** | 连接描述 data class + JSON 序列化（无协议逻辑） |
-| `smb/SmbSource.kt` | **新** | jcifs 封装：connect / browse(list) / readAt / size / close（唯一协议访问点） |
-| `ui/compose/SmbActivity.kt` | **新** | 表单 + 浏览列表宿主（Compose，Rex 规格） |
-| `backend/include_private/video/video_plane/runtime/local_media/ffmpeg_smb_callbacks.hpp/.cxx` | **新** | avio 适配：jobject 全局引用 + JavaVM up-call（read/seek/size） |
-| `jni/jni_ffmpeg_bridge.cxx` | 旧（小改） | `nativeFfmpegOpenSmb`（收 jobject 代替 fd） |
-| `bridge/NativePlayer.kt` | 旧（小改） | 对应 external 声明 |
-| `bridge/FfmpegPlaybackSession.kt` | 旧（小改） | `openSmbVideo(config, surface)` 变体 |
+| `smb/SmbConfig.kt` | **新** | 连接描述 data class + JSON（无协议逻辑） |
+| `smb/SmbSource.kt` | **新** | jcifs 封装 + 实现 `ByteSource`（connect/list/readAt/close，唯一协议访问点） |
+| `net/ByteSource.kt` | **新** | 随机读源接口（size/readAt/close）——220/221/224 共同地基 |
+| `net/LocalRangeProxy.kt` | **新** | 127.0.0.1 HTTP/1.1 Range 代理（BindSource→端口），SenPlayer S3 同构 |
+| `ui/compose/SmbActivity.kt` | **新** | 表单 + 浏览列表宿主（Rex R1-R5 规格） |
+| `third_party/ffmpeg-android/build.sh` | 旧（小改） | +network+tcp+http 协议，重交叉编译 |
+| `backend/…/ffmpeg_local_playback_session.cxx` | 旧（小改） | 输入源新增 URL 分支（avformat_open_input(url)，fd 路径不动） |
+| `bridge/NativePlayer.kt` / `FfmpegPlaybackSession.kt` | 旧（小改） | `openSmbVideo`（URL 模式） |
 | `ui/compose/PlayerComposeActivity.kt` | 旧（小改） | `kivo.smb` extra 分支 |
 
 ## 四、验收判据
 
 | # | 判据 | 通过条件 |
 | --- | --- | --- |
-| AC0 | 选型 spike | 选定库在 K40：连接→列目录→offset 读三步全通 |
-| AC1 | 浏览 | 真机连 PC SMB 共享：列目录树 ≥2 级、文件/目录数与服务器一致 |
-| AC2 | 起播 | SMB 上 1080p 片源点开即播；证据 `decoder_backend=ffmpeg` + reason 含 SMB |
-| AC3 | seek | SMB 播放中 seek 落点精确（211 同口径），seek 后零丢帧 |
-| AC4 | 错误路径（G9） | 断网 / 错密码 / 共享不存在：reason 非空且点名阶段（connect/read/seek），无静默 |
-| AC5 | M2 口径【待验证】 | 1GB 片源 SMB 起播 vs 本地起播差 ≤2s；超差 → 结论写进状态稿，触发预缓冲卡 |
+| AC0 | 选型 spike | jcifs-ng 在 K40：连接→列目录→offset 读 1MB 全通（失败则 smbj 重跑本 AC） |
+| AC1 | 浏览 | 真机连 PC SMB 共享：目录树 ≥2 级、条目数与服务器一致（AC1 用 AC0 环境复算） |
+| AC2 | 起播 | SMB 1080p 片源点开即播；证据 `decoder_backend=ffmpeg` + reason 含 `local range proxy` |
+| AC3 | seek | SMB 播放中 seek 落点精确（211 口径），seek 后零丢帧；代理 Range 请求日志复算 |
+| AC4 | 错误路径（G9） | 断网 / 错密码 / 空目录 / 停共享：reason 非空且阶段点名（D3 表） |
+| AC5 | M2 口径【待验证】 | 1GB 片 SMB 起播 vs 本地差 ≤2s；超差 → 状态稿写结论，触发预缓冲卡 |
 
 ## 五、测试环境
 
-- 服务端：本机 Windows SMB 共享（Administrator 建共享 + 专用账户只读），
-  K40 经 OpenWrt WiFi 访问 PC IP；共享根放 1080p 参考片源 + 一级/二级测试目录。
-- 对照：同一片源本地拷贝一份（AC5 用）。
+- 服务端：本机 Windows SMB 共享（Administrator 建，专用只读账户），K40 经 OpenWrt WiFi
+  访问 PC IP；共享根放 1080p 参考片源（本地同片对照）+ 两级测试目录。
+- 证据：`docs/evidence/p220/` + `verify_p220_smb.py`（变异自检）。
 
 ## 六、明确不做
 
-硬解-over-SMB（MediaDataSource 管线，后续卡）· 预缓冲到本地（Rex 同款，后续卡）·
-多源管理 UI（222）· KMP 化（iOS 期定）· SMB1（只 SMB2/3）· 发现协议（mDNS/WS-Discovery）。
+硬解-over-SMB（后续卡，D6）· 预缓冲到本地（Rex 的 Beta 开关，225/后续）·
+多源管理 UI（222）· KMP（iOS 期）· SMB1 · 服务发现（mDNS，可用地址胶囊先手动填）·
+SMB 写路径 UI（SmbSource 接口预留，无 UI）。
