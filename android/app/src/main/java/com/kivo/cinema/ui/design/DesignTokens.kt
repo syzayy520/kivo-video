@@ -20,6 +20,13 @@ object DesignTokens {
     val accentGreen = Color(0xFF34C759)
     val dangerRed = Color(0xFFFF3B30)
 
+    // 语义色板（RexDesign Assets.car 硬参数，浅色态；深色态 v2）
+    val canvasFill = Color(0xFFFFFFFF)      // 卡片/内容画布
+    val groupedFill = Color(0xFFF2F2F7)     // 分组列表底
+    val pageBackground = Color(0xFFF2F2F7)  // 页面底色
+    val hairline = Color(0x0D000000)        // 分隔线/描边（黑 5%）
+    val washFill = Color(0x80EDEDFB)        // 洗色叠加（P3 @50%）
+
     // 玻璃
     const val glassAlpha = 0.70f          // 白 65–75%
     val glassFallback = Color(0xEEFFFFFF) // API31 降级 92% 白

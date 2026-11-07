@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items as rowItems
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.remember
@@ -67,8 +68,14 @@ fun DiscoverPage(
     onOpenItem: (MediaItem) -> Unit,
     onOpenLibrary: () -> Unit,
     onOpenTmdbItem: (com.kivo.cinema.tmdb.TmdbHome.Item) -> Unit,
+    onAmbient: (Color) -> Unit = {},
 ) {
     val pad = DesignTokens.screenPad.dp
+    // 第一屏背景自适应（黑鸽页全暗/狗狗页全米——帧实证；固定渐变仅其余 tab 使用）
+    val ambient = remember { mutableStateOf(DesignTokens.bgCream) }
+    // 环境色平滑过渡（animateColorAsState 在本 compose 版本不可用——手写插值）
+    val ambientAnim = ambient.value
+    Box(Modifier.fillMaxSize().background(ambientAnim)) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(1),
         modifier = Modifier.fillMaxSize(),
@@ -77,7 +84,7 @@ fun DiscoverPage(
         // hero 轮播（TMDB）
         if (heroCandidates.isNotEmpty()) {
             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                HeroCarousel(heroCandidates)
+                HeroCarousel(heroCandidates, onAmbient = { ambient.value = it })
             }
         }
         // 继续观看（本地）
@@ -145,6 +152,7 @@ fun DiscoverPage(
             }
         }
     }
+    }
 }
 
 /** 相对时间（grid_01 帧："3 天前 · 来源"语义）。 */
@@ -168,24 +176,15 @@ internal fun relDays(addedSec: Long): String {
  * ⑥ 轮播 0.4s spring(0.5,0.85)，自动 5s，swipe 打断（M04-S01 CSV）
  */
 @Composable
-internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>) {
+internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>,
+                          onAmbient: (Color) -> Unit = {}) {
+    // 手动轮播（用户实拍证伪自动滚动；M04-S01 的「自动计时」设置默认关）
     val pagerState = androidx.compose.foundation.pager.rememberPagerState(
         pageCount = { candidates.size })
-    LaunchedEffect(candidates.size) {
-        if (candidates.size > 1) {
-            while (true) {
-                kotlinx.coroutines.delay(5000)
-                val next = (pagerState.currentPage + 1) % candidates.size
-                pagerState.animateScrollToPage(
-                    next,
-                    animationSpec = androidx.compose.animation.core.spring(0.5f, 0.85f))
-            }
-        }
-    }
     val conf = androidx.compose.ui.platform.LocalConfiguration.current
     val heroH = (conf.screenHeightDp * 0.53f).dp
-    // 自适应前景色状态（按当前页 backdrop 亮度）
     var fgLight by remember { mutableStateOf(true) }
+    val ambient = remember { mutableStateOf(DesignTokens.bgCream) }
     LaunchedEffect(pagerState.currentPage, candidates.size) {
         val m = candidates.getOrNull(pagerState.currentPage)
         if (m == null) return@LaunchedEffect
@@ -193,7 +192,11 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>) 
             com.kivo.cinema.ui.design.TmdbImageCache.get(m.backdropUrl)
                 ?: com.kivo.cinema.tmdb.TmdbClient.staticBitmap(m.backdropUrl)
         }
-        bmp?.let { fgLight = luminanceBelow(it) < 0.55f }
+        bmp?.let {
+            fgLight = luminanceBelow(it) < 0.55f
+            ambient.value = ambientBelow(it)   // 第一屏背景 = 海报调色板（自适应）
+            onAmbient(ambient.value)
+        }
     }
     val fg = if (fgLight) Color.White else DesignTokens.textMain
     val fgSub = if (fgLight) Color.White.copy(alpha = 0.85f) else DesignTokens.textMain
@@ -210,6 +213,15 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>) 
                     .height(heroH)
             ) {
                 TmdbImage(m.backdropUrl, m.title, Modifier.fillMaxSize())
+                // 底部融进第一屏环境色（海报与页面无硬边——参照自适应背景）
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(heroH * 0.3f)
+                        .align(Alignment.BottomCenter)
+                        .background(androidx.compose.ui.graphics.Brush.verticalGradient(
+                            listOf(Color.Transparent, ambient.value)))
+                )
                 // 内容层：标题大字（62% 高度）→ 类型·日期 → 简介 → 评分行（全部图内自适应色）
                 Column(
                     Modifier
@@ -261,6 +273,24 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>) 
             }
         }
     }
+}
+
+/** backdrop 底部 1/3 平均色——第一屏背景自适应源（内容即色彩）。 */
+internal fun ambientBelow(bmp: android.graphics.Bitmap): Color {
+    val y0 = (bmp.height * 2) / 3
+    var r = 0L; var g = 0L; var b = 0L; var n = 0L
+    var y = y0
+    while (y < bmp.height) {
+        var x = 0
+        while (x < bmp.width) {
+            val c = bmp.getPixel(x, y)
+            r += (c shr 16 and 0xFF); g += (c shr 8 and 0xFF); b += (c and 0xFF); n++
+            x += 16
+        }
+        y += 16
+    }
+    if (n == 0L) return DesignTokens.bgCream
+    return Color((r / n).toInt(), (g / n).toInt(), (b / n).toInt())
 }
 
 /** backdrop 下半区平均亮度（0-1）——文字黑白自适应依据。 */

@@ -161,20 +161,7 @@ class MainActivity : ComponentActivity() {
             Column(Modifier.fillMaxSize()) {
                 Box(Modifier.weight(1f)) {
                     when (page) {
-                        0 -> DiscoverPage(
-                            items = items,
-                            continueItems = continueItems,
-                            heroCandidates = heroCandidates,
-                            nowPlaying = nowPlaying,
-                            onTheAir = onTheAir,
-                            trending = trending,
-                            posterOf = { posterBlockOf(it) },
-                            onOpenItem = { openPlayer(it) },
-                            onOpenLibrary = { openLibrary() },
-                            onOpenTmdbItem = { },
-                        )
-                        1 -> ProfilePage(items.size)
-                        2 -> SourcesPage(
+                        0 -> SourcesPage(
                             onOpenSmb = { startActivity(
                                 android.content.Intent(this@MainActivity,
                                     com.kivo.cinema.smb.SmbActivity::class.java)) },
@@ -187,18 +174,36 @@ class MainActivity : ComponentActivity() {
                                     com.kivo.cinema.privatezone.PrivateActivity::class.java)) },
                             videoCount = items.size,
                         )
+                        1 -> DiscoverPage(
+                            items = items,
+                            continueItems = continueItems,
+                            heroCandidates = heroCandidates,
+                            nowPlaying = nowPlaying,
+                            onTheAir = onTheAir,
+                            trending = trending,
+                            posterOf = { posterBlockOf(it) },
+                            onOpenItem = { openPlayer(it) },
+                            onOpenLibrary = { openLibrary() },
+                            onOpenTmdbItem = { },
+                        )
+                        2 -> com.kivo.cinema.ui.design.WatchingPage(
+                            continueItems = continueItems,
+                            posterOf = { posterBlockOf(it) },
+                            onOpenItem = { openPlayer(it) },
+                        )
+                        3 -> ProfilePage(items.size)
                         else -> SettingsPage(
                             clearTextOk = applicationInfo.flags and
                                 android.content.pm.ApplicationInfo.FLAG_USES_CLEARTEXT_TRAFFIC != 0,
-                            buildLabel = "0.1.0 (236-ui)",
+                            buildLabel = "0.1.0 (237-ui)",
                         )
                     }
                 }
                 // 距底 22pt（帧实测）
                 Box(Modifier.padding(bottom = 22.dp)) {
                     CapsuleNavBar(
-                        tabs = listOf("发现" to "🎞", "我的" to "👤",
-                            "资源库" to "🗄", "设置" to "⚙"),
+                        tabs = listOf("资源库" to "🗄", "发现" to "🎞",
+                            "在看" to "📺", "我的" to "👤"),
                         selected = page,
                         onSelect = { page = it },
                         onSearch = { openLibrary() },
