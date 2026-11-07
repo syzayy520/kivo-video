@@ -20,15 +20,18 @@ import java.util.concurrent.atomic.AtomicBoolean
  * ByteSource 由调用方持有并保证串行（SMB 连接非线程安全）——代理内用锁串行化。
  * 生命周期：[start] 后 [close] 停止；连接处理循环见 [running]。
  */
-class LocalRangeProxy(private val source: com.kivo.cinema.smb.SmbSource.ByteSource) {
+class LocalRangeProxy(
+    private val source: com.kivo.cinema.smb.SmbSource.ByteSource,
+    private val bindAddress: String = "127.0.0.1",   // 230 投屏：绑 0.0.0.0 给渲染器取流
+) {
     private var server: ServerSocket? = null
     private val running = AtomicBoolean(false)
     private var acceptThread: Thread? = null
     private val lock = Any()   // ByteSource 串行化（SMB 连接非线程安全）
 
-    /** 绑定随机回环端口；返回端口号。 */
+    /** 绑定端口（回环随机 / 指定地址随机）；返回端口号。 */
     fun start(): Int {
-        val ss = ServerSocket(0, 8, InetAddress.getByName("127.0.0.1"))
+        val ss = ServerSocket(0, 8, InetAddress.getByName(bindAddress))
         server = ss
         running.set(true)
         acceptThread = Thread({

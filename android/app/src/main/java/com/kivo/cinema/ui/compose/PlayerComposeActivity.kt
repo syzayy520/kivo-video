@@ -147,6 +147,8 @@ class PlayerComposeActivity : ComponentActivity() {
                             onPlayPause = { togglePlayPause() },
                             danmakuVisible = danmakuOn && danmakuItems.isNotEmpty(),
                             onDanmakuToggle = { danmakuOn = !danmakuOn },
+                            casting = castDevice != null,
+                            onCastClick = { openCastSheet() },
                             onSeek = { ms ->
                                 smbNetSession?.seekTo(ms * 1000)
                                     ?: smbFfSession?.seekTo(ms * 1000)
@@ -167,6 +169,16 @@ class PlayerComposeActivity : ComponentActivity() {
                         positionMs = positionMs,
                         visible = danmakuOn,
                         modifier = Modifier.fillMaxSize()
+                    )
+                    // 投屏设备 sheet（230）：置于弹幕之上（Box 最后一个子元素）
+                    com.kivo.cinema.dlna.CastSheet(
+                        visible = castSheetVisible,
+                        scanning = castScanning,
+                        devices = castDevices,
+                        message = castMessage,
+                        onSelect = { onCastSelect(it) },
+                        onRescan = { openCastSheet() },
+                        onDismiss = { castSheetVisible = false },
                     )
                 }
             }
@@ -480,6 +492,70 @@ class PlayerComposeActivity : ComponentActivity() {
         if (isPlaying) session.resume() else session.pause()
     }
 
+    // ---- 230：DLNA 投屏（按钮→sheet→CastController）----
+    private val castController by lazy { com.kivo.cinema.dlna.CastController(this) }
+    private var castSheetVisible by mutableStateOf(false)
+    private var castScanning by mutableStateOf(false)
+    private var castDevices by mutableStateOf(
+        listOf<com.kivo.cinema.dlna.DlnaDevice>())
+    private var castMessage by mutableStateOf("")
+    private var castDevice by mutableStateOf<com.kivo.cinema.dlna.DlnaDevice?>(null)
+
+    /** 投屏的 URL 直传来源（kivo.playurl 会话时非空；D4 URL 直传策略）。 */
+    private var playUrlOverride = ""
+
+    private fun openCastSheet() {
+        smbTrace("cast sheet open, scanning begin")
+        castSheetVisible = true
+        castScanning = true
+        castMessage = ""
+        Thread {
+            val list = try {
+                castController.scan { line -> smbTrace("cast $line") }
+            } catch (e: Exception) {
+                Log.w(TAG, "dlna scan failed", e)
+                smbTrace("cast scan EXC ${e.javaClass.name}: ${e.message}")
+                emptyList()
+            }
+            smbTrace("cast scan done: ${list.size} devices ${list.joinToString(";") { it.friendlyName }}")
+            runOnUiThread {
+                castDevices = list
+                castScanning = false
+                if (list.isEmpty()) castMessage = "4s 内未发现渲染器"
+            }
+        }.start()
+    }
+
+    private fun onCastSelect(device: com.kivo.cinema.dlna.DlnaDevice) {
+        smbTrace("cast select ${device.friendlyName} ctrl=${device.controlUrl}")
+        castMessage = "连接 ${device.friendlyName}…"
+        Thread {
+            val title = java.io.File(
+                if (currentMediaPath().isNotBlank()) currentMediaPath()
+                else playUrlOverride).name.ifBlank { "kivo" }
+            val rc = when {
+                smbSource != null -> -2   // SMB 片源投屏留 v2（需第二 SmbByteSource）
+                playUrlOverride.isNotBlank() ->
+                    castController.castUrl(device, playUrlOverride, title)
+                else -> castController.castSource(
+                    device, com.kivo.cinema.net.FileByteSource(currentMediaPath()), title)
+            }
+            runOnUiThread {
+                if (rc == 0) {
+                    castDevice = device
+                    castSheetVisible = false
+                    // D6：渲染端成为主屏，本地暂停（能 pause 的会话才暂停——
+                    // FfmpegPlaybackSession 无 pause API，软解会话继续本地播，偏差记 status 文档）
+                    runCatching { playbackSession?.pause() }
+                    statusText = "投屏中：${device.friendlyName}"
+                } else {
+                    castMessage = if (rc == -2) "SMB 片源投屏暂未开放"
+                                  else "投屏失败（rc=$rc）"
+                }
+            }
+        }.start()
+    }
+
     // ---- 215 取证 harness（`kivo.evidence=p215`）：60 点扫描 + 主链路 writeStats 对照 ----
     private var stressDurationUs = -1L
 
@@ -569,6 +645,7 @@ class PlayerComposeActivity : ComponentActivity() {
     private fun readProbeExtras() {
         mediaOverridePath = intent.getStringExtra("kivo.media") ?: ""
         evidenceName = intent.getStringExtra("kivo.evidence") ?: ""
+        playUrlOverride = intent.getStringExtra("kivo.playurl") ?: ""
     }
 
     private fun locateTestMedia(): java.io.File? {
@@ -578,6 +655,11 @@ class PlayerComposeActivity : ComponentActivity() {
 
     override fun onDestroy() {
         android.os.Handler(mainLooper).removeCallbacks(positionPoll)
+        // 230：离场收投屏（Stop SOAP + 关 LAN 代理），渲染端不悬挂
+        if (castDevice != null) {
+            Thread { runCatching { castController.stop() } }.start()
+            castDevice = null
+        }
         smbFfSession?.let { s -> runCatching { s.stopAndCollectEvidence() } }
         smbFfSession = null
         smbNetSession?.let { s -> runCatching { s.stop() } }

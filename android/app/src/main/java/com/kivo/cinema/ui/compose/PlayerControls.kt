@@ -57,6 +57,8 @@ fun PlayerControls(
     previewMs: Long = -1L,   // ≥0：程序化预览（取证 harness 用）；与拖动共用同一条浮窗 UI
     danmakuVisible: Boolean = false,
     onDanmakuToggle: () -> Unit = {},
+    casting: Boolean = false,
+    onCastClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var dragValueMs by remember { mutableStateOf(0L) }
@@ -149,6 +151,22 @@ fun PlayerControls(
                     modifier = Modifier
                         .background(
                             if (danmakuVisible) Color(0xFF00A1D6).copy(alpha = 0.2f)
+                            else Color.Transparent,
+                            RoundedCornerShape(50)
+                        )
+                        .padding(4.dp)
+                )
+            }
+            // 投屏按钮（230）：与「弹」同排同规格（Rex 05 token）
+            IconButton(onClick = onCastClick) {
+                Text(
+                    "投",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (casting) Color(0xFF34C759) else Color(0xFF666666),
+                    modifier = Modifier
+                        .background(
+                            if (casting) Color(0xFF34C759).copy(alpha = 0.2f)
                             else Color.Transparent,
                             RoundedCornerShape(50)
                         )

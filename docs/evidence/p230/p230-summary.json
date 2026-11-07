@@ -1,0 +1,43 @@
+{
+  "card": "p230-dlna",
+  "date": "2026-11-08",
+  "device": "Redmi K40 (b6e950ee, 192.168.5.152)",
+  "renderers": [
+    {
+      "name": "kivo-test-renderer",
+      "host": "192.168.5.142:8060",
+      "kind": "PC 测试件 (tools/dlna_renderer.py + ffplay)"
+    },
+    {
+      "name": "小爱音箱-8245",
+      "host": "192.168.5.145:9999",
+      "kind": "真实 DLNA 渲染器 (Mi GUPnP)"
+    }
+  ],
+  "ac1_discovery": {
+    "found": "2 devices 小爱音箱-8245;kivo-test-renderer",
+    "log": "p230-status-cast.log (scan done: 2 devices)"
+  },
+  "ac2_cast_local": {
+    "chain": "本地文件 FileByteSource -> LocalRangeProxy(0.0.0.0, 端口43173) -> 渲染器 ffplay 取流",
+    "evidence_png": "p230-pc-ffplay.png",
+    "observed": "PC ffplay 窗口渲染 1920x1080 彩条片，窗口标题 http://192.168.5.152:43173/kivo"
+  },
+  "ac3_cast_url": {
+    "chain": "Emby 直连流 URL 直传 -> 渲染器自行向 Emby 取流（手机不在数据路径）",
+    "evidence_png": "p230-pc-emby2.png",
+    "observed": "PC ffplay 渲染 FINAL DESTINATION 2，窗口标题为 emby.bangumi.ca 流 URL",
+    "phone_status": "投屏中：kivo-test-renderer (p230-emby-casting-status.png)"
+  },
+  "ac4_control": {
+    "stop": "SOAP Stop 两次生效（03:00:38 本地片 + 03:05:47 Emby 片），渲染端日志 Stop received + ffplay killed",
+    "note": "Pause 未接线（v1 明示豁免）：AvTransportClient.pause 已实现，UI 无入口"
+  },
+  "screenshot_sha256": {
+    "p230-devices-found.png": "9cbde4fa6a0b2c0f9c67987856d820d6f5cfe303fedefb21e8e696617f002a7b",
+    "p230-pc-ffplay.png": "5074602dc7df67e5f9d19d6aac400b4e859fcaa9acaf5036acdd2e2d5ebb91ef",
+    "p230-pc-emby2.png": "7972def369c32aeea7bfdcefee6eba466649c2fc7202e646749d5ab24c1d1b95",
+    "p230-casting.png": "f40577ef2acc389da814776642a0a6660166d98cf2f904f3006992ff254f360c",
+    "p230-emby-casting.png": "510fe70380496264e071f654deeba34681dc498bb70f02ad1b763219ce63e735"
+  }
+}
