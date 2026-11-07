@@ -120,6 +120,25 @@ libsmb2 connect ✓ → smb2_open ✓ (size=33056861)
   200 次 ≈ 数秒持续断网；end_reason 在 poll 的 isRunning=false 时经
   stopAndCollectEvidence() 出版到证据 JSON 并展示在 statusText（G9 ✓）
 
+## 五点九、AC 全景收口（2026-11-07，全部有真机实证）
+
+| AC | 判据 | 结果 | 证据 |
+| --- | --- | --- | --- |
+| AC0 | 选型 spike | ✅ libsmb2（jcifs 落选证据链完整） | p220-spike-xiaomi-pass.json |
+| AC1 | 浏览 | ✅ 两级浏览（XiaoMi 根 17 条目 → 子目录 3 条目，名单入证据） | 同上 names 数组 |
+| AC2 | 起播 | ✅ 33MB 与 1GB 两种片源真机播放，双帧画面推进 | p220-smb-playing*.png |
+| AC3 | seek | ✅ 0:00:44 → 0:01:25（拖动落位正确） | seek1-time.png |
+| AC4 | 错误路径（G9） | ✅ 初测冻结不崩溃；连续读失败>200 → end_reason 上报机制已实现 | p220-smb-disconnect.png |
+| AC5 | 1GB 起播差 | ✅ **SMB 62ms vs 本地 10ms，差 52ms ≪ 2s** | p220-status.log 时间戳（url-play begin→start：10ms；smb begin→start：62ms） |
+
+AC5 测量方法：同一会话类（FfmpegPlaybackSession）、同一解码器、同一探针，
+仅传输层不同（file:// 直读 vs http://127.0.0.1 代理）——kivo.playurl 通用入口。
+moov 在尾部（ftyp 为首 box）：探针必须跑到 1GB 处读索引——SMB Range 承压实测。
+
+**新发现 bug（记档）**：URL 模式节拍失效——media 44s vs wall ~20s（超实时 2.2×），
+pts sleep 未生效。p14d 文件 fd 模式节奏正常（P14-D 实测 0.99999）→ 疑与 URL 模式
+timestamps 相关【待查】。超实时不影响 AC5（起播口径是管道就绪时间），但影响观感。
+
 ## 六、结论与最小修复（待定案）
 
 | 假设 | 证据强度 | 下一步 |
