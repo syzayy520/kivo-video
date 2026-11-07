@@ -75,16 +75,23 @@ fun DiscoverPage(
     val ambient = remember { mutableStateOf(DesignTokens.bgCream) }
     // 环境色平滑过渡（animateColorAsState 在本 compose 版本不可用——手写插值）
     val ambientAnim = ambient.value
-    Box(Modifier.fillMaxSize().background(ambientAnim)) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(1),
         modifier = Modifier.fillMaxSize(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 10.dp),
     ) {
-        // hero 轮播（TMDB）
+        // hero（TMDB）——环境色只覆盖首屏高度，下滑马上出正常渐变（用户实拍行为）
         if (heroCandidates.isNotEmpty()) {
             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                HeroCarousel(heroCandidates, onAmbient = { ambient.value = it })
+                val screenH = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(screenH)
+                        .background(ambientAnim)
+                ) {
+                    HeroCarousel(heroCandidates, onAmbient = { ambient.value = it })
+                }
             }
         }
         // 继续观看（本地）
@@ -151,7 +158,6 @@ fun DiscoverPage(
                 }
             }
         }
-    }
     }
 }
 
