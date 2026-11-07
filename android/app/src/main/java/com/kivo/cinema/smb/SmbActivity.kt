@@ -260,14 +260,24 @@ class SmbActivity : ComponentActivity() {
                             Text("进入 ›", fontSize = 13.sp, color = Color(0xFF34C759),
                                 modifier = Modifier.padding(start = 8.dp))
                         } else {
-                            Button(
-                                onClick = { openFile(e) },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF34C759)
-                                ),
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                                    horizontal = 14.dp, vertical = 6.dp)
-                            ) { Text("播放", fontSize = 13.sp) }
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Button(
+                                    onClick = { openFile(e) },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF34C759)
+                                    ),
+                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                                        horizontal = 14.dp, vertical = 6.dp)
+                                ) { Text("播放", fontSize = 13.sp) }
+                                Button(
+                                    onClick = { downloadFile(e) },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF00A1D6)
+                                    ),
+                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                                        horizontal = 14.dp, vertical = 6.dp)
+                                ) { Text("下载", fontSize = 13.sp) }
+                            }
                         }
                     }
                 }
@@ -277,6 +287,33 @@ class SmbActivity : ComponentActivity() {
 
     private fun joinPath(base: String, name: String): String =
         base.trimEnd('/') + "/" + name
+
+    // 下载链路持有的源与代理：DownloadService 说 HTTP，SMB 必须经 220b 同款
+    // ByteSource→LocalRangeProxy 桥成 http://127.0.0.1 再交给它（SMB 主机不听 HTTP）。
+    private val downloadBridges = mutableListOf<Pair<Smb2Native.Source, com.kivo.cinema.net.LocalRangeProxy>>()
+
+    private fun downloadFile(entry: SmbSource.Entry) {
+        val c = cfg ?: return
+        val fullPath = if (currentPath.isEmpty()) entry.name else "${currentPath}/${entry.name}"
+        status = "开始下载：${entry.name}"
+        Thread {
+            try {
+                val src = Smb2Native.Source(c)
+                src.connect()
+                val bytes = src.openForRead(fullPath)
+                val proxy = com.kivo.cinema.net.LocalRangeProxy(bytes)
+                val port = proxy.start()
+                downloadBridges.add(src to proxy)
+                val intent = Intent(this, com.kivo.cinema.download.DownloadService::class.java)
+                    .putExtra(com.kivo.cinema.download.DownloadService.EXTRA_URL,
+                        "http://127.0.0.1:$port/kivo")
+                    .putExtra(com.kivo.cinema.download.DownloadService.EXTRA_TITLE, entry.name)
+                startForegroundService(intent)
+            } catch (e: Exception) {
+                status = "无法下载：${e.message}"   // G9：错误 reason 用户可见
+            }
+        }.start()
+    }
 
     private fun formatSize(bytes: Long): String = when {
         bytes >= 1 shl 30 -> "%.1f GB".format(bytes.toDouble() / (1 shl 30))

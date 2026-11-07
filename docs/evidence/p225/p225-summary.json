@@ -1,0 +1,67 @@
+{
+  "card": "p225-download",
+  "date": "2026-11-08",
+  "device": "Redmi K40 (b6e950ee, MIUI, Android)",
+  "server": "Windows SMB share kivo @ 192.168.5.142:445 (user kivosmb)",
+  "chain": "libsmb2 SmbByteSource -> LocalRangeProxy(127.0.0.1) -> DownloadService(HTTP Range)",
+  "ac1_download": {
+    "file": "1080p30_60s.mp4",
+    "bytes_on_device": 61069842,
+    "ffprobe": {
+      "duration_s": 60.0,
+      "video": "h264 1920x1080",
+      "audio": "aac 48000"
+    },
+    "sha256": "06505ae81e26626626495146afa2a5250ee0978c2b35de1497d0bdfa69b43c09",
+    "verdict": "complete-moov-intact"
+  },
+  "ac2_notification": {
+    "progress_shot": {
+      "png": "p225-progress.png",
+      "observed": "1gb_720p.mp4 / 已下载 172MB + 进度条"
+    },
+    "completion_shot": {
+      "png": "p225-notification.png",
+      "observed": "1080p30_60s.mp4 / 下载完成 ✓"
+    },
+    "fgs_record": "dumpsys: isForeground=true foregroundNoti channel=download"
+  },
+  "ac3_library": {
+    "png": "p225-library.png",
+    "library_count_before": 157,
+    "library_count_after": 158,
+    "downloaded_visible": "1080p30_60s.mp4 首位海报墙卡片 (0:01:00)",
+    "note": "落点 Movies/Kivo/ + MediaScannerConnection.scanFile 入 MediaStore"
+  },
+  "ac4_resume": {
+    "file": "1gb_720p.mp4",
+    "interrupt": {
+      "bytes_at_force_stop": 110157824,
+      "method": "am force-stop (process death)"
+    },
+    "resume_first_observed": 122544613,
+    "rule": "resume_first_observed > interrupt_bytes 且全程单调不回落；final 由服务器 Content-Length 决定",
+    "final_bytes": 1090116567,
+    "final_stable": "两次 stat 间隔 4s 相同",
+    "samples": [
+      110157824,
+      122544613,
+      198860800,
+      418275328,
+      681009152,
+      943349760,
+      1074683904,
+      1090116567
+    ]
+  },
+  "screenshot_sha256": {
+    "p225-progress.png": "8a81a6143d01d44328fb0ce7079543654977959a5716c4adbd6ede5c043373be",
+    "p225-notification.png": "0a621a0d1c7b842da86f545e15236ab6d4cc0461e9c5b443b2a400611fb0a274",
+    "p225-library.png": "28986f5647323116889c585f06927517275bd95bc05cdcff89ea1bfdb8b9e9e3",
+    "p225-browse.png": "1c1b595814ca4cd365f98927f43a06268abac2bd7985108637e9cd3acb301b5a",
+    "p225-browse2.png": "1c1b595814ca4cd365f98927f43a06268abac2bd7985108637e9cd3acb301b5a",
+    "p225-resume-done.png": "3e5ea6c08278c48d9cf3804c9f122dc93f8a672ef2e56911dda75aaf0af635a2"
+  },
+  "ffprobe_sha256": "f6393511259c5dde58768f2b4d6f3e780c54176b1772aa308b394a4a265f0335",
+  "emby_lead_for_224": "设备通知见 emby.bangumi.ca:443 账号 syzayy（用户真实 Emby 环境，224 卡可测）"
+}
