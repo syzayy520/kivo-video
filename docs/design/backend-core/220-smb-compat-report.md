@@ -94,6 +94,15 @@ libsmb2 connect ✓ → smb2_open ✓ (size=33056861)
 证据：`docs/evidence/p220/p220-status-log-capture.md`（shell 直读原文；
 设备 USB 闪断，整文件拉取与截图待设备回连后补）。
 
+## 五点七、AC4 断网初测 + 剩余清单（2026-11-07 深夜）
+
+- **AC4 初测**：播放中 `svc wifi disable` → 画面冻结（SMB 读阻塞）不崩溃 ✓；
+  5 秒后截图存证（p220-smb-disconnect.png）。完整断连错误上报（FFmpeg read
+  超时 → end_reason → 用户可见 reason）需下轮深测（当前 end_reason 仅 stop 时出版）。
+- **剩余清单**（220 收口前）：① URL 模式 seek（avformat_seek_file，断点续播口径）
+  ② positionUs 导出（SMB 路径时间显示恒 0 的缺口）③ AC4 完整断连错误上报
+  ④ Rex 表单/浏览 UI ⑤ AC5 1GB 起播差测量。
+
 ## 六、结论与最小修复（待定案）
 
 | 假设 | 证据强度 | 下一步 |
