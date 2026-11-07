@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -77,9 +78,24 @@ fun DiscoverPage(
     val ambient = remember { mutableStateOf(DesignTokens.bgCream) }
     // 环境色平滑过渡（animateColorAsState 在本 compose 版本不可用——手写插值）
     val ambientAnim = ambient.value
+    val confDp = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp
+    val gradHeightPx = confDp * 1.5f * (androidx.compose.ui.platform.LocalDensity.current.density)
     LazyVerticalGrid(
         columns = GridCells.Fixed(1),
-        modifier = Modifier.fillMaxSize().background(DesignTokens.pageBackground),
+        modifier = Modifier
+            .fillMaxSize()
+            .drawBehind {
+                // 内容坐标系：渐变占据前 1.5 屏，其后纯 pageBackground（无缝）
+                drawRect(DesignTokens.pageBackground)
+                drawRect(
+                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                        0f to ambient.value,
+                        0.45f to ambient.value,
+                        0.72f to DesignTokens.washFill,
+                        1f to DesignTokens.pageBackground),
+                    topLeft = androidx.compose.ui.geometry.Offset(0f, 0f),
+                    size = androidx.compose.ui.geometry.Size(size.width, gradHeightPx))
+            },
         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 10.dp),
     ) {
         // hero（TMDB）——环境色只覆盖首屏高度，下滑马上出正常渐变（用户实拍行为）
@@ -251,7 +267,7 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>,
         Box(
             Modifier
                 .fillMaxWidth()
-                .aspectRatio(2f / 3f)
+                .height(585.dp)   // 393pt 设计基准 × 1.5（2:3 海报整张，帧测钉死）
         ) {
             TmdbImage(m.posterUrl, m.title, Modifier.fillMaxSize())
             // 渐暗遮罩：55% 处开始向底部压暗（文字可读性——IMG_0082 实证）
@@ -260,7 +276,7 @@ internal fun HeroCarousel(candidates: List<com.kivo.cinema.tmdb.TmdbHome.Item>,
                     .fillMaxSize()
                     .background(androidx.compose.ui.graphics.Brush.verticalGradient(
                         0.5f to Color.Transparent,
-                        1f to Color.Black.copy(alpha = 0.45f))))
+                        1f to Color.Black.copy(alpha = 0.62f))))
             Column(
                 Modifier
                     .fillMaxSize()
