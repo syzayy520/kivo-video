@@ -51,6 +51,8 @@ class PlayerComposeActivity : ComponentActivity() {
     private var statusText by mutableStateOf("starting...")
     private var thumbnailBitmap by mutableStateOf<android.graphics.Bitmap?>(null)
     private var previewMs by mutableStateOf(-1L)
+    private var danmakuOn by mutableStateOf(false)
+    private var danmakuItems by mutableStateOf(listOf<com.kivo.cinema.danmaku.DanmakuItem>())
 
     private val positionPoll = object : Runnable {
         override fun run() {
@@ -58,9 +60,7 @@ class PlayerComposeActivity : ComponentActivity() {
             if (netSession != null) {
                 // 220b：硬解会话的位置上报
                 positionMs = (netSession.positionUs / 1000).coerceAtMost(durationMs)
-                if (System.currentTimeMillis() - lastTouchMs > 3000) {
-                    controlsVisible = false
-                }
+                controlsVisible = true  // 诊断模式：常显
                 android.os.Handler(mainLooper).postDelayed(this, 100)
                 return
             }
@@ -145,13 +145,15 @@ class PlayerComposeActivity : ComponentActivity() {
                             positionMs = positionMs,
                             durationMs = durationMs,
                             onPlayPause = { togglePlayPause() },
+                            danmakuVisible = danmakuOn && danmakuItems.isNotEmpty(),
+                            onDanmakuToggle = { danmakuOn = !danmakuOn },
                             onSeek = { ms ->
                                 smbNetSession?.seekTo(ms * 1000)
                                     ?: smbFfSession?.seekTo(ms * 1000)
                                     ?: playbackSession?.seekTo(ms * 1000)
                             },
                             onScrub = { ms ->
-                                lastTouchMs = System.currentTimeMillis()   // 拖动也算触摸，防 3s 自动隐藏打断长拖
+                                lastTouchMs = System.currentTimeMillis()
                                 thumbnailReader?.seekTo(ms * 1000)
                             },
                             thumbnailBitmap = thumbnailBitmap,
@@ -159,6 +161,13 @@ class PlayerComposeActivity : ComponentActivity() {
                             modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter),
                         )
                     }
+                    // 弹幕层（223）：Canvas overlay 在最顶层（Box 最后一个子元素）
+                    com.kivo.cinema.danmaku.DanmakuOverlay(
+                        items = danmakuItems,
+                        positionMs = positionMs,
+                        visible = danmakuOn,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
         }
@@ -313,6 +322,7 @@ class PlayerComposeActivity : ComponentActivity() {
                 isPlaying = true
                 smbStarted = System.currentTimeMillis()
                 lastTouchMs = smbStarted
+                loadDanmaku(cfg.path)
                 android.os.Handler(mainLooper).post(positionPoll)
                 // 诊断：40s 后停 + 落节拍曲线（220b 速率验证）
                 android.os.Handler(mainLooper).postDelayed({
@@ -441,6 +451,27 @@ class PlayerComposeActivity : ComponentActivity() {
         durationMs = fsession.durationUs() / 1000
         statusText = "playing $url (softdec)"
         android.os.Handler(mainLooper).post(positionPoll)
+    }
+
+    private fun loadDanmaku(mediaPath: String) {
+        try {
+            val baseName = mediaPath.substringAfterLast('/').substringBeforeLast('.')
+            val localFile = java.io.File(getExternalFilesDir(null), "danmaku/$baseName.xml")
+            smbTrace("danmaku try load: ${localFile.absolutePath} exists=${localFile.exists()}")
+            if (localFile.exists()) {
+                val parsed = com.kivo.cinema.danmaku.DanmakuParser.parse(
+                    localFile.bufferedReader()
+                )
+                danmakuItems = parsed
+                danmakuOn = parsed.isNotEmpty()
+                smbTrace("danmaku loaded ${parsed.size} items, danmakuOn=$danmakuOn")
+            } else {
+                smbTrace("danmaku XML not found: ${localFile.absolutePath}")
+            }
+        } catch (e: Exception) {
+            smbTrace("danmaku load error: ${e.message}")
+            Log.w(TAG, "danmaku load failed", e)
+        }
     }
 
     private fun togglePlayPause() {

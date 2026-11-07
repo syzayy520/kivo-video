@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +55,8 @@ fun PlayerControls(
     onScrub: (Long) -> Unit = {},
     thumbnailBitmap: Bitmap? = null,
     previewMs: Long = -1L,   // ≥0：程序化预览（取证 harness 用）；与拖动共用同一条浮窗 UI
+    danmakuVisible: Boolean = false,
+    onDanmakuToggle: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var dragValueMs by remember { mutableStateOf(0L) }
@@ -134,6 +137,22 @@ fun PlayerControls(
                     ),
                     contentDescription = if (isPlaying) "Pause" else "Play",
                     tint = Color.White,
+                )
+            }
+            // 弹幕开关（223）：圆圈"弹"字（Rex 同款）
+            IconButton(onClick = onDanmakuToggle) {
+                Text(
+                    "弹",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (danmakuVisible) Color(0xFF00A1D6) else Color(0xFF666666),
+                    modifier = Modifier
+                        .background(
+                            if (danmakuVisible) Color(0xFF00A1D6).copy(alpha = 0.2f)
+                            else Color.Transparent,
+                            RoundedCornerShape(50)
+                        )
+                        .padding(4.dp)
                 )
             }
             // 时间（拖动中显示拖动目标时间——对齐 Rex 05 §6.2）
