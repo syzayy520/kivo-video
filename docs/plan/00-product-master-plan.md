@@ -153,9 +153,12 @@
   > **2026-11-07 变更（用户决定）**：Rex **UI** 拆解（rea）推迟到 213（Compose 骨架）真正开工时再做，
   > 不作为 211/212 期间的常驻后台任务。DV 曲线（libFFmpegKit 分析）不受影响，继续喂 233。
 - **SenPlayer 深拆**（可选）：装 npm 版 rea（jadx provider）反编译 6811 混淆类——若 215/220 实现遇阻再取；
-- **用户 UI 参照物**：✅ **已交付真机录屏（2026-11-07）**，逐帧拆解产出
-  `docs/reference/rex-teardown/05-ui-spec-from-recording.md`（tokens/布局常量/组件规格 v1）。
-  ⚠️ 缺口：播放器画面未录到（控制条/进度条/手势），补录清单见该文 §六；
+- **用户 UI 参照物**：✅ **两批全部交付并集成（2026-11-07）**：
+  ① 真机录屏三段 + 45 截图 → `05-ui-spec-from-recording.md`（运行时像素规格）；
+  ② Mac 端 REA v6.7.0 静态全量包（78 份文案 JSON + 资产元数据 + 交互状态机）→
+  `rex-package/` + `06-rex-package-integration.md`（结构契约与三源合并裁决）。
+  直接增量：220 选型 AMSMB2、223 弹幕=JS Widget、224 Drivemby 四态、232 免费额度、
+  233 同栈 libdovi+libplacebo、213v2 色板+P01–P12 动效配方、Anime4K/AI 字幕两潜在新卡；
 - **CI 真跑**：8 门禁推分支上 GitHub 实跑一次（需用户授权推分支）。
 
 ---
