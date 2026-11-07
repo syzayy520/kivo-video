@@ -1,0 +1,51 @@
+{
+  "card": "p224-emby",
+  "date": "2026-11-08",
+  "device": "Redmi K40 (b6e950ee)",
+  "servers": [
+    {
+      "host": "emby.bangumi.ca:443",
+      "server_name": "nyamedia (Emby 4.8.0.62)",
+      "auth_mode": "empty-password",
+      "account": "syzayy",
+      "login": "ok",
+      "items": 60
+    },
+    {
+      "host": "emby.9527.new.tg:443",
+      "server_name": "(server 2)",
+      "auth_mode": "password",
+      "account": "syzayy",
+      "login": "ok",
+      "items": 60
+    }
+  ],
+  "poster_wall": {
+    "observed": "server1: 死神来了2(2003)/第一滴血(1982)/玩具总动员:遗忘的时光(2014) 等 60 部海报全渲染；server2: Picnic at Hanging Rock(1975)/Under Paris/美女与野兽(1991) 等 60 部",
+    "grid": "LazyVerticalGrid(3列) 2:3 卡（222 同款 Rex 规格）"
+  },
+  "playback": {
+    "stream_host": "emby.bangumi.ca",
+    "route": "kivo.playurl -> NetworkPlaybackSession (MediaExtractor https -> MediaCodec Surface, static=true&api_key)",
+    "width": 3840,
+    "height": 2160,
+    "item": "死神来了 2 (Final Destination 2)",
+    "pace_pair": {
+      "a_pos_s": 126,
+      "b_pos_s": 157,
+      "a_wall_ms": 1794075511892,
+      "b_wall_ms": 1794075543419
+    },
+    "rate": 0.9833,
+    "note": "墙钟差 31.527s 媒体差 31s（状态栏两截读数）；220b 本地对照 1.00x，WAN 抖动下 0.98x 在容差内"
+  },
+  "screenshot_sha256": {
+    "p224-form.png": "f442be0e1f69475aadc163ede9fd0d8ab1e5f0c5e7a39646fc93907e08555ba9",
+    "p224-login1.png": "537d92983f37c0a57ad362983570f9861466e85cd69dbd34660d87c48bf4eff9",
+    "p224-login2.png": "77ce8b464f904acace1047554de3c2010cc9ff128d59b34c90db4726e13f512d",
+    "p224-play2.png": "a0dae63c66cab91929084c597a50dc9ebcb739ec7cfcfb3fcdab5e2c5ae55f08",
+    "p224-play3.png": "eb066a47993ed136d9334423592cc5ca96fc0f27e5dfec188136edb6c37cc31b",
+    "p224-rate-a.png": "4c9b93e7b8e079ac81efb3e4678701fedcee02b88cc4d1916b5b005ebdb7004e",
+    "p224-rate-b.png": "00975be910be567b3e61c618df8e552d43ebc6626dab02e46ec0679b63986142"
+  }
+}

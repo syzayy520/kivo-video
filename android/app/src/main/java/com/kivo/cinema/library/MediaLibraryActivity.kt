@@ -135,6 +135,10 @@ class MediaLibraryActivity : ComponentActivity() {
         startActivity(Intent(this, com.kivo.cinema.smb.SmbActivity::class.java))
     }
 
+    private fun openEmby() {
+        startActivity(Intent(this, com.kivo.cinema.emby.EmbyActivity::class.java))
+    }
+
     // ---- UI ----
 
     @Composable
@@ -157,6 +161,15 @@ class MediaLibraryActivity : ComponentActivity() {
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(
                         horizontal = 14.dp, vertical = 6.dp)
                 ) { Text("SMB", fontSize = 13.sp) }
+                Spacer(Modifier.width(8.dp))
+                Button(
+                    onClick = { openEmby() },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF34C759)
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                        horizontal = 14.dp, vertical = 6.dp)
+                ) { Text("Emby", fontSize = 13.sp) }
             }
             Spacer(Modifier.height(4.dp))
             Text(status, fontSize = 13.sp, color = Color(0xFF8A8A8E))
