@@ -278,6 +278,8 @@ class PlayerComposeActivity : ComponentActivity() {
         meta.put("stress_points", 60)
         meta.put("scan_spacing_ms", 250)
         val root = org.json.JSONObject()
+        root.put("schema", "kivo.p215.thumbnail/1")
+        root.put("generated_at_unix_ms", System.currentTimeMillis())
         root.put("meta", meta)
         root.put("thumbnail", thumb)
         val out = java.io.File(evidenceDir, "p215-thumb.json")

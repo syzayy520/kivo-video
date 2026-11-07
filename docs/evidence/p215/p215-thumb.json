@@ -1,4 +1,6 @@
 {
+  "schema": "kivo.p215.thumbnail\/1",
+  "generated_at_unix_ms": 1794046070708,
   "meta": {
     "device_model": "M2012K11AC",
     "device_product": "alioth",
@@ -13,10 +15,10 @@
     "evictions": 9,
     "cache_size_final": 50,
     "cache_max": 50,
-    "cold_first_latency_ms": 71,
+    "cold_first_latency_ms": 78,
     "warm_count": 59,
-    "warm_p50_ms": 41,
+    "warm_p50_ms": 42,
     "warm_p95_ms": 48,
-    "warm_max_ms": 50
+    "warm_max_ms": 51
   }
 }

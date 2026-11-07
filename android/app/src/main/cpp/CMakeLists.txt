@@ -417,6 +417,7 @@ target_link_libraries(kivo_backend_avsync PUBLIC
 add_library(kivo_player SHARED
     "jni/jni_player_bridge.cxx"
     "jni/jni_session_handle.cxx"
+    "jni/jni_session_evidence_bridge.cxx"
     "jni/jni_ffmpeg_bridge.cxx"
     "jni/jni_subtitle_bridge.cxx"
 )

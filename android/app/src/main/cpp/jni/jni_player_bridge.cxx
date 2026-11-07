@@ -260,50 +260,7 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionOpenAudio(JNIEnv* env, job
     return 0;
     KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionOpenAudio")
 
-JNIEXPORT jint JNICALL
-Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionWriteSyncStats(JNIEnv* env, jobject /*thiz*/,
-                                                                    jlong handle, jstring path) KIVO_JNI_BEGIN
-    auto* session = KIVO_JNI_SESSION(handle);
-    const std::string stats_path = kivo::jni_bridge::to_utf8(env, path);
-
-    std::string error;
-    const int code = kivo::jni_bridge::session_write_sync_stats(session, stats_path, error);
-    if (code != 0) {
-        KIVO_LOGW("write sync stats failed: code=%d reason=%s", code, error.c_str());
-        return static_cast<jint>(code);
-    }
-    KIVO_LOGI("write sync stats ok: %s", stats_path.c_str());
-    return 0;
-    KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionWriteSyncStats")
-
-JNIEXPORT jint JNICALL
-Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionWriteStats(JNIEnv* env, jobject /*thiz*/,
-                                                                 jlong handle, jstring path) KIVO_JNI_BEGIN
-    auto* session = KIVO_JNI_SESSION(handle);
-    const std::string stats_path = kivo::jni_bridge::to_utf8(env, path);
-
-    std::string error;
-    const int code = kivo::jni_bridge::session_write_stats(session, stats_path, error);
-    if (code != 0) {
-        KIVO_LOGW("write stats failed: code=%d reason=%s", code, error.c_str());
-        return static_cast<jint>(code);
-    }
-    KIVO_LOGI("write stats ok: %s", stats_path.c_str());
-    return 0;
-    KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionWriteStats")
-
-JNIEXPORT jstring JNICALL
-Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSummary(JNIEnv* env, jobject /*thiz*/,
-                                                              jlong handle) KIVO_JNI_BEGIN
-    auto* session = KIVO_JNI_SESSION(handle);
-    return kivo::jni_bridge::to_jstring(env, kivo::jni_bridge::session_summary(session));
-    KIVO_JNI_END_STRING(env, KIVO_JNI_SESSION(handle), "nativeSessionSummary")
-
-JNIEXPORT jstring JNICALL
-Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionLastError(JNIEnv* env, jobject /*thiz*/,
-                                                                jlong handle) KIVO_JNI_BEGIN
-    auto* session = KIVO_JNI_SESSION(handle);
-    return kivo::jni_bridge::to_jstring(env, kivo::jni_bridge::session_last_error(session));
-    KIVO_JNI_END_STRING(env, KIVO_JNI_SESSION(handle), "nativeSessionLastError")
+// 证据/诊断四件套（writeStats / writeSyncStats / summary / lastError）
+// 215 起拆至 jni_session_evidence_bridge.cxx——本文件回到家族树 300 行线内。
 
 }  // extern "C"

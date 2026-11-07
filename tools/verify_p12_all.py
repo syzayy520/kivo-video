@@ -357,6 +357,13 @@ KNOWN_SCHEMAS = {
     "kivo.p12e4.frame-luma/1",
     "kivo.p12f.negative/1",
     "kivo.p13a.framerate/1",
+    # M1 卡片（210-215）：按红线 #4 显式登记。各自的判据校验在自己的
+    # verify_p210/p211/p212/p215 脚本里（带变异自检），这里只保证层 1 接受。
+    "kivo.p210.dv/1",
+    "kivo.p211.decode/1",
+    "kivo.p211.sd-probe/1",
+    "kivo.p212.subtitle/1",
+    "kivo.p215.thumbnail/1",
 }
 
 # 时间戳字段：任取其一即可，用来区分"真机产物"与"手写示意片段"。
@@ -366,7 +373,11 @@ TIMESTAMP_KEYS = ("generated_at_unix_ms", "captured_at_host_ms", "tag")
 # 它们有 device 段与自洽的数值，明显是真机产物，但确实缺时间戳。
 # **不补**：补一个当前时间等于伪造。降为告警并在文档里记数量。
 TIMESTAMP_EXEMPT_SCHEMAS = {"kivo.p12c.aaudio-probe/1", "kivo.p12c.aaudio-probe/2",
-                            "kivo.p12c.audio-file-probe/1"}
+                            "kivo.p12c.audio-file-probe/1",
+                            # M1（210-215）的 p211/p212 写证据时同样还没有这条规矩：
+                            # 真机产物（device 段齐全），**不补**，补等于伪造。
+                            # p215.thumb 的写入器当场补了真 generated_at_unix_ms，不需要豁免。
+                            "kivo.p211.decode/1", "kivo.p211.sd-probe/1", "kivo.p212.subtitle/1"}
 PLACEHOLDERS = ("TODO", "PLACEHOLDER", "FIXME")
 
 # 三态字段：出现 null / 空串就是"含糊"，而含糊比错更糟。

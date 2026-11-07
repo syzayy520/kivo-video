@@ -1,6 +1,6 @@
 {
   "schema": "kivo.p12c.decode/19",
-  "generated_at_unix_ms": 1794045030304,
+  "generated_at_unix_ms": 1794046054092,
   "source": {
     "mime": "video/avc",
     "width": 1920,
@@ -108,10 +108,10 @@
     "present": true,
     "present_schedule": "surface_at_time",
     "submit": {
-      "calls": 144,
-      "mean_us": 254.250000,
-      "total_us": 36612,
-      "max_us": 5483
+      "calls": 145,
+      "mean_us": 218.068966,
+      "total_us": 31620,
+      "max_us": 5291
     },
     "eos": {
       "calls": 0,
@@ -121,15 +121,15 @@
     },
     "receive": {
       "calls": 67,
-      "mean_us": 123.477612,
-      "total_us": 8273,
-      "max_us": 2489
+      "mean_us": 145.268657,
+      "total_us": 9733,
+      "max_us": 4178
     },
     "release": {
       "calls": 63,
-      "mean_us": 194.746032,
-      "total_us": 12269,
-      "max_us": 1443
+      "mean_us": 169.809524,
+      "total_us": 10698,
+      "max_us": 868
     }
   },
   "surface_rebuild": {
@@ -139,15 +139,15 @@
     "frames_lead": 0
   },
   "metrics": {
-    "cpu": {"valid": true, "reason": "", "wall_ns": 2012521249, "thread_cpu_ns": 210753379, "process_cpu_ns": 515265936, "thread_ratio": 0.104721, "process_ratio": 0.256030},
-    "alloc": {"hook_installed": true, "armed": true, "calls_total": 10, "calls_steady": 5, "bytes_total": 1360, "bytes_steady": 1024, "thread_count": 2, "overflow_calls": 0, "threads": [{"tid": 11380, "name": "com.kivo.cinema", "calls": 10, "bytes": 1360, "calls_steady": 5, "bytes_steady": 1024}, {"tid": 11452, "name": "kivo-decode", "calls": 0, "bytes": 0, "calls_steady": 0, "bytes_steady": 0}]},
+    "cpu": {"valid": true, "reason": "", "wall_ns": 2013764374, "thread_cpu_ns": 190926422, "process_cpu_ns": 406099171, "thread_ratio": 0.094811, "process_ratio": 0.201662},
+    "alloc": {"hook_installed": true, "armed": true, "calls_total": 10, "calls_steady": 5, "bytes_total": 1360, "bytes_steady": 1024, "thread_count": 2, "overflow_calls": 0, "threads": [{"tid": 15683, "name": "com.kivo.cinema", "calls": 10, "bytes": 1360, "calls_steady": 5, "bytes_steady": 1024}, {"tid": 15794, "name": "kivo-decode", "calls": 0, "bytes": 0, "calls_steady": 0, "bytes_steady": 0}]},
     "buffers": {"pool_owner": "codec", "received": 64, "released": 63, "in_flight": 1, "leaked": 1, "reason": "some output buffers were never returned to the codec; a holding slot like this stalls the decoder after a few dozen frames"},
-    "present_gap": {"iterations": 65, "long_gaps": 0, "max_gap_ns": 34584063, "worst_submit_ns": 710417, "worst_pump_ns": 33871302, "worst_pace_ns": 32144375, "worst_release_ns": 1449688, "worst_unaccounted_ns": 2344, "buckets": [6, 0, 4, 55, 0, 0, 0, 0, 0]}
+    "present_gap": {"iterations": 65, "long_gaps": 0, "max_gap_ns": 34579323, "worst_submit_ns": 394323, "worst_pump_ns": 34183646, "worst_pace_ns": 33498959, "worst_release_ns": 615416, "worst_unaccounted_ns": 1354, "buckets": [6, 0, 6, 53, 0, 0, 0, 0, 0]}
   },
   "timing": {
     "wall_us": 0,
-    "position_us": 2000876,
-    "first_frame_latency_us": 26184,
+    "position_us": 1996738,
+    "first_frame_latency_us": 19706,
     "decode_fps": 0.000000,
     "speed_vs_realtime": 0.000000,
     "pause_count": 0,
@@ -155,7 +155,7 @@
   },
   "cold_start": {
     "applicable": true,
-    "first_frame_us": 26184,
+    "first_frame_us": 19706,
     "budget_us": 300000,
     "pass": true,
     "reason": null
@@ -168,9 +168,9 @@
   "pace": {
     "enabled": true,
     "clock_source": "system",
-    "rate_ppm": -12.193745,
-    "phase_error_ns": 364,
-    "publish_cost_ns": 17344,
+    "rate_ppm": -188.501279,
+    "phase_error_ns": -573,
+    "publish_cost_ns": 14271,
     "frame_duration_ns": 33333000,
     "derived_fps": 30.000300,
     "frames_decided": 60,
@@ -198,9 +198,9 @@
     },
     "interval_ns": {
       "p50": -125000,
-      "p95": 45489,
-      "p99": 45489,
-      "max": 45489
+      "p95": 125000,
+      "p99": 767260,
+      "max": 767260
     },
     "clock_mix": {
       "primary_frames": 0,
@@ -213,9 +213,9 @@
       "p10": -99875000,
       "p50": -99875000,
       "p90": -99875000,
-      "p99": 4115,
-      "min": -99974636,
-      "max": 4115,
+      "p99": 4687,
+      "min": -99964042,
+      "max": 4687,
       "spread": 0
     },
     "clock_health": {
