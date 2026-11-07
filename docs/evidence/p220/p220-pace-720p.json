@@ -1,0 +1,26 @@
+{
+  "schema": "kivo.p211.decode/1",
+  "decoder": { "backend": "ffmpeg", "codec": "h264" },
+  "media": "smb",
+  "container": "mov,mp4,m4a,3gp,3g2,mj2",
+  "source": { "width": 1280, "height": 720 },
+  "counters": {
+    "packets_read": 1168,
+    "video_packets": 456,
+    "keyframes": 8,
+    "frames_decoded": 448,
+    "frames_rendered": 448,
+    "render_failures": 0,
+    "read_errors": 0
+  },
+  "timing": {
+    "wall_us": 40038699,
+    "decode_ms_total": 27457.927445
+  },
+  "render": { "sink": "anative_window_cpu" },
+  "routing": { "backend_decision": "ffmpeg", "reason": "smb via local range proxy (220)" },
+  "pacing": "pts_sleep_simple",
+  "pace_curve": [[9438,3.300000],[18190,6.633333],[26962,9.966667],[35761,13.300000]],
+  "end_reason": "interrupted",
+  "first_error": null
+}
