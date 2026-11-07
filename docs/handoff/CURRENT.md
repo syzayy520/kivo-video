@@ -1279,3 +1279,15 @@ find build/ninja-debug -name "kivo_p1*.exe" -newer backend/src/video/video_plane
 | 选型四判据（官方支持/生态规模/头部采用/可替换性） | `09-tech-radar.md` |
 | 家族树每一格该放什么 | `08-p12-family-tree.md` |
 | 任务台账 | `docs/handoff/TASKS.md` |
+
+---
+
+## UI 复刻卡点交接（2026-11-08，237/238）
+
+- 首页复刻被用户判定不合格：根因是连续补丁污染 `ui/design/Pages.kt`。
+- **下一步必须**：删掉现 DiscoverPage/HeroCarousel，按 `docs/design/backend-core/238-home-spec.md`
+  （566 键全量）+ `237-ui-migration-plan.md` §8 勘误表**一次性重写**，禁止在旧结构上 patch。
+- 已验证机制（勿推翻）：poster 2:3 铺满+钉死 585dp、标题在素材不渲染、环境色取图底边缘、
+  washFill 渐变、只有首屏跟随海报底色、TMDB key 在设备 filesDir/tmdb_key.txt、
+  代理 tmdb_proxy.txt（adb reverse 10808）、错误态五类文案。
+- 闭环纪律：拆解参数 → 实现 → 边界测量 + Rex/kivo 并排图入库 → 不一致修到一致。
