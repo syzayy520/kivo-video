@@ -109,4 +109,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.activity:activity-compose:1.9.3")
+    // 220：SMB 客户端（jcifs-ng，AC0 spike 选型；smbj 备选见设计稿 D1）
+    implementation("org.codelibs:jcifs:2.1.38")
+    // 220 诊断：jcifs 内部 SMB2 报文日志（slf4j-simple 落文件，收口前移除）
+    implementation("org.slf4j:slf4j-simple:1.7.30")
 }

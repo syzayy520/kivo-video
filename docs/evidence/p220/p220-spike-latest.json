@@ -1,0 +1,77 @@
+{
+  "schema": "kivo.p220.spike\/1",
+  "generated_at_unix_ms": 1794051070819,
+  "meta": {
+    "host": "192.168.5.1",
+    "port": 445,
+    "share": "视频",
+    "path": "电影",
+    "user_empty": true
+  },
+  "matrix": [
+    {
+      "error": "[connect] smb:\/\/192.168.5.1:445\/视频\/电影: Access is denied.",
+      "chain": [
+        "jcifs.smb.SmbAuthException: Access is denied."
+      ],
+      "step": "variant_default",
+      "elapsed_ms": 909,
+      "ok": false
+    },
+    {
+      "error": "[connect] smb:\/\/192.168.5.1:445\/视频\/电影: Access is denied.",
+      "chain": [
+        "jcifs.smb.SmbAuthException: Access is denied."
+      ],
+      "step": "variant_signingPreferred",
+      "elapsed_ms": 867,
+      "ok": false
+    },
+    {
+      "error": "[connect] smb:\/\/192.168.5.1:445\/视频\/电影: Access is denied.",
+      "chain": [
+        "jcifs.smb.SmbAuthException: Access is denied."
+      ],
+      "step": "variant_signingEnforced",
+      "elapsed_ms": 819,
+      "ok": false
+    },
+    {
+      "error": "[connect] smb:\/\/192.168.5.1:445\/视频\/电影: Access is denied.",
+      "chain": [
+        "jcifs.smb.SmbAuthException: Access is denied."
+      ],
+      "step": "variant_encryptionEnabled",
+      "elapsed_ms": 878,
+      "ok": false
+    },
+    {
+      "error": "[connect] smb:\/\/192.168.5.1:445\/视频\/电影: Access is denied.",
+      "chain": [
+        "jcifs.smb.SmbAuthException: Access is denied."
+      ],
+      "step": "variant_dialect300",
+      "elapsed_ms": 630,
+      "ok": false
+    },
+    {
+      "error": "[connect] smb:\/\/192.168.5.1:445\/视频\/电影: Access is denied.",
+      "chain": [
+        "jcifs.smb.SmbAuthException: Access is denied."
+      ],
+      "step": "variant_dialect210",
+      "elapsed_ms": 638,
+      "ok": false
+    },
+    {
+      "error": "[connect] smb:\/\/192.168.5.1:445\/视频\/电影: Access is denied.",
+      "chain": [
+        "jcifs.smb.SmbAuthException: Access is denied."
+      ],
+      "step": "variant_smb2Negotiation",
+      "elapsed_ms": 692,
+      "ok": false
+    }
+  ],
+  "winner": ""
+}

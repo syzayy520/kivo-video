@@ -5,6 +5,7 @@
         android:name="android.hardware.vulkan.version"
         android:required="false" />
 
+    <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 <application
@@ -13,7 +14,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KivoCinema">
 
-        <activity
+                <activity android:name=".smb.SmbSpikeActivity" android:exported="true"/>
+<activity
             android:name=".ui.compose.PlayerComposeActivity"
             android:screenOrientation="landscape"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation"

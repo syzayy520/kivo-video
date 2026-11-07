@@ -1,0 +1,52 @@
+{
+  "schema": "kivo.p220.spike\/1",
+  "generated_at_unix_ms": 1794054021175,
+  "meta": {
+    "host": "192.168.5.1",
+    "port": 445,
+    "share": "XiaoMi",
+    "path": "",
+    "user_empty": true
+  },
+  "libsmb2": {
+    "entries": 17,
+    "step": "libsmb2_user_(null)",
+    "elapsed_ms": 1245,
+    "ok": true
+  },
+  "libsmb2_matrix": [],
+  "matrix": [],
+  "ok": true,
+  "steps": [
+    {
+      "entries": 17,
+      "step": "libsmb2_user_(null)",
+      "elapsed_ms": 1245,
+      "ok": true
+    },
+    {
+      "count": 17,
+      "step": "browse_root",
+      "elapsed_ms": 232,
+      "ok": true
+    },
+    {
+      "count": 3,
+      "dir": ".tunneluploads",
+      "file": "MfylLgzBQlmgXh70yeZjqQ.tmp",
+      "step": "browse_sub",
+      "elapsed_ms": 219,
+      "ok": true
+    },
+    {
+      "file": "MfylLgzBQlmgXh70yeZjqQ.tmp",
+      "size": 25086600,
+      "offset": 1048576,
+      "bytes_read": 1048576,
+      "mbps": 4.9504950495049505,
+      "step": "read_at",
+      "elapsed_ms": 205,
+      "ok": true
+    }
+  ]
+}

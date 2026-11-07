@@ -38,3 +38,5 @@ backend/tools/governance/redline_gate/artifacts/*
 # Scratch scripts kept out of history.
 tmp_*.py
 kivo_ev_test_*.json
+third_party/libsmb2-src/
+tools/__pycache__/
