@@ -10,6 +10,10 @@ class SourceRecord(
     address: String,
     val username: String,
     val password: String,
+    val hidden: Boolean = false,
+    val defaultHome: Boolean = false,
+    val aggregateEnabled: Boolean = true,
+    val aggregateSearchEnabled: Boolean = true,
 ) {
     val address: String = SourceAddress.normalize(address)
     init {
@@ -19,6 +23,11 @@ class SourceRecord(
     }
     internal fun sameAccount(other: SourceRecord) =
         address == other.address && username == other.username
+    internal fun withControls(hidden: Boolean = this.hidden, defaultHome: Boolean = this.defaultHome,
+        aggregateEnabled: Boolean = this.aggregateEnabled,
+        aggregateSearchEnabled: Boolean = this.aggregateSearchEnabled, revision: Long = this.revision) =
+        SourceRecord(id, revision, name, address, username, password, hidden, defaultHome,
+            aggregateEnabled, aggregateSearchEnabled)
     override fun toString() = "SourceRecord(redacted)"
 }
 

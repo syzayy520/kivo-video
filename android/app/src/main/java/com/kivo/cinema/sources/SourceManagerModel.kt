@@ -18,7 +18,9 @@ import java.net.URI
 class SourceManagerModel(app: Application) : AndroidViewModel(app) {
     private val repository = SourceRepository(SourceStore(app))
     var records by mutableStateOf<List<SourceRecord>>(emptyList()); private set
-    val summaries = com.kivo.cinema.sources.overview.SourceSummaries(viewModelScope) { records }
+    val visibleRecords get() = records.filter { com.kivo.cinema.sources.access.SourceEligibility.visible(it,
+        com.kivo.cinema.sources.access.SourceAccessSession.unlocked) }
+    val summaries = com.kivo.cinema.sources.overview.SourceSummaries(viewModelScope) { visibleRecords }
     var ready by mutableStateOf(false); private set
     var loadError by mutableStateOf<String?>(null); private set
     var error by mutableStateOf<String?>(null); private set
@@ -34,6 +36,7 @@ class SourceManagerModel(app: Application) : AndroidViewModel(app) {
     private var generation = 0
     val busy get() = verifying || saving
     val editingExisting get() = original != null
+    val draftVisible get() = original?.hidden != true || com.kivo.cinema.sources.access.SourceAccessSession.unlocked
 
     init { refresh() }
     fun refresh() {
@@ -49,6 +52,7 @@ class SourceManagerModel(app: Application) : AndroidViewModel(app) {
 
     fun edit(record: SourceRecord? = null) {
         if (busy || !ready) return
+        if (record?.hidden == true && !com.kivo.cinema.sources.access.SourceAccessSession.unlocked) return
         original = record
         name = record?.name.orEmpty(); address = record?.address.orEmpty()
         username = record?.username.orEmpty(); password = record?.password.orEmpty()
@@ -70,6 +74,7 @@ class SourceManagerModel(app: Application) : AndroidViewModel(app) {
 
     fun save() {
         if (busy || !ready) return
+        if (!draftVisible) { error = "请先解锁资源库"; return }
         val normalized = runCatching { SourceAddress.normalize(address) }.getOrElse {
             error = "请检查完整服务器地址"; return
         }
@@ -101,12 +106,33 @@ class SourceManagerModel(app: Application) : AndroidViewModel(app) {
 
     fun remove(record: SourceRecord) {
         if (busy) return
+        if (record.hidden && !com.kivo.cinema.sources.access.SourceAccessSession.unlocked) return
         ++generation
         saving = true; error = null
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) { repository.remove(record.id, record.revision) }
             saving = false
             result.fold({ records = it }, { error = safeError(it) })
+        }
+    }
+
+    fun reportError(reason: String) { error = reason }
+
+    fun setControl(record: SourceRecord, control: SourceRepository.Control, enabled: Boolean) {
+        if (busy || !ready) return
+        if ((record.hidden || control == SourceRepository.Control.HIDDEN) &&
+            !com.kivo.cinema.sources.access.SourceAccessSession.unlocked) {
+            error = "请先解锁资源库"; return
+        }
+        ++generation; saving = true; error = null
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) { repository.setControl(record.id, record.revision, control, enabled) }
+            saving = false
+            result.fold({
+                records = it
+                if (control == SourceRepository.Control.HIDDEN && enabled)
+                    com.kivo.cinema.sources.access.SourceAccessSession.lock()
+            }, { error = safeError(it) })
         }
     }
 

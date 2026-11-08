@@ -22,6 +22,8 @@ class SourceSummaries(private val scope: CoroutineScope, private val current: ()
     private val slots = Semaphore(2)
 
     fun request(record: SourceRecord, force: Boolean = false) {
+        if (!com.kivo.cinema.sources.access.SourceEligibility.visible(record,
+                com.kivo.cinema.sources.access.SourceAccessSession.unlocked)) return
         val old = values[record.id]
         if (old?.revision == record.revision && (old.loading ||
                 (!force && SystemClock.elapsedRealtime() - old.at < 300_000))) return
@@ -30,6 +32,9 @@ class SourceSummaries(private val scope: CoroutineScope, private val current: ()
         scope.launch {
             val (result, online) = slots.withPermit {
                 withContext(Dispatchers.IO) {
+                    if (!com.kivo.cinema.sources.access.SourceEligibility.visible(record,
+                            com.kivo.cinema.sources.access.SourceAccessSession.unlocked))
+                        return@withContext Result.failure<EmbyClient.Counts>(IllegalStateException()) to false
                     val client = EmbyClient(record.address)
                     val counts = runCatching {
                         client.counts(client.login(record.username, record.password))

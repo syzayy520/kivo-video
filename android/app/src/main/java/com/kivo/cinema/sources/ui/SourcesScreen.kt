@@ -21,14 +21,26 @@ import androidx.compose.ui.unit.sp
 import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.sources.SourceManagerModel
 import com.kivo.cinema.sources.SourceRecord
+import com.kivo.cinema.sources.SourceRepository.Control
+import com.kivo.cinema.sources.access.SourceAccessSession
+import androidx.compose.ui.res.painterResource
+import com.kivo.cinema.R
 
 /** Source overview, not a list of protocol implementations. Local/file entries remain usable. */
 @Composable
 fun SourcesScreen(model: SourceManagerModel, videoCount: Int, onOpenLibrary: () -> Unit,
-    onOpenSmb: () -> Unit, onOpenPrivate: () -> Unit, onOpenEmby: (String) -> Unit) {
+    onOpenSmb: () -> Unit, onOpenPrivate: () -> Unit, onOpenEmby: (String) -> Unit,
+    onUnlock: (() -> Unit) -> Unit) {
     var management by remember { mutableStateOf<SourceRecord?>(null) }
     var choosingType by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { model.refresh() }
+    val visible = model.visibleRecords
+    LaunchedEffect(SourceAccessSession.unlocked) {
+        if (!SourceAccessSession.unlocked) {
+            management = null
+            if (model.editing) model.dismiss()
+        }
+    }
     SourcesTheme {
         val lifecycle = LocalLifecycleOwner.current.lifecycle
         val minimumCardWidth = 160.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
@@ -44,6 +56,10 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int, onOpenLibrary: () 
                             Text("连接你的私人影院", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 4.dp))
                         }
+                        IconButton(onClick = {
+                            if (SourceAccessSession.unlocked) SourceAccessSession.lock() else onUnlock({})
+                        }) { Icon(painterResource(R.drawable.source_lock), if (SourceAccessSession.unlocked) "锁定隐藏资源库" else "解锁隐藏资源库",
+                            tint = if (SourceAccessSession.unlocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
                         FilledTonalButton(onClick = { choosingType = true }, enabled = model.ready && !model.busy,
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)) { Text("＋ 添加") }
                     }
@@ -63,8 +79,8 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int, onOpenLibrary: () 
                     Row(Modifier.padding(top = 12.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("媒体服务器", Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        if (model.ready) Text("${model.records.size} 个", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        IconButton(onClick = { model.records.forEach { model.summaries.request(it, force = true) } },
+                        if (model.ready) Text("${visible.size} 个", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        IconButton(onClick = { visible.forEach { model.summaries.request(it, force = true) } },
                             enabled = model.ready) { Text("↻", fontSize = 22.sp,
                                 modifier = Modifier.semantics { contentDescription = "刷新服务器状态与媒体数量" }) }
                     }
@@ -77,7 +93,7 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int, onOpenLibrary: () 
                         }
                     }
                 } else if (!model.ready) item { CircularProgressIndicator(Modifier.padding(20.dp)) }
-                else if (model.records.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
+                else if (visible.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
                     Surface(shape = RoundedCornerShape(24.dp)) {
                         Column(Modifier.padding(28.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text("把你的电影库带进来", style = MaterialTheme.typography.titleLarge)
@@ -86,7 +102,7 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int, onOpenLibrary: () 
                         }
                     }
                 }
-                items(model.records, key = { it.id }) { source ->
+                items(visible, key = { it.id }) { source ->
                     LaunchedEffect(source.id, source.revision, lifecycle) {
                         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                             while (true) {
@@ -103,9 +119,14 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int, onOpenLibrary: () 
                 }
             }
         }
-        management?.let { source -> SourceManagementSheet(source, { management = null },
-            { management = null; model.edit(source) }, { management = null; model.remove(source) }) }
-        if (model.editing) EmbySourceForm(model)
+        management?.takeIf { it in visible }?.let { source -> SourceManagementSheet(source, { management = null },
+            { management = null; model.edit(source) }, { management = null; model.remove(source) },
+            { control, enabled ->
+                management = null
+                if (control == Control.HIDDEN && enabled) onUnlock { model.setControl(source, control, enabled) }
+                else model.setControl(source, control, enabled)
+            }) }
+        if (model.editing && model.draftVisible) EmbySourceForm(model)
         if (choosingType) SourceTypeSheet({ choosingType = false },
             { choosingType = false; model.edit() }, { choosingType = false; onOpenSmb() })
     }

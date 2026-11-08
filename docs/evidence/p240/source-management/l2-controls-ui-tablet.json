@@ -1,0 +1,19 @@
+{
+  "device": "CFE6R21B12000179",
+  "checks": [
+    "PASS disable search independently from home aggregation",
+    "PASS search exclusion survives force-stop and relaunch",
+    "PASS restore original search preference",
+    "PASS set default home and launch EmbyActivity after process restart",
+    "PASS back returns to overview without redirect loop",
+    "PASS restore original default home preference",
+    "OBSERVED source became hidden; initial credential flow timing was not captured reliably",
+    "PASS user completed system credential unlock; hidden source becomes visible",
+    "PASS cancel hiding; home/search/default/hidden preferences restored to original"
+  ],
+  "private_metadata_archived": false,
+  "limits": [
+    "Automated credential-cancel assertion failed; do not count it as passed",
+    "Background relock, screen-lock behavior, hidden direct intent and hidden default entry require further real-device testing"
+  ]
+}

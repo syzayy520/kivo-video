@@ -38,10 +38,13 @@ class SourceStore(private val file: File, private val cipher: SourceCipher = Sou
             val item = records.getJSONObject(index)
             if (item.getString("protocol") != "emby") throw SourceFailure("源协议不受支持；原记录已保留")
             SourceRecord(item.getString("id"), item.getLong("revision"), item.getString("name"),
-                item.getString("address"), item.getString("username"), item.getString("password"))
+                item.getString("address"), item.getString("username"), item.getString("password"),
+                flag(item, "hidden", false), flag(item, "defaultHome", false),
+                flag(item, "aggregateEnabled", true), flag(item, "aggregateSearchEnabled", true))
         }
         require(result.map { it.id }.distinct().size == result.size)
         require(result.map { it.address to it.username }.distinct().size == result.size)
+        require(result.count { it.defaultHome } <= 1)
         return result
     }
 
@@ -49,8 +52,15 @@ class SourceStore(private val file: File, private val cipher: SourceCipher = Sou
         val array = JSONArray()
         records.forEach { record -> array.put(JSONObject().put("id", record.id)
             .put("revision", record.revision).put("protocol", "emby").put("name", record.name)
-            .put("address", record.address).put("username", record.username).put("password", record.password)) }
+            .put("address", record.address).put("username", record.username).put("password", record.password)
+            .put("hidden", record.hidden).put("defaultHome", record.defaultHome)
+            .put("aggregateEnabled", record.aggregateEnabled).put("aggregateSearchEnabled", record.aggregateSearchEnabled)) }
         return JSONObject().put("schema", 1).put("sources", array).toString().toByteArray(Charsets.UTF_8)
+    }
+
+    private fun flag(item: JSONObject, name: String, default: Boolean): Boolean {
+        if (!item.has(name)) return default
+        return item.get(name) as? Boolean ?: throw SourceFailure("源设置格式无效；原记录已保留")
     }
 
     private fun <T> guarded(block: () -> T): Result<T> = synchronized(diskLock) {

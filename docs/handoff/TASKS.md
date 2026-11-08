@@ -1,5 +1,7 @@
 # P12 任务清单 · 可执行台账
 
+> 2026-11-09 L2服务器控制追加：[设计](../design/ui/library-rebuild/source-controls.md)、[证据](../evidence/p240/source-management/l2-controls-status.md)。隐藏/系统解锁、唯一默认首页、首页/搜索聚合独立保存已实现；七组隔离测试和偏好/默认启动真机阶段通过；系统取消/后台重锁/隐藏直达等未过闸，L2仍DOING。用户强调聚合搜索隐私，已加入[L3请求前过滤及历史缓存硬闸门](../design/ui/library-rebuild/l3-content-scope.md)。下一小步：平板管理/编辑弹层双栏适配，手机保持单栏。
+
 > 2026-11-09 L2追加：紧凑源卡、官方Emby图标、电影/剧集真实计数、来源类型选择与6dp在线点已实现；平板状态点真机证据见[记录](../evidence/p240/source-management/l2-compact-status.md)。L2保持DOING，重复预检/取消竞态/几十源等未测，不进入L3。K40断开后可能仍1.5字号，下次连接优先恢复1.0。
 
 > 2026-11-09追加用户反馈：视觉设计提前到L2。已做共享tokens/中性主题与总览基础统一，[本轮证据](../evidence/p240/source-management/l2-visual-status.md)，表单/媒体浏览页最终设计和原未测矩阵继续DOING。TMDB已停用手机失效回环代理，共享短API域直连200；图片域仍失败，[证据](../evidence/p240/tmdb-connectivity/status.md)，不能标网络全修复。先收当前L2，不提前做L3。

@@ -51,6 +51,8 @@ class MainActivity : ComponentActivity() {
     private var items by mutableStateOf(listOf<MediaItem>())
     private val thumbCache = HashMap<Long, android.graphics.Bitmap?>()
     private val sources by lazy { androidx.lifecycle.ViewModelProvider(this)[com.kivo.cinema.sources.SourceManagerModel::class.java] }
+    private lateinit var sourceUnlock: com.kivo.cinema.sources.access.SourceUnlockController
+    private var defaultHomeHandled = false
 
     // 237-A：观看数据域 + 评分源 + 首页 TMDB 节
     private val watchStore by lazy { com.kivo.cinema.stats.WatchStore(this) }
@@ -73,6 +75,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.kivo.cinema.sources.access.SourceAccessSession.install(application)
+        sourceUnlock = com.kivo.cinema.sources.access.SourceUnlockController(this)
+        defaultHomeHandled = savedInstanceState?.getBoolean("source.defaultHandled") ?: false
         // edge-to-edge（239：hero 顶入状态栏下——windowFullscreen 已从主题移除）
         enableEdgeToEdge()
         if (android.os.Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false
@@ -82,6 +87,11 @@ class MainActivity : ComponentActivity() {
             com.kivo.cinema.tmdb.TmdbClient(this))
         scanVideos()
         setContent { Shell() }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("source.defaultHandled", defaultHomeHandled)
+        super.onSaveInstanceState(outState)
     }
 
     override fun onResume() {
@@ -202,6 +212,21 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun Shell() {
         var page by remember { mutableStateOf(1) }
+        androidx.compose.runtime.LaunchedEffect(sources.ready) {
+            if (sources.ready && !defaultHomeHandled) {
+                defaultHomeHandled = true
+                sources.records.firstOrNull { it.defaultHome }?.let { source ->
+                    page = 0
+                    startActivity(android.content.Intent(this@MainActivity,
+                        com.kivo.cinema.emby.EmbyActivity::class.java).putExtra("kivo.sourceId", source.id))
+                }
+            }
+        }
+        androidx.compose.runtime.SideEffect {
+            if (com.kivo.cinema.sources.access.SourceAccessSession.unlocked && sources.records.any { it.hidden })
+                window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+            else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        }
         var previewEnabled by remember { mutableStateOf(homePreferences.autoplay) }
         var selectedTitle by remember { mutableStateOf<com.kivo.cinema.tmdb.TmdbHome.Item?>(null) }
         val backdrop = remember { com.kivo.cinema.ui.design.home.NavigationBackdropState() }
@@ -219,6 +244,7 @@ class MainActivity : ComponentActivity() {
                     when (page) {
                         0 -> SourcesScreen(
                             model = sources,
+                            onUnlock = { action -> sourceUnlock.authenticate(sources::reportError, action) },
                             onOpenSmb = { startActivity(
                                 android.content.Intent(this@MainActivity,
                                     com.kivo.cinema.smb.SmbActivity::class.java)) },

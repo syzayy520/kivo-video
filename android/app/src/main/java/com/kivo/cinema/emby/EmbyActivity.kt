@@ -12,6 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
+import androidx.compose.runtime.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.kivo.cinema.sources.access.SourceAccessSession
+import com.kivo.cinema.sources.access.SourceUnlockController
+import com.kivo.cinema.sources.storage.SourceStore
 import com.kivo.cinema.emby.ui.EmbyConnectionScreen
 import com.kivo.cinema.emby.ui.EmbyLibraryScreen
 import com.kivo.cinema.ui.compose.PlayerComposeActivity
@@ -20,6 +26,8 @@ import com.kivo.cinema.ui.compose.PlayerComposeActivity
 class EmbyActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SourceAccessSession.install(application)
+        val unlock = SourceUnlockController(this)
         @Suppress("DEPRECATION")
         window.statusBarColor = android.graphics.Color.rgb(245, 244, 248)
         @Suppress("DEPRECATION")
@@ -30,8 +38,26 @@ class EmbyActivity : ComponentActivity() {
         }
         val model = ViewModelProvider(this)[EmbySessionModel::class.java]
         val sourceId = intent.getStringExtra("kivo.sourceId")
-        if (sourceId != null) model.openSaved(this, sourceId)
         setContent {
+            var checked by remember { mutableStateOf(sourceId == null) }
+            var protected by remember { mutableStateOf(true) }
+            var gateError by remember { mutableStateOf<String?>(null) }
+            val unlocked = SourceAccessSession.unlocked
+            LaunchedEffect(sourceId, unlocked) {
+                if (sourceId != null) {
+                    val result = withContext(Dispatchers.IO) { SourceStore(this@EmbyActivity).read() }
+                    val source = result.getOrNull()?.firstOrNull { it.id == sourceId }
+                    protected = source?.hidden ?: true
+                    checked = source != null
+                    gateError = if (source == null) "无法读取此资源库，请返回资源库列表重试" else null
+                    if (source != null && (!protected || unlocked)) model.openSaved(this@EmbyActivity, sourceId)
+                    else model.back()
+                }
+            }
+            SideEffect {
+                if (sourceId != null && protected) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+                else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+            }
             MaterialTheme(colorScheme = lightColorScheme(
                 primary = Color(0xFF238A59), onPrimary = Color.White,
                 background = Color(0xFFF5F4F8), surface = Color.White,
@@ -43,7 +69,14 @@ class EmbyActivity : ComponentActivity() {
                 }
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
                     .safeDrawingPadding().imePadding()) {
-                    if (model.inLibrary) EmbyLibraryScreen(model, onBack = { model.back(); if (sourceId != null) finish() }) { item ->
+                    if (sourceId != null && (!checked || (protected && !unlocked))) {
+                        Column(Modifier.fillMaxSize().padding(28.dp), verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+                            Text(gateError ?: if (checked) "资源库已锁定" else "正在读取资源库")
+                            if (checked) Button(onClick = { unlock.authenticate({ gateError = it }, {}) }) { Text("验证身份并解锁") }
+                            TextButton(onClick = { model.back(); finish() }) { Text("返回资源库") }
+                        }
+                    } else if (model.inLibrary) EmbyLibraryScreen(model, onBack = { model.back(); if (sourceId != null) finish() }) { item ->
                         model.streamUrl(item)?.let { url ->
                             startActivity(Intent(this@EmbyActivity, PlayerComposeActivity::class.java)
                                 .putExtra("kivo.playurl", url).putExtra("kivo.label", item.name)

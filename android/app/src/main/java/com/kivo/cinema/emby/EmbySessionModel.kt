@@ -53,6 +53,11 @@ class EmbySessionModel : ViewModel() {
                 if (ticket != generation) return@post
                 connecting = false
                 result.fold({ source ->
+                    if (!com.kivo.cinema.sources.access.SourceEligibility.visible(source,
+                            com.kivo.cinema.sources.access.SourceAccessSession.unlocked)) {
+                        error = "请先解锁隐藏资源库"; savedStarted = false
+                        return@fold
+                    }
                     server = source.address; username = source.username; password = source.password
                     savedName = source.name
                     connect()
@@ -95,6 +100,7 @@ class EmbySessionModel : ViewModel() {
         inLibrary = false
         // Switching servers must not keep authenticated playback or old artwork alive.
         client = null; auth = null; library.clear(); posters.evictAll()
+        server = ""; username = ""; password = ""; savedStarted = false
     }
     fun streamUrl(item: EmbyItem): String? = auth?.let { client?.streamUrl(it, item.id) }
 
