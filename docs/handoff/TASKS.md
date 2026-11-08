@@ -1,5 +1,7 @@
 # P12 任务清单 · 可执行台账
 
+> 2026-11-09 连接与粘贴补测：平板隔离模型5组、生产组件UI点击5项通过，覆盖取消后迟到结果、新草稿隔离、重复提交、脱敏预览/多地址/冲突及退出确认。[证据与复现](../evidence/p240/source-management/connection-races/status.md)。生产仅增加测试注入点，未发现新行为缺陷；系统剪贴板完整链、真实HTTP即时取消、保存期间退出及手机矩阵仍未验，L2继续DOING。
+
 > 2026-11-09 生命周期补测：真实宿主内部跳转/重建、三轮桌面返回及系统凭据取消通过；合成缺失源ID直达拒绝正常。[测试与边界](../evidence/p240/source-management/lifecycle/status.md)。生产代码未改，实际隐藏源成功解锁/锁屏/隐藏默认首页及手机矩阵仍未验，L2继续DOING。
 
 > 2026-11-09 L2服务器控制追加：[设计](../design/ui/library-rebuild/source-controls.md)、[证据](../evidence/p240/source-management/l2-controls-status.md)。隐藏/系统解锁、唯一默认首页、首页/搜索聚合独立保存已实现；七组隔离测试和偏好/默认启动真机阶段通过；系统取消/后台重锁/隐藏直达等未过闸，L2仍DOING。用户强调聚合搜索隐私，已加入[L3请求前过滤及历史缓存硬闸门](../design/ui/library-rebuild/l3-content-scope.md)。下一小步：平板管理/编辑弹层双栏适配，手机保持单栏。

@@ -1,0 +1,4 @@
+
+PASS actual preview hides password and leaves draft unchanged before confirmation
+PASS explicit fill updates draft without authentication or persistence
+FAIL multiple-addresses IllegalStateException line=71; no credentials logged

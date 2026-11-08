@@ -1,0 +1,7 @@
+
+PASS cancelled late success cannot save or overwrite a new draft
+PASS cancelled late failure cannot save or overwrite a new draft
+PASS authentication failure preserves draft and leaves encrypted records untouched
+PASS paste applies only recognized fields, preserves exact password, and never authenticates
+PASS successful validation commits exactly once and duplicate account is rejected before authentication
+5 cases PASS

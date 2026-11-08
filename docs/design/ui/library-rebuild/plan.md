@@ -100,6 +100,10 @@ L1先实现Emby配置，后续SMB按协议扩展，UI尚不接入。SourceRecord
 
 ### L2 接入细化
 
+2026-11-09取消竞态补测：SourceManagerModel保持原职责，增加internal构造注入Repository和同步认证函数，公开Application构造继续绑定正式Keystore存储与EmbyClient。androidTest/.../sources/SourceConnectionInstrumentation使用隔离cache文件/临时密钥和受栅栏控制的认证结果，验证重复提交、取消后迟到成功/失败、新草稿隔离、失败保留草稿、粘贴字段语义及重复账号预检。测试不连接用户服务器、不写正式源存储；这只能证明协调层时序，真实UI和HTTP取消需另留证据。
+
+同族SourcePasteUiInstrumentation在真实MainActivity中挂载生产SourcesScreen与隔离模型，以CompositionLocal提供合成剪贴板，点击实际预览/填表/退出操作。检查预览脱敏、多地址选择、冲突阻止填表、填表不认证及退出确认；截图仅含合成内容。不读取或改写系统剪贴板、不触碰正式账号；这不替代系统剪贴板权限和真实HTTP取消验收。
+
 SourceManagerModel负责IO调度、草稿和认证→保存两阶段。验证阶段可取消；提交磁盘事务期间暂不关闭表单，避免取消后实际已保存的歧义。认证失败或保存失败保留草稿；读取损坏时禁新增以保护原文件。SourcesScreen取代SourcesPage旧协议菜单，卡片仅标已保存，不伪装实时在线，不设置数量硬上限。EmbySourceForm限宽、随键盘滚动；粘贴先展示脱敏预览与冲突，再显式填入。SourceManagementSheet含编辑和点名删除确认。源ID是传给EmbyActivity的唯一新增Intent参数，密码不进Intent；会话从加密存储读取后登录。旧无ID入口暂保留兼容，完成新入口验收后再清理。
 
 | 步骤 | 工作 | 进入下一步的条件 |

@@ -1,0 +1,6 @@
+
+PASS actual preview hides password and leaves draft unchanged before confirmation
+PASS explicit fill updates draft without authentication or persistence
+PASS multiple addresses require explicit selection and preserve missing account fields
+PASS conflicting account fields block fill and cancellation preserves draft
+FAIL exit-confirmation IllegalStateException line=55; no credentials logged

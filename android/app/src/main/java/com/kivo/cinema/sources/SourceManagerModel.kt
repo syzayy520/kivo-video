@@ -15,8 +15,13 @@ import kotlinx.coroutines.withContext
 import java.net.URI
 
 /** Draft lifetime and connection/save orchestration; never stores credentials in saved state. */
-class SourceManagerModel(app: Application) : AndroidViewModel(app) {
-    private val repository = SourceRepository(SourceStore(app))
+class SourceManagerModel internal constructor(app: Application,
+    private val repository: SourceRepository,
+    private val authenticate: (SourceRecord) -> Unit,
+) : AndroidViewModel(app) {
+    constructor(app: Application) : this(app, SourceRepository(SourceStore(app)), {
+        EmbyClient(it.address).login(it.username, it.password)
+    })
     var records by mutableStateOf<List<SourceRecord>>(emptyList()); private set
     val visibleRecords get() = records.filter { com.kivo.cinema.sources.access.SourceEligibility.visible(it,
         com.kivo.cinema.sources.access.SourceAccessSession.unlocked) }
@@ -95,7 +100,7 @@ class SourceManagerModel(app: Application) : AndroidViewModel(app) {
         val ticket = ++generation
         job = viewModelScope.launch {
             val authentication = withContext(Dispatchers.IO) {
-                runCatching { EmbyClient(draft.address).login(draft.username, draft.password) }
+                runCatching { authenticate(draft) }
             }
             if (ticket != generation) return@launch
             verifying = false
