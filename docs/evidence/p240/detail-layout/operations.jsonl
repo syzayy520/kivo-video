@@ -1,0 +1,22 @@
+{"at_epoch_ms": 1794157314977, "tap": "生化危机：爆发夜", "count": 1, "node": {"index": "1", "text": "生化危机：爆发夜", "resource-id": "", "class": "android.widget.TextView", "package": "com.kivo.cinema", "content-desc": "", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[507,641][835,696]"}}
+{"at_epoch_ms": 1794157321999, "capture": "before-default-top"}
+{"at_epoch_ms": 1794157325425, "capture": "before-default-scroll"}
+{"at_epoch_ms": 1794157325492, "font_scale_original": "1.0"}
+{"at_epoch_ms": 1794157332850, "capture": "before-large-top"}
+{"at_epoch_ms": 1794157344709, "capture": "before-large-guide"}
+{"at_epoch_ms": 1794157347223, "font_scale_restored": "1.0"}
+{"at_epoch_ms": 1794157373858, "capture": "before-large-genres"}
+{"at_epoch_ms": 1794157376347, "font_scale_restored": "1.0"}
+{"at_epoch_ms": 1794157414236, "capture": "before-large-genres-full"}
+{"at_epoch_ms": 1794157416730, "font_scale_restored": "1.0"}
+{"at_epoch_ms": 1794157697321, "tap_known_trend_card": "resident-evil"}
+{"at_epoch_ms": 1794157706783, "capture": "after-default-top"}
+{"at_epoch_ms": 1794157710464, "capture": "after-default-scroll"}
+{"at_epoch_ms": 1794157737606, "font_scale_original": "1.0", "font_scale_test": "1.5"}
+{"at_epoch_ms": 1794157744521, "capture": "after-large-top"}
+{"at_epoch_ms": 1794157759098, "capture": "after-large-guide-genres"}
+{"at_epoch_ms": 1794157761508, "font_scale_restored": "1.0"}
+{"at_epoch_ms": 1794157788108, "font_scale_original": "1.0", "font_scale_test": "3.0", "scope": "genre-wrap-stress-only"}
+{"at_epoch_ms": 1794157813843, "capture": "after-stress-genres-wrap"}
+{"at_epoch_ms": 1794157816228, "font_scale_restored": "1.0"}
+{"at_epoch_ms": 1794157835435, "capture": "after-restored-top"}

@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
@@ -151,6 +153,7 @@ class MovieDetailActivity : ComponentActivity() {
         }
         val listState = rememberLazyListState()
         val density = LocalDensity.current
+        val statusBarHeight = with(density) { WindowInsets.statusBars.getTop(this).toDp() }
         val pull = rememberHeroPullZoom(
             atTop = { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 },
             maxPullPx = with(density) { 180.dp.toPx() })
@@ -176,13 +179,15 @@ class MovieDetailActivity : ComponentActivity() {
             DetailBackdrop(details, sheetColor, scrollDp, pullDp)
             LazyColumn(
                 state = listState,
-                modifier = Modifier.fillMaxSize().nestedScroll(pull.connection),
+                modifier = Modifier.padding(top = statusBarHeight)
+                    .fillMaxSize().nestedScroll(pull.connection),
                 contentPadding = PaddingValues(bottom = 60.dp),
             ) {
                 val d = details
                 item(key = "hero-content") {
-                  Column(Modifier.heightIn(min = 700.dp)) {
-                    Spacer(Modifier.height((DETAIL_TITLE_TOP_DP + pullDp).dp))
+                  Column(Modifier.heightIn(min = 700.dp - statusBarHeight)) {
+                    // Keep the accepted hero coordinates while clipping scroll content below system icons.
+                    Spacer(Modifier.height((DETAIL_TITLE_TOP_DP + pullDp).dp - statusBarHeight))
                     if (d != null) {
                     TitleLayer(d, fg)
                     MetaLine(d, fg)

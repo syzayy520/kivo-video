@@ -1,12 +1,12 @@
 # 交接快照 · Kivo Video Android 后端核心
 
-> 2026-11-09 R2 播放入口阶段：主播放改为直达播放器，真机4连点单实例、画面推进、两次返回及无资源说明已测；预告静态卡点击打开外部YouTube并返回原位置，外部成功播放未验。[证据与限制](../evidence/p240/detail-playback/status.md)。下一步字号、系统栏避让、长标题及缺图布局；R2仍DOING。
+> 2026-11-09 R2 布局阶段：默认首屏坐标保持，深滚正文避开80px状态栏；1.5倍字号指南卡垂直裁字已修，3倍压力场景分类换行已验，系统字号已恢复1.0。[证据与限制](../evidence/p240/detail-layout/status.md)。下一步长片名、缺logo与缺图布局；预告成功播放仍未验，R2仍DOING。
 
 > UI 用户任务（2026-11-08）：用户已认可当前首页/详情效果，停止无依据调参。
 > 已认可基线正式集成并推送于 `90561977`：[认可基线](../evidence/p240/layered-scroll/status.md)。
 > M1 静态媒体动效真机回归已收口：[首页分层切换/连续色场/吸附、详情上滑缩放](../evidence/p240/media-motion/status.md)。最终版已覆盖安装K40；默认预告关闭，未卸载清数据。
 > 后续唯一规划入口：[roadmap.md](../design/ui/replica/roadmap.md)，旧稿裁决：[review.md](../design/ui/replica/review.md)。
-> R2 正在实现：标记持久化与底部操作卡片已测，[操作阶段证据](../evidence/p240/detail-actions/status.md)；本轮修复刷新错误遮片名，最终版已覆盖安装K40。简介、电影/剧集连续点击与返回、首载失败/恢复、刷新失败/重试/关闭已测，[导航与异常证据](../evidence/p240/detail-regression/status.md)。播放入口与预告链接已分阶段回归，预告成功播放及字号仍待验。[多播放器观察与取舍](../design/ui/replica/player-study.md) 已补；目标是Kivo独立设计的细节精度，不整页照搬REX。
+> R2 正在实现：标记持久化与底部操作卡片已测，[操作阶段证据](../evidence/p240/detail-actions/status.md)；本轮修复刷新错误遮片名，最终版已覆盖安装K40。简介、电影/剧集连续点击与返回、首载失败/恢复、刷新失败/重试/关闭已测，[导航与异常证据](../evidence/p240/detail-regression/status.md)。播放入口与预告链接已分阶段回归，系统栏/指南大字/分类换行已分阶段实测；预告成功播放、长标题及缺图待验。[多播放器观察与取舍](../design/ui/replica/player-study.md) 已补；目标是Kivo独立设计的细节精度，不整页照搬REX。
 > R1全场景、R3、预告成功播放、帧时性能及全页像素仍未验完；短暂启动黑屏仍存在。不重置其他助手改动。下文是独立后端台账。
 
 > 最后更新：2026-11-01 19:30（P15-A2 收口：**`media_rate` 一直是个没有窗口的比值** ——

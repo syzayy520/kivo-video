@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -101,9 +104,11 @@ internal fun CastRow(cast: List<TmdbDetail.CastMember>, fg: Color, fgSub: Color)
 
 /** 分类 chips（E8）：白底全圆胶囊 13sp 粗（画布元素，始终白底深字）。 */
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 internal fun GenreChips(genres: List<String>) {
-    Row(Modifier.padding(horizontal = DETAIL_PAD_DP.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    FlowRow(Modifier.fillMaxWidth().padding(horizontal = DETAIL_PAD_DP.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)) {
         genres.take(3).forEach { g ->
             Text(g, fontSize = 15.sp, fontWeight = FontWeight.Bold,
                 color = DesignTokens.textMain,
@@ -312,10 +317,10 @@ internal fun ParentalGuide(certs: List<Pair<String, String>>, notes: List<String
 private fun GuideCard(title: String, value: String, accent: Color,
                       modifier: Modifier = Modifier) {
     Row(
-        modifier.height(DETAIL_GUIDE_CARD_DP.dp)
+        modifier.heightIn(min = DETAIL_GUIDE_CARD_DP.dp)
             .clip(RoundedCornerShape(DesignTokens.radiusCard.dp))
             .background(DesignTokens.canvasFill)
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = 12.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.width(3.dp).height(30.dp)

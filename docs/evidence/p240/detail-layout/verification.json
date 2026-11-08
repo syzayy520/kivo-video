@@ -1,0 +1,66 @@
+{
+  "scope": "saved UI geometry; 3x stress proves genre wrapping only; no full-page accessibility or pixel claim",
+  "checks": [
+    {
+      "check": "default first-screen content coordinates unchanged",
+      "pass": true
+    },
+    {
+      "check": "restoring font scale restores default first screen",
+      "pass": true
+    },
+    {
+      "check": "device reports 80px visible status bar",
+      "pass": true
+    },
+    {
+      "check": "old deep-scroll text invaded status bar",
+      "pass": true
+    },
+    {
+      "check": "new deep-scroll text starts at or below status bar",
+      "pass": true
+    },
+    {
+      "check": "default guide text dimensions preserved: 分级",
+      "pass": true
+    },
+    {
+      "check": "default guide text dimensions preserved: 内容提示",
+      "pass": true
+    },
+    {
+      "check": "default guide text dimensions preserved: 美国 R · 英国 15",
+      "pass": true
+    },
+    {
+      "check": "default guide text dimensions preserved: 不当用语、惊吓",
+      "pass": true
+    },
+    {
+      "check": "1.5x guide value gains full line height: 美国 R · 英国 15",
+      "pass": true
+    },
+    {
+      "check": "1.5x guide value gains full line height: 不当用语、惊吓",
+      "pass": true
+    },
+    {
+      "check": "3x stress moves third genre onto another row",
+      "pass": true
+    },
+    {
+      "check": "3x stress genre labels remain within viewport",
+      "pass": true
+    },
+    {
+      "check": "font scale restored after 1.5",
+      "pass": true
+    },
+    {
+      "check": "font scale restored after 3.0",
+      "pass": true
+    }
+  ],
+  "pass": true
+}

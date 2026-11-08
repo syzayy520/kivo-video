@@ -1,0 +1,86 @@
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt
+index 15a17ac8..db8ebf3d 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt
+@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.Box
+ import androidx.compose.foundation.layout.Column
+ import androidx.compose.foundation.layout.PaddingValues
+ import androidx.compose.foundation.layout.Row
++import androidx.compose.foundation.layout.FlowRow
++import androidx.compose.foundation.layout.ExperimentalLayoutApi
+ import androidx.compose.foundation.layout.Spacer
+ import androidx.compose.foundation.layout.aspectRatio
+ import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.height
++import androidx.compose.foundation.layout.heightIn
+ import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.layout.size
+ import androidx.compose.foundation.layout.width
+@@ -101,9 +104,11 @@ internal fun CastRow(cast: List<TmdbDetail.CastMember>, fg: Color, fgSub: Color)
+ 
+ /** 分类 chips（E8）：白底全圆胶囊 13sp 粗（画布元素，始终白底深字）。 */
+ @Composable
++@OptIn(ExperimentalLayoutApi::class)
+ internal fun GenreChips(genres: List<String>) {
+-    Row(Modifier.padding(horizontal = DETAIL_PAD_DP.dp),
+-        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
++    FlowRow(Modifier.fillMaxWidth().padding(horizontal = DETAIL_PAD_DP.dp),
++        horizontalArrangement = Arrangement.spacedBy(10.dp),
++        verticalArrangement = Arrangement.spacedBy(10.dp)) {
+         genres.take(3).forEach { g ->
+             Text(g, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+                 color = DesignTokens.textMain,
+@@ -312,10 +317,10 @@ internal fun ParentalGuide(certs: List<Pair<String, String>>, notes: List<String
+ private fun GuideCard(title: String, value: String, accent: Color,
+                       modifier: Modifier = Modifier) {
+     Row(
+-        modifier.height(DETAIL_GUIDE_CARD_DP.dp)
++        modifier.heightIn(min = DETAIL_GUIDE_CARD_DP.dp)
+             .clip(RoundedCornerShape(DesignTokens.radiusCard.dp))
+             .background(DesignTokens.canvasFill)
+-            .padding(horizontal = 12.dp),
++            .padding(horizontal = 12.dp, vertical = 3.dp),
+         verticalAlignment = Alignment.CenterVertically,
+     ) {
+         Box(Modifier.width(3.dp).height(30.dp)
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt
+index 84fda202..5c3634d5 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt
+@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.height
+ import androidx.compose.foundation.layout.heightIn
+ import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.layout.navigationBarsPadding
++import androidx.compose.foundation.layout.WindowInsets
++import androidx.compose.foundation.layout.statusBars
+ import androidx.compose.foundation.lazy.LazyColumn
+ import androidx.compose.foundation.lazy.rememberLazyListState
+ import androidx.compose.material3.CircularProgressIndicator
+@@ -151,6 +153,7 @@ class MovieDetailActivity : ComponentActivity() {
+         }
+         val listState = rememberLazyListState()
+         val density = LocalDensity.current
++        val statusBarHeight = with(density) { WindowInsets.statusBars.getTop(this).toDp() }
+         val pull = rememberHeroPullZoom(
+             atTop = { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 },
+             maxPullPx = with(density) { 180.dp.toPx() })
+@@ -176,13 +179,15 @@ class MovieDetailActivity : ComponentActivity() {
+             DetailBackdrop(details, sheetColor, scrollDp, pullDp)
+             LazyColumn(
+                 state = listState,
+-                modifier = Modifier.fillMaxSize().nestedScroll(pull.connection),
++                modifier = Modifier.padding(top = statusBarHeight)
++                    .fillMaxSize().nestedScroll(pull.connection),
+                 contentPadding = PaddingValues(bottom = 60.dp),
+             ) {
+                 val d = details
+                 item(key = "hero-content") {
+-                  Column(Modifier.heightIn(min = 700.dp)) {
+-                    Spacer(Modifier.height((DETAIL_TITLE_TOP_DP + pullDp).dp))
++                  Column(Modifier.heightIn(min = 700.dp - statusBarHeight)) {
++                    // Keep the accepted hero coordinates while clipping scroll content below system icons.
++                    Spacer(Modifier.height((DETAIL_TITLE_TOP_DP + pullDp).dp - statusBarHeight))
+                     if (d != null) {
+                     TitleLayer(d, fg)
+                     MetaLine(d, fg)

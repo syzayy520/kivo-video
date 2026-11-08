@@ -1,0 +1,4 @@
+InsetsSource type=ITYPE_STATUS_BAR frame=[0,0][1080,80] visible=true insetsRoundedCornerFrame=false
+ITYPE_STATUS_BAR -> Window{417369e u0 com.kivo.cinema/com.kivo.cinema.ui.detail.MovieDetailActivity}
+mSource=InsetsSource type=ITYPE_STATUS_BAR frame=[0,0][1080,80] visible=true insetsRoundedCornerFrame=false
+mControl=InsetsSourceControl type=ITYPE_STATUS_BAR mLeash=Surface(name=Surface(name=101e698 StatusBar)/@0xe2aaeae - animation-leash of insets_animation)/@0xe6f226e mSurfacePosition=Point(0, 0) mInsetsHint=Insets{left=0, top=80, right=0, bottom=0} mSkipAnimationOnce=false

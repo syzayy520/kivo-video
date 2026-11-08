@@ -1,0 +1,247 @@
+{
+  "base_commit": "003aa3d6fb2cff748f6ff99e5b8cd3696c417b88",
+  "device": "Redmi K40 b6e950ee",
+  "screen": [
+    1080,
+    2400
+  ],
+  "code": [
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt",
+      "bytes": 15877,
+      "sha256": "12d208672685b3b0ca2bb064e17be803f738459ae02f22ed7bd2d487fe69d5b7"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt",
+      "bytes": 18484,
+      "sha256": "8e757b6acb50235cebabb2898c467f21e3a2e251414b6179947cce1ebe5b0768"
+    }
+  ],
+  "apk": {
+    "path": "android/app/build/outputs/apk/debug/app-debug.apk",
+    "bytes": 60764290,
+    "sha256": "0d20da616e11a3bc5f6d0cdc9530cf3d81cc6066a0fbe20ec108394ac92f760c"
+  },
+  "evidence": [
+    {
+      "path": "docs/evidence/p240/detail-layout/.gitattributes",
+      "bytes": 67,
+      "sha256": "f1a4ed4117629310a45c453124ef9e2014ba46846a9096cffeffd34c1579edf3"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-default-scroll-stack.json",
+      "bytes": 184,
+      "sha256": "cf9bfd5a0aff05a5307dc4d6e0780160eef8a8357e51d4942fa01743c0c9b724"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-default-scroll.png",
+      "bytes": 456823,
+      "sha256": "f306e556dfed299d66d5c09c0b45ca56a8a5abe0473c6e0b845930252ac61c66"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-default-scroll.xml",
+      "bytes": 16581,
+      "sha256": "5e2ee5a4385f24ec98651d78e12ab88c1cc2d3c2b59d260682273cb5ca0f71a2"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-default-top-stack.json",
+      "bytes": 184,
+      "sha256": "cf9bfd5a0aff05a5307dc4d6e0780160eef8a8357e51d4942fa01743c0c9b724"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-default-top.png",
+      "bytes": 2269352,
+      "sha256": "fa0bc1deefd6326033134f93ab38e573ce80fa1aab0ebbadfab1c5680910240c"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-default-top.xml",
+      "bytes": 8939,
+      "sha256": "62eb9d8f1a83d089d4ec12e999890ed68a03e374e42fffb0323c4bea428515a9"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-large-guide-genres-stack.json",
+      "bytes": 184,
+      "sha256": "cf9bfd5a0aff05a5307dc4d6e0780160eef8a8357e51d4942fa01743c0c9b724"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-large-guide-genres.png",
+      "bytes": 507290,
+      "sha256": "8fcc7613882cb4e04e6759018e0298dfc38848578ec11f55cbe65eb75fd525e8"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-large-guide-genres.xml",
+      "bytes": 15352,
+      "sha256": "2c4d794123c656c09818a90d1aeb551f0f0ff81d84eeaa98615439e273ef2029"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-large-top-stack.json",
+      "bytes": 184,
+      "sha256": "cf9bfd5a0aff05a5307dc4d6e0780160eef8a8357e51d4942fa01743c0c9b724"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-large-top.png",
+      "bytes": 2276383,
+      "sha256": "1b37a64127544f9572e37d199c7eaec5b5d735a3e05583c1570541480b4961e2"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-large-top.xml",
+      "bytes": 7947,
+      "sha256": "06e439a3368299ad8c75e20cfd23d71018161614444c1b44b0e258dbf5890264"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-restored-top-stack.json",
+      "bytes": 184,
+      "sha256": "cf9bfd5a0aff05a5307dc4d6e0780160eef8a8357e51d4942fa01743c0c9b724"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-restored-top.png",
+      "bytes": 2268744,
+      "sha256": "0e7e9f7dd9297d4be14b8a1a75aecdfd484d31e5be26c9dc17fd9e1402c36527"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-restored-top.xml",
+      "bytes": 8939,
+      "sha256": "62eb9d8f1a83d089d4ec12e999890ed68a03e374e42fffb0323c4bea428515a9"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-stress-genres-wrap-stack.json",
+      "bytes": 184,
+      "sha256": "cf9bfd5a0aff05a5307dc4d6e0780160eef8a8357e51d4942fa01743c0c9b724"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-stress-genres-wrap.png",
+      "bytes": 455522,
+      "sha256": "a8d816f62d16784280766f90c60fabfbfa2b786804c85f139c5b3f4908ab5cb1"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/after-stress-genres-wrap.xml",
+      "bytes": 10980,
+      "sha256": "21d69fe4f6cbf705872ab632a671ba08ad0f13528835860e172b7c1fb4b1aa56"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-default-scroll-stack.json",
+      "bytes": 266,
+      "sha256": "c5625bf678c4f84e8447c6832158e0703727182475d168b25e8d4cf8c82b6fa1"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-default-scroll.png",
+      "bytes": 493062,
+      "sha256": "36897413ee7345d2c30bafd30763baf44241bdd4ff3dee14bd8e9cd9e3771129"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-default-scroll.xml",
+      "bytes": 18172,
+      "sha256": "d5febd6193fa8e8e984e746cadabdb823bb465b1d684a4f13e3017174ef67da8"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-default-top-stack.json",
+      "bytes": 266,
+      "sha256": "c5625bf678c4f84e8447c6832158e0703727182475d168b25e8d4cf8c82b6fa1"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-default-top.png",
+      "bytes": 2269120,
+      "sha256": "b135aa73435f32f3dca584878badeb18c9eaec446aba63bf24a736278dd9448d"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-default-top.xml",
+      "bytes": 8597,
+      "sha256": "b45e58071a17f86534342b91f9b46a9e930e6ac2ec4208f3daa31a7f343b81e5"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-large-genres-full-stack.json",
+      "bytes": 266,
+      "sha256": "c5625bf678c4f84e8447c6832158e0703727182475d168b25e8d4cf8c82b6fa1"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-large-genres-full.png",
+      "bytes": 527919,
+      "sha256": "caf54da181eae683373804e0bde7df39433749d57240e7dcc527933cd521d251"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-large-genres-full.xml",
+      "bytes": 15339,
+      "sha256": "dc7d2b44d62cf36edec457bee87cd324c69cadbdf9353f84370686503f11c2a9"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-large-genres-stack.json",
+      "bytes": 266,
+      "sha256": "c5625bf678c4f84e8447c6832158e0703727182475d168b25e8d4cf8c82b6fa1"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-large-genres.png",
+      "bytes": 1609210,
+      "sha256": "b3b5212a3ab7226f239e4763e38f51425eec2e74076734e481491c42ab3e7237"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-large-genres.xml",
+      "bytes": 10251,
+      "sha256": "f2ecf43b81b4ae1fa948e324474a8cd0a70ec2880a0c1728332de14937a92deb"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-large-guide-stack.json",
+      "bytes": 266,
+      "sha256": "c5625bf678c4f84e8447c6832158e0703727182475d168b25e8d4cf8c82b6fa1"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-large-guide.png",
+      "bytes": 379238,
+      "sha256": "9ae63cb3b1525b7d2c9549f1df49d021c4329718199e03174fd247b2ebbd5fdb"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-large-guide.xml",
+      "bytes": 14699,
+      "sha256": "d35983a4579d4f3f6790148f58654ead4ac70fa987d616edf6fb68eb2f92dcd0"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-large-top-stack.json",
+      "bytes": 266,
+      "sha256": "c5625bf678c4f84e8447c6832158e0703727182475d168b25e8d4cf8c82b6fa1"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-large-top.png",
+      "bytes": 2276321,
+      "sha256": "53c1a612fb43cd125f2bc17fc259a1750910a6c7427cfc660c8b94b4e4a5eb35"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/android/before-large-top.xml",
+      "bytes": 7605,
+      "sha256": "bc0ad402834158374855aa7d778c1fb76474942f87d50592022d961986de4e84"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/build.log",
+      "bytes": 2548,
+      "sha256": "fed1021de8bfca8f860bbc5468663f4912d79aa3158e0f7f384cf1c4fd680acb"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/install.log",
+      "bytes": 38,
+      "sha256": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/operations.jsonl",
+      "bytes": 1947,
+      "sha256": "2f249287afc79b71b0e512c417c852b1ac1cc22255ead0de56394584970e49ad"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/source.patch",
+      "bytes": 5078,
+      "sha256": "37c7919d45eebe353688021258d3b51062b8e0baf81435d0a8435017eb941566"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/status.md",
+      "bytes": 2644,
+      "sha256": "dd473c96d12516d21e5cdb32bd2f05e1da434a0187367e3ec93392868dd7c696"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/system-insets.txt",
+      "bytes": 583,
+      "sha256": "81a9f7a874367a003b8db862f285c2b1430e21ad7bc4c4ecc148adcc3837d71e"
+    },
+    {
+      "path": "docs/evidence/p240/detail-layout/verification.json",
+      "bytes": 1703,
+      "sha256": "3620078cb6d32d00b174998eadca398a67dbb1cbce733b03e05e7c86b8ff243f"
+    }
+  ]
+}
