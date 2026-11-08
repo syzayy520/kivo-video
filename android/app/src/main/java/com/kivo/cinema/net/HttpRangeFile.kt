@@ -27,10 +27,13 @@ class HttpRangeFile(context: Context, private val address: String) : AutoCloseab
     fun prepare() {
         try {
             require(URL(address).protocol in setOf("http", "https")) { "仅支持 HTTP/HTTPS 片源" }
-            val connection = connect(0, 0)
+            // Some media CDNs report bytes 0-0/1 for a one-byte probe, even
+            // though ordinary bounded ranges report the full media length.
+            val probeEnd = 4095L
+            val connection = connect(0, probeEnd)
             try {
                 val range = range(connection, 0)
-                check(range.first == 0L) { "服务器返回的范围不正确" }
+                check(range.first <= probeEnd) { "服务器返回范围超出请求" }
                 size = range.second
                 check(size > 0) { "片源大小无效" }
                 check(!cancelled.get()) { "播放已取消" }
@@ -121,22 +124,32 @@ class HttpRangeFile(context: Context, private val address: String) : AutoCloseab
                 if (offset < 0) throw IOException("读取位置无效")
                 if (offset >= this@HttpRangeFile.size) return 0
                 if (size == 0) return 0
-                if (cursor != offset || stream == null || offset > end) {
-                    dropStream()
-                    // At most 1 MiB per response; sequential reads reuse the same stream.
-                    val requestedEnd = minOf(this@HttpRangeFile.size - 1, offset + 1024 * 1024 - 1)
-                    val next = connect(offset, requestedEnd)
-                    connection = next
-                    end = range(next, offset).first
-                    if (end > requestedEnd) throw IOException("服务器返回范围超出请求")
-                    stream = next.inputStream
-                    cursor = offset
+                val count = minOf(size.toLong(), data.size.toLong(), this@HttpRangeFile.size - offset).toInt()
+                // Socket reads may stop at a packet boundary. A short proxy-file
+                // read can be interpreted as EOF by the extractor/FUSE path.
+                // Fill the requested file span, stopping only at the known range end.
+                var filled = 0
+                while (filled < count) {
+                    if (cancelled.get() || released.get()) throw IOException("播放已取消")
+                    val position = offset + filled
+                    if (cursor != position || stream == null || position > end) {
+                        dropStream()
+                        // At most 1 MiB per response; sequential reads reuse the same stream.
+                        val requestedEnd = minOf(this@HttpRangeFile.size - 1, position + 1024 * 1024 - 1)
+                        val next = connect(position, requestedEnd)
+                        connection = next
+                        end = range(next, position).first
+                        if (end > requestedEnd) throw IOException("服务器返回范围超出请求")
+                        stream = next.inputStream
+                        cursor = position
+                    }
+                    val want = minOf((count - filled).toLong(), end - cursor + 1).toInt()
+                    val read = stream!!.read(data, filled, want)
+                    if (read <= 0) throw IOException("网络片源提前结束")
+                    filled += read
+                    cursor += read
                 }
-                val count = minOf(size.toLong(), data.size.toLong(), end - cursor + 1).toInt()
-                val read = stream!!.read(data, 0, count)
-                if (read <= 0) throw IOException("网络片源提前结束")
-                cursor += read
-                return read
+                return filled
             } catch (e: Exception) {
                 failureReason = if (cancelled.get()) "播放已取消" else when (e) {
                     is IOException -> if (e.message?.startsWith("服务器") == true ||

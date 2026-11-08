@@ -1,3 +1,5 @@
+> 2026-11-09 网络读取修复：4KiB探测绕过CDN单字节总长误报；分包短读填满文件请求，两机合成操作回归通过，本轮视频迟到丢帧0，K40仍1次xrun。真实来源2平板可解析但E-AC3缺解码器；K40完整解析仍触发45秒诊断取消。整卡DOING；下一步手机解析取证/有界取消→音频兼容→真实网络稳态，SMB未验。[证据与边界](../evidence/p240/network-native-playback/status.md)。
+
 # 交接快照 · Kivo Video Android 后端核心
 
 > 2026-11-09 播放优先：用户已确认K40旧核心测试片有声音。正式Compose本地页漏接音轨已修，平板实际宿主验证音频输出及audio_timestamp主时钟；[证据与限制](../evidence/p240/playback-audio/status.md)。修复版已覆盖安装手机，但自动测试宿主启动超时，不能称手机已验。K40字号最终读回1.0。Emby/SMB仍仅视频，网络音频、暂停/seek/生命周期及持续流畅未闭环；[手机表单测试](../evidence/p240/source-management/compact-form/status.md)也未过布局断言。优先手机适配→流畅影音→视觉精修，L2仍DOING。

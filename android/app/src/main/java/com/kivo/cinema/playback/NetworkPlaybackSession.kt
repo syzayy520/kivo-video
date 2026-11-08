@@ -78,6 +78,7 @@ class NetworkPlaybackSession(context: Context, private val url: String) {
             val extractor = MediaExtractor()
             try {
                 extractor.setDataSource(fd.fileDescriptor, 0, input.size)
+                if (extractor.trackCount == 0) throw PlaybackFailure("系统无法识别片源容器或媒体轨道，请尝试其他片源")
                 var video = false
                 for (i in 0 until extractor.trackCount) {
                     val format = extractor.getTrackFormat(i)

@@ -1,0 +1,27 @@
+PASS bounded probe avoids CDN one-byte size bug; fragmented/capped responses and short files preserve exact bytes; oversized response rejected
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+range=0-0 http=206 content_range=bytes 0-0/7369631541 length=1
+range=0-4095 http=206 content_range=bytes 0-4095/7369631541 length=4096
+range=4096-8191 http=206 content_range=bytes 4096-8191/7369631541 length=4096
+range=0- http=206 content_range=bytes 0-7369631540/7369631541 length=7369631541
+PASS real Range size=7369631541
+PASS real header read=16 container=ebml
+PASS proxy 64KiB prefix matches direct HTTP bytes
+CHECK truncated local 64KiB prefix tracks=0
+CHECK real extractor probe (45-second I/O deadline)
+CHECK extractor tracks=0 elapsed_ms=45011 io_reason=播放已取消
+FAIL stage=extractor-probe type=IllegalStateException state=null (details withheld for real-source privacy)
+
+PASS bounded probe avoids CDN one-byte size bug; fragmented/capped responses and short files preserve exact bytes; oversized response rejected
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+range=0-0 http=206 content_range=bytes 0-0/7369631541 length=1
+range=0-4095 http=206 content_range=bytes 0-4095/7369631541 length=4096
+range=4096-8191 http=206 content_range=bytes 4096-8191/7369631541 length=4096
+range=0- http=206 content_range=bytes 0-7369631540/7369631541 length=7369631541
+PASS real Range size=7369631541
+PASS real header read=16 container=ebml
+PASS proxy 64KiB prefix matches direct HTTP bytes
+CHECK truncated local 64KiB prefix tracks=0
+CHECK real extractor probe (45-second I/O deadline)
+CHECK extractor tracks=0 elapsed_ms=45011 io_reason=播放已取消
+FAIL stage=extractor-probe type=IllegalStateException state=null (details withheld for real-source privacy)

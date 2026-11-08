@@ -1,0 +1,21 @@
+PASS bounded probe avoids CDN one-byte size bug; fragmented/capped responses and short files preserve exact bytes; oversized response rejected
+REAL saved non-hidden source-2; credentials and media identifiers omitted
+range=0-0 http=206 content_range=bytes 0-0/18981737873 length=1
+range=0-4095 http=206 content_range=bytes 0-4095/18981737873 length=4096
+range=4096-8191 http=206 content_range=bytes 4096-8191/18981737873 length=4096
+range=0- http=206 content_range=bytes 0-18981737872/18981737873 length=18981737873
+PASS real Range size=18981737873
+PASS real header read=16 container=ebml
+CHECK real extractor probe (45-second I/O deadline)
+FAIL stage=extractor-probe type=IllegalStateException state=null (details withheld for real-source privacy)
+
+PASS bounded probe avoids CDN one-byte size bug; fragmented/capped responses and short files preserve exact bytes; oversized response rejected
+REAL saved non-hidden source-2; credentials and media identifiers omitted
+range=0-0 http=206 content_range=bytes 0-0/18981737873 length=1
+range=0-4095 http=206 content_range=bytes 0-4095/18981737873 length=4096
+range=4096-8191 http=206 content_range=bytes 4096-8191/18981737873 length=4096
+range=0- http=206 content_range=bytes 0-18981737872/18981737873 length=18981737873
+PASS real Range size=18981737873
+PASS real header read=16 container=ebml
+CHECK real extractor probe (45-second I/O deadline)
+FAIL stage=extractor-probe type=IllegalStateException state=null (details withheld for real-source privacy)

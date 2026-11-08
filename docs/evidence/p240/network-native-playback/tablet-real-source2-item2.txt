@@ -1,0 +1,31 @@
+PASS bounded probe avoids CDN one-byte size bug; fragmented/capped responses and short files preserve exact bytes; oversized response rejected
+REAL saved non-hidden source-2 item-2; credentials and media identifiers omitted
+range=0-0 http=206 content_range=bytes 0-0/17974603864 length=1
+range=0-4095 http=206 content_range=bytes 0-4095/17974603864 length=4096
+range=4096-8191 http=206 content_range=bytes 4096-8191/17974603864 length=4096
+range=0- http=206 content_range=bytes 0-17974603863/17974603864 length=17974603864
+PASS real Range size=17974603864
+PASS real header read=16 container=ebml
+PASS proxy 64KiB prefix matches direct HTTP bytes
+CHECK truncated local 64KiB prefix tracks=1
+CHECK real extractor probe (45-second I/O deadline)
+CHECK extractor tracks=1 elapsed_ms=1109 io_reason=none
+PASS real extractor tracks=1
+FAIL stage=tracks type=IllegalStateException state=PLAYING (details withheld for real-source privacy)
+player_reason=
+
+PASS bounded probe avoids CDN one-byte size bug; fragmented/capped responses and short files preserve exact bytes; oversized response rejected
+REAL saved non-hidden source-2 item-2; credentials and media identifiers omitted
+range=0-0 http=206 content_range=bytes 0-0/17974603864 length=1
+range=0-4095 http=206 content_range=bytes 0-4095/17974603864 length=4096
+range=4096-8191 http=206 content_range=bytes 4096-8191/17974603864 length=4096
+range=0- http=206 content_range=bytes 0-17974603863/17974603864 length=17974603864
+PASS real Range size=17974603864
+PASS real header read=16 container=ebml
+PASS proxy 64KiB prefix matches direct HTTP bytes
+CHECK truncated local 64KiB prefix tracks=1
+CHECK real extractor probe (45-second I/O deadline)
+CHECK extractor tracks=1 elapsed_ms=1109 io_reason=none
+PASS real extractor tracks=1
+FAIL stage=tracks type=IllegalStateException state=PLAYING (details withheld for real-source privacy)
+player_reason=

@@ -1,0 +1,31 @@
+PASS bounded probe avoids CDN one-byte size bug; fragmented/capped responses and short files preserve exact bytes; oversized response rejected
+REAL saved non-hidden source-2; credentials and media identifiers omitted
+range=0-0 http=206 content_range=bytes 0-0/18981737873 length=1
+range=0-4095 http=206 content_range=bytes 0-4095/18981737873 length=4096
+range=4096-8191 http=206 content_range=bytes 4096-8191/18981737873 length=4096
+range=0- http=206 content_range=bytes 0-18981737872/18981737873 length=18981737873
+PASS real Range size=18981737873
+PASS real header read=16 container=ebml
+PASS proxy 64KiB prefix matches direct HTTP bytes
+CHECK truncated local 64KiB prefix tracks=0
+CHECK real extractor probe (45-second I/O deadline)
+CHECK extractor tracks=5 elapsed_ms=2234 io_reason=none
+PASS real extractor tracks=5
+FAIL stage=prepare type=IllegalStateException state=FAILED (details withheld for real-source privacy)
+player_reason=audio open: audio decoder configure: no audio decoder for mime audio/eac3
+
+PASS bounded probe avoids CDN one-byte size bug; fragmented/capped responses and short files preserve exact bytes; oversized response rejected
+REAL saved non-hidden source-2; credentials and media identifiers omitted
+range=0-0 http=206 content_range=bytes 0-0/18981737873 length=1
+range=0-4095 http=206 content_range=bytes 0-4095/18981737873 length=4096
+range=4096-8191 http=206 content_range=bytes 4096-8191/18981737873 length=4096
+range=0- http=206 content_range=bytes 0-18981737872/18981737873 length=18981737873
+PASS real Range size=18981737873
+PASS real header read=16 container=ebml
+PASS proxy 64KiB prefix matches direct HTTP bytes
+CHECK truncated local 64KiB prefix tracks=0
+CHECK real extractor probe (45-second I/O deadline)
+CHECK extractor tracks=5 elapsed_ms=2234 io_reason=none
+PASS real extractor tracks=5
+FAIL stage=prepare type=IllegalStateException state=FAILED (details withheld for real-source privacy)
+player_reason=audio open: audio decoder configure: no audio decoder for mime audio/eac3

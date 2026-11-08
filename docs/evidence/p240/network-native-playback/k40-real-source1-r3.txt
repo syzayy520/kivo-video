@@ -1,0 +1,5 @@
+PASS bounded probe avoids CDN one-byte size bug; fragmented/capped responses and short files preserve exact bytes; oversized response rejected
+FAIL stage=login type=SocketTimeoutException state=null (details withheld for real-source privacy)
+
+PASS bounded probe avoids CDN one-byte size bug; fragmented/capped responses and short files preserve exact bytes; oversized response rejected
+FAIL stage=login type=SocketTimeoutException state=null (details withheld for real-source privacy)
