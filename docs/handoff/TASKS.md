@@ -1,5 +1,9 @@
 # P12 任务清单 · 可执行台账
 
+> 2026-11-09 当前用户任务：**资源库整体重构，先研究后实现**。按[统一源管理设计与家族树](../design/ui/library-rebuild/plan.md)推进 L0→L5；[六款播放器研究](../reference/player-libraries/README.md)、[14张空表单/分组证据](../evidence/p240/library-research/status.md)。REX 原件为 `C:/Users/Administrator/Pictures/REX/rex/rex`，与已审计副本对应。L0已归档有界观察，解析、持久化和管理动作仍有研究缺口；L1尚未实现，CURRENT §七自检尚未全绿。
+
+> Emby 全库浏览 **暂停的未交付 WIP**：分页/搜索/排序源码构建过，未安装、未真机验收；保留现场，后续归入 L3，先完成统一源管理与多账号保存。旧 Emby 独占 profiles 架构由上述设计替代，不再据旧稿扩建。
+
 > 2026-11-09 Emby 重设计 `DOING`：用户否定旧调试表单，当前采用独立连接页、自适应海报墙、当前列表搜索/排序、内存会话与有界图片缓存。平板已恢复 USB 并覆盖安装，平板流程已通过，范围与最终包复测见[新版证据](../evidence/p240/emby-redesign/status.md)，[设计](../design/ui/replica/emby-redesign.md)。旧表单微调方案由此替代；网络错误路径、SMB、音频另有未过闸门，不覆盖 R2/R3/R4 或后端指针。
 
 > 2026-11-09 R2片名/缺图阶段：长片名自然增长、logo失败文字回退、缺封面浅色场提示已覆盖安装K40；7组组件对照与真实详情首屏25项复算通过。[证据与限制](../evidence/p240/detail-artwork/status.md)。R2仍DOING；预告成功播放和完整多影片矩阵待验。用户新增免登录SMB测试源192.168.5.1，连接/播放尚未验证。
