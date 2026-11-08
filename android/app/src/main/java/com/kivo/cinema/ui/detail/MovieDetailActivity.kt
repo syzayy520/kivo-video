@@ -203,7 +203,7 @@ class MovieDetailActivity : ComponentActivity() {
                             Column {
                                 Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
                                 SectionHeader("家长指南", fg)
-                                Spacer(Modifier.height(12.dp))
+                                Spacer(Modifier.height(20.dp))
                                 ParentalGuide(d.certifications, d.contentNotes, fg, fgSub)
                             }
                         }
@@ -253,6 +253,13 @@ class MovieDetailActivity : ComponentActivity() {
                 }
             }
             BackCircle(onBack)
+            // 问题反馈（G9：入口常驻，能力未接入时点击给出可见原因，不静默）
+            Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp)) {
+                FeedbackPill {
+                    Toast.makeText(context,
+                        "问题反馈将在设置页统一提供", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 

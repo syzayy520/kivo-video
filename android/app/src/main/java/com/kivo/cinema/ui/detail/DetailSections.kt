@@ -2,6 +2,7 @@ package com.kivo.cinema.ui.detail
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,8 @@ import com.kivo.cinema.tmdb.TmdbDetail
 import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.ui.design.TmdbImage
 
+/** 家长指南卡片高（帧实测 55×0.914）。 */
+private const val DETAIL_GUIDE_CARD_DP = 50f
 /** 相似作品卡宽（帧实测 331×0.914）。 */
 private const val DETAIL_SIMILAR_CARD_DP = 302f
 /** 相似作品卡间距。 */
@@ -83,8 +86,8 @@ internal fun CastRow(cast: List<TmdbDetail.CastMember>, fg: Color, fgSub: Color)
                     }
                 }
                 Spacer(Modifier.height(DETAIL_CAST_NAME_GAP_DP.dp))
-                Text(member.name, fontSize = 13.sp, color = fg,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(member.name, fontSize = 13.sp, lineHeight = 16.sp, color = fg,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (member.role.isNotEmpty()) {
                     Spacer(Modifier.height(1.dp))
                     Text(member.role, fontSize = 11.sp,
@@ -305,13 +308,13 @@ internal fun ParentalGuide(certs: List<Pair<String, String>>, notes: List<String
 private fun GuideCard(title: String, value: String, accent: Color,
                       fg: Color, fgSub: Color, modifier: Modifier = Modifier) {
     Row(
-        modifier.height(60.dp)
+        modifier.height(DETAIL_GUIDE_CARD_DP.dp)
             .clip(RoundedCornerShape(DesignTokens.radiusCard.dp))
             .background(DesignTokens.canvasFill)
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.width(3.dp).height(36.dp)
+        Box(Modifier.width(3.dp).height(30.dp)
             .clip(RoundedCornerShape(2.dp)).background(accent))
         Spacer(Modifier.width(10.dp))
         Column {
@@ -321,5 +324,26 @@ private fun GuideCard(title: String, value: String, accent: Color,
             Text(value, fontSize = 13.sp, color = fgSub, maxLines = 1,
                 overflow = TextOverflow.Ellipsis)
         }
+    }
+}
+
+/** 问题反馈浮动钮（240 §6.1）：玻璃胶囊 113×50 + 蓝色圆形 i + 文案 15sp。 */
+@Composable
+internal fun FeedbackPill(onClick: () -> Unit) {
+    Row(
+        Modifier.height(50.dp)
+            .clip(RoundedCornerShape(50))
+            .background(Color.White.copy(alpha = .78f))
+            .border(1.dp, Color.Black.copy(alpha = .06f), RoundedCornerShape(50))
+            .clickable { onClick() }
+            .padding(start = 8.dp, end = 22.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.size(34.dp).clip(CircleShape).background(Color(0xFF1E8FF7)),
+            contentAlignment = Alignment.Center) {
+            Text("i", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.width(10.dp))
+        Text("问题反馈", fontSize = 15.sp, color = DesignTokens.textMain)
     }
 }
