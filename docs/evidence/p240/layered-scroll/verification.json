@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-08",
+  "scope": "archive integrity, not full UI acceptance",
+  "result": "PASS",
+  "checks": {
+    "manifest_file_hashes": "PASS",
+    "screenshot_dimensions": "PASS",
+    "patch_applies_to_base_in_temporary_index": "PASS",
+    "patched_sources_match_working_tree_after_crlf_normalization": 10,
+    "reference_original_hash_matches": 89,
+    "unique_interaction_rows": 32,
+    "string_candidate_keys_match_source_json": 333,
+    "new_document_relative_links_exist": 13
+  },
+  "application_source_or_actual_git_index_modified_by_verification": false,
+  "new_application_build_in_planning_pass": false
+}

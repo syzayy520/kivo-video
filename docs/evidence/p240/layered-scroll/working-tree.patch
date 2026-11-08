@@ -1,0 +1,941 @@
+diff --git a/android/app/src/main/java/com/kivo/cinema/tmdb/TmdbDetail.kt b/android/app/src/main/java/com/kivo/cinema/tmdb/TmdbDetail.kt
+index 150c60bd..3c486902 100644
+--- a/android/app/src/main/java/com/kivo/cinema/tmdb/TmdbDetail.kt
++++ b/android/app/src/main/java/com/kivo/cinema/tmdb/TmdbDetail.kt
+@@ -1,6 +1,7 @@
+ package com.kivo.cinema.tmdb
+ 
+ import org.json.JSONObject
++import com.kivo.cinema.tmdb.artwork.ArtworkSelection
+ 
+ /**
+  * 影片详情数据域（240 §1/§5）：一次 append_to_response 拉详情+预告+演职员+相似+图片。
+@@ -19,6 +20,7 @@ class TmdbDetail(private val client: TmdbClient) {
+         val rating: Float,
+         val posterUrl: String,     // w780 竖版海报（**含烧死片名**，仅作无剧照时的兜底）
+         val backdropUrl: String?,  // w780 横版剧照（幕布主图：不含片名，片名由 logo 图层承担）
++        val heroArtworkUrl: String, // Prefer language-neutral portrait artwork for the detail backdrop.
+         val logoUrl: String?,      // 片名 logo（images.logos，zh 优先）
+         val isTv: Boolean,
+         val region: String?,       // 制作地区中文名，多国以「/」连接（「中国大陆/中国香港」）
+@@ -119,6 +121,7 @@ class TmdbDetail(private val client: TmdbClient) {
+             posterUrl = posterPath?.let { "${TmdbHome.IMG}/w780$it" }
+                 ?: backdropPath?.let { "${TmdbHome.IMG}/w780$it" } ?: "",
+             backdropUrl = backdropPath?.let { "${TmdbHome.IMG}/w780$it" },
++            heroArtworkUrl = artworkOf(json, posterPath, backdropPath),
+             logoUrl = logoOf(json),
+             isTv = isTv,
+             region = regionOf(json),
+@@ -165,21 +168,22 @@ class TmdbDetail(private val client: TmdbClient) {
+         return null
+     }
+ 
+-    /** 片名 logo：images.logos 中 zh 优先，其次 en/无语言。 */
++    /** Neutral portrait first; no title-specific IDs or image paths. */
++    private fun artworkOf(json: JSONObject, poster: String?, backdrop: String?): String {
++        val neutral = ArtworkSelection.portrait(json.optJSONObject("images"))
++        return (neutral ?: backdrop ?: poster)?.let { "${TmdbHome.IMG}/w780$it" }.orEmpty()
++    }
++
++    /** Transparent PNG logos, Chinese first, then neutral and English; votes break ties. */
+     private fun logoOf(json: JSONObject): String? {
+         val arr = json.optJSONObject("images")?.optJSONArray("logos") ?: return null
+-        var fallback: String? = null
+-        for (i in 0 until arr.length()) {
+-            val o = arr.getJSONObject(i)
+-            val path = o.optString("file_path")
+-            if (path.isEmpty()) continue
+-            val lang = o.optString("iso_639_1")
+-            val url = "${TmdbHome.IMG}/w500$path"
+-            if (lang == "zh") return url
+-            if (fallback == null && lang != "en") fallback = url
+-            if (fallback == null) fallback = url
+-        }
+-        return fallback
++        val picked = (0 until arr.length()).map { arr.getJSONObject(it) }
++            .filter { it.optString("file_path").endsWith(".png", ignoreCase = true) }
++            .sortedWith(compareBy<JSONObject> {
++                when (it.optString("iso_639_1")) { "zh" -> 0; "null", "" -> 1; "en" -> 2; else -> 3 }
++            }.thenByDescending { it.optInt("vote_count") }.thenByDescending { it.optDouble("vote_average") })
++            .firstOrNull() ?: return null
++        return "${TmdbHome.IMG}/w500${picked.optString("file_path")}"
+     }
+ 
+     /** 分级：release_dates 的 certification，按常用地区优先取 3 个。 */
+diff --git a/android/app/src/main/java/com/kivo/cinema/tmdb/TmdbHome.kt b/android/app/src/main/java/com/kivo/cinema/tmdb/TmdbHome.kt
+index 7d101c69..68ff75f7 100644
+--- a/android/app/src/main/java/com/kivo/cinema/tmdb/TmdbHome.kt
++++ b/android/app/src/main/java/com/kivo/cinema/tmdb/TmdbHome.kt
+@@ -76,14 +76,10 @@ class TmdbHome(private val client: TmdbClient) {
+         return result
+     }
+ 
+-    /** First artwork in the provider's image ordering; not a vote-average ranking. */
++    /** Prefer a neutral portrait so the title can live in its own foreground layer. */
+     fun topVotedPosterUrl(item: Item): String? {
+-        val posters = images(item)?.optJSONArray("posters") ?: return null
+-        for (i in 0 until posters.length()) {
+-            val path = posters.getJSONObject(i).optString("file_path")
+-            if (path.isNotEmpty()) return "$IMG/w780$path"
+-        }
+-        return null
++        val path = com.kivo.cinema.tmdb.artwork.ArtworkSelection.portrait(images(item))
++        return path?.let { "$IMG/w780$it" }
+     }
+ 
+     /** Prefer localized logos, then the variant with the strongest voting support. */
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/design/DiscoverPage.kt b/android/app/src/main/java/com/kivo/cinema/ui/design/DiscoverPage.kt
+index ce54f03e..81fa5122 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/design/DiscoverPage.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/design/DiscoverPage.kt
+@@ -90,6 +90,8 @@ fun DiscoverPage(
+         atTop = { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 },
+         maxPullPx = with(density) { 180.dp.toPx() })
+     val pullDp = pull.distance.value / density.density
++    val heroScrollPx = { if (listState.firstVisibleItemIndex == 0)
++        listState.firstVisibleItemScrollOffset.toFloat() else 0f }
+ 
+     var heroFieldColor by remember { mutableStateOf(DesignTokens.pageBackground) }
+     val scrimColor: State<Color> = remember {
+@@ -118,6 +120,7 @@ fun DiscoverPage(
+                 else HeroCarousel(heroCandidates, onAmbient = { heroFieldColor = it },
+                     dotsColor = chromeFg, scrimColor = scrimColor,
+                     topPoster = topPoster, logoFor = logoFor, pullDp = pullDp,
++                    scrollPx = heroScrollPx,
+                     previewVisible = listState.firstVisibleItemIndex == 0 &&
+                         listState.firstVisibleItemScrollOffset < 350 * density.density,
+                     generation = generation, previewEnabled = previewEnabled, trailerFor = trailerFor, proxyAddress = proxyAddress)
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/design/HeroCarousel.kt b/android/app/src/main/java/com/kivo/cinema/ui/design/HeroCarousel.kt
+index 294d1f7b..a519959c 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/design/HeroCarousel.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/design/HeroCarousel.kt
+@@ -25,6 +25,7 @@ fun HeroCarousel(
+     topPoster: (TmdbHome.Item) -> String?,
+     logoFor: (TmdbHome.Item) -> String?,
+     pullDp: Float = 0f,
++    scrollPx: () -> Float = { 0f },
+     previewVisible: Boolean = true,
+     previewEnabled: Boolean = false,
+     generation: Int = 0,
+@@ -37,7 +38,8 @@ fun HeroCarousel(
+         HorizontalPager(state = pagerState, key = { "$generation:${candidates[it].isTv}:${candidates[it].id}" },
+             modifier = Modifier.fillMaxSize()) { index ->
+             HeroPage(candidates[index], index == pagerState.settledPage && !pagerState.isScrollInProgress && previewVisible,
+-                scrimColor, topPoster, logoFor, onAmbient, pullDp, trailerFor, proxyAddress, previewEnabled)
++                scrimColor, topPoster, logoFor, onAmbient, pullDp, trailerFor, proxyAddress, previewEnabled,
++                scrollPx)
+         }
+         Row(Modifier.align(Alignment.TopCenter).offset(y = (DOTS_CENTER_DP - 3.65f + pullDp).dp),
+             verticalAlignment = Alignment.CenterVertically) {
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/design/home/HeroPage.kt b/android/app/src/main/java/com/kivo/cinema/ui/design/home/HeroPage.kt
+index 41fa12ef..1ff6806b 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/design/home/HeroPage.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/design/home/HeroPage.kt
+@@ -37,6 +37,7 @@ internal fun HeroPage(
+     trailerFor: (TmdbHome.Item) -> TrailerResult,
+     proxyAddress: String?,
+     previewEnabled: Boolean,
++    scrollPx: () -> Float,
+ ) {
+     var artwork by remember(item.isTv, item.id) { mutableStateOf<Bitmap?>(null) }
+     var logo by remember(item.isTv, item.id) { mutableStateOf<String?>(null) }
+@@ -62,6 +63,8 @@ internal fun HeroPage(
+     val fg = if (HomeAtmosphere.lightForeground(scrimColor.value)) Color.White else DesignTokens.textMain
+     Box(Modifier.fillMaxWidth().height((HERO_HEIGHT_DP + pullDp).dp).clipToBounds()) {
+         Box(Modifier.fillMaxWidth().height(HERO_HEIGHT_DP.dp).graphicsLayer {
++            // The foreground scrolls normally; only the media cancels list motion.
++            translationY = scrollPx() * .95f
+             val stretch = 1f + pullDp / HERO_HEIGHT_DP
+             scaleX = stretch; scaleY = stretch
+             transformOrigin = TransformOrigin(.5f, 0f)
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt
+index 07094c34..1a508fe4 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt
+@@ -287,26 +287,25 @@ internal fun StudioLogo(url: String, fg: Color) {
+  * 与参照的 IMDb Parents Guide 口径不同，故不显示假的「轻微/严重（N 票）」）。
+  */
+ @Composable
+-internal fun ParentalGuide(certs: List<Pair<String, String>>, notes: List<String>,
+-                           fg: Color, fgSub: Color) {
++internal fun ParentalGuide(certs: List<Pair<String, String>>, notes: List<String>) {
+     Row(
+         Modifier.padding(horizontal = DETAIL_PAD_DP.dp).fillMaxWidth(),
+         horizontalArrangement = Arrangement.spacedBy(10.dp),
+     ) {
+         if (certs.isNotEmpty()) {
+             GuideCard("分级", certs.joinToString(" · ") { "${it.first} ${it.second}" },
+-                Color(0xFFE8B33A), fg, fgSub, Modifier.weight(1f))
++                Color(0xFFE8B33A), Modifier.weight(1f))
+         }
+         if (notes.isNotEmpty()) {
+             GuideCard("内容提示", notes.take(2).joinToString("、"),
+-                Color(0xFFD8443C), fg, fgSub, Modifier.weight(1f))
++                Color(0xFFD8443C), Modifier.weight(1f))
+         }
+     }
+ }
+ 
+ @Composable
+ private fun GuideCard(title: String, value: String, accent: Color,
+-                      fg: Color, fgSub: Color, modifier: Modifier = Modifier) {
++                      modifier: Modifier = Modifier) {
+     Row(
+         modifier.height(DETAIL_GUIDE_CARD_DP.dp)
+             .clip(RoundedCornerShape(DesignTokens.radiusCard.dp))
+@@ -318,10 +317,10 @@ private fun GuideCard(title: String, value: String, accent: Color,
+             .clip(RoundedCornerShape(2.dp)).background(accent))
+         Spacer(Modifier.width(10.dp))
+         Column {
+-            Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = fg,
+-                maxLines = 1, overflow = TextOverflow.Ellipsis)
++            Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold,
++                color = DesignTokens.textMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
+             Spacer(Modifier.height(3.dp))
+-            Text(value, fontSize = 13.sp, color = fgSub, maxLines = 1,
++            Text(value, fontSize = 13.sp, color = DesignTokens.textSub, maxLines = 1,
+                 overflow = TextOverflow.Ellipsis)
+         }
+     }
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt
+index 086bf9a8..3090db8f 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt
+@@ -4,32 +4,20 @@ import android.content.Context
+ import android.content.Intent
+ import android.net.Uri
+ import android.os.Bundle
+-import android.widget.Toast
+ import androidx.activity.ComponentActivity
+ import androidx.activity.compose.setContent
+ import androidx.activity.enableEdgeToEdge
+-import androidx.compose.foundation.Canvas
+-import androidx.compose.foundation.Image
+-import androidx.compose.foundation.background
+-import androidx.compose.foundation.border
+-import androidx.compose.foundation.clickable
+-import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.layout.Box
+ import androidx.compose.foundation.layout.Column
+ import androidx.compose.foundation.layout.PaddingValues
+-import androidx.compose.foundation.layout.Row
+ import androidx.compose.foundation.layout.Spacer
+ import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.height
+-import androidx.compose.foundation.layout.offset
++import androidx.compose.foundation.layout.heightIn
+ import androidx.compose.foundation.layout.padding
+-import androidx.compose.foundation.layout.size
+-import androidx.compose.foundation.layout.width
+ import androidx.compose.foundation.lazy.LazyColumn
+ import androidx.compose.foundation.lazy.rememberLazyListState
+-import androidx.compose.foundation.shape.CircleShape
+-import androidx.compose.foundation.shape.RoundedCornerShape
+ import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
+ import androidx.compose.runtime.LaunchedEffect
+@@ -39,23 +27,12 @@ import androidx.compose.runtime.getValue
+ import androidx.compose.runtime.mutableStateOf
+ import androidx.compose.runtime.remember
+ import androidx.compose.runtime.setValue
+-import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+-import androidx.compose.ui.draw.clip
+-import androidx.compose.ui.draw.drawBehind
+-import androidx.compose.ui.geometry.Offset
+-import androidx.compose.ui.geometry.Size
+-import androidx.compose.ui.graphics.Brush
+ import androidx.compose.ui.graphics.Color
+-import androidx.compose.ui.graphics.Path
+-import androidx.compose.ui.graphics.StrokeCap
+-import androidx.compose.ui.graphics.StrokeJoin
+-import androidx.compose.ui.graphics.drawscope.Stroke
++import androidx.compose.ui.graphics.luminance
++import androidx.compose.ui.input.nestedscroll.nestedScroll
+ import androidx.compose.ui.platform.LocalContext
+ import androidx.compose.ui.platform.LocalDensity
+-import androidx.compose.ui.text.font.FontWeight
+-import androidx.compose.ui.text.style.TextAlign
+-import androidx.compose.ui.text.style.TextOverflow
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
+ import androidx.core.view.WindowCompat
+@@ -65,21 +42,12 @@ import com.kivo.cinema.tmdb.TmdbDetail
+ import com.kivo.cinema.ui.design.DesignTokens
+ import com.kivo.cinema.ui.design.PosterPalette
+ import com.kivo.cinema.ui.design.RatingBadges
+-import com.kivo.cinema.ui.design.TmdbImage
+ import com.kivo.cinema.ui.design.TmdbImageCache
+-import com.kivo.cinema.ui.design.home.HomeAtmosphere
++import com.kivo.cinema.ui.design.home.rememberHeroPullZoom
+ import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.withContext
+ 
+-/**
+- * 影片详情页（240 §1/§5）。
+- *
+- * 色场完全复用首页机制（239 §6 / HomeAtmosphere）：艺术图 → PosterPalette.ambientOf
+- * 取环境色 → 页面底色直接画成 HomeAtmosphere.background(环境色, 滚动dp) → 幕布下缘
+- * 用同一色场按首页曲线盖满，于是图与页面同色、无缝；滚动时色场过渡到页面浅色。
+- *
+- * 数据 = TmdbDetail 一次 append_to_response；无数据时给出原因（G9），不渲染空壳节。
+- */
++/** Detail data and foreground orchestration; media and curtain belong to DetailBackdrop. */
+ class MovieDetailActivity : ComponentActivity() {
+ 
+     companion object {
+@@ -95,7 +63,7 @@ class MovieDetailActivity : ComponentActivity() {
+     override fun onCreate(savedInstanceState: Bundle?) {
+         super.onCreate(savedInstanceState)
+         enableEdgeToEdge()
+-        setDarkStatusIcons(false)   // 首屏是暗色场 → 状态栏用浅色图标
++        setDarkStatusIcons(false)
+         val id = intent.getIntExtra(EXTRA_ID, 0)
+         val isTv = intent.getBooleanExtra(EXTRA_TV, false)
+         val detail = TmdbDetail(TmdbClient(this))
+@@ -114,6 +82,7 @@ class MovieDetailActivity : ComponentActivity() {
+             .isAppearanceLightStatusBars = dark
+     }
+ 
++    /** Fixed media, one continuous moving curtain, and an independent foreground list. */
+     @Composable
+     private fun DetailPage(id: Int, isTv: Boolean, load: () -> TmdbDetail.Details?,
+                            onBack: () -> Unit, onDarkStatusIcons: (Boolean) -> Unit) {
+@@ -128,8 +97,10 @@ class MovieDetailActivity : ComponentActivity() {
+                 error = "加载失败，请检查网络后重试"
+             } else {
+                 details = d
+-                d.posterUrl.takeIf { it.isNotEmpty() }?.let { url ->
+-                    val bmp = withContext(Dispatchers.IO) { TmdbImageCache.load(url) }
++                // Sample the same artwork used by the backdrop to avoid a color seam.
++                val artUrl = d.heroArtworkUrl
++                if (artUrl.isNotEmpty()) {
++                    val bmp = withContext(Dispatchers.IO) { TmdbImageCache.load(artUrl) }
+                     bmp?.let { fieldColor = PosterPalette.ambientOf(it) }
+                 }
+                 media = withContext(Dispatchers.IO) {
+@@ -139,74 +110,48 @@ class MovieDetailActivity : ComponentActivity() {
+         }
+         val listState = rememberLazyListState()
+         val density = LocalDensity.current
+-        val scrimColor: State<Color> = remember {
+-            derivedStateOf {
+-                val scrollDp = if (listState.firstVisibleItemIndex == 0)
+-                    listState.firstVisibleItemScrollOffset / density.density else 390f
+-                androidx.compose.ui.graphics.lerp(
+-                    fieldColor, DesignTokens.pageBackground, (scrollDp / 390f).coerceIn(0f, 1f))
+-            }
++        val pull = rememberHeroPullZoom(
++            atTop = { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 },
++            maxPullPx = with(density) { 180.dp.toPx() })
++        val pullDp = pull.distance.value / density.density
++        val scrollDp = {
++            if (listState.firstVisibleItemIndex == 0)
++                listState.firstVisibleItemScrollOffset / density.density else 700f
+         }
+-        // 材质随滚动变浅：过阈值后转深色文字（参照滚动态是深字压浅磨砂）
+-        val chromeDark by remember {
++        // Fit to the captured Rex scroll sequence: lighten from the first consumed pixel.
++        val sheetColor: State<Color> = remember(fieldColor) {
+             derivedStateOf {
+-                val sc = if (listState.firstVisibleItemIndex == 0)
+-                    listState.firstVisibleItemScrollOffset / density.density else 390f
+-                sc < DETAIL_CHROME_FLIP_DP
++                androidx.compose.ui.graphics.lerp(fieldColor, DesignTokens.pageBackground,
++                    ((scrollDp() - DETAIL_SHEET_START_DP) / DETAIL_SHEET_RAMP_DP)
++                        .coerceIn(0f, 1f))
+             }
+         }
++        val chromeDark by remember(sheetColor) { derivedStateOf { sheetColor.value.luminance() < .40f } }
+         LaunchedEffect(chromeDark) { onDarkStatusIcons(!chromeDark) }
+         val fg = if (chromeDark) Color.White else DesignTokens.textMain
+         val fgSub = if (chromeDark) Color.White.copy(alpha = .72f) else DesignTokens.textSub
+ 
+-        // 根底色与艺术图提亮同源：整页色调一致，无接缝
+-        val pageBase = {
+-            androidx.compose.ui.graphics.lerp(fieldColor, Color.White,
+-                (( (if (listState.firstVisibleItemIndex == 0)
+-                    listState.firstVisibleItemScrollOffset / density.density else 390f)
+-                    - DETAIL_WASH_START_DP) / DETAIL_WASH_RAMP_DP).coerceIn(0f, 1f) *
+-                    DETAIL_WASH_MAX_ALPHA)
+-        }
+-        Box(Modifier.fillMaxSize().drawBehind { drawRect(pageBase()) }) {
+-            val scrollDpNow = {
+-                if (listState.firstVisibleItemIndex == 0)
+-                    listState.firstVisibleItemScrollOffset / density.density else 390f
+-            }
+-            // 底层：艺术图固定不动（240 §12）。不裁剪、不铺渐变。
+-            Box(Modifier.fillMaxWidth().height(DETAIL_HERO_DP.dp)) {
+-                HeroArt(details, error, fg, scrimColor)
+-            }
+-            // 提亮层：**前 320dp 不提亮**（参照 10 帧实测顶部亮度 0–285dp 恒为 92–97），
+-            // 之后 350dp 内升到 0.85，把艺术图冲淡为浅色
+-            val washAlpha = {
+-                ((scrollDpNow() - DETAIL_WASH_START_DP) / DETAIL_WASH_RAMP_DP)
+-                    .coerceIn(0f, 1f) * DETAIL_WASH_MAX_ALPHA
+-            }
+-            Box(Modifier.fillMaxWidth().height(DETAIL_HERO_DP.dp).drawBehind {
+-                drawRect(Color.White.copy(alpha = washAlpha()))
+-            })
+-            // 上层：内容层，向上滑时逐段盖住底层幕布
++        Box(Modifier.fillMaxSize()) {
++            DetailBackdrop(details, error, fg, sheetColor, scrollDp, pullDp)
+             LazyColumn(
+                 state = listState,
+-                modifier = Modifier.fillMaxSize(),
++                modifier = Modifier.fillMaxSize().nestedScroll(pull.connection),
+                 contentPadding = PaddingValues(bottom = 60.dp),
+             ) {
+-                // 透明占位：露出底层幕布
+-                item(key = "spacer") { Spacer(Modifier.height(DETAIL_TITLE_TOP_DP.dp)) }
+                 val d = details
+-                if (d != null) {
+-                    item(key = "title") { TitleLayer(d, fg) }
+-                    item(key = "meta") { MetaLine(d, fg) }
+-                    item(key = "actions") { ActionRow(isTv, context, media) { m ->
+-                        startActivity(Intent(this@MovieDetailActivity, DetailActivity::class.java)
+-                            .putExtra("kivo.media", m.item.path)
+-                            .putExtra("kivo.durationMs", m.item.durationMs))
+-                    } }
+-                    // 以下各段带不透明底色：滚上来时盖住幕布
+-                    if (d.overview.isNotBlank()) item(key = "overview") {
+-                        Overview(d.overview, fg, scrimColor)
+-                    }
+-                    if (d.rating > 0f) item(key = "badges") {
++                item(key = "hero-content") {
++                  Column(Modifier.heightIn(min = 700.dp)) {
++                    Spacer(Modifier.height((DETAIL_TITLE_TOP_DP + pullDp).dp))
++                    if (d != null) {
++                    TitleLayer(d, fg)
++                    MetaLine(d, fg)
++                        ActionRow(context, media, fg) { m ->
++                            startActivity(Intent(this@MovieDetailActivity, DetailActivity::class.java)
++                                .putExtra("kivo.media", m.item.path)
++                                .putExtra("kivo.durationMs", m.item.durationMs))
++                        }
++                    if (d.overview.isNotBlank()) Overview(d.overview, fg)
++                    if (d.rating > 0f) {
+                         Box(Modifier.fillMaxWidth().padding(top = 14.dp)) {
+                             RatingBadges(listOf("TMDB" to d.rating),
+                                 modifier = Modifier.fillMaxWidth(), alignCenter = true,
+@@ -215,7 +160,7 @@ class MovieDetailActivity : ComponentActivity() {
+                     }
+                     val mm = media
+                     if (mm != null) {
+-                        item(key = "source") {
++                        run {
+                             Column(Modifier.fillMaxWidth()) {
+                                 Spacer(Modifier.height(56.dp))
+                                 PlaySourceHeader(mm.quality, fg)
+@@ -225,13 +170,17 @@ class MovieDetailActivity : ComponentActivity() {
+                             }
+                         }
+                     } else {
+-                        item(key = "empty") {
++                        run {
+                             Column(Modifier.fillMaxWidth()) {
+                                 Spacer(Modifier.height(70.dp))
+                                 EmptyResourceBlock(fg)
+                             }
+                         }
+                     }
++                    }
++                  }
++                }
++                if (d != null) {
+                     d.studioLogo?.let { url ->
+                         item(key = "studio") {
+                             Column(Modifier.fillMaxWidth()) {
+@@ -253,7 +202,7 @@ class MovieDetailActivity : ComponentActivity() {
+                                 Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
+                                 SectionHeader("家长指南", fg)
+                                 Spacer(Modifier.height(20.dp))
+-                                ParentalGuide(d.certifications, d.contentNotes, fg, fgSub)
++                                ParentalGuide(d.certifications, d.contentNotes)
+                             }
+                         }
+                     }
+@@ -306,204 +255,10 @@ class MovieDetailActivity : ComponentActivity() {
+         }
+     }
+ 
+-    /**
+-     * 幕布（240 §12）：底层固定层，**不铺渐变**——覆盖边界由上层内容的不透明底色产生。
+-     * 主图用剧照（不含烧死片名），片名交给 [TitleLayer]；无剧照才退海报。
+-     */
+-    @Composable
+-    private fun HeroArt(details: TmdbDetail.Details?, error: String?, fg: Color,
+-                        scrimColor: State<Color>) {
+-        Box(Modifier.fillMaxSize()) {
+-            val d = details
+-            val art = d?.backdropUrl ?: d?.posterUrl.orEmpty()
+-            if (art.isNotEmpty()) TmdbImage(art, d?.title.orEmpty(), Modifier.fillMaxSize())
+-            if (d == null && error != null) {
+-                Text(error, fontSize = 13.sp, color = fg, textAlign = TextAlign.Center,
+-                    modifier = Modifier.align(Alignment.Center).padding(horizontal = 24.dp))
+-            }
+-        }
+-    }
+-
+-    /**
+-     * 片名图层（240 §10）：独立于幕布图，贴在 meta 上方；
+-     * 与 meta 同属内容流，滚动时一起离开屏幕（不再随海报提前消失）。
+-     * 有 logo 用 logo，无 logo 退化为文字。
+-     */
+-    @Composable
+-    private fun TitleLayer(d: TmdbDetail.Details, fg: Color) {
+-        Box(
+-            Modifier.fillMaxWidth().height(DETAIL_TITLE_BAND_DP.dp)
+-                .padding(horizontal = 24.dp),
+-            contentAlignment = Alignment.BottomCenter,
+-        ) {
+-            val logo = d.logoUrl
+-            if (logo != null) {
+-                TmdbImage(logo, d.title, Modifier.fillMaxSize(),
+-                    bg = Color.Transparent, fit = true)
+-            } else {
+-                Text(d.title, fontSize = 34.sp, fontWeight = FontWeight.Bold, color = fg,
+-                    textAlign = TextAlign.Center, maxLines = 2,
+-                    modifier = Modifier.fillMaxWidth())
+-            }
+-        }
+-    }
+-
+-    /** meta 行（240 §5.2）：日期 · 地区 · 片长/集数，居中 17sp。 */
+-    @Composable
+-    private fun MetaLine(d: TmdbDetail.Details, fg: Color) {
+-        Text(
+-            text = d.metaLine(),
+-            fontSize = 13.sp, lineHeight = 13.sp,
+-            color = fg, textAlign = TextAlign.Center,
+-            modifier = Modifier.fillMaxWidth()
+-                .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 18.dp),
+-        )
+-    }
+-
+-    /** 简介：左对齐 15sp/行高 14，最多 2 行（240 §5.2 E4）。 */
+-    @Composable
+-    private fun Overview(text: String, fg: Color, scrimColor: State<Color>) {
+-        Text(
+-            text = text,
+-            fontSize = 15.sp, lineHeight = 14.sp,
+-            color = fg.copy(alpha = 0.82f),
+-            maxLines = 2, overflow = TextOverflow.Ellipsis,
+-            modifier = Modifier.fillMaxWidth()
+-                .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 16.dp),
+-        )
+-    }
+-
+-    /** 主操作行（240 §6.2 E6）：玻璃材质（白 α0.28 / α0.147）+ 发丝描边 + 真图标。 */
+-    @Composable
+-    private fun ActionRow(isTv: Boolean, context: Context, media: MediaMatch.Matched?,
+-                          onPlay: (MediaMatch.Matched) -> Unit) {
+-        val reason = "未加载到相关资源"
+-        val hair = Color.White.copy(alpha = .10f)
+-        val glyph = Color.White.copy(alpha = .95f)
+-        val playable = media != null
+-        Row(
+-            Modifier.fillMaxWidth()
+-                .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 10.dp),
+-            horizontalArrangement = Arrangement.spacedBy(9.dp),
+-            verticalAlignment = Alignment.CenterVertically,
+-        ) {
+-            Box(
+-                Modifier.weight(1f).height(45.dp)
+-                    .clip(RoundedCornerShape(50))
+-                    .background(Color.White.copy(alpha = if (playable) .92f else .28f))
+-                    .border(1.dp, hair, RoundedCornerShape(50))
+-                    .clickable {
+-                        if (media != null) onPlay(media)
+-                        else Toast.makeText(context, reason, Toast.LENGTH_SHORT).show()
+-                    },
+-                contentAlignment = Alignment.Center,
+-            ) {
+-                Text(if (playable) "▶  播放" else reason,
+-                    fontSize = 15.sp, fontWeight = FontWeight.Medium,
+-                    color = if (playable) DesignTokens.textMain else glyph,
+-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+-            }
+-            Row(
+-                Modifier.width(101.dp).height(45.dp)
+-                    .clip(RoundedCornerShape(50))
+-                    .background(Color.White.copy(alpha = .147f))
+-                    .border(1.dp, hair, RoundedCornerShape(50)),
+-                horizontalArrangement = Arrangement.Center,
+-                verticalAlignment = Alignment.CenterVertically,
+-            ) {
+-                CollectionPlusIcon(glyph, Modifier.size(22.dp))
+-                Spacer(Modifier.width(15.dp))
+-                HeartIcon(glyph, Modifier.size(20.dp))
+-            }
+-            Box(Modifier.size(45.dp).clip(CircleShape)
+-                .background(Color.White.copy(alpha = .147f))
+-                .border(1.dp, hair, CircleShape),
+-                contentAlignment = Alignment.Center) {
+-                Canvas(Modifier.size(20.dp, 4.dp)) {
+-                    val r = 2.0.dp.toPx()
+-                    val gap = (size.width - r * 2) / 2f
+-                    for (i in 0..2) {
+-                        drawCircle(Color.White.copy(alpha = .95f), r,
+-                            Offset(r + gap * i, size.height / 2f))
+-                    }
+-                }
+-            }
+-        }
+-    }
+-
+-    /** 返回钮（240 §5.2 E14）：Ø42 半透明白 + 黑色人字，start16/top37。 */
+-    @Composable
+-    private fun BackCircle(onBack: () -> Unit) {
+-        Box(
+-            Modifier.padding(start = DETAIL_PAD_DP.dp, top = 42.dp)
+-                .size(42.dp)
+-                .clip(CircleShape)
+-                .background(Color(0x8CFFFFFF))
+-                .clickable { onBack() },
+-            contentAlignment = Alignment.Center,
+-        ) {
+-            Canvas(Modifier.size(11.dp, 17.dp)) {
+-                val p = Path().apply {
+-                    moveTo(size.width, 0f)
+-                    lineTo(0f, size.height / 2f)
+-                    lineTo(size.width, size.height)
+-                }
+-                drawPath(p, Color(0xFF1A1A1A), style = Stroke(
+-                    width = 2.2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+-            }
+-        }
+-    }
+-}
+-
+-/** 幕布高（240 §5.2 实测 507dp；与首页 hero 的 585 解耦，互不影响）。 */
+-private const val DETAIL_HERO_DP = 589.5f   // 2:3 海报满宽（393×1.5）
+-/** meta 叠在海报下缘（430pt 基准 558.5 → ×393/430）。 */
+-private const val DETAIL_META_TOP_DP = 510.5f
+-/** 主操作行叠在海报下缘。 */
+-private const val DETAIL_ACTIONS_TOP_DP = 541f
+-/** 文字翻色阈值：滚过此处材质已足够浅，转深色文字。 */
+-private const val DETAIL_CHROME_FLIP_DP = 430f
+-/** 提亮起点：滚过此值才开始冲淡（实测 0–285dp 亮度恒定）。 */
+-private const val DETAIL_WASH_START_DP = 320f
+-/** 提亮斜坡长度（到顶所需滚动量）。 */
+-private const val DETAIL_WASH_RAMP_DP = 350f
+-/** 提亮上限。 */
+-private const val DETAIL_WASH_MAX_ALPHA = .85f
+-/** 片名图层高度带（logo 或文字，底对齐）。 */
+-private const val DETAIL_TITLE_BAND_DP = 88f
+-/** 片名图层顶边 = meta 顶 510.5 − 间距 18 − 带高 88。 */
+-private const val DETAIL_TITLE_TOP_DP = 404.5f
+-/** 正文左右缩进（帧实测 20dp）；各节组件共用。 */
+-internal const val DETAIL_PAD_DP = 20f
+-/** 详情页节标题字号（240 §5.5：同串墨高实测 18sp，非首页的 22sp）。 */
+-internal const val DETAIL_SECTION_TITLE_SP = 18f
+-/** 节与节之间（帧实测徽章底 668.7 → 下节标题 720.7）。 */
+-private const val DETAIL_SECTION_GAP_DP = 42f
+-
+-/** meta 行：日期 · 地区 · 片长/集数（240 §5.2 E3）。 */
+-private fun TmdbDetail.Details.metaLine(): String {
+-    val parts = mutableListOf<String>()
+-    dateCn()?.let { parts.add(it) }
+-    region?.let { parts.add(it) }
+-    if (isTv) episodes?.let { parts.add("${it}集") }
+-    else runtimeMin?.let { parts.add(runtimeText(it)) }
+-    return parts.joinToString(" · ")
+ }
+ 
+-/** "2026-09-16" → "2026年9月16日"（帧实测中文日期格式）。 */
+-private fun TmdbDetail.Details.dateCn(): String? {
+-    if (date.isEmpty()) return null
+-    val p = date.split("-")
+-    if (p.size != 3) return date
+-    val m = p[1].toIntOrNull() ?: return date
+-    val d = p[2].toIntOrNull() ?: return date
+-    return "${p[0]}年${m}月${d}日"
+-}
++/** 上层底色开始转浅的滚动量。 */
++private const val DETAIL_SHEET_START_DP = 0f
++/** 转浅斜坡长度。 */
++private const val DETAIL_SHEET_RAMP_DP = 390f
+ 
+-/** 160 → "2小时40分钟"；45 → "45分钟"。 */
+-private fun runtimeText(min: Int): String {
+-    if (min < 60) return "${min}分钟"
+-    val h = min / 60
+-    val m = min % 60
+-    return if (m == 0) "${h}小时" else "${h}小时${m}分钟"
+-}
+diff --git a/android/app/src/main/java/com/kivo/cinema/tmdb/artwork/ArtworkSelection.kt b/android/app/src/main/java/com/kivo/cinema/tmdb/artwork/ArtworkSelection.kt
+new file mode 100644
+index 00000000..d1de91f2
+--- /dev/null
++++ b/android/app/src/main/java/com/kivo/cinema/tmdb/artwork/ArtworkSelection.kt
+@@ -0,0 +1,14 @@
++package com.kivo.cinema.tmdb.artwork
++
++import org.json.JSONObject
++
++/** Shared hero artwork policy. Language-neutral metadata is a hint, not a text-free guarantee. */
++internal object ArtworkSelection {
++    fun portrait(images: JSONObject?): String? {
++        val posters = images?.optJSONArray("posters") ?: return null
++        return (0 until posters.length()).map { posters.getJSONObject(it) }
++            .filter { it.isNull("iso_639_1") && it.optString("file_path").isNotEmpty() }
++            .maxWithOrNull(compareBy<JSONObject> { it.optDouble("vote_average") }
++                .thenBy { it.optInt("vote_count") })?.optString("file_path")
++    }
++}
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt
+new file mode 100644
+index 00000000..e9b75436
+--- /dev/null
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt
+@@ -0,0 +1,57 @@
++package com.kivo.cinema.ui.detail
++
++import androidx.compose.foundation.background
++import androidx.compose.foundation.layout.*
++import androidx.compose.material3.Text
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.State
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.clipToBounds
++import androidx.compose.ui.draw.drawBehind
++import androidx.compose.ui.graphics.Brush
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.TransformOrigin
++import androidx.compose.ui.graphics.graphicsLayer
++import androidx.compose.ui.text.style.TextAlign
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import com.kivo.cinema.tmdb.TmdbDetail
++import com.kivo.cinema.ui.design.TmdbImage
++
++/** Media stays behind the content; the curtain moves with the consumed list offset. */
++@Composable
++internal fun DetailBackdrop(
++    details: TmdbDetail.Details?,
++    error: String?,
++    foreground: Color,
++    field: State<Color>,
++    scrollDp: () -> Float,
++    pullDp: Float = 0f,
++) {
++    Box(Modifier.fillMaxSize().background(Color.Black).clipToBounds()) {
++        val art = details?.heroArtworkUrl.orEmpty()
++        if (art.isNotEmpty()) TmdbImage(art, details?.title.orEmpty(),
++            Modifier.fillMaxWidth().height(585.dp).graphicsLayer {
++                translationY = -scrollDp() * density * .05f
++                val stretch = 1f + pullDp / 585f
++                scaleX = stretch; scaleY = stretch
++                transformOrigin = TransformOrigin(.5f, 0f)
++            })
++        Box(Modifier.fillMaxSize().drawBehind {
++            val color = field.value
++            val shift = (scrollDp() - pullDp) * density
++            drawRect(Brush.verticalGradient(
++                0f to color.copy(alpha = 0f),
++                .25f to color.copy(alpha = .08f),
++                .55f to color.copy(alpha = .45f),
++                .8f to color.copy(alpha = .9f),
++                1f to color,
++                startY = 250.dp.toPx() - shift,
++                endY = 640.dp.toPx() - shift))
++        })
++        if (details == null && error != null) Text(error, fontSize = 13.sp,
++            color = foreground, textAlign = TextAlign.Center,
++            modifier = Modifier.align(Alignment.Center).padding(horizontal = 24.dp))
++    }
++}
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt
+new file mode 100644
+index 00000000..96d173fb
+--- /dev/null
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt
+@@ -0,0 +1,185 @@
++package com.kivo.cinema.ui.detail
++
++import android.content.Context
++import android.widget.Toast
++import androidx.compose.foundation.Canvas
++import androidx.compose.foundation.background
++import androidx.compose.foundation.border
++import androidx.compose.foundation.clickable
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.shape.CircleShape
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.material3.Text
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.clip
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.Path
++import androidx.compose.ui.graphics.StrokeCap
++import androidx.compose.ui.graphics.StrokeJoin
++import androidx.compose.ui.graphics.drawscope.Stroke
++import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.text.style.TextAlign
++import androidx.compose.ui.text.style.TextOverflow
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import com.kivo.cinema.tmdb.TmdbDetail
++import com.kivo.cinema.ui.design.DesignTokens
++import com.kivo.cinema.ui.design.TmdbImage
++
++/** 片名图层：独立于艺术图，贴在 meta 上方；与 meta 同属内容层，一起离屏。 */
++@Composable
++internal fun TitleLayer(d: TmdbDetail.Details, fg: Color) {
++    Box(
++        Modifier.fillMaxWidth().height(DETAIL_TITLE_BAND_DP.dp).padding(horizontal = 24.dp),
++        contentAlignment = Alignment.BottomCenter,
++    ) {
++        val logo = d.logoUrl
++        if (logo != null) {
++            TmdbImage(logo, d.title, Modifier.fillMaxSize(), bg = Color.Transparent, fit = true)
++        } else {
++            Text(d.title, fontSize = 34.sp, fontWeight = FontWeight.Bold, color = fg,
++                textAlign = TextAlign.Center, maxLines = 2,
++                modifier = Modifier.fillMaxWidth())
++        }
++    }
++}
++
++/** meta 行：上层底色的起点（日期上方 18dp）。 */
++@Composable
++internal fun MetaLine(d: TmdbDetail.Details, fg: Color) {
++    Text(
++        text = d.metaLine(),
++        fontSize = 13.sp, lineHeight = 13.sp,
++        color = fg, textAlign = TextAlign.Center,
++        modifier = Modifier.fillMaxWidth()
++            .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 18.dp),
++    )
++}
++
++@Composable
++internal fun Overview(text: String, fg: Color) {
++    Text(
++        text = text,
++        fontSize = 15.sp, lineHeight = 14.sp,
++        color = fg.copy(alpha = 0.82f),
++        maxLines = 2, overflow = TextOverflow.Ellipsis,
++        modifier = Modifier.fillMaxWidth()
++            .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 16.dp),
++    )
++}
++
++@Composable
++internal fun ActionRow(context: Context, media: MediaMatch.Matched?, fg: Color, onPlay: (MediaMatch.Matched) -> Unit) {
++    val reason = "未加载到相关资源"
++    val hair = Color.White.copy(alpha = .10f)
++    val glyph = fg.copy(alpha = .95f)
++    val playable = media != null
++    Row(
++        Modifier.fillMaxWidth()
++            .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 10.dp),
++        horizontalArrangement = Arrangement.spacedBy(9.dp),
++        verticalAlignment = Alignment.CenterVertically,
++    ) {
++        Box(
++            Modifier.weight(1f).height(45.dp)
++                .clip(RoundedCornerShape(50))
++                .background(Color.White.copy(alpha = if (playable) .92f else .60f))
++                .border(1.dp, hair, RoundedCornerShape(50))
++                .clickable {
++                    if (media != null) onPlay(media)
++                    else Toast.makeText(context, reason, Toast.LENGTH_SHORT).show()
++                },
++            contentAlignment = Alignment.Center,
++        ) {
++            Text(if (playable) "▶  播放" else reason,
++                fontSize = 15.sp, fontWeight = FontWeight.Medium,
++                color = DesignTokens.textMain,
++                maxLines = 1, overflow = TextOverflow.Ellipsis)
++        }
++        Row(
++            Modifier.width(101.dp).height(45.dp)
++                .clip(RoundedCornerShape(50))
++                .background(Color.White.copy(alpha = .147f))
++                .border(1.dp, hair, RoundedCornerShape(50)),
++            horizontalArrangement = Arrangement.Center,
++            verticalAlignment = Alignment.CenterVertically,
++        ) {
++            CollectionPlusIcon(glyph, Modifier.size(22.dp))
++            Spacer(Modifier.width(15.dp))
++            HeartIcon(glyph, Modifier.size(20.dp))
++        }
++        Box(Modifier.size(45.dp).clip(CircleShape)
++            .background(Color.White.copy(alpha = .147f))
++            .border(1.dp, hair, CircleShape),
++            contentAlignment = Alignment.Center) {
++            Canvas(Modifier.size(20.dp, 4.dp)) {
++                val r = 2.0.dp.toPx()
++                val gap = (size.width - r * 2) / 2f
++                for (i in 0..2) {
++                    drawCircle(glyph, r,
++                        Offset(r + gap * i, size.height / 2f))
++                }
++            }
++        }
++    }
++}
++
++@Composable
++internal fun BackCircle(onBack: () -> Unit) {
++    Box(
++        Modifier.padding(start = DETAIL_PAD_DP.dp, top = 42.dp)
++            .size(42.dp)
++            .clip(CircleShape)
++            .background(Color(0x8CFFFFFF))
++            .clickable { onBack() },
++        contentAlignment = Alignment.Center,
++    ) {
++        Canvas(Modifier.size(11.dp, 17.dp)) {
++            val p = Path().apply {
++                moveTo(size.width, 0f)
++                lineTo(0f, size.height / 2f)
++                lineTo(size.width, size.height)
++            }
++            drawPath(p, Color(0xFF1A1A1A), style = Stroke(
++                width = 2.2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
++        }
++    }
++}
++
++/** Title band starts at 404.5dp; metadata begins at 510.5dp. */
++internal const val DETAIL_TITLE_TOP_DP = 404.5f
++/** 片名图层高度带。 */
++private const val DETAIL_TITLE_BAND_DP = 88f
++/** 节标题字号（同串墨高实测 18sp，非首页的 22sp）。 */
++internal const val DETAIL_SECTION_TITLE_SP = 18f
++/** 正文左右缩进。 */
++internal const val DETAIL_PAD_DP = 20f
++/** 节与节之间。 */
++internal const val DETAIL_SECTION_GAP_DP = 42f
++private fun TmdbDetail.Details.metaLine(): String {
++val parts = mutableListOf<String>()
++dateCn()?.let { parts.add(it) }
++region?.let { parts.add(it) }
++if (isTv) episodes?.let { parts.add("${it}集") }
++else runtimeMin?.let { parts.add(runtimeText(it)) }
++return parts.joinToString(" · ")
++}
++
++private fun TmdbDetail.Details.dateCn(): String? {
++if (date.isEmpty()) return null
++val p = date.split("-")
++if (p.size != 3) return date
++val m = p[1].toIntOrNull() ?: return date
++val d = p[2].toIntOrNull() ?: return date
++return "${p[0]}年${m}月${d}日"
++}
++
++private fun runtimeText(min: Int): String {
++if (min < 60) return "${min}分钟"
++val h = min / 60
++val m = min % 60
++return if (m == 0) "${h}小时" else "${h}小时${m}分钟"
++}

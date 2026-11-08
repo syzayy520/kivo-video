@@ -1,5 +1,7 @@
 # 240 · 影片详情页设计（P3，参照 movie_04-10/detail_04 逐帧实测）
 
+> 历史迭代记录，包含互相覆盖的参数及重复章节，不能合并当作当前规格。用户已认可的新分层版本见 [基线](../../evidence/p240/layered-scroll/status.md)；后续 [新规划](../ui/replica/roadmap.md)，旧条款裁决见 [review.md](../ui/replica/review.md)。
+
 > 状态：设计定稿 v1。素材：`Pictures/REX/frames/movie_04..10.png`（空枪电影详情全链）、
 > `frames/detail_03/04.png`（黑鸽剧集详情）、`frames/movie_08.png`（详情滚动态全节）。
 > 参照系只进本档案与证据目录，源码零提及。实现会话按铁律：先本稿后码。

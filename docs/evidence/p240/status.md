@@ -1,5 +1,7 @@
 # P3 详情页 · 真机核对记录（2026-11-08 二轮）
 
+> 历史测量记录，保留原始结果；其中全宽同比缩放和旧提亮阈值不再作为硬标准。当前用户认可基线见 [layered-scroll/status.md](layered-scroll/status.md)，新验收方法见 [总规划](../../design/ui/replica/roadmap.md)。
+
 ## 0. 参照系（两批，口径不同，别混用）
 
 | 批次 | 文件 | 设备 | 用途 |

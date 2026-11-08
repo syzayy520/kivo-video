@@ -1,0 +1,141 @@
+{
+  "date": "2026-11-08",
+  "base_commit": "d3aa69eff03dcd31ef89605670a241cbe019e599",
+  "source_state": "working tree snapshot, not a source implementation commit",
+  "scope": "approved visual baseline; full acceptance incomplete",
+  "reference_device": {
+    "model_identifier": "iPhone13,3",
+    "os": "iOS 27.2",
+    "app": "Rex 1.1",
+    "image_px": [
+      1170,
+      2532
+    ],
+    "scale": 3
+  },
+  "android_device": {
+    "model": "Redmi K40",
+    "serial": "b6e950ee",
+    "image_px": [
+      1080,
+      2400
+    ],
+    "density": 2.75
+  },
+  "source_files": [
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/tmdb/TmdbDetail.kt",
+      "sha256": "b6ae2460125d8aa287584c2ce3c2f721cf7256e3192dea98a75d3df7a62e985d"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/tmdb/TmdbHome.kt",
+      "sha256": "2a446a5c7ddef320039de8ebe3854a6a7020f05291d77e02c15ba644ee46947b"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/design/DiscoverPage.kt",
+      "sha256": "c520ef9fd4f7489ca4f174396b3c8a86dc9b7fc62bffbfcf3c43a2a155fb3788"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/design/HeroCarousel.kt",
+      "sha256": "8b21257c562a3a7dd9e6bb71ece64074a12168310bd583d16a3959bda9bc9277"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/design/home/HeroPage.kt",
+      "sha256": "54194b9d5b45e869bce84bbb1ee25e834b7a7f62ec30d12f7ca03fd54803cfc7"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt",
+      "sha256": "4308e0a0a938697bf33a46d8a5ce420d3c39ca2d456207823f7cb16497343339"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt",
+      "sha256": "07dd9adaeb21bf4ee5552c970ba9ddd5687948fdcf5f0dc993d1b7f7ef896c9b"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/tmdb/artwork/ArtworkSelection.kt",
+      "sha256": "177856f638345c09f17d7922a0f2ef315641e690f015616a643b65b79bda5b23"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt",
+      "sha256": "6696f84445f194c0f0e271ebf653740eed933077e1bb53fddef90f2ea5d59ac6"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt",
+      "sha256": "cbc15d18a56faf165ae72e684ceb7b3d5adeb199c9b013cf1e829d851596d903"
+    }
+  ],
+  "files": [
+    {
+      "path": "reference/detail-top.png",
+      "original_path": "build/home-fixed-analysis/iphone-detail-top.png",
+      "sha256": "ef80cbae225f9f056565526de76095bdf303d083486c3e7c36b18fa2f235ffb6",
+      "bytes": 9163168
+    },
+    {
+      "path": "reference/detail-mid-1.png",
+      "original_path": "build/home-fixed-analysis/iphone-home-scroll.png",
+      "sha256": "11fbaf89b2ba55608478cfa39020971cba1d6342d8ad15f45209ad8ff808591e",
+      "bytes": 8340612
+    },
+    {
+      "path": "reference/detail-mid-2.png",
+      "original_path": "build/home-fixed-analysis/iphone-detail-mid2.png",
+      "sha256": "972d2c2f611411158c3b997634fcb867061ebc36fd30f0e789d0c09049f2cb67",
+      "bytes": 7778534
+    },
+    {
+      "path": "reference/detail-deep.png",
+      "original_path": "build/home-fixed-analysis/iphone-detail-deep.png",
+      "sha256": "4db8bd7102e3ea1fa904cbef51128933299a037c22d26bde57d837c21aae610b",
+      "bytes": 5514408
+    },
+    {
+      "path": "reference/home-top.png",
+      "original_path": "build/home-fixed-analysis/iphone-home-top.png",
+      "sha256": "200b1a5dd4c507934417f702b77f1c354f0dcfb3de7dd7b7b563be64e56e9cd4",
+      "bytes": 8782174
+    },
+    {
+      "path": "android/home-top.png",
+      "original_path": "build/home-fixed-analysis/android-latest.png",
+      "sha256": "f99e2e5e82ec2ab9a00f3ee8baca72818d692c8cd1f8e702952a85006052e871",
+      "bytes": 2076658
+    },
+    {
+      "path": "android/home-mid.png",
+      "original_path": "build/home-fixed-analysis/android-home-row.png",
+      "sha256": "f1aba6b17714a0ab79e8c5b2a93bf9f4efcb6a943a9bb92642a3e9a8ae4aa024",
+      "bytes": 1851638
+    },
+    {
+      "path": "android/detail-top.png",
+      "original_path": "build/home-fixed-analysis/android-wild-after-top.png",
+      "sha256": "44760b75427b58079fd89abcb0436a1c488fc644730db4614fc82d9d6ef8b0eb",
+      "bytes": 3081550
+    },
+    {
+      "path": "android/detail-mid.png",
+      "original_path": "build/home-fixed-analysis/android-wild-after-mid.png",
+      "sha256": "06d581e1d6b4d3c01c3b1e36d5a926454c003cb2cb07fec6450f9b3a514147d4",
+      "bytes": 2399646
+    },
+    {
+      "path": "build.log",
+      "original_path": "build/home-fixed-analysis/build-layered.log",
+      "sha256": "d074f57e5d0ae081fcf3168c246a73d18f7996b71011664f03a575a5ccc6df11",
+      "bytes": 2548
+    },
+    {
+      "path": "working-tree.patch",
+      "sha256": "2042e04ee604413f974f77ddf1bc8a8016108fe8003ca5d55517f52d6dea633d",
+      "bytes": 45760
+    }
+  ],
+  "apk": {
+    "path": "android/app/build/outputs/apk/debug/app-debug.apk",
+    "sha256": "06e23e48b1e18dc3639a2f878b037ad894cf91dc1dc767b397041765ade68e3a",
+    "bytes": 60764231,
+    "archived": false
+  },
+  "existing_edits": "DetailSections parental guide changes pre-existed; included only to reproduce integrated build. Other unrelated edits excluded."
+}

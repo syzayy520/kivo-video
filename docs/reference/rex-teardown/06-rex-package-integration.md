@@ -1,5 +1,7 @@
 # Rex 拆解证据源总目录：三批证据的分工、冲突与合并结论
 
+> 2026-11-08 复核：本篇保留为历史集成记录。“全部文案级确定状态机”“35 行”“启动屏等于全应用设计宽”不得直接沿用。实际为 32 个 CSV 场景；原件核验和资源缺口见 [审计索引](audit/status.md)。后续执行 [新规划](../../design/ui/replica/roadmap.md)。
+
 > 状态：**集成完成**。本文是 rex-teardown 目录的证据源索引，三批证据互补使用。
 > 第二批（本目录 `rex-package/`）由用户在 Mac 端用 REA v6.7.0 + `assetutil`/`plutil`/`sips`
 > 对 **App Store 版 IPA（SHA-256 `ef2c21cc…4485`，FairPlay 加密 cryptid=1）** 静态拆解产出，

@@ -1,0 +1,714 @@
+[
+  {
+    "path": "docs/reference/rex-teardown/rex-package/assets/main.err",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\assets\\main.err",
+    "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/assets/main.json",
+    "sha256": "65e6ff8f3d8fd91c7bc7f84de04385f8e89ff1d09319f2ed88bd15d47ba674fd",
+    "bytes": 927518,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\assets\\main.json",
+    "original_sha256": "65e6ff8f3d8fd91c7bc7f84de04385f8e89ff1d09319f2ed88bd15d47ba674fd",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/assets/RexDesign_RexDesign.bundle.json",
+    "sha256": "cf3798039a33352b53ad66e0391430a317dfccee40740993aaf54260293858a7",
+    "bytes": 36547,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\assets\\RexDesign_RexDesign.bundle.json",
+    "original_sha256": "cf3798039a33352b53ad66e0391430a317dfccee40740993aaf54260293858a7",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/assets/RexDesign_RexDinoCore.bundle.json",
+    "sha256": "cf3798039a33352b53ad66e0391430a317dfccee40740993aaf54260293858a7",
+    "bytes": 36547,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\assets\\RexDesign_RexDinoCore.bundle.json",
+    "original_sha256": "cf3798039a33352b53ad66e0391430a317dfccee40740993aaf54260293858a7",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/assets/RexHome_RexHome.bundle.json",
+    "sha256": "b7788f30e014fb485ea038891f2eac6029000ae5b7744e06daaa9279ea852979",
+    "bytes": 4155,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\assets\\RexHome_RexHome.bundle.json",
+    "original_sha256": "b7788f30e014fb485ea038891f2eac6029000ae5b7744e06daaa9279ea852979",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/assets/RexHome_RexHomeCore.bundle.json",
+    "sha256": "587d2879127170f1318affed8659ce74991e9db7ba6a86516b5b99f3e0cc1da6",
+    "bytes": 13569,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\assets\\RexHome_RexHomeCore.bundle.json",
+    "original_sha256": "587d2879127170f1318affed8659ce74991e9db7ba6a86516b5b99f3e0cc1da6",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/assets/RexPlayer_RexPlayerUIKit.bundle.json",
+    "sha256": "8d5fb0c257f32e8ed59c02c2e366c2cff59e4f675fa83f505b6e2b75ea0396c3",
+    "bytes": 2786,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\assets\\RexPlayer_RexPlayerUIKit.bundle.json",
+    "original_sha256": "8d5fb0c257f32e8ed59c02c2e366c2cff59e4f675fa83f505b6e2b75ea0396c3",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/Rex_UI结构复刻说明书.md",
+    "sha256": "6b67468c0e7b213dee009a8ae1f2dde9a08511b608b1a7440760c99f9f525196",
+    "bytes": 22761,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_UI结构复刻说明书.md",
+    "original_sha256": "6b67468c0e7b213dee009a8ae1f2dde9a08511b608b1a7440760c99f9f525196",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/Rex_动效与交互全量拆解.md",
+    "sha256": "92d68c8721364e1831a10158bba16f60c61d0533e4871b2b449b8986b1db7529",
+    "bytes": 44368,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_动效与交互全量拆解.md",
+    "original_sha256": "92d68c8721364e1831a10158bba16f60c61d0533e4871b2b449b8986b1db7529",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/Rex_动效参数表.csv",
+    "sha256": "ff0f97587ae7fb38303ac5b75e8e1a64b3a7c7635b8c4b1bd97fb837144c1e17",
+    "bytes": 12524,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_动效参数表.csv",
+    "original_sha256": "ff0f97587ae7fb38303ac5b75e8e1a64b3a7c7635b8c4b1bd97fb837144c1e17",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/Rex_拆解成果_落地包.zip",
+    "sha256": "69fd067fe2f7b8807b34e625404d860e956e85805665df9b68ac4ffd398e214a",
+    "bytes": 335071,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包.zip",
+    "original_sha256": "69fd067fe2f7b8807b34e625404d860e956e85805665df9b68ac4ffd398e214a",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__AppHome.json",
+    "sha256": "a4468345b6090bb36b66424c75311bb8581e6e2576dccad9fc7d67a6df160fe2",
+    "bytes": 11068,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__AppHome.json",
+    "original_sha256": "a4468345b6090bb36b66424c75311bb8581e6e2576dccad9fc7d67a6df160fe2",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__AppPlayback.json",
+    "sha256": "90b86d74257dd5e6e92f602627288f8dd6f0d2da08c92487627e163890c46fb0",
+    "bytes": 4990,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__AppPlayback.json",
+    "original_sha256": "90b86d74257dd5e6e92f602627288f8dd6f0d2da08c92487627e163890c46fb0",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__AppSettings.json",
+    "sha256": "6acdfaf4664e831d4b0c57564c854ee2eefb01d2c458f5ee7e1a6afe0358f35f",
+    "bytes": 21045,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__AppSettings.json",
+    "original_sha256": "6acdfaf4664e831d4b0c57564c854ee2eefb01d2c458f5ee7e1a6afe0358f35f",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__AppShell.json",
+    "sha256": "026be317fb1174f285f8cd4d17d3574e6af5f12204ee8eb0de7dd5c3cc764c89",
+    "bytes": 309,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__AppShell.json",
+    "original_sha256": "026be317fb1174f285f8cd4d17d3574e6af5f12204ee8eb0de7dd5c3cc764c89",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__AppWatching.json",
+    "sha256": "c2e0f61ff099985d3a67d81857948fdea551d632a8b9c9e459463488be10f75c",
+    "bytes": 5135,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__AppWatching.json",
+    "original_sha256": "c2e0f61ff099985d3a67d81857948fdea551d632a8b9c9e459463488be10f75c",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Calendar.json",
+    "sha256": "fc3bdea577412fb5b6ad85f27700a3c6a24d00173e80dbba50ed71e450e7811a",
+    "bytes": 1239,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Calendar.json",
+    "original_sha256": "fc3bdea577412fb5b6ad85f27700a3c6a24d00173e80dbba50ed71e450e7811a",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Catalog.json",
+    "sha256": "21b3da6170e99e52e36ac3ac5ba4f4e5ae90c819c5d73f208c85ffd560c66fed",
+    "bytes": 2398,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Catalog.json",
+    "original_sha256": "21b3da6170e99e52e36ac3ac5ba4f4e5ae90c819c5d73f208c85ffd560c66fed",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Details.json",
+    "sha256": "14e3f8a32312a26bdd8b0c856925811beccbdf262618f3a4310e89fceb93cfc5",
+    "bytes": 9119,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Details.json",
+    "original_sha256": "14e3f8a32312a26bdd8b0c856925811beccbdf262618f3a4310e89fceb93cfc5",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Environment.json",
+    "sha256": "16f7dc0cfda166e430694587ecedf4bb9d52b3644de984da958eb6a287f3ad5f",
+    "bytes": 5427,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Environment.json",
+    "original_sha256": "16f7dc0cfda166e430694587ecedf4bb9d52b3644de984da958eb6a287f3ad5f",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Genres.json",
+    "sha256": "f2253dd7db6fd811eca324f20f25289a33e4dff3a519182fab62dec9ad6e4243",
+    "bytes": 786,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Genres.json",
+    "original_sha256": "f2253dd7db6fd811eca324f20f25289a33e4dff3a519182fab62dec9ad6e4243",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Home.json",
+    "sha256": "b12b9a82c9359502181cf4be172c5a46f0975341070e859a73008f1019fadff5",
+    "bytes": 7624,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Home.json",
+    "original_sha256": "b12b9a82c9359502181cf4be172c5a46f0975341070e859a73008f1019fadff5",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__HomeBuiltIn.json",
+    "sha256": "a18557488104f96d8f9d30d291285a010b300ac00521f81102ba3509681d28bd",
+    "bytes": 1481,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__HomeBuiltIn.json",
+    "original_sha256": "a18557488104f96d8f9d30d291285a010b300ac00521f81102ba3509681d28bd",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__HomeEditor.json",
+    "sha256": "138bd3c6dffd45c70d6a340449096e0175b36694d2278db8659e374446dc3fb2",
+    "bytes": 8700,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__HomeEditor.json",
+    "original_sha256": "138bd3c6dffd45c70d6a340449096e0175b36694d2278db8659e374446dc3fb2",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__HomeSharing.json",
+    "sha256": "d0fb9b4343fe59228a68df53a7cbadc08b2eb99e9d2d3a1610aae95f4887047e",
+    "bytes": 695,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__HomeSharing.json",
+    "original_sha256": "d0fb9b4343fe59228a68df53a7cbadc08b2eb99e9d2d3a1610aae95f4887047e",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__InfoPlist.json",
+    "sha256": "57a324243f7d5d558c10c76fa8efc6b255911c0a9072492bf1eab4cd03a0b1e9",
+    "bytes": 463,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__InfoPlist.json",
+    "original_sha256": "57a324243f7d5d558c10c76fa8efc6b255911c0a9072492bf1eab4cd03a0b1e9",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Library.json",
+    "sha256": "955ad527800121b944ebbad9f0e71fb454d118bd068b8cc7685ce18cf2d8e4c3",
+    "bytes": 33718,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Library.json",
+    "original_sha256": "955ad527800121b944ebbad9f0e71fb454d118bd068b8cc7685ce18cf2d8e4c3",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Localizable.json",
+    "sha256": "3d5e2dc10cf89b6f3cc5baebedb28abde0b261a18b386270b5f3ee111dfa24b1",
+    "bytes": 1243,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Localizable.json",
+    "original_sha256": "3d5e2dc10cf89b6f3cc5baebedb28abde0b261a18b386270b5f3ee111dfa24b1",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Mac.json",
+    "sha256": "559718b28cf3faf434e9821ac33507d28c2e5ed52636e15e15595caf904a092e",
+    "bytes": 6837,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Mac.json",
+    "original_sha256": "559718b28cf3faf434e9821ac33507d28c2e5ed52636e15e15595caf904a092e",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__MacPages.json",
+    "sha256": "c566b845f9510becb9cf1c372de791b9824bad6c7b7a3b8a7b4d6bd471292f63",
+    "bytes": 4563,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__MacPages.json",
+    "original_sha256": "c566b845f9510becb9cf1c372de791b9824bad6c7b7a3b8a7b4d6bd471292f63",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__MacPagesExisting.json",
+    "sha256": "815eac560b4a7107bb44e71aded96095f0b04b9e31173fbb449a7ee202f80623",
+    "bytes": 4880,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__MacPagesExisting.json",
+    "original_sha256": "815eac560b4a7107bb44e71aded96095f0b04b9e31173fbb449a7ee202f80623",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__MacPlayer.json",
+    "sha256": "69952c68425f851ac1b964fadd7ace3a194da53b45db83f136d2b0635701fe6e",
+    "bytes": 8525,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__MacPlayer.json",
+    "original_sha256": "69952c68425f851ac1b964fadd7ace3a194da53b45db83f136d2b0635701fe6e",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__MacSettings.json",
+    "sha256": "1490ece5abc40c349c2a28728edb7174f3e68a7420006bfa62265706573dd446",
+    "bytes": 23149,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__MacSettings.json",
+    "original_sha256": "1490ece5abc40c349c2a28728edb7174f3e68a7420006bfa62265706573dd446",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__MacShell.json",
+    "sha256": "52e102b2c765a9d97e5a103ac1499e39b2fed84de6c4777ec66cdbac5105839a",
+    "bytes": 11188,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__MacShell.json",
+    "original_sha256": "52e102b2c765a9d97e5a103ac1499e39b2fed84de6c4777ec66cdbac5105839a",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__MediaMarks.json",
+    "sha256": "47d09b8a13a9d775a6e0d663b24a7d94351ff35c39be0d9649daa4d8d7a3d5f1",
+    "bytes": 1493,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__MediaMarks.json",
+    "original_sha256": "47d09b8a13a9d775a6e0d663b24a7d94351ff35c39be0d9649daa4d8d7a3d5f1",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Offline.json",
+    "sha256": "c9e67226b76ebf92edfd161045b9b4a61122c7f0f2ef63871a473b8b642069ae",
+    "bytes": 2454,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Offline.json",
+    "original_sha256": "c9e67226b76ebf92edfd161045b9b4a61122c7f0f2ef63871a473b8b642069ae",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Onboarding.json",
+    "sha256": "397f079c78e6a37619d1c25e118a8faca2b0d84d1e95a8fa51db76eca8e8b2ca",
+    "bytes": 8333,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Onboarding.json",
+    "original_sha256": "397f079c78e6a37619d1c25e118a8faca2b0d84d1e95a8fa51db76eca8e8b2ca",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__People.json",
+    "sha256": "a5f4012c1e8946ba547114df534be7d8c83ef3572a087858497862702a047fa5",
+    "bytes": 1831,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__People.json",
+    "original_sha256": "a5f4012c1e8946ba547114df534be7d8c83ef3572a087858497862702a047fa5",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Pro.json",
+    "sha256": "0544b961de06efd7c1ca697c035b6707d5aa093898c6051fd2a8d236eab77ac4",
+    "bytes": 7552,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Pro.json",
+    "original_sha256": "0544b961de06efd7c1ca697c035b6707d5aa093898c6051fd2a8d236eab77ac4",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Search.json",
+    "sha256": "b1e545c004b12c6ba8b18a828a4b3d846bb7b8549eb0570b0bcc329988b42bbc",
+    "bytes": 5006,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Search.json",
+    "original_sha256": "b1e545c004b12c6ba8b18a828a4b3d846bb7b8549eb0570b0bcc329988b42bbc",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Services.json",
+    "sha256": "f6ee5586386e9961224def960eecec6821c4b3282b17f8c28dc239ef9b6c7fd5",
+    "bytes": 4242,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Services.json",
+    "original_sha256": "f6ee5586386e9961224def960eecec6821c4b3282b17f8c28dc239ef9b6c7fd5",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Settings.json",
+    "sha256": "6f70fdecc2c6d08676718c08032104a342c08512175d0a91fdc87fcee016908b",
+    "bytes": 51894,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Settings.json",
+    "original_sha256": "6f70fdecc2c6d08676718c08032104a342c08512175d0a91fdc87fcee016908b",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__SettingsDino.json",
+    "sha256": "05ddfcbad8b6d7f843a265455a146190edc3bca450d79ad718abfbd0eb912fc1",
+    "bytes": 12794,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__SettingsDino.json",
+    "original_sha256": "05ddfcbad8b6d7f843a265455a146190edc3bca450d79ad718abfbd0eb912fc1",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__SettingsEnvironment.json",
+    "sha256": "eb47c03930c454d4164fc7c98b48ece6d4685e67662ad7aec7dd1d81babf3506",
+    "bytes": 7367,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__SettingsEnvironment.json",
+    "original_sha256": "eb47c03930c454d4164fc7c98b48ece6d4685e67662ad7aec7dd1d81babf3506",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__SettingsFeedback.json",
+    "sha256": "37a134b1c54605d1857ce583fe1d1d0ecbc39c13b2ab89d106e507b114657acf",
+    "bytes": 7224,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__SettingsFeedback.json",
+    "original_sha256": "37a134b1c54605d1857ce583fe1d1d0ecbc39c13b2ab89d106e507b114657acf",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__SettingsModules.json",
+    "sha256": "64723de09c805bac4a3891ccddbdf338985247417b97dc542b618ac24fb5d2be",
+    "bytes": 7044,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__SettingsModules.json",
+    "original_sha256": "64723de09c805bac4a3891ccddbdf338985247417b97dc542b618ac24fb5d2be",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__SettingsPlayback.json",
+    "sha256": "54d89c83fa09dbd3f9d28ade8b67cdf7a3704eaabc273f8d66e08627cf913d69",
+    "bytes": 16451,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__SettingsPlayback.json",
+    "original_sha256": "54d89c83fa09dbd3f9d28ade8b67cdf7a3704eaabc273f8d66e08627cf913d69",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__SettingsSubtitle.json",
+    "sha256": "5260311141d49b9b82deaa904eb0e980500c8f2b02beb5e55375756d36ec990d",
+    "bytes": 10370,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__SettingsSubtitle.json",
+    "original_sha256": "5260311141d49b9b82deaa904eb0e980500c8f2b02beb5e55375756d36ec990d",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Shell.json",
+    "sha256": "4d756d74319826d69fb9de0f55428227060ebe1cbf325f779e3517d1da50acf3",
+    "bytes": 6474,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Shell.json",
+    "original_sha256": "4d756d74319826d69fb9de0f55428227060ebe1cbf325f779e3517d1da50acf3",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/en__Watching.json",
+    "sha256": "7b5e782bc13582f8c7443dba8ea9b922dc8d84e1ab97be76eeee71552a81039a",
+    "bytes": 8656,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\en__Watching.json",
+    "original_sha256": "7b5e782bc13582f8c7443dba8ea9b922dc8d84e1ab97be76eeee71552a81039a",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__AppHome.json",
+    "sha256": "a228c7b353597ac4b8cd15d71098fb76964faf961ea32c6441a9ec3606c07e32",
+    "bytes": 10587,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__AppHome.json",
+    "original_sha256": "a228c7b353597ac4b8cd15d71098fb76964faf961ea32c6441a9ec3606c07e32",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__AppPlayback.json",
+    "sha256": "0df1b00597251eb863922322fb2445d5d3dd37fbf0b6f899c11f3e05604b0f7b",
+    "bytes": 4581,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__AppPlayback.json",
+    "original_sha256": "0df1b00597251eb863922322fb2445d5d3dd37fbf0b6f899c11f3e05604b0f7b",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__AppSettings.json",
+    "sha256": "28b761fa30bc6533eccd97e7ed2accab03104f9090fd08b6c4a2a7298858b09e",
+    "bytes": 19592,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__AppSettings.json",
+    "original_sha256": "28b761fa30bc6533eccd97e7ed2accab03104f9090fd08b6c4a2a7298858b09e",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__AppShell.json",
+    "sha256": "336b33c1981372d79b1e4e661a444a7e09db5120ced6e69a3b8608bde366469e",
+    "bytes": 307,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__AppShell.json",
+    "original_sha256": "336b33c1981372d79b1e4e661a444a7e09db5120ced6e69a3b8608bde366469e",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__AppWatching.json",
+    "sha256": "a5d70cc6f908adae7f10a07191cc6e4646fc0d7b499bb597b946ca29eedbeeb9",
+    "bytes": 4806,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__AppWatching.json",
+    "original_sha256": "a5d70cc6f908adae7f10a07191cc6e4646fc0d7b499bb597b946ca29eedbeeb9",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Calendar.json",
+    "sha256": "5349ed8c699af8d502c3655cd35c843933ff5bcabf622871f28660cae9d22db1",
+    "bytes": 1212,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Calendar.json",
+    "original_sha256": "5349ed8c699af8d502c3655cd35c843933ff5bcabf622871f28660cae9d22db1",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Catalog.json",
+    "sha256": "986b728cd5796ee61cfd25fa2d918fe7966f74916e730351c62fae26bdea3156",
+    "bytes": 2285,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Catalog.json",
+    "original_sha256": "986b728cd5796ee61cfd25fa2d918fe7966f74916e730351c62fae26bdea3156",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Details.json",
+    "sha256": "1ce8ecf1287a1c8b6cf16f3e15599b7ebe30e814a33a69bf58a99799377eeb92",
+    "bytes": 8820,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Details.json",
+    "original_sha256": "1ce8ecf1287a1c8b6cf16f3e15599b7ebe30e814a33a69bf58a99799377eeb92",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Environment.json",
+    "sha256": "66112b23c1313ff673113cca7841849faa84694fd354054fb5e1c348aae3b2a9",
+    "bytes": 5168,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Environment.json",
+    "original_sha256": "66112b23c1313ff673113cca7841849faa84694fd354054fb5e1c348aae3b2a9",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Genres.json",
+    "sha256": "2b090654ed721ef611c5a9e5ce0cf3e86ea87de15de4cf7273a8a63bd224a5f0",
+    "bytes": 770,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Genres.json",
+    "original_sha256": "2b090654ed721ef611c5a9e5ce0cf3e86ea87de15de4cf7273a8a63bd224a5f0",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Home.json",
+    "sha256": "7581848cd07be232a2a53340ebaf8501bf7ba28855c065d54bd6f029f398c696",
+    "bytes": 7112,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Home.json",
+    "original_sha256": "7581848cd07be232a2a53340ebaf8501bf7ba28855c065d54bd6f029f398c696",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__HomeBuiltIn.json",
+    "sha256": "edd0e78a8f28eb71286e453170bfedc337c54eb57c7bba3197f0e686b02f00dc",
+    "bytes": 1469,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__HomeBuiltIn.json",
+    "original_sha256": "edd0e78a8f28eb71286e453170bfedc337c54eb57c7bba3197f0e686b02f00dc",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__HomeEditor.json",
+    "sha256": "5a24e39597b0ca1fa0b3f166421708d218356346c3444e9df69973fb8850aa9d",
+    "bytes": 8405,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__HomeEditor.json",
+    "original_sha256": "5a24e39597b0ca1fa0b3f166421708d218356346c3444e9df69973fb8850aa9d",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__HomeSharing.json",
+    "sha256": "7229ec952b4aac9e5f94e67d7a4b24eb3ad1d31b61d769407b55c10057485e14",
+    "bytes": 635,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__HomeSharing.json",
+    "original_sha256": "7229ec952b4aac9e5f94e67d7a4b24eb3ad1d31b61d769407b55c10057485e14",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__InfoPlist.json",
+    "sha256": "7fa86b9755e110b6ec76d741074721f080005565fe173b91d5c50ba1ebc21db3",
+    "bytes": 429,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__InfoPlist.json",
+    "original_sha256": "7fa86b9755e110b6ec76d741074721f080005565fe173b91d5c50ba1ebc21db3",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Library.json",
+    "sha256": "b57970f2f01bd492db2b7acab3108dd1cd7067c62d529811d410baa4d9e49316",
+    "bytes": 32549,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Library.json",
+    "original_sha256": "b57970f2f01bd492db2b7acab3108dd1cd7067c62d529811d410baa4d9e49316",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Localizable.json",
+    "sha256": "4fd39dffab593f3efa24258ea4315d92873b969e2478be0a090bc48bbe7aa7bc",
+    "bytes": 1192,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Localizable.json",
+    "original_sha256": "4fd39dffab593f3efa24258ea4315d92873b969e2478be0a090bc48bbe7aa7bc",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Mac.json",
+    "sha256": "8172fe590f6ad4d80ce8ea4a0f83227bb0013bf34c67205dbb9dde2267a432a1",
+    "bytes": 6598,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Mac.json",
+    "original_sha256": "8172fe590f6ad4d80ce8ea4a0f83227bb0013bf34c67205dbb9dde2267a432a1",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__MacPages.json",
+    "sha256": "f92951a14c903d0adabde79353f649644545d32d404583e7bba6077f7db74357",
+    "bytes": 4331,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__MacPages.json",
+    "original_sha256": "f92951a14c903d0adabde79353f649644545d32d404583e7bba6077f7db74357",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__MacPagesExisting.json",
+    "sha256": "dd0fd5107dcf1c62735ee6c2c2b2c988d4050f3b453886c5751999c58998e563",
+    "bytes": 4362,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__MacPagesExisting.json",
+    "original_sha256": "dd0fd5107dcf1c62735ee6c2c2b2c988d4050f3b453886c5751999c58998e563",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__MacPlayer.json",
+    "sha256": "f430ea6437e75f96f06807d1ffd9dce133243b9d4341e29644c09783ba2e45f4",
+    "bytes": 10964,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__MacPlayer.json",
+    "original_sha256": "f430ea6437e75f96f06807d1ffd9dce133243b9d4341e29644c09783ba2e45f4",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__MacSettings.json",
+    "sha256": "00aa2c6ead6e1ec5b015f1c948e5462c17fb12071b197f3c823a4454d12e1983",
+    "bytes": 21863,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__MacSettings.json",
+    "original_sha256": "00aa2c6ead6e1ec5b015f1c948e5462c17fb12071b197f3c823a4454d12e1983",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__MacShell.json",
+    "sha256": "f33f89bca7de5a71d81ddc9904a8e83ba9c33f5f765509fd4b27a5880fbb6762",
+    "bytes": 10777,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__MacShell.json",
+    "original_sha256": "f33f89bca7de5a71d81ddc9904a8e83ba9c33f5f765509fd4b27a5880fbb6762",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__MediaMarks.json",
+    "sha256": "bb5ff8a1c9c51b89cf9c700a1e86230cdebc583495bf7a6a4476918d8d409982",
+    "bytes": 1386,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__MediaMarks.json",
+    "original_sha256": "bb5ff8a1c9c51b89cf9c700a1e86230cdebc583495bf7a6a4476918d8d409982",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Offline.json",
+    "sha256": "654c74d135c9923b7373464ed69bc0113e6ecbbb9a6e23c70c73ae7c59904a51",
+    "bytes": 2371,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Offline.json",
+    "original_sha256": "654c74d135c9923b7373464ed69bc0113e6ecbbb9a6e23c70c73ae7c59904a51",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Onboarding.json",
+    "sha256": "1d5d925c501a358d968c1090ba31a3cb12671fdbe4c816a113a96a5637873b3e",
+    "bytes": 8423,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Onboarding.json",
+    "original_sha256": "1d5d925c501a358d968c1090ba31a3cb12671fdbe4c816a113a96a5637873b3e",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__People.json",
+    "sha256": "9c12a68a941511a20966542987a5d0c146ffbab29b1b49ef8b5cbcf433a09341",
+    "bytes": 1820,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__People.json",
+    "original_sha256": "9c12a68a941511a20966542987a5d0c146ffbab29b1b49ef8b5cbcf433a09341",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Pro.json",
+    "sha256": "3fd8138880b5dedf26fef33aec82ae025df9f0b386c202ad7f3cc1b116f570f3",
+    "bytes": 7145,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Pro.json",
+    "original_sha256": "3fd8138880b5dedf26fef33aec82ae025df9f0b386c202ad7f3cc1b116f570f3",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Search.json",
+    "sha256": "113ea48e958467fc9728c6f5c8d9bb9e379385495e2527f94425ad761c98c938",
+    "bytes": 4873,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Search.json",
+    "original_sha256": "113ea48e958467fc9728c6f5c8d9bb9e379385495e2527f94425ad761c98c938",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Services.json",
+    "sha256": "9e88ddc903f822e3057cc3f3434d6ea08e28ca96f31c89ae738fcf0e34df29f3",
+    "bytes": 4002,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Services.json",
+    "original_sha256": "9e88ddc903f822e3057cc3f3434d6ea08e28ca96f31c89ae738fcf0e34df29f3",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Settings.json",
+    "sha256": "d2079ce1695ce8331dd59f18a5682ed5bb9880ef2025cd09f8de1cb668e5eb3c",
+    "bytes": 49556,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Settings.json",
+    "original_sha256": "d2079ce1695ce8331dd59f18a5682ed5bb9880ef2025cd09f8de1cb668e5eb3c",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__SettingsDino.json",
+    "sha256": "2d662b7b4a6db0064f973eb29e33543c5fd460cf246ec74c19b6521357441427",
+    "bytes": 12560,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__SettingsDino.json",
+    "original_sha256": "2d662b7b4a6db0064f973eb29e33543c5fd460cf246ec74c19b6521357441427",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__SettingsEnvironment.json",
+    "sha256": "ae8b538110b8648d516905ffa8afdeb1749956449dd637584d160bac885b8a8e",
+    "bytes": 6731,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__SettingsEnvironment.json",
+    "original_sha256": "ae8b538110b8648d516905ffa8afdeb1749956449dd637584d160bac885b8a8e",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__SettingsFeedback.json",
+    "sha256": "f026b8e4228557e99be59381bf555255a41bd2fcd420778d0c5a4909844679ba",
+    "bytes": 6962,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__SettingsFeedback.json",
+    "original_sha256": "f026b8e4228557e99be59381bf555255a41bd2fcd420778d0c5a4909844679ba",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__SettingsModules.json",
+    "sha256": "da8226dd289ed286e5a400facd8f5af53e5f0e46f68a229f7a211548296d0b71",
+    "bytes": 6656,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__SettingsModules.json",
+    "original_sha256": "da8226dd289ed286e5a400facd8f5af53e5f0e46f68a229f7a211548296d0b71",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__SettingsPlayback.json",
+    "sha256": "fc47452b1c5e72a33dbab372064a7400e6e7a5bfa3d8e0e95272f586f196fef1",
+    "bytes": 15096,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__SettingsPlayback.json",
+    "original_sha256": "fc47452b1c5e72a33dbab372064a7400e6e7a5bfa3d8e0e95272f586f196fef1",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__SettingsSubtitle.json",
+    "sha256": "f77452c531d98ee9d7cb436047366390841fe9a7a96c6a4562d068c8f5917811",
+    "bytes": 9606,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__SettingsSubtitle.json",
+    "original_sha256": "f77452c531d98ee9d7cb436047366390841fe9a7a96c6a4562d068c8f5917811",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Shell.json",
+    "sha256": "cd51727b2e8c36c7aac07184ff4bcbb3467811e4232e68ad75cde689f87ffdbc",
+    "bytes": 6173,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Shell.json",
+    "original_sha256": "cd51727b2e8c36c7aac07184ff4bcbb3467811e4232e68ad75cde689f87ffdbc",
+    "matches_original": true
+  },
+  {
+    "path": "docs/reference/rex-teardown/rex-package/strings/zh-Hans__Watching.json",
+    "sha256": "69d3555915186dd82a34defdd95a098fda1a45012a9fd4e7b7c2fbba9880d158",
+    "bytes": 8203,
+    "original_path": "C:\\Users\\Administrator\\Pictures\\REX\\rex\\rex\\Rex_拆解成果_落地包\\strings\\zh-Hans__Watching.json",
+    "original_sha256": "69d3555915186dd82a34defdd95a098fda1a45012a9fd4e7b7c2fbba9880d158",
+    "matches_original": true
+  }
+]
