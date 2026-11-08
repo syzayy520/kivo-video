@@ -159,7 +159,15 @@ class MovieDetailActivity : ComponentActivity() {
         val fg = if (chromeDark) Color.White else DesignTokens.textMain
         val fgSub = if (chromeDark) Color.White.copy(alpha = .72f) else DesignTokens.textSub
 
-        Box(Modifier.fillMaxSize().drawBehind { drawRect(scrimColor.value) }) {
+        // 根底色与艺术图提亮同源：整页色调一致，无接缝
+        val pageBase = {
+            androidx.compose.ui.graphics.lerp(fieldColor, Color.White,
+                (( (if (listState.firstVisibleItemIndex == 0)
+                    listState.firstVisibleItemScrollOffset / density.density else 390f)
+                    - DETAIL_WASH_START_DP) / DETAIL_WASH_RAMP_DP).coerceIn(0f, 1f) *
+                    DETAIL_WASH_MAX_ALPHA)
+        }
+        Box(Modifier.fillMaxSize().drawBehind { drawRect(pageBase()) }) {
             val scrollDpNow = {
                 if (listState.firstVisibleItemIndex == 0)
                     listState.firstVisibleItemScrollOffset / density.density else 390f
@@ -168,11 +176,14 @@ class MovieDetailActivity : ComponentActivity() {
             Box(Modifier.fillMaxWidth().height(DETAIL_HERO_DP.dp)) {
                 HeroArt(details, error, fg, scrimColor)
             }
-            // 提亮层：随滚动增强，把艺术图冲淡为浅色（参照 10 帧里艺术图原地不动、逐渐变浅）
-            Box(Modifier.fillMaxSize().drawBehind {
-                drawRect(Color.White.copy(
-                    alpha = (scrollDpNow() / DETAIL_WASH_FULL_DP).coerceIn(0f, 1f) *
-                        DETAIL_WASH_MAX_ALPHA))
+            // 提亮层：**前 320dp 不提亮**（参照 10 帧实测顶部亮度 0–285dp 恒为 92–97），
+            // 之后 350dp 内升到 0.85，把艺术图冲淡为浅色
+            val washAlpha = {
+                ((scrollDpNow() - DETAIL_WASH_START_DP) / DETAIL_WASH_RAMP_DP)
+                    .coerceIn(0f, 1f) * DETAIL_WASH_MAX_ALPHA
+            }
+            Box(Modifier.fillMaxWidth().height(DETAIL_HERO_DP.dp).drawBehind {
+                drawRect(Color.White.copy(alpha = washAlpha()))
             })
             // 上层：内容层，向上滑时逐段盖住底层幕布
             LazyColumn(
@@ -451,11 +462,13 @@ private const val DETAIL_META_TOP_DP = 510.5f
 /** 主操作行叠在海报下缘。 */
 private const val DETAIL_ACTIONS_TOP_DP = 541f
 /** 文字翻色阈值：滚过此处材质已足够浅，转深色文字。 */
-private const val DETAIL_CHROME_FLIP_DP = 70f
-/** 提亮上限：滚到底时艺术图被冲淡到这个白色透明度。 */
-private const val DETAIL_WASH_MAX_ALPHA = .86f
-/** 达到提亮上限所需的滚动量。 */
-private const val DETAIL_WASH_FULL_DP = 300f
+private const val DETAIL_CHROME_FLIP_DP = 430f
+/** 提亮起点：滚过此值才开始冲淡（实测 0–285dp 亮度恒定）。 */
+private const val DETAIL_WASH_START_DP = 320f
+/** 提亮斜坡长度（到顶所需滚动量）。 */
+private const val DETAIL_WASH_RAMP_DP = 350f
+/** 提亮上限。 */
+private const val DETAIL_WASH_MAX_ALPHA = .85f
 /** 片名图层高度带（logo 或文字，底对齐）。 */
 private const val DETAIL_TITLE_BAND_DP = 88f
 /** 片名图层顶边 = meta 顶 510.5 − 间距 18 − 带高 88。 */
