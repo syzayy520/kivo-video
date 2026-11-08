@@ -112,6 +112,30 @@ class EmbyClient(serverInput: String) {
         } finally { c.disconnect() }
     }
 
+    data class Counts(val movies: Int, val series: Int)
+
+    /** Availability only; authentication and count permissions are separate capabilities. */
+    fun isReachable(): Boolean = runCatching {
+        val c = conn("$base$prefix/System/Info/Public", "GET")
+        c.connectTimeout = 3000
+        c.readTimeout = 3000
+        try { c.responseCode in 200..499 } finally { c.disconnect() }
+    }.getOrDefault(false)
+
+    /** Counts visible to this user; SeriesCount counts shows, not individual episodes. */
+    fun counts(auth: Auth): Counts {
+        val c = conn("$base$prefix/Items/Counts?UserId=${URLEncoder.encode(auth.userId, "UTF-8")}", "GET")
+        try {
+            c.setRequestProperty("X-Emby-Token", auth.token)
+            val code = c.responseCode
+            if (code !in 200..299) throw HttpFailure(code)
+            val json = JSONObject(c.inputStream.bufferedReader().use { it.readText() })
+            return Counts(json.getInt("MovieCount"), json.getInt("SeriesCount")).also {
+                require(it.movies >= 0 && it.series >= 0)
+            }
+        } finally { c.disconnect() }
+    }
+
     /** D3：直连流 URL（static=true + api_key）——Emby 原生 HTTP Range，喂 220b 会话。 */
     fun streamUrl(auth: Auth, itemId: String): String =
         "$base$prefix/Videos/$itemId/stream?static=true&api_key=${auth.token}"

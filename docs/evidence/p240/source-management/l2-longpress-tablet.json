@@ -1,0 +1,7 @@
+{
+  "device": "CFE6R21B12000179",
+  "gesture": "adb shell input swipe 190 1130 190 1130 850",
+  "editVisible": true,
+  "removeVisible": true,
+  "cancelVisible": true
+}

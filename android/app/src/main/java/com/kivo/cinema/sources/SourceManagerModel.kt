@@ -18,6 +18,7 @@ import java.net.URI
 class SourceManagerModel(app: Application) : AndroidViewModel(app) {
     private val repository = SourceRepository(SourceStore(app))
     var records by mutableStateOf<List<SourceRecord>>(emptyList()); private set
+    val summaries = com.kivo.cinema.sources.overview.SourceSummaries(viewModelScope) { records }
     var ready by mutableStateOf(false); private set
     var loadError by mutableStateOf<String?>(null); private set
     var error by mutableStateOf<String?>(null); private set
@@ -32,6 +33,7 @@ class SourceManagerModel(app: Application) : AndroidViewModel(app) {
     private var job: Job? = null
     private var generation = 0
     val busy get() = verifying || saving
+    val editingExisting get() = original != null
 
     init { refresh() }
     fun refresh() {

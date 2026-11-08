@@ -1,5 +1,7 @@
 # 交接快照 · Kivo Video Android 后端核心
 
+> 2026-11-09 L2紧凑卡使用官方Emby图标、服名及真实电影/剧集数量，添加先选来源类型；新增6dp绿/红/灰状态点。平板已验在线→断网红→恢复，前台每60秒更新；[证据与未验项](../evidence/p240/source-management/l2-compact-status.md)。L2仍DOING。K40再次USB断开，最后大字检查后可能仍1.5倍，下次连接第一件事恢复font_scale=1.0并确认，不能沿用此前“字号已恢复”的结论。
+
 > 2026-11-09用户要求视觉不能最后才做：L2已提前统一资源库主题/总览基础，手机和平板覆盖安装；[截图与边界](../evidence/p240/source-management/l2-visual-status.md)。表单/媒体浏览最终UI及原有未测矩阵仍待做。另查到手机残留TMDB回环代理但无USB转发，已原位备份停用；共享API短域直连真实片单200，图片间歇成功/SocketException，限重试一次后最终生产加载器仍false，[诊断证据](../evidence/p240/tmdb-connectivity/status.md)。不要把API修复当图片修复；浏览器同路径对照被自动审批拦截。手机原微信输入法已恢复；最终instrument运行会停止目标应用，随后重开。L2仍DOING，未进入L3。
 
 > 2026-11-09 当前资源库任务：先收 L2 多源管理，再做内容分类。L1 加密存储/解析及平板接手自检已通过；L2 已接入总览、命名、真实登录保存、源ID恢复与编辑事务，两个真实服务器已在平板验证跨进程保留、切换、编辑取消及失败不覆盖原连接。[L2证据与未测项](../evidence/p240/source-management/l2-status.md)。K40随后已连接，同包覆盖安装，两源新增/跨进程恢复/切换、成功编辑、真实删除后恢复已实测，[手机证据](../evidence/p240/source-management/l2-phone-status.md)。L2保持 DOING，编辑后单独重启、粘贴完整UI、键盘/大字号与取消竞态尚待验。分页WIP已随包安装，首批浏览通过，分页搜索未验。用户指出混排，已记入 [L3内容范围卡](../design/ui/library-rebuild/l3-content-scope.md)，未开始分类实现。REX原件、六款播放器研究和自然家族树见 [统一设计](../design/ui/library-rebuild/plan.md)。后端P15指针独立。
