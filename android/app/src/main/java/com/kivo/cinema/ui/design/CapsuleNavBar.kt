@@ -23,8 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * 底部导航（grid_02 帧实测）：单个白玻璃胶囊 4 tab + 分离搜索圆钮。
+ * 底部导航（grid_02/t22 实测）：单个白玻璃胶囊 4 tab + 分离搜索圆钮。
  * 胶囊高 50pt、距底 22pt、左右 16pt；图标 ~26pt + label 10pt；tab 间距均分。
+ * onDark（E11）：深色环境上玻璃转暗玻璃、图标文字转白（hero_14/20 实证）。
  */
 @Composable
 fun CapsuleNavBar(
@@ -32,7 +33,12 @@ fun CapsuleNavBar(
     selected: Int,
     onSelect: (Int) -> Unit,
     onSearch: () -> Unit,
+    onDark: Boolean = false,
 ) {
+    val glassAlpha = if (onDark) 0.42f else DesignTokens.glassAlpha
+    val glassColor = if (onDark) Color.Black else Color.White
+    val fg = if (onDark) Color.White else DesignTokens.textMain
+    val fgSub = if (onDark) Color.White.copy(alpha = 0.62f) else DesignTokens.textSub
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -45,6 +51,8 @@ fun CapsuleNavBar(
                 .weight(1f)
                 .height(DesignTokens.navHeight.dp),
             radius = 25f,
+            alpha = glassAlpha,
+            colorOverride = glassColor,
         ) {
             Row(
                 Modifier
@@ -61,10 +69,9 @@ fun CapsuleNavBar(
                             .clickable { onSelect(i) }
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
-                        Text(icon, fontSize = 22.sp, color = DesignTokens.textMain)
+                        Text(icon, fontSize = 22.sp, color = fg)
                         Text(label, fontSize = DesignTokens.fontNavLabel.sp,
-                            color = if (i == selected) DesignTokens.textMain
-                                    else DesignTokens.textSub)
+                            color = if (i == selected) fg else fgSub)
                     }
                 }
             }
@@ -76,9 +83,11 @@ fun CapsuleNavBar(
                 .clip(CircleShape)
                 .clickable { onSearch() },
             radius = DesignTokens.circleButton,
+            alpha = glassAlpha,
+            colorOverride = glassColor,
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Text("🔍", fontSize = 20.sp)
+                Text("🔍", fontSize = 20.sp, color = fg)
             }
         }
     }

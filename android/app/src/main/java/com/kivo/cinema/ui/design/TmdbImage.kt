@@ -50,8 +50,18 @@ object TmdbImageCache {
     }
 }
 
+/** 图加载中/失败的占位底色（E12：Rex 缺图为平色块，无 🎬）。 */
+val TmdbPlaceholder = Color(0xFFE9E4EE)
+
 @Composable
-fun TmdbImage(url: String, contentDescription: String, modifier: Modifier = Modifier) {
+fun TmdbImage(
+    url: String,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    bg: Color = TmdbPlaceholder,
+    fit: Boolean = false,        // true = ContentScale.Fit（logo 等非满铺图）
+    onLoaded: ((Boolean) -> Unit)? = null,   // 加载完成回报（true=成功）——hero 缺图回退标题用
+) {
     var bmp by remember(url) { mutableStateOf(TmdbImageCache.get(url)) }
     LaunchedEffect(url) {
         if (bmp != null) return@LaunchedEffect
@@ -85,16 +95,14 @@ fun TmdbImage(url: String, contentDescription: String, modifier: Modifier = Modi
             }
         }
         bmp = loaded
+        onLoaded?.invoke(loaded != null)
     }
-    Box(modifier.background(Color(0xFFE3DEEA))) {
+    Box(modifier.background(bg)) {
         val b = bmp
         if (b != null) {
             Image(b.asImageBitmap(), contentDescription,
-                contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-        } else {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("🎬", fontSize = 26.sp)
-            }
+                contentScale = if (fit) ContentScale.Fit else ContentScale.Crop,
+                modifier = Modifier.fillMaxSize())
         }
     }
 }

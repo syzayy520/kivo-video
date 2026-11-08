@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 播放器壳：无标题、全屏、黑底。UI 层留到后续阶段单独设计。 -->
+    <!-- 播放器壳：无标题、黑底。edge-to-edge 由 MainActivity enableEdgeToEdge() 接管
+        （239：hero 需顶入状态栏下——windowFullscreen 与之互斥，删除）。 -->
     <style name="Theme.KivoCinema" parent="Theme.AppCompat.NoActionBar">
-        <item name="android:windowFullscreen">true</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:colorBackground">@android:color/black</item>

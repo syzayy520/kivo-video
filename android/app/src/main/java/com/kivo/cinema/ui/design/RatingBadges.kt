@@ -23,7 +23,8 @@ fun RatingBadges(
     ratings: List<Pair<String, Float>>,   // (来源名, 分数)
     modifier: Modifier = Modifier,
     alignCenter: Boolean = false,
-    adaptiveLight: Boolean = false,       // hero 图内自适应：数值用白/黑
+    adaptiveLight: Boolean = false,       // 旧参数保留（现用 valueColor 显式指定）
+    valueColor: Color = DesignTokens.textMain,   // 数值色随 hero 前景自适应（t22 实证）
 ) {
     if (ratings.isEmpty()) return
     Row(
@@ -46,7 +47,7 @@ fun RatingBadges(
                 Text(
                     "%.1f".format(score),
                     fontSize = 13.sp,
-                    color = DesignTokens.textMain,
+                    color = valueColor,
                     modifier = Modifier.padding(start = 3.dp),
                 )
             }

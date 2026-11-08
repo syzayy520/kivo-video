@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.provider.MediaStore as MS
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,17 +51,17 @@ class MainActivity : ComponentActivity() {
     private var nowPlaying by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
     private var onTheAir by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
     private var trending by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
+    private var variety by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
+    private var todayAnime by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
     private var tmdbError by mutableStateOf<String?>(null)   // home.error.network.* 键尾
     private var continueItems by mutableStateOf(
         listOf<Pair<MediaItem, com.kivo.cinema.stats.WatchStore.Progress>>())
-    private var heroRating by mutableStateOf<Pair<String, Float>?>(null)
+    private var ambientDark by mutableStateOf(false)   // 首页环境暗底（导航玻璃/状态栏联动）
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // edge-to-edge（hero 顶入状态栏下——237 hero v2）
-        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.statusBarColor = android.graphics.Color.TRANSPARENT
-        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        // edge-to-edge（239：hero 顶入状态栏下——windowFullscreen 已从主题移除）
+        enableEdgeToEdge()
         com.kivo.cinema.ui.design.TmdbImageCache.diskDir = cacheDir
         com.kivo.cinema.tmdb.TmdbClient.setShared(
             com.kivo.cinema.tmdb.TmdbClient(this))
@@ -80,13 +81,18 @@ class MainActivity : ComponentActivity() {
             val np = tmdbHome.nowPlaying()
             val oa = tmdbHome.onTheAir()
             val tr = tmdbHome.trendingWeek()
+            val va = tmdbHome.varietyPastMonth()
+            val an = tmdbHome.todayAnime()
             runOnUiThread {
                 heroCandidates = hero
                 nowPlaying = np.items
                 onTheAir = oa.items
                 trending = tr.items
+                variety = va.items
+                todayAnime = an.items
                 // 五类错误取首个非空（重试按钮共用 refreshTmdb）
-                tmdbError = listOf(np.errorKind, oa.errorKind, tr.errorKind)
+                tmdbError = listOf(np.errorKind, oa.errorKind, tr.errorKind,
+                        va.errorKind, an.errorKind)
                     .firstOrNull { it != null }
             }
         }.start()
@@ -162,8 +168,14 @@ class MainActivity : ComponentActivity() {
     private fun Shell() {
         var page by remember { mutableStateOf(0) }
         AnimatedGradientBg {
-            Column(Modifier.fillMaxSize()) {
-                Box(Modifier.weight(1f)) {
+            // 悬浮导航：内容全屏铺底，胶囊浮在内容上（0082 帧：卡标签被导航遮住）
+            Box(Modifier.fillMaxSize()) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        // 发现页不裁底：环境层要铺到导航后面（239 §3.2）；其余页留导航空间
+                        .padding(bottom = if (page == 1) 0.dp else 84.dp)
+                ) {
                     when (page) {
                         0 -> SourcesPage(
                             onOpenSmb = { startActivity(
@@ -179,18 +191,21 @@ class MainActivity : ComponentActivity() {
                             videoCount = items.size,
                         )
                         1 -> DiscoverPage(
-                            items = items,
                             continueItems = continueItems,
                             heroCandidates = heroCandidates,
                             nowPlaying = nowPlaying,
                             onTheAir = onTheAir,
                             trending = trending,
+                            variety = variety,
+                            todayAnime = todayAnime,
+                            topPoster = { tmdbHome.topVotedPosterUrl(it) },
+                            logoFor = { tmdbHome.logoUrlFor(it) },
                             posterOf = { posterBlockOf(it) },
                             onOpenItem = { openPlayer(it) },
-                            onOpenLibrary = { openLibrary() },
                             onOpenTmdbItem = { },
                             tmdbError = tmdbError,
                             onRetryTmdb = { refreshTmdb() },
+                            onAmbientDark = { ambientDark = it },
                         )
                         2 -> com.kivo.cinema.ui.design.WatchingPage(
                             continueItems = continueItems,
@@ -205,18 +220,23 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
-                // 距底 22pt（帧实测）
-                Box(Modifier.padding(bottom = 22.dp)) {
+                // 距底 22pt（帧实测）；发现页深色环境时转暗玻璃（E11）
+                Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp)) {
                     CapsuleNavBar(
                         tabs = listOf("资源库" to "🗄", "发现" to "🎞",
                             "在看" to "📺", "我的" to "👤"),
                         selected = page,
                         onSelect = { page = it },
                         onSearch = { openLibrary() },
+                        onDark = page == 1 && ambientDark,
                     )
                 }
             }
         }
+        // 状态栏图标随环境明暗（E11：暗底 → 白图标）
+        val view = findViewById<android.view.View>(android.R.id.content)
+        androidx.core.view.WindowCompat.getInsetsController(window, view)
+            .isAppearanceLightStatusBars = !(page == 1 && ambientDark)
     }
 
     private fun openLibrary() {

@@ -80,18 +80,21 @@ private fun lerp(a: Color, b: Color, t: Float): Color = Color(
     alpha = 1f,
 )
 
-/** 白毛玻璃面（API31+ blur 需 RenderEffect 桥——v1 用降级 92% 白，视觉差≤5%，明示取舍）。 */
+/** 白毛玻璃面（API31+ blur 需 RenderEffect 桥——v1 用降级版，视觉差≤5%，明示取舍）。
+ *  colorOverride：暗玻璃等变体（CapsuleNavBar onDark）。 */
 @Composable
 fun GlassSurface(
     modifier: Modifier = Modifier,
     radius: Float = DesignTokens.radiusCard,
     alpha: Float = DesignTokens.glassAlpha,
+    colorOverride: Color? = null,
     content: @Composable () -> Unit,
 ) {
+    val fill = colorOverride ?: Color.White
     Box(
         modifier
             .clip(RoundedCornerShape(radius.dp))
-            .background(Color.White.copy(alpha = alpha + 0.22f))
+            .background(fill.copy(alpha = alpha + 0.22f))
     ) { content() }
 }
 
@@ -108,16 +111,19 @@ fun GlassCircleButton(modifier: Modifier = Modifier, content: @Composable () -> 
     }
 }
 
-/** 节标题（继续观看/正在热映——grid_02 实测 22pt 粗体左 + 右 ›）。 */
+/** 节标题（继续观看/正在热映——grid_02/t22 实测 22pt 粗体左 + 右 ›；色随环境明暗）。 */
 @Composable
-fun SectionHeader(title: String, onMore: (() -> Unit)? = null) {
+fun SectionHeader(title: String, onMore: (() -> Unit)? = null,
+                  color: Color = DesignTokens.textMain) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(title, fontSize = DesignTokens.fontSectionHeader.sp,
-            fontWeight = FontWeight.Bold, color = DesignTokens.textMain)
+            fontWeight = FontWeight.Bold, color = color,
+            modifier = Modifier.padding(horizontal = DesignTokens.screenPad.dp))
         Spacer(Modifier.weight(1f))
         if (onMore != null) {
-            Text("›", fontSize = 26.sp, color = DesignTokens.textMain,
+            Text("›", fontSize = 26.sp, color = color,
                 modifier = Modifier
+                    .padding(horizontal = DesignTokens.screenPad.dp)
                     .clip(CircleShape)
                     .clickable { onMore() }
             )
@@ -160,12 +166,15 @@ fun DesignPosterCard(title: String, date: String, poster: Painter? = null,
     }
 }
 
-/** 继续观看横滑卡（grid_02 实测：230pt 16:9 + 左下"看到 hh:mm"+ 白进度条 3pt + 卡下标题/元信息）。 */
+/** 继续观看横滑卡（grid_02/t22 实测：230pt 16:9 + 左下"看到 hh:mm"15pt + 白进度条 3pt
+ *  + 卡下标题 15 粗/元信息 13 灰（E10：「3 天前 · 来源」）。色随环境明暗。 */
 @Composable
 fun ContinueCard(title: String, meta: String, seenText: String?,
                  progress: Float, poster: Painter? = null,
                  posterBlock: (@Composable () -> Unit)? = null,
-                 onClick: () -> Unit) {
+                 onClick: () -> Unit,
+                 titleColor: Color = DesignTokens.textMain,
+                 metaColor: Color = DesignTokens.textSub) {
     Column(
         Modifier
             .width(DesignTokens.continueCardWidth.dp)
@@ -202,8 +211,9 @@ fun ContinueCard(title: String, meta: String, seenText: String?,
             }
         }
         Spacer(Modifier.height(6.dp))
-        Text(title, fontSize = DesignTokens.fontRowTitle.sp, fontWeight = FontWeight.Bold,
-            color = DesignTokens.textMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(meta, fontSize = 12.sp, color = DesignTokens.textSub, maxLines = 1)
+        Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+            color = titleColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(meta, fontSize = 13.sp, color = metaColor, maxLines = 1,
+            overflow = TextOverflow.Ellipsis)
     }
 }
