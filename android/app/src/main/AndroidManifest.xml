@@ -31,6 +31,7 @@
                 <activity android:name=".emby.EmbyActivity" android:exported="true"/>
                 <activity android:name=".privatezone.PrivateActivity" android:exported="true"/>
                 <activity android:name=".ui.detail.DetailActivity" android:exported="true"/>
+                <activity android:name=".ui.detail.MovieDetailActivity"/>
 <activity
             android:name=".ui.compose.PlayerComposeActivity"
             android:screenOrientation="landscape"

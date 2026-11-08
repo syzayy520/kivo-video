@@ -245,7 +245,7 @@ class MainActivity : ComponentActivity() {
                             generation = homeGeneration,
                             posterOf = { posterBlockOf(it) },
                             onOpenItem = { openPlayer(it) },
-                            onOpenTmdbItem = { selectedTitle = it },
+                            onOpenTmdbItem = { startActivity(com.kivo.cinema.ui.detail.MovieDetailActivity.intent(this@MainActivity, it)) },
                             tmdbError = tmdbError,
                             onRetryTmdb = { refreshTmdb() },
                             onAmbientDark = { ambientDark = it },
