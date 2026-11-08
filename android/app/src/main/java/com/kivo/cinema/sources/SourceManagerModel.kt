@@ -36,6 +36,10 @@ class SourceManagerModel(app: Application) : AndroidViewModel(app) {
     private var generation = 0
     val busy get() = verifying || saving
     val editingExisting get() = original != null
+    val editingId get() = original?.id
+    val draftDirty get() = editing && (name != original?.name.orEmpty() ||
+        address != original?.address.orEmpty() || username != original?.username.orEmpty() ||
+        password != original?.password.orEmpty())
     val draftVisible get() = original?.hidden != true || com.kivo.cinema.sources.access.SourceAccessSession.unlocked
 
     init { refresh() }

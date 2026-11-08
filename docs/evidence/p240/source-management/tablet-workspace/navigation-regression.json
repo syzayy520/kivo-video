@@ -1,0 +1,32 @@
+{
+  "device": "CFE6R21B12000179",
+  "flow": "split management -> discovery -> library -> management",
+  "initial_pid": "6374",
+  "cycles": [
+    {
+      "cycle": 1,
+      "pid": "6374",
+      "same_process": true
+    },
+    {
+      "cycle": 2,
+      "pid": "6374",
+      "same_process": true
+    },
+    {
+      "cycle": 3,
+      "pid": "6374",
+      "same_process": true
+    },
+    {
+      "cycle": 4,
+      "pid": "6374",
+      "same_process": true
+    },
+    {
+      "cycle": 5,
+      "pid": "6374",
+      "same_process": true
+    }
+  ]
+}

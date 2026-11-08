@@ -49,6 +49,7 @@ import com.kivo.cinema.sources.ui.SourcesScreen
 class MainActivity : ComponentActivity() {
 
     private var items by mutableStateOf(listOf<MediaItem>())
+    private var localVideoCount by mutableStateOf<Int?>(null)
     private val thumbCache = HashMap<Long, android.graphics.Bitmap?>()
     private val sources by lazy { androidx.lifecycle.ViewModelProvider(this)[com.kivo.cinema.sources.SourceManagerModel::class.java] }
     private lateinit var sourceUnlock: com.kivo.cinema.sources.access.SourceUnlockController
@@ -85,7 +86,6 @@ class MainActivity : ComponentActivity() {
         com.kivo.cinema.ui.design.TmdbImageCache.diskDir = cacheDir
         com.kivo.cinema.tmdb.TmdbClient.setShared(
             com.kivo.cinema.tmdb.TmdbClient(this))
-        scanVideos()
         setContent { Shell() }
     }
 
@@ -96,6 +96,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        scanVideos()
         refreshContinue()
         refreshTmdb()
         sources.refresh()
@@ -164,6 +165,7 @@ class MainActivity : ComponentActivity() {
 
     private fun scanVideos() {
         val list = mutableListOf<MediaItem>()
+        var readable = false
         val projection = arrayOf(
             MS.Video.Media._ID, MS.Video.Media.DISPLAY_NAME, MS.Video.Media.DATA,
             MS.Video.Media.DURATION, MS.Video.Media.WIDTH, MS.Video.Media.HEIGHT,
@@ -174,6 +176,7 @@ class MainActivity : ComponentActivity() {
                 MS.Video.Media.EXTERNAL_CONTENT_URI, projection, null, null,
                 "${MS.Video.Media.DATE_ADDED} DESC"
             )?.use { c: Cursor ->
+                readable = true
                 while (c.moveToNext()) {
                     list.add(MediaItem(
                         id = c.getLong(0), title = c.getString(1) ?: "",
@@ -185,6 +188,8 @@ class MainActivity : ComponentActivity() {
             }
         }
         items = list
+        val privateIds = com.kivo.cinema.privatezone.PrivateStore(this).all()
+        localVideoCount = if (readable) list.count { it.id.toString() !in privateIds } else null
     }
 
     @Composable
@@ -211,7 +216,8 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun Shell() {
-        var page by remember { mutableStateOf(1) }
+        var page by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(1) }
+        var sourceNavigationGuard by remember { mutableStateOf<((() -> Unit) -> Unit)?>(null) }
         androidx.compose.runtime.LaunchedEffect(sources.ready) {
             if (sources.ready && !defaultHomeHandled) {
                 defaultHomeHandled = true
@@ -230,6 +236,25 @@ class MainActivity : ComponentActivity() {
         var previewEnabled by remember { mutableStateOf(homePreferences.autoplay) }
         var selectedTitle by remember { mutableStateOf<com.kivo.cinema.tmdb.TmdbHome.Item?>(null) }
         val backdrop = remember { com.kivo.cinema.ui.design.home.NavigationBackdropState() }
+        val shellNavigation: @Composable () -> Unit = {
+                    CapsuleNavBar(
+                        tabs = listOf("发现" to "", "我的" to "", "资源库" to "", "设置" to ""),
+                        selected = listOf(1, 3, 0, 4).indexOf(page),
+                        onSelect = {
+                            val next = listOf(1, 3, 0, 4)[it]
+                            if (next != page) {
+                                if (page == 0 && sourceNavigationGuard != null) sourceNavigationGuard?.invoke { page = next }
+                                else page = next
+                            }
+                        },
+                        onSearch = {
+                            if (page == 0 && sourceNavigationGuard != null) sourceNavigationGuard?.invoke { openLibrary() }
+                            else openLibrary()
+                        },
+                        onDark = page == 1 && ambientDark,
+                        backdrop = backdrop,
+                    )
+        }
         AnimatedGradientBg {
             // 悬浮导航：内容全屏铺底，胶囊浮在内容上（0082 帧：卡标签被导航遮住）
             Box(Modifier.fillMaxSize()) {
@@ -237,13 +262,16 @@ class MainActivity : ComponentActivity() {
                     Modifier
                         .fillMaxSize()
                         // 发现页不裁底：环境层要铺到导航后面（239 §3.2）；其余页留导航空间
-                        .padding(bottom = if (page == 1) 0.dp else 84.dp)
-                          .windowInsetsPadding(if (page == 1) WindowInsets(0, 0, 0, 0) else WindowInsets.statusBars)
-                        .navigationSource(backdrop, enabled = page != 1)
+                        .padding(bottom = if (page == 0 || page == 1) 0.dp else 84.dp)
+                          .windowInsetsPadding(if (page == 0 || page == 1) WindowInsets(0, 0, 0, 0) else WindowInsets.statusBars)
+                        .navigationSource(backdrop, enabled = page != 1 && page != 0)
                 ) {
                     when (page) {
                         0 -> SourcesScreen(
                             model = sources,
+                            navigation = shellNavigation,
+                            overviewModifier = Modifier.navigationSource(backdrop),
+                            onNavigationGuard = { sourceNavigationGuard = it },
                             onUnlock = { action -> sourceUnlock.authenticate(sources::reportError, action) },
                             onOpenSmb = { startActivity(
                                 android.content.Intent(this@MainActivity,
@@ -255,7 +283,7 @@ class MainActivity : ComponentActivity() {
                             onOpenPrivate = { startActivity(
                                 android.content.Intent(this@MainActivity,
                                     com.kivo.cinema.privatezone.PrivateActivity::class.java)) },
-                            videoCount = items.size,
+                            videoCount = localVideoCount,
                         )
                         1 -> DiscoverPage(
                             backdrop = backdrop,
@@ -296,15 +324,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 // 距底 22pt（帧实测）；发现页深色环境时转暗玻璃（E11）
-                Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp)) {
-                    CapsuleNavBar(
-                        tabs = listOf("发现" to "", "我的" to "", "资源库" to "", "设置" to ""),
-                        selected = listOf(1, 3, 0, 4).indexOf(page),
-                        onSelect = { page = listOf(1, 3, 0, 4)[it] },
-                        onSearch = { openLibrary() },
-                        onDark = page == 1 && ambientDark,
-                        backdrop = backdrop,
-                    )
+                if (page != 0) Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp)) {
+                    shellNavigation()
                 }
             }
         }

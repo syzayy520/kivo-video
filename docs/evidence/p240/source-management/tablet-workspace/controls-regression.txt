@@ -1,0 +1,9 @@
+
+PASS legacy schema1 accounts retain credentials and safe defaults
+PASS default home is unique; replacing it invalidates previous editor revision
+PASS home and search aggregation are independent and survive reload
+PASS hidden source excluded from aggregation even in an unlocked foreground session
+PASS verified account edits preserve hidden/default/home/search preferences
+PASS stale preference write leaves bytes intact; all settings can be reversed
+PASS malformed privacy flags fail closed without overwriting the file
+7 cases PASS

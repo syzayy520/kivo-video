@@ -1,0 +1,58 @@
+{
+  "device": "CFE6R21B12000179",
+  "model": "MRR_W29",
+  "apk_sha256": "efcc66159be058401780cc1b519f9bf76b53c3322a4f172aff554d600d2e257b",
+  "build": "assembleDebug --no-daemon: BUILD SUCCESSFUL",
+  "install": "adb install -r: Success",
+  "final_pid": "9004",
+  "checks": [
+    {
+      "case": "landscape_1024dp_font100",
+      "result": "buttons at page bottom; action labels y1460..1510 of 1600px",
+      "evidence": "connection-bottom.png"
+    },
+    {
+      "case": "landscape_keyboard",
+      "result": "action labels y660..710 above keyboard; password reachable by scrolling and synthetic text accepted",
+      "evidence": "connection-keyboard.png"
+    },
+    {
+      "case": "portrait_640dp",
+      "result": "shared narrow sheet; LayoutTest and 13 masked password characters retained",
+      "evidence": "connection-portrait.png"
+    },
+    {
+      "case": "landscape_font150",
+      "result": "shared narrow sheet; buttons visible; synthetic draft retained",
+      "evidence": "connection-font150.png"
+    },
+    {
+      "case": "dirty_back_continue",
+      "result": "confirmation shown; continue editing retains LayoutTest and 13 masked password characters"
+    },
+    {
+      "case": "dirty_back_discard",
+      "result": "synthetic draft discarded; no account saved"
+    },
+    {
+      "case": "single_tap_while_management_open",
+      "result": "resumed com.kivo.cinema/.emby.EmbyActivity; back retains split management and grid position",
+      "evidence": "final-management.png"
+    },
+    {
+      "case": "crash_buffer_after_install",
+      "command": "adb logcat -b crash -d -T '11-09 06:08:00.000'",
+      "result": "empty"
+    }
+  ],
+  "restored_settings": {
+    "font_scale": "1.0",
+    "accelerometer_rotation": "1",
+    "user_rotation": "1"
+  },
+  "limits": [
+    "K40 not connected; tablet narrow layout is not phone hardware verification",
+    "split-screen windows and long stability not tested",
+    "L2 privacy/lifecycle gates remain open"
+  ]
+}
