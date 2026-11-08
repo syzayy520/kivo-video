@@ -1,0 +1,406 @@
+{
+  "base_commit": "2400ac26041b594848e23a3f5aad7a4db83021d3",
+  "device": "b6e950ee",
+  "screen": [
+    1080,
+    2400
+  ],
+  "scope": "R2 playback entry; external launch only; stage remains DOING",
+  "code": [
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt",
+      "bytes": 15476,
+      "sha256": "f9db93769c953f7639321dee829954330549921594b12bb1bff03f2b56eb8104",
+      "newline": "crlf"
+    },
+    {
+      "path": "tools/reference/rex/detail_playback_device.py",
+      "bytes": 292,
+      "sha256": "c65c6db71fc3fa184705aeb6215265cd98cb7029c20e329a651f62cc00b6005a",
+      "newline": "lf"
+    },
+    {
+      "path": "tools/reference/rex/verify_detail_playback.py",
+      "bytes": 3261,
+      "sha256": "924ebe9617168f4937c927a69bc297bcedf4f517897b4d3989a5b9118ea9633e",
+      "newline": "lf"
+    }
+  ],
+  "apk": {
+    "path": "android/app/build/outputs/apk/debug/app-debug.apk",
+    "bytes": 60764290,
+    "sha256": "e3aa34efe1f8f074b6194d501a09f005d90ac5366fd061d086c5472ea6a5ea65"
+  },
+  "evidence": [
+    {
+      "path": "docs/evidence/p240/detail-playback/.gitattributes",
+      "bytes": 70,
+      "sha256": "5b0d9cccf5fad8e4d004aee1dc24d7dbc26ea0e3be09dc7259890ff1e59cd5fb"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/home-trailer-fixture-search-stack.json",
+      "bytes": 167,
+      "sha256": "03782c8bf62a201fc38f93b4d9b3ef76afde06712de612bcf2495f1b59cabf78"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/home-trailer-fixture-search.png",
+      "bytes": 2073141,
+      "sha256": "89b6135b5f0a587c4ba47a4de5c8f21192462e0203470b6c73ea9784a5efc952"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/home-trailer-fixture-search.xml",
+      "bytes": 13225,
+      "sha256": "0cc40eb3055fd6f7cf5a86bb2897a375aec2edfff14f35fd7b85c3935bc935be"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/legacy-before-stack.json",
+      "bytes": 183,
+      "sha256": "bf9671f6a40068af367b8bbcb1cf914d45a1fb4d457abec67136d05c94413354"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/legacy-before.png",
+      "bytes": 2268681,
+      "sha256": "33fe8372a600eb0ccedf4b2f005d8b38053a9eba93f2e420b3329829e5674de1"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/legacy-before.xml",
+      "bytes": 8597,
+      "sha256": "b45e58071a17f86534342b91f9b46a9e930e6ac2ec4208f3daa31a7f343b81e5"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/legacy-intermediate-stack.json",
+      "bytes": 277,
+      "sha256": "acc9c751ad71eb05a020698b4ff3a9e168a1a0aefc0f6b61bfede04ef4da07fd"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/legacy-intermediate.png",
+      "bytes": 333612,
+      "sha256": "04dabdae6812272e5f2cf50dad8c00480bd17c1b83b2ae03cc43238994cbb51a"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/legacy-intermediate.xml",
+      "bytes": 6229,
+      "sha256": "eb9402b2673a7e2ea3eb7464888dd85d5ea6f3075e9a09bebed293cde62ac634"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/no-resource-after-stack.json",
+      "bytes": 183,
+      "sha256": "3b6b66b95f84dff68f95079c2425adab6c679216abccfdb233ece453112ed1d3"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/no-resource-after.png",
+      "bytes": 1806718,
+      "sha256": "06edf4c7def35cd7c9f369567f96cae900f67f0152449694bc4e3284e3152673"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/no-resource-after.xml",
+      "bytes": 7643,
+      "sha256": "c77ab2c4bb0ae0e06b85d5f59cfa6f145ee3cb14a4ae38843cd914df48389acf"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/no-resource-before-stack.json",
+      "bytes": 183,
+      "sha256": "3b6b66b95f84dff68f95079c2425adab6c679216abccfdb233ece453112ed1d3"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/no-resource-before.png",
+      "bytes": 1740188,
+      "sha256": "7be4e040df8115f54637513602eb3fb339d15332ecd2853e3fb0a723144d18a8"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/no-resource-before.xml",
+      "bytes": 7643,
+      "sha256": "c77ab2c4bb0ae0e06b85d5f59cfa6f145ee3cb14a4ae38843cd914df48389acf"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/playback-frame-comparison.png",
+      "bytes": 52380,
+      "sha256": "17b298446e9c1df96abf87ad48378e5eb9cdea05af0929d73be98294d142610b"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-before-stack.json",
+      "bytes": 266,
+      "sha256": "b565228030fd60c99f7a9703d193bf523252a2e17ec95375bf76cdf76fb2adee"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-before.png",
+      "bytes": 2269902,
+      "sha256": "0e46d1a2c5eee9f21d75728e475b8baba9edf81d99abdcd2830e937c49514666"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-before.xml",
+      "bytes": 8597,
+      "sha256": "b45e58071a17f86534342b91f9b46a9e930e6ac2ec4208f3daa31a7f343b81e5"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-no-resource-after-stack.json",
+      "bytes": 266,
+      "sha256": "31a9f21a5a1514a401e574b8f3888623f81e01501ff9d3d1dfdea7031f404410"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-no-resource-after.png",
+      "bytes": 3138207,
+      "sha256": "2a6715f2736a9f1a8aea6bde9bf8ca53fafa6dcfdc6173497751ceb80a9242ba"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-no-resource-after.xml",
+      "bytes": 7292,
+      "sha256": "78ff3846fc571364cdae241c86a93b6952c61c0ce03a86c7bb9df0bbf8ebd678"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-no-resource-before-stack.json",
+      "bytes": 266,
+      "sha256": "31a9f21a5a1514a401e574b8f3888623f81e01501ff9d3d1dfdea7031f404410"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-no-resource-before.png",
+      "bytes": 3074802,
+      "sha256": "7338a61aa60c79d76a0f8d62ea667a69513391115c89071a524fbede2800c982"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-no-resource-before.xml",
+      "bytes": 7292,
+      "sha256": "78ff3846fc571364cdae241c86a93b6952c61c0ce03a86c7bb9df0bbf8ebd678"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-player-later-crop.png",
+      "bytes": 24418,
+      "sha256": "1464373a53b3773450098360e7b2156dd36f92317d09834e8d4d4d9efd1ebdcb"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-player-later-stack.json",
+      "bytes": 368,
+      "sha256": "38e7bfd6cb746abc79e5aefd5eb8bbc0240ebd77df8ac4906d8bbc74f5969da7"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-player-later.png",
+      "bytes": 385728,
+      "sha256": "a3bcbeca27c8d5992f0f0f3bcda007721ab33c051afc275779552ce5dd806ab1"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-player-later.xml",
+      "bytes": 3463,
+      "sha256": "bb9c4f5a9a96e96e5cc9e49d5950179033becfb5994ed02c48dfdefb58cd1ba8"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-player-second-crop.png",
+      "bytes": 30858,
+      "sha256": "05209a3c2af202b9bda5087b7030959eb1f93e61282f533e4eace0db89bb1f13"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-player-second-stack.json",
+      "bytes": 368,
+      "sha256": "38e7bfd6cb746abc79e5aefd5eb8bbc0240ebd77df8ac4906d8bbc74f5969da7"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-player-second.png",
+      "bytes": 394428,
+      "sha256": "695e7ea6799bc0eb664512f880912bb27f29924e20ec4e805aac965a2fa5b98e"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-player-second.xml",
+      "bytes": 3463,
+      "sha256": "bb9c4f5a9a96e96e5cc9e49d5950179033becfb5994ed02c48dfdefb58cd1ba8"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-player-stack.json",
+      "bytes": 368,
+      "sha256": "9b550398af45ec1e49098a56261d2357df2e013ebb36100d86fe34a9f7c0e501"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-player.png",
+      "bytes": 404182,
+      "sha256": "bb5f09152a682363eda7199bcd77421c34f1a681af7206be6d5bff1db8364b5e"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-player.xml",
+      "bytes": 3463,
+      "sha256": "bb9c4f5a9a96e96e5cc9e49d5950179033becfb5994ed02c48dfdefb58cd1ba8"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-return-second-stack.json",
+      "bytes": 266,
+      "sha256": "b565228030fd60c99f7a9703d193bf523252a2e17ec95375bf76cdf76fb2adee"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-return-second.png",
+      "bytes": 2269464,
+      "sha256": "085ad8218df815cc984301ec06bb0ce423259f4ae0e127f80ca15b898f54d4f3"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-return-second.xml",
+      "bytes": 8597,
+      "sha256": "b45e58071a17f86534342b91f9b46a9e930e6ac2ec4208f3daa31a7f343b81e5"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-return-stack.json",
+      "bytes": 266,
+      "sha256": "b565228030fd60c99f7a9703d193bf523252a2e17ec95375bf76cdf76fb2adee"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-return.png",
+      "bytes": 2269464,
+      "sha256": "085ad8218df815cc984301ec06bb0ce423259f4ae0e127f80ca15b898f54d4f3"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/release-return.xml",
+      "bytes": 8597,
+      "sha256": "b45e58071a17f86534342b91f9b46a9e930e6ac2ec4208f3daa31a7f343b81e5"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-before-stack.json",
+      "bytes": 266,
+      "sha256": "6ca896bc5c84af8a6526a8484e32d07eb9c8313abd74e8e7f99e1c18dfb4927a"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-before.png",
+      "bytes": 599447,
+      "sha256": "918564b77e8ef31f9abd0eabfc96698843bd8d7b2b6a269c9c420f903dbfc24b"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-before.xml",
+      "bytes": 13855,
+      "sha256": "6bb91493c1c772a5dec33e64e0f6a3d35b2b01d4026dee16521ebbba42e074a3"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-external-stack.json",
+      "bytes": 266,
+      "sha256": "6ca896bc5c84af8a6526a8484e32d07eb9c8313abd74e8e7f99e1c18dfb4927a"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-external.png",
+      "bytes": 68877,
+      "sha256": "2a9d8018b69ca2c5469d18584c05626ded53e43317a700a95c3a788517cb328e"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-external.xml",
+      "bytes": 19789,
+      "sha256": "b59d847c82e3493861ca9c34f6e644e5fd8f7593e96181c31b9db93f21b1725c"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-final-return-stack.json",
+      "bytes": 266,
+      "sha256": "3957a3b76528c44dbcd2f2b39c08c185e70f8c92de633d6b82f4ff4c01c3b437"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-final-return.png",
+      "bytes": 1386608,
+      "sha256": "d65610230d5fa37ba88ea85580b3adeead66ccc452a2208b181de5757f1ce569"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-final-return.xml",
+      "bytes": 11612,
+      "sha256": "a392406deacffea2291569018ddfe85b28b773902cb257b51a52c8ea2155f6ce"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-idle-stack.json",
+      "bytes": 266,
+      "sha256": "6ca896bc5c84af8a6526a8484e32d07eb9c8313abd74e8e7f99e1c18dfb4927a"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-idle.png",
+      "bytes": 1191877,
+      "sha256": "f82575b5a9f2a2466b151bd586add5b9ee34161eca6ed7798b371b66bb1cb3c2"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-idle.xml",
+      "bytes": 11954,
+      "sha256": "e1e1d7436f2c629c8e7fbc434a131aed08204ba3b2787f45770d3e084e85e3aa"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-ready-stack.json",
+      "bytes": 266,
+      "sha256": "6ca896bc5c84af8a6526a8484e32d07eb9c8313abd74e8e7f99e1c18dfb4927a"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-ready.png",
+      "bytes": 1191877,
+      "sha256": "f82575b5a9f2a2466b151bd586add5b9ee34161eca6ed7798b371b66bb1cb3c2"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-ready.xml",
+      "bytes": 11954,
+      "sha256": "e1e1d7436f2c629c8e7fbc434a131aed08204ba3b2787f45770d3e084e85e3aa"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-return-stack.json",
+      "bytes": 167,
+      "sha256": "03782c8bf62a201fc38f93b4d9b3ef76afde06712de612bcf2495f1b59cabf78"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-return.png",
+      "bytes": 2277154,
+      "sha256": "85f3656b3d8f98baf29fd5e26486ac548670de7daf5b632ffd1d4f87ed813920"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-return.xml",
+      "bytes": 27096,
+      "sha256": "fdd793a73ffe8984984f20435336ecd09a073d478b4e5aeb9f0ce08a902e246b"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-single-before-stack.json",
+      "bytes": 266,
+      "sha256": "3957a3b76528c44dbcd2f2b39c08c185e70f8c92de633d6b82f4ff4c01c3b437"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-single-before.png",
+      "bytes": 1387638,
+      "sha256": "2b27704d3386973ea2b2acf9739c955d50737f1a9cec245d69bf199fa99a8e3d"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/android/trailer-single-before.xml",
+      "bytes": 11612,
+      "sha256": "a392406deacffea2291569018ddfe85b28b773902cb257b51a52c8ea2155f6ce"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/build.log",
+      "bytes": 2548,
+      "sha256": "750484d0c3fed7c992ad3fb3bc88e36fbc4b811e7de5f3f9bb8161be53fd8dbd"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/external-activity.json",
+      "bytes": 266,
+      "sha256": "6ca896bc5c84af8a6526a8484e32d07eb9c8313abd74e8e7f99e1c18dfb4927a"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/external-focused.json",
+      "bytes": 109,
+      "sha256": "7f68024807b207f28335ccfb945b3d2495a9941c306b8f927e7931cfe6325616"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/install.log",
+      "bytes": 38,
+      "sha256": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/operations.jsonl",
+      "bytes": 9274,
+      "sha256": "ff0893a7db0e63ae93aaee6cf701f9a8c5fc98e24387c7c2a0d531ed8c1c046a"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/playback-live.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/playback.log",
+      "bytes": 2,
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/source.patch",
+      "bytes": 1126,
+      "sha256": "6496e08d5dc1655f2427608686a27a376d3a994ea58f29fdbdfc5a3fce0063e8"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/status.md",
+      "bytes": 3196,
+      "sha256": "b54bd04cc0a6377b01a0743cc128f27df5d64f3feccd4fa3bdf16a30ddba61c0"
+    },
+    {
+      "path": "docs/evidence/p240/detail-playback/verification.json",
+      "bytes": 1723,
+      "sha256": "8c0f0be3839d278677d98e984c53dd62763a79e023fa879cbd913952200622e5"
+    }
+  ]
+}

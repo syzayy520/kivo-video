@@ -191,7 +191,7 @@ class MovieDetailActivity : ComponentActivity() {
                             val matched = media
                             if (matched == null) Toast.makeText(this@MovieDetailActivity,
                                 "没有匹配的本地视频，请先在资源库添加资源", Toast.LENGTH_LONG).show()
-                            else openPage(Intent(this@MovieDetailActivity, DetailActivity::class.java)
+                            else openPage(Intent(this@MovieDetailActivity, com.kivo.cinema.ui.compose.PlayerComposeActivity::class.java)
                                 .putExtra("kivo.media", matched.item.path)
                                 .putExtra("kivo.durationMs", matched.item.durationMs))
                         },

@@ -1,0 +1,82 @@
+{
+  "scope": "saved UI nodes and stacks; no performance, network-request or video-success claim",
+  "checks": [
+    {
+      "check": "old button opened intermediate detail",
+      "pass": true
+    },
+    {
+      "check": "new button added one player",
+      "pass": true
+    },
+    {
+      "check": "new button retained parent stack",
+      "pass": true
+    },
+    {
+      "check": "no old intermediate",
+      "pass": true
+    },
+    {
+      "check": "test resource identified",
+      "pass": true
+    },
+    {
+      "check": "release-return restored nodes",
+      "pass": true
+    },
+    {
+      "check": "release-return restored stack",
+      "pass": true
+    },
+    {
+      "check": "release-return-second restored nodes",
+      "pass": true
+    },
+    {
+      "check": "release-return-second restored stack",
+      "pass": true
+    },
+    {
+      "check": "no-resource reason before",
+      "pass": true
+    },
+    {
+      "check": "no-resource reason after",
+      "pass": true
+    },
+    {
+      "check": "no-resource unchanged nodes",
+      "pass": true
+    },
+    {
+      "check": "no-resource unchanged stack",
+      "pass": true
+    },
+    {
+      "check": "trailer idle nodes unchanged",
+      "pass": true
+    },
+    {
+      "check": "trailer idle stack unchanged",
+      "pass": true
+    },
+    {
+      "check": "external YouTube URL visible",
+      "pass": true
+    },
+    {
+      "check": "external return restored nodes",
+      "pass": true
+    },
+    {
+      "check": "external return restored stack",
+      "pass": true
+    },
+    {
+      "check": "four play taps recorded",
+      "pass": true
+    }
+  ],
+  "pass": true
+}

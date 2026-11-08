@@ -1,0 +1,54 @@
+{"at_epoch_ms": 1794156063685, "capture": "no-resource-before"}
+{"at_epoch_ms": 1794156075413, "tap": "未加载到相关资源", "count": 1, "node": {"index": "0", "text": "未加载到相关资源", "resource-id": "", "class": "android.widget.TextView", "package": "com.kivo.cinema", "content-desc": "", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[150,1515][478,1570]"}}
+{"at_epoch_ms": 1794156078445, "capture": "no-resource-after"}
+{"at_epoch_ms": 1794156078516, "assert": "no_resource_does_not_navigate", "pass": true}
+{"at_epoch_ms": 1794156096585, "tap": "生化危机：爆发夜", "count": 1, "node": {"index": "1", "text": "生化危机：爆发夜", "resource-id": "", "class": "android.widget.TextView", "package": "com.kivo.cinema", "content-desc": "", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[47,1365][311,1408]"}}
+{"at_epoch_ms": 1794156101898, "capture": "legacy-before"}
+{"at_epoch_ms": 1794156104160, "tap": "▶  播放", "count": 1, "node": {"index": "0", "text": "▶  播放", "resource-id": "", "class": "android.widget.TextView", "package": "com.kivo.cinema", "content-desc": "", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[241,1512][388,1572]"}}
+{"at_epoch_ms": 1794156106681, "capture": "legacy-intermediate"}
+{"at_epoch_ms": 1794156207132, "swipe": ["540", "1950", "540", "800", "500"]}
+{"at_epoch_ms": 1794156209608, "tap": "生化危机：爆发夜", "count": 1, "node": {"index": "1", "text": "生化危机：爆发夜", "resource-id": "", "class": "android.widget.TextView", "package": "com.kivo.cinema", "content-desc": "", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[47,1252][311,1295]"}}
+{"at_epoch_ms": 1794156214927, "capture": "release-before"}
+{"at_epoch_ms": 1794156215015, "logcat_device_time": "11-09"}
+{"at_epoch_ms": 1794156217372, "tap": "▶  播放", "count": 4, "node": {"index": "0", "text": "▶  播放", "resource-id": "", "class": "android.widget.TextView", "package": "com.kivo.cinema", "content-desc": "", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[241,1512][388,1572]"}}
+{"at_epoch_ms": 1794156222134, "capture": "release-player"}
+{"at_epoch_ms": 1794156263165, "capture_note": "initial last-120 logcat empty; date format split by remote shell; recovered tag-filtered ring tail, preserve PID/timestamp for attribution"}
+{"at_epoch_ms": 1794156267858, "capture": "release-return"}
+{"at_epoch_ms": 1794156267860, "assert": "playback_return_nodes_equal", "pass": true, "before_count": 14, "after_count": 14}
+{"at_epoch_ms": 1794156284534, "tap": "▶  播放", "count": 1, "node": {"index": "0", "text": "▶  播放", "resource-id": "", "class": "android.widget.TextView", "package": "com.kivo.cinema", "content-desc": "", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[241,1512][388,1572]"}}
+{"at_epoch_ms": 1794156289302, "capture": "release-player-second"}
+{"at_epoch_ms": 1794156293974, "capture": "release-player-later"}
+{"at_epoch_ms": 1794156294062, "player_pid": "30676"}
+{"at_epoch_ms": 1794156299558, "capture": "release-return-second"}
+{"at_epoch_ms": 1794156318541, "swipe": ["540", "1950", "540", "700", "500"]}
+{"at_epoch_ms": 1794156337054, "observation": "current movie has no trailer section between stills and similar; no fabricated placeholder"}
+{"at_epoch_ms": 1794156339465, "tap": "荒野丛林", "count": 1, "node": {"index": "1", "text": "荒野丛林", "resource-id": "", "class": "android.widget.TextView", "package": "com.kivo.cinema", "content-desc": "", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[432,1252][564,1295]"}}
+{"at_epoch_ms": 1794156345264, "capture": "release-no-resource-before"}
+{"at_epoch_ms": 1794156347619, "tap": "未加载到相关资源", "count": 1, "node": {"index": "0", "text": "未加载到相关资源", "resource-id": "", "class": "android.widget.TextView", "package": "com.kivo.cinema", "content-desc": "", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[150,1515][478,1570]"}}
+{"at_epoch_ms": 1794156351551, "capture": "release-no-resource-after"}
+{"at_epoch_ms": 1794156414992, "entry": "explicit movie detail intent", "tmdbId": 19995, "purpose": "trailer fixture; home playback used normal navigation"}
+{"at_epoch_ms": 1794156452824, "back": true}
+{"at_epoch_ms": 1794156467040, "swipe": ["540", "600", "540", "2100", "400"]}
+{"at_epoch_ms": 1794156487622, "capture": "home-trailer-fixture-search"}
+{"at_epoch_ms": 1794156585520, "correction": "direct detail intent rejected because activity not exported; run-as also rejected; no production manifest change. Proceed with home trending navigation."}
+{"at_epoch_ms": 1794156604225, "trending_horizontal_swipe": 0}
+{"at_epoch_ms": 1794156607398, "trending_horizontal_swipe": 1}
+{"at_epoch_ms": 1794156610438, "trending_horizontal_swipe": 2}
+{"at_epoch_ms": 1794156613350, "trending_horizontal_swipe": 3}
+{"at_epoch_ms": 1794156616355, "trending_horizontal_swipe": 4}
+{"at_epoch_ms": 1794156619382, "trending_horizontal_swipe": 5}
+{"at_epoch_ms": 1794156717335, "tap": "再婚皇后", "count": 1, "node": {"index": "1", "text": "再婚皇后", "resource-id": "", "class": "android.widget.TextView", "package": "com.kivo.cinema", "content-desc": "", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[812,598][976,653]"}}
+{"at_epoch_ms": 1794156729618, "capture": "trailer-before"}
+{"at_epoch_ms": 1794156753127, "capture": "trailer-ready"}
+{"at_epoch_ms": 1794156759439, "capture": "trailer-idle"}
+{"at_epoch_ms": 1794156782979, "tap": "预告片", "count": 4, "node": {"index": "0", "text": "", "resource-id": "", "class": "android.view.View", "package": "com.kivo.cinema", "content-desc": "预告片", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[55,1397][1025,1943]"}}
+{"at_epoch_ms": 1794156789818, "capture": "trailer-external"}
+{"at_epoch_ms": 1794156822295, "capture": "trailer-return"}
+{"at_epoch_ms": 1794156838236, "observation": "external screenshot showed Edge YouTube page; later focus was already detail before back, so trailer-return is home, not a valid return comparison. Repeat with single tap."}
+{"at_epoch_ms": 1794156841452, "tap": "再婚皇后", "count": 1, "node": {"index": "1", "text": "再婚皇后", "resource-id": "", "class": "android.widget.TextView", "package": "com.kivo.cinema", "content-desc": "", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[812,598][976,653]"}}
+{"at_epoch_ms": 1794156854989, "capture": "trailer-single-before"}
+{"at_epoch_ms": 1794156857540, "tap": "预告片", "count": 1, "node": {"index": "0", "text": "", "resource-id": "", "class": "android.view.View", "package": "com.kivo.cinema", "content-desc": "预告片", "checkable": "false", "checked": "false", "clickable": "false", "enabled": "true", "focusable": "false", "focused": "false", "scrollable": "false", "long-clickable": "false", "password": "false", "selected": "false", "bounds": "[55,1251][1025,1797]"}}
+{"at_epoch_ms": 1794156864855, "capture": "trailer-single-external"}
+{"at_epoch_ms": 1794156869325, "capture": "trailer-single-return"}
+{"at_epoch_ms": 1794156892997, "capture": "trailer-final-return"}
+{"at_epoch_ms": 1794156893000, "external_return": "browser Back did not immediately close external page; unrelated browser UI captures omitted; only Kivo final return retained. External playback not verified."}
