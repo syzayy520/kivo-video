@@ -1,6 +1,7 @@
 package com.kivo.cinema.tmdb
 
 import org.json.JSONObject
+import com.kivo.cinema.tmdb.artwork.ArtworkSelection
 
 /**
  * 影片详情数据域（240 §1/§5）：一次 append_to_response 拉详情+预告+演职员+相似+图片。
@@ -19,6 +20,7 @@ class TmdbDetail(private val client: TmdbClient) {
         val rating: Float,
         val posterUrl: String,     // w780 竖版海报（**含烧死片名**，仅作无剧照时的兜底）
         val backdropUrl: String?,  // w780 横版剧照（幕布主图：不含片名，片名由 logo 图层承担）
+        val heroArtworkUrl: String, // Prefer language-neutral portrait artwork for the detail backdrop.
         val logoUrl: String?,      // 片名 logo（images.logos，zh 优先）
         val isTv: Boolean,
         val region: String?,       // 制作地区中文名，多国以「/」连接（「中国大陆/中国香港」）
@@ -119,6 +121,7 @@ class TmdbDetail(private val client: TmdbClient) {
             posterUrl = posterPath?.let { "${TmdbHome.IMG}/w780$it" }
                 ?: backdropPath?.let { "${TmdbHome.IMG}/w780$it" } ?: "",
             backdropUrl = backdropPath?.let { "${TmdbHome.IMG}/w780$it" },
+            heroArtworkUrl = artworkOf(json, posterPath, backdropPath),
             logoUrl = logoOf(json),
             isTv = isTv,
             region = regionOf(json),
@@ -165,21 +168,22 @@ class TmdbDetail(private val client: TmdbClient) {
         return null
     }
 
-    /** 片名 logo：images.logos 中 zh 优先，其次 en/无语言。 */
+    /** Neutral portrait first; no title-specific IDs or image paths. */
+    private fun artworkOf(json: JSONObject, poster: String?, backdrop: String?): String {
+        val neutral = ArtworkSelection.portrait(json.optJSONObject("images"))
+        return (neutral ?: backdrop ?: poster)?.let { "${TmdbHome.IMG}/w780$it" }.orEmpty()
+    }
+
+    /** Transparent PNG logos, Chinese first, then neutral and English; votes break ties. */
     private fun logoOf(json: JSONObject): String? {
         val arr = json.optJSONObject("images")?.optJSONArray("logos") ?: return null
-        var fallback: String? = null
-        for (i in 0 until arr.length()) {
-            val o = arr.getJSONObject(i)
-            val path = o.optString("file_path")
-            if (path.isEmpty()) continue
-            val lang = o.optString("iso_639_1")
-            val url = "${TmdbHome.IMG}/w500$path"
-            if (lang == "zh") return url
-            if (fallback == null && lang != "en") fallback = url
-            if (fallback == null) fallback = url
-        }
-        return fallback
+        val picked = (0 until arr.length()).map { arr.getJSONObject(it) }
+            .filter { it.optString("file_path").endsWith(".png", ignoreCase = true) }
+            .sortedWith(compareBy<JSONObject> {
+                when (it.optString("iso_639_1")) { "zh" -> 0; "null", "" -> 1; "en" -> 2; else -> 3 }
+            }.thenByDescending { it.optInt("vote_count") }.thenByDescending { it.optDouble("vote_average") })
+            .firstOrNull() ?: return null
+        return "${TmdbHome.IMG}/w500${picked.optString("file_path")}"
     }
 
     /** 分级：release_dates 的 certification，按常用地区优先取 3 个。 */

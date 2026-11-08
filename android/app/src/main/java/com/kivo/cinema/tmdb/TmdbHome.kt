@@ -76,14 +76,10 @@ class TmdbHome(private val client: TmdbClient) {
         return result
     }
 
-    /** First artwork in the provider's image ordering; not a vote-average ranking. */
+    /** Prefer a neutral portrait so the title can live in its own foreground layer. */
     fun topVotedPosterUrl(item: Item): String? {
-        val posters = images(item)?.optJSONArray("posters") ?: return null
-        for (i in 0 until posters.length()) {
-            val path = posters.getJSONObject(i).optString("file_path")
-            if (path.isNotEmpty()) return "$IMG/w780$path"
-        }
-        return null
+        val path = com.kivo.cinema.tmdb.artwork.ArtworkSelection.portrait(images(item))
+        return path?.let { "$IMG/w780$it" }
     }
 
     /** Prefer localized logos, then the variant with the strongest voting support. */

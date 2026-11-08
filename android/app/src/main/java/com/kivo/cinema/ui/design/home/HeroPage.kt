@@ -37,6 +37,7 @@ internal fun HeroPage(
     trailerFor: (TmdbHome.Item) -> TrailerResult,
     proxyAddress: String?,
     previewEnabled: Boolean,
+    scrollPx: () -> Float,
 ) {
     var artwork by remember(item.isTv, item.id) { mutableStateOf<Bitmap?>(null) }
     var logo by remember(item.isTv, item.id) { mutableStateOf<String?>(null) }
@@ -62,6 +63,8 @@ internal fun HeroPage(
     val fg = if (HomeAtmosphere.lightForeground(scrimColor.value)) Color.White else DesignTokens.textMain
     Box(Modifier.fillMaxWidth().height((HERO_HEIGHT_DP + pullDp).dp).clipToBounds()) {
         Box(Modifier.fillMaxWidth().height(HERO_HEIGHT_DP.dp).graphicsLayer {
+            // The foreground scrolls normally; only the media cancels list motion.
+            translationY = scrollPx() * .95f
             val stretch = 1f + pullDp / HERO_HEIGHT_DP
             scaleX = stretch; scaleY = stretch
             transformOrigin = TransformOrigin(.5f, 0f)

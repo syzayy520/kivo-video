@@ -25,6 +25,7 @@ fun HeroCarousel(
     topPoster: (TmdbHome.Item) -> String?,
     logoFor: (TmdbHome.Item) -> String?,
     pullDp: Float = 0f,
+    scrollPx: () -> Float = { 0f },
     previewVisible: Boolean = true,
     previewEnabled: Boolean = false,
     generation: Int = 0,
@@ -37,7 +38,8 @@ fun HeroCarousel(
         HorizontalPager(state = pagerState, key = { "$generation:${candidates[it].isTv}:${candidates[it].id}" },
             modifier = Modifier.fillMaxSize()) { index ->
             HeroPage(candidates[index], index == pagerState.settledPage && !pagerState.isScrollInProgress && previewVisible,
-                scrimColor, topPoster, logoFor, onAmbient, pullDp, trailerFor, proxyAddress, previewEnabled)
+                scrimColor, topPoster, logoFor, onAmbient, pullDp, trailerFor, proxyAddress, previewEnabled,
+                scrollPx)
         }
         Row(Modifier.align(Alignment.TopCenter).offset(y = (DOTS_CENTER_DP - 3.65f + pullDp).dp),
             verticalAlignment = Alignment.CenterVertically) {

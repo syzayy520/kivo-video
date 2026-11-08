@@ -90,6 +90,8 @@ fun DiscoverPage(
         atTop = { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 },
         maxPullPx = with(density) { 180.dp.toPx() })
     val pullDp = pull.distance.value / density.density
+    val heroScrollPx = { if (listState.firstVisibleItemIndex == 0)
+        listState.firstVisibleItemScrollOffset.toFloat() else 0f }
 
     var heroFieldColor by remember { mutableStateOf(DesignTokens.pageBackground) }
     val scrimColor: State<Color> = remember {
@@ -118,6 +120,7 @@ fun DiscoverPage(
                 else HeroCarousel(heroCandidates, onAmbient = { heroFieldColor = it },
                     dotsColor = chromeFg, scrimColor = scrimColor,
                     topPoster = topPoster, logoFor = logoFor, pullDp = pullDp,
+                    scrollPx = heroScrollPx,
                     previewVisible = listState.firstVisibleItemIndex == 0 &&
                         listState.firstVisibleItemScrollOffset < 350 * density.density,
                     generation = generation, previewEnabled = previewEnabled, trailerFor = trailerFor, proxyAddress = proxyAddress)

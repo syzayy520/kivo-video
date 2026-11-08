@@ -287,26 +287,25 @@ internal fun StudioLogo(url: String, fg: Color) {
  * 与参照的 IMDb Parents Guide 口径不同，故不显示假的「轻微/严重（N 票）」）。
  */
 @Composable
-internal fun ParentalGuide(certs: List<Pair<String, String>>, notes: List<String>,
-                           fg: Color, fgSub: Color) {
+internal fun ParentalGuide(certs: List<Pair<String, String>>, notes: List<String>) {
     Row(
         Modifier.padding(horizontal = DETAIL_PAD_DP.dp).fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (certs.isNotEmpty()) {
             GuideCard("分级", certs.joinToString(" · ") { "${it.first} ${it.second}" },
-                Color(0xFFE8B33A), fg, fgSub, Modifier.weight(1f))
+                Color(0xFFE8B33A), Modifier.weight(1f))
         }
         if (notes.isNotEmpty()) {
             GuideCard("内容提示", notes.take(2).joinToString("、"),
-                Color(0xFFD8443C), fg, fgSub, Modifier.weight(1f))
+                Color(0xFFD8443C), Modifier.weight(1f))
         }
     }
 }
 
 @Composable
 private fun GuideCard(title: String, value: String, accent: Color,
-                      fg: Color, fgSub: Color, modifier: Modifier = Modifier) {
+                      modifier: Modifier = Modifier) {
     Row(
         modifier.height(DETAIL_GUIDE_CARD_DP.dp)
             .clip(RoundedCornerShape(DesignTokens.radiusCard.dp))
@@ -318,10 +317,10 @@ private fun GuideCard(title: String, value: String, accent: Color,
             .clip(RoundedCornerShape(2.dp)).background(accent))
         Spacer(Modifier.width(10.dp))
         Column {
-            Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = fg,
-                maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+                color = DesignTokens.textMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(3.dp))
-            Text(value, fontSize = 13.sp, color = fgSub, maxLines = 1,
+            Text(value, fontSize = 13.sp, color = DesignTokens.textSub, maxLines = 1,
                 overflow = TextOverflow.Ellipsis)
         }
     }
