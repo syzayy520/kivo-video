@@ -17,7 +17,9 @@ class TmdbDetail(private val client: TmdbClient) {
         val genres: List<String>,  // 中文名（详情接口自带 zh-CN 名称）
         val overview: String,
         val rating: Float,
-        val posterUrl: String,     // w780 竖版海报（幕布用；自带标题烙印）
+        val posterUrl: String,     // w780 竖版海报（**含烧死片名**，仅作无剧照时的兜底）
+        val backdropUrl: String?,  // w780 横版剧照（幕布主图：不含片名，片名由 logo 图层承担）
+        val logoUrl: String?,      // 片名 logo（images.logos，zh 优先）
         val isTv: Boolean,
         val region: String?,       // 制作地区中文名，多国以「/」连接（「中国大陆/中国香港」）
         val episodes: Int?,        // 剧集集数（电影为 null）
@@ -116,6 +118,8 @@ class TmdbDetail(private val client: TmdbClient) {
             // 幕布优先竖版海报（240 §5.4：海报自带标题烙印），无海报才退横版剧照
             posterUrl = posterPath?.let { "${TmdbHome.IMG}/w780$it" }
                 ?: backdropPath?.let { "${TmdbHome.IMG}/w780$it" } ?: "",
+            backdropUrl = backdropPath?.let { "${TmdbHome.IMG}/w780$it" },
+            logoUrl = logoOf(json),
             isTv = isTv,
             region = regionOf(json),
             episodes = if (isTv) json.optInt("number_of_episodes").takeIf { it > 0 } else null,
@@ -159,6 +163,23 @@ class TmdbDetail(private val client: TmdbClient) {
             if (p.isNotEmpty()) return "${TmdbHome.IMG}/w300$p"
         }
         return null
+    }
+
+    /** 片名 logo：images.logos 中 zh 优先，其次 en/无语言。 */
+    private fun logoOf(json: JSONObject): String? {
+        val arr = json.optJSONObject("images")?.optJSONArray("logos") ?: return null
+        var fallback: String? = null
+        for (i in 0 until arr.length()) {
+            val o = arr.getJSONObject(i)
+            val path = o.optString("file_path")
+            if (path.isEmpty()) continue
+            val lang = o.optString("iso_639_1")
+            val url = "${TmdbHome.IMG}/w500$path"
+            if (lang == "zh") return url
+            if (fallback == null && lang != "en") fallback = url
+            if (fallback == null) fallback = url
+        }
+        return fallback
     }
 
     /** 分级：release_dates 的 certification，按常用地区优先取 3 个。 */

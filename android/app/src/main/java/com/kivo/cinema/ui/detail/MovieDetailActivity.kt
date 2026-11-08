@@ -58,6 +58,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import com.kivo.cinema.library.LocalVideoSource
 import com.kivo.cinema.tmdb.TmdbClient
 import com.kivo.cinema.tmdb.TmdbDetail
 import com.kivo.cinema.ui.design.DesignTokens
@@ -119,6 +120,7 @@ class MovieDetailActivity : ComponentActivity() {
         var details by remember { mutableStateOf<TmdbDetail.Details?>(null) }
         var error by remember { mutableStateOf<String?>(null) }
         // 与首页同名同义：环境色（由艺术图下部实测得来）
+        var media by remember { mutableStateOf<MediaMatch.Matched?>(null) }
         var fieldColor by remember { mutableStateOf(DesignTokens.pageBackground) }
         LaunchedEffect(id, isTv) {
             val d = withContext(Dispatchers.IO) { load() }
@@ -129,6 +131,10 @@ class MovieDetailActivity : ComponentActivity() {
                 d.posterUrl.takeIf { it.isNotEmpty() }?.let { url ->
                     val bmp = withContext(Dispatchers.IO) { TmdbImageCache.load(url) }
                     bmp?.let { fieldColor = PosterPalette.ambientOf(it) }
+                }
+                // 本地片源匹配（240 §9）：拿列表 → 按标题匹配 → 无匹配则走空态
+                media = withContext(Dispatchers.IO) {
+                    MediaMatch.find(LocalVideoSource.query(this@MovieDetailActivity), d.title)
                 }
             }
         }
@@ -161,11 +167,17 @@ class MovieDetailActivity : ComponentActivity() {
                         HeroArt(details, error, fg, scrimColor)
                         val h = details
                         if (h != null) {
+                            TitleLayer(h, fg)
                             Box(Modifier.fillMaxWidth().offset(y = DETAIL_META_TOP_DP.dp)) {
                                 MetaLine(h, fg)
                             }
                             Box(Modifier.fillMaxWidth().offset(y = DETAIL_ACTIONS_TOP_DP.dp)) {
-                                ActionRow(isTv, context)
+                                ActionRow(isTv, context, media) { m ->
+                                    startActivity(Intent(this@MovieDetailActivity,
+                                        DetailActivity::class.java)
+                                        .putExtra("kivo.media", m.item.path)
+                                        .putExtra("kivo.durationMs", m.item.durationMs))
+                                }
                             }
                         }
                     }
@@ -180,11 +192,24 @@ class MovieDetailActivity : ComponentActivity() {
                                 valueColor = fg)
                         }
                     }
-                    // 无本地资源 → 空态块（240 §6.1）；有本地文件时此处改为 播放资源 + 媒体信息卡
-                    item(key = "empty") {
-                        Column {
-                            Spacer(Modifier.height(70.dp))
-                            EmptyResourceBlock(fg)
+                    // 240 §9：有匹配 → 播放资源 + 媒体信息卡；无匹配 → 空态块
+                    val mm = media
+                    if (mm != null) {
+                        item(key = "source") {
+                            Column {
+                                Spacer(Modifier.height(56.dp))
+                                PlaySourceHeader(mm.quality, fg)
+                                Spacer(Modifier.height(12.dp))
+                                MediaCard(mm)
+                                ExpandMediaInfoRow(fgSub)
+                            }
+                        }
+                    } else {
+                        item(key = "empty") {
+                            Column {
+                                Spacer(Modifier.height(70.dp))
+                                EmptyResourceBlock(fg)
+                            }
                         }
                     }
                     d.studioLogo?.let { url ->
@@ -262,9 +287,9 @@ class MovieDetailActivity : ComponentActivity() {
                         scrimColor: State<Color>) {
         Box(Modifier.fillMaxSize()) {
             val d = details
-            if (d != null && d.posterUrl.isNotEmpty()) {
-                TmdbImage(d.posterUrl, d.title, Modifier.fillMaxSize())
-            }
+            // 240 §10：幕布主图用**剧照**（不含烧死片名），片名交给独立 logo 图层
+            val art = d?.backdropUrl ?: d?.posterUrl.orEmpty()
+            if (art.isNotEmpty()) TmdbImage(art, d?.title.orEmpty(), Modifier.fillMaxSize())
             // 下缘色场（首页同款机制，起点下移到 55% 以保住海报标题区）
             Box(Modifier.fillMaxSize().drawBehind {
                 val c = scrimColor.value
@@ -279,6 +304,31 @@ class MovieDetailActivity : ComponentActivity() {
                 Text(error, fontSize = 13.sp, color = fg,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.align(Alignment.Center).padding(horizontal = 24.dp))
+            }
+        }
+    }
+
+    /**
+     * 片名图层（240 §10）：独立于幕布图，贴在 meta 上方；
+     * 与 meta 同属内容流，滚动时一起离开屏幕（不再随海报提前消失）。
+     * 有 logo 用 logo，无 logo 退化为文字。
+     */
+    @Composable
+    private fun TitleLayer(d: TmdbDetail.Details, fg: Color) {
+        Box(
+            Modifier.fillMaxWidth().offset(y = DETAIL_TITLE_TOP_DP.dp)
+                .height(DETAIL_TITLE_BAND_DP.dp)
+                .padding(horizontal = 24.dp),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            val logo = d.logoUrl
+            if (logo != null) {
+                TmdbImage(logo, d.title, Modifier.fillMaxSize(),
+                    bg = Color.Transparent, fit = true)
+            } else {
+                Text(d.title, fontSize = 34.sp, fontWeight = FontWeight.Bold, color = fg,
+                    textAlign = TextAlign.Center, maxLines = 2,
+                    modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -310,10 +360,12 @@ class MovieDetailActivity : ComponentActivity() {
 
     /** 主操作行（240 §6.2 E6）：玻璃材质（白 α0.28 / α0.147）+ 发丝描边 + 真图标。 */
     @Composable
-    private fun ActionRow(isTv: Boolean, context: Context) {
+    private fun ActionRow(isTv: Boolean, context: Context, media: MediaMatch.Matched?,
+                          onPlay: (MediaMatch.Matched) -> Unit) {
         val reason = "未加载到相关资源"
         val hair = Color.White.copy(alpha = .10f)
         val glyph = Color.White.copy(alpha = .95f)
+        val playable = media != null
         Row(
             Modifier.fillMaxWidth().padding(horizontal = DETAIL_PAD_DP.dp),
             horizontalArrangement = Arrangement.spacedBy(9.dp),
@@ -322,15 +374,18 @@ class MovieDetailActivity : ComponentActivity() {
             Box(
                 Modifier.weight(1f).height(45.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(Color.White.copy(alpha = .28f))
+                    .background(Color.White.copy(alpha = if (playable) .92f else .28f))
                     .border(1.dp, hair, RoundedCornerShape(50))
                     .clickable {
-                        Toast.makeText(context, reason, Toast.LENGTH_SHORT).show()
+                        if (media != null) onPlay(media)
+                        else Toast.makeText(context, reason, Toast.LENGTH_SHORT).show()
                     },
                 contentAlignment = Alignment.Center,
             ) {
-                Text(reason, fontSize = 15.sp, fontWeight = FontWeight.Medium,
-                    color = glyph, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(if (playable) "▶  播放" else reason,
+                    fontSize = 15.sp, fontWeight = FontWeight.Medium,
+                    color = if (playable) DesignTokens.textMain else glyph,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Row(
                 Modifier.width(101.dp).height(45.dp)
@@ -390,6 +445,10 @@ private const val DETAIL_HERO_DP = 589.5f   // 2:3 海报满宽（393×1.5）
 private const val DETAIL_META_TOP_DP = 510.5f
 /** 主操作行叠在海报下缘。 */
 private const val DETAIL_ACTIONS_TOP_DP = 541f
+/** 片名图层高度带（logo 或文字，底对齐）。 */
+private const val DETAIL_TITLE_BAND_DP = 88f
+/** 片名图层顶边 = meta 顶 510.5 − 间距 18 − 带高 88。 */
+private const val DETAIL_TITLE_TOP_DP = 404.5f
 /** 正文左右缩进（帧实测 20dp）；各节组件共用。 */
 internal const val DETAIL_PAD_DP = 20f
 /** 详情页节标题字号（240 §5.5：同串墨高实测 18sp，非首页的 22sp）。 */

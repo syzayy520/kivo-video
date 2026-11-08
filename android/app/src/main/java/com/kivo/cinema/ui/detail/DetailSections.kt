@@ -326,3 +326,75 @@ private fun GuideCard(title: String, value: String, accent: Color,
         }
     }
 }
+
+/** 播放资源行（240 §9.3）：标题 + 清晰度胶囊。 */
+@Composable
+internal fun PlaySourceHeader(quality: String, fg: Color) {
+    Row(
+        Modifier.padding(horizontal = DETAIL_PAD_DP.dp).fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("播放资源:", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = fg)
+        Spacer(Modifier.width(12.dp))
+        Text(
+            quality, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+            color = DesignTokens.textMain,
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(DesignTokens.canvasFill)
+                .padding(horizontal = 18.dp, vertical = 6.dp),
+        )
+    }
+}
+
+/** 媒体信息卡（240 §9.3）：白卡 = 分辨率 / 容量·码率 / 源名+绿勾。 */
+@Composable
+internal fun MediaCard(m: MediaMatch.Matched) {
+    Column(
+        Modifier.padding(horizontal = DETAIL_PAD_DP.dp).fillMaxWidth()
+            .clip(RoundedCornerShape(DesignTokens.radiusCard.dp))
+            .background(DesignTokens.canvasFill)
+            .padding(horizontal = 14.dp, vertical = 14.dp),
+    ) {
+        Text(m.resolution, fontSize = 17.sp, fontWeight = FontWeight.Bold,
+            color = DesignTokens.textMain)
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(formatSize(m.sizeBytes), fontSize = 13.sp, color = DesignTokens.textSub)
+            Spacer(Modifier.width(14.dp))
+            Text(formatBitrate(m.bitrateBps), fontSize = 13.sp, color = DesignTokens.textSub)
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(7.dp).clip(CircleShape).background(Color(0xFF34C759)))
+            Spacer(Modifier.width(6.dp))
+            Text("本地", fontSize = 13.sp, color = DesignTokens.textMain)
+            Spacer(Modifier.weight(1f))
+            Text("✓", fontSize = 15.sp, color = Color(0xFF34C759))
+        }
+    }
+}
+
+/** 展开媒体信息（240 §9.3）：卡下居中一行 + 折角。 */
+@Composable
+internal fun ExpandMediaInfoRow(fgSub: Color) {
+    Row(
+        Modifier.fillMaxWidth().padding(top = 12.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("展开媒体信息", fontSize = 13.sp, color = fgSub)
+        Spacer(Modifier.width(6.dp))
+        Text("⌄", fontSize = 13.sp, color = fgSub)
+    }
+}
+
+private fun formatSize(bytes: Long): String = when {
+    bytes >= 1073741824L -> "%.1f GB".format(bytes / 1073741824.0)
+    bytes >= 1048576L -> "%.0f MB".format(bytes / 1048576.0)
+    else -> "%.0f KB".format(bytes / 1024.0)
+}
+
+private fun formatBitrate(bps: Long): String =
+    if (bps >= 1_000_000L) "%.2fMbps".format(bps / 1_000_000.0)
+    else "%.0fkbps".format(bps / 1000.0)
