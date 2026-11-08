@@ -26,6 +26,8 @@ class TmdbDetail(private val client: TmdbClient) {
         val cast: List<CastMember>,
         val stills: List<String>,  // 剧照 w780（/images backdrops）
         val studioLogo: String?,   // 片源/出品方 logo（production_companies.logo_path）
+        val certifications: List<Pair<String, String>>, // 分级（地区中文名, 级别），最多 3
+        val contentNotes: List<String>,                 // 内容提示（release_dates.descriptors 中文化）
         val similar: List<SimilarItem>,
     )
 
@@ -37,7 +39,7 @@ class TmdbDetail(private val client: TmdbClient) {
     fun details(isTv: Boolean, id: Int): Details? {
         val kind = if (isTv) "tv" else "movie"
         val json = get("/$kind/$id?language=zh-CN&" +
-            "append_to_response=videos,credits,similar,images" +
+            "append_to_response=videos,credits,similar,images,release_dates" +
             "&include_image_language=zh,en,null").first ?: return null
         val title = json.optString("title", json.optString("name", ""))
         if (title.isEmpty()) return null
@@ -122,6 +124,8 @@ class TmdbDetail(private val client: TmdbClient) {
             cast = cast,
             stills = stills,
             studioLogo = studioOf(json),
+            certifications = certificationsOf(json),
+            contentNotes = contentNotesOf(json),
             similar = similar,
         )
     }
@@ -155,6 +159,58 @@ class TmdbDetail(private val client: TmdbClient) {
             if (p.isNotEmpty()) return "${TmdbHome.IMG}/w300$p"
         }
         return null
+    }
+
+    /** 分级：release_dates 的 certification，按常用地区优先取 3 个。 */
+    private fun certificationsOf(json: JSONObject): List<Pair<String, String>> {
+        val arr = json.optJSONObject("release_dates")?.optJSONArray("results") ?: return emptyList()
+        val byIso = LinkedHashMap<String, String>()
+        for (i in 0 until arr.length()) {
+            val c = arr.getJSONObject(i)
+            val iso = c.optString("iso_3166_1")
+            if (iso.isEmpty() || byIso.containsKey(iso)) continue
+            val rd = c.optJSONArray("release_dates") ?: continue
+            for (j in 0 until rd.length()) {
+                val cert = rd.getJSONObject(j).optString("certification").trim()
+                if (cert.isNotEmpty()) { byIso[iso] = cert; break }
+            }
+        }
+        if (byIso.isEmpty()) return emptyList()
+        val order = listOf("US", "GB", "CN", "HK", "TW", "JP", "DE", "FR", "KR")
+        val picked = order.filter { byIso.containsKey(it) }.map { it to byIso[it]!! }
+            .ifEmpty { byIso.entries.take(3).map { it.key to it.value } }
+        return picked.take(2).map { (REGION_ZH[it.first] ?: it.first) to it.second }
+    }
+
+    /** 内容提示：release_dates.descriptors 去重中文化（TMDB 仅少量条目有）。 */
+    private fun contentNotesOf(json: JSONObject): List<String> {
+        val arr = json.optJSONObject("release_dates")?.optJSONArray("results") ?: return emptyList()
+        val out = LinkedHashSet<String>()
+        for (i in 0 until arr.length()) {
+            val rd = arr.getJSONObject(i).optJSONArray("release_dates") ?: continue
+            for (j in 0 until rd.length()) {
+                val d = rd.getJSONObject(j).optJSONArray("descriptors") ?: continue
+                for (k in 0 until d.length()) {
+                    val raw = d.optString(k).trim()
+                    if (raw.isNotEmpty()) out.add(descriptorZh(raw))
+                }
+            }
+        }
+        return out.toList()
+    }
+
+    /** 描述符中文化：先精确匹配，再按关键词包含匹配，最后保留原文。 */
+    private fun descriptorZh(raw: String): String {
+        val k = raw.lowercase()
+        DESCRIPTOR_ZH[k]?.let { return it }
+        val rules = listOf(
+            "language" to "不当用语", "violence" to "暴力", "injur" to "受伤",
+            "blood" to "血腥", "gore" to "血腥", "nudit" to "裸露", "sex" to "性",
+            "drug" to "毒品", "alcohol" to "酒精", "smok" to "吸烟",
+            "horror" to "恐怖", "fear" to "惊吓", "threat" to "威胁",
+        )
+        for ((key, zh) in rules) if (k.contains(key)) return zh
+        return raw
     }
 
     /** 预告：YouTube 官方 Trailer > Trailer > Teaser。 */
@@ -213,6 +269,14 @@ class TmdbDetail(private val client: TmdbClient) {
             "AT" to "奥地利", "CH" to "瑞士", "PT" to "葡萄牙", "UA" to "乌克兰",
             "RO" to "罗马尼亚", "IL" to "以色列", "ZA" to "南非", "EG" to "埃及",
             "IR" to "伊朗", "IS" to "冰岛", "LT" to "立陶宛", "EE" to "爱沙尼亚",
+        )
+
+        /** 分级描述符 → 中文（TMDB 仅德/英等少量条目提供）。 */
+        val DESCRIPTOR_ZH = mapOf(
+            "violence" to "暴力", "injury" to "受伤", "blood" to "血腥",
+            "language" to "粗口", "nudity" to "裸露", "sex" to "性",
+            "drugs" to "毒品", "alcohol" to "酒精", "horror" to "恐怖",
+            "fear" to "惊吓", "smoking" to "吸烟", "gore" to "血腥",
         )
     }
 }

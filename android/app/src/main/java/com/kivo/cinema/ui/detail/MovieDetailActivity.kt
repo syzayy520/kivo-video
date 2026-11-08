@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -197,6 +198,16 @@ class MovieDetailActivity : ComponentActivity() {
                             CastRow(d.cast, fg, fgSub)
                         }
                     }
+                    if (d.certifications.isNotEmpty() || d.contentNotes.isNotEmpty()) {
+                        item(key = "guide") {
+                            Column {
+                                Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
+                                SectionHeader("家长指南", fg)
+                                Spacer(Modifier.height(12.dp))
+                                ParentalGuide(d.certifications, d.contentNotes, fg, fgSub)
+                            }
+                        }
+                    }
                     if (d.genres.isNotEmpty()) item(key = "genres") {
                         Column {
                             Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
@@ -297,49 +308,52 @@ class MovieDetailActivity : ComponentActivity() {
         )
     }
 
-    /** 主操作行（240 §5.2 E6）：主钮 197dp/高 45 + 副钮 101dp + ⋯ Ø47。 */
+    /** 主操作行（240 §6.2 E6）：玻璃材质（白 α0.28 / α0.147）+ 发丝描边 + 真图标。 */
     @Composable
     private fun ActionRow(isTv: Boolean, context: Context) {
         val reason = "未加载到相关资源"
+        val hair = Color.White.copy(alpha = .10f)
+        val glyph = Color.White.copy(alpha = .95f)
         Row(
-            Modifier.fillMaxWidth()
-                .padding(horizontal = DETAIL_PAD_DP.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Modifier.fillMaxWidth().padding(horizontal = DETAIL_PAD_DP.dp),
+            horizontalArrangement = Arrangement.spacedBy(9.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 Modifier.weight(1f).height(45.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(Color(0xFFD8D2DC))
+                    .background(Color.White.copy(alpha = .28f))
+                    .border(1.dp, hair, RoundedCornerShape(50))
                     .clickable {
                         Toast.makeText(context, reason, Toast.LENGTH_SHORT).show()
                     },
                 contentAlignment = Alignment.Center,
             ) {
-                Text(reason, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                    color = DesignTokens.textMain, maxLines = 1,
-                    overflow = TextOverflow.Ellipsis)
+                Text(reason, fontSize = 15.sp, fontWeight = FontWeight.Medium,
+                    color = glyph, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Row(
                 Modifier.width(101.dp).height(45.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(Color(0xFF2A272B)),
+                    .background(Color.White.copy(alpha = .147f))
+                    .border(1.dp, hair, RoundedCornerShape(50)),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("＋", color = Color.White, fontSize = 18.sp,
-                    modifier = Modifier.padding(horizontal = 7.dp))
-                Text("♡", color = Color.White, fontSize = 18.sp,
-                    modifier = Modifier.padding(horizontal = 7.dp))
+                CollectionPlusIcon(glyph, Modifier.size(22.dp))
+                Spacer(Modifier.width(15.dp))
+                HeartIcon(glyph, Modifier.size(20.dp))
             }
-            Box(Modifier.size(47.dp).clip(CircleShape)
-                .background(Color(0xFF2A272B)),
+            Box(Modifier.size(45.dp).clip(CircleShape)
+                .background(Color.White.copy(alpha = .147f))
+                .border(1.dp, hair, CircleShape),
                 contentAlignment = Alignment.Center) {
-                Canvas(Modifier.size(19.dp, 4.dp)) {
-                    val r = 1.8.dp.toPx()
+                Canvas(Modifier.size(20.dp, 4.dp)) {
+                    val r = 2.0.dp.toPx()
                     val gap = (size.width - r * 2) / 2f
                     for (i in 0..2) {
-                        drawCircle(Color.White, r, Offset(r + gap * i, size.height / 2f))
+                        drawCircle(Color.White.copy(alpha = .95f), r,
+                            Offset(r + gap * i, size.height / 2f))
                     }
                 }
             }
@@ -350,10 +364,10 @@ class MovieDetailActivity : ComponentActivity() {
     @Composable
     private fun BackCircle(onBack: () -> Unit) {
         Box(
-            Modifier.padding(start = DETAIL_PAD_DP.dp, top = 37.dp)
+            Modifier.padding(start = DETAIL_PAD_DP.dp, top = 42.dp)
                 .size(42.dp)
                 .clip(CircleShape)
-                .background(Color(0x9EFFFFFF))
+                .background(Color(0x8CFFFFFF))
                 .clickable { onBack() },
             contentAlignment = Alignment.Center,
         ) {

@@ -28,6 +28,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -36,6 +39,10 @@ import com.kivo.cinema.tmdb.TmdbDetail
 import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.ui.design.TmdbImage
 
+/** 相似作品卡宽（帧实测 331×0.914）。 */
+private const val DETAIL_SIMILAR_CARD_DP = 302f
+/** 相似作品卡间距。 */
+private const val DETAIL_SIMILAR_GAP_DP = 23f
 /** 演职员头像直径（帧实测 55dp）。 */
 private const val DETAIL_CAST_AVATAR_DP = 55f
 /** 头像→名字间距（帧实测 20.3dp 含字面上留白，故取 18）。 */
@@ -143,26 +150,27 @@ internal fun StillsRow(stills: List<String>) {
     }
 }
 
-/** 相似作品（E13）：单列竖排，海报 92×138 + 右文（片名/★评分/日期）。 */
+/** 相似作品（E13，帧实测为**横向卡片流**）：16:9 海报 151×85 + 右侧 片名/★分·日期/3 行简介。 */
 @Composable
 internal fun SimilarList(items: List<TmdbDetail.SimilarItem>, fg: Color, fgSub: Color,
                          onOpen: (TmdbDetail.SimilarItem) -> Unit) {
-    Column(Modifier.padding(horizontal = DETAIL_PAD_DP.dp)) {
-        items.forEach { m ->
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(DETAIL_SIMILAR_GAP_DP.dp),
+        contentPadding = PaddingValues(horizontal = DETAIL_PAD_DP.dp),
+    ) {
+        items(items) { m ->
             Row(
-                Modifier.fillMaxWidth().clickable { onOpen(m) }
-                    .padding(vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                Modifier.width(DETAIL_SIMILAR_CARD_DP.dp).clickable { onOpen(m) },
+                horizontalArrangement = Arrangement.spacedBy(9.dp),
             ) {
-                Box(Modifier.width(92.dp).height(138.dp)
+                Box(Modifier.width(151.dp).height(85.dp)
                     .clip(RoundedCornerShape(DesignTokens.radiusPoster.dp))) {
                     TmdbImage(m.posterUrl, m.title, Modifier.fillMaxSize())
                 }
                 Column(Modifier.weight(1f)) {
-                    Text(m.title, fontSize = 15.sp, fontWeight = FontWeight.Bold,
-                        color = fg, maxLines = 2,
-                        overflow = TextOverflow.Ellipsis)
-                    Spacer(Modifier.height(4.dp))
+                    Text(m.title, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                        color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Spacer(Modifier.height(2.dp))
                     Text(buildString {
                         if (m.rating > 0f) append("★ %.1f  ".format(m.rating))
                         append(m.date)
@@ -170,12 +178,56 @@ internal fun SimilarList(items: List<TmdbDetail.SimilarItem>, fg: Color, fgSub: 
                     if (m.overview.isNotBlank()) {
                         Spacer(Modifier.height(4.dp))
                         Text(m.overview, fontSize = 13.sp, lineHeight = 17.sp,
-                            color = fgSub.copy(alpha = .85f), maxLines = 3,
+                            color = fg.copy(alpha = .88f), maxLines = 3,
                             overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
         }
+    }
+}
+
+/** 「加入收藏夹」图标（帧实测）：圆角方框描边 + 顶上一道堆叠线 + 左下圆环带加号。 */
+@Composable
+internal fun CollectionPlusIcon(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val w = size.width
+        val h = size.height
+        val stroke = 1.9.dp.toPx()
+        drawLine(color, Offset(w * .20f, h * .10f), Offset(w * .80f, h * .10f),
+            strokeWidth = stroke, cap = StrokeCap.Round)
+        drawRoundRect(color, topLeft = Offset(w * .16f, h * .26f),
+            size = androidx.compose.ui.geometry.Size(w * .68f, h * .60f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx()),
+            style = Stroke(stroke))
+        val cx = w * .18f
+        val cy = h * .82f
+        val cr = w * .17f
+        drawCircle(color, cr, Offset(cx, cy), style = Stroke(stroke))
+        val pl = cr * .55f
+        drawLine(color, Offset(cx - pl, cy), Offset(cx + pl, cy),
+            strokeWidth = stroke * .85f, cap = StrokeCap.Round)
+        drawLine(color, Offset(cx, cy - pl), Offset(cx, cy + pl),
+            strokeWidth = stroke * .85f, cap = StrokeCap.Round)
+    }
+}
+
+/** 心形描边图标（帧实测：空心、圆头描边）。 */
+@Composable
+internal fun HeartIcon(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val w = size.width
+        val h = size.height
+        val p = Path().apply {
+            moveTo(w * .5f, h * .93f)
+            cubicTo(w * .10f, h * .62f, w * .03f, h * .33f, w * .24f, h * .17f)
+            cubicTo(w * .38f, h * .06f, w * .48f, h * .18f, w * .5f, h * .27f)
+            cubicTo(w * .52f, h * .18f, w * .62f, h * .06f, w * .76f, h * .17f)
+            cubicTo(w * .97f, h * .33f, w * .90f, h * .62f, w * .5f, h * .93f)
+            close()
+        }
+        drawPath(p, color, style = Stroke(1.9.dp.toPx(),
+            cap = StrokeCap.Round, join = StrokeJoin.Round))
     }
 }
 
@@ -187,23 +239,18 @@ internal fun EmptyResourceBlock(fg: Color) {
             val w = size.width
             val h = size.height
             val bodyTop = h * .16f
-            val body = androidx.compose.ui.geometry.Rect(0f, bodyTop, w, h)
-            // 天线
             drawLine(fg.copy(alpha = .22f), Offset(w * .38f, bodyTop), Offset(w * .26f, 0f),
-                strokeWidth = 2.4.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                strokeWidth = 2.4.dp.toPx(), cap = StrokeCap.Round)
             drawLine(fg.copy(alpha = .22f), Offset(w * .62f, bodyTop), Offset(w * .74f, 0f),
-                strokeWidth = 2.4.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
-            // 机身
-            drawRoundRect(fg.copy(alpha = .16f), topLeft = body.topLeft,
+                strokeWidth = 2.4.dp.toPx(), cap = StrokeCap.Round)
+            drawRoundRect(fg.copy(alpha = .16f), topLeft = Offset(0f, bodyTop),
                 size = androidx.compose.ui.geometry.Size(w, h - bodyTop),
                 cornerRadius = androidx.compose.ui.geometry.CornerRadius(9.dp.toPx()))
-            // 屏幕
             val pad = 9.dp.toPx()
             drawRoundRect(fg.copy(alpha = .26f),
                 topLeft = Offset(pad, bodyTop + pad),
                 size = androidx.compose.ui.geometry.Size(w - pad * 2, h - bodyTop - pad * 2),
                 cornerRadius = androidx.compose.ui.geometry.CornerRadius(5.dp.toPx()))
-            // 播放三角
             val cx = w / 2f
             val cy = bodyTop + (h - bodyTop) / 2f
             val r = 9.dp.toPx()
@@ -228,5 +275,51 @@ internal fun StudioLogo(url: String, fg: Color) {
     Box(Modifier.fillMaxWidth().padding(top = 26.dp), contentAlignment = Alignment.Center) {
         TmdbImage(url, "出品方", Modifier.width(150.dp).height(26.dp),
             bg = Color.Transparent, fit = true)
+    }
+}
+
+/**
+ * 家长指南（240 §6.1 E-家长指南）：两卡并排，左侧色条 + 项名 + 说明。
+ * 数据 = TMDB `release_dates`（分级 60 国 + 少量描述符）；**无严重度/票数**（TMDB 不提供，
+ * 与参照的 IMDb Parents Guide 口径不同，故不显示假的「轻微/严重（N 票）」）。
+ */
+@Composable
+internal fun ParentalGuide(certs: List<Pair<String, String>>, notes: List<String>,
+                           fg: Color, fgSub: Color) {
+    Row(
+        Modifier.padding(horizontal = DETAIL_PAD_DP.dp).fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        if (certs.isNotEmpty()) {
+            GuideCard("分级", certs.joinToString(" · ") { "${it.first} ${it.second}" },
+                Color(0xFFE8B33A), fg, fgSub, Modifier.weight(1f))
+        }
+        if (notes.isNotEmpty()) {
+            GuideCard("内容提示", notes.take(2).joinToString("、"),
+                Color(0xFFD8443C), fg, fgSub, Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun GuideCard(title: String, value: String, accent: Color,
+                      fg: Color, fgSub: Color, modifier: Modifier = Modifier) {
+    Row(
+        modifier.height(60.dp)
+            .clip(RoundedCornerShape(DesignTokens.radiusCard.dp))
+            .background(DesignTokens.canvasFill)
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.width(3.dp).height(36.dp)
+            .clip(RoundedCornerShape(2.dp)).background(accent))
+        Spacer(Modifier.width(10.dp))
+        Column {
+            Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = fg,
+                maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(3.dp))
+            Text(value, fontSize = 13.sp, color = fgSub, maxLines = 1,
+                overflow = TextOverflow.Ellipsis)
+        }
     }
 }
