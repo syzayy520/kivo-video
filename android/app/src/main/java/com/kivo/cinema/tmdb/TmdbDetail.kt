@@ -263,7 +263,7 @@ class TmdbDetail(private val client: TmdbClient) {
     private fun get(path: String): Pair<JSONObject?, String?> {
         if (client.apiKey().isEmpty()) return null to "offline"
         return try {
-            val url = "https://api.themoviedb.org/3$path" +
+            val url = "${TmdbClient.API_BASE}$path" +
                 (if (path.contains("?")) "&api_key=${client.apiKey()}"
                  else "?api_key=${client.apiKey()}")
             val conn = client.openConnection(url)

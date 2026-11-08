@@ -17,6 +17,8 @@ import java.net.URL
 class TmdbClient(context: Context) {
 
     companion object {
+        // TMDB's API hostname; keep it shared by home, details and rating requests.
+        const val API_BASE = "https://api.tmdb.org/3"
         @Volatile private var shared: TmdbClient? = null
         fun setShared(c: TmdbClient) { shared = c }
         fun staticOpen(urlStr: String): HttpURLConnection =
@@ -97,7 +99,7 @@ class TmdbClient(context: Context) {
         return try {
             val q = URLEncoder.encode(title, "UTF-8")
             val yq = year?.let { "&year=$it" } ?: ""
-            val url = "https://api.themoviedb.org/3/search/movie?api_key=${apiKey()}" +
+            val url = "$API_BASE/search/movie?api_key=${apiKey()}" +
                 "&language=zh-CN&query=$q$yq"
             val conn = openConnection(url)
             conn.connectTimeout = 8000

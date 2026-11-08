@@ -114,7 +114,7 @@ class TmdbHome(private val client: TmdbClient) {
     private fun get(path: String): Pair<JSONObject?, String?> {
         if (client.apiKey().isEmpty()) return null to "offline"
         return try {
-            val conn = client.openConnection(auth("https://api.themoviedb.org/3$path"))
+            val conn = client.openConnection(auth("${TmdbClient.API_BASE}$path"))
             conn.connectTimeout = 8000
             conn.readTimeout = 15000
             try {

@@ -1,0 +1,15 @@
+
+api.themoviedb.org DNS=96.44.137.28
+api.themoviedb.org direct SocketTimeoutException elapsedMs=6004
+api.tmdb.org DNS=143.204.160.79, 143.204.160.124, 143.204.160.25, 143.204.160.10
+api.tmdb.org direct HTTP=401 elapsedMs=1071
+image.tmdb.org DNS=143.244.50.89
+image.tmdb.org direct SocketException elapsedMs=217
+media.themoviedb.org DNS=109.61.83.97
+media.themoviedb.org direct SocketException elapsedMs=1726
+API authenticated HTTP=200
+API resultCount=20
+image.tmdb.org actual poster SocketException
+media.themoviedb.org actual poster SocketException
+Production poster loader decoded=false
+

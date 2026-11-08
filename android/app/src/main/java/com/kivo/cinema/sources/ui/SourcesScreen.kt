@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.sources.SourceManagerModel
 import com.kivo.cinema.sources.SourceRecord
 
@@ -19,29 +21,38 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int, onOpenLibrary: () 
     onOpenSmb: () -> Unit, onOpenPrivate: () -> Unit, onOpenEmby: (String) -> Unit) {
     var management by remember { mutableStateOf<SourceRecord?>(null) }
     LaunchedEffect(Unit) { model.refresh() }
-    MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF347861),
-        primaryContainer = Color(0xFFE6F0EB), onPrimaryContainer = Color(0xFF285B48),
-        surface = Color(0xFFFCFBFD), onSurface = Color(0xFF24252C), onSurfaceVariant = Color(0xFF73717E))) {
+    SourcesTheme {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyVerticalGrid(columns = GridCells.Adaptive(280.dp),
-                modifier = Modifier.widthIn(max = 1200.dp).fillMaxSize(), contentPadding = PaddingValues(20.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                modifier = Modifier.widthIn(max = 1200.dp).fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = DesignTokens.screenPad.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text("资源库", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
-                            Text("你的影片，从这里开始", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("资源库", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                            Text("连接你的私人影院", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp))
                         }
-                        FilledTonalButton(onClick = { model.edit() }, enabled = model.ready && !model.busy) { Text("＋ 添加") }
+                        FilledTonalButton(onClick = { model.edit() }, enabled = model.ready && !model.busy,
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)) { Text("＋ 添加") }
                     }
                 }
-                item { EntryCard("本地影片", "$videoCount 个视频", onOpenLibrary) }
-                item { EntryCard("网络共享", "浏览 SMB 文件夹", onOpenSmb) }
-                item { EntryCard("私密区", "受保护的观看空间", onOpenPrivate) }
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("媒体服务器", Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
-                        if (model.ready) Text("${model.records.size} 个资源库", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Surface(shape = RoundedCornerShape(DesignTokens.radiusCard.dp), color = Color.White.copy(alpha = .76f)) {
+                        Column {
+                            EntryCard("本地影片", "$videoCount 个视频", onOpenLibrary)
+                            HorizontalDivider(Modifier.padding(start = 16.dp), color = DesignTokens.hairline)
+                            EntryCard("网络共享", "SMB", onOpenSmb)
+                            HorizontalDivider(Modifier.padding(start = 16.dp), color = DesignTokens.hairline)
+                            EntryCard("私密区", "", onOpenPrivate)
+                        }
+                    }
+                }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Row(Modifier.padding(top = 12.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text("媒体服务器", Modifier.weight(1f), fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        if (model.ready) Text("${model.records.size} 个", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 if (model.loadError != null) item(span = { GridItemSpan(maxLineSpan) }) {
@@ -77,13 +88,11 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int, onOpenLibrary: () 
 
 @Composable
 private fun EntryCard(title: String, description: String, onClick: () -> Unit) {
-    Surface(onClick = onClick, shape = RoundedCornerShape(22.dp)) {
-        Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Text("›", Modifier.padding(start = 12.dp), style = MaterialTheme.typography.headlineSmall)
+    Surface(onClick = onClick, color = Color.Transparent) {
+        Row(Modifier.heightIn(min = 59.dp).padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(title, Modifier.weight(1f), fontSize = 17.sp, fontWeight = FontWeight.Medium)
+            if (description.isNotEmpty()) Text(description, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("›", Modifier.padding(start = 12.dp), fontSize = 22.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

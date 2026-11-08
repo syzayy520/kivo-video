@@ -14,6 +14,7 @@ import androidx.compose.ui.layout.ContentScale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
 import java.security.MessageDigest
 
 /** Shared image loader. Disk entries retain the response bytes, including PNG alpha. */
@@ -40,24 +41,31 @@ object TmdbImageCache {
         if (disk?.isFile == true) {
             BitmapFactory.decodeFile(disk.absolutePath)?.let { put(url, it); return it }
         }
-        return runCatching {
+        // A transient socket reset must not leave a visible poster empty for the whole visit.
+        // Retry transport failures once; a missing image or invalid bytes are not transport failures.
+        repeat(2) { attempt ->
+          try {
             val conn = com.kivo.cinema.tmdb.TmdbClient.staticOpen(url)
             try {
                 conn.connectTimeout = 8000
                 conn.readTimeout = 20000
-                if (conn.responseCode !in 200..299) return@runCatching null
+                if (conn.responseCode !in 200..299) return null
                 val bytes = conn.inputStream.use { it.readBytes() }
                 val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                    ?: return@runCatching null
+                    ?: return null
                 put(url, bitmap)
                 if (disk != null) runCatching {
                     val temporary = File.createTempFile("image-", ".tmp", disk.parentFile)
                     try { temporary.writeBytes(bytes); temporary.renameTo(disk) }
                     finally { temporary.delete() }
                 }
-                bitmap
+                return bitmap
             } finally { conn.disconnect() }
-        }.getOrNull()
+          } catch (_: IOException) {
+              if (attempt == 0) Thread.sleep(200)
+          } catch (_: Exception) { return null }
+        }
+        return null
     }
 }
 

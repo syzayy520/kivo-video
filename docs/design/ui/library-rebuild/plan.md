@@ -116,4 +116,6 @@ SourceManagerModel负责IO调度、草稿和认证→保存两阶段。验证阶
 
 ### L2 平板阶段记录与下一卡
 
+2026-11-09用户指出资源库视觉与首页/详情页割裂，视觉统一提前纳入L2，不全部留到L5。[追加设计](visual-network-followup.md)、[基础统一与未测边界](../../../evidence/p240/source-management/l2-visual-status.md)。当前只完成主题/总览基础，表单和媒体浏览页尚需继续设计，不能当最终UI。
+
 已验证范围和未测矩阵见 [L2验收](../../../evidence/p240/source-management/l2-status.md)。L2仍DOING，先完成当前未测项；媒体内容混排、服务器库作用域和剧季集缺口已单列 [L3待实施卡](l3-content-scope.md)，本轮不扩大实现。分页WIP作为现有会话依赖保留，不因此标L3完成。
