@@ -1,174 +1,202 @@
 package com.kivo.cinema.playback
 
-import android.media.MediaCodec
+import android.content.Context
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.os.Handler
+import android.os.Looper
 import android.view.Surface
+import com.kivo.cinema.bridge.PlaybackSession
+import com.kivo.cinema.net.HttpRangeFile
+import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * URL 硬解会话（220b 设计稿 D2）：MediaExtractor(http://127.0.0.1 代理) →
- * MediaCodec(Surface) 框架硬解管线——与本地文件路径同构，数据源换 URL。
- *
- * 节拍：releaseOutputBuffer(render=true) 直接对 vsync——框架管线自带节拍，
- * 不需要 pts sleep（220 v1 软解的节拍失效问题在此路径不存在）。
- *
- * 线程模型：decode 循环在独立线程（与 C++ 会话同构）；对外接口主线程安全（handler 转发）。
- * 单一职责：URL 硬解播放循环——不涉及 SMB/WebDAV 协议（那些在 Source 层）。
- */
-class NetworkPlaybackSession(private val url: String, private val label: String) {
+/** Serialized network adapter around the same native A/V session used for local media. */
+class NetworkPlaybackSession(context: Context, private val url: String) {
+    enum class State { IDLE, PREPARING, PLAYING, PAUSED, ENDED, FAILED, CLOSED }
+    private val app = context.applicationContext
+    private val main = Handler(Looper.getMainLooper())
+    private val worker = ScheduledThreadPoolExecutor(1) { r -> Thread(r, "KivoNetworkSession") }
+    private val closing = AtomicBoolean(false)
+    private val closed = CountDownLatch(1)
+    private var session: PlaybackSession? = null // worker owns every native operation
+    @Volatile private var source: HttpRangeFile? = null
+    @Volatile var state = State.IDLE; private set
+    @Volatile var positionUs = 0L; private set
+    @Volatile var durationUs = 0L; private set
+    @Volatile var lastError = ""; private set
+    @Volatile var width = 0; private set
+    @Volatile var height = 0; private set
+    @Volatile var hasAudio = false; private set
+    @Volatile var codecName = ""; private set
+    private val curve = mutableListOf<Pair<Long, Double>>()
+    private var beganNs = 0L
 
-    private var extractor: MediaExtractor? = null
-    private var codec: MediaCodec? = null
-    private var thread: Thread? = null
-    private val running = java.util.concurrent.atomic.AtomicBoolean(false)
+    fun paceCurve(): List<Pair<Long, Double>> = synchronized(curve) { curve.toList() }
 
-    var positionUs: Long = 0; private set
-    var durationUs: Long = 0; private set
-    var lastError: String = ""; private set
-    var width: Int = 0; private set
-    var height: Int = 0
-    var codecName: String = ""; private set
-    private var paceSamples: MutableList<Pair<Long, Double>> = mutableListOf()
-
-    /** 节拍曲线（220 诊断仪表）：每 100 帧 (wall_ms, media_s)。 */
-    fun paceCurve(): List<Pair<Long, Double>> = paceSamples.toList()
-
-    private val startedAt = java.util.concurrent.atomic.AtomicLong(0)
-
-    /**
-     * 打开 + 起播（同步：extractor/codec 准备完成后返回，解码循环在后台线程）。
-     * 返回 0 = 成功。
-     */
-    fun start(surface: Surface): Int {
-        if (running.get()) return -1
-        try {
-            val ex = MediaExtractor()
-            extractor = ex
-            ex.setDataSource(url)
-            if (ex.trackCount <= 0) {
-                lastError = "no tracks"
-                ex.release(); extractor = null
-                return 3
+    /** Returns immediately. Callback is delivered on main only while this session remains owned. */
+    fun start(surface: Surface, onReady: (Int) -> Unit) {
+        check(state == State.IDLE && !closing.get())
+        state = State.PREPARING
+        worker.execute {
+            try {
+                val input = HttpRangeFile(app, url)
+                source = input
+                if (closing.get()) input.cancel()
+                input.prepare()
+                check(!closing.get()) { "播放已取消" }
+                probe(input)
+                check(!closing.get() && surface.isValid) { "播放窗口已关闭" }
+                val native = PlaybackSession(0, File("network-media"), "network-media",
+                    descriptorSource = { input.openDescriptor() }, sourceLength = input.size)
+                session = native
+                checked(native.openVideo(surface), native)
+                if (hasAudio) checked(native.openAudio(), native)
+                checked(native.configurePacing(0, true), native)
+                checked(native.configurePipeline(false, true, true), native)
+                check(!closing.get()) { "播放已取消" }
+                checked(native.start(), native)
+                state = State.PLAYING
+                codecName = native.summary().substringAfter("codec=").substringBefore(" ")
+                beganNs = System.nanoTime()
+                main.post { if (!closing.get()) onReady(0) }
+                worker.scheduleWithFixedDelay({ poll() }, 0, 100, TimeUnit.MILLISECONDS)
+            } catch (e: Exception) {
+                if (!closing.get()) fail(source?.failureReason?.takeIf { it.isNotBlank() }
+                    ?: if (e is PlaybackFailure) e.message!! else "网络播放准备失败（${e.javaClass.simpleName}）")
+                releaseNative()
+                main.post { if (!closing.get()) onReady(-1) }
             }
-            var videoTrack = -1
-            var format: MediaFormat? = null
-            for (i in 0 until ex.trackCount) {
-                val f = ex.getTrackFormat(i)
-                val mime = f.getString(MediaFormat.KEY_MIME) ?: continue
-                if (mime.startsWith("video/")) { videoTrack = i; format = f; break }
-            }
-            if (videoTrack < 0 || format == null) {
-                lastError = "no video track"
-                ex.release(); extractor = null
-                return 3
-            }
-            ex.selectTrack(videoTrack)
-            durationUs = format.getLong(MediaFormat.KEY_DURATION)
-            width = format.getInteger(MediaFormat.KEY_WIDTH)
-            height = format.getInteger(MediaFormat.KEY_HEIGHT)
-            codecName = format.getString(MediaFormat.KEY_MIME) ?: ""
-
-            val codec = MediaCodec.createDecoderByType(format.getString(MediaFormat.KEY_MIME)!!)
-            codec.configure(format, surface, null, 0)
-            codec.start()
-            this.codec = codec
-            running.set(true)
-            startedAt.set(System.currentTimeMillis())
-
-            thread = Thread({
-                decodeLoop(videoTrack)
-            }, "NetworkPlaybackSession").apply { start() }
-            return 0
-        } catch (e: Exception) {
-            lastError = "start failed: ${e.message}"
-            running.set(false)
-            releaseAll()
-            return 3
         }
     }
 
-    private fun decodeLoop(videoTrack: Int) {
-        val ex = extractor ?: return
-        val codec = this.codec ?: return
-        val info = MediaCodec.BufferInfo()
-        var sampleCount = 0
-        var inputEof = false
-        val startWall = System.currentTimeMillis()
-        // 节拍（220b）：首帧起锚，之后每帧睡到"起点 + 媒体时间差"——
-        // 硬解码 ~180fps 远超实时，无节拍则自由跑（实测 6.0×）
-        val startNs = System.nanoTime()
-        var firstPtsUs = -1L
-
-        while (running.get()) {
-            // 输入
-            if (!inputEof) {
-                val inIdx = codec.dequeueInputBuffer(10_000)
-                if (inIdx >= 0) {
-                    val buf = codec.getInputBuffer(inIdx)
-                    if (buf != null) {
-                        val sz = ex.readSampleData(buf, 0)
-                        if (sz < 0) {
-                            codec.queueInputBuffer(inIdx, 0, 0, 0,
-                                MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-                            inputEof = true
-                        } else {
-                            codec.queueInputBuffer(inIdx, 0, sz,
-                                ex.sampleTime, ex.sampleFlags)
-                            ex.advance()
-                        }
+    private fun probe(input: HttpRangeFile) {
+        input.openDescriptor().use { fd ->
+            val extractor = MediaExtractor()
+            try {
+                extractor.setDataSource(fd.fileDescriptor, 0, input.size)
+                var video = false
+                for (i in 0 until extractor.trackCount) {
+                    val format = extractor.getTrackFormat(i)
+                    val mime = format.getString(MediaFormat.KEY_MIME) ?: continue
+                    if (mime.startsWith("audio/")) hasAudio = true
+                    if (!video && mime.startsWith("video/")) {
+                        video = true
+                        width = format.getInteger(MediaFormat.KEY_WIDTH)
+                        height = format.getInteger(MediaFormat.KEY_HEIGHT)
+                        durationUs = if (format.containsKey(MediaFormat.KEY_DURATION))
+                            format.getLong(MediaFormat.KEY_DURATION) else 0L
                     }
                 }
-            }
-            // 输出
-            val outIdx = codec.dequeueOutputBuffer(info, 10_000)
-            if (outIdx == MediaCodec.INFO_TRY_AGAIN_LATER) continue
-            if (outIdx == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                val f = codec.outputFormat
-                width = f.getInteger(MediaFormat.KEY_WIDTH)
-                height = f.getInteger(MediaFormat.KEY_HEIGHT)
-                continue
-            }
-            if (outIdx >= 0) {
-                val mediaUs = info.presentationTimeUs
-                positionUs = mediaUs
-                sampleCount++
-                if (sampleCount % 100 == 0) {
-                    paceSamples.add((System.currentTimeMillis() - startWall) to
-                        mediaUs / 1e6)
-                }
-                // 节拍：睡到"起点 + 媒体时间差"再渲染（首帧起锚）
-                if (firstPtsUs < 0) firstPtsUs = mediaUs
-                val dueNs = startNs + (mediaUs - firstPtsUs) * 1000
-                val nowNs = System.nanoTime()
-                if (dueNs > nowNs) Thread.sleep((dueNs - nowNs) / 1_000_000)
-                codec.releaseOutputBuffer(outIdx, true)   // 渲染到 surface
-                if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) break
-            }
+                if (!video) throw PlaybackFailure("片源没有可播放的视频轨道")
+            } finally { extractor.release() }
         }
-        running.set(false)
     }
 
-    /** seek（异步）：extractor 定位 + codec flush。 */
-    fun seekTo(targetUs: Long) {
-        val ex = extractor ?: return
-        ex.seekTo(targetUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
-        codec?.flush()
-        positionUs = targetUs
+    private fun poll() {
+        if (closing.get() || state !in setOf(State.PLAYING, State.PAUSED)) return
+        try {
+            val native = session ?: return
+            positionUs = native.positionUs().coerceAtLeast(0)
+            val summary = native.summary()
+            source?.failureReason?.takeIf { it.isNotBlank() }?.let { throw PlaybackFailure(it) }
+            if (!summary.contains("error=-")) throw PlaybackFailure("网络解码失败：" + summary.substringAfter("error="))
+            if (state == State.PLAYING && summary.contains("completed=1")) {
+                state = State.ENDED
+                releaseNative()
+            }
+            synchronized(curve) {
+                if (curve.size < 600 && (curve.isEmpty() ||
+                    (System.nanoTime() - beganNs) / 1_000_000 - curve.last().first >= 1000))
+                    curve += (System.nanoTime() - beganNs) / 1_000_000 to positionUs / 1e6
+            }
+        } catch (e: Exception) {
+            fail(if (e is PlaybackFailure) e.message!! else "网络播放失败（${e.javaClass.simpleName}）")
+            releaseNative()
+        }
     }
 
-    /** 停止 + 释放（幂等）。 */
-    fun stop() {
-        running.set(false)
-        thread?.join(3000)
-        thread = null
-        releaseAll()
+    fun setPaused(paused: Boolean) = command {
+        if (state == State.PAUSED && paused || state == State.PLAYING && !paused) return@command
+        val native = session ?: return@command
+        checked(if (paused) native.pause() else native.resume(), native)
+        state = if (paused) State.PAUSED else State.PLAYING
+        lastError = ""
+        positionUs = native.positionUs().coerceAtLeast(0)
     }
 
-    private fun releaseAll() {
-        runCatching { codec?.stop() }
-        runCatching { codec?.release() }
-        codec = null
-        runCatching { extractor?.release() }
-        extractor = null
+    fun seekTo(targetUs: Long) = command {
+        // The current native API rejects seek while paused; report it instead of emitting a burst of sound.
+        if (state == State.PAUSED) {
+            lastError = "请先继续播放再调整进度"
+            return@command
+        }
+        val native = session ?: return@command
+        lastError = ""
+        checked(native.seekTo(targetUs.coerceIn(0, (durationUs - 1).coerceAtLeast(0))), native)
+        positionUs = native.positionUs().coerceAtLeast(0)
     }
+
+    fun rebind(surface: Surface?) = command {
+        val native = session ?: return@command
+        checked(native.rebind(surface), native)
+    }
+
+    private fun command(action: () -> Unit) {
+        if (closing.get()) return
+        try { worker.execute {
+            if (closing.get() || state !in setOf(State.PLAYING, State.PAUSED)) return@execute
+            try { action() } catch (e: Exception) {
+                fail(if (e is PlaybackFailure) e.message!! else "播放控制失败（${e.javaClass.simpleName}）")
+                releaseNative()
+            }
+        } } catch (_: java.util.concurrent.RejectedExecutionException) {
+            // Teardown may shut down the executor between the ownership check and enqueue.
+            if (!closing.get()) throw IllegalStateException("播放工作队列已关闭")
+        }
+    }
+
+    /** No UI join: cancel I/O first, then serialize native teardown before fd release. */
+    fun stop(afterClose: () -> Unit = {}) {
+        if (!closing.compareAndSet(false, true)) return
+        Thread({
+            source?.cancel()
+            worker.execute {
+                try { releaseNative() } finally {
+                    state = State.CLOSED
+                    worker.shutdown()
+                    try { afterClose() } finally { closed.countDown() }
+                }
+            }
+        }, "KivoNetworkCancel").start()
+    }
+
+    fun awaitClosed(timeoutMs: Long): Boolean = closed.await(timeoutMs, TimeUnit.MILLISECONDS)
+
+    private fun releaseNative() {
+        val native = session
+        session = null
+        try {
+            native?.let {
+                try {
+                    it.stop()
+                    val evidence = File(app.filesDir, "evidence/network-native-sync.json")
+                    evidence.parentFile?.mkdirs()
+                    it.writeSyncStats(evidence.absolutePath)
+                } finally { it.close() }
+            }
+        } finally {
+            source?.close()
+            source = null
+        }
+    }
+
+    private fun fail(reason: String) { lastError = reason; state = State.FAILED }
+    private fun checked(code: Int, native: PlaybackSession) {
+        if (code != 0) throw PlaybackFailure(native.lastError.ifBlank { "播放核心返回错误 $code" })
+    }
+    private class PlaybackFailure(message: String) : Exception(message)
 }

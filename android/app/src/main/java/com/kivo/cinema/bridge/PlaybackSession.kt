@@ -39,7 +39,10 @@ class PlaybackSession(
     /** 本轮播放的文件。失败取证要用真实路径，不能拿显示名凑。 */
     val mediaFile: File,
     /** 诊断标签（通常是文件名）。不参与任何 IO。 */
-    val displayName: String
+    val displayName: String,
+    /** Optional seekable source; each call must return a separately owned fd. */
+    private val descriptorSource: (() -> ParcelFileDescriptor)? = null,
+    private val sourceLength: Long = mediaFile.length()
 ) {
     var handle: Long = 0L
         private set
@@ -102,7 +105,8 @@ class PlaybackSession(
             return -1
         }
         val fd = runCatching {
-            ParcelFileDescriptor.open(mediaFile, ParcelFileDescriptor.MODE_READ_ONLY)
+            descriptorSource?.invoke()
+                ?: ParcelFileDescriptor.open(mediaFile, ParcelFileDescriptor.MODE_READ_ONLY)
         }.getOrNull()
         if (fd == null) {
             lastError = "ParcelFileDescriptor.open failed"
@@ -123,7 +127,7 @@ class PlaybackSession(
                 handle,
                 displayName,
                 fd.fd,
-                mediaFile.length(),
+                sourceLength,
                 surface
             )
         }.getOrElse { -1 }
@@ -150,7 +154,8 @@ class PlaybackSession(
             return -1
         }
         val fd = runCatching {
-            ParcelFileDescriptor.open(mediaFile, ParcelFileDescriptor.MODE_READ_ONLY)
+            descriptorSource?.invoke()
+                ?: ParcelFileDescriptor.open(mediaFile, ParcelFileDescriptor.MODE_READ_ONLY)
         }.getOrNull()
         if (fd == null) {
             lastError = "audio ParcelFileDescriptor.open failed"
@@ -159,7 +164,7 @@ class PlaybackSession(
         audioFd = fd
 
         val rc = runCatching {
-            NativePlayer.nativeSessionOpenAudio(handle, displayName, fd.fd, mediaFile.length())
+            NativePlayer.nativeSessionOpenAudio(handle, displayName, fd.fd, sourceLength)
         }.getOrElse { -1 }
         if (rc != 0) {
             lastError = nativeErrorOr("audio failed rc=$rc")

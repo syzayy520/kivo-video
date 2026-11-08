@@ -1,0 +1,7 @@
+
+PASS independent proxy descriptors support exact random reads
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS forward and backward seek use the native A/V session
+PASS exit serializes native teardown; evidence confirms rendered audio and audio master clock
+

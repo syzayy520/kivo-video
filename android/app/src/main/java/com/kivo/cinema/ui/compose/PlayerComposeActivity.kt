@@ -58,9 +58,30 @@ class PlayerComposeActivity : ComponentActivity() {
         override fun run() {
             val netSession = smbNetSession
             if (netSession != null) {
-                // 220b：硬解会话的位置上报
-                positionMs = (netSession.positionUs / 1000).coerceAtMost(durationMs)
-                controlsVisible = true  // 诊断模式：常显
+                durationMs = netSession.durationUs / 1000
+                positionMs = (netSession.positionUs / 1000).coerceAtLeast(0)
+                    .let { if (durationMs > 0) it.coerceAtMost(durationMs) else it }
+                isPlaying = netSession.state == com.kivo.cinema.playback.NetworkPlaybackSession.State.PLAYING
+                when (netSession.state) {
+                    com.kivo.cinema.playback.NetworkPlaybackSession.State.FAILED -> {
+                        statusText = "网络播放失败：${netSession.lastError}"
+                        controlsVisible = true
+                        return
+                    }
+                    com.kivo.cinema.playback.NetworkPlaybackSession.State.ENDED -> {
+                        statusText = "播放结束"
+                        controlsVisible = true
+                        return
+                    }
+                    else -> {
+                        if (netSession.lastError.isNotBlank()) {
+                            statusText = netSession.lastError
+                            controlsVisible = true
+                        } else if (System.currentTimeMillis() - lastTouchMs > 3000) {
+                            controlsVisible = false
+                        }
+                    }
+                }
                 android.os.Handler(mainLooper).postDelayed(this, 100)
                 return
             }
@@ -121,7 +142,7 @@ class PlayerComposeActivity : ComponentActivity() {
                 Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
                     PlayerScreen(
                         onSurfaceReady = { holder -> maybeStartPlayback(holder) },
-                        onSurfaceLost = { surfaceReady = false },
+                        onSurfaceLost = { onSurfaceLost() },
                         onTap = {
                             lastTouchMs = System.currentTimeMillis()
                             controlsVisible = !controlsVisible
@@ -194,12 +215,26 @@ class PlayerComposeActivity : ComponentActivity() {
 
     fun onSurfaceLost() {
         surfaceReady = false
+        val network = smbNetSession
+        if (network?.state == com.kivo.cinema.playback.NetworkPlaybackSession.State.PREPARING ||
+            networkPreparationCancelled != null) {
+            closeNetworkPlayback()
+            playbackStarted = false
+            isPlaying = false
+        } else {
+            network?.rebind(null)
+            playbackSession?.rebind(null)
+        }
     }
 
     private fun maybeStartPlayback(holder: SurfaceHolder) {
         // surface 回调本身就是"面可用"的证明——不再依赖 Listener 的 surfaceReady 标志
         surfaceReady = true
-        if (playbackStarted) return
+        if (playbackStarted) {
+            smbNetSession?.rebind(holder.surface)
+            playbackSession?.rebind(holder.surface)
+            return
+        }
         val smbJson = intent.getStringExtra("kivo.smb") ?: ""
         if (smbJson.isNotBlank()) {
             startSmbPlayback(holder, smbJson)
@@ -316,110 +351,98 @@ class PlayerComposeActivity : ComponentActivity() {
         } catch (e: Exception) { }
     }
 
-    private fun startSmbPlayback(holder: SurfaceHolder, smbJson: String) {
-        val media = mediaOverridePath.takeIf { it.isNotBlank() }
-            ?.let { java.io.File(it) }?.takeIf { it.isFile }
-        val displayName = media?.name ?: "smb"
-        playbackStarted = true
-        smbTrace("startSmbPlayback begin")
+    private var networkGeneration = 0
+    private var networkPreparationCancelled: java.util.concurrent.atomic.AtomicBoolean? = null
 
+    private fun startSmbPlayback(holder: SurfaceHolder, smbJson: String) {
         val cfg = com.kivo.cinema.smb.SmbConfig.fromJson(smbJson)
         if (cfg == null) {
-            statusText = "bad kivo.smb json"
-            finish()
+            statusText = "SMB连接信息无效"
+            controlsVisible = true
             return
         }
-        statusText = "smb connect ${cfg.host}/${cfg.share}..."
-        val source = com.kivo.cinema.smb.Smb2Native.Source(cfg)
-        try {
-            source.connect()
-            smbSource = source
-            val opened = source.openForRead(cfg.path)
-            smbTrace("smb size=${opened.size()}")
-            statusText = "smb size=${opened.size()}"
-            val proxy = com.kivo.cinema.net.LocalRangeProxy(opened)
-            smbProxy = proxy
-            val port = proxy.start()
-            val url = "http://127.0.0.1:$port/kivo"
-            smbTrace("proxy port=$port url=$url")
-            statusText = "proxy :$port, opening..."
-
-            // 220b：硬解优先（MediaExtractor http URL → MediaCodec Surface），
-            // 失败显示原因并停止，不创建软解会话。
-            val netSession = com.kivo.cinema.playback.NetworkPlaybackSession(url, displayName)
-            smbNetSession = netSession
-            val netRc = netSession.start(holder.surface)
-            if (netRc == 0) {
-                smbTrace("network harddec start ok ${netSession.width}x${netSession.height}")
-                durationMs = netSession.durationUs / 1000
-                statusText = "playing smb://${cfg.host}/${cfg.share}/${cfg.path} (harddec)"
-                isPlaying = true
-                smbStarted = System.currentTimeMillis()
-                lastTouchMs = smbStarted
-                loadDanmaku(cfg.path)
-                android.os.Handler(mainLooper).post(positionPoll)
-                // 诊断：40s 后停 + 落节拍曲线（220b 速率验证）
-                android.os.Handler(mainLooper).postDelayed({
-                    smbNetSession?.let { ns ->
-                        val curve = ns.paceCurve()
-                        val json = org.json.JSONArray()
-                        curve.forEach { (w, m) -> json.put(listOf(w, m)) }
-                        try {
-                            val dir = java.io.File(getExternalFilesDir(null), "evidence").apply { mkdirs() }
-                            java.io.File(dir, "p220b-pace.json").writeText(json.toString())
-                        } catch (e: Exception) { }
-                        statusText = "pace diagnostic written (${curve.size} samples)"
+        playbackStarted = true
+        statusText = "正在连接SMB…"
+        val generation = ++networkGeneration
+        val cancelled = java.util.concurrent.atomic.AtomicBoolean(false)
+        networkPreparationCancelled = cancelled
+        Thread({
+            val source = com.kivo.cinema.smb.Smb2Native.Source(cfg)
+            var proxy: com.kivo.cinema.net.LocalRangeProxy? = null
+            try {
+                source.connect()
+                check(!cancelled.get())
+                val opened = source.openForRead(cfg.path)
+                proxy = com.kivo.cinema.net.LocalRangeProxy(opened)
+                val port = proxy.start()
+                val readyProxy = proxy
+                runOnUiThread {
+                    if (cancelled.get() || isDestroyed || generation != networkGeneration || !surfaceReady) {
+                        Thread { runCatching { readyProxy.close() }; runCatching { source.close() } }.start()
+                        return@runOnUiThread
                     }
-                }, 40000)
-                return
+                    networkPreparationCancelled = null
+                    smbSource = source
+                    smbProxy = readyProxy
+                    startUrlPlayback(holder, "http://127.0.0.1:$port/kivo", "SMB", "smb")
+                    loadDanmaku(cfg.path)
+                }
+            } catch (e: Exception) {
+                runCatching { proxy?.close() }
+                runCatching { source.close() }
+                runOnUiThread {
+                    if (!cancelled.get() && !isDestroyed && generation == networkGeneration) {
+                        networkPreparationCancelled = null
+                        statusText = "SMB连接失败（${e.javaClass.simpleName}），请检查网络和共享权限"
+                        isPlaying = false
+                        controlsVisible = true
+                    }
+                }
             }
-            val reason = netSession.lastError.ifBlank { "启动失败，错误码 $netRc" }
-            runCatching { netSession.stop() }
-            smbNetSession = null
-            runCatching { proxy.close() }
-            runCatching { source.close() }
-            smbProxy = null
-            smbSource = null
-            statusText = "网络视频无法播放：$reason（未启用软解回退）"
-            isPlaying = false
-            controlsVisible = true
-        } catch (e: Exception) {
-            Log.e(TAG, "smb failed", e)
-            smbTrace("EXCEPTION ${e.javaClass.name}: ${e.message}")
-            statusText = "SMB failed: ${e.message}"
-            runCatching { source.close() }
-            runCatching { smbProxy?.close() }
-            finish()
-        }
+        }, "KivoSmbPrepare").start()
     }
 
-    /** 通用 URL 直开：与 SMB 路径共用现有网络会话，失败不软解回退。 */
+    /** Emby and SMB share the same native A/V pipeline. Preparation never blocks main. */
     private fun startUrlPlayback(holder: SurfaceHolder, url: String, label: String,
                                  routing: String) {
         playbackStarted = true
-        smbTrace("url-play begin")
-
-        // 220b 路由：硬解优先（MediaExtractor http URL → MediaCodec Surface）
-        val netSession = com.kivo.cinema.playback.NetworkPlaybackSession(url, label)
+        statusText = "正在准备网络播放…"
+        val netSession = com.kivo.cinema.playback.NetworkPlaybackSession(this, url)
         smbNetSession = netSession
-        val netRc = netSession.start(holder.surface)
-        if (netRc == 0) {
-            smbTrace("url-play harddec ok ${netSession.width}x${netSession.height}")
-            durationMs = netSession.durationUs / 1000
-            statusText = "正在播放网络视频"
-            isPlaying = true
-            smbStarted = System.currentTimeMillis()
-            lastTouchMs = smbStarted
-            android.os.Handler(mainLooper).post(positionPoll)
-            return
+        netSession.start(holder.surface) { result ->
+            if (isDestroyed || smbNetSession !== netSession) return@start
+            if (result == 0) {
+                durationMs = netSession.durationUs / 1000
+                statusText = if (netSession.hasAudio) "正在播放" else "正在播放 · 片源没有音轨"
+                isPlaying = true
+                smbStarted = System.currentTimeMillis()
+                lastTouchMs = smbStarted
+                android.os.Handler(mainLooper).post(positionPoll)
+            } else {
+                statusText = "网络视频无法播放：${netSession.lastError}"
+                isPlaying = false
+                controlsVisible = true
+            }
         }
-        val reason = netSession.lastError.replace(url, "网络片源")
-            .ifBlank { "启动失败，错误码 $netRc" }
-        runCatching { netSession.stop() }
+    }
+
+    private fun closeNetworkPlayback() {
+        ++networkGeneration
+        networkPreparationCancelled?.set(true)
+        networkPreparationCancelled = null
+        val network = smbNetSession
         smbNetSession = null
-        statusText = "网络视频无法播放：$reason（未启用软解回退）"
-        isPlaying = false
-        controlsVisible = true
+        val proxy = smbProxy
+        smbProxy = null
+        val source = smbSource
+        smbSource = null
+        val cleanup = {
+            runCatching { proxy?.close() }
+            runCatching { source?.close() }
+            Unit
+        }
+        if (network != null) network.stop(cleanup)
+        else if (proxy != null || source != null) Thread(cleanup, "KivoSmbClose").start()
     }
 
     private fun loadDanmaku(mediaPath: String) {
@@ -444,9 +467,15 @@ class PlayerComposeActivity : ComponentActivity() {
     }
 
     private fun togglePlayPause() {
+        lastTouchMs = System.currentTimeMillis()
+        smbNetSession?.let { network ->
+            network.setPaused(network.state == com.kivo.cinema.playback.NetworkPlaybackSession.State.PLAYING)
+            return
+        }
         val session = playbackSession ?: return
-        isPlaying = !isPlaying
-        if (isPlaying) session.resume() else session.pause()
+        val result = if (isPlaying) session.pause() else session.resume()
+        if (result == 0) isPlaying = !isPlaying
+        else { statusText = "播放控制失败：${session.lastError}"; controlsVisible = true }
     }
 
     // ---- 237-A：观看数据域（进度 + 统计时长）----
@@ -651,12 +680,7 @@ class PlayerComposeActivity : ComponentActivity() {
         }
         smbFfSession?.let { s -> runCatching { s.stopAndCollectEvidence() } }
         smbFfSession = null
-        smbNetSession?.let { s -> runCatching { s.stop() } }
-        smbNetSession = null
-        runCatching { smbProxy?.close() }
-        smbProxy = null
-        runCatching { smbSource?.close() }
-        smbSource = null
+        closeNetworkPlayback()
         thumbnailReader?.release()
         thumbnailReader = null
         playbackSession?.close()
