@@ -1,0 +1,11 @@
+Device: Huawei MRR_W29 / API31 / CFE6R21B12000179
+Command: adb -s CFE6R21B12000179 shell am instrument -w com.kivo.cinema.test/com.kivo.cinema.sources.SourceLifecycleInstrumentation
+Captured tool stdout, 2026-11-09:
+
+PASS internal MainActivity -> EmbyActivity retains foreground authorization
+PASS internal return retains foreground authorization
+PASS real activity recreation retains foreground authorization
+PASS desktop round 1: background revokes authorization; return stays locked
+PASS desktop round 2: background revokes authorization; return stays locked
+PASS desktop round 3: background revokes authorization; return stays locked
+6 cases PASS

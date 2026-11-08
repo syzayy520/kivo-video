@@ -1,0 +1,26 @@
+{
+  "device": "CFE6R21B12000179",
+  "date": "2026-11-09",
+  "system_credential_cancel": {
+    "entry": "resource library header: unlock hidden sources",
+    "observed_system_title": "输入锁屏密码",
+    "action": "KEYCODE_BACK twice; first back left credential screen visible",
+    "cancel_message": true,
+    "locked_icon": true,
+    "unlocked_icon": false,
+    "password_entered": false,
+    "account_preferences_changed": false
+  },
+  "missing_source_intent": {
+    "command": "adb shell am start -n com.kivo.cinema/.emby.EmbyActivity --es kivo.sourceId kivo-lifecycle-missing-source",
+    "missing_source_error": true,
+    "return_action": true,
+    "unlock_action": false,
+    "connection_form": false,
+    "returned_to_main": true
+  },
+  "assertion_method": "uiautomator dump; exact text/content-description checks; private XML kept only in ignored build directory",
+  "final_pid": 13631,
+  "crash_command": "adb -s CFE6R21B12000179 shell \"logcat -b crash -d -T '11-09 06:08:00.000'\"",
+  "crash_result": "empty; checked at device time Mon Nov 9 06:23:49 CST 2026"
+}

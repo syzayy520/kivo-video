@@ -16,3 +16,7 @@
 - androidTest/.../sources/SourceControlsInstrumentation：隔离数据迁移、事务、隐私规则与授权失效；不修改真实服务器偏好或设备密码。
 
 验收：构建；平板覆盖安装；菜单与撤销、无凭据拒绝路径、隔离真实Keystore事务测试；可用系统凭据下的人工解锁/取消/后台重锁若未测必须明示。证据归docs/evidence/p240/source-management/。L2仍DOING，后端不动；承接已归档平板自检，不重跑无关解码性能。
+
+## 真实宿主生命周期补测
+
+在既有 androidTest/.../sources/ 下新增 SourceLifecycleInstrumentation，只负责真实 Activity 生命周期与授权失效。使用 MainActivity 和不带源ID的 EmbyActivity 空连接页，验证内部跳转/返回、配置重建及桌面往返。测试授权仅由测试代码在内存设置，不代表系统身份验证成功；运行前若正式记录存在隐藏源则拒绝运行，避免测试授权暴露私人内容。不修改正式账号、默认首页或隐藏偏好，不输入系统密码。报告只记生命周期与布尔结论；结束强制锁定。系统凭据取消另以真实UI观察，隐藏直达及隐藏默认首页仍需独立验证。
