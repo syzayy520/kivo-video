@@ -116,9 +116,9 @@ fun HeroCarousel(
             TmdbImage(
                 artUrl ?: m.posterHeroUrl, m.title, Modifier.fillMaxSize(),
                 onLoaded = { artMissing = it })
-            // 环境色遮罩（海报外层）：海报自身标题/logo 区（fy≤0.785）完全透明，
-            // 实色区从 fy 0.81（简介文字上缘）开始——海报下部内容（0138 里的英文
-            // 标题 fy 0.82-0.92）被实色区完全盖住（0138 实证不可见），底边同埋
+            // 环境色遮罩（海报外层）：海报自身标题/logo 区（fy≤0.55）完全透明，
+            // 渐变跨 fy 0.55→0.65（0138：亮路径可见到 fy≈0.55、车辆区 fy 0.62 起已盖住），
+            // fy≥0.65 实色 0.95——海报下部内容（英文标题 fy 0.82-0.92）与底边全部盖住
             Box(
                 Modifier
                     .fillMaxSize()
@@ -126,10 +126,9 @@ fun HeroCarousel(
                         val c = scrimColor.value
                         drawRect(Brush.verticalGradient(
                             0f to c.copy(alpha = 0f),
-                            0.79f to c.copy(alpha = 0f),
-                            0.81f to c,
-                            1f to c),
-                            alpha = 1f)
+                            0.55f to c.copy(alpha = 0f),
+                            0.65f to c.copy(alpha = 0.95f),
+                            1f to c.copy(alpha = 0.97f)))
                     }
             )
             // 标题：logo 叠加（帧 346-459pt，中心 ~0.69×585）；海报缺图才回退文本
