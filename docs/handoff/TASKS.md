@@ -1,8 +1,8 @@
 # P12 任务清单 · 可执行台账
 
-> 2026-11-09 当前用户任务：**资源库整体重构，先研究后实现**。按[统一源管理设计与家族树](../design/ui/library-rebuild/plan.md)推进 L0→L5；[六款播放器研究](../reference/player-libraries/README.md)、[14张空表单/分组证据](../evidence/p240/library-research/status.md)。REX 原件为 `C:/Users/Administrator/Pictures/REX/rex/rex`，与已审计副本对应。L0已归档有界观察，解析、持久化和管理动作仍有研究缺口；L1基础层已完成平板隔离测试十组，证据见docs/evidence/p240/source-management/status.md；自检已按用户授权平板替代范围完成。L2待接入。
+> 2026-11-09 当前用户任务：**资源库整体重构，先研究后实现**。按[统一源管理设计与家族树](../design/ui/library-rebuild/plan.md)推进 L0→L5；[六款播放器研究](../reference/player-libraries/README.md)、[14张空表单/分组证据](../evidence/p240/library-research/status.md)。REX 原件为 `C:/Users/Administrator/Pictures/REX/rex/rex`，与已审计副本对应。L0已归档有界观察，解析、持久化和管理动作仍有研究缺口；L1基础层已完成平板隔离测试十组，证据见docs/evidence/p240/source-management/status.md；自检已按用户授权平板替代范围完成。L2已接入并在平板通过两源保存/跨进程恢复/切换/取消与失败编辑保留；[验收记录](../evidence/p240/source-management/l2-status.md)。K40已补两源新增/重启/切换、成功编辑与真实删除恢复，[手机证据](../evidence/p240/source-management/l2-phone-status.md)。L2仍DOING，先补粘贴UI/键盘字号/取消竞态等未测项再推进L3。分类/层级问题已记录 [L3卡](../design/ui/library-rebuild/l3-content-scope.md)，未实施。
 
-> Emby 全库浏览 **暂停的未交付 WIP**：分页/搜索/排序源码构建过，已随自检包覆盖安装、未真机验收；保留现场，后续归入 L3，先完成统一源管理与多账号保存。旧 Emby 独占 profiles 架构由上述设计替代，不再据旧稿扩建。
+> Emby 全库浏览 **暂停的未交付 WIP**：分页/搜索/排序源码构建过，已随自检包覆盖安装、仅首批浏览在L2验证，分页/搜索/排序未验；保留现场，后续归入 L3，先完成统一源管理与多账号保存。旧 Emby 独占 profiles 架构由上述设计替代，不再据旧稿扩建。
 
 > 2026-11-09 Emby 重设计 `DOING`：用户否定旧调试表单，当前采用独立连接页、自适应海报墙、当前列表搜索/排序、内存会话与有界图片缓存。平板已恢复 USB 并覆盖安装，平板流程已通过，范围与最终包复测见[新版证据](../evidence/p240/emby-redesign/status.md)，[设计](../design/ui/replica/emby-redesign.md)。旧表单微调方案由此替代；网络错误路径、SMB、音频另有未过闸门，不覆盖 R2/R3/R4 或后端指针。
 

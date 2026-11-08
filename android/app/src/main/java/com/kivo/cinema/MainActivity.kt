@@ -39,7 +39,7 @@ import com.kivo.cinema.ui.design.CapsuleNavBar
 import com.kivo.cinema.ui.design.DiscoverPage
 import com.kivo.cinema.ui.design.ProfilePage
 import com.kivo.cinema.ui.design.SettingsPage
-import com.kivo.cinema.ui.design.SourcesPage
+import com.kivo.cinema.sources.ui.SourcesScreen
 
 /**
  * App Shell（236 设计稿 §三）：动画渐变背景 + 4 页路由 + 底部胶囊导航。
@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
 
     private var items by mutableStateOf(listOf<MediaItem>())
     private val thumbCache = HashMap<Long, android.graphics.Bitmap?>()
+    private val sources by lazy { androidx.lifecycle.ViewModelProvider(this)[com.kivo.cinema.sources.SourceManagerModel::class.java] }
 
     // 237-A：观看数据域 + 评分源 + 首页 TMDB 节
     private val watchStore by lazy { com.kivo.cinema.stats.WatchStore(this) }
@@ -87,6 +88,7 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         refreshContinue()
         refreshTmdb()
+        sources.refresh()
     }
 
     private fun refreshTmdb() {
@@ -215,13 +217,14 @@ class MainActivity : ComponentActivity() {
                         .navigationSource(backdrop, enabled = page != 1)
                 ) {
                     when (page) {
-                        0 -> SourcesPage(
+                        0 -> SourcesScreen(
+                            model = sources,
                             onOpenSmb = { startActivity(
                                 android.content.Intent(this@MainActivity,
                                     com.kivo.cinema.smb.SmbActivity::class.java)) },
-                            onOpenEmby = { startActivity(
+                            onOpenEmby = { sourceId -> startActivity(
                                 android.content.Intent(this@MainActivity,
-                                    com.kivo.cinema.emby.EmbyActivity::class.java)) },
+                                    com.kivo.cinema.emby.EmbyActivity::class.java).putExtra("kivo.sourceId", sourceId)) },
                             onOpenLibrary = { openLibrary() },
                             onOpenPrivate = { startActivity(
                                 android.content.Intent(this@MainActivity,

@@ -4,6 +4,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
+import java.net.URLEncoder
 
 /**
  * Emby REST 客户端（224 设计稿 D1-D3）：login / items / streamUrl。
@@ -72,9 +73,15 @@ class EmbyClient(serverInput: String) {
     }
 
     /** D2：海报墙条目（Movie，按加入时间倒序）。失败只暴露 HTTP 状态码。 */
-    fun items(auth: Auth, limit: Int = 60): List<EmbyItem> {
-        val q = "?IncludeItemTypes=Movie&Recursive=true&SortBy=DateCreated" +
-            "&SortOrder=Descending&Limit=$limit&Fields=ProductionYear&ImageTypeLimit=1"
+    data class Page(val items: List<EmbyItem>, val total: Int?)
+
+    fun items(auth: Auth, start: Int = 0, search: String = "", sort: Int = 0, limit: Int = 60): Page {
+        require(start >= 0 && limit in 1..100 && sort in 0..2)
+        val order = listOf("DateCreated", "SortName", "ProductionYear")[sort]
+        val q = "?IncludeItemTypes=Movie&Recursive=true&SortBy=$order,Id" +
+            "&SortOrder=${if (sort == 1) "Ascending" else "Descending"}&StartIndex=$start" +
+            "&Limit=$limit&Fields=ProductionYear&ImageTypeLimit=1&EnableTotalRecordCount=true" +
+            "&SearchTerm=${URLEncoder.encode(search.trim(), "UTF-8")}"
         val url = "$base$prefix/Users/${auth.userId}/Items$q"
         val c = conn(url, "GET")
         try {
@@ -82,7 +89,8 @@ class EmbyClient(serverInput: String) {
             val code = c.responseCode
             if (code !in 200..299) throw HttpFailure(code)
             val body = c.inputStream.bufferedReader().use { it.readText() }
-            val arr = JSONObject(body).getJSONArray("Items")
+            val json = JSONObject(body)
+            val arr = json.getJSONArray("Items")
             val out = mutableListOf<EmbyItem>()
             for (i in 0 until arr.length()) {
                 val o = arr.getJSONObject(i)
@@ -99,7 +107,8 @@ class EmbyClient(serverInput: String) {
                     posterUrl = poster,
                 )
             }
-            return out
+            return Page(out, if (json.has("TotalRecordCount") && !json.isNull("TotalRecordCount"))
+                json.getInt("TotalRecordCount").coerceAtLeast(0) else null)
         } finally { c.disconnect() }
     }
 

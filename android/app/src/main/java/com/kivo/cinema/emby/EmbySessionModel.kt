@@ -25,9 +25,7 @@ class EmbySessionModel : ViewModel() {
     var error by mutableStateOf<String?>(null); private set
     var connecting by mutableStateOf(false); private set
     var inLibrary by mutableStateOf(false); private set
-    var items by mutableStateOf(emptyList<EmbyItem>()); private set
-    var query by mutableStateOf("")
-    var sort by mutableStateOf(0)
+    val library = com.kivo.cinema.emby.library.EmbyLibraryModel(::friendlyError)
     private var client: EmbyClient? = null
     private var auth: EmbyClient.Auth? = null
     private val main = Handler(Looper.getMainLooper())
@@ -37,7 +35,32 @@ class EmbySessionModel : ViewModel() {
     private val posters = object : LruCache<String, Bitmap>(24 * 1024 * 1024) {
         override fun sizeOf(key: String, value: Bitmap) = value.allocationByteCount
     }
-    val serverName: String get() = runCatching {
+    private var savedName: String? = null
+    private var savedStarted = false
+    fun openSaved(context: android.content.Context, id: String, retry: Boolean = false) {
+        if (savedStarted && !retry) return
+        savedStarted = true
+        error = null; connecting = true
+        val ticket = ++generation
+        work = pool.submit {
+            val result = runCatching {
+                val records = com.kivo.cinema.sources.SourceRepository(
+                    com.kivo.cinema.sources.storage.SourceStore(context.applicationContext)).read().getOrThrow()
+                records.firstOrNull { it.id == id }
+                    ?: throw com.kivo.cinema.sources.SourceFailure("此连接已被移除，请返回资源库")
+            }
+            main.post {
+                if (ticket != generation) return@post
+                connecting = false
+                result.fold({ source ->
+                    server = source.address; username = source.username; password = source.password
+                    savedName = source.name
+                    connect()
+                }, { error = if (it is com.kivo.cinema.sources.SourceFailure) it.reason else "无法读取连接，请返回资源库后重试" })
+            }
+        }
+    }
+    val serverName: String get() = savedName ?: runCatching {
         URI(if (server.contains("://")) server.trim() else "https://${server.trim()}").host
     }.getOrNull() ?: "Emby"
 
@@ -59,8 +82,8 @@ class EmbySessionModel : ViewModel() {
                 if (ticket != generation) return@post
                 connecting = false
                 result.fold(onSuccess = { (c, a, list) ->
-                    client = c; auth = a; items = list
-                    query = ""; sort = 0; inLibrary = true
+                    client = c; auth = a; library.attach(c, a, list)
+                    inLibrary = true
                 }, onFailure = { error = friendlyError(it) })
             }
         }
@@ -71,7 +94,7 @@ class EmbySessionModel : ViewModel() {
         cancel()
         inLibrary = false
         // Switching servers must not keep authenticated playback or old artwork alive.
-        client = null; auth = null; items = emptyList(); posters.evictAll()
+        client = null; auth = null; library.clear(); posters.evictAll()
     }
     fun streamUrl(item: EmbyItem): String? = auth?.let { client?.streamUrl(it, item.id) }
 
@@ -100,5 +123,5 @@ class EmbySessionModel : ViewModel() {
         else -> "连接未完成，请检查网络与服务器地址后重试。"
     }
 
-    override fun onCleared() { cancel(); pool.shutdownNow(); posters.evictAll() }
+    override fun onCleared() { cancel(); library.close(); pool.shutdownNow(); posters.evictAll() }
 }
