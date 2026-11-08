@@ -326,24 +326,3 @@ private fun GuideCard(title: String, value: String, accent: Color,
         }
     }
 }
-
-/** 问题反馈浮动钮（240 §6.1）：玻璃胶囊 113×50 + 蓝色圆形 i + 文案 15sp。 */
-@Composable
-internal fun FeedbackPill(onClick: () -> Unit) {
-    Row(
-        Modifier.height(50.dp)
-            .clip(RoundedCornerShape(50))
-            .background(Color.White.copy(alpha = .78f))
-            .border(1.dp, Color.Black.copy(alpha = .06f), RoundedCornerShape(50))
-            .clickable { onClick() }
-            .padding(start = 8.dp, end = 22.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.size(34.dp).clip(CircleShape).background(Color(0xFF1E8FF7)),
-            contentAlignment = Alignment.Center) {
-            Text("i", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
-        }
-        Spacer(Modifier.width(10.dp))
-        Text("问题反馈", fontSize = 15.sp, color = DesignTokens.textMain)
-    }
-}
