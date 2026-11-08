@@ -3,30 +3,36 @@ package com.kivo.cinema.tmdb
 import org.json.JSONObject
 
 /**
- * 影片详情数据域（240 §1）：一次 append_to_response 拉详情+预告+演职员+相似+图片。
+ * 影片详情数据域（240 §1/§5）：一次 append_to_response 拉详情+预告+演职员+相似+图片。
  * 全部 TMDB 公开 API，key/代理复用 TmdbClient 既有链路；网络失败返回 null（G9 由 UI 呈现）。
+ *
+ * 字段口径按 240 §5.2：meta 行 = 日期 · 地区 · 片长/集数（不含类型）；地区取 ISO 码译中文。
  */
 class TmdbDetail(private val client: TmdbClient) {
 
     data class Details(
         val id: Int,
         val title: String,
-        val date: String,          // yyyy-MM-dd，空=未定档
+        val date: String,          // yyyy-MM-dd，空=未定档（中文格式由 UI 转换）
         val genres: List<String>,  // 中文名（详情接口自带 zh-CN 名称）
         val overview: String,
         val rating: Float,
-        val posterUrl: String,     // w780（详情幕布用）
+        val posterUrl: String,     // w780 竖版海报（幕布用；自带标题烙印）
         val isTv: Boolean,
-        val region: String?,       // 制作地区首国（「英国」）
+        val region: String?,       // 制作地区中文名，多国以「/」连接（「中国大陆/中国香港」）
         val episodes: Int?,        // 剧集集数（电影为 null）
+        val runtimeMin: Int?,      // 片长分钟（剧集为 null）
         val trailerKey: String?,   // YouTube key（官方 Trailer，zh 优先）
         val cast: List<CastMember>,
+        val stills: List<String>,  // 剧照 w780（/images backdrops）
+        val studioLogo: String?,   // 片源/出品方 logo（production_companies.logo_path）
         val similar: List<SimilarItem>,
     )
 
     data class CastMember(val name: String, val role: String, val profileUrl: String?)
+
     data class SimilarItem(val id: Int, val title: String, val date: String,
-                           val rating: Float, val posterUrl: String)
+                           val rating: Float, val posterUrl: String, val overview: String)
 
     fun details(isTv: Boolean, id: Int): Details? {
         val kind = if (isTv) "tv" else "movie"
@@ -40,37 +46,39 @@ class TmdbDetail(private val client: TmdbClient) {
                 .filter { it.isNotEmpty() }
         } ?: emptyList()
         val date = json.optString("release_date", json.optString("first_air_date", ""))
-        val region = json.optJSONArray("production_countries")?.optJSONObject(0)
-            ?.optString("name")?.takeIf { it.isNotEmpty() }
-            ?: json.optJSONArray("origin_country")?.optString(0)?.takeIf { it.isNotEmpty() }
-        val videos = json.optJSONObject("videos")?.optJSONArray("results")
-        var trailerKey: String? = null
-        if (videos != null) {
-            var best = Int.MAX_VALUE
-            for (i in 0 until videos.length()) {
-                val v = videos.getJSONObject(i)
-                if (v.optString("site") != "YouTube") continue
-                val type = v.optString("type")
-                val rank = when {
-                    type == "Trailer" && v.optBoolean("official") -> 0
-                    type == "Trailer" -> 1
-                    type == "Teaser" -> 2
-                    else -> 3
-                }
-                if (rank < best && v.optString("key").isNotEmpty()) {
-                    best = rank; trailerKey = v.optString("key")
+        val cast = mutableListOf<CastMember>()
+        val credits = json.optJSONObject("credits")
+        // 导演位（240 §5.2 E7 口径）：电影取 crew 的 Director，剧集取 created_by
+        if (isTv) {
+            json.optJSONArray("created_by")?.optJSONObject(0)?.optString("name")
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { cast.add(CastMember(it, "导演", null)) }
+        } else {
+            credits?.optJSONArray("crew")?.let { arr ->
+                for (i in 0 until arr.length()) {
+                    val o = arr.getJSONObject(i)
+                    if (o.optString("job") == "Director") {
+                        val n = o.optString("name")
+                        if (n.isNotEmpty()) {
+                            val p = o.optString("profile_path").takeIf { it.isNotEmpty() }
+                            cast.add(CastMember(n, "导演", p?.let { "${TmdbHome.IMG}/w185$it" }))
+                        }
+                        break
+                    }
                 }
             }
         }
-        val cast = mutableListOf<CastMember>()
-        json.optJSONObject("credits")?.optJSONArray("cast")?.let { arr ->
-            for (i in 0 until arr.length().coerceAtMost(10)) {
+        credits?.optJSONArray("cast")?.let { arr ->
+            var added = 0
+            for (i in 0 until arr.length()) {
+                if (added >= 10) break
                 val o = arr.getJSONObject(i)
                 val name = o.optString("name")
-                if (name.isEmpty()) continue
+                if (name.isEmpty() || cast.any { it.name == name }) continue
                 val profile = o.optString("profile_path").takeIf { it.isNotEmpty() }
-                cast.add(CastMember(name, o.optString("character", o.optString("job", "")),
+                cast.add(CastMember(name, o.optString("character", ""),
                     profile?.let { "${TmdbHome.IMG}/w185$it" }))
+                added++
             }
         }
         val similar = mutableListOf<SimilarItem>()
@@ -80,32 +88,95 @@ class TmdbDetail(private val client: TmdbClient) {
                 val t = o.optString("title", o.optString("name", ""))
                 val poster = o.optString("poster_path")
                 if (t.isEmpty() || poster.isEmpty()) continue
-                similar.add(SimilarItem(o.getInt("id"), t,
+                similar.add(SimilarItem(o.optInt("id"), t,
                     o.optString("release_date", o.optString("first_air_date", "")),
-                    o.getDouble("vote_average").toFloat().takeIf { it > 0f } ?: 0f,
-                    "${TmdbHome.IMG}/w500$poster"))
+                    o.optDouble("vote_average", 0.0).toFloat().takeIf { it > 0f } ?: 0f,
+                    "${TmdbHome.IMG}/w500$poster",
+                    o.optString("overview", "")))
             }
         }
-        val backdrop = json.optString("backdrop_path").takeIf { it.isNotEmpty() }
+        val stills = mutableListOf<String>()
+        json.optJSONObject("images")?.optJSONArray("backdrops")?.let { arr ->
+            for (i in 0 until arr.length().coerceAtMost(10)) {
+                val p = arr.getJSONObject(i).optString("file_path")
+                if (p.isNotEmpty()) stills.add("${TmdbHome.IMG}/w780$p")
+            }
+        }
+        val posterPath = json.optString("poster_path").takeIf { it.isNotEmpty() }
+        val backdropPath = json.optString("backdrop_path").takeIf { it.isNotEmpty() }
         return Details(
             id = id,
             title = title,
             date = date,
             genres = genres,
             overview = json.optString("overview", ""),
-            rating = json.getDouble("vote_average").toFloat(),
-            posterUrl = json.optString("poster_path").takeIf { it.isNotEmpty() }
-                ?.let { "${TmdbHome.IMG}/w780$it" } ?: "",
+            rating = json.optDouble("vote_average", 0.0).toFloat(),
+            // 幕布优先竖版海报（240 §5.4：海报自带标题烙印），无海报才退横版剧照
+            posterUrl = posterPath?.let { "${TmdbHome.IMG}/w780$it" }
+                ?: backdropPath?.let { "${TmdbHome.IMG}/w780$it" } ?: "",
             isTv = isTv,
-            region = region,
+            region = regionOf(json),
             episodes = if (isTv) json.optInt("number_of_episodes").takeIf { it > 0 } else null,
-            trailerKey = trailerKey,
+            runtimeMin = if (isTv) null else json.optInt("runtime").takeIf { it > 0 },
+            trailerKey = trailerOf(json),
             cast = cast,
+            stills = stills,
+            studioLogo = studioOf(json),
             similar = similar,
-        ).let { d ->
-            // 幕布原色使用；backdrop 缺失时回退海报（w780 已在 posterUrl）
-            if (backdrop != null) d.copy(posterUrl = "${TmdbHome.IMG}/w780$backdrop") else d
+        )
+    }
+
+    /** 地区：production_countries 的 ISO 码译中文，最多两国以「/」连接。 */
+    private fun regionOf(json: JSONObject): String? {
+        val codes = mutableListOf<String>()
+        json.optJSONArray("production_countries")?.let { arr ->
+            for (i in 0 until arr.length().coerceAtMost(3)) {
+                val c = arr.getJSONObject(i).optString("iso_3166_1")
+                if (c.isNotEmpty()) codes.add(c)
+            }
         }
+        if (codes.isEmpty()) {
+            json.optJSONArray("origin_country")?.let { arr ->
+                for (i in 0 until arr.length().coerceAtMost(3)) {
+                    val c = arr.optString(i)
+                    if (c.isNotEmpty()) codes.add(c)
+                }
+            }
+        }
+        if (codes.isEmpty()) return null
+        return codes.joinToString("/") { REGION_ZH[it] ?: it }
+    }
+
+    /** 片源 logo：production_companies 里第一个带 logo 的公司（w300）。 */
+    private fun studioOf(json: JSONObject): String? {
+        val arr = json.optJSONArray("production_companies") ?: return null
+        for (i in 0 until arr.length()) {
+            val p = arr.getJSONObject(i).optString("logo_path")
+            if (p.isNotEmpty()) return "${TmdbHome.IMG}/w300$p"
+        }
+        return null
+    }
+
+    /** 预告：YouTube 官方 Trailer > Trailer > Teaser。 */
+    private fun trailerOf(json: JSONObject): String? {
+        val videos = json.optJSONObject("videos")?.optJSONArray("results") ?: return null
+        var key: String? = null
+        var best = Int.MAX_VALUE
+        for (i in 0 until videos.length()) {
+            val v = videos.getJSONObject(i)
+            if (v.optString("site") != "YouTube") continue
+            val rank = when {
+                v.optString("type") == "Trailer" && v.optBoolean("official") -> 0
+                v.optString("type") == "Trailer" -> 1
+                v.optString("type") == "Teaser" -> 2
+                else -> 3
+            }
+            if (rank < best && v.optString("key").isNotEmpty()) {
+                best = rank
+                key = v.optString("key")
+            }
+        }
+        return key
     }
 
     private fun get(path: String): Pair<JSONObject?, String?> {
@@ -124,5 +195,24 @@ class TmdbDetail(private val client: TmdbClient) {
         } catch (e: Exception) {
             null to "lost"
         }
+    }
+
+    private companion object {
+        /** ISO 3166-1 → 中文地区名（地区标注规范：港澳台带中国前缀）。 */
+        val REGION_ZH = mapOf(
+            "CN" to "中国大陆", "HK" to "中国香港", "TW" to "中国台湾", "MO" to "中国澳门",
+            "US" to "美国", "GB" to "英国", "JP" to "日本", "KR" to "韩国",
+            "FR" to "法国", "DE" to "德国", "IT" to "意大利", "ES" to "西班牙",
+            "CA" to "加拿大", "AU" to "澳大利亚", "NZ" to "新西兰", "RU" to "俄罗斯",
+            "IN" to "印度", "TH" to "泰国", "SG" to "新加坡", "MY" to "马来西亚",
+            "ID" to "印度尼西亚", "PH" to "菲律宾", "VN" to "越南", "TR" to "土耳其",
+            "BR" to "巴西", "MX" to "墨西哥", "AR" to "阿根廷", "CL" to "智利",
+            "CO" to "哥伦比亚", "SE" to "瑞典", "NO" to "挪威", "DK" to "丹麦",
+            "FI" to "芬兰", "NL" to "荷兰", "BE" to "比利时", "PL" to "波兰",
+            "CZ" to "捷克", "HU" to "匈牙利", "GR" to "希腊", "IE" to "爱尔兰",
+            "AT" to "奥地利", "CH" to "瑞士", "PT" to "葡萄牙", "UA" to "乌克兰",
+            "RO" to "罗马尼亚", "IL" to "以色列", "ZA" to "南非", "EG" to "埃及",
+            "IR" to "伊朗", "IS" to "冰岛", "LT" to "立陶宛", "EE" to "爱沙尼亚",
+        )
     }
 }
