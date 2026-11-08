@@ -1,0 +1,17 @@
+[
+  "topResumedActivity=ActivityRecord{d43d0bc u0 com.kivo.cinema/.MainActivity} t9865}",
+  "* Hist  #0: ActivityRecord{d43d0bc u0 com.kivo.cinema/.MainActivity} t9865}",
+  "Resumed: ActivityRecord{d43d0bc u0 com.kivo.cinema/.MainActivity} t9865}",
+  "ResumedActivity: ActivityRecord{d43d0bc u0 com.kivo.cinema/.MainActivity} t9865}",
+  "deepestLastOrientationSource=ActivityRecord{d43d0bc u0 com.kivo.cinema/.MainActivity} t9865}",
+  "mFocusedApp=ActivityRecord{d43d0bc u0 com.kivo.cinema/.MainActivity} t9865}",
+  "* ActivityRecord{d43d0bc u0 com.kivo.cinema/.MainActivity} t9865}",
+  "source=ActivityRecord{b5b1f92 u0 com.kivo.cinema/.MainActivity} t9738} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{b5b1f92 u0 com.kivo.cinema/.MainActivity} t9738} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{dffff6c u0 com.kivo.cinema/.MainActivity} t9767} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{dffff6c u0 com.kivo.cinema/.MainActivity} t9767} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{dffff6c u0 com.kivo.cinema/.MainActivity} t9767} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{dffff6c u0 com.kivo.cinema/.MainActivity} t9767} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{53bf0fa u0 com.kivo.cinema/.MainActivity} t9837} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{53bf0fa u0 com.kivo.cinema/.MainActivity} t9837} SCREEN_ORIENTATION_UNSPECIFIED"
+]

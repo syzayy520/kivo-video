@@ -1,0 +1,22 @@
+[
+  "mLastPausedActivity: ActivityRecord{e9196d0 u0 com.kivo.cinema/.MainActivity} t9867}",
+  "topResumedActivity=ActivityRecord{8d8c297 u0 com.kivo.cinema/.ui.detail.MovieDetailActivity} t9867}",
+  "* Hist  #2: ActivityRecord{8d8c297 u0 com.kivo.cinema/.ui.detail.MovieDetailActivity} t9867}",
+  "* Hist  #1: ActivityRecord{e9196d0 u0 com.kivo.cinema/.MainActivity} t9867}",
+  "* Hist  #0: ActivityRecord{acf0f67 u0 com.kivo.cinema/.MainActivity} t9867}",
+  "Resumed: ActivityRecord{8d8c297 u0 com.kivo.cinema/.ui.detail.MovieDetailActivity} t9867}",
+  "ResumedActivity: ActivityRecord{8d8c297 u0 com.kivo.cinema/.ui.detail.MovieDetailActivity} t9867}",
+  "deepestLastOrientationSource=ActivityRecord{8d8c297 u0 com.kivo.cinema/.ui.detail.MovieDetailActivity} t9867}",
+  "mFocusedApp=ActivityRecord{8d8c297 u0 com.kivo.cinema/.ui.detail.MovieDetailActivity} t9867}",
+  "* ActivityRecord{8d8c297 u0 com.kivo.cinema/.ui.detail.MovieDetailActivity} t9867}",
+  "* ActivityRecord{e9196d0 u0 com.kivo.cinema/.MainActivity} t9867}",
+  "* ActivityRecord{acf0f67 u0 com.kivo.cinema/.MainActivity} t9867}",
+  "source=ActivityRecord{b5b1f92 u0 com.kivo.cinema/.MainActivity} t9738} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{b5b1f92 u0 com.kivo.cinema/.MainActivity} t9738} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{dffff6c u0 com.kivo.cinema/.MainActivity} t9767} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{dffff6c u0 com.kivo.cinema/.MainActivity} t9767} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{dffff6c u0 com.kivo.cinema/.MainActivity} t9767} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{dffff6c u0 com.kivo.cinema/.MainActivity} t9767} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{53bf0fa u0 com.kivo.cinema/.MainActivity} t9837} SCREEN_ORIENTATION_UNSPECIFIED",
+  "source=ActivityRecord{53bf0fa u0 com.kivo.cinema/.MainActivity} t9837} SCREEN_ORIENTATION_UNSPECIFIED"
+]

@@ -1,0 +1,20 @@
+{
+  "sha256_checks": [
+    {
+      "group": "code",
+      "verified": 12
+    },
+    {
+      "group": "apk",
+      "verified": 2
+    },
+    {
+      "group": "evidence",
+      "verified": 77
+    }
+  ],
+  "source_patch_reverse_check": "PASS",
+  "storage_tests": "5/5 PASS",
+  "sheet_device_check": "PASS",
+  "r2_status": "DOING"
+}

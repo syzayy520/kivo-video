@@ -1,0 +1,1052 @@
+diff --git a/android/app/build.gradle.kts b/android/app/build.gradle.kts
+index cb9de877..e888c63d 100644
+--- a/android/app/build.gradle.kts
++++ b/android/app/build.gradle.kts
+@@ -16,6 +16,7 @@ android {
+         targetSdk = 37
+         versionCode = 1
+         versionName = "0.1.0-p12a"
++        testInstrumentationRunner = "com.kivo.cinema.media.marks.FilmMarksInstrumentation"
+ 
+         ndk {
+             abiFilters += listOf("arm64-v8a")
+diff --git a/android/app/src/androidTest/java/com/kivo/cinema/media/marks/FilmMarksInstrumentation.kt b/android/app/src/androidTest/java/com/kivo/cinema/media/marks/FilmMarksInstrumentation.kt
+new file mode 100644
+index 00000000..f991b12c
+--- /dev/null
++++ b/android/app/src/androidTest/java/com/kivo/cinema/media/marks/FilmMarksInstrumentation.kt
+@@ -0,0 +1,106 @@
++package com.kivo.cinema.media.marks
++
++import android.app.Activity
++import android.app.Instrumentation
++import android.os.Bundle
++import java.io.File
++import java.util.concurrent.CountDownLatch
++import java.util.concurrent.Executors
++import java.util.concurrent.TimeUnit
++
++/** Real Android filesystem tests, isolated from the user's title marks. No test dependencies. */
++class FilmMarksInstrumentation : Instrumentation() {
++    override fun onCreate(arguments: Bundle?) {
++        super.onCreate(arguments)
++        start()
++    }
++
++    override fun onStart() {
++        val root = File(targetContext.cacheDir, "film-marks-test-${System.nanoTime()}")
++        root.mkdirs()
++        val report = mutableListOf<String>()
++        fun case(name: String, test: () -> Unit) {
++            test()
++            report += "PASS $name"
++        }
++        try {
++            val movie = FilmKey(123, false)
++            val tv = FilmKey(123, true)
++            val file = File(root, "normal/titles.json")
++            val store = FilmMarksStore(file)
++            case("independent flags, namespaces, durable reload, and removal") {
++                store.refresh().getOrThrow()
++                check(store.snapshots.value.ready)
++                store.set(movie, FilmMark.FAVORITE, true).getOrThrow()
++                store.set(movie, FilmMark.WATCHLIST, true).getOrThrow()
++                store.set(movie, FilmMark.WATCHED, true).getOrThrow()
++                store.set(tv, FilmMark.WATCHED, true).getOrThrow()
++                val restarted = FilmMarksStore(file)
++                restarted.refresh().getOrThrow()
++                check(restarted.snapshots.value[movie] == FilmMarks(true, true, true))
++                check(restarted.snapshots.value[tv] == FilmMarks(watched = true))
++                restarted.set(movie, FilmMark.WATCHLIST, false).getOrThrow()
++                store.set(tv, FilmMark.FAVORITE, true).getOrThrow()
++                store.refresh().getOrThrow()
++                check(store.snapshots.value[movie] == FilmMarks(true, false, true))
++                check(store.snapshots.value[tv] == FilmMarks(true, false, true))
++                FilmMark.entries.forEach { store.set(movie, it, false).getOrThrow() }
++                check(movie.storageKey !in store.snapshots.value.entries)
++                check(store.snapshots.value[tv].watched)
++            }
++            case("interleaved writers do not lose other titles") {
++                val start = CountDownLatch(1)
++                val pool = Executors.newFixedThreadPool(2)
++                try {
++                    val jobs = (1..16).map { id -> pool.submit {
++                        start.await()
++                        FilmMarksStore(file).set(FilmKey(1000 + id, false),
++                            FilmMark.WATCHLIST, true).getOrThrow()
++                    } }
++                    start.countDown()
++                    jobs.forEach { it.get(20, TimeUnit.SECONDS) }
++                } finally { pool.shutdownNow() }
++                store.refresh().getOrThrow()
++                check((1..16).all { store.snapshots.value[FilmKey(1000 + it, false)].watchlist })
++                check(store.snapshots.value[tv].favorite)
++            }
++            case("write failure preserves disk and confirmed state; retry succeeds") {
++                val before = file.readBytes()
++                // AtomicFile removes stale .new files during read. Deny directory writes instead.
++                android.system.Os.chmod(file.parentFile!!.path, 320) // 0500, read/search only.
++                try {
++                    check(store.set(tv, FilmMark.WATCHLIST, true).isFailure)
++                    check(!store.snapshots.value[tv].watchlist)
++                    check(file.readBytes().contentEquals(before))
++                } finally { android.system.Os.chmod(file.parentFile!!.path, 448) } // 0700
++                store.set(tv, FilmMark.WATCHLIST, true).getOrThrow()
++                val restarted = FilmMarksStore(file)
++                restarted.refresh().getOrThrow()
++                check(restarted.snapshots.value[tv].watchlist)
++            }
++            case("corrupt input is reported and never overwritten") {
++                file.writeText("{invalid-json")
++                val before = file.readBytes()
++                check(store.set(tv, FilmMark.FAVORITE, false).isFailure)
++                check(store.snapshots.value[tv].favorite)
++                check(file.readBytes().contentEquals(before))
++                check(store.refresh().isFailure)
++                check(!store.snapshots.value.ready)
++                check(!store.snapshots.value.error.isNullOrBlank())
++            }
++            case("unknown schema is rejected without modifying data") {
++                file.writeText("{\"schema\":99,\"entries\":{}}")
++                val before = file.readBytes()
++                check(FilmMarksStore(file).refresh().isFailure)
++                check(file.readBytes().contentEquals(before))
++            }
++            finish(Activity.RESULT_OK, Bundle().apply {
++                putString("stream", report.joinToString("\n", postfix = "\n5/5 PASS\n"))
++            })
++        } catch (e: Throwable) {
++            finish(Activity.RESULT_CANCELED, Bundle().apply {
++                putString("stream", report.joinToString("\n") + "\nFAIL ${e.stackTraceToString()}")
++            })
++        } finally { root.deleteRecursively() }
++    }
++}
+diff --git a/android/app/src/main/java/com/kivo/cinema/media/marks/FilmMarks.kt b/android/app/src/main/java/com/kivo/cinema/media/marks/FilmMarks.kt
+new file mode 100644
+index 00000000..bf23fa41
+--- /dev/null
++++ b/android/app/src/main/java/com/kivo/cinema/media/marks/FilmMarks.kt
+@@ -0,0 +1,34 @@
++package com.kivo.cinema.media.marks
++
++data class FilmKey(val id: Int, val isTv: Boolean) {
++    init { require(id > 0) { "影片 ID 无效" } }
++    val storageKey: String get() = "${if (isTv) "tv" else "movie"}:$id"
++}
++
++enum class FilmMark { FAVORITE, WATCHLIST, WATCHED }
++
++data class FilmMarks(
++    val favorite: Boolean = false,
++    val watchlist: Boolean = false,
++    val watched: Boolean = false,
++) {
++    fun contains(mark: FilmMark): Boolean = when (mark) {
++        FilmMark.FAVORITE -> favorite
++        FilmMark.WATCHLIST -> watchlist
++        FilmMark.WATCHED -> watched
++    }
++
++    fun with(mark: FilmMark, enabled: Boolean): FilmMarks = when (mark) {
++        FilmMark.FAVORITE -> copy(favorite = enabled)
++        FilmMark.WATCHLIST -> copy(watchlist = enabled)
++        FilmMark.WATCHED -> copy(watched = enabled)
++    }
++}
++
++data class FilmMarksSnapshot(
++    val entries: Map<String, FilmMarks> = emptyMap(),
++    val ready: Boolean = false,
++    val error: String? = null,
++) {
++    operator fun get(key: FilmKey): FilmMarks = entries[key.storageKey] ?: FilmMarks()
++}
+diff --git a/android/app/src/main/java/com/kivo/cinema/media/marks/FilmMarksStore.kt b/android/app/src/main/java/com/kivo/cinema/media/marks/FilmMarksStore.kt
+new file mode 100644
+index 00000000..94fb4b09
+--- /dev/null
++++ b/android/app/src/main/java/com/kivo/cinema/media/marks/FilmMarksStore.kt
+@@ -0,0 +1,90 @@
++package com.kivo.cinema.media.marks
++
++import android.content.Context
++import android.util.AtomicFile
++import java.io.File
++import java.io.FileNotFoundException
++import java.io.IOException
++import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.asStateFlow
++import org.json.JSONObject
++
++/** Atomic local title marks. Call disk operations on an IO dispatcher. */
++class FilmMarksStore internal constructor(file: File) {
++    private val disk = AtomicFile(file)
++    private val mutable = MutableStateFlow(FilmMarksSnapshot())
++    val snapshots = mutable.asStateFlow()
++
++    fun refresh(): Result<Unit> = synchronized(diskLock) {
++        runCatching { mutable.value = FilmMarksSnapshot(read(), ready = true) }
++            .onFailure { e ->
++                mutable.value = mutable.value.copy(ready = false, error = reason(e))
++            }
++    }
++
++    fun set(key: FilmKey, mark: FilmMark, enabled: Boolean): Result<FilmMarks> =
++        synchronized(diskLock) {
++            runCatching {
++                val entries = read().toMutableMap()
++                val next = (entries[key.storageKey] ?: FilmMarks()).with(mark, enabled)
++                if (next == FilmMarks()) entries.remove(key.storageKey)
++                else entries[key.storageKey] = next
++                write(entries)
++                mutable.value = FilmMarksSnapshot(entries.toMap(), ready = true)
++                next
++            }
++        }
++
++    private fun read(): Map<String, FilmMarks> {
++        val bytes = try { disk.readFully() } catch (e: FileNotFoundException) {
++            if (!disk.baseFile.exists() && !File(disk.baseFile.path + ".bak").exists())
++                return emptyMap()
++            throw e
++        }
++        val root = JSONObject(bytes.toString(Charsets.UTF_8))
++        require(root.getInt("schema") == 1) { "不支持的影片标记版本" }
++        val rows = root.getJSONObject("entries")
++        return buildMap {
++            for (key in rows.keys()) {
++                require(key.matches(Regex("(movie|tv):[1-9][0-9]*"))) { "影片标记身份无效" }
++                val row = rows.getJSONObject(key)
++                put(key, FilmMarks(row.getBoolean("favorite"), row.getBoolean("watchlist"),
++                    row.getBoolean("watched")))
++            }
++        }
++    }
++
++    private fun write(entries: Map<String, FilmMarks>) {
++        val rows = JSONObject()
++        entries.forEach { (key, marks) ->
++            rows.put(key, JSONObject().put("favorite", marks.favorite)
++                .put("watchlist", marks.watchlist).put("watched", marks.watched))
++        }
++        val bytes = JSONObject().put("schema", 1).put("entries", rows)
++            .toString().toByteArray(Charsets.UTF_8)
++        val stream = disk.startWrite()
++        try {
++            stream.write(bytes)
++            stream.fd.sync()
++            disk.finishWrite(stream)
++            // AtomicFile logs some filesystem errors instead of throwing them.
++            if (!disk.readFully().contentEquals(bytes)) throw IOException("落盘校验失败")
++        } catch (e: Exception) {
++            disk.failWrite(stream)
++            throw e
++        }
++    }
++
++    private fun reason(e: Throwable): String =
++        "读取影片标记失败：${e.message?.takeIf { it.isNotBlank() } ?: e.javaClass.simpleName}"
++
++    companion object {
++        private val diskLock = Any()
++        @Volatile private var instance: FilmMarksStore? = null
++
++        fun get(context: Context): FilmMarksStore = instance ?: synchronized(diskLock) {
++            instance ?: FilmMarksStore(File(context.applicationContext.filesDir,
++                "media/marks/titles.json")).also { instance = it }
++        }
++    }
++}
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt
+index 637a3b4c..c7933c39 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt
+@@ -23,13 +23,11 @@ import com.kivo.cinema.ui.design.TmdbImage
+ @Composable
+ internal fun DetailBackdrop(
+     details: TmdbDetail.Details?,
+-    error: String?,
+-    foreground: Color,
+     field: State<Color>,
+     scrollDp: () -> Float,
+     pullDp: Float = 0f,
+ ) {
+-    Box(Modifier.fillMaxSize().background(Color.Black).clipToBounds()) {
++    Box(Modifier.fillMaxSize().background(if (details == null) com.kivo.cinema.ui.design.DesignTokens.pageBackground else Color.Black).clipToBounds()) {
+         val art = details?.heroArtworkUrl.orEmpty()
+         if (art.isNotEmpty()) TmdbImage(art, details?.title.orEmpty(),
+             Modifier.fillMaxWidth().height(585.dp).graphicsLayer {
+@@ -51,8 +49,6 @@ internal fun DetailBackdrop(
+                 startY = 250.dp.toPx() - shift,
+                 endY = 640.dp.toPx() - shift))
+         })
+-        if (details == null && error != null) Text(error, fontSize = 13.sp,
+-            color = foreground, textAlign = TextAlign.Center,
+-            modifier = Modifier.align(Alignment.Center).padding(horizontal = 24.dp))
++
+     }
+ }
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt
+index 96d173fb..7726be33 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt
+@@ -1,16 +1,17 @@
+ package com.kivo.cinema.ui.detail
+ 
+-import android.content.Context
+-import android.widget.Toast
+ import androidx.compose.foundation.Canvas
+ import androidx.compose.foundation.background
+-import androidx.compose.foundation.border
+ import androidx.compose.foundation.clickable
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.shape.CircleShape
+-import androidx.compose.foundation.shape.RoundedCornerShape
+ import androidx.compose.material3.Text
+-import androidx.compose.runtime.Composable
++import androidx.compose.animation.animateContentSize
++import androidx.compose.runtime.*
++import androidx.compose.runtime.saveable.rememberSaveable
++import androidx.compose.ui.semantics.Role
++import androidx.compose.ui.semantics.contentDescription
++import androidx.compose.ui.semantics.semantics
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.draw.clip
+@@ -26,7 +27,6 @@ import androidx.compose.ui.text.style.TextOverflow
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
+ import com.kivo.cinema.tmdb.TmdbDetail
+-import com.kivo.cinema.ui.design.DesignTokens
+ import com.kivo.cinema.ui.design.TmdbImage
+ 
+ /** 片名图层：独立于艺术图，贴在 meta 上方；与 meta 同属内容层，一起离屏。 */
+@@ -61,69 +61,19 @@ internal fun MetaLine(d: TmdbDetail.Details, fg: Color) {
+ 
+ @Composable
+ internal fun Overview(text: String, fg: Color) {
+-    Text(
+-        text = text,
+-        fontSize = 15.sp, lineHeight = 14.sp,
+-        color = fg.copy(alpha = 0.82f),
+-        maxLines = 2, overflow = TextOverflow.Ellipsis,
+-        modifier = Modifier.fillMaxWidth()
+-            .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 16.dp),
+-    )
+-}
+-
+-@Composable
+-internal fun ActionRow(context: Context, media: MediaMatch.Matched?, fg: Color, onPlay: (MediaMatch.Matched) -> Unit) {
+-    val reason = "未加载到相关资源"
+-    val hair = Color.White.copy(alpha = .10f)
+-    val glyph = fg.copy(alpha = .95f)
+-    val playable = media != null
+-    Row(
+-        Modifier.fillMaxWidth()
+-            .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 10.dp),
+-        horizontalArrangement = Arrangement.spacedBy(9.dp),
+-        verticalAlignment = Alignment.CenterVertically,
+-    ) {
+-        Box(
+-            Modifier.weight(1f).height(45.dp)
+-                .clip(RoundedCornerShape(50))
+-                .background(Color.White.copy(alpha = if (playable) .92f else .60f))
+-                .border(1.dp, hair, RoundedCornerShape(50))
+-                .clickable {
+-                    if (media != null) onPlay(media)
+-                    else Toast.makeText(context, reason, Toast.LENGTH_SHORT).show()
+-                },
+-            contentAlignment = Alignment.Center,
+-        ) {
+-            Text(if (playable) "▶  播放" else reason,
+-                fontSize = 15.sp, fontWeight = FontWeight.Medium,
+-                color = DesignTokens.textMain,
+-                maxLines = 1, overflow = TextOverflow.Ellipsis)
+-        }
+-        Row(
+-            Modifier.width(101.dp).height(45.dp)
+-                .clip(RoundedCornerShape(50))
+-                .background(Color.White.copy(alpha = .147f))
+-                .border(1.dp, hair, RoundedCornerShape(50)),
+-            horizontalArrangement = Arrangement.Center,
+-            verticalAlignment = Alignment.CenterVertically,
+-        ) {
+-            CollectionPlusIcon(glyph, Modifier.size(22.dp))
+-            Spacer(Modifier.width(15.dp))
+-            HeartIcon(glyph, Modifier.size(20.dp))
+-        }
+-        Box(Modifier.size(45.dp).clip(CircleShape)
+-            .background(Color.White.copy(alpha = .147f))
+-            .border(1.dp, hair, CircleShape),
+-            contentAlignment = Alignment.Center) {
+-            Canvas(Modifier.size(20.dp, 4.dp)) {
+-                val r = 2.0.dp.toPx()
+-                val gap = (size.width - r * 2) / 2f
+-                for (i in 0..2) {
+-                    drawCircle(glyph, r,
+-                        Offset(r + gap * i, size.height / 2f))
+-                }
+-            }
+-        }
++    var expanded by rememberSaveable(text) { mutableStateOf(false) }
++    var overflow by remember(text) { mutableStateOf(false) }
++    Column(Modifier.fillMaxWidth().padding(start = DETAIL_PAD_DP.dp,
++        end = DETAIL_PAD_DP.dp, top = 16.dp).animateContentSize()) {
++        Text(text, fontSize = 15.sp, lineHeight = 20.sp,
++            color = fg.copy(alpha = .82f),
++            maxLines = if (expanded) Int.MAX_VALUE else 2,
++            overflow = TextOverflow.Ellipsis,
++            onTextLayout = { if (!expanded) overflow = it.hasVisualOverflow })
++        if (overflow || expanded) Text(if (expanded) "收起简介" else "展开简介",
++            fontSize = 13.sp, color = fg,
++            modifier = Modifier.clickable(role = Role.Button) { expanded = !expanded }
++                .padding(vertical = 12.dp))
+     }
+ }
+ 
+@@ -134,7 +84,8 @@ internal fun BackCircle(onBack: () -> Unit) {
+             .size(42.dp)
+             .clip(CircleShape)
+             .background(Color(0x8CFFFFFF))
+-            .clickable { onBack() },
++            .semantics { contentDescription = "返回" }
++            .clickable(role = Role.Button) { onBack() },
+         contentAlignment = Alignment.Center,
+     ) {
+         Canvas(Modifier.size(11.dp, 17.dp)) {
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt
+index 1a508fe4..15a17ac8 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSections.kt
+@@ -217,7 +217,7 @@ internal fun CollectionPlusIcon(color: Color, modifier: Modifier = Modifier) {
+ 
+ /** 心形描边图标（帧实测：空心、圆头描边）。 */
+ @Composable
+-internal fun HeartIcon(color: Color, modifier: Modifier = Modifier) {
++internal fun HeartIcon(color: Color, modifier: Modifier = Modifier, filled: Boolean = false) {
+     Canvas(modifier) {
+         val w = size.width
+         val h = size.height
+@@ -229,14 +229,15 @@ internal fun HeartIcon(color: Color, modifier: Modifier = Modifier) {
+             cubicTo(w * .97f, h * .33f, w * .90f, h * .62f, w * .5f, h * .93f)
+             close()
+         }
+-        drawPath(p, color, style = Stroke(1.9.dp.toPx(),
++        if (filled) drawPath(p, color)
++        else drawPath(p, color, style = Stroke(1.9.dp.toPx(),
+             cap = StrokeCap.Round, join = StrokeJoin.Round))
+     }
+ }
+ 
+ /** 空态块（无本地资源，240 §6.1）：TV 图标 + 暂无可用资源 + 添加到待看。 */
+ @Composable
+-internal fun EmptyResourceBlock(fg: Color) {
++internal fun EmptyResourceBlock(fg: Color, watchlisted: Boolean, enabled: Boolean, onWatchlist: () -> Unit) {
+     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+         Canvas(Modifier.size(86.dp, 64.dp)) {
+             val w = size.width
+@@ -268,7 +269,11 @@ internal fun EmptyResourceBlock(fg: Color) {
+         Spacer(Modifier.height(14.dp))
+         Text("暂无可用资源", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = fg)
+         Spacer(Modifier.height(6.dp))
+-        Text("添加到待看", fontSize = 12.sp, color = fg.copy(alpha = .55f))
++        Text(if (watchlisted) "已添加到待看 · 点击取消" else "添加到待看",
++            fontSize = 12.sp, color = fg.copy(alpha = .75f),
++            modifier = Modifier.clickable(enabled = enabled,
++                role = androidx.compose.ui.semantics.Role.Button, onClick = onWatchlist)
++                .padding(horizontal = 16.dp, vertical = 14.dp))
+     }
+ }
+ 
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt
+index 3090db8f..97c3af35 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/MovieDetailActivity.kt
+@@ -1,5 +1,7 @@
+ package com.kivo.cinema.ui.detail
+ 
++import android.content.ActivityNotFoundException
++import android.widget.Toast
+ import android.content.Context
+ import android.content.Intent
+ import android.net.Uri
+@@ -19,6 +21,14 @@ import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.lazy.LazyColumn
+ import androidx.compose.foundation.lazy.rememberLazyListState
+ import androidx.compose.material3.Text
++import androidx.compose.material3.TextButton
++import androidx.compose.material3.CircularProgressIndicator
++import androidx.compose.ui.Alignment
++import com.kivo.cinema.media.marks.FilmKey
++import com.kivo.cinema.media.marks.FilmMark
++import com.kivo.cinema.ui.detail.actions.DetailActionRow
++import com.kivo.cinema.ui.detail.actions.rememberDetailActions
++import kotlinx.coroutines.CancellationException
+ import androidx.compose.runtime.Composable
+ import androidx.compose.runtime.LaunchedEffect
+ import androidx.compose.runtime.State
+@@ -31,7 +41,6 @@ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.graphics.luminance
+ import androidx.compose.ui.input.nestedscroll.nestedScroll
+-import androidx.compose.ui.platform.LocalContext
+ import androidx.compose.ui.platform.LocalDensity
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
+@@ -60,12 +69,37 @@ class MovieDetailActivity : ComponentActivity() {
+                 .putExtra(EXTRA_TV, item.isTv)
+     }
+ 
++    private var openingPage = false
++
++    override fun onResume() {
++        super.onResume()
++        openingPage = false
++    }
++
++    private fun openPage(intent: Intent) {
++        if (openingPage) return
++        openingPage = true
++        try { startActivity(intent) }
++        catch (_: ActivityNotFoundException) {
++            openingPage = false
++            Toast.makeText(this, "无法打开：设备没有可用的应用", Toast.LENGTH_LONG).show()
++        } catch (_: SecurityException) {
++            openingPage = false
++            Toast.makeText(this, "无法打开：目标应用拒绝访问", Toast.LENGTH_LONG).show()
++        }
++    }
++
+     override fun onCreate(savedInstanceState: Bundle?) {
+         super.onCreate(savedInstanceState)
+         enableEdgeToEdge()
+         setDarkStatusIcons(false)
+         val id = intent.getIntExtra(EXTRA_ID, 0)
+         val isTv = intent.getBooleanExtra(EXTRA_TV, false)
++        if (id <= 0) {
++            Toast.makeText(this, "无法打开详情：影片 ID 无效", Toast.LENGTH_LONG).show()
++            finish()
++            return
++        }
+         val detail = TmdbDetail(TmdbClient(this))
+         setContent {
+             DetailPage(
+@@ -86,12 +120,17 @@ class MovieDetailActivity : ComponentActivity() {
+     @Composable
+     private fun DetailPage(id: Int, isTv: Boolean, load: () -> TmdbDetail.Details?,
+                            onBack: () -> Unit, onDarkStatusIcons: (Boolean) -> Unit) {
+-        val context = LocalContext.current
+         var details by remember { mutableStateOf<TmdbDetail.Details?>(null) }
+         var error by remember { mutableStateOf<String?>(null) }
+         var media by remember { mutableStateOf<MediaMatch.Matched?>(null) }
+         var fieldColor by remember { mutableStateOf(DesignTokens.pageBackground) }
+-        LaunchedEffect(id, isTv) {
++        var reload by remember { mutableStateOf(0) }
++        var loading by remember { mutableStateOf(true) }
++        val actions = rememberDetailActions(remember(id, isTv) { FilmKey(id, isTv) })
++        LaunchedEffect(id, isTv, reload) {
++          loading = true
++          error = null
++          try {
+             val d = withContext(Dispatchers.IO) { load() }
+             if (d == null) {
+                 error = "加载失败，请检查网络后重试"
+@@ -107,6 +146,9 @@ class MovieDetailActivity : ComponentActivity() {
+                     MediaMatch.find(LocalVideoSource.query(this@MovieDetailActivity), d.title)
+                 }
+             }
++          } catch (e: CancellationException) { throw e }
++          catch (_: Exception) { error = "无法获取影片详情，请检查网络后重试" }
++          finally { loading = false }
+         }
+         val listState = rememberLazyListState()
+         val density = LocalDensity.current
+@@ -132,7 +174,7 @@ class MovieDetailActivity : ComponentActivity() {
+         val fgSub = if (chromeDark) Color.White.copy(alpha = .72f) else DesignTokens.textSub
+ 
+         Box(Modifier.fillMaxSize()) {
+-            DetailBackdrop(details, error, fg, sheetColor, scrollDp, pullDp)
++            DetailBackdrop(details, sheetColor, scrollDp, pullDp)
+             LazyColumn(
+                 state = listState,
+                 modifier = Modifier.fillMaxSize().nestedScroll(pull.connection),
+@@ -145,11 +187,18 @@ class MovieDetailActivity : ComponentActivity() {
+                     if (d != null) {
+                     TitleLayer(d, fg)
+                     MetaLine(d, fg)
+-                        ActionRow(context, media, fg) { m ->
+-                            startActivity(Intent(this@MovieDetailActivity, DetailActivity::class.java)
+-                                .putExtra("kivo.media", m.item.path)
+-                                .putExtra("kivo.durationMs", m.item.durationMs))
+-                        }
++                    DetailActionRow(media != null, fg, actions,
++                        onPlay = {
++                            val matched = media
++                            if (matched == null) Toast.makeText(this@MovieDetailActivity,
++                                "没有匹配的本地视频，请先在资源库添加资源", Toast.LENGTH_LONG).show()
++                            else openPage(Intent(this@MovieDetailActivity, DetailActivity::class.java)
++                                .putExtra("kivo.media", matched.item.path)
++                                .putExtra("kivo.durationMs", matched.item.durationMs))
++                        },
++                        onTmdb = { openPage(Intent(Intent.ACTION_VIEW,
++                            Uri.parse("https://www.themoviedb.org/${if (isTv) "tv" else "movie"}/$id"))) },
++                        onReload = { if (!loading) reload++ })
+                     if (d.overview.isNotBlank()) Overview(d.overview, fg)
+                     if (d.rating > 0f) {
+                         Box(Modifier.fillMaxWidth().padding(top = 14.dp)) {
+@@ -173,7 +222,9 @@ class MovieDetailActivity : ComponentActivity() {
+                         run {
+                             Column(Modifier.fillMaxWidth()) {
+                                 Spacer(Modifier.height(70.dp))
+-                                EmptyResourceBlock(fg)
++                                EmptyResourceBlock(fg, actions.marks.watchlist, actions.enabled) {
++                                    actions.toggle(FilmMark.WATCHLIST)
++                                }
+                             }
+                         }
+                     }
+@@ -218,10 +269,10 @@ class MovieDetailActivity : ComponentActivity() {
+                         item(key = "trailer") {
+                             Column(Modifier.fillMaxWidth()) {
+                                 Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
+-                                SectionHeader("预告片", fg)
++                                SectionHeader("预告片 · YouTube", fg)
+                                 Spacer(Modifier.height(12.dp))
+                                 TrailerCard(key, "预告片", onClick = {
+-                                    context.startActivity(Intent(Intent.ACTION_VIEW,
++                                    openPage(Intent(Intent.ACTION_VIEW,
+                                         Uri.parse("https://www.youtube.com/watch?v=$key")))
+                                 })
+                             }
+@@ -240,15 +291,22 @@ class MovieDetailActivity : ComponentActivity() {
+                             Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
+                             SectionHeader("相似作品", fg)
+                             Spacer(Modifier.height(10.dp))
+-                            SimilarList(d.similar.take(8), fg, fgSub, onOpen = {})
++                            SimilarList(d.similar.filter { it.id > 0 && it.id != id }.take(8), fg, fgSub,
++                                onOpen = { similar ->
++                                    openPage(Intent(this@MovieDetailActivity, MovieDetailActivity::class.java)
++                                        .putExtra(EXTRA_ID, similar.id).putExtra(EXTRA_TV, isTv))
++                                })
+                         }
+                     }
+-                } else if (error != null) {
+-                    item(key = "error") {
+-                        Text(error!!, fontSize = 14.sp, color = fgSub,
+-                            modifier = Modifier.fillMaxWidth()
+-                                .padding(start = DETAIL_PAD_DP.dp, top = 16.dp))
+-                    }
++                }
++            }
++            if (details == null && loading) CircularProgressIndicator(
++                modifier = Modifier.align(Alignment.Center), color = fg)
++            if (error != null) Column(Modifier.align(Alignment.Center)
++                .padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
++                Text(error!!, color = fg, fontSize = 14.sp)
++                TextButton(onClick = { if (!loading) reload++ }, enabled = !loading) {
++                    Text(if (loading) "正在重试…" else "重试加载", color = fg)
+                 }
+             }
+             BackCircle(onBack)
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailActionGlyph.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailActionGlyph.kt
+new file mode 100644
+index 00000000..9f88aa29
+--- /dev/null
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailActionGlyph.kt
+@@ -0,0 +1,63 @@
++package com.kivo.cinema.ui.detail.actions
++
++import androidx.compose.foundation.Canvas
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.geometry.Size
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.Path
++import androidx.compose.ui.graphics.StrokeCap
++import androidx.compose.ui.graphics.StrokeJoin
++import androidx.compose.ui.graphics.drawscope.Stroke
++import androidx.compose.ui.graphics.drawscope.scale
++
++internal enum class ActionGlyph { Bookmark, Watched, External, Reload, Close, Tick, Plus, Chevron }
++
++/** Consistent 24-unit strokes; decorative glyphs use the row's accessibility label. */
++@Composable
++internal fun DetailActionGlyph(glyph: ActionGlyph, color: Color, modifier: Modifier) {
++    Canvas(modifier) {
++        scale(size.width / 24f, size.height / 24f, pivot = Offset.Zero) {
++            val stroke = Stroke(1.7f, cap = StrokeCap.Round, join = StrokeJoin.Round)
++            fun path(block: Path.() -> Unit) = drawPath(Path().apply(block), color, style = stroke)
++            when (glyph) {
++                ActionGlyph.Bookmark -> path {
++                    moveTo(7f, 3.5f); lineTo(17f, 3.5f); quadraticTo(18f, 3.5f, 18f, 4.5f)
++                    lineTo(18f, 21f); lineTo(12f, 17f); lineTo(6f, 21f)
++                    lineTo(6f, 4.5f); quadraticTo(6f, 3.5f, 7f, 3.5f); close()
++                }
++                ActionGlyph.Watched -> {
++                    drawCircle(color, 9f, Offset(12f, 12f), style = stroke)
++                    path { moveTo(7.8f, 12f); lineTo(10.6f, 14.8f); lineTo(16.3f, 9.1f) }
++                }
++                ActionGlyph.External -> {
++                    path {
++                        moveTo(10f, 5f); lineTo(5f, 5f); lineTo(5f, 20f)
++                        lineTo(19f, 20f); lineTo(19f, 14f)
++                    }
++                    path { moveTo(13f, 4f); lineTo(20f, 4f); lineTo(20f, 11f) }
++                    path { moveTo(20f, 4f); lineTo(11f, 13f) }
++                }
++                ActionGlyph.Reload -> {
++                    drawArc(color, -45f, 295f, false, Offset(4f, 4f), Size(16f, 16f), style = stroke)
++                    path { moveTo(19f, 3.5f); lineTo(19f, 9f); lineTo(13.5f, 9f) }
++                }
++                ActionGlyph.Close -> {
++                    path { moveTo(5f, 5f); lineTo(19f, 19f) }
++                    path { moveTo(19f, 5f); lineTo(5f, 19f) }
++                }
++                ActionGlyph.Tick -> path {
++                    moveTo(4f, 12f); lineTo(10f, 18f); lineTo(20f, 6f)
++                }
++                ActionGlyph.Plus -> {
++                    path { moveTo(12f, 5f); lineTo(12f, 19f) }
++                    path { moveTo(5f, 12f); lineTo(19f, 12f) }
++                }
++                ActionGlyph.Chevron -> path {
++                    moveTo(9f, 5f); lineTo(16f, 12f); lineTo(9f, 19f)
++                }
++            }
++        }
++    }
++}
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailActionRow.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailActionRow.kt
+new file mode 100644
+index 00000000..b8ce1683
+--- /dev/null
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailActionRow.kt
+@@ -0,0 +1,113 @@
++package com.kivo.cinema.ui.detail.actions
++
++import androidx.compose.animation.core.animateFloatAsState
++import androidx.compose.foundation.Canvas
++import androidx.compose.foundation.background
++import androidx.compose.foundation.border
++import androidx.compose.foundation.clickable
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.selection.toggleable
++import androidx.compose.foundation.shape.CircleShape
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.material3.Text
++import androidx.compose.runtime.*
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.clip
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.graphicsLayer
++import androidx.compose.ui.semantics.Role
++import androidx.compose.ui.semantics.contentDescription
++import androidx.compose.ui.semantics.semantics
++import androidx.compose.ui.semantics.stateDescription
++import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.text.style.TextOverflow
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import com.kivo.cinema.media.marks.FilmMark
++import com.kivo.cinema.ui.design.DesignTokens
++import com.kivo.cinema.ui.detail.CollectionPlusIcon
++import com.kivo.cinema.ui.detail.DETAIL_PAD_DP
++import com.kivo.cinema.ui.detail.HeartIcon
++
++/** Independent actions; the shared capsule has two separate accessible touch targets. */
++@Composable
++internal fun DetailActionRow(
++    playable: Boolean, fg: Color, actions: DetailActions,
++    onPlay: () -> Unit, onTmdb: () -> Unit, onReload: () -> Unit,
++) {
++    var sheet by remember { mutableStateOf<DetailSheet?>(null) }
++    val hair = Color.White.copy(alpha = .10f)
++    val glyph = fg.copy(alpha = .95f)
++    Column {
++        Row(Modifier.fillMaxWidth()
++            .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 10.dp),
++            horizontalArrangement = Arrangement.spacedBy(9.dp),
++            verticalAlignment = Alignment.CenterVertically) {
++            Box(Modifier.weight(1f).height(45.dp).clip(RoundedCornerShape(50))
++                .background(Color.White.copy(alpha = if (playable) .92f else .60f))
++                .border(1.dp, hair, RoundedCornerShape(50))
++                .clickable(role = Role.Button, onClick = onPlay),
++                contentAlignment = Alignment.Center) {
++                Text(if (playable) "▶  播放" else "未加载到相关资源",
++                    fontSize = 15.sp, fontWeight = FontWeight.Medium,
++                    color = DesignTokens.textMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
++            }
++            Row(Modifier.width(101.dp).height(45.dp).clip(RoundedCornerShape(50))
++                .background(Color.White.copy(alpha = .147f))
++                .border(1.dp, hair, RoundedCornerShape(50))) {
++                Box(Modifier.weight(1f).fillMaxHeight()
++                    .semantics {
++                        contentDescription = "影片标记"
++                        stateDescription = listOfNotNull(
++                            "待看".takeIf { actions.marks.watchlist },
++                            "已观看".takeIf { actions.marks.watched }).joinToString("、")
++                            .ifEmpty { "未标记" }
++                    }.clickable(enabled = actions.enabled, role = Role.Button) { sheet = DetailSheet.Marks },
++                    contentAlignment = Alignment.Center) {
++                    CollectionPlusIcon(glyph, Modifier.size(22.dp))
++                    if (actions.marks.watchlist || actions.marks.watched)
++                        Canvas(Modifier.align(Alignment.TopEnd).padding(7.dp).size(5.dp)) {
++                            drawCircle(glyph)
++                        }
++                }
++                val heartScale by animateFloatAsState(
++                    if (actions.marks.favorite) 1.08f else 1f, label = "favorite")
++                Box(Modifier.weight(1f).fillMaxHeight()
++                    .semantics { contentDescription = "收藏" }
++                    .toggleable(actions.marks.favorite, enabled = actions.enabled,
++                        role = Role.Checkbox) { actions.toggle(FilmMark.FAVORITE) },
++                    contentAlignment = Alignment.Center) {
++                    HeartIcon(if (actions.marks.favorite) Color(0xFFE15479) else glyph,
++                        Modifier.size(20.dp).graphicsLayer { scaleX = heartScale; scaleY = heartScale },
++                        filled = actions.marks.favorite)
++                }
++            }
++            Box {
++                Box(Modifier.size(45.dp).clip(CircleShape)
++                    .background(Color.White.copy(alpha = .147f)).border(1.dp, hair, CircleShape)
++                    .semantics { contentDescription = "更多操作" }
++                    .clickable(role = Role.Button) { sheet = DetailSheet.More },
++                    contentAlignment = Alignment.Center) {
++                    Canvas(Modifier.size(20.dp, 4.dp)) {
++                        val r = 2.dp.toPx()
++                        val gap = (size.width - r * 2) / 2f
++                        for (i in 0..2) drawCircle(glyph, r, Offset(r + gap * i, size.height / 2f))
++                    }
++                }
++            }
++        }
++        actions.error?.let { error ->
++            Text(error, color = fg, fontSize = 13.sp,
++                modifier = Modifier.padding(horizontal = DETAIL_PAD_DP.dp, vertical = 8.dp))
++            Text("重试标记", color = fg, fontSize = 14.sp,
++                modifier = Modifier.padding(horizontal = DETAIL_PAD_DP.dp)
++                    .clickable(role = Role.Button, onClick = actions.retry).padding(vertical = 12.dp))
++        }
++    }
++    sheet?.let { kind ->
++        DetailActionSheet(kind, actions, onDismiss = { sheet = null },
++            onTmdb = onTmdb, onReload = onReload)
++    }
++}
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailActionSheet.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailActionSheet.kt
+new file mode 100644
+index 00000000..6ef8fbd2
+--- /dev/null
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailActionSheet.kt
+@@ -0,0 +1,144 @@
++package com.kivo.cinema.ui.detail.actions
++
++import androidx.compose.foundation.background
++import androidx.compose.foundation.clickable
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.selection.toggleable
++import androidx.compose.foundation.shape.CircleShape
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.foundation.verticalScroll
++import androidx.compose.material3.ExperimentalMaterial3Api
++import androidx.compose.material3.ModalBottomSheet
++import androidx.compose.material3.Text
++import androidx.compose.material3.rememberModalBottomSheetState
++import androidx.compose.runtime.*
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.clip
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.semantics.Role
++import androidx.compose.ui.semantics.contentDescription
++import androidx.compose.ui.semantics.semantics
++import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import com.kivo.cinema.media.marks.FilmMark
++import kotlinx.coroutines.launch
++
++internal enum class DetailSheet { Marks, More }
++
++private val SheetInk = Color(0xFF292A30)
++private val SheetMuted = Color(0xFF77777F)
++private val SheetAccent = Color(0xFF655978)
++
++/** Detail-owned action surface; persistence remains in DetailActions. */
++@OptIn(ExperimentalMaterial3Api::class)
++@Composable
++internal fun DetailActionSheet(
++    kind: DetailSheet,
++    actions: DetailActions,
++    onDismiss: () -> Unit,
++    onTmdb: () -> Unit,
++    onReload: () -> Unit,
++) {
++    val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
++    val scope = rememberCoroutineScope()
++    var closing by remember { mutableStateOf(false) }
++    fun close(after: () -> Unit = {}) {
++        if (closing) return
++        closing = true
++        scope.launch {
++            state.hide()
++            onDismiss()
++            after()
++        }
++    }
++    ModalBottomSheet(
++        onDismissRequest = onDismiss,
++        sheetState = state,
++        shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
++        containerColor = Color(0xFFF5F4F2),
++        contentColor = SheetInk,
++        scrimColor = Color.Black.copy(alpha = .32f),
++        tonalElevation = 0.dp,
++        dragHandle = {
++            Box(Modifier.padding(top = 10.dp, bottom = 2.dp)
++                .size(34.dp, 4.dp).clip(CircleShape).background(Color(0xFFD2D0D4)))
++        },
++    ) {
++        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
++            .padding(horizontal = 24.dp).padding(bottom = 24.dp)) {
++            Row(Modifier.fillMaxWidth().padding(bottom = 18.dp),
++                verticalAlignment = Alignment.CenterVertically) {
++                Text(if (kind == DetailSheet.Marks) "影片标记" else "更多操作",
++                    fontSize = 20.sp, fontWeight = FontWeight.SemiBold,
++                    modifier = Modifier.weight(1f))
++                Box(Modifier.size(48.dp).clip(CircleShape)
++                    .semantics { contentDescription = "关闭操作卡片" }
++                    .clickable(enabled = !closing, role = Role.Button) { close() },
++                    contentAlignment = Alignment.Center) {
++                    Box(Modifier.size(30.dp).clip(CircleShape).background(Color(0xFFE9E7E7)),
++                        contentAlignment = Alignment.Center) {
++                        DetailActionGlyph(ActionGlyph.Close, SheetMuted, Modifier.size(14.dp))
++                    }
++                }
++            }
++            if (kind == DetailSheet.Marks) {
++                SheetAction("待看", "留到下次观看", ActionGlyph.Bookmark,
++                    selected = actions.marks.watchlist, enabled = actions.enabled && !closing) {
++                    actions.toggle(FilmMark.WATCHLIST)
++                    close()
++                }
++                Spacer(Modifier.height(10.dp))
++                SheetAction("已观看", "记录看过的影片", ActionGlyph.Watched,
++                    selected = actions.marks.watched, enabled = actions.enabled && !closing) {
++                    actions.toggle(FilmMark.WATCHED)
++                    close()
++                }
++            } else {
++                SheetAction("在 TMDB 查看", "打开影片资料", ActionGlyph.External,
++                    enabled = !closing) { close(onTmdb) }
++                Spacer(Modifier.height(10.dp))
++                SheetAction("重新加载详情", "更新当前影片信息", ActionGlyph.Reload,
++                    enabled = !closing) { close(onReload) }
++            }
++        }
++    }
++}
++
++@Composable
++private fun SheetAction(
++    title: String, subtitle: String, glyph: ActionGlyph,
++    selected: Boolean? = null, enabled: Boolean, onClick: () -> Unit,
++) {
++    val active = selected == true
++    val touch = if (selected == null) Modifier.clickable(enabled, role = Role.Button, onClick = onClick)
++        else Modifier.toggleable(selected, enabled, role = Role.Checkbox) { onClick() }
++    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp))
++        .background(if (active) Color(0xFFECE8F0) else Color.White.copy(alpha = .85f))
++        .then(touch).padding(horizontal = 16.dp, vertical = 16.dp),
++        verticalAlignment = Alignment.CenterVertically) {
++        Box(Modifier.size(44.dp).clip(RoundedCornerShape(14.dp))
++            .background(if (active) Color(0xFFE0D9E8) else Color(0xFFF0EEEF)),
++            contentAlignment = Alignment.Center) {
++            DetailActionGlyph(glyph, if (active) SheetAccent else SheetInk, Modifier.size(23.dp))
++        }
++        Column(Modifier.weight(1f).padding(horizontal = 14.dp),
++            verticalArrangement = Arrangement.spacedBy(4.dp)) {
++            Text(title, color = SheetInk.copy(alpha = if (enabled) 1f else .5f),
++                fontSize = 16.sp, fontWeight = FontWeight.Medium)
++            Text(subtitle, color = SheetMuted, fontSize = 12.sp, lineHeight = 17.sp)
++        }
++        if (selected != null) {
++            Box(Modifier.size(24.dp).clip(CircleShape)
++                .background(if (active) SheetAccent else Color(0xFFE9E7EB)),
++                contentAlignment = Alignment.Center) {
++                DetailActionGlyph(if (active) ActionGlyph.Tick else ActionGlyph.Plus,
++                    if (active) Color.White else SheetMuted, Modifier.size(13.dp))
++            }
++        } else {
++            DetailActionGlyph(ActionGlyph.Chevron, SheetMuted, Modifier.size(16.dp))
++        }
++    }
++}
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailActions.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailActions.kt
+new file mode 100644
+index 00000000..2457ae89
+--- /dev/null
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailActions.kt
+@@ -0,0 +1,57 @@
++package com.kivo.cinema.ui.detail.actions
++
++import android.widget.Toast
++import androidx.compose.runtime.*
++import androidx.compose.ui.platform.LocalContext
++import com.kivo.cinema.media.marks.*
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.launch
++import kotlinx.coroutines.withContext
++
++internal class DetailActions(
++    val marks: FilmMarks,
++    val enabled: Boolean,
++    val error: String?,
++    val toggle: (FilmMark) -> Unit,
++    val retry: () -> Unit,
++)
++
++@Composable
++internal fun rememberDetailActions(key: FilmKey): DetailActions {
++    val context = LocalContext.current
++    val store = remember { FilmMarksStore.get(context) }
++    val snapshot by store.snapshots.collectAsState()
++    val scope = rememberCoroutineScope()
++    var saving by remember(key) { mutableStateOf(false) }
++    var writeError by remember(key) { mutableStateOf<String?>(null) }
++    val refresh: () -> Unit = {
++        scope.launch { withContext(Dispatchers.IO) { store.refresh() } }
++    }
++    LaunchedEffect(store) { withContext(Dispatchers.IO) { store.refresh() } }
++    return DetailActions(snapshot[key], snapshot.ready && !saving,
++        writeError ?: snapshot.error, toggle = { mark ->
++            if (snapshot.ready && !saving) {
++                saving = true
++                writeError = null
++                val enabled = !snapshot[key].contains(mark)
++                scope.launch {
++                    try {
++                        val result = withContext(Dispatchers.IO) { store.set(key, mark, enabled) }
++                        result.onSuccess {
++                            val label = when (mark) {
++                                FilmMark.FAVORITE -> if (enabled) "已收藏" else "已取消收藏"
++                                FilmMark.WATCHLIST -> if (enabled) "已添加到待看" else "已移出待看"
++                                FilmMark.WATCHED -> if (enabled) "已标记为已观看" else "已取消已观看标记"
++                            }
++                            Toast.makeText(context, label, Toast.LENGTH_SHORT).show()
++                        }.onFailure {
++                            writeError = "保存失败：${it.message ?: "请检查设备存储空间后重试"}"
++                        }
++                    } finally { saving = false }
++                }
++            }
++        }, retry = {
++            writeError = null
++            refresh()
++        })
++}

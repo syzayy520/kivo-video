@@ -16,6 +16,7 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0-p12a"
+        testInstrumentationRunner = "com.kivo.cinema.media.marks.FilmMarksInstrumentation"
 
         ndk {
             abiFilters += listOf("arm64-v8a")

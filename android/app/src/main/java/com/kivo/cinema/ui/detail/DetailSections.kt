@@ -217,7 +217,7 @@ internal fun CollectionPlusIcon(color: Color, modifier: Modifier = Modifier) {
 
 /** 心形描边图标（帧实测：空心、圆头描边）。 */
 @Composable
-internal fun HeartIcon(color: Color, modifier: Modifier = Modifier) {
+internal fun HeartIcon(color: Color, modifier: Modifier = Modifier, filled: Boolean = false) {
     Canvas(modifier) {
         val w = size.width
         val h = size.height
@@ -229,14 +229,15 @@ internal fun HeartIcon(color: Color, modifier: Modifier = Modifier) {
             cubicTo(w * .97f, h * .33f, w * .90f, h * .62f, w * .5f, h * .93f)
             close()
         }
-        drawPath(p, color, style = Stroke(1.9.dp.toPx(),
+        if (filled) drawPath(p, color)
+        else drawPath(p, color, style = Stroke(1.9.dp.toPx(),
             cap = StrokeCap.Round, join = StrokeJoin.Round))
     }
 }
 
 /** 空态块（无本地资源，240 §6.1）：TV 图标 + 暂无可用资源 + 添加到待看。 */
 @Composable
-internal fun EmptyResourceBlock(fg: Color) {
+internal fun EmptyResourceBlock(fg: Color, watchlisted: Boolean, enabled: Boolean, onWatchlist: () -> Unit) {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Canvas(Modifier.size(86.dp, 64.dp)) {
             val w = size.width
@@ -268,7 +269,11 @@ internal fun EmptyResourceBlock(fg: Color) {
         Spacer(Modifier.height(14.dp))
         Text("暂无可用资源", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = fg)
         Spacer(Modifier.height(6.dp))
-        Text("添加到待看", fontSize = 12.sp, color = fg.copy(alpha = .55f))
+        Text(if (watchlisted) "已添加到待看 · 点击取消" else "添加到待看",
+            fontSize = 12.sp, color = fg.copy(alpha = .75f),
+            modifier = Modifier.clickable(enabled = enabled,
+                role = androidx.compose.ui.semantics.Role.Button, onClick = onWatchlist)
+                .padding(horizontal = 16.dp, vertical = 14.dp))
     }
 }
 

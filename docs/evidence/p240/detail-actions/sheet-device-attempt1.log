@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "C:\kivo video\build\r2-sheet-device-check.py", line 69, in <module>
+    assert not any(n.get('content-desc')=='�رղ�����Ƭ' for n in d.nodes(d.xml()))
+AssertionError

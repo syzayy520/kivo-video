@@ -1,0 +1,9 @@
+PASS independent flags, namespaces, durable reload, and removal
+PASS interleaved writers do not lose other titles
+FAIL java.lang.IllegalStateException: Check failed.
+	at com.kivo.cinema.media.marks.FilmMarksInstrumentation.onStart$lambda$7(FilmMarksInstrumentation.kt:71)
+	at com.kivo.cinema.media.marks.FilmMarksInstrumentation$$ExternalSyntheticLambda2.invoke(D8$$SyntheticClass:0)
+	at com.kivo.cinema.media.marks.FilmMarksInstrumentation.onStart$case(FilmMarksInstrumentation.kt:23)
+	at com.kivo.cinema.media.marks.FilmMarksInstrumentation.onStart(FilmMarksInstrumentation.kt:67)
+	at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:2418)
+

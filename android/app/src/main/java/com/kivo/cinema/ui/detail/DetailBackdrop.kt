@@ -23,13 +23,11 @@ import com.kivo.cinema.ui.design.TmdbImage
 @Composable
 internal fun DetailBackdrop(
     details: TmdbDetail.Details?,
-    error: String?,
-    foreground: Color,
     field: State<Color>,
     scrollDp: () -> Float,
     pullDp: Float = 0f,
 ) {
-    Box(Modifier.fillMaxSize().background(Color.Black).clipToBounds()) {
+    Box(Modifier.fillMaxSize().background(if (details == null) com.kivo.cinema.ui.design.DesignTokens.pageBackground else Color.Black).clipToBounds()) {
         val art = details?.heroArtworkUrl.orEmpty()
         if (art.isNotEmpty()) TmdbImage(art, details?.title.orEmpty(),
             Modifier.fillMaxWidth().height(585.dp).graphicsLayer {
@@ -51,8 +49,6 @@ internal fun DetailBackdrop(
                 startY = 250.dp.toPx() - shift,
                 endY = 640.dp.toPx() - shift))
         })
-        if (details == null && error != null) Text(error, fontSize = 13.sp,
-            color = foreground, textAlign = TextAlign.Center,
-            modifier = Modifier.align(Alignment.Center).padding(horizontal = 24.dp))
+
     }
 }

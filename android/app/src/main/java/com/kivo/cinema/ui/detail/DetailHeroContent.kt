@@ -1,16 +1,17 @@
 package com.kivo.cinema.ui.detail
 
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.animation.animateContentSize
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,7 +27,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.tmdb.TmdbDetail
-import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.ui.design.TmdbImage
 
 /** 片名图层：独立于艺术图，贴在 meta 上方；与 meta 同属内容层，一起离屏。 */
@@ -61,69 +61,19 @@ internal fun MetaLine(d: TmdbDetail.Details, fg: Color) {
 
 @Composable
 internal fun Overview(text: String, fg: Color) {
-    Text(
-        text = text,
-        fontSize = 15.sp, lineHeight = 14.sp,
-        color = fg.copy(alpha = 0.82f),
-        maxLines = 2, overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.fillMaxWidth()
-            .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 16.dp),
-    )
-}
-
-@Composable
-internal fun ActionRow(context: Context, media: MediaMatch.Matched?, fg: Color, onPlay: (MediaMatch.Matched) -> Unit) {
-    val reason = "未加载到相关资源"
-    val hair = Color.White.copy(alpha = .10f)
-    val glyph = fg.copy(alpha = .95f)
-    val playable = media != null
-    Row(
-        Modifier.fillMaxWidth()
-            .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 10.dp),
-        horizontalArrangement = Arrangement.spacedBy(9.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            Modifier.weight(1f).height(45.dp)
-                .clip(RoundedCornerShape(50))
-                .background(Color.White.copy(alpha = if (playable) .92f else .60f))
-                .border(1.dp, hair, RoundedCornerShape(50))
-                .clickable {
-                    if (media != null) onPlay(media)
-                    else Toast.makeText(context, reason, Toast.LENGTH_SHORT).show()
-                },
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(if (playable) "▶  播放" else reason,
-                fontSize = 15.sp, fontWeight = FontWeight.Medium,
-                color = DesignTokens.textMain,
-                maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        Row(
-            Modifier.width(101.dp).height(45.dp)
-                .clip(RoundedCornerShape(50))
-                .background(Color.White.copy(alpha = .147f))
-                .border(1.dp, hair, RoundedCornerShape(50)),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            CollectionPlusIcon(glyph, Modifier.size(22.dp))
-            Spacer(Modifier.width(15.dp))
-            HeartIcon(glyph, Modifier.size(20.dp))
-        }
-        Box(Modifier.size(45.dp).clip(CircleShape)
-            .background(Color.White.copy(alpha = .147f))
-            .border(1.dp, hair, CircleShape),
-            contentAlignment = Alignment.Center) {
-            Canvas(Modifier.size(20.dp, 4.dp)) {
-                val r = 2.0.dp.toPx()
-                val gap = (size.width - r * 2) / 2f
-                for (i in 0..2) {
-                    drawCircle(glyph, r,
-                        Offset(r + gap * i, size.height / 2f))
-                }
-            }
-        }
+    var expanded by rememberSaveable(text) { mutableStateOf(false) }
+    var overflow by remember(text) { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth().padding(start = DETAIL_PAD_DP.dp,
+        end = DETAIL_PAD_DP.dp, top = 16.dp).animateContentSize()) {
+        Text(text, fontSize = 15.sp, lineHeight = 20.sp,
+            color = fg.copy(alpha = .82f),
+            maxLines = if (expanded) Int.MAX_VALUE else 2,
+            overflow = TextOverflow.Ellipsis,
+            onTextLayout = { if (!expanded) overflow = it.hasVisualOverflow })
+        if (overflow || expanded) Text(if (expanded) "收起简介" else "展开简介",
+            fontSize = 13.sp, color = fg,
+            modifier = Modifier.clickable(role = Role.Button) { expanded = !expanded }
+                .padding(vertical = 12.dp))
     }
 }
 
@@ -134,7 +84,8 @@ internal fun BackCircle(onBack: () -> Unit) {
             .size(42.dp)
             .clip(CircleShape)
             .background(Color(0x8CFFFFFF))
-            .clickable { onBack() },
+            .semantics { contentDescription = "返回" }
+            .clickable(role = Role.Button) { onBack() },
         contentAlignment = Alignment.Center,
     ) {
         Canvas(Modifier.size(11.dp, 17.dp)) {

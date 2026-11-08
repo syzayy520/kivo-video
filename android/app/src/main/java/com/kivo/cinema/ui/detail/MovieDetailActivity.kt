@@ -1,5 +1,7 @@
 package com.kivo.cinema.ui.detail
 
+import android.content.ActivityNotFoundException
+import android.widget.Toast
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -19,6 +21,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.Alignment
+import com.kivo.cinema.media.marks.FilmKey
+import com.kivo.cinema.media.marks.FilmMark
+import com.kivo.cinema.ui.detail.actions.DetailActionRow
+import com.kivo.cinema.ui.detail.actions.rememberDetailActions
+import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -31,7 +41,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,12 +69,37 @@ class MovieDetailActivity : ComponentActivity() {
                 .putExtra(EXTRA_TV, item.isTv)
     }
 
+    private var openingPage = false
+
+    override fun onResume() {
+        super.onResume()
+        openingPage = false
+    }
+
+    private fun openPage(intent: Intent) {
+        if (openingPage) return
+        openingPage = true
+        try { startActivity(intent) }
+        catch (_: ActivityNotFoundException) {
+            openingPage = false
+            Toast.makeText(this, "无法打开：设备没有可用的应用", Toast.LENGTH_LONG).show()
+        } catch (_: SecurityException) {
+            openingPage = false
+            Toast.makeText(this, "无法打开：目标应用拒绝访问", Toast.LENGTH_LONG).show()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setDarkStatusIcons(false)
         val id = intent.getIntExtra(EXTRA_ID, 0)
         val isTv = intent.getBooleanExtra(EXTRA_TV, false)
+        if (id <= 0) {
+            Toast.makeText(this, "无法打开详情：影片 ID 无效", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
         val detail = TmdbDetail(TmdbClient(this))
         setContent {
             DetailPage(
@@ -86,12 +120,17 @@ class MovieDetailActivity : ComponentActivity() {
     @Composable
     private fun DetailPage(id: Int, isTv: Boolean, load: () -> TmdbDetail.Details?,
                            onBack: () -> Unit, onDarkStatusIcons: (Boolean) -> Unit) {
-        val context = LocalContext.current
         var details by remember { mutableStateOf<TmdbDetail.Details?>(null) }
         var error by remember { mutableStateOf<String?>(null) }
         var media by remember { mutableStateOf<MediaMatch.Matched?>(null) }
         var fieldColor by remember { mutableStateOf(DesignTokens.pageBackground) }
-        LaunchedEffect(id, isTv) {
+        var reload by remember { mutableStateOf(0) }
+        var loading by remember { mutableStateOf(true) }
+        val actions = rememberDetailActions(remember(id, isTv) { FilmKey(id, isTv) })
+        LaunchedEffect(id, isTv, reload) {
+          loading = true
+          error = null
+          try {
             val d = withContext(Dispatchers.IO) { load() }
             if (d == null) {
                 error = "加载失败，请检查网络后重试"
@@ -107,6 +146,9 @@ class MovieDetailActivity : ComponentActivity() {
                     MediaMatch.find(LocalVideoSource.query(this@MovieDetailActivity), d.title)
                 }
             }
+          } catch (e: CancellationException) { throw e }
+          catch (_: Exception) { error = "无法获取影片详情，请检查网络后重试" }
+          finally { loading = false }
         }
         val listState = rememberLazyListState()
         val density = LocalDensity.current
@@ -132,7 +174,7 @@ class MovieDetailActivity : ComponentActivity() {
         val fgSub = if (chromeDark) Color.White.copy(alpha = .72f) else DesignTokens.textSub
 
         Box(Modifier.fillMaxSize()) {
-            DetailBackdrop(details, error, fg, sheetColor, scrollDp, pullDp)
+            DetailBackdrop(details, sheetColor, scrollDp, pullDp)
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize().nestedScroll(pull.connection),
@@ -145,11 +187,18 @@ class MovieDetailActivity : ComponentActivity() {
                     if (d != null) {
                     TitleLayer(d, fg)
                     MetaLine(d, fg)
-                        ActionRow(context, media, fg) { m ->
-                            startActivity(Intent(this@MovieDetailActivity, DetailActivity::class.java)
-                                .putExtra("kivo.media", m.item.path)
-                                .putExtra("kivo.durationMs", m.item.durationMs))
-                        }
+                    DetailActionRow(media != null, fg, actions,
+                        onPlay = {
+                            val matched = media
+                            if (matched == null) Toast.makeText(this@MovieDetailActivity,
+                                "没有匹配的本地视频，请先在资源库添加资源", Toast.LENGTH_LONG).show()
+                            else openPage(Intent(this@MovieDetailActivity, DetailActivity::class.java)
+                                .putExtra("kivo.media", matched.item.path)
+                                .putExtra("kivo.durationMs", matched.item.durationMs))
+                        },
+                        onTmdb = { openPage(Intent(Intent.ACTION_VIEW,
+                            Uri.parse("https://www.themoviedb.org/${if (isTv) "tv" else "movie"}/$id"))) },
+                        onReload = { if (!loading) reload++ })
                     if (d.overview.isNotBlank()) Overview(d.overview, fg)
                     if (d.rating > 0f) {
                         Box(Modifier.fillMaxWidth().padding(top = 14.dp)) {
@@ -173,7 +222,9 @@ class MovieDetailActivity : ComponentActivity() {
                         run {
                             Column(Modifier.fillMaxWidth()) {
                                 Spacer(Modifier.height(70.dp))
-                                EmptyResourceBlock(fg)
+                                EmptyResourceBlock(fg, actions.marks.watchlist, actions.enabled) {
+                                    actions.toggle(FilmMark.WATCHLIST)
+                                }
                             }
                         }
                     }
@@ -218,10 +269,10 @@ class MovieDetailActivity : ComponentActivity() {
                         item(key = "trailer") {
                             Column(Modifier.fillMaxWidth()) {
                                 Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
-                                SectionHeader("预告片", fg)
+                                SectionHeader("预告片 · YouTube", fg)
                                 Spacer(Modifier.height(12.dp))
                                 TrailerCard(key, "预告片", onClick = {
-                                    context.startActivity(Intent(Intent.ACTION_VIEW,
+                                    openPage(Intent(Intent.ACTION_VIEW,
                                         Uri.parse("https://www.youtube.com/watch?v=$key")))
                                 })
                             }
@@ -240,15 +291,22 @@ class MovieDetailActivity : ComponentActivity() {
                             Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
                             SectionHeader("相似作品", fg)
                             Spacer(Modifier.height(10.dp))
-                            SimilarList(d.similar.take(8), fg, fgSub, onOpen = {})
+                            SimilarList(d.similar.filter { it.id > 0 && it.id != id }.take(8), fg, fgSub,
+                                onOpen = { similar ->
+                                    openPage(Intent(this@MovieDetailActivity, MovieDetailActivity::class.java)
+                                        .putExtra(EXTRA_ID, similar.id).putExtra(EXTRA_TV, isTv))
+                                })
                         }
                     }
-                } else if (error != null) {
-                    item(key = "error") {
-                        Text(error!!, fontSize = 14.sp, color = fgSub,
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(start = DETAIL_PAD_DP.dp, top = 16.dp))
-                    }
+                }
+            }
+            if (details == null && loading) CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center), color = fg)
+            if (error != null) Column(Modifier.align(Alignment.Center)
+                .padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(error!!, color = fg, fontSize = 14.sp)
+                TextButton(onClick = { if (!loading) reload++ }, enabled = !loading) {
+                    Text(if (loading) "正在重试…" else "重试加载", color = fg)
                 }
             }
             BackCircle(onBack)

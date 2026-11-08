@@ -1,0 +1,7 @@
+PASS independent flags, namespaces, durable reload, and removal
+PASS interleaved writers do not lose other titles
+PASS write failure preserves disk and confirmed state; retry succeeds
+PASS corrupt input is reported and never overwritten
+PASS unknown schema is rejected without modifying data
+5/5 PASS
+
