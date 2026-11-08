@@ -83,11 +83,16 @@ private fun SourceCard(title: String, desc: String, icon: String, onClick: () ->
 
 /** 设置页（set_a 帧：inset 分组卡 59pt 行 + 节头 + 多行脚注"敢解释"）。 */
 @Composable
-fun SettingsPage(clearTextOk: Boolean, buildLabel: String) {
+fun SettingsPage(clearTextOk: Boolean, buildLabel: String,
+                 previewEnabled: Boolean = false, onPreviewChanged: (Boolean) -> Unit = {}) {
     Column(Modifier.fillMaxSize().padding(horizontal = pad)) {
         Spacer(Modifier.height(8.dp))
         Text("设置", fontSize = 28.sp, fontWeight = FontWeight.Bold,
             color = DesignTokens.textMain)
+        Spacer(Modifier.height(14.dp))
+        GroupSection("首页") {
+            com.kivo.cinema.ui.design.home.HomePreviewSetting(previewEnabled, onPreviewChanged)
+        }
         Spacer(Modifier.height(14.dp))
         GroupSection("播放") {
             GroupRow("网络明文传输", if (clearTextOk) "已开启" else "已关闭")

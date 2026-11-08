@@ -1,0 +1,68 @@
+ACTIVITY MANAGER PROCESS EXIT INFO (dumpsys activity exit-info)
+Last Timestamp of Persistence Into Persistent Storage: 2026-11-08 16:42:10.889
+  package: com.kivo.cinema
+    Historical Process Exit for uid=10873
+        ApplicationExitInfo #0:
+          timestamp=2026-11-08 16:46:58.777 pid=14748 realUid=99029 packageUid=10873 definingUid=10136 user=0
+          process=com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 reason=13 (OTHER KILLS BY SYSTEM) subreason=17 (ISOLATED NOT NEEDED) status=0
+          importance=300 pss=100MB rss=212MB description=isolated not needed state=empty trace=null
+        ApplicationExitInfo #1:
+          timestamp=2026-11-08 16:46:58.766 pid=14422 realUid=10873 packageUid=10873 definingUid=10873 user=0
+          process=com.kivo.cinema reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=280MB rss=432MB description=stop com.kivo.cinema due to installPackageLI state=71 bytes trace=null
+        ApplicationExitInfo #2:
+          timestamp=2026-11-08 16:41:50.533 pid=10389 realUid=99028 packageUid=10873 definingUid=10136 user=0
+          process=com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 reason=13 (OTHER KILLS BY SYSTEM) subreason=17 (ISOLATED NOT NEEDED) status=0
+          importance=300 pss=124MB rss=237MB description=isolated not needed state=empty trace=null
+        ApplicationExitInfo #3:
+          timestamp=2026-11-08 16:41:50.529 pid=10058 realUid=10873 packageUid=10873 definingUid=10873 user=0
+          process=com.kivo.cinema reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=220MB rss=366MB description=stop com.kivo.cinema due to installPackageLI state=71 bytes trace=null
+        ApplicationExitInfo #4:
+          timestamp=2026-11-08 16:40:38.677 pid=4143 realUid=99027 packageUid=10873 definingUid=10136 user=0
+          process=com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 reason=1 (EXIT_SELF) subreason=17 (ISOLATED NOT NEEDED) status=0
+          importance=300 pss=122MB rss=235MB description=isolated not needed state=empty trace=null
+        ApplicationExitInfo #5:
+          timestamp=2026-11-08 16:40:38.673 pid=32368 realUid=10873 packageUid=10873 definingUid=10873 user=0
+          process=com.kivo.cinema reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=231MB rss=380MB description=stop com.kivo.cinema due to installPackageLI state=71 bytes trace=null
+        ApplicationExitInfo #6:
+          timestamp=2026-11-08 16:38:40.048 pid=19914 realUid=99026 packageUid=10873 definingUid=10136 user=0
+          process=com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 reason=1 (EXIT_SELF) subreason=17 (ISOLATED NOT NEEDED) status=0
+          importance=400 pss=101MB rss=214MB description=isolated not needed state=empty trace=null
+        ApplicationExitInfo #7:
+          timestamp=2026-11-08 16:38:39.751 pid=19663 realUid=10873 packageUid=10873 definingUid=10873 user=0
+          process=com.kivo.cinema reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=266MB rss=416MB description=stop com.kivo.cinema due to installPackageLI state=71 bytes trace=null
+        ApplicationExitInfo #8:
+          timestamp=2026-11-08 16:34:37.318 pid=16777 realUid=99025 packageUid=10873 definingUid=10136 user=0
+          process=com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 reason=1 (EXIT_SELF) subreason=17 (ISOLATED NOT NEEDED) status=0
+          importance=400 pss=123MB rss=235MB description=isolated not needed state=empty trace=null
+        ApplicationExitInfo #9:
+          timestamp=2026-11-08 16:34:37.048 pid=9234 realUid=10873 packageUid=10873 definingUid=10873 user=0
+          process=com.kivo.cinema reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=233MB rss=385MB description=stop com.kivo.cinema due to installPackageLI state=71 bytes trace=null
+        ApplicationExitInfo #10:
+          timestamp=2026-11-08 16:31:03.653 pid=32680 realUid=99024 packageUid=10873 definingUid=10136 user=0
+          process=com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 reason=1 (EXIT_SELF) subreason=17 (ISOLATED NOT NEEDED) status=0
+          importance=400 pss=120MB rss=232MB description=isolated not needed state=empty trace=null
+        ApplicationExitInfo #11:
+          timestamp=2026-11-08 16:31:03.321 pid=32401 realUid=10873 packageUid=10873 definingUid=10873 user=0
+          process=com.kivo.cinema reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=263MB rss=413MB description=stop com.kivo.cinema due to installPackageLI state=71 bytes trace=null
+        ApplicationExitInfo #12:
+          timestamp=2026-11-08 16:26:45.665 pid=24582 realUid=99023 packageUid=10873 definingUid=10136 user=0
+          process=com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 reason=1 (EXIT_SELF) subreason=17 (ISOLATED NOT NEEDED) status=0
+          importance=300 pss=0.00 rss=0.00 description=isolated not needed state=empty trace=null
+        ApplicationExitInfo #13:
+          timestamp=2026-11-08 16:26:45.589 pid=24230 realUid=10873 packageUid=10873 definingUid=10873 user=0
+          process=com.kivo.cinema reason=5 (APP CRASH(NATIVE)) subreason=0 (UNKNOWN) status=11
+          importance=100 pss=0.00 rss=0.00 description=crash state=71 bytes trace=null
+        ApplicationExitInfo #14:
+          timestamp=2026-11-08 16:22:47.017 pid=12192 realUid=99022 packageUid=10873 definingUid=10136 user=0
+          process=com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 reason=13 (OTHER KILLS BY SYSTEM) subreason=17 (ISOLATED NOT NEEDED) status=0
+          importance=300 pss=0.00 rss=0.00 description=isolated not needed state=empty trace=null
+        ApplicationExitInfo #15:
+          timestamp=2026-11-08 16:22:46.904 pid=11832 realUid=10873 packageUid=10873 definingUid=10873 user=0
+          process=com.kivo.cinema reason=5 (APP CRASH(NATIVE)) subreason=0 (UNKNOWN) status=11
+          importance=100 pss=235MB rss=382MB description=crash state=71 bytes trace=null

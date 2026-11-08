@@ -1,0 +1,21 @@
+{"at_ms": 90014097, "media_id": 1423191, "is_tv": false, "event": "poster_visible", "reason": null}
+{"at_ms": 90016098, "media_id": 1423191, "is_tv": false, "event": "preview_due", "reason": null}
+{"at_ms": 90020208, "media_id": 1423191, "is_tv": false, "event": "playing", "reason": "mNd1gb19A-c"}
+{"at_ms": 90020291, "media_id": 1423191, "is_tv": false, "event": "layout", "reason": "native=1080x1609; params=-1,-1; dom=\"{\\\"viewport\\\":[392,585],\\\"frame\\\":[-505.7437438964844,-102.38707733154297,1404.21484375,789.8650512695312],\\\"document\\\":[392,585],\\\"css\\\":[\\\"1040.16px\\\",\\\"585.085px\\\"]}\""}
+{"at_ms": 90172791, "media_id": 1423191, "is_tv": false, "event": "ended", "reason": null}
+{"at_ms": 90172814, "media_id": 1423191, "is_tv": false, "event": "released", "reason": null}
+{"at_ms": 90181213, "media_id": 1368337, "is_tv": false, "event": "poster_visible", "reason": null}
+{"at_ms": 90183214, "media_id": 1368337, "is_tv": false, "event": "preview_due", "reason": null}
+{"at_ms": 90185923, "media_id": 1368337, "is_tv": false, "event": "playing", "reason": "AyIZ9tiiN8I"}
+{"at_ms": 90185960, "media_id": 1368337, "is_tv": false, "event": "layout", "reason": "native=1080x1609; params=-1,-1; dom=\"{\\\"viewport\\\":[392,585],\\\"frame\\\":[-505.7437438964844,-102.38707733154297,1404.21484375,789.8650512695312],\\\"document\\\":[392,585],\\\"css\\\":[\\\"1040.16px\\\",\\\"585.085px\\\"]}\""}
+{"at_ms": 90217866, "media_id": 1368337, "is_tv": false, "event": "released", "reason": null}
+{"at_ms": 90434236, "media_id": 1423191, "is_tv": false, "event": "poster_visible", "reason": null}
+{"at_ms": 90436238, "media_id": 1423191, "is_tv": false, "event": "preview_due", "reason": null}
+{"at_ms": 90439222, "media_id": 1423191, "is_tv": false, "event": "playing", "reason": "mNd1gb19A-c"}
+{"at_ms": 90439242, "media_id": 1423191, "is_tv": false, "event": "layout", "reason": "native=1080x1609; params=-1,-1; dom=\"{\\\"viewport\\\":[392,585],\\\"frame\\\":[-505.7437438964844,-102.38707733154297,1404.21484375,789.8650512695312],\\\"document\\\":[392,585],\\\"css\\\":[\\\"1040.16px\\\",\\\"585.085px\\\"]}\""}
+{"at_ms": 90468627, "media_id": 1423191, "is_tv": false, "event": "released", "reason": null}
+{"at_ms": 90469785, "media_id": 1423191, "is_tv": false, "event": "poster_visible", "reason": null}
+{"at_ms": 90471787, "media_id": 1423191, "is_tv": false, "event": "preview_due", "reason": null}
+{"at_ms": 90474641, "media_id": 1423191, "is_tv": false, "event": "playing", "reason": "mNd1gb19A-c"}
+{"at_ms": 90474673, "media_id": 1423191, "is_tv": false, "event": "layout", "reason": "native=1080x1609; params=-1,-1; dom=\"{\\\"viewport\\\":[392,585],\\\"frame\\\":[-505.7437438964844,-102.38707733154297,1404.21484375,789.8650512695312],\\\"document\\\":[392,585],\\\"css\\\":[\\\"1040.16px\\\",\\\"585.085px\\\"]}\""}
+{"at_ms": 90507761, "media_id": 1423191, "is_tv": false, "event": "released", "reason": null}

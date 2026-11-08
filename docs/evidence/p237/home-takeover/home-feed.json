@@ -1,0 +1,66 @@
+{
+  "fetched_at_epoch_ms": 1794127621273,
+  "source": "\/trending\/all\/week?language=zh-CN",
+  "items": [
+    {
+      "id": 1423191,
+      "is_tv": false,
+      "title": "生化危机：爆发夜",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/qMvRqzzDVfQpLi5ZoKwttTQdaJe.jpg"
+    },
+    {
+      "id": 1368337,
+      "is_tv": false,
+      "title": "奥德赛",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/qUj1aMFRkS51qxtT2klYYoEhxbq.jpg"
+    },
+    {
+      "id": 1263337,
+      "is_tv": false,
+      "title": "野兽之心",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/k1nznc9xTRkRq0BNu7qOXE3NSlU.jpg"
+    },
+    {
+      "id": 1375441,
+      "is_tv": false,
+      "title": "黄金时段",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/6rjSYr7NoSWKwzSZbuHogNXgF1O.jpg"
+    },
+    {
+      "id": 1381071,
+      "is_tv": false,
+      "title": "哥斯拉-0.0",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/51RBWzkFd4zEsOGg4ZIqYlNszHc.jpg"
+    },
+    {
+      "id": 1792170,
+      "is_tv": false,
+      "title": "模范公民",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/vagcyob8HzG9VbWzhqdkXF1CGYN.jpg"
+    },
+    {
+      "id": 1483525,
+      "is_tv": false,
+      "title": "可能的爱",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/7hEGIiIRdtFYA11fKPY1Kz8CpyI.jpg"
+    },
+    {
+      "id": 1294189,
+      "is_tv": false,
+      "title": "猫鼬",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/m1vBxr5hLklqgMZQogEEsexzyEQ.jpg"
+    },
+    {
+      "id": 279246,
+      "is_tv": true,
+      "title": "再婚皇后",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/nWuOUzOHrn4VB7zRrrcZQHcB5Vx.jpg"
+    },
+    {
+      "id": 225385,
+      "is_tv": true,
+      "title": "黑鸽",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/g5gGRAxnBYMYaIqu2aBvIURoezg.jpg"
+    }
+  ]
+}

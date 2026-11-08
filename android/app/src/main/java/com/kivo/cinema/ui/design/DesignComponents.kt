@@ -166,8 +166,7 @@ fun DesignPosterCard(title: String, date: String, poster: Painter? = null,
     }
 }
 
-/** 继续观看横滑卡（grid_02/t22 实测：230pt 16:9 + 左下"看到 hh:mm"15pt + 白进度条 3pt
- *  + 卡下标题 15 粗/元信息 13 灰（E10：「3 天前 · 来源」）。色随环境明暗。 */
+/** 230dp 16:9 card; compact labels and an inset two-dp progress track. */
 @Composable
 fun ContinueCard(title: String, meta: String, seenText: String?,
                  progress: Float, poster: Painter? = null,
@@ -195,25 +194,22 @@ fun ContinueCard(title: String, meta: String, seenText: String?,
                         modifier = Modifier.fillMaxSize())
                 }
                 if (seenText != null) {
-                    Text(seenText, fontSize = 15.sp, color = Color.White,
+                    Text(seenText, fontSize = 12.sp, color = Color.White,
                         modifier = Modifier
                             .align(Alignment.BottomStart)
                             .padding(10.dp))
                 }
-                // 白进度条 3pt 贴底（帧实测）
-                Box(
-                    Modifier
-                        .align(Alignment.BottomStart)
-                        .fillMaxWidth(progress.coerceIn(0f, 1f))
-                        .height(3.dp)
-                        .background(Color.White)
-                )
+                Box(Modifier.align(Alignment.BottomStart).fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                    .height(2.dp).background(Color.White.copy(alpha = .35f))) {
+                    Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).height(2.dp).background(Color.White))
+                }
             }
         }
         Spacer(Modifier.height(6.dp))
-        Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+        Text(title, fontSize = 12.sp, fontWeight = FontWeight.Bold,
             color = titleColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(meta, fontSize = 13.sp, color = metaColor, maxLines = 1,
+        Text(meta, fontSize = 11.sp, color = metaColor, maxLines = 1,
             overflow = TextOverflow.Ellipsis)
     }
 }

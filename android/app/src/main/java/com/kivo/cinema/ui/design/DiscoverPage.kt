@@ -1,7 +1,9 @@
 package com.kivo.cinema.ui.design
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalOverscrollConfiguration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +25,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -36,61 +39,31 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.library.MediaItem
 import com.kivo.cinema.tmdb.TmdbHome
+import com.kivo.cinema.tmdb.trailer.TrailerResult
+import com.kivo.cinema.ui.design.home.NavigationBackdropState
+import com.kivo.cinema.ui.design.home.navigationSource
+import com.kivo.cinema.ui.design.home.rememberHeroPullZoom
 import com.kivo.cinema.stats.WatchStore
 
-/**
- * 发现首页（239 §2/§3-v3；IMG_0138/0139/0140 三滚动态 + IMG_0136 全链帧实测）：
- *
- *   hero(585, 羽化) → 继续观看 → 正在热映 → 正在播出 → 本周趋势(宽卡)
- *   → 近一月·热门综艺(大卡) → 今日动漫。本地影片节已删（对照帧无此节）。
- *
- * 背景层（239 §3.2-v3，IMG_0138/0139/0140 三态拟合）：
- *   hero 海报的**重度模糊版**（48px 双线性放大 + 盒模糊，位图自带底部 25% α 渐隐），
- *   视口定位、视差 0.7（盒子顶 = −0.7×S），整体 α 随滚动淡出：
- *   分段线性 (180dp,1)(300dp,0.38)(500dp,0)。
- *   下滑过程 = 清晰海报(羽化) 上滚露出模糊背景，背景再整体淡入页底——三段皆渐变，无硬线。
- *
- * 明暗（239 §3.3-v3）：chrome 组（节标题/卡标签/圆点/导航）= 背景在其屏幕行的有效亮度
- *   <0.45 → 白（0138 白→0139 黑随滚动翻转）；hero 组（meta/简介/徽章/logo）= S=0 行
- *   亮度 <0.55 一次定死整页不变（0138/0139 meta 都白）。
- */
-private const val AMBIENT_FADE_A = 180    // dp：整体 α 开始衰减
-private const val AMBIENT_FADE_B = 300    // dp：α≈0.75
-private const val AMBIENT_FADE_C = 430    // dp：α≈0.37（0140 实测）
-private const val AMBIENT_FADE_D = 620    // dp：α=0
-private const val CHROME_FLIP_DP = 110f   // chrome 组翻白→黑的滚动点（0138 白/0139 黑夹逼）
-private const val FIELD_END_DP = 1100f    // 下缘场结束（内容坐标；底部 29% α 渐隐，无硬线）
-
-/** 下缘场的混白比例 t(S)：0138(S=0) 全暗 (28,10,9)、0139(S≈182) 淡紫 (129,119,123)、
- *  0140(S≈301) 近白 (202,197,204) 三态夹逼的分段线性。 */
-private fun fieldMix(scrollDp: Float): Float = when {
-    scrollDp <= 182f -> scrollDp / 182f * 0.49f
-    scrollDp <= 301f -> 0.49f + (scrollDp - 182f) / 119f * 0.32f
-    scrollDp <= 502f -> 0.81f + (scrollDp - 301f) / 201f * 0.04f
-    scrollDp <= 900f -> 0.85f + (scrollDp - 502f) / 398f * 0.15f
-    else -> 1f
-}
-
-private fun scrollFade(scrollDp: Float): Float = when {
-    scrollDp <= AMBIENT_FADE_A -> 1f
-    scrollDp <= AMBIENT_FADE_B -> 1f - (scrollDp - AMBIENT_FADE_A) /
-        (AMBIENT_FADE_B - AMBIENT_FADE_A) * 0.25f
-    scrollDp <= AMBIENT_FADE_C -> 0.75f - (scrollDp - AMBIENT_FADE_B) /
-        (AMBIENT_FADE_C - AMBIENT_FADE_B) * 0.38f
-    scrollDp <= AMBIENT_FADE_D -> 0.37f * (AMBIENT_FADE_D - scrollDp) /
-        (AMBIENT_FADE_D - AMBIENT_FADE_C)
-    else -> 0f
-}
-
+/** Discovery content and one continuous scroll-driven color field. */
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 fun DiscoverPage(
+    backdrop: NavigationBackdropState? = null,
+    previewEnabled: Boolean = false,
     continueItems: List<Pair<MediaItem, WatchStore.Progress>>,
     heroCandidates: List<TmdbHome.Item>,
     nowPlaying: List<TmdbHome.Item>,
@@ -100,102 +73,62 @@ fun DiscoverPage(
     todayAnime: List<TmdbHome.Item>,
     topPoster: (TmdbHome.Item) -> String?,
     logoFor: (TmdbHome.Item) -> String?,
+    trailerFor: (TmdbHome.Item) -> TrailerResult,
+    proxyAddress: String?,
+    generation: Int,
     posterOf: @Composable (MediaItem) -> (@Composable () -> Unit)?,
     onOpenItem: (MediaItem) -> Unit,
     onOpenTmdbItem: (TmdbHome.Item) -> Unit,
     tmdbError: String? = null,
     onRetryTmdb: () -> Unit = {},
     onAmbientDark: (Boolean) -> Unit = {},
+    onShowWatching: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val density = androidx.compose.ui.platform.LocalDensity.current
+    val pull = rememberHeroPullZoom(
+        atTop = { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 },
+        maxPullPx = with(density) { 180.dp.toPx() })
+    val pullDp = pull.distance.value / density.density
 
-    var heroFieldColor by remember { mutableStateOf(DesignTokens.bgCream) }
-    var heroFgLight by remember { mutableStateOf(true) }
-
-    // chrome 组（节标题/圆点/导航）：暗海报且滚动未过翻转点 → 白，否则黑
-    // （0138 S=0 白 / 0139 S=182 黑夹逼；亮海报恒黑——grid_01 狗狗圣诞实证）
-    val chromeDark by remember {
-        derivedStateOf {
-            heroFgLight &&
-                (listState.firstVisibleItemIndex == 0 &&
-                    listState.firstVisibleItemScrollOffset < CHROME_FLIP_DP * density.density)
-        }
-    }
-
-    val chromeFg = if (chromeDark) Color.White else DesignTokens.textMain
-    val chromeSub = if (chromeDark) Color.White.copy(alpha = 0.72f) else DesignTokens.textSub
-    val dotsFg = chromeFg
-
-    // 环境遮罩/下缘场的当前色：底缘色随滚动向页底过渡（t(S)），三态夹逼的分段线性
+    var heroFieldColor by remember { mutableStateOf(DesignTokens.pageBackground) }
     val scrimColor: State<Color> = remember {
         derivedStateOf {
-            val sPx = if (listState.firstVisibleItemIndex == 0)
-                listState.firstVisibleItemScrollOffset.toFloat() else 1e6f
-            val t = fieldMix(sPx / density.density)
-            Color(
-                heroFieldColor.red + (DesignTokens.pageBackground.red - heroFieldColor.red) * t,
-                heroFieldColor.green + (DesignTokens.pageBackground.green - heroFieldColor.green) * t,
-                heroFieldColor.blue + (DesignTokens.pageBackground.blue - heroFieldColor.blue) * t)
+            val scrollDp = if (listState.firstVisibleItemIndex == 0)
+                listState.firstVisibleItemScrollOffset / density.density else 390f
+            com.kivo.cinema.ui.design.home.HomeAtmosphere.background(heroFieldColor, scrollDp)
         }
     }
-    val scrimAlpha: State<Float> = remember {
-        derivedStateOf {
-            val sPx = if (listState.firstVisibleItemIndex == 0)
-                listState.firstVisibleItemScrollOffset.toFloat() else 1e6f
-            scrollFade(sPx / density.density)
-        }
-    }
+    val chromeDark = com.kivo.cinema.ui.design.home.HomeAtmosphere.lightForeground(scrimColor.value)
+    val chromeFg = if (chromeDark) Color.White else DesignTokens.textMain
+    val chromeSub = if (chromeDark) Color.White.copy(alpha = .72f) else DesignTokens.textSub
 
     Box(Modifier.fillMaxSize()) {
+      Box(Modifier.fillMaxSize().navigationSource(backdrop).drawBehind { drawRect(scrimColor.value) })
+      CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
         LazyColumn(
             state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .drawBehind {
-                    // 下缘场：内容 [585, 1100dp] 平色（与海报外层遮罩同色同源，
-                    // 在 585 处无缝相接），底部 29% α 渐隐入场底——无硬线
-                    val sPx = if (listState.firstVisibleItemIndex == 0)
-                        listState.firstVisibleItemScrollOffset.toFloat() else 1e6f
-                    val sDp = sPx / density.density
-                    val fade = scrollFade(sDp)
-                    if (fade <= 0f) return@drawBehind
-                    val fieldTop = HERO_HEIGHT_DP.dp.toPx() - sPx
-                    val fieldH = (FIELD_END_DP - HERO_HEIGHT_DP).dp.toPx()
-                    if (fieldTop < size.height && fieldH > 0f) {
-                        val c = scrimColor.value
-                        val flatEnd = 0.71f   // (950-585)/515
-                        drawRect(
-                            brush = Brush.verticalGradient(
-                                0f to c, flatEnd to c, 1f to c.copy(alpha = 0f),
-                                startY = fieldTop,
-                                endY = fieldTop + fieldH),
-                            topLeft = androidx.compose.ui.geometry.Offset(0f, fieldTop),
-                            size = androidx.compose.ui.geometry.Size(size.width, fieldH),
-                            alpha = fade,
-                        )
-                    }
-                },
+            modifier = Modifier.fillMaxSize().nestedScroll(pull.connection),
             contentPadding = PaddingValues(bottom = 100.dp),
         ) {
-            // hero
-            if (heroCandidates.isNotEmpty()) {
-                item(key = "hero") {
-                    HeroCarousel(heroCandidates, onAmbient = { fgLight, field ->
-                        heroFgLight = fgLight
-                        heroFieldColor = field
-                    }, dotsColor = dotsFg,
-                        scrimColor = scrimColor, scrimAlpha = scrimAlpha,
-                        topPoster = topPoster, logoFor = logoFor)
-                }
+            // Keep the first slot stable while network data arrives: inserting it later
+            // would preserve the next item's anchor and open the page below the hero.
+            item(key = "hero") {
+                if (heroCandidates.isEmpty()) Spacer(Modifier.height(HERO_HEIGHT_DP.dp))
+                else HeroCarousel(heroCandidates, onAmbient = { heroFieldColor = it },
+                    dotsColor = chromeFg, scrimColor = scrimColor,
+                    topPoster = topPoster, logoFor = logoFor, pullDp = pullDp,
+                    previewVisible = listState.firstVisibleItemIndex == 0 &&
+                        listState.firstVisibleItemScrollOffset < 350 * density.density,
+                    generation = generation, previewEnabled = previewEnabled, trailerFor = trailerFor, proxyAddress = proxyAddress)
             }
             // 继续观看
             if (continueItems.isNotEmpty()) {
                 item(key = "continue") {
-                    Column {
+                    Column(Modifier.navigationSource(backdrop)) {
                         Spacer(Modifier.height(13.dp))
-                        SectionHeader("继续观看", onMore = null, color = chromeFg)
-                        Spacer(Modifier.height(19.dp))
+                        HomeSectionHeader("继续观看", chromeFg, onShowWatching)
+                        Spacer(Modifier.height(12.dp))
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             contentPadding = PaddingValues(horizontal = 13.dp),
@@ -223,23 +156,24 @@ fun DiscoverPage(
                 "正在播出" to onTheAir,
             ).forEach { (title, list) ->
                 if (list.isNotEmpty()) {
-                    item(key = title) { PosterSection(title, list, chromeFg, onOpenTmdbItem) }
+                    item(key = title) { Box(Modifier.navigationSource(backdrop)) { PosterSection(title, list, chromeFg, onOpenTmdbItem) } }
                 }
             }
             if (trending.isNotEmpty()) {
-                item(key = "本周趋势") { WideSection(trending, chromeFg, onOpenTmdbItem) }
+                item(key = "本周趋势") { Box(Modifier.navigationSource(backdrop)) { WideSection(trending, chromeFg, onOpenTmdbItem) } }
             }
             if (variety.isNotEmpty()) {
-                item(key = "近一月·热门综艺") { VarietySection(variety, chromeFg, onOpenTmdbItem) }
+                item(key = "近一月·热门综艺") { Box(Modifier.navigationSource(backdrop)) { VarietySection(variety, chromeFg, onOpenTmdbItem) } }
             }
             if (todayAnime.isNotEmpty()) {
-                item(key = "今日动漫") { PosterSection("今日动漫", todayAnime, chromeFg, onOpenTmdbItem) }
+                item(key = "今日动漫") { Box(Modifier.navigationSource(backdrop)) { PosterSection("今日动漫", todayAnime, chromeFg, onOpenTmdbItem) } }
             }
             // 错误态（home.error.network.* 五类原文 + 重试——M04-S04，不可合并）
-            if (tmdbError != null && nowPlaying.isEmpty() && trending.isEmpty()) {
-                item(key = "error") { TmdbErrorCard(tmdbError, onRetryTmdb) }
+            if (tmdbError != null) {
+                item(key = "error") { Box(Modifier.navigationSource(backdrop)) { TmdbErrorCard(tmdbError, onRetryTmdb) } }
             }
         }
+      }
     }
 
     // 导航玻璃/状态栏随 chrome 组翻转（0138 暗→0139 亮）
@@ -249,7 +183,7 @@ fun DiscoverPage(
 /** 本地条目来源名（E10「3 天前 · iLoveHD」格式；MediaStore 条目 = 本地）。 */
 internal fun sourceOf(item: MediaItem): String = "本地"
 
-/** 海报节：22pt 节标题 + 92×138 2:3 海报横滑（E9：标题 15 + 年份/类型 13 灰）。 */
+/** Home poster row measured against the 390pt source viewport. */
 @Composable
 private fun PosterSection(
     title: String,
@@ -259,14 +193,14 @@ private fun PosterSection(
 ) {
     Column {
         Spacer(Modifier.height(13.dp))
-        SectionHeader(title, onMore = null, color = fg)
+        HomeSectionHeader(title, fg)
         Spacer(Modifier.height(16.dp))
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(horizontal = 13.dp),
         ) {
             items(list) { m ->
-                TmdbPosterCard(m) { onOpenTmdbItem(m) }
+                TmdbPosterCard(m, fg) { onOpenTmdbItem(m) }
             }
         }
     }
@@ -284,7 +218,7 @@ private fun WideSection(
 ) {
     Column {
         Spacer(Modifier.height(13.dp))
-        SectionHeader("本周趋势", onMore = null, color = fg)
+        HomeSectionHeader("本周趋势", fg)
         Spacer(Modifier.height(16.dp))
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -406,27 +340,53 @@ private fun TmdbErrorCard(kind: String, onRetry: () -> Unit) {
     }
 }
 
-/** TMDB 海报卡（92×138 2:3 圆角 10 + 标题 15 + 年份 13 灰，E9/236 既有规格）。 */
+/** Home-only 104×156 poster with compact provider labels. */
 @Composable
 internal fun TmdbPosterCard(
     m: TmdbHome.Item,
+    fg: Color = DesignTokens.textMain,
     onClick: () -> Unit,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .width(DesignTokens.posterWidth.dp)
+            .width(104.dp)
             .clickable { onClick() },
     ) {
         TmdbImage(m.posterUrl, m.title,
             Modifier
-                .size(DesignTokens.posterWidth.dp, (DesignTokens.posterWidth * 1.5f).dp)
+                .size(104.dp, 156.dp)
                 .clip(RoundedCornerShape(DesignTokens.radiusPoster.dp)))
         Spacer(Modifier.height(6.dp))
-        Text(m.title, fontSize = DesignTokens.fontPosterTitle.sp,
-            fontWeight = FontWeight.Bold, color = DesignTokens.textMain,
+        Text(m.title, fontSize = 12.sp,
+            fontWeight = FontWeight.Bold, color = fg,
             maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(m.year(), fontSize = DesignTokens.fontPosterDate.sp,
-            color = DesignTokens.textSub)
+        Text(m.year(), fontSize = 11.sp,
+            color = chromeSubFor(fg))
+    }
+}
+
+/** Compact section typography measured in the source's 390pt viewport. */
+@Composable
+private fun HomeSectionHeader(title: String, fg: Color, onMore: (() -> Unit)? = null) {
+    Row(Modifier.fillMaxWidth().height(22.dp).padding(horizontal = 13.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Text(title, fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold,
+            color = fg, style = androidx.compose.ui.text.TextStyle(
+                platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false)))
+        Spacer(Modifier.weight(1f))
+        if (onMore != null) Box(
+            Modifier.size(28.dp, 22.dp).semantics { contentDescription = "查看全部$title" }
+                .clickable(onClick = onMore), contentAlignment = Alignment.CenterEnd,
+        ) {
+            Canvas(Modifier.size(8.dp, 13.dp)) {
+                val inset = 1.dp.toPx()
+                drawPath(Path().apply {
+                    moveTo(inset, inset)
+                    lineTo(size.width - inset, size.height / 2)
+                    lineTo(inset, size.height - inset)
+                }, fg, style = Stroke(1.7.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+            }
+        }
     }
 }

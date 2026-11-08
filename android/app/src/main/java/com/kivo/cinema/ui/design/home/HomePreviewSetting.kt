@@ -1,0 +1,26 @@
+package com.kivo.cinema.ui.design.home
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.kivo.cinema.ui.design.DesignTokens
+
+@Composable
+internal fun HomePreviewSetting(enabled: Boolean, onChange: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth().toggleable(value = enabled, role = Role.Switch, onValueChange = onChange)
+        .padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f).padding(end = 12.dp)) {
+            Text("首页预告片自动播放", fontSize = 15.sp, color = DesignTokens.textMain)
+            Text("默认显示图片；开启后需要能连接 YouTube", fontSize = 11.sp,
+                lineHeight = 16.sp, color = DesignTokens.textSub)
+        }
+        Switch(checked = enabled, onCheckedChange = null)
+    }
+}

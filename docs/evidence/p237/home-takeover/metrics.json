@@ -1,0 +1,28 @@
+{
+  "device": "Redmi K40 b6e950ee",
+  "physical_size": [
+    1080,
+    2400
+  ],
+  "density": 2.75,
+  "pid_after_playback_and_navigation": 30280,
+  "pull_release_region_xyxy": [
+    0,
+    120,
+    1080,
+    1600
+  ],
+  "pull_release_mean_absolute_channel_difference": 0.0,
+  "default_off_wait_added_preview_events": 0,
+  "default_off_final": true,
+  "recording_seconds": 58,
+  "original_reference_size": [
+    1170,
+    2532
+  ],
+  "comparison_normalized_width": 390,
+  "native_comparison_height": 867,
+  "reference_comparison_height": 844,
+  "pixel_perfect_acceptance": false,
+  "apk_sha256": "04ef394d3319f17f1f9045c7713af696716811ec2793a8610c896aed0c484e30"
+}

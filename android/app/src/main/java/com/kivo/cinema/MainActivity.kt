@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,9 +24,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import com.kivo.cinema.ui.design.home.navigationSource
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.kivo.cinema.library.MediaItem
 import com.kivo.cinema.ui.design.AnimatedGradientBg
 import com.kivo.cinema.ui.design.CapsuleNavBar
@@ -45,6 +54,7 @@ class MainActivity : ComponentActivity() {
     // 237-A：观看数据域 + 评分源 + 首页 TMDB 节
     private val watchStore by lazy { com.kivo.cinema.stats.WatchStore(this) }
     private val tmdb by lazy { com.kivo.cinema.tmdb.TmdbClient(this) }
+    private val homePreferences by lazy { com.kivo.cinema.ui.design.home.HomePreferences(this) }
     private val tmdbHome by lazy { com.kivo.cinema.tmdb.TmdbHome(tmdb) }
     private var heroCandidates by mutableStateOf(
         listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
@@ -54,6 +64,8 @@ class MainActivity : ComponentActivity() {
     private var variety by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
     private var todayAnime by mutableStateOf(listOf<com.kivo.cinema.tmdb.TmdbHome.Item>())
     private var tmdbError by mutableStateOf<String?>(null)   // home.error.network.* 键尾
+    private var homeGeneration by mutableStateOf(0)
+    private var tmdbRefreshing = false
     private var continueItems by mutableStateOf(
         listOf<Pair<MediaItem, com.kivo.cinema.stats.WatchStore.Progress>>())
     private var ambientDark by mutableStateOf(false)   // 首页环境暗底（导航玻璃/状态栏联动）
@@ -62,6 +74,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // edge-to-edge（239：hero 顶入状态栏下——windowFullscreen 已从主题移除）
         enableEdgeToEdge()
+        if (android.os.Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
         com.kivo.cinema.ui.design.TmdbImageCache.diskDir = cacheDir
         com.kivo.cinema.tmdb.TmdbClient.setShared(
             com.kivo.cinema.tmdb.TmdbClient(this))
@@ -76,26 +90,45 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun refreshTmdb() {
-        Thread {
-            val hero = tmdbHome.heroCandidates()
-            val np = tmdbHome.nowPlaying()
-            val oa = tmdbHome.onTheAir()
-            val tr = tmdbHome.trendingWeek()
-            val va = tmdbHome.varietyPastMonth()
-            val an = tmdbHome.todayAnime()
-            runOnUiThread {
-                heroCandidates = hero
-                nowPlaying = np.items
-                onTheAir = oa.items
-                trending = tr.items
-                variety = va.items
-                todayAnime = an.items
-                // 五类错误取首个非空（重试按钮共用 refreshTmdb）
-                tmdbError = listOf(np.errorKind, oa.errorKind, tr.errorKind,
-                        va.errorKind, an.errorKind)
-                    .firstOrNull { it != null }
+        if (tmdbRefreshing) return
+        tmdbRefreshing = true
+        lifecycleScope.launch {
+            try {
+                val tr = async(Dispatchers.IO) { tmdbHome.trendingWeek() }
+                val np = async(Dispatchers.IO) { tmdbHome.nowPlaying() }
+                val oa = async(Dispatchers.IO) { tmdbHome.onTheAir() }
+                val va = async(Dispatchers.IO) { tmdbHome.varietyPastMonth() }
+                val an = async(Dispatchers.IO) { tmdbHome.todayAnime() }
+                val trend = tr.await()
+                if (trend.items.isNotEmpty()) {
+                    heroCandidates = trend.items.take(10)
+                    trending = trend.items
+                    // Keep the active page/player stable when a refresh returns identical candidates.
+                    // Metadata repositories independently expire their cache after 15 minutes.
+                    if (BuildConfig.DEBUG) withContext(Dispatchers.IO) { runCatching {
+                        val rows = org.json.JSONArray()
+                        heroCandidates.forEach { m -> rows.put(org.json.JSONObject()
+                            .put("id", m.id).put("is_tv", m.isTv).put("title", m.title)
+                            .put("poster_url", m.posterHeroUrl)) }
+                        val file = java.io.File(filesDir, "evidence/home-feed.json")
+                        file.parentFile?.mkdirs()
+                        file.writeText(org.json.JSONObject().put("fetched_at_epoch_ms", System.currentTimeMillis())
+                            .put("source", "/trending/all/week?language=zh-CN")
+                            .put("items", rows).toString(2))
+                    } }
+                }
+                val now = np.await(); val air = oa.await()
+                val varieties = va.await(); val anime = an.await()
+                if (now.errorKind == null) nowPlaying = now.items
+                if (air.errorKind == null) onTheAir = air.items
+                if (varieties.errorKind == null) variety = varieties.items
+                if (anime.errorKind == null) todayAnime = anime.items
+                tmdbError = listOf(trend.errorKind, now.errorKind, air.errorKind,
+                    varieties.errorKind, anime.errorKind).firstOrNull { it != null }
+            } finally {
+                tmdbRefreshing = false
             }
-        }.start()
+        }
     }
 
     private fun refreshContinue() {
@@ -166,7 +199,10 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun Shell() {
-        var page by remember { mutableStateOf(0) }
+        var page by remember { mutableStateOf(1) }
+        var previewEnabled by remember { mutableStateOf(homePreferences.autoplay) }
+        var selectedTitle by remember { mutableStateOf<com.kivo.cinema.tmdb.TmdbHome.Item?>(null) }
+        val backdrop = remember { com.kivo.cinema.ui.design.home.NavigationBackdropState() }
         AnimatedGradientBg {
             // 悬浮导航：内容全屏铺底，胶囊浮在内容上（0082 帧：卡标签被导航遮住）
             Box(Modifier.fillMaxSize()) {
@@ -175,6 +211,8 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         // 发现页不裁底：环境层要铺到导航后面（239 §3.2）；其余页留导航空间
                         .padding(bottom = if (page == 1) 0.dp else 84.dp)
+                          .windowInsetsPadding(if (page == 1) WindowInsets(0, 0, 0, 0) else WindowInsets.statusBars)
+                        .navigationSource(backdrop, enabled = page != 1)
                 ) {
                     when (page) {
                         0 -> SourcesPage(
@@ -191,6 +229,8 @@ class MainActivity : ComponentActivity() {
                             videoCount = items.size,
                         )
                         1 -> DiscoverPage(
+                            backdrop = backdrop,
+                            previewEnabled = previewEnabled,
                             continueItems = continueItems,
                             heroCandidates = heroCandidates,
                             nowPlaying = nowPlaying,
@@ -200,12 +240,16 @@ class MainActivity : ComponentActivity() {
                             todayAnime = todayAnime,
                             topPoster = { tmdbHome.topVotedPosterUrl(it) },
                             logoFor = { tmdbHome.logoUrlFor(it) },
+                            trailerFor = { tmdbHome.trailerFor(it) },
+                            proxyAddress = tmdb.proxyAddr(),
+                            generation = homeGeneration,
                             posterOf = { posterBlockOf(it) },
                             onOpenItem = { openPlayer(it) },
-                            onOpenTmdbItem = { },
+                            onOpenTmdbItem = { selectedTitle = it },
                             tmdbError = tmdbError,
                             onRetryTmdb = { refreshTmdb() },
                             onAmbientDark = { ambientDark = it },
+                            onShowWatching = { page = 2 },
                         )
                         2 -> com.kivo.cinema.ui.design.WatchingPage(
                             continueItems = continueItems,
@@ -214,6 +258,8 @@ class MainActivity : ComponentActivity() {
                         )
                         3 -> ProfilePage(items.size)
                         else -> SettingsPage(
+                            previewEnabled = previewEnabled,
+                            onPreviewChanged = { previewEnabled = it; homePreferences.autoplay = it },
                             clearTextOk = applicationInfo.flags and
                                 android.content.pm.ApplicationInfo.FLAG_USES_CLEARTEXT_TRAFFIC != 0,
                             buildLabel = "0.1.0 (237-ui)",
@@ -223,20 +269,25 @@ class MainActivity : ComponentActivity() {
                 // 距底 22pt（帧实测）；发现页深色环境时转暗玻璃（E11）
                 Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp)) {
                     CapsuleNavBar(
-                        tabs = listOf("资源库" to "🗄", "发现" to "🎞",
-                            "在看" to "📺", "我的" to "👤"),
-                        selected = page,
-                        onSelect = { page = it },
+                        tabs = listOf("发现" to "", "我的" to "", "资源库" to "", "设置" to ""),
+                        selected = listOf(1, 3, 0, 4).indexOf(page),
+                        onSelect = { page = listOf(1, 3, 0, 4)[it] },
                         onSearch = { openLibrary() },
                         onDark = page == 1 && ambientDark,
+                        backdrop = backdrop,
                     )
                 }
             }
         }
+        selectedTitle?.let { title ->
+            com.kivo.cinema.ui.design.home.HomeTitleSheet(title) { selectedTitle = null }
+        }
         // 状态栏图标随环境明暗（E11：暗底 → 白图标）
         val view = findViewById<android.view.View>(android.R.id.content)
-        androidx.core.view.WindowCompat.getInsetsController(window, view)
-            .isAppearanceLightStatusBars = !(page == 1 && ambientDark)
+        androidx.core.view.WindowCompat.getInsetsController(window, view).apply {
+            isAppearanceLightStatusBars = !(page == 1 && ambientDark)
+            isAppearanceLightNavigationBars = !(page == 1 && ambientDark)
+        }
     }
 
     private fun openLibrary() {

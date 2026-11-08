@@ -2,8 +2,8 @@ package com.kivo.cinema.tmdb
 
 import org.json.JSONArray
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
+import android.os.SystemClock
+import com.kivo.cinema.tmdb.trailer.TmdbTrailers
 
 /**
  * TMDB 首页数据域（239 §2；节序 = IMG_0136 全链实测）：
@@ -56,59 +56,48 @@ class TmdbHome(private val client: TmdbClient) {
             10768 to "战争政治",
         )
 
-        /** hero 标题/主海报的 per-item 缓存（itemId → url，null=查过没有）。 */
-        val logoMemo = HashMap<Int, String?>()
-        val posterMemo = HashMap<Int, String?>()
     }
 
-    /** hero 主海报 = /images 里**票选最高**的那张（IMG_0138 实证：Rex 用 vote 8.19 的
-     *  悬挂人影图而非本地化主海报——三帧的构图/色域只有它对得上）。
-     *  同步阻塞，调用方备线程；null = 查过没有（回退 trending 自带 poster）。 */
+    // Movie and TV IDs occupy different namespaces. Only successful metadata is cached.
+    private data class ImageEntry(val at: Long, val json: JSONObject)
+    private val imageMemo = HashMap<Pair<Boolean, Int>, ImageEntry>()
+    private val trailers = TmdbTrailers(::get)
+
+    fun trailerFor(item: Item) = trailers.forItem(item.isTv, item.id)
+
+    @Synchronized
+    private fun images(item: Item): JSONObject? {
+        val key = item.isTv to item.id
+        val now = SystemClock.elapsedRealtime()
+        imageMemo[key]?.takeIf { now - it.at < 15 * 60_000L }?.let { return it.json }
+        val kind = if (item.isTv) "tv" else "movie"
+        val result = get("/$kind/${item.id}/images").first ?: return null
+        imageMemo[key] = ImageEntry(now, result)
+        return result
+    }
+
+    /** First artwork in the provider's image ordering; not a vote-average ranking. */
     fun topVotedPosterUrl(item: Item): String? {
-        synchronized(posterMemo) { if (posterMemo.containsKey(item.id)) return posterMemo[item.id] }
-        val kind = if (item.isTv) "tv" else "movie"
-        val url = "https://api.themoviedb.org/3/$kind/${item.id}/images?api_key=${client.apiKey()}"
-        val path = runCatching {
-            val conn = client.openConnection(url)
-            conn.connectTimeout = 8000; conn.readTimeout = 15000
-            if (conn.responseCode !in 200..299) return@runCatching null
-            val posters = JSONObject(conn.inputStream.bufferedReader().readText())
-                .optJSONArray("posters") ?: return@runCatching null
-            for (i in 0 until posters.length()) {   // API 按 vote_average 降序——取第一张
-                val p = posters.getJSONObject(i)
-                val fp = p.optString("file_path", "")
-                if (fp.isNotEmpty()) return@runCatching "$IMG/w780$fp"
-            }
-            null
-        }.getOrNull()
-        synchronized(posterMemo) { posterMemo[item.id] = path }
-        return path
+        val posters = images(item)?.optJSONArray("posters") ?: return null
+        for (i in 0 until posters.length()) {
+            val path = posters.getJSONObject(i).optString("file_path")
+            if (path.isNotEmpty()) return "$IMG/w780$path"
+        }
+        return null
     }
 
-    /** hero 标题 logo（同 /images 的 logos，zh→null→en 序——IMG_0138 zh 红标实证）。
-     *  同步阻塞，调用方备线程；无 logo 返回 null（不渲染标题——t18 实证：标题烙在 art）。 */
+    /** Prefer localized logos, then the variant with the strongest voting support. */
     fun logoUrlFor(item: Item): String? {
-        synchronized(logoMemo) { if (logoMemo.containsKey(item.id)) return logoMemo[item.id] }
-        val kind = if (item.isTv) "tv" else "movie"
-        val url = "https://api.themoviedb.org/3/$kind/${item.id}/images?api_key=${client.apiKey()}"
-        val path = runCatching {
-            val conn = client.openConnection(url)
-            conn.connectTimeout = 8000; conn.readTimeout = 15000
-            if (conn.responseCode !in 200..299) return@runCatching null
-            val logos = JSONObject(conn.inputStream.bufferedReader().readText())
-                .optJSONArray("logos") ?: return@runCatching null
-            var pick: String? = null
-            var rank = Int.MAX_VALUE
-            for (i in 0 until logos.length()) {
-                val o = logos.getJSONObject(i)
-                val lang = o.optString("iso_639_1", "")
-                val r = when (lang) { "zh" -> 0; "" -> 1; "en" -> 2; else -> 3 }
-                if (r < rank) { rank = r; pick = o.getString("file_path") }
-            }
-            pick?.let { "$IMG/w500$it" }
-        }.getOrNull()
-        synchronized(logoMemo) { logoMemo[item.id] = path }
-        return path
+        val logos = images(item)?.optJSONArray("logos") ?: return null
+        val options = (0 until logos.length()).map { logos.getJSONObject(it) }
+            .filter { it.optString("file_path").endsWith(".png", ignoreCase = true) }
+        fun languageRank(o: JSONObject) = when (o.optString("iso_639_1")) {
+            "zh" -> 0; "", "null" -> 1; "en" -> 2; else -> 3
+        }
+        val chosen = options.sortedWith(compareBy<JSONObject> { languageRank(it) }
+            .thenByDescending { it.optInt("vote_count") }
+            .thenByDescending { it.optDouble("vote_average", 0.0) }).firstOrNull()
+        return chosen?.optString("file_path")?.let { "$IMG/w500$it" }
     }
 
     private fun auth(url: String): String =
@@ -132,10 +121,12 @@ class TmdbHome(private val client: TmdbClient) {
             val conn = client.openConnection(auth("https://api.themoviedb.org/3$path"))
             conn.connectTimeout = 8000
             conn.readTimeout = 15000
-            val code = conn.responseCode
-            val body = (if (code in 200..299) conn.inputStream else conn.errorStream)
-                ?.bufferedReader()?.readText() ?: ""
-            if (code !in 200..299) null to "server" else JSONObject(body) to null
+            try {
+                val code = conn.responseCode
+                val body = (if (code in 200..299) conn.inputStream else conn.errorStream)
+                    ?.bufferedReader()?.use { it.readText() } ?: ""
+                if (code !in 200..299) null to "server" else JSONObject(body) to null
+            } finally { conn.disconnect() }
         } catch (e: Exception) {
             null to kindOf(e)
         }
