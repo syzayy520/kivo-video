@@ -240,6 +240,27 @@ class PlayerComposeActivity : ComponentActivity() {
             return
         }
 
+        // Audio must start before pacing so native selects the existing audio master clock.
+        val audioProbe = com.kivo.cinema.bridge.MediaTrackProbe.inspectAudioTrack(media)
+        if (audioProbe.isFailure) {
+            statusText = "无法检查音轨，已停止播放：${audioProbe.exceptionOrNull()?.javaClass?.simpleName}"
+            localSession.close()
+            playbackSession = null
+            controlsVisible = true
+            return
+        }
+        val hasAudio = audioProbe.getOrThrow()
+        if (hasAudio) {
+            val audioRc = localSession.openAudio()
+            if (audioRc != 0) {
+                statusText = "音频无法启动：${localSession.lastError.ifBlank { "错误码 $audioRc" }}"
+                localSession.close()
+                playbackSession = null
+                controlsVisible = true
+                return
+            }
+        }
+
         // 节拍（字幕 position_us 的时间源；不加节拍时 position_us 恒 -1）
         localSession.configurePacing(targetFps = 0, allowDrop = true)
         localSession.configurePipeline(split = false, present = true, atTime = true)
@@ -259,7 +280,7 @@ class PlayerComposeActivity : ComponentActivity() {
         android.os.Handler(mainLooper).post(positionPoll)
         // 时长：一次性 extractor 探测（215 拖动预览需要；顺带修掉控制条时长恒 0:00:00 的 213 缺口）
         durationMs = probeDurationUs(media.absolutePath) / 1000
-        statusText = "playing ${media.name}"
+        statusText = if (hasAudio) "正在播放" else "正在播放 · 片源没有音轨"
 
         // 215：独立缩略图读取器（懒初始化；与主会话完全解耦）
         val reader = com.kivo.cinema.thumbnail.ThumbnailReader(media.absolutePath)

@@ -32,22 +32,22 @@ object MediaTrackProbe {
      * 这个降级是安全的：它只影响"要不要接音频时钟"，不影响画面。
      */
     fun hasAudioTrack(file: File): Boolean {
-        val descriptor = runCatching {
-            ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
-        }.getOrNull() ?: return false
+        return inspectAudioTrack(file).getOrDefault(false)
+    }
 
-        val extractor = MediaExtractor()
-        return try {
-            extractor.setDataSource(descriptor.fileDescriptor)
-            (0 until extractor.trackCount).any { index ->
-                val mime = extractor.getTrackFormat(index).getString(MediaFormat.KEY_MIME)
-                mime?.startsWith(AUDIO_MIME_PREFIX) == true
+    /** Strict playback callers must distinguish an absent track from a failed probe. */
+    fun inspectAudioTrack(file: File): Result<Boolean> = runCatching {
+        ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->
+            val extractor = MediaExtractor()
+            try {
+                extractor.setDataSource(descriptor.fileDescriptor)
+                (0 until extractor.trackCount).any { index ->
+                    extractor.getTrackFormat(index).getString(MediaFormat.KEY_MIME)
+                        ?.startsWith(AUDIO_MIME_PREFIX) == true
+                }
+            } finally {
+                extractor.release()
             }
-        } catch (t: Throwable) {
-            false
-        } finally {
-            runCatching { extractor.release() }
-            runCatching { descriptor.close() }
         }
     }
 }

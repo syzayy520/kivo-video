@@ -123,3 +123,13 @@ SourceManagerModel负责IO调度、草稿和认证→保存两阶段。验证阶
 2026-11-09用户指出资源库视觉与首页/详情页割裂，视觉统一提前纳入L2，不全部留到L5。[追加设计](visual-network-followup.md)、[基础统一与未测边界](../../../evidence/p240/source-management/l2-visual-status.md)。当前只完成主题/总览基础，表单和媒体浏览页尚需继续设计，不能当最终UI。
 
 已验证范围和未测矩阵见 [L2验收](../../../evidence/p240/source-management/l2-status.md)。L2仍DOING，先完成当前未测项；媒体内容混排、服务器库作用域和剧季集缺口已单列 [L3待实施卡](l3-content-scope.md)，本轮不扩大实现。分页WIP作为现有会话依赖保留，不因此标L3完成。
+
+## 用户优先级更新 · 2026-11-09
+
+用户要求先手机适配，再闭环流畅播放，最后视觉精修。L2非阻断性精修及扩展研究后置，隐私底线保留。手机当前离线，先在平板真实Compose宿主内做360/393dp、1.0/1.5字号及键盘压缩可用高度的连接内容预检；不改系统分辨率/字号，不冒充手机或真实IME验收。家族归属为androidTest/.../sources/SourceCompactFormInstrumentation，复用生产SourceConnectionContent与SourcesTheme，隔离模型和临时密钥，只检验滚动后字段/操作可到达、边界内显示及密码切换，不连接正式源。证据归source-management/compact-form。手机重连后先恢复可能遗留的1.5系统字号到原1.0，再验完整单页导航、真实键盘及横竖屏。
+
+播放阶段先审计现有链：NetworkPlaybackSession目前仅视频，PlayerComposeActivity.togglePlayPause只调用本地PlaybackSession；网络准备同步占用主线程、seek与解码线程并发、Surface恢复也需单独验证。不得以海报浏览或视频出画当流畅影音闭环。后续需先形成播放专卡/家族树，再接音频、控制和生命周期，验真实Emby/SMB起播、音画、暂停、seek、持续播放与返回；禁止软解回退，不盲改已验本地后端。
+
+手机已于本轮重新连接，字号1.5已恢复1.0。紧凑测试改在K40真实MainActivity中挂生产SourcesScreen及真实ModalBottomSheet，LocalDensity分别覆盖1.0/1.5字号；使用真实系统IME检查密码聚焦、滚动可达和操作按钮，合成凭据不连接正式源。测试仍归sources/SourceCompactFormInstrumentation，证据compact-form；不修改系统字号及输入法。
+
+实际结果：手机测试在宿主启动阶段超时，尚未到布局断言，[记录](../../../evidence/p240/source-management/compact-form/status.md)。系统字号已读回1.0。本轮优先补正式本地播放页音轨调用，[设计与边界](../replica/playback-audio-connection.md)；网络声音和完整播放闭环仍未完成。

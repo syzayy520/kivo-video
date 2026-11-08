@@ -1,0 +1,2 @@
+PASS strict probe distinguishes audio, no audio, and inaccessible source
+FAIL IllegalStateException: host timeout

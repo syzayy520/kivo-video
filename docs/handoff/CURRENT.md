@@ -1,5 +1,7 @@
 # 交接快照 · Kivo Video Android 后端核心
 
+> 2026-11-09 播放优先：用户已确认K40旧核心测试片有声音。正式Compose本地页漏接音轨已修，平板实际宿主验证音频输出及audio_timestamp主时钟；[证据与限制](../evidence/p240/playback-audio/status.md)。修复版已覆盖安装手机，但自动测试宿主启动超时，不能称手机已验。K40字号最终读回1.0。Emby/SMB仍仅视频，网络音频、暂停/seek/生命周期及持续流畅未闭环；[手机表单测试](../evidence/p240/source-management/compact-form/status.md)也未过布局断言。优先手机适配→流畅影音→视觉精修，L2仍DOING。
+
 > 2026-11-09 连接与粘贴补测：平板隔离模型5组、生产组件UI点击5项通过，覆盖取消后迟到结果、新草稿隔离、重复提交、脱敏预览/多地址/冲突及退出确认。[证据与复现](../evidence/p240/source-management/connection-races/status.md)。生产仅增加测试注入点，未发现新行为缺陷；系统剪贴板完整链、真实HTTP即时取消、保存期间退出及手机矩阵仍未验，L2继续DOING。
 
 > 2026-11-09 生命周期补测：真实宿主内部跳转/重建、三轮桌面返回及系统凭据取消通过；合成缺失源ID直达拒绝正常。[测试与边界](../evidence/p240/source-management/lifecycle/status.md)。生产代码未改，实际隐藏源成功解锁/锁屏/隐藏默认首页及手机矩阵仍未验，L2继续DOING。

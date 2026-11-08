@@ -1,0 +1,3 @@
+PASS strict probe distinguishes audio, no audio, and inaccessible source
+PASS production Compose local session attaches native audio and advances media position
+PASS native evidence confirms audio opened/started, rendered frames, audio master clock, and no session error
