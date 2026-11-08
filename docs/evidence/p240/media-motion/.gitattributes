@@ -1,0 +1,6 @@
+# Preserve all archived bytes so hashes survive Windows checkout.
+* -text whitespace=cr-at-eol
+# Patch context lines include a leading space by definition.
+*.patch -whitespace
+# Keep original Gradle output, including its trailing spaces.
+*.log -whitespace

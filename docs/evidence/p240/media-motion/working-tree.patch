@@ -1,0 +1,247 @@
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/design/DiscoverPage.kt b/android/app/src/main/java/com/kivo/cinema/ui/design/DiscoverPage.kt
+index 81fa5122..033e7056 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/design/DiscoverPage.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/design/DiscoverPage.kt
+@@ -116,7 +116,13 @@ fun DiscoverPage(
+             // Keep the first slot stable while network data arrives: inserting it later
+             // would preserve the next item's anchor and open the page below the hero.
+             item(key = "hero") {
+-                if (heroCandidates.isEmpty()) Spacer(Modifier.height(HERO_HEIGHT_DP.dp))
++                if (heroCandidates.isEmpty()) Box(
++                    Modifier.fillMaxWidth().height(HERO_HEIGHT_DP.dp),
++                    contentAlignment = Alignment.Center,
++                ) {
++                    if (tmdbError == null) Text("正在加载推荐影片…", color = chromeSub, fontSize = 14.sp)
++                    else TmdbErrorCard(tmdbError, onRetryTmdb)
++                }
+                 else HeroCarousel(heroCandidates, onAmbient = { heroFieldColor = it },
+                     dotsColor = chromeFg, scrimColor = scrimColor,
+                     topPoster = topPoster, logoFor = logoFor, pullDp = pullDp,
+@@ -172,7 +178,7 @@ fun DiscoverPage(
+                 item(key = "今日动漫") { Box(Modifier.navigationSource(backdrop)) { PosterSection("今日动漫", todayAnime, chromeFg, onOpenTmdbItem) } }
+             }
+             // 错误态（home.error.network.* 五类原文 + 重试——M04-S04，不可合并）
+-            if (tmdbError != null) {
++            if (tmdbError != null && heroCandidates.isNotEmpty()) {
+                 item(key = "error") { Box(Modifier.navigationSource(backdrop)) { TmdbErrorCard(tmdbError, onRetryTmdb) } }
+             }
+         }
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/design/HeroCarousel.kt b/android/app/src/main/java/com/kivo/cinema/ui/design/HeroCarousel.kt
+index a519959c..d435b113 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/design/HeroCarousel.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/design/HeroCarousel.kt
+@@ -1,8 +1,10 @@
+ package com.kivo.cinema.ui.design
+ 
++import androidx.compose.animation.core.spring
+ import androidx.compose.foundation.background
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.pager.HorizontalPager
++import androidx.compose.foundation.pager.PagerDefaults
+ import androidx.compose.foundation.pager.rememberPagerState
+ import androidx.compose.foundation.shape.CircleShape
+ import androidx.compose.runtime.*
+@@ -10,10 +12,13 @@ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.draw.clip
+ import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.lerp
+ import androidx.compose.ui.unit.dp
+ import com.kivo.cinema.tmdb.TmdbHome
+ import com.kivo.cinema.tmdb.trailer.TrailerResult
+ import com.kivo.cinema.ui.design.home.HeroPage
++import kotlin.math.abs
++import kotlin.math.floor
+ 
+ /** Paging, active artwork reporting, and the shared page indicator. */
+ @Composable
+@@ -34,20 +39,43 @@ fun HeroCarousel(
+ ) {
+     if (candidates.isEmpty()) return
+     val pagerState = rememberPagerState(pageCount = { candidates.size })
++    val mediaKeys = candidates.map { it.isTv to it.id }
++    val palettes = remember(generation, mediaKeys) { mutableStateMapOf<Int, Color>() }
++    val report by rememberUpdatedState(onAmbient)
++    LaunchedEffect(pagerState, generation, mediaKeys) {
++        snapshotFlow {
++            val position = (pagerState.currentPage + pagerState.currentPageOffsetFraction)
++                .coerceIn(0f, (candidates.size - 1).toFloat())
++            val left = floor(position).toInt()
++            val right = (left + 1).coerceAtMost(candidates.lastIndex)
++            val a = palettes[left] ?: palettes[right]
++            val b = palettes[right] ?: a
++            if (a != null && b != null) lerp(a, b, position - left) else null
++        }.collect { color -> color?.let { report(it) } }
++    }
+     Box(Modifier.fillMaxWidth().height((HERO_HEIGHT_DP + pullDp).dp)) {
+         HorizontalPager(state = pagerState, key = { "$generation:${candidates[it].isTv}:${candidates[it].id}" },
++            beyondViewportPageCount = 1,
++            flingBehavior = PagerDefaults.flingBehavior(pagerState,
++                snapAnimationSpec = spring(dampingRatio = 1f, stiffness = 240f)),
+             modifier = Modifier.fillMaxSize()) { index ->
+             HeroPage(candidates[index], index == pagerState.settledPage && !pagerState.isScrollInProgress && previewVisible,
+-                scrimColor, topPoster, logoFor, onAmbient, pullDp, trailerFor, proxyAddress, previewEnabled,
+-                scrollPx)
++                scrimColor, topPoster, logoFor, { palettes[index] = it }, pullDp, trailerFor, proxyAddress, previewEnabled,
++                scrollPx, pageOffset = { pagerState.currentPage - index + pagerState.currentPageOffsetFraction })
+         }
+         Row(Modifier.align(Alignment.TopCenter).offset(y = (DOTS_CENTER_DP - 3.65f + pullDp).dp),
+             verticalAlignment = Alignment.CenterVertically) {
+             candidates.forEachIndexed { index, _ ->
+-                val diameter = dotDiameter(index, candidates.size, pagerState.currentPage)
++                val position = pagerState.currentPage + pagerState.currentPageOffsetFraction
++                val weight = (1f - abs(index - position)).coerceIn(0f, 1f)
++                val left = floor(position).toInt().coerceIn(0, candidates.lastIndex)
++                val right = (left + 1).coerceAtMost(candidates.lastIndex)
++                val fraction = (position - left).coerceIn(0f, 1f)
++                val diameter = dotDiameter(index, candidates.size, left) * (1f - fraction) +
++                    dotDiameter(index, candidates.size, right) * fraction
+                 Box(Modifier.width(DOT_SPACING_DP.dp).height(7.3.dp), contentAlignment = Alignment.Center) {
+                     Box(Modifier.size(diameter.dp).clip(CircleShape)
+-                        .background(dotsColor.copy(alpha = if (index == pagerState.currentPage) 1f else .35f)))
++                        .background(dotsColor.copy(alpha = .35f + .65f * weight)))
+                 }
+             }
+         }
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/design/home/HeroPage.kt b/android/app/src/main/java/com/kivo/cinema/ui/design/home/HeroPage.kt
+index 1ff6806b..cbcb1571 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/design/home/HeroPage.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/design/home/HeroPage.kt
+@@ -23,6 +23,7 @@ import com.kivo.cinema.ui.design.*
+ import com.kivo.cinema.ui.design.home.trailer.HeroTrailer
+ import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.withContext
++import kotlin.math.abs
+ 
+ /** A pager page owns its resources, including while a neighboring page is composed. */
+ @Composable
+@@ -38,6 +39,7 @@ internal fun HeroPage(
+     proxyAddress: String?,
+     previewEnabled: Boolean,
+     scrollPx: () -> Float,
++    pageOffset: () -> Float,
+ ) {
+     var artwork by remember(item.isTv, item.id) { mutableStateOf<Bitmap?>(null) }
+     var logo by remember(item.isTv, item.id) { mutableStateOf<String?>(null) }
+@@ -49,16 +51,17 @@ internal fun HeroPage(
+         finished = false
+         val resolved = withContext(Dispatchers.IO) {
+             val art = topPoster(item) ?: item.posterHeroUrl
+-            val title = logoFor(item)
+-            TmdbImageCache.load(art) to title
++            TmdbImageCache.load(art)
+         }
+-        artwork = resolved.first
+-        logo = resolved.second
+-        ambient = resolved.first?.let { withContext(Dispatchers.Default) { PosterPalette.ambientOf(it) } }
++        artwork = resolved
++        ambient = resolved?.let { withContext(Dispatchers.Default) { PosterPalette.ambientOf(it) } }
+         finished = true
+     }
+-    LaunchedEffect(active, ambient) {
+-        if (active) ambient?.let { report(it) }
++    LaunchedEffect(item.isTv, item.id, imageAttempt) {
++        logo = withContext(Dispatchers.IO) { logoFor(item) }
++    }
++    LaunchedEffect(ambient) {
++        ambient?.let { report(it) }
+     }
+     val fg = if (HomeAtmosphere.lightForeground(scrimColor.value)) Color.White else DesignTokens.textMain
+     Box(Modifier.fillMaxWidth().height((HERO_HEIGHT_DP + pullDp).dp).clipToBounds()) {
+@@ -72,7 +75,12 @@ internal fun HeroPage(
+             artwork?.let { bitmap ->
+                 Image(bitmap.asImageBitmap(), item.title,
+                     contentScale = ContentScale.Crop,
+-                    modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = 1.144f; scaleY = 1.144f })
++                    modifier = Modifier.fillMaxSize().graphicsLayer {
++                        val offset = pageOffset().coerceIn(-1f, 1f)
++                        val zoom = 1.144f * (1f + .025f * abs(offset))
++                        scaleX = zoom; scaleY = zoom
++                        translationX = size.width * .055f * offset
++                    })
+             }
+             if (previewEnabled) HeroTrailer(item, active, artwork != null, trailerFor, proxyAddress,
+                 Modifier.fillMaxSize(), onPlayingChanged = {})
+@@ -89,31 +97,39 @@ internal fun HeroPage(
+                 .92f to c,
+                 1f to c))
+         })
+-        if (finished && artwork == null) Text("封面加载失败，点击重试", color = fg, fontSize = 12.sp,
+-            modifier = Modifier.align(Alignment.TopCenter).padding(top = 90.dp)
+-                .clickable { imageAttempt++ }.padding(12.dp))
+-        if (logo != null) {
+-            Box(Modifier.fillMaxWidth().offset(y = (LOGO_CENTER_DP - LOGO_MAX_H / 2 + pullDp).dp),
+-                contentAlignment = Alignment.TopCenter) {
+-                TmdbImage(logo!!, item.title,
+-                    Modifier.padding(horizontal = 43.dp).height(LOGO_MAX_H.dp).fillMaxWidth(),
+-                    bg = Color.Transparent, fit = true, onLoaded = { if (!it) logo = null })
++        Box(Modifier.fillMaxSize().graphicsLayer {
++            val offset = pageOffset().coerceIn(-1f, 1f)
++            translationX = -size.width * .06f * offset
++            alpha = 1f - .65f * abs(offset)
++        }) {
++            if (!finished && artwork == null) Text("封面加载中…", color = fg, fontSize = 12.sp,
++                modifier = Modifier.align(Alignment.TopCenter).padding(top = 90.dp))
++            if (finished && artwork == null) Text("封面加载失败，点击重试", color = fg, fontSize = 12.sp,
++                modifier = Modifier.align(Alignment.TopCenter).padding(top = 90.dp)
++                    .clickable { imageAttempt++ }.padding(12.dp))
++            if (logo != null) {
++                Box(Modifier.fillMaxWidth().offset(y = (LOGO_CENTER_DP - LOGO_MAX_H / 2 + pullDp).dp),
++                    contentAlignment = Alignment.TopCenter) {
++                    TmdbImage(logo!!, item.title,
++                        Modifier.padding(horizontal = 43.dp).height(LOGO_MAX_H.dp).fillMaxWidth(),
++                        bg = Color.Transparent, fit = true, onLoaded = { if (!it) logo = null })
++                }
++            } else {
++                Text(item.title, color = fg, fontSize = 34.sp, fontWeight = FontWeight.Bold,
++                    textAlign = TextAlign.Center, maxLines = 2,
++                    modifier = Modifier.fillMaxWidth().offset(y = (368 + pullDp).dp).padding(horizontal = 16.dp))
++            }
++            Column(Modifier.fillMaxWidth().offset(y = (META_TOP_DP + pullDp).dp).padding(horizontal = 16.dp)) {
++                Text(item.metaLine, fontSize = 14.sp, lineHeight = 20.sp, color = fg,
++                    textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
++                if (item.overview.isNotBlank()) Text("「${item.title}」${item.overview}", fontSize = 12.sp, lineHeight = 14.sp,
++                    color = fg.copy(alpha = .92f), maxLines = 2, overflow = TextOverflow.Ellipsis,
++                    textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
++            }
++            Box(Modifier.offset(y = (BADGE_TOP_DP + pullDp).dp).fillMaxWidth()) {
++                RatingBadges(listOf("TMDB" to item.rating), Modifier.fillMaxWidth(),
++                    alignCenter = true, valueColor = fg)
+             }
+-        } else if (finished && logo == null) {
+-            Text(item.title, color = fg, fontSize = 34.sp, fontWeight = FontWeight.Bold,
+-                textAlign = TextAlign.Center, maxLines = 2,
+-                modifier = Modifier.fillMaxWidth().offset(y = (368 + pullDp).dp).padding(horizontal = 16.dp))
+-        }
+-        Column(Modifier.fillMaxWidth().offset(y = (META_TOP_DP + pullDp).dp).padding(horizontal = 16.dp)) {
+-            Text(item.metaLine, fontSize = 14.sp, lineHeight = 20.sp, color = fg,
+-                textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+-            if (item.overview.isNotBlank()) Text("「${item.title}」${item.overview}", fontSize = 12.sp, lineHeight = 14.sp,
+-                color = fg.copy(alpha = .92f), maxLines = 2, overflow = TextOverflow.Ellipsis,
+-                textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+-        }
+-        Box(Modifier.offset(y = (BADGE_TOP_DP + pullDp).dp).fillMaxWidth()) {
+-            RatingBadges(listOf("TMDB" to item.rating), Modifier.fillMaxWidth(),
+-                alignCenter = true, valueColor = fg)
+         }
+     }
+ }
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt
+index e9b75436..637a3b4c 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt
+@@ -33,10 +33,11 @@ internal fun DetailBackdrop(
+         val art = details?.heroArtworkUrl.orEmpty()
+         if (art.isNotEmpty()) TmdbImage(art, details?.title.orEmpty(),
+             Modifier.fillMaxWidth().height(585.dp).graphicsLayer {
+-                translationY = -scrollDp() * density * .05f
+-                val stretch = 1f + pullDp / 585f
++                // Measured reference: about +10.7% at 312pt, centered on media.
++                val upward = 1f + scrollDp().coerceIn(0f, 350f) / (585f * 5f)
++                val stretch = upward * (1f + pullDp / 585f)
+                 scaleX = stretch; scaleY = stretch
+-                transformOrigin = TransformOrigin(.5f, 0f)
++                transformOrigin = TransformOrigin(.5f, if (pullDp > 0f) 0f else .5f)
+             })
+         Box(Modifier.fillMaxSize().drawBehind {
+             val color = field.value

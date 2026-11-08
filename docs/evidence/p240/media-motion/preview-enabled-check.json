@@ -1,0 +1,90 @@
+{
+  "scenario": "enable via UI, settled wait, slow switch, rapid switch, background/resume, restore off",
+  "restored_autoplay": false,
+  "events": [
+    {
+      "at_ms": 107273073,
+      "media_id": 1423191,
+      "is_tv": false,
+      "event": "poster_visible",
+      "reason": null
+    },
+    {
+      "at_ms": 107275074,
+      "media_id": 1423191,
+      "is_tv": false,
+      "event": "preview_due",
+      "reason": null
+    },
+    {
+      "at_ms": 107276200,
+      "media_id": 1423191,
+      "is_tv": false,
+      "event": "released",
+      "reason": null
+    },
+    {
+      "at_ms": 107278195,
+      "media_id": 1368337,
+      "is_tv": false,
+      "event": "poster_visible",
+      "reason": null
+    },
+    {
+      "at_ms": 107280196,
+      "media_id": 1368337,
+      "is_tv": false,
+      "event": "preview_due",
+      "reason": null
+    },
+    {
+      "at_ms": 107280486,
+      "media_id": 1368337,
+      "is_tv": false,
+      "event": "released",
+      "reason": null
+    },
+    {
+      "at_ms": 107281895,
+      "media_id": 1792170,
+      "is_tv": false,
+      "event": "poster_visible",
+      "reason": null
+    },
+    {
+      "at_ms": 107283896,
+      "media_id": 1792170,
+      "is_tv": false,
+      "event": "preview_due",
+      "reason": null
+    },
+    {
+      "at_ms": 107284346,
+      "media_id": 1792170,
+      "is_tv": false,
+      "event": "released",
+      "reason": null
+    },
+    {
+      "at_ms": 107285489,
+      "media_id": 1792170,
+      "is_tv": false,
+      "event": "poster_visible",
+      "reason": null
+    },
+    {
+      "at_ms": 107287490,
+      "media_id": 1792170,
+      "is_tv": false,
+      "event": "preview_due",
+      "reason": null
+    },
+    {
+      "at_ms": 107289672,
+      "media_id": 1792170,
+      "is_tv": false,
+      "event": "released",
+      "reason": null
+    }
+  ]
+}

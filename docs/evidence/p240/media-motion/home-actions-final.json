@@ -1,0 +1,138 @@
+[
+  {
+    "s": 0.047,
+    "name": "slow next",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "950",
+      "780",
+      "130",
+      "780",
+      "1600"
+    ]
+  },
+  {
+    "s": 1.688,
+    "shot": "home-drag-final"
+  },
+  {
+    "s": 3.422,
+    "shot": "home-next-final"
+  },
+  {
+    "s": 3.422,
+    "name": "short reverse cancel",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "380",
+      "780",
+      "510",
+      "780",
+      "1300"
+    ]
+  },
+  {
+    "s": 6.453,
+    "shot": "home-cancel-final"
+  },
+  {
+    "s": 6.453,
+    "name": "fast next 0",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "940",
+      "800",
+      "120",
+      "800",
+      "180"
+    ]
+  },
+  {
+    "s": 7.375,
+    "name": "fast next 1",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "940",
+      "800",
+      "120",
+      "800",
+      "180"
+    ]
+  },
+  {
+    "s": 8.297,
+    "name": "fast next 2",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "940",
+      "800",
+      "120",
+      "800",
+      "180"
+    ]
+  },
+  {
+    "s": 10.297,
+    "shot": "home-fast-final"
+  },
+  {
+    "s": 10.297,
+    "name": "vertical",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "550",
+      "1700",
+      "550",
+      "900",
+      "1000"
+    ]
+  },
+  {
+    "s": 12.828,
+    "shot": "home-scrolled-final"
+  },
+  {
+    "s": 12.828,
+    "name": "return to top",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "550",
+      "650",
+      "550",
+      "2000",
+      "1000"
+    ]
+  },
+  {
+    "s": 14.61,
+    "name": "pull release",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "550",
+      "400",
+      "550",
+      "850",
+      "1000"
+    ]
+  },
+  {
+    "s": 17.516,
+    "shot": "home-return-final"
+  }
+]

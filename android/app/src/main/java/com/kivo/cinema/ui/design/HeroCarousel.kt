@@ -1,8 +1,10 @@
 package com.kivo.cinema.ui.design
 
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.*
@@ -10,10 +12,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import com.kivo.cinema.tmdb.TmdbHome
 import com.kivo.cinema.tmdb.trailer.TrailerResult
 import com.kivo.cinema.ui.design.home.HeroPage
+import kotlin.math.abs
+import kotlin.math.floor
 
 /** Paging, active artwork reporting, and the shared page indicator. */
 @Composable
@@ -34,20 +39,43 @@ fun HeroCarousel(
 ) {
     if (candidates.isEmpty()) return
     val pagerState = rememberPagerState(pageCount = { candidates.size })
+    val mediaKeys = candidates.map { it.isTv to it.id }
+    val palettes = remember(generation, mediaKeys) { mutableStateMapOf<Int, Color>() }
+    val report by rememberUpdatedState(onAmbient)
+    LaunchedEffect(pagerState, generation, mediaKeys) {
+        snapshotFlow {
+            val position = (pagerState.currentPage + pagerState.currentPageOffsetFraction)
+                .coerceIn(0f, (candidates.size - 1).toFloat())
+            val left = floor(position).toInt()
+            val right = (left + 1).coerceAtMost(candidates.lastIndex)
+            val a = palettes[left] ?: palettes[right]
+            val b = palettes[right] ?: a
+            if (a != null && b != null) lerp(a, b, position - left) else null
+        }.collect { color -> color?.let { report(it) } }
+    }
     Box(Modifier.fillMaxWidth().height((HERO_HEIGHT_DP + pullDp).dp)) {
         HorizontalPager(state = pagerState, key = { "$generation:${candidates[it].isTv}:${candidates[it].id}" },
+            beyondViewportPageCount = 1,
+            flingBehavior = PagerDefaults.flingBehavior(pagerState,
+                snapAnimationSpec = spring(dampingRatio = 1f, stiffness = 240f)),
             modifier = Modifier.fillMaxSize()) { index ->
             HeroPage(candidates[index], index == pagerState.settledPage && !pagerState.isScrollInProgress && previewVisible,
-                scrimColor, topPoster, logoFor, onAmbient, pullDp, trailerFor, proxyAddress, previewEnabled,
-                scrollPx)
+                scrimColor, topPoster, logoFor, { palettes[index] = it }, pullDp, trailerFor, proxyAddress, previewEnabled,
+                scrollPx, pageOffset = { pagerState.currentPage - index + pagerState.currentPageOffsetFraction })
         }
         Row(Modifier.align(Alignment.TopCenter).offset(y = (DOTS_CENTER_DP - 3.65f + pullDp).dp),
             verticalAlignment = Alignment.CenterVertically) {
             candidates.forEachIndexed { index, _ ->
-                val diameter = dotDiameter(index, candidates.size, pagerState.currentPage)
+                val position = pagerState.currentPage + pagerState.currentPageOffsetFraction
+                val weight = (1f - abs(index - position)).coerceIn(0f, 1f)
+                val left = floor(position).toInt().coerceIn(0, candidates.lastIndex)
+                val right = (left + 1).coerceAtMost(candidates.lastIndex)
+                val fraction = (position - left).coerceIn(0f, 1f)
+                val diameter = dotDiameter(index, candidates.size, left) * (1f - fraction) +
+                    dotDiameter(index, candidates.size, right) * fraction
                 Box(Modifier.width(DOT_SPACING_DP.dp).height(7.3.dp), contentAlignment = Alignment.Center) {
                     Box(Modifier.size(diameter.dp).clip(CircleShape)
-                        .background(dotsColor.copy(alpha = if (index == pagerState.currentPage) 1f else .35f)))
+                        .background(dotsColor.copy(alpha = .35f + .65f * weight)))
                 }
             }
         }

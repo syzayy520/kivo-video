@@ -1,0 +1,511 @@
+{
+  "source_base": "90561977846d8f05b704aaad223c5577a56a300f",
+  "scope": "M1 static media transitions; preview actual playback and frame timing unverified",
+  "android": {
+    "model": "Redmi K40",
+    "serial": "b6e950ee",
+    "size_px": [
+      1080,
+      2400
+    ],
+    "density": 2.75
+  },
+  "reference": {
+    "model": "iPhone13,3",
+    "ios": "27.2",
+    "rex": "1.1",
+    "size_px": [
+      1170,
+      2532
+    ],
+    "scale": 3
+  },
+  "apk_sha256": "86051f0c643dd1502f23ce8d4043a49be072bb7601ac94ec128f96ce28eeeb25",
+  "files": [
+    {
+      "path": "docs/evidence/p240/media-motion/.gitattributes",
+      "hash_mode": "raw",
+      "sha256": "bd9d2efb8a3794c4912c1f9eafd139230dac0b1361696ea3ca651f7c6ff00649",
+      "bytes": 256
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/detail-motion.mp4",
+      "hash_mode": "raw",
+      "sha256": "c22728ec4c729d7cf5a387bde27573cd4a2842ef7f5a4c61859678db37bf125f",
+      "bytes": 7370111
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/detail-pull-released.png",
+      "hash_mode": "raw",
+      "sha256": "491c24e62e90ad0d94ac08fd7c8f77b08549b6af5cff3c7620a0505828ff37a1",
+      "bytes": 3081783
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/detail-return.png",
+      "hash_mode": "raw",
+      "sha256": "51653521398ad3c7e354c6dff198837f2784a30b7cc814bcd7c9ab47800fbcb9",
+      "bytes": 3082186
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/detail-scroll-1.png",
+      "hash_mode": "raw",
+      "sha256": "164ab3b0245de5ab0fc1dfd720227eb32b7f1861b457265717d1fbb02fd5d735",
+      "bytes": 2814297
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/detail-scroll-2.png",
+      "hash_mode": "raw",
+      "sha256": "de83bf5f417dcb599ef826b6098a23e7ada92210173e12a7c685d05c088b652f",
+      "bytes": 2482469
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/detail-scroll-3.png",
+      "hash_mode": "raw",
+      "sha256": "e20f0216da1c220ab500cea39b22b5b4e3b3e5e4947fffe2e28df7d88b27a2c1",
+      "bytes": 2241551
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/detail-scroll-4.png",
+      "hash_mode": "raw",
+      "sha256": "fbe3ff7be3c37cb7d2a0e8265f68e16c6511f567d7aed076701532f83f4ab130",
+      "bytes": 1919050
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/detail-top.png",
+      "hash_mode": "raw",
+      "sha256": "8cf34dde8aa65e3d4fa72810ce8ff06e16a1ab671e2c2853b563459681f1ae3d",
+      "bytes": 3081701
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-cancel-final.png",
+      "hash_mode": "raw",
+      "sha256": "f2b894020bfe99ba2bcbabd1058c518258be4970f097aba6208509859c6a178e",
+      "bytes": 2077612
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-cancel.png",
+      "hash_mode": "raw",
+      "sha256": "0a2f5421aed983fd409e34e450ace67be3cf27c9eed0103c1633ad3396c3f455",
+      "bytes": 2077302
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-drag-final.png",
+      "hash_mode": "raw",
+      "sha256": "e894f130647fa3a041493500efb31cafd206791ca5f1222b1bcf1bcf8f9ae1ec",
+      "bytes": 2156168
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-drag-mid.png",
+      "hash_mode": "raw",
+      "sha256": "7f8889006c685ee81319a689f7ad0bc6b2944c435162592d906c1494d66a58d5",
+      "bytes": 2134612
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-fast-final.png",
+      "hash_mode": "raw",
+      "sha256": "d82bef73bfc2cb605015e7e54d775a3a48ccf0d2b5a008383c98f6aae0fca2bf",
+      "bytes": 2554166
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-fast-settled.png",
+      "hash_mode": "raw",
+      "sha256": "cb180f603e6050e25380cbf0001a808b11a19bc1df59e5cf9d3e66b2581c1b63",
+      "bytes": 2553828
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-loading-final.png",
+      "hash_mode": "raw",
+      "sha256": "f11265915016ad227303a45c12c0c322dae5ac0ece4a02315d0abe8e8bf6a1dd",
+      "bytes": 27436
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-motion-final.mp4",
+      "hash_mode": "raw",
+      "sha256": "d165006c2bc293ab8fa223245f253f9cf3658f8c18cba7334349e5c08b51e27a",
+      "bytes": 9195199
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-motion.mp4",
+      "hash_mode": "raw",
+      "sha256": "180afb3df63e759985a30ea0f842e9e00abb607e81d396aa752f8b1402b90180",
+      "bytes": 8856571
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-next-final.png",
+      "hash_mode": "raw",
+      "sha256": "f2b894020bfe99ba2bcbabd1058c518258be4970f097aba6208509859c6a178e",
+      "bytes": 2077612
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-next.png",
+      "hash_mode": "raw",
+      "sha256": "0a2f5421aed983fd409e34e450ace67be3cf27c9eed0103c1633ad3396c3f455",
+      "bytes": 2077302
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-return-final.png",
+      "hash_mode": "raw",
+      "sha256": "f7f073beed51d340cfa76d3f3eac932cea4c7271bb7c28fff400df78b6f503b2",
+      "bytes": 2553709
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-return.png",
+      "hash_mode": "raw",
+      "sha256": "068df85e691fc5136adf8c977b854f5c975c6c3ac9ded9cbf0ff9f8d88eb6abe",
+      "bytes": 2553803
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-scrolled-final.png",
+      "hash_mode": "raw",
+      "sha256": "2f260425dee663f2f5f5b992ef4d194b946c5ec598b4d29aff1761889390773a",
+      "bytes": 1835055
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-scrolled.png",
+      "hash_mode": "raw",
+      "sha256": "458a1e6109a0d50c3d46af2fb5f347d59a8735a95e307699fc935df4c44aa4e5",
+      "bytes": 1818481
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-top-final.png",
+      "hash_mode": "raw",
+      "sha256": "c833770ed6607c3a9d8a284ff35f96a81f055c085944c0d2316d784f9c19655a",
+      "bytes": 2147376
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/home-top.png",
+      "hash_mode": "raw",
+      "sha256": "0e332e8e1ce2e6c5db14ac15cadf1bc0ec0d1291c38c45346b2b548ed8930a9e",
+      "bytes": 330146
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/preview-after-resume.png",
+      "hash_mode": "raw",
+      "sha256": "2c02c67cbacdebc6fd4c160552a4b3a3c3a28751df124064d3259657bea713b2",
+      "bytes": 2408058
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/preview-setting-off.png",
+      "hash_mode": "raw",
+      "sha256": "4998057d937d675abda52d7df9b8dfe2f6b25bebe83add6b3b00ff7d7922dd04",
+      "bytes": 328703
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/preview-setting-on.png",
+      "hash_mode": "raw",
+      "sha256": "d2600e0a7005be8afa324a8734c5d78f3dcefa4e3ce64dd9ba349ae681bae00f",
+      "bytes": 346649
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/preview-setting-restored.png",
+      "hash_mode": "raw",
+      "sha256": "4ecf02c0f23d0cac27d1fd22ffc961a3a2e5b11e8535870852e89777d8b28fe1",
+      "bytes": 351415
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/startup-final-1.png",
+      "hash_mode": "raw",
+      "sha256": "8f69e9e30167b1ab35e58f7662089e509c21bba65125ea5d3072d1884230a86c",
+      "bytes": 28152
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/startup-final-2.png",
+      "hash_mode": "raw",
+      "sha256": "d50e9216429deec69ba68694c2b3cfb3ae7c8089d0079fe48e0386a69c4fd522",
+      "bytes": 338701
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/startup-final-3.png",
+      "hash_mode": "raw",
+      "sha256": "616dde9ab2f2cb2a715db13833b8f7d478b475bda443c160c9e2ab3682811f37",
+      "bytes": 2146590
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android/startup-final-4.png",
+      "hash_mode": "raw",
+      "sha256": "d724ee6ff60fe4d3443e5ef924615b992e457e87c3c11e5b14f2b26597da9761",
+      "bytes": 2146587
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/android-registration.json",
+      "hash_mode": "raw",
+      "sha256": "d68385d6861d85f90955b70d417f065934ad73b0a5be70dc0cf0e37f88982d15",
+      "bytes": 11086
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/build.log",
+      "hash_mode": "raw",
+      "sha256": "836ef19d285f54161b0c02c5e834707f1fd1b21921850587d781c73850de1c22",
+      "bytes": 2548
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/detail-actions.json",
+      "hash_mode": "raw",
+      "sha256": "87f5f148a9c5767c31ae58fc42f16bfc087453e0f4354e7c940952466a98d5e8",
+      "bytes": 1383
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/home-actions-final.json",
+      "hash_mode": "raw",
+      "sha256": "c75e5daa732175da0593c3a1f4883b5029d98d169e957eae73111111b8828fa4",
+      "bytes": 1976
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/home-actions.json",
+      "hash_mode": "raw",
+      "sha256": "d9be1df7360bf04a9d18ac69d5a2c6a475f92680da96e3e2a2c5058c1e3fad06",
+      "bytes": 2146
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/install-final.json",
+      "hash_mode": "raw",
+      "sha256": "15f68c9874ae66fc1dd1ec56d2ab99c552ac09c11b2d897d56f924f372cac7f1",
+      "bytes": 222
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/install.json",
+      "hash_mode": "raw",
+      "sha256": "82d9baf1f5702594cbb446795a53f077cb9b2a460bc5bb2de0e8dd1eec8491e5",
+      "bytes": 367
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/players/eplayerx-detail.png",
+      "hash_mode": "raw",
+      "sha256": "42ba24b1baee02ec81fe07c3bb8d343270a536dac66bedad5dd7a9594f1297d3",
+      "bytes": 447348
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/players/eplayerx-home.png",
+      "hash_mode": "raw",
+      "sha256": "2357784cfb78d8cea89425f4391c59297e2a9922cbfbf365c6ca702d82f465b0",
+      "bytes": 9808999
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/players/forward-load-incomplete.png",
+      "hash_mode": "raw",
+      "sha256": "2265d1dd7f0e2d915c46fcfd01f28aeeb2a2dbd0285b4458b2c29c549a1c8eea",
+      "bytes": 139124
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/players/forward-recheck.png",
+      "hash_mode": "raw",
+      "sha256": "431e020e4f50315b0e0dd5406b6ca35342264f286bffaac0f0914e2f6cbf501b",
+      "bytes": 140035
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/players/noctra-hero-next.png",
+      "hash_mode": "raw",
+      "sha256": "cd083b8c5d2a25efa00cc71347709dcc5d0bd01b85b62f0a275d8a3f128dcbdc",
+      "bytes": 10324494
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/players/noctra-home.png",
+      "hash_mode": "raw",
+      "sha256": "ebb9a737e1432c9a524ec8eafdbad97eb9d6a1968fe73a4c8029fdff3210f0d9",
+      "bytes": 10670035
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/players/reflix-detail.png",
+      "hash_mode": "raw",
+      "sha256": "ed1b94014d817af751e100686a2211ed42f25b1a1e05a55993ce5bb91228ab23",
+      "bytes": 611397
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/players/reflix-home.png",
+      "hash_mode": "raw",
+      "sha256": "a068f445160a13bbea14a57ae2d403425512c1968c670ce71e2ccde8102d158d",
+      "bytes": 2154220
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/players/rex-transition-contact.jpg",
+      "hash_mode": "raw",
+      "sha256": "e3f8c0f0df4c0689834145f4f6e52b6be5a3b9c739fbe4b68fb478bb0f93d839",
+      "bytes": 264916
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/players/vidora-detail.png",
+      "hash_mode": "raw",
+      "sha256": "d4affe1dc0fcbf33659e2d7088df851fdfa1dfb9be04ae1b44cd0e41550b082d",
+      "bytes": 8404997
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/players/vidora-home.png",
+      "hash_mode": "raw",
+      "sha256": "0efa07bb8ea6233758f0be58dc3049b2c770a093aba8648107c8beeabb91a003",
+      "bytes": 9492784
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/preview-before.json",
+      "hash_mode": "raw",
+      "sha256": "39127b90ed97a812dbba132d1efcad57722dcdfa5b3fdfa217d7df275036f9bd",
+      "bytes": 116
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/preview-enabled-check.json",
+      "hash_mode": "raw",
+      "sha256": "69dd5924b62bcba9c6c26e99e6f5f677c4bc794121556c32885b6e8f7879a24c",
+      "bytes": 1911
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/preview-off-check.json",
+      "hash_mode": "raw",
+      "sha256": "a4086afd63a4521b13d3f59e108ebe40522eeda9337a25d2bd2a13f535fd50c2",
+      "bytes": 104
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/reference/2026_11_08_19_25_03_IMG_0149.PNG",
+      "hash_mode": "raw",
+      "sha256": "b162a0fbb047b661e1c711f3df95f0f3d05497eacc236101804604e1c7963f5c",
+      "bytes": 9160794
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/reference/2026_11_08_19_25_10_IMG_0150.PNG",
+      "hash_mode": "raw",
+      "sha256": "d18d37c9e36f232fb35d3d4b8c8e724c3b6b9e76dd9b675f71e07b8058376f1c",
+      "bytes": 9421258
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/reference/2026_11_08_19_25_18_IMG_0151.PNG",
+      "hash_mode": "raw",
+      "sha256": "890cc197cbde6e163bab282aadf2f12fe120a2f7cc768fc9397e8a8969f76dec",
+      "bytes": 9057381
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/reference/2026_11_08_19_25_26_IMG_0152.PNG",
+      "hash_mode": "raw",
+      "sha256": "07ab35bc26b86ce5fcbe8ba0a6d703f8d9d5e177a6e16e2cd811b85e2aa06789",
+      "bytes": 8939003
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/reference/2026_11_08_19_25_32_IMG_0153.PNG",
+      "hash_mode": "raw",
+      "sha256": "a41d8f9d0263ff5fc6293e3b2d5fe46d95f6fcb06d2edfcae033bb785be20577",
+      "bytes": 8581816
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/reference/2026_11_08_19_25_39_IMG_0154.PNG",
+      "hash_mode": "raw",
+      "sha256": "63ac060ff59763c6249645523d57968ca4c0d3198940dbefb63abc79fe858d1e",
+      "bytes": 8254197
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/reference/2026_11_08_19_25_46_IMG_0155.PNG",
+      "hash_mode": "raw",
+      "sha256": "8da027227c576eeb749a336853357e3c4a2f90f89b0f5be9b96bf6e987dc87d0",
+      "bytes": 7842484
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/reference/2026_11_08_19_25_51_IMG_0156.PNG",
+      "hash_mode": "raw",
+      "sha256": "81856555d1cca49abe731167b887b3dfdae6ce86138733228fa6dd5ff67546a5",
+      "bytes": 7404553
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/reference/2026_11_08_19_25_57_IMG_0157.PNG",
+      "hash_mode": "raw",
+      "sha256": "c69269fb73bb0a24596571b078601d9e8ed15c75212c9e93f31ebcab48975b9c",
+      "bytes": 7001731
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/reference/2026_11_08_19_26_04_IMG_0158.PNG",
+      "hash_mode": "raw",
+      "sha256": "c029eb597e5c34b8131dd70c1c0a6b175855987b68c1cf63638db73f8c5d68e8",
+      "bytes": 5944406
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/reference-registration.json",
+      "hash_mode": "raw",
+      "sha256": "5c9123fbe52f49b64aefe763ad8f12324e86296a00f5fc2d354ac3526897fbe4",
+      "bytes": 17517
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/startup-timing.json",
+      "hash_mode": "raw",
+      "sha256": "4b64b4729642595093039a9b84e59488596f3b545e6330b2766b5019331df32e",
+      "bytes": 473
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/status.md",
+      "hash_mode": "raw",
+      "sha256": "e48cac80ce1bea618775a466834c096efbf8cefed68222ac3b9403b82c915795",
+      "bytes": 6676
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/verification.json",
+      "hash_mode": "raw",
+      "sha256": "5b57ee4493135d95226a334f5160d9b605149929f2bb3d3e7c29144a1102fe49",
+      "bytes": 5939
+    },
+    {
+      "path": "docs/evidence/p240/media-motion/working-tree.patch",
+      "hash_mode": "raw",
+      "sha256": "fa7ee292dfc247e0e2d8db5915344fd8d1ff703c2ae5f56e7f604243125cc924",
+      "bytes": 14835
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/design/DiscoverPage.kt",
+      "hash_mode": "lf-normalized",
+      "sha256": "8939addf91629b3182dec1e9d3bde6110cbde94651d221ee7f7fce1ac7646ed4"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/design/HeroCarousel.kt",
+      "hash_mode": "lf-normalized",
+      "sha256": "4baa6c4c021f8605312c4fe6bd646e83f7e2a2cb36cf0b93ad47575606f015a6"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/design/home/HeroPage.kt",
+      "hash_mode": "lf-normalized",
+      "sha256": "f162916b4b7cd974f7a75c11aabb87a43597ab6bd810603422c2fb984707f27e"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt",
+      "hash_mode": "lf-normalized",
+      "sha256": "1035230ad35a7e2698d1ad69694a9d52e18aa2fd2ea8c3a270bd543e56e0f218"
+    },
+    {
+      "path": "docs/design/ui/replica/detail-media-motion.md",
+      "hash_mode": "lf-normalized",
+      "sha256": "5fca99ede23925d509df6520b92dbe5f485e37c5a99c257927a4a95a453a3951"
+    },
+    {
+      "path": "docs/design/ui/replica/hero-transition.md",
+      "hash_mode": "lf-normalized",
+      "sha256": "737e4ab01506320f6197abcb8a792801a699b20e44260a566ac0c74806dce991"
+    },
+    {
+      "path": "docs/design/ui/replica/player-study.md",
+      "hash_mode": "lf-normalized",
+      "sha256": "5d4ec8b5ba286c7bffa34b1fb9443fc9fd18775bd4532c3d3daacf46657d8bc8"
+    },
+    {
+      "path": "docs/design/ui/replica/roadmap.md",
+      "hash_mode": "lf-normalized",
+      "sha256": "70a1756db46d1767a43f6975b9f3293b8b3363e500b2b057e793df208a535712"
+    },
+    {
+      "path": "docs/handoff/CURRENT.md",
+      "hash_mode": "lf-normalized",
+      "sha256": "fda3db05450caec6663b7db15546a19357c111675fd0cdb91e5a9bf95432571e"
+    },
+    {
+      "path": "docs/handoff/TASKS.md",
+      "hash_mode": "lf-normalized",
+      "sha256": "a347dc8c0f4f2dcc1e66c38a3b49e818a3874e795c83fd07f8a8edfd58c213f0"
+    },
+    {
+      "path": "docs/evidence/p240/layered-scroll/status.md",
+      "hash_mode": "lf-normalized",
+      "sha256": "0755ba92525a28f4dc0cd7bfb52f31c1b2ebdd0eebcc97367e711c3456beb21e"
+    },
+    {
+      "path": "tools/reference/rex/measure_scroll.py",
+      "hash_mode": "lf-normalized",
+      "sha256": "e4131352f383f25bd1047e7f7c5214bf8efe81bdfcbf57b1af007948ecfd370e"
+    },
+    {
+      "path": "tools/reference/rex/verify_media_motion.py",
+      "hash_mode": "lf-normalized",
+      "sha256": "c0bc5e38ed34685541eeef266642325b6f0a8a5fb7cab6e53c14be2aed6859cf"
+    }
+  ]
+}

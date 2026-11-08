@@ -1,0 +1,6 @@
+{
+  "command": "adb -s b6e950ee install -r -t app-debug.apk",
+  "exit": 0,
+  "output": "Performing Streamed Install\r\nSuccess\r\n",
+  "apk_sha256": "86051f0c643dd1502f23ce8d4043a49be072bb7601ac94ec128f96ce28eeeb25"
+}

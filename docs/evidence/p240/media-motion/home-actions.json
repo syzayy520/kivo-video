@@ -1,0 +1,138 @@
+[
+  {
+    "elapsed_s": 0.546,
+    "name": "slow horizontal drag",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "950",
+      "780",
+      "130",
+      "780",
+      "1400"
+    ]
+  },
+  {
+    "elapsed_s": 2.515,
+    "screenshot": "home-drag-mid.png"
+  },
+  {
+    "elapsed_s": 4.468,
+    "screenshot": "home-next.png"
+  },
+  {
+    "elapsed_s": 4.468,
+    "name": "short reverse drag cancels",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "380",
+      "780",
+      "510",
+      "780",
+      "1300"
+    ]
+  },
+  {
+    "elapsed_s": 7.64,
+    "screenshot": "home-cancel.png"
+  },
+  {
+    "elapsed_s": 7.64,
+    "name": "rapid next 0",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "940",
+      "800",
+      "120",
+      "800",
+      "180"
+    ]
+  },
+  {
+    "elapsed_s": 7.921,
+    "name": "rapid next 1",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "940",
+      "800",
+      "120",
+      "800",
+      "180"
+    ]
+  },
+  {
+    "elapsed_s": 8.203,
+    "name": "rapid next 2",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "940",
+      "800",
+      "120",
+      "800",
+      "180"
+    ]
+  },
+  {
+    "elapsed_s": 10.578,
+    "screenshot": "home-fast-settled.png"
+  },
+  {
+    "elapsed_s": 10.578,
+    "name": "vertical scroll",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "550",
+      "1700",
+      "550",
+      "900",
+      "1000"
+    ]
+  },
+  {
+    "elapsed_s": 13.0,
+    "screenshot": "home-scrolled.png"
+  },
+  {
+    "elapsed_s": 13.0,
+    "name": "return to top",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "550",
+      "650",
+      "550",
+      "2000",
+      "1000"
+    ]
+  },
+  {
+    "elapsed_s": 14.796,
+    "name": "pull release",
+    "adb_args": [
+      "shell",
+      "input",
+      "swipe",
+      "550",
+      "400",
+      "550",
+      "850",
+      "1000"
+    ]
+  },
+  {
+    "elapsed_s": 18.015,
+    "screenshot": "home-return.png"
+  }
+]

@@ -33,10 +33,11 @@ internal fun DetailBackdrop(
         val art = details?.heroArtworkUrl.orEmpty()
         if (art.isNotEmpty()) TmdbImage(art, details?.title.orEmpty(),
             Modifier.fillMaxWidth().height(585.dp).graphicsLayer {
-                translationY = -scrollDp() * density * .05f
-                val stretch = 1f + pullDp / 585f
+                // Measured reference: about +10.7% at 312pt, centered on media.
+                val upward = 1f + scrollDp().coerceIn(0f, 350f) / (585f * 5f)
+                val stretch = upward * (1f + pullDp / 585f)
                 scaleX = stretch; scaleY = stretch
-                transformOrigin = TransformOrigin(.5f, 0f)
+                transformOrigin = TransformOrigin(.5f, if (pullDp > 0f) 0f else .5f)
             })
         Box(Modifier.fillMaxSize().drawBehind {
             val color = field.value

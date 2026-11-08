@@ -1,0 +1,605 @@
+{
+  "opencv": "5.0.0",
+  "numpy": "2.2.6",
+  "base": {
+    "path": "C:\\kivo video\\docs\\evidence\\p240\\media-motion\\reference\\2026_11_08_19_25_03_IMG_0149.PNG",
+    "sha256": "b162a0fbb047b661e1c711f3df95f0f3d05497eacc236101804604e1c7963f5c",
+    "size_px": [
+      1170,
+      2532
+    ],
+    "source_path": "C:\\Users\\Administrator\\Pictures\\REX\\2026_11_08_19_25_03_IMG_0149.PNG"
+  },
+  "media_roi": [
+    120,
+    160,
+    1060,
+    900
+  ],
+  "foreground_roi": [
+    80,
+    1280,
+    1090,
+    1480
+  ],
+  "pixels_per_unit": 3.0,
+  "method": "SIFT ratio .7 + partial affine RANSAC 2.5px; >=12 inliers, ratio>=.35; RMSE<=2.5px",
+  "rows": [
+    {
+      "image": {
+        "path": "C:\\kivo video\\docs\\evidence\\p240\\media-motion\\reference\\2026_11_08_19_25_10_IMG_0150.PNG",
+        "sha256": "d18d37c9e36f232fb35d3d4b8c8e724c3b6b9e76dd9b675f71e07b8058376f1c",
+        "size_px": [
+          1170,
+          2532
+        ],
+        "source_path": "C:\\Users\\Administrator\\Pictures\\REX\\2026_11_08_19_25_10_IMG_0150.PNG"
+      },
+      "media": {
+        "accepted": true,
+        "reason": null,
+        "matches": 2541,
+        "inliers": 2538,
+        "inlier_ratio": 0.9988193624557261,
+        "rmse_px": 0.17142631116071336,
+        "scale": 1.017996865049011,
+        "rotation_degrees": 0.00015905168330646082,
+        "translation_px": [
+          -10.521349280079427,
+          -15.798673067194036
+        ],
+        "matrix": [
+          [
+            1.0179968650450888,
+            -2.82593441196777e-06,
+            -10.521349280079427
+          ],
+          [
+            2.82593441196777e-06,
+            1.0179968650450888,
+            -15.798673067194036
+          ]
+        ]
+      },
+      "foreground": {
+        "accepted": true,
+        "reason": null,
+        "matches": 850,
+        "inliers": 847,
+        "inlier_ratio": 0.9964705882352941,
+        "rmse_px": 0.20128084881511119,
+        "scale": 0.9999949577395392,
+        "rotation_degrees": -0.0006173231912395259,
+        "translation_px": [
+          -0.005061072920238461,
+          -157.97398386584507
+        ],
+        "matrix": [
+          [
+            0.9999949576814965,
+            1.0774267908900882e-05,
+            -0.005061072920238461
+          ],
+          [
+            -1.0774267908900882e-05,
+            0.9999949576814965,
+            -157.97398386584507
+          ]
+        ]
+      },
+      "foreground_up_units": 52.66241507070223
+    },
+    {
+      "image": {
+        "path": "C:\\kivo video\\docs\\evidence\\p240\\media-motion\\reference\\2026_11_08_19_25_18_IMG_0151.PNG",
+        "sha256": "890cc197cbde6e163bab282aadf2f12fe120a2f7cc768fc9397e8a8969f76dec",
+        "size_px": [
+          1170,
+          2532
+        ],
+        "source_path": "C:\\Users\\Administrator\\Pictures\\REX\\2026_11_08_19_25_18_IMG_0151.PNG"
+      },
+      "media": {
+        "accepted": true,
+        "reason": null,
+        "matches": 2424,
+        "inliers": 2421,
+        "inlier_ratio": 0.9987623762376238,
+        "rmse_px": 0.1890230774570015,
+        "scale": 1.0322382023979773,
+        "rotation_degrees": 0.00014465898132712303,
+        "translation_px": [
+          -18.848459160093878,
+          -28.295446655548957
+        ],
+        "matrix": [
+          [
+            1.0322382023946872,
+            -2.6061697408546233e-06,
+            -18.848459160093878
+          ],
+          [
+            2.6061697408546233e-06,
+            1.0322382023946872,
+            -28.295446655548957
+          ]
+        ]
+      },
+      "foreground": {
+        "accepted": true,
+        "reason": null,
+        "matches": 762,
+        "inliers": 760,
+        "inlier_ratio": 0.9973753280839895,
+        "rmse_px": 0.18065810204690744,
+        "scale": 1.0000090078545985,
+        "rotation_degrees": -0.0005625361424894263,
+        "translation_px": [
+          -0.024015297604037807,
+          -282.99787873825255
+        ],
+        "matrix": [
+          [
+            1.0000090078064003,
+            9.818196287838646e-06,
+            -0.024015297604037807
+          ],
+          [
+            -9.818196287838646e-06,
+            1.0000090078064003,
+            -282.99787873825255
+          ]
+        ]
+      },
+      "foreground_up_units": 94.33039720341624
+    },
+    {
+      "image": {
+        "path": "C:\\kivo video\\docs\\evidence\\p240\\media-motion\\reference\\2026_11_08_19_25_26_IMG_0152.PNG",
+        "sha256": "07ab35bc26b86ce5fcbe8ba0a6d703f8d9d5e177a6e16e2cd811b85e2aa06789",
+        "size_px": [
+          1170,
+          2532
+        ],
+        "source_path": "C:\\Users\\Administrator\\Pictures\\REX\\2026_11_08_19_25_26_IMG_0152.PNG"
+      },
+      "media": {
+        "accepted": true,
+        "reason": null,
+        "matches": 2247,
+        "inliers": 2240,
+        "inlier_ratio": 0.9968847352024922,
+        "rmse_px": 0.19009028844699552,
+        "scale": 1.0419231668684164,
+        "rotation_degrees": 4.6504086207008506e-05,
+        "translation_px": [
+          -24.51479417666172,
+          -36.79098014892717
+        ],
+        "matrix": [
+          [
+            1.041923166868073,
+            -8.456763340144347e-07,
+            -24.51479417666172
+          ],
+          [
+            8.456763340144347e-07,
+            1.041923166868073,
+            -36.79098014892717
+          ]
+        ]
+      },
+      "foreground": {
+        "accepted": true,
+        "reason": null,
+        "matches": 699,
+        "inliers": 696,
+        "inlier_ratio": 0.9957081545064378,
+        "rmse_px": 0.1647625579973503,
+        "scale": 0.9999981500024175,
+        "rotation_degrees": -8.480225425752072e-05,
+        "translation_px": [
+          -0.0011384869838586185,
+          -367.9915306824725
+        ],
+        "matrix": [
+          [
+            0.9999981500013223,
+            1.4800758117648365e-06,
+            -0.0011384869838586185
+          ],
+          [
+            -1.4800758117648365e-06,
+            0.9999981500013223,
+            -367.9915306824725
+          ]
+        ]
+      },
+      "foreground_up_units": 122.66498317499918
+    },
+    {
+      "image": {
+        "path": "C:\\kivo video\\docs\\evidence\\p240\\media-motion\\reference\\2026_11_08_19_25_32_IMG_0153.PNG",
+        "sha256": "a41d8f9d0263ff5fc6293e3b2d5fe46d95f6fcb06d2edfcae033bb785be20577",
+        "size_px": [
+          1170,
+          2532
+        ],
+        "source_path": "C:\\Users\\Administrator\\Pictures\\REX\\2026_11_08_19_25_32_IMG_0153.PNG"
+      },
+      "media": {
+        "accepted": true,
+        "reason": null,
+        "matches": 1923,
+        "inliers": 1912,
+        "inlier_ratio": 0.9942797711908476,
+        "rmse_px": 0.1678509531879587,
+        "scale": 1.05628331676823,
+        "rotation_degrees": 0.00034474513364771115,
+        "translation_px": [
+          -32.91632451650267,
+          -49.39513170680442
+        ],
+        "matrix": [
+          [
+            1.0562833167491095,
+            -6.355590870768552e-06,
+            -32.91632451650267
+          ],
+          [
+            6.355590870768552e-06,
+            1.0562833167491095,
+            -49.39513170680442
+          ]
+        ]
+      },
+      "foreground": {
+        "accepted": true,
+        "reason": null,
+        "matches": 644,
+        "inliers": 642,
+        "inlier_ratio": 0.9968944099378882,
+        "rmse_px": 0.17946675866264483,
+        "scale": 1.000016598770925,
+        "rotation_degrees": 0.0002433053043907729,
+        "translation_px": [
+          -0.010782644873929772,
+          -494.0203963641781
+        ],
+        "matrix": [
+          [
+            1.0000165987619087,
+            -4.246549135499577e-06,
+            -0.010782644873929772
+          ],
+          [
+            4.246549135499577e-06,
+            1.0000165987619087,
+            -494.0203963641781
+          ]
+        ]
+      },
+      "foreground_up_units": 164.6650019471666
+    },
+    {
+      "image": {
+        "path": "C:\\kivo video\\docs\\evidence\\p240\\media-motion\\reference\\2026_11_08_19_25_39_IMG_0154.PNG",
+        "sha256": "63ac060ff59763c6249645523d57968ca4c0d3198940dbefb63abc79fe858d1e",
+        "size_px": [
+          1170,
+          2532
+        ],
+        "source_path": "C:\\Users\\Administrator\\Pictures\\REX\\2026_11_08_19_25_39_IMG_0154.PNG"
+      },
+      "media": {
+        "accepted": true,
+        "reason": null,
+        "matches": 1475,
+        "inliers": 1466,
+        "inlier_ratio": 0.9938983050847457,
+        "rmse_px": 0.20687937625557531,
+        "scale": 1.0667462824898362,
+        "rotation_degrees": -0.0013265251068439626,
+        "translation_px": [
+          -39.044091730925615,
+          -58.57876135191695
+        ],
+        "matrix": [
+          [
+            1.0667462822039344,
+            2.4697556054817436e-05,
+            -39.044091730925615
+          ],
+          [
+            -2.4697556054817436e-05,
+            1.0667462822039344,
+            -58.57876135191695
+          ]
+        ]
+      },
+      "foreground": {
+        "accepted": true,
+        "reason": null,
+        "matches": 580,
+        "inliers": 578,
+        "inlier_ratio": 0.996551724137931,
+        "rmse_px": 0.18743895992809548,
+        "scale": 1.0000097630017422,
+        "rotation_degrees": -0.0006205829388231478,
+        "translation_px": [
+          -0.022202472751718966,
+          -585.9930441974539
+        ],
+        "matrix": [
+          [
+            1.000009762943084,
+            1.0831321309131115e-05,
+            -0.022202472751718966
+          ],
+          [
+            -1.0831321309131115e-05,
+            1.000009762943084,
+            -585.9930441974539
+          ]
+        ]
+      },
+      "foreground_up_units": 195.32863588632122
+    },
+    {
+      "image": {
+        "path": "C:\\kivo video\\docs\\evidence\\p240\\media-motion\\reference\\2026_11_08_19_25_46_IMG_0155.PNG",
+        "sha256": "8da027227c576eeb749a336853357e3c4a2f90f89b0f5be9b96bf6e987dc87d0",
+        "size_px": [
+          1170,
+          2532
+        ],
+        "source_path": "C:\\Users\\Administrator\\Pictures\\REX\\2026_11_08_19_25_46_IMG_0155.PNG"
+      },
+      "media": {
+        "accepted": true,
+        "reason": null,
+        "matches": 1162,
+        "inliers": 1153,
+        "inlier_ratio": 0.9922547332185886,
+        "rmse_px": 0.18310877733569453,
+        "scale": 1.0795310665344078,
+        "rotation_degrees": -0.0006409369638383947,
+        "translation_px": [
+          -46.51441377643298,
+          -69.79405662171293
+        ],
+        "matrix": [
+          [
+            1.0795310664668634,
+            1.2076131436197198e-05,
+            -46.51441377643298
+          ],
+          [
+            -1.2076131436197198e-05,
+            1.0795310664668634,
+            -69.79405662171293
+          ]
+        ]
+      },
+      "foreground": {
+        "accepted": true,
+        "reason": null,
+        "matches": 541,
+        "inliers": 537,
+        "inlier_ratio": 0.9926062846580407,
+        "rmse_px": 0.2051314528767886,
+        "scale": 0.9999870792562047,
+        "rotation_degrees": 0.0012693150698271445,
+        "translation_px": [
+          0.03347319096675943,
+          -697.9821255886724
+        ],
+        "matrix": [
+          [
+            0.999987079010814,
+            -2.215344096921986e-05,
+            0.03347319096675943
+          ],
+          [
+            2.215344096921986e-05,
+            0.999987079010814,
+            -697.9821255886724
+          ]
+        ]
+      },
+      "foreground_up_units": 232.66233226359398
+    },
+    {
+      "image": {
+        "path": "C:\\kivo video\\docs\\evidence\\p240\\media-motion\\reference\\2026_11_08_19_25_51_IMG_0156.PNG",
+        "sha256": "81856555d1cca49abe731167b887b3dfdae6ce86138733228fa6dd5ff67546a5",
+        "size_px": [
+          1170,
+          2532
+        ],
+        "source_path": "C:\\Users\\Administrator\\Pictures\\REX\\2026_11_08_19_25_51_IMG_0156.PNG"
+      },
+      "media": {
+        "accepted": true,
+        "reason": null,
+        "matches": 773,
+        "inliers": 765,
+        "inlier_ratio": 0.9896507115135834,
+        "rmse_px": 0.17742162447392737,
+        "scale": 1.0922638335387431,
+        "rotation_degrees": -0.0021887280160862127,
+        "translation_px": [
+          -53.97332218571886,
+          -80.97049940377778
+        ],
+        "matrix": [
+          [
+            1.0922638327417844,
+            4.1725035825660985e-05,
+            -53.97332218571886
+          ],
+          [
+            -4.1725035825660985e-05,
+            1.0922638327417844,
+            -80.97049940377778
+          ]
+        ]
+      },
+      "foreground": {
+        "accepted": true,
+        "reason": null,
+        "matches": 486,
+        "inliers": 483,
+        "inlier_ratio": 0.9938271604938271,
+        "rmse_px": 0.19985881596081426,
+        "scale": 1.000030945213467,
+        "rotation_degrees": -0.00044016911626595993,
+        "translation_px": [
+          -0.02506498341595306,
+          -810.0242723844187
+        ],
+        "matrix": [
+          [
+            1.0000309451839564,
+            7.682638077877756e-06,
+            -0.02506498341595306
+          ],
+          [
+            -7.682638077877756e-06,
+            1.0000309451839564,
+            -810.0242723844187
+          ]
+        ]
+      },
+      "foreground_up_units": 269.99535412461154
+    },
+    {
+      "image": {
+        "path": "C:\\kivo video\\docs\\evidence\\p240\\media-motion\\reference\\2026_11_08_19_25_57_IMG_0157.PNG",
+        "sha256": "c69269fb73bb0a24596571b078601d9e8ed15c75212c9e93f31ebcab48975b9c",
+        "size_px": [
+          1170,
+          2532
+        ],
+        "source_path": "C:\\Users\\Administrator\\Pictures\\REX\\2026_11_08_19_25_57_IMG_0157.PNG"
+      },
+      "media": {
+        "accepted": true,
+        "reason": null,
+        "matches": 348,
+        "inliers": 340,
+        "inlier_ratio": 0.9770114942528736,
+        "rmse_px": 0.1887502483583406,
+        "scale": 1.106487639205359,
+        "rotation_degrees": -0.004083844612664246,
+        "translation_px": [
+          -62.292067370084865,
+          -93.45572322536877
+        ],
+        "matrix": [
+          [
+            1.1064876363946898,
+            7.886660446762077e-05,
+            -62.292067370084865
+          ],
+          [
+            -7.886660446762077e-05,
+            1.1064876363946898,
+            -93.45572322536877
+          ]
+        ]
+      },
+      "foreground": {
+        "accepted": true,
+        "reason": null,
+        "matches": 423,
+        "inliers": 420,
+        "inlier_ratio": 0.9929078014184397,
+        "rmse_px": 0.199257590104927,
+        "scale": 1.0000240438854047,
+        "rotation_degrees": 0.0017192273084008702,
+        "translation_px": [
+          0.036490183912246524,
+          -935.0549915483901
+        ],
+        "matrix": [
+          [
+            1.0000240434352086,
+            -3.0006898582376415e-05,
+            0.036490183912246524
+          ],
+          [
+            3.0006898582376415e-05,
+            1.0000240434352086,
+            -935.0549915483901
+          ]
+        ]
+      },
+      "foreground_up_units": 311.6680858573772
+    },
+    {
+      "image": {
+        "path": "C:\\kivo video\\docs\\evidence\\p240\\media-motion\\reference\\2026_11_08_19_26_04_IMG_0158.PNG",
+        "sha256": "c029eb597e5c34b8131dd70c1c0a6b175855987b68c1cf63638db73f8c5d68e8",
+        "size_px": [
+          1170,
+          2532
+        ],
+        "source_path": "C:\\Users\\Administrator\\Pictures\\REX\\2026_11_08_19_26_04_IMG_0158.PNG"
+      },
+      "media": {
+        "accepted": false,
+        "reason": "low inlier count/ratio or excessive residual",
+        "matches": 12,
+        "inliers": 4,
+        "inlier_ratio": 0.3333333333333333,
+        "rmse_px": 5.772476473450155e-14,
+        "scale": 1.846682489961091,
+        "rotation_degrees": 11.97386786603566,
+        "translation_px": [
+          -26.69290955981636,
+          -194.69961004897715
+        ],
+        "matrix": [
+          [
+            1.806502974005332,
+            -0.38312298761466373,
+            -26.69290955981636
+          ],
+          [
+            0.38312298761466373,
+            1.806502974005332,
+            -194.69961004897715
+          ]
+        ]
+      },
+      "foreground": {
+        "accepted": true,
+        "reason": null,
+        "matches": 70,
+        "inliers": 67,
+        "inlier_ratio": 0.9571428571428572,
+        "rmse_px": 0.3444483192511651,
+        "scale": 1.0004400637266069,
+        "rotation_degrees": 0.03796947954276014,
+        "translation_px": [
+          0.6926547979254262,
+          -1054.998962658498
+        ],
+        "matrix": [
+          [
+            1.000439844049355,
+            -0.0006629840116654317,
+            0.6926547979254262
+          ],
+          [
+            0.0006629840116654317,
+            1.000439844049355,
+            -1054.998962658498
+          ]
+        ]
+      },
+      "foreground_up_units": 351.33471074118796
+    }
+  ]
+}

@@ -116,7 +116,13 @@ fun DiscoverPage(
             // Keep the first slot stable while network data arrives: inserting it later
             // would preserve the next item's anchor and open the page below the hero.
             item(key = "hero") {
-                if (heroCandidates.isEmpty()) Spacer(Modifier.height(HERO_HEIGHT_DP.dp))
+                if (heroCandidates.isEmpty()) Box(
+                    Modifier.fillMaxWidth().height(HERO_HEIGHT_DP.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (tmdbError == null) Text("正在加载推荐影片…", color = chromeSub, fontSize = 14.sp)
+                    else TmdbErrorCard(tmdbError, onRetryTmdb)
+                }
                 else HeroCarousel(heroCandidates, onAmbient = { heroFieldColor = it },
                     dotsColor = chromeFg, scrimColor = scrimColor,
                     topPoster = topPoster, logoFor = logoFor, pullDp = pullDp,
@@ -172,7 +178,7 @@ fun DiscoverPage(
                 item(key = "今日动漫") { Box(Modifier.navigationSource(backdrop)) { PosterSection("今日动漫", todayAnime, chromeFg, onOpenTmdbItem) } }
             }
             // 错误态（home.error.network.* 五类原文 + 重试——M04-S04，不可合并）
-            if (tmdbError != null) {
+            if (tmdbError != null && heroCandidates.isNotEmpty()) {
                 item(key = "error") { Box(Modifier.navigationSource(backdrop)) { TmdbErrorCard(tmdbError, onRetryTmdb) } }
             }
         }

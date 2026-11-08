@@ -1,0 +1,18 @@
+[
+  {
+    "command": "adb install -r -t app-debug.apk",
+    "exit": 0,
+    "output": "Performing Streamed Install\r\nSuccess\r\n"
+  },
+  {
+    "command": [
+      "shell",
+      "am",
+      "start",
+      "-n",
+      "com.kivo.cinema/.MainActivity"
+    ],
+    "exit": 0,
+    "output": "Starting: Intent { cmp=com.kivo.cinema/.MainActivity }\r\n"
+  }
+]
