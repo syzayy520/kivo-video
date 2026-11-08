@@ -1,0 +1,95 @@
+{
+  "scope": "Emby UI redesign tablet phase; wider R4 and network playback remain DOING",
+  "base": "da3a3ec5",
+  "apk_sha256": "7a8632bffe154359fee2832582028b5e035ab378d150e1593eb91472872228e7",
+  "files": [
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/emby/EmbyActivity.kt",
+      "sha256": "0586fa17f7985c18fc7ff2afde3b9d2c1149c0165775edd5ae6a92aa4516e426"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/emby/EmbyClient.kt",
+      "sha256": "8cbc4f1c05a484236a04b426baa578b7378ff3fc54c280eff291655feaa071bd"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/emby/EmbyItem.kt",
+      "sha256": "6f05538bc7181a6ce8185f811ffa337512b305d96e3e9ed0335acd306b6fc627"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/emby/EmbySessionModel.kt",
+      "sha256": "4af7d2df24230ccfae4b012bef5f6e9834b088e7ef4ac041062e6803f21fb8e8"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/emby/ui/EmbyConnectionScreen.kt",
+      "sha256": "361f3fbe71707bc8550b1ce6f480d9dc930f94b5da3b9b8306aaaebffc9a56fa"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/emby/ui/EmbyLibraryScreen.kt",
+      "sha256": "6a89eea920e7175a131ac504b23c8016baa8f21d41a975dd33f893acc592c6f8"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerComposeActivity.kt",
+      "sha256": "2b69938f2958c334870d3c18a82a69d5283d8175d3037d57c9ee3bc2635762dd"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/design/Pages.kt",
+      "sha256": "c49f16c44d4cae5d3dbf7bde23a6d837a204bc0d7fc963dc94f1f09f5e2f0203"
+    },
+    {
+      "path": "docs/design/ui/replica/emby-redesign.md",
+      "sha256": "c75647c2ac7464f796ae68dba321320d2d85f39139bae454068a337125c512cd"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/build.log",
+      "sha256": "ea3bc220fd569b1938075d65dd504fae9a390ac961e1ff880beb36df7b23503f"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/final-smoke.json",
+      "sha256": "0c110796f3920cd9a429a9d508856d6af356f1399fc253c8f9a845df1776388c"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/regression-apk.json",
+      "sha256": "ff876820b99ceea8bb54d19c722f5e13c56aefd83404abe4867326b03b475dcc"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/status.md",
+      "sha256": "0f40778591415fd1713d28b5baf7ac343750cfa7573a097b48e4eeb630d0f33b"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/tablet-connection.png",
+      "sha256": "f7acdfb0bcbb19c8f8ef214f618b518859a78cdb2bb27160cc786cf8b874e24a"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/tablet-connection.xml",
+      "sha256": "7e02d5b7fef82c05e5766d6c6a18864fd65b98df661c9eae2540a468672b4fcb"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/tablet-landscape-connection.png",
+      "sha256": "a9e5ccb1364d4365e35277efe337542a278071872d316cd2d7a27920b4fa6f7f"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/tablet-landscape-connection.xml",
+      "sha256": "3f7fd1f1af75b84c5c4e00f87394843447457842911ca148627de482ea25f7f3"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/tablet-landscape-error.png",
+      "sha256": "e8a290fc504c33ebf9421d6a26aaa6d0d31858427858ffbfbb110660c8be2c6e"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/tablet-landscape-error.xml",
+      "sha256": "a4caab5d7bd008d257692db6b07b73791c481022296ba5cb6557239bf799e871"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/tablet-result.json",
+      "sha256": "0c18c7decabf8d1de87d20c3f3ba7969113ab7e279552c5bc837efbf3f2f590f"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/tablet-validation-error.png",
+      "sha256": "9ba16312a604ceadacad00e2de1b8399647cde6b1b19c41065a76c612c1e86e0"
+    },
+    {
+      "path": "docs/evidence/p240/emby-redesign/tablet-validation-error.xml",
+      "sha256": "ef156304bc07b87853643a1cdd63d615b2519fcd53002374268cc3dec946ad62"
+    }
+  ]
+}

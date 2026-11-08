@@ -52,7 +52,7 @@ fun SourcesPage(
         Spacer(Modifier.height(DesignTokens.gap.dp))
         SourceCard("SMB / 网络共享", "libsmb2 直连 · 硬解过本地代理 · 断点下载", "🗄") { onOpenSmb() }
         Spacer(Modifier.height(DesignTokens.gap.dp))
-        SourceCard("Emby / Jellyfin", "AuthenticateByName 登录 · 直连流播放", "☁") { onOpenEmby() }
+        SourceCard("Emby / Jellyfin", "连接服务器，浏览你的电影收藏", "☁") { onOpenEmby() }
         Spacer(Modifier.height(DesignTokens.gap.dp))
         SourceCard("私密区", "生物特征门 · 受保护观看空间", "🔒") { onOpenPrivate() }
     }

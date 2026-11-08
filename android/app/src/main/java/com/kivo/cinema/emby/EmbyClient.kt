@@ -17,7 +17,10 @@ import java.net.URL
  */
 class EmbyClient(serverInput: String) {
 
-    /** 登录态：token + userId，AuthenticateByName 成功后由 login() 返回。 */
+    /** Safe protocol status; never carry response bodies into UI or logs. */
+    class HttpFailure(val code: Int) : Exception("Emby HTTP $code")
+
+    /** Memory-only login result. */
     data class Auth(val token: String, val userId: String)
 
     private val base: String
@@ -28,6 +31,7 @@ class EmbyClient(serverInput: String) {
         var s = serverInput.trim()
         if (!s.startsWith("http://") && !s.startsWith("https://")) s = "https://$s"
         val uri = URI(s.trimEnd('/'))
+        require(uri.scheme in listOf("http", "https") && !uri.host.isNullOrBlank() && uri.userInfo == null && uri.rawQuery == null && uri.rawFragment == null && uri.port in -1..65535)
         val path = uri.rawPath ?: ""
         base = "${uri.scheme}://${uri.host}${if (uri.port > 0) ":${uri.port}" else ""}"
         prefix = if (path.isNotBlank() && path != "/") path.trimEnd('/') else "/emby"
@@ -44,61 +48,59 @@ class EmbyClient(serverInput: String) {
         return c
     }
 
-    /** D1：AuthenticateByName。空密码 = Pw:""。失败抛 IllegalStateException（reason 带状态码）。 */
+    /** D1：AuthenticateByName。空密码 = Pw:""。失败只暴露 HTTP 状态码。 */
     fun login(username: String, password: String): Auth {
         val url = "$base$prefix/Users/AuthenticateByName"
         val c = conn(url, "POST")
-        c.doOutput = true
-        c.setRequestProperty("Content-Type", "application/json")
-        c.outputStream.use {
-            it.write(JSONObject().apply {
-                put("Username", username)
-                put("Pw", password)
-            }.toString().toByteArray())
-        }
-        val code = c.responseCode
-        val body = (if (code in 200..299) c.inputStream else c.errorStream)
-            ?.bufferedReader()?.readText() ?: ""
-        if (code !in 200..299) {
-            throw IllegalStateException("登录失败 HTTP $code：${body.take(160)}")
-        }
-        val json = JSONObject(body)
-        val token = json.getString("AccessToken")
-        val userId = json.getJSONObject("User").getString("Id")
-        return Auth(token, userId)
+        try {
+            c.doOutput = true
+            c.setRequestProperty("Content-Type", "application/json")
+            c.outputStream.use {
+                it.write(JSONObject().apply {
+                    put("Username", username)
+                    put("Pw", password)
+                }.toString().toByteArray())
+            }
+            val code = c.responseCode
+            if (code !in 200..299) throw HttpFailure(code)
+            val body = c.inputStream.bufferedReader().use { it.readText() }
+            val json = JSONObject(body)
+            val token = json.getString("AccessToken")
+            val userId = json.getJSONObject("User").getString("Id")
+            return Auth(token, userId)
+        } finally { c.disconnect() }
     }
 
-    /** D2：海报墙条目（Movie，按加入时间倒序）。失败抛 IllegalStateException。 */
+    /** D2：海报墙条目（Movie，按加入时间倒序）。失败只暴露 HTTP 状态码。 */
     fun items(auth: Auth, limit: Int = 60): List<EmbyItem> {
         val q = "?IncludeItemTypes=Movie&Recursive=true&SortBy=DateCreated" +
             "&SortOrder=Descending&Limit=$limit&Fields=ProductionYear&ImageTypeLimit=1"
         val url = "$base$prefix/Users/${auth.userId}/Items$q"
         val c = conn(url, "GET")
-        c.setRequestProperty("X-Emby-Token", auth.token)
-        val code = c.responseCode
-        val body = (if (code in 200..299) c.inputStream else c.errorStream)
-            ?.bufferedReader()?.readText() ?: ""
-        if (code !in 200..299) {
-            throw IllegalStateException("取条目失败 HTTP $code：${body.take(160)}")
-        }
-        val arr = JSONObject(body).getJSONArray("Items")
-        val out = mutableListOf<EmbyItem>()
-        for (i in 0 until arr.length()) {
-            val o = arr.getJSONObject(i)
-            val tag = o.optJSONObject("ImageTags")?.optString("Primary") ?: ""
-            val year = if (o.has("ProductionYear") && !o.isNull("ProductionYear"))
-                o.getInt("ProductionYear") else null
-            val poster = if (tag.isNotBlank())
-                "$base$prefix/Items/${o.getString("Id")}/Images/Primary" +
-                    "?maxWidth=320&quality=75&tag=$tag" else ""
-            out += EmbyItem(
-                id = o.getString("Id"),
-                name = o.getString("Name"),
-                year = year,
-                posterUrl = poster,
-            )
-        }
-        return out
+        try {
+            c.setRequestProperty("X-Emby-Token", auth.token)
+            val code = c.responseCode
+            if (code !in 200..299) throw HttpFailure(code)
+            val body = c.inputStream.bufferedReader().use { it.readText() }
+            val arr = JSONObject(body).getJSONArray("Items")
+            val out = mutableListOf<EmbyItem>()
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                val tag = o.optJSONObject("ImageTags")?.optString("Primary") ?: ""
+                val year = if (o.has("ProductionYear") && !o.isNull("ProductionYear"))
+                    o.getInt("ProductionYear") else null
+                val poster = if (tag.isNotBlank())
+                    "$base$prefix/Items/${o.getString("Id")}/Images/Primary" +
+                        "?maxWidth=320&quality=75&tag=$tag" else ""
+                out += EmbyItem(
+                    id = o.getString("Id"),
+                    name = o.getString("Name"),
+                    year = year,
+                    posterUrl = poster,
+                )
+            }
+            return out
+        } finally { c.disconnect() }
     }
 
     /** D3：直连流 URL（static=true + api_key）——Emby 原生 HTTP Range，喂 220b 会话。 */
@@ -108,8 +110,10 @@ class EmbyClient(serverInput: String) {
     /** 海报字节下载（位图解码在 Activity 侧）。 */
     fun fetchBytes(url: String): ByteArray {
         val c = conn(url, "GET")
-        val code = c.responseCode
-        if (code !in 200..299) throw IllegalStateException("海报 HTTP $code")
-        return c.inputStream.use { it.readBytes() }
+        try {
+            val code = c.responseCode
+            if (code !in 200..299) throw HttpFailure(code)
+            return c.inputStream.use { it.readBytes() }
+        } finally { c.disconnect() }
     }
 }

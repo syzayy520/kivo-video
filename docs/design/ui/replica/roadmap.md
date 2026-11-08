@@ -2,6 +2,8 @@
 
 日期：2026-11-08。状态：已认可基线正式集成于 `9056197`；本轮媒体动效卡已实现并真机验证静态媒体路径，其他卡保持各自状态。
 
+2026-11-09 用户新增真实源并指定优化已有功能，插入既有 Emby/SMB 页面验证子阶段，不重做协议或后台。[设计与边界](network-source-validation.md)、[当前证据与未过闸门](../../../evidence/p240/network-sources/status.md)。平板 USB 已恢复。用户随后否定旧表单微调，改按[Emby 重设计](emby-redesign.md)推进，[新版证据](../../../evidence/p240/emby-redesign/status.md)单独归档；R2/R3/R4 整卡状态不据此提前完成。
+
 本文件是本轮 UI 后续工作的唯一规划入口。旧规划的处置见 [review.md](review.md)，任务状态仍由 [TASKS.md](../../../handoff/TASKS.md) 维护。后端 P15 台账独立保留，不以本计划覆盖。
 
 ## 1. 构思：先稳定已认可的页面，再补交互和证据

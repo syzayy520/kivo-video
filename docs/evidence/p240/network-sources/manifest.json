@@ -1,0 +1,27 @@
+{
+  "stage": "DOING",
+  "files": [
+    {
+      "path": "docs/evidence/p240/network-sources/status.md",
+      "sha256": "2f78134421d5a4b5d3d1c066c2a4fdd8772a13bdfa612739b6cda6dc726f1a56"
+    },
+    {
+      "path": "docs/evidence/p240/network-sources/emby-device-result.json",
+      "sha256": "ae9482bb2dbb260de1c9a952e46b46a4e87b1239624559a6f8c410167b5cc40a"
+    },
+    {
+      "path": "docs/evidence/p240/network-sources/build.log",
+      "sha256": "99d2118dbc8a8584800bba084d9d4d32a1c50a7c9c12f0b94ba4180d67d01946"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/emby/EmbyActivity.kt",
+      "sha256": "ab1b6f16f4b4e6a86e1154b5a5ddd1c0335d2962ed4f370edf190a7e9baa6931"
+    },
+    {
+      "path": "android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerComposeActivity.kt",
+      "sha256": "2b69938f2958c334870d3c18a82a69d5283d8175d3037d57c9ee3bc2635762dd"
+    }
+  ],
+  "apk_sha256": "49e586f968d958228bd77d000e0059e5fde5c19edabafc3d35d638e1a5797684",
+  "scope": "Historical pre-redesign APK/source hashes; current sources are described by ../emby-redesign/manifest.json"
+}

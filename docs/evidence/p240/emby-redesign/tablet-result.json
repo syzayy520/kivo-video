@@ -1,0 +1,21 @@
+{
+  "device": "CFE6R21B12000179",
+  "model": "MRR-W29",
+  "apk": "full_flow_before_back_label_followup",
+  "server": "user_authorized_B",
+  "checks": {
+    "password_visibility": true,
+    "safe_format_error": true,
+    "rotation_retains_form": true,
+    "exact_authorized_inputs": true,
+    "immediate_back_no_late_navigation_32s": true,
+    "real_login_60_movies": true,
+    "search_no_match_clear": true,
+    "name_sort_selected": true,
+    "year_sort_actual_order": true,
+    "rotation_retains_session_and_sort": true,
+    "back_preserves_form": true,
+    "reconnect": true,
+    "device_preferences_restored": true
+  }
+}

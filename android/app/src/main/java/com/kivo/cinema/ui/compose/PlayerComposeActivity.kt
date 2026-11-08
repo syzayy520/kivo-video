@@ -200,11 +200,6 @@ class PlayerComposeActivity : ComponentActivity() {
         // surface 回调本身就是"面可用"的证明——不再依赖 Listener 的 surfaceReady 标志
         surfaceReady = true
         if (playbackStarted) return
-        val media = mediaOverridePath.takeIf { it.isNotBlank() }
-            ?.let { java.io.File(it) }?.takeIf { it.isFile }
-            ?: locateTestMedia() ?: return
-        playbackStarted = true
-
         val smbJson = intent.getStringExtra("kivo.smb") ?: ""
         if (smbJson.isNotBlank()) {
             startSmbPlayback(holder, smbJson)
@@ -220,6 +215,11 @@ class PlayerComposeActivity : ComponentActivity() {
                 intent.getStringExtra("kivo.routing") ?: "file")
             return
         }
+
+        val media = mediaOverridePath.takeIf { it.isNotBlank() }
+            ?.let { java.io.File(it) }?.takeIf { it.isFile }
+            ?: locateTestMedia() ?: return
+        playbackStarted = true
 
         statusText = "surface ok, probing..."
         val routing = FfmpegRouting.probe(media)
@@ -324,7 +324,7 @@ class PlayerComposeActivity : ComponentActivity() {
             statusText = "proxy :$port, opening..."
 
             // 220b：硬解优先（MediaExtractor http URL → MediaCodec Surface），
-            // 失败回退 220 v1 软解 URL 通道（G9 reason 路由出版）
+            // 失败显示原因并停止，不创建软解会话。
             val netSession = com.kivo.cinema.playback.NetworkPlaybackSession(url, displayName)
             smbNetSession = netSession
             val netRc = netSession.start(holder.surface)
@@ -352,55 +352,16 @@ class PlayerComposeActivity : ComponentActivity() {
                 }, 40000)
                 return
             }
-            smbTrace("harddec failed rc=$netRc err=${netSession.lastError} - softdec fallback")
-            statusText = "硬解不可用（${netSession.lastError}），回退软解…"
+            val reason = netSession.lastError.ifBlank { "启动失败，错误码 $netRc" }
             runCatching { netSession.stop() }
             smbNetSession = null
-
-            val fsession = com.kivo.cinema.bridge.FfmpegPlaybackSession(
-                media ?: java.io.File("."),
-                displayName,
-                routingDecision = "ffmpeg",
-                routingReason = "smb via local range proxy (220)"
-            )
-            smbFfSession = fsession
-            val rc = fsession.openUrlVideo(url, holder.surface)
-            smbTrace("openUrlVideo rc=$rc err=${fsession.lastError}")
-            if (rc != 0) {
-                Log.e(TAG, "openUrlVideo failed rc=$rc: ${fsession.lastError}")
-                statusText = "SMB open failed: ${fsession.lastError}"
-                proxy.close()
-                source.close()
-                finish()
-                return
-            }
-            val startRc = fsession.start()
-            smbTrace("start rc=$startRc")
-            if (startRc != 0) {
-                statusText = "smb start failed rc=$startRc"
-                runCatching { fsession.stopAndCollectEvidence() }
-                finish()
-                return
-            }
-            isPlaying = true
-            smbStarted = System.currentTimeMillis()
-            lastTouchMs = smbStarted
-            durationMs = fsession.durationUs() / 1000
-            statusText = "playing smb://${cfg.host}/${cfg.share}/${cfg.path}"
-            Log.i(TAG, "SMB playback started: $url durationMs=$durationMs")
-            // positionPoll：SMB 会话的位置/断连上报全靠它
-            android.os.Handler(mainLooper).post(positionPoll)
-            // 诊断：40s 后自动停（读节拍曲线）——220 定位节拍失效用
-            android.os.Handler(mainLooper).postDelayed({
-                smbFfSession?.let { s ->
-                    val ev = runCatching { s.stopAndCollectEvidence() }.getOrElse { "stop failed" }
-                    try {
-                        val dir = java.io.File(getExternalFilesDir(null), "evidence").apply { mkdirs() }
-                        java.io.File(dir, "p220-pace-720p.json").writeText(ev)
-                    } catch (e: Exception) { }
-                    statusText = "pace diagnostic written"
-                }
-            }, 40000)
+            runCatching { proxy.close() }
+            runCatching { source.close() }
+            smbProxy = null
+            smbSource = null
+            statusText = "网络视频无法播放：$reason（未启用软解回退）"
+            isPlaying = false
+            controlsVisible = true
         } catch (e: Exception) {
             Log.e(TAG, "smb failed", e)
             smbTrace("EXCEPTION ${e.javaClass.name}: ${e.message}")
@@ -411,11 +372,11 @@ class PlayerComposeActivity : ComponentActivity() {
         }
     }
 
-    /** 通用 URL 直开（AC5 对照测量用）：与 SMB 路径共用 FfmpegPlaybackSession。 */
+    /** 通用 URL 直开：与 SMB 路径共用现有网络会话，失败不软解回退。 */
     private fun startUrlPlayback(holder: SurfaceHolder, url: String, label: String,
                                  routing: String) {
         playbackStarted = true
-        smbTrace("url-play begin url=$url")
+        smbTrace("url-play begin")
 
         // 220b 路由：硬解优先（MediaExtractor http URL → MediaCodec Surface）
         val netSession = com.kivo.cinema.playback.NetworkPlaybackSession(url, label)
@@ -424,46 +385,20 @@ class PlayerComposeActivity : ComponentActivity() {
         if (netRc == 0) {
             smbTrace("url-play harddec ok ${netSession.width}x${netSession.height}")
             durationMs = netSession.durationUs / 1000
-            statusText = "playing $url (harddec)"
+            statusText = "正在播放网络视频"
             isPlaying = true
             smbStarted = System.currentTimeMillis()
             lastTouchMs = smbStarted
             android.os.Handler(mainLooper).post(positionPoll)
             return
         }
-        smbTrace("url-play harddec failed rc=$netRc err=${netSession.lastError} → softdec")
+        val reason = netSession.lastError.replace(url, "网络片源")
+            .ifBlank { "启动失败，错误码 $netRc" }
         runCatching { netSession.stop() }
         smbNetSession = null
-
-        // 软解回退（220 v1 通道）
-        val fsession = com.kivo.cinema.bridge.FfmpegPlaybackSession(
-            java.io.File(label), label,
-            routingDecision = "ffmpeg",
-            routingReason = "playurl: $url (harddec failed: ${netSession.lastError})"
-        )
-        smbFfSession = fsession
-        val rc = fsession.openUrlVideo(url, holder.surface)
-        smbTrace("url-play openUrlVideo rc=$rc")
-        if (rc != 0) {
-            statusText = "URL open failed: ${fsession.lastError}"
-            fsession.close()
-            smbFfSession = null
-            finish()
-            return
-        }
-        val started = fsession.start()
-        smbTrace("url-play start rc=$started")
-        if (started != 0) {
-            runCatching { fsession.stopAndCollectEvidence() }
-            finish()
-            return
-        }
-        isPlaying = true
-        smbStarted = System.currentTimeMillis()
-        lastTouchMs = smbStarted
-        durationMs = fsession.durationUs() / 1000
-        statusText = "playing $url (softdec)"
-        android.os.Handler(mainLooper).post(positionPoll)
+        statusText = "网络视频无法播放：$reason（未启用软解回退）"
+        isPlaying = false
+        controlsVisible = true
     }
 
     private fun loadDanmaku(mediaPath: String) {
