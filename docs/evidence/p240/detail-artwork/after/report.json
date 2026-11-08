@@ -1,0 +1,328 @@
+[
+  {
+    "case": "no-logo-short",
+    "fixture_title": "测试片名",
+    "font_scale": 1,
+    "geometry": {
+      "meta": [
+        0,
+        1198,
+        1080,
+        1296
+      ],
+      "title": [
+        0,
+        956,
+        1080,
+        1198
+      ]
+    },
+    "nodes": []
+  },
+  {
+    "case": "no-logo-long",
+    "fixture_title": "这是用于检查长片名换行和缺图回退的隔离测试作品：穿越星空之后仍然继续的漫长旅程",
+    "font_scale": 1,
+    "geometry": {
+      "meta": [
+        0,
+        1452,
+        1080,
+        1550
+      ],
+      "title": [
+        0,
+        956,
+        1080,
+        1452
+      ]
+    },
+    "nodes": [
+      {
+        "text": "隔离组件测试 · no-logo-long · 1.0",
+        "description": "",
+        "bounds": [
+          0,
+          80,
+          588,
+          131
+        ]
+      },
+      {
+        "text": "这是用于检查长片名换行和缺图回退的隔离测试作品：穿越星空之后仍然继续的漫长旅程",
+        "description": "",
+        "bounds": [
+          66,
+          956,
+          1014,
+          1452
+        ]
+      },
+      {
+        "text": "2026年1月1日 · 测试地区 · 1小时30分钟",
+        "description": "",
+        "bounds": [
+          55,
+          1502,
+          1025,
+          1550
+        ]
+      }
+    ]
+  },
+  {
+    "case": "failed-logo",
+    "fixture_title": "图片失败仍应显示的测试片名",
+    "font_scale": 1,
+    "geometry": {
+      "meta": [
+        0,
+        1204,
+        1080,
+        1302
+      ],
+      "title": [
+        0,
+        956,
+        1080,
+        1204
+      ]
+    },
+    "nodes": [
+      {
+        "text": "隔离组件测试 · failed-logo · 1.0",
+        "description": "",
+        "bounds": [
+          0,
+          80,
+          547,
+          131
+        ]
+      },
+      {
+        "text": "图片失败仍应显示的测试片名",
+        "description": "",
+        "bounds": [
+          66,
+          956,
+          1014,
+          1204
+        ]
+      },
+      {
+        "text": "2026年1月1日 · 测试地区 · 1小时30分钟",
+        "description": "",
+        "bounds": [
+          55,
+          1254,
+          1025,
+          1302
+        ]
+      }
+    ]
+  },
+  {
+    "case": "successful-logo",
+    "fixture_title": "成功图片测试片名",
+    "font_scale": 1,
+    "geometry": {
+      "meta": [
+        0,
+        1198,
+        1080,
+        1296
+      ],
+      "title": [
+        0,
+        956,
+        1080,
+        1198
+      ]
+    },
+    "nodes": [
+      {
+        "text": "隔离组件测试 · successful-logo · 1.0",
+        "description": "",
+        "bounds": [
+          0,
+          80,
+          631,
+          131
+        ]
+      },
+      {
+        "text": "",
+        "description": "成功图片测试片名",
+        "bounds": [
+          66,
+          956,
+          1014,
+          1198
+        ]
+      },
+      {
+        "text": "2026年1月1日 · 测试地区 · 1小时30分钟",
+        "description": "",
+        "bounds": [
+          55,
+          1248,
+          1025,
+          1296
+        ]
+      }
+    ]
+  },
+  {
+    "case": "large-long",
+    "fixture_title": "这是用于检查长片名换行和缺图回退的隔离测试作品：穿越星空之后仍然继续的漫长旅程",
+    "font_scale": 1.5,
+    "geometry": {
+      "meta": [
+        0,
+        1481,
+        1080,
+        1659
+      ],
+      "title": [
+        0,
+        985,
+        1080,
+        1481
+      ]
+    },
+    "nodes": [
+      {
+        "text": "隔离组件测试 · large-long · 1.5",
+        "description": "",
+        "bounds": [
+          0,
+          80,
+          850,
+          160
+        ]
+      },
+      {
+        "text": "这是用于检查长片名换行和缺图回退的隔离测试作品：穿越星空之后仍然继续的漫长旅程",
+        "description": "",
+        "bounds": [
+          66,
+          985,
+          1014,
+          1481
+        ]
+      },
+      {
+        "text": "2026年1月1日 · 测试地区 · 1小时30分钟",
+        "description": "",
+        "bounds": [
+          55,
+          1531,
+          1025,
+          1659
+        ]
+      }
+    ]
+  },
+  {
+    "case": "missing-art",
+    "fixture_title": "无封面测试片名",
+    "font_scale": 1,
+    "geometry": {
+      "meta": [
+        0,
+        1198,
+        1080,
+        1296
+      ],
+      "title": [
+        0,
+        956,
+        1080,
+        1198
+      ]
+    },
+    "nodes": [
+      {
+        "text": "隔离组件测试 · missing-art · 1.0",
+        "description": "",
+        "bounds": [
+          0,
+          80,
+          557,
+          131
+        ]
+      },
+      {
+        "text": "无封面测试片名",
+        "description": "",
+        "bounds": [
+          66,
+          1074,
+          1014,
+          1198
+        ]
+      },
+      {
+        "text": "2026年1月1日 · 测试地区 · 1小时30分钟",
+        "description": "",
+        "bounds": [
+          55,
+          1248,
+          1025,
+          1296
+        ]
+      }
+    ]
+  },
+  {
+    "case": "failed-art",
+    "fixture_title": "封面失败测试片名",
+    "font_scale": 1,
+    "geometry": {
+      "meta": [
+        0,
+        1198,
+        1080,
+        1296
+      ],
+      "title": [
+        0,
+        956,
+        1080,
+        1198
+      ]
+    },
+    "nodes": [
+      {
+        "text": "隔离组件测试 · failed-art · 1.0",
+        "description": "",
+        "bounds": [
+          0,
+          80,
+          520,
+          131
+        ]
+      },
+      {
+        "text": "封面失败测试片名",
+        "description": "",
+        "bounds": [
+          66,
+          1074,
+          1014,
+          1198
+        ]
+      },
+      {
+        "text": "2026年1月1日 · 测试地区 · 1小时30分钟",
+        "description": "",
+        "bounds": [
+          55,
+          1248,
+          1025,
+          1296
+        ]
+      }
+    ]
+  }
+]

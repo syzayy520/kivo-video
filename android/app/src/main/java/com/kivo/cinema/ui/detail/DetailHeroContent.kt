@@ -32,16 +32,22 @@ import com.kivo.cinema.ui.design.TmdbImage
 /** 片名图层：独立于艺术图，贴在 meta 上方；与 meta 同属内容层，一起离屏。 */
 @Composable
 internal fun TitleLayer(d: TmdbDetail.Details, fg: Color) {
+    val logo = d.logoUrl?.takeIf { it.isNotBlank() }
+    var failed by remember(logo, d.title) { mutableStateOf(false) }
+    val showLogo = logo != null && !failed
     Box(
-        Modifier.fillMaxWidth().height(DETAIL_TITLE_BAND_DP.dp).padding(horizontal = 24.dp),
+        Modifier.fillMaxWidth().then(
+            if (showLogo) Modifier.height(DETAIL_TITLE_BAND_DP.dp)
+            else Modifier.heightIn(min = DETAIL_TITLE_BAND_DP.dp)
+        ).padding(horizontal = 24.dp),
         contentAlignment = Alignment.BottomCenter,
     ) {
-        val logo = d.logoUrl
-        if (logo != null) {
-            TmdbImage(logo, d.title, Modifier.fillMaxSize(), bg = Color.Transparent, fit = true)
+        if (showLogo) {
+            TmdbImage(logo!!, d.title, Modifier.fillMaxSize(), bg = Color.Transparent, fit = true,
+                onLoaded = { failed = !it })
         } else {
             Text(d.title, fontSize = 34.sp, fontWeight = FontWeight.Bold, color = fg,
-                textAlign = TextAlign.Center, maxLines = 2,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth())
         }
     }

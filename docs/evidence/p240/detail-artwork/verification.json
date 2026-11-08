@@ -1,0 +1,31 @@
+{
+  "checks": {
+    "successful-logo-geometry-preserved": true,
+    "no-logo-short-geometry-preserved": true,
+    "no-logo-short-metadata-below-title": true,
+    "no-logo-long-metadata-below-title": true,
+    "failed-logo-metadata-below-title": true,
+    "successful-logo-metadata-below-title": true,
+    "large-long-metadata-below-title": true,
+    "missing-art-metadata-below-title": true,
+    "failed-art-metadata-below-title": true,
+    "no-logo-long-grows": true,
+    "large-long-grows": true,
+    "failed-logo-full-title-node": true,
+    "no-logo-long-full-title-node": true,
+    "large-long-full-title-node": true,
+    "missing-art-pale-field": true,
+    "missing-art-message-ink": true,
+    "failed-art-pale-field": true,
+    "failed-art-message-ink": true,
+    "real-生化危机：爆发夜-geometry": true,
+    "real-2026年9月16日 · 美国/德国/法国 · 1小时34分钟-geometry": true,
+    "real-▶  播放-geometry": true,
+    "real-影片标记-geometry": true,
+    "real-收藏-geometry": true,
+    "real-更多操作-geometry": true,
+    "real-展开简介-geometry": true
+  },
+  "passed": 25,
+  "total": 25
+}

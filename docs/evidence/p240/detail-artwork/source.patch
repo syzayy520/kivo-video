@@ -1,0 +1,367 @@
+diff --git a/android/app/build.gradle.kts b/android/app/build.gradle.kts
+index e888c63d..b997fb01 100644
+--- a/android/app/build.gradle.kts
++++ b/android/app/build.gradle.kts
+@@ -16,7 +16,8 @@ android {
+         targetSdk = 37
+         versionCode = 1
+         versionName = "0.1.0-p12a"
+-        testInstrumentationRunner = "com.kivo.cinema.media.marks.FilmMarksInstrumentation"
++        testInstrumentationRunner = providers.gradleProperty("kivo.testRunner")
++            .getOrElse("com.kivo.cinema.media.marks.FilmMarksInstrumentation")
+ 
+         ndk {
+             abiFilters += listOf("arm64-v8a")
+diff --git a/android/app/src/androidTest/java/com/kivo/cinema/ui/detail/DetailArtworkInstrumentation.kt b/android/app/src/androidTest/java/com/kivo/cinema/ui/detail/DetailArtworkInstrumentation.kt
+new file mode 100644
+index 00000000..a3c5bd3c
+--- /dev/null
++++ b/android/app/src/androidTest/java/com/kivo/cinema/ui/detail/DetailArtworkInstrumentation.kt
+@@ -0,0 +1,131 @@
++package com.kivo.cinema.ui.detail
++
++import android.app.Activity
++import android.app.Instrumentation
++import android.content.Intent
++import android.graphics.Bitmap
++import android.graphics.Canvas
++import android.graphics.Paint
++import android.os.Bundle
++import android.graphics.Rect
++import android.view.accessibility.AccessibilityNodeInfo
++import androidx.activity.compose.setContent
++import androidx.compose.foundation.background
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.verticalScroll
++import androidx.compose.material3.Text
++import androidx.compose.runtime.*
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.layout.onGloballyPositioned
++import androidx.compose.ui.layout.boundsInRoot
++import androidx.compose.ui.platform.LocalDensity
++import androidx.compose.ui.unit.Density
++import androidx.compose.ui.unit.dp
++import com.kivo.cinema.MainActivity
++import com.kivo.cinema.tmdb.TmdbDetail
++import com.kivo.cinema.ui.design.TmdbImageCache
++import org.json.JSONArray
++import org.json.JSONObject
++import java.io.File
++import java.util.concurrent.ConcurrentHashMap
++
++/** Component evidence only: no online title overrides, persistent settings, or user cache edits. */
++class DetailArtworkInstrumentation : Instrumentation() {
++    private var label = "probe"
++    override fun onCreate(arguments: Bundle?) {
++        super.onCreate(arguments)
++        label = arguments?.getString("label") ?: label
++        require(label.matches(Regex("[a-z0-9-]+")))
++        start()
++    }
++
++    override fun onStart() {
++        val folder = File(targetContext.cacheDir, "detail-artwork-probe/$label").apply { mkdirs() }
++        var activity: MainActivity? = null
++        try {
++            activity = startActivitySync(Intent(targetContext, MainActivity::class.java)
++                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as MainActivity
++            val host = activity
++            val goodLogo = "fixture://logo-success-$label"
++            val bitmap = Bitmap.createBitmap(480, 100, Bitmap.Config.ARGB_8888)
++            Canvas(bitmap).drawText("KIVO TEST", 12f, 76f, Paint().apply {
++                color = android.graphics.Color.BLACK; textSize = 70f; isAntiAlias = true
++            })
++            TmdbImageCache.put(goodLogo, bitmap)
++            val longTitle = "这是用于检查长片名换行和缺图回退的隔离测试作品：穿越星空之后仍然继续的漫长旅程"
++            val cases = listOf(
++                Triple("no-logo-short", "测试片名", null),
++                Triple("no-logo-long", longTitle, null),
++                Triple("failed-logo", "图片失败仍应显示的测试片名", "fixture://failed-logo-$label"),
++                Triple("successful-logo", "成功图片测试片名", goodLogo),
++                Triple("large-long", longTitle, null),
++                Triple("missing-art", "无封面测试片名", null),
++                Triple("failed-art", "封面失败测试片名", null),
++            )
++            val report = JSONArray()
++            for ((name, title, logo) in cases) {
++                val geometry = ConcurrentHashMap<String, List<Float>>()
++                val model = TmdbDetail.Details(0, title, "2026-01-01", emptyList(), "", 0f,
++                    "", null, if (name == "failed-art") "fixture://failed-art-$label" else "",
++                    logo, false, "测试地区", null, 90, null, emptyList(), emptyList(),
++                    null, emptyList(), emptyList(), emptyList())
++                val scale = if (name == "large-long") 1.5f else 1f
++                runOnMainSync {
++                    host.setContent {
++                        val deviceDensity = LocalDensity.current
++                        CompositionLocalProvider(LocalDensity provides Density(deviceDensity.density, scale)) {
++                            key(name) {
++                                Box(Modifier.fillMaxSize().background(Color(0xFFF2F2F8))) {
++                                    if (name.endsWith("art")) DetailBackdrop(model,
++                                        remember { mutableStateOf(Color(0xFFF2F2F8)) }, { 0f })
++                                    Column(Modifier.fillMaxSize().statusBarsPadding().verticalScroll(rememberScrollState())) {
++                                        Text("隔离组件测试 · $name · $scale", color = Color.Black)
++                                        Spacer(Modifier.height(300.dp))
++                                        Box(Modifier.onGloballyPositioned {
++                                            val r = it.boundsInRoot()
++                                            geometry["title"] = listOf(r.left, r.top, r.right, r.bottom)
++                                        }) { TitleLayer(model, Color.Black) }
++                                        Box(Modifier.onGloballyPositioned {
++                                            val r = it.boundsInRoot()
++                                            geometry["meta"] = listOf(r.left, r.top, r.right, r.bottom)
++                                        }) { MetaLine(model, Color.Black) }
++                                    }
++                                }
++                            }
++                        }
++                    }
++                }
++                Thread.sleep(2200)
++                waitForIdleSync()
++                val nodes = JSONArray()
++                fun visit(n: AccessibilityNodeInfo) {
++                    if (!n.refresh()) return
++                    val r = Rect(); n.getBoundsInScreen(r)
++                    if (n.text != null || n.contentDescription != null) nodes.put(JSONObject().apply {
++                        put("text", n.text?.toString().orEmpty())
++                        put("description", n.contentDescription?.toString().orEmpty())
++                        put("bounds", JSONArray(listOf(r.left, r.top, r.right, r.bottom)))
++                    })
++                    for (i in 0 until n.childCount) n.getChild(i)?.let { visit(it) }
++                }
++                uiAutomation.rootInActiveWindow?.let { visit(it) }
++                val screenshot = checkNotNull(uiAutomation.takeScreenshot())
++                File(folder, "$name.png").outputStream().use { screenshot.compress(Bitmap.CompressFormat.PNG, 100, it) }
++                screenshot.recycle()
++                report.put(JSONObject().apply {
++                    put("case", name); put("fixture_title", title); put("font_scale", scale)
++                    put("geometry", JSONObject(geometry.mapValues { JSONArray(it.value) }))
++                    put("nodes", nodes)
++                })
++            }
++            File(folder, "report.json").writeText(report.toString(2))
++            finish(Activity.RESULT_OK, Bundle().apply { putString("stream", "7 fixture captures saved: $label\n") })
++        } catch (e: Throwable) {
++            finish(Activity.RESULT_CANCELED, Bundle().apply { putString("stream", e.stackTraceToString()) })
++        } finally {
++            activity?.let { runOnMainSync { it.finish() } }
++        }
++    }
++}
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt
+index c7933c39..89c29925 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt
+@@ -3,8 +3,7 @@ package com.kivo.cinema.ui.detail
+ import androidx.compose.foundation.background
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.material3.Text
+-import androidx.compose.runtime.Composable
+-import androidx.compose.runtime.State
++import androidx.compose.runtime.*
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.draw.clipToBounds
+@@ -13,6 +12,7 @@ import androidx.compose.ui.graphics.Brush
+ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.graphics.TransformOrigin
+ import androidx.compose.ui.graphics.graphicsLayer
++import androidx.compose.ui.graphics.luminance
+ import androidx.compose.ui.text.style.TextAlign
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
+@@ -27,16 +27,28 @@ internal fun DetailBackdrop(
+     scrollDp: () -> Float,
+     pullDp: Float = 0f,
+ ) {
+-    Box(Modifier.fillMaxSize().background(if (details == null) com.kivo.cinema.ui.design.DesignTokens.pageBackground else Color.Black).clipToBounds()) {
+-        val art = details?.heroArtworkUrl.orEmpty()
+-        if (art.isNotEmpty()) TmdbImage(art, details?.title.orEmpty(),
++    val art = details?.heroArtworkUrl.orEmpty()
++    var failed by remember(art) { mutableStateOf(false) }
++    val missing = art.isBlank() || failed
++    Box(Modifier.fillMaxSize().background(when {
++        details == null -> com.kivo.cinema.ui.design.DesignTokens.pageBackground
++        missing -> field.value
++        else -> Color.Black
++    }).clipToBounds()) {
++        if (!missing) TmdbImage(art, details?.title.orEmpty(),
+             Modifier.fillMaxWidth().height(585.dp).graphicsLayer {
+                 // Measured reference: about +10.7% at 312pt, centered on media.
+                 val upward = 1f + scrollDp().coerceIn(0f, 350f) / (585f * 5f)
+                 val stretch = upward * (1f + pullDp / 585f)
+                 scaleX = stretch; scaleY = stretch
+                 transformOrigin = TransformOrigin(.5f, if (pullDp > 0f) 0f else .5f)
+-            })
++            }, onLoaded = { failed = !it })
++        if (details != null && missing) Text(
++            if (failed) "封面暂不可用" else "暂无封面",
++            color = (if (field.value.luminance() > .45f) Color.Black else Color.White).copy(alpha = .6f),
++            fontSize = 14.sp, textAlign = TextAlign.Center,
++            modifier = Modifier.fillMaxWidth().padding(top = 200.dp),
++        )
+         Box(Modifier.fillMaxSize().drawBehind {
+             val color = field.value
+             val shift = (scrollDp() - pullDp) * density
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt
+index 7726be33..2e605110 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt
+@@ -32,16 +32,22 @@ import com.kivo.cinema.ui.design.TmdbImage
+ /** 片名图层：独立于艺术图，贴在 meta 上方；与 meta 同属内容层，一起离屏。 */
+ @Composable
+ internal fun TitleLayer(d: TmdbDetail.Details, fg: Color) {
++    val logo = d.logoUrl?.takeIf { it.isNotBlank() }
++    var failed by remember(logo, d.title) { mutableStateOf(false) }
++    val showLogo = logo != null && !failed
+     Box(
+-        Modifier.fillMaxWidth().height(DETAIL_TITLE_BAND_DP.dp).padding(horizontal = 24.dp),
++        Modifier.fillMaxWidth().then(
++            if (showLogo) Modifier.height(DETAIL_TITLE_BAND_DP.dp)
++            else Modifier.heightIn(min = DETAIL_TITLE_BAND_DP.dp)
++        ).padding(horizontal = 24.dp),
+         contentAlignment = Alignment.BottomCenter,
+     ) {
+-        val logo = d.logoUrl
+-        if (logo != null) {
+-            TmdbImage(logo, d.title, Modifier.fillMaxSize(), bg = Color.Transparent, fit = true)
++        if (showLogo) {
++            TmdbImage(logo!!, d.title, Modifier.fillMaxSize(), bg = Color.Transparent, fit = true,
++                onLoaded = { failed = !it })
+         } else {
+             Text(d.title, fontSize = 34.sp, fontWeight = FontWeight.Bold, color = fg,
+-                textAlign = TextAlign.Center, maxLines = 2,
++                textAlign = TextAlign.Center,
+                 modifier = Modifier.fillMaxWidth())
+         }
+     }
+diff --git a/tools/reference/rex/detail_artwork_device.py b/tools/reference/rex/detail_artwork_device.py
+new file mode 100644
+index 00000000..3e90613b
+--- /dev/null
++++ b/tools/reference/rex/detail_artwork_device.py
+@@ -0,0 +1,67 @@
++"""Run isolated production-component artwork probes on the K40; export known paths only."""
++import argparse
++import json
++import re
++import subprocess
++import time
++import xml.etree.ElementTree as ET
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[3]
++OUT = ROOT / 'docs/evidence/p240/detail-artwork'
++ADB = ['C:/Android/sdk/platform-tools/adb.exe', '-s', 'b6e950ee']
++
++
++def install(apk):
++    process = subprocess.Popen(ADB + ['install', '-r', '-t', str(apk)],
++                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
++    time.sleep(2)
++    if process.poll() is None:
++        subprocess.run(ADB + ['shell', 'uiautomator', 'dump', '/sdcard/kivo-install.xml'],
++                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
++        raw = subprocess.check_output(ADB + ['exec-out', 'cat', '/sdcard/kivo-install.xml'])
++        for node in ET.fromstring(raw).iter('node'):
++            if node.get('text') in ('继续安装', '安装'):
++                a, b, c, d = map(int, re.findall(r'\d+', node.get('bounds')))
++                subprocess.check_call(ADB + ['shell', 'input', 'tap', str((a+c)//2), str((b+d)//2)])
++                break
++    output = process.communicate(timeout=90)[0].decode(errors='replace')
++    assert process.returncode == 0 and 'Success' in output, output
++    return output
++
++
++def probe(label):
++    assert re.fullmatch('[a-z0-9-]+', label)
++    folder = OUT / label
++    folder.mkdir(parents=True, exist_ok=True)
++    process = subprocess.Popen(ADB + ['shell', 'am', 'instrument', '-w', '-e', 'label', label,
++        'com.kivo.cinema.test/com.kivo.cinema.ui.detail.DetailArtworkInstrumentation'], stdout=subprocess.PIPE)
++    # HyperOS may block the runner's background activity launch; explicitly foreground the host.
++    time.sleep(3)
++    subprocess.run(ADB + ['shell', 'am', 'start', '-n', 'com.kivo.cinema/.MainActivity'],
++                   check=True, stdout=subprocess.DEVNULL)
++    result = process.communicate(timeout=100)[0]
++    (folder / 'instrumentation.txt').write_bytes(result)
++    assert b'7 fixture captures saved' in result, result.decode(errors='replace')
++    def export(name):
++        data = subprocess.check_output(ADB + ['exec-out', 'run-as', 'com.kivo.cinema', 'cat',
++            f'cache/detail-artwork-probe/{label}/{name}'])
++        (folder / name).write_bytes(data)
++        return data
++    report = json.loads(export('report.json'))
++    for case in report:
++        export(case['case'] + '.png')
++    print(f'{label}: {len(report)} cases exported')
++
++
++if __name__ == '__main__':
++    parser = argparse.ArgumentParser()
++    parser.add_argument('label')
++    parser.add_argument('--install-test', action='store_true')
++    parser.add_argument('--install-app', action='store_true')
++    args = parser.parse_args()
++    if args.install_app:
++        print(install(ROOT / 'android/app/build/outputs/apk/debug/app-debug.apk'))
++    if args.install_test:
++        print(install(ROOT / 'android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk'))
++    probe(args.label)
+diff --git a/tools/reference/rex/verify_detail_artwork.py b/tools/reference/rex/verify_detail_artwork.py
+new file mode 100644
+index 00000000..d89d4ffb
+--- /dev/null
++++ b/tools/reference/rex/verify_detail_artwork.py
+@@ -0,0 +1,50 @@
++"""Read-only reproduction of the archived K40 artwork component checks."""
++import json
++from pathlib import Path
++import xml.etree.ElementTree as ET
++from PIL import Image
++
++ROOT = Path(__file__).resolve().parents[3]
++OUT = ROOT / 'docs/evidence/p240/detail-artwork'
++
++
++def verify():
++    before, after = [{r['case']: r for r in json.loads((OUT / label / 'report.json').read_text(encoding='utf-8'))}
++                     for label in ('before', 'after')]
++    checks = {}
++    for name in ('successful-logo', 'no-logo-short'):
++        checks[name + '-geometry-preserved'] = before[name]['geometry'] == after[name]['geometry']
++    for name in after:
++        g = after[name]['geometry']
++        checks[name + '-metadata-below-title'] = g['meta'][1] >= g['title'][3]
++    for name in ('no-logo-long', 'large-long'):
++        def height(row):
++            r = row['geometry']['title']
++            return r[3] - r[1]
++        checks[name + '-grows'] = height(after[name]) > height(before[name])
++    for name in ('failed-logo', 'no-logo-long', 'large-long'):
++        row = after[name]
++        checks[name + '-full-title-node'] = any(n['text'] == row['fixture_title'] for n in row['nodes'])
++    for name in ('missing-art', 'failed-art'):
++        picture = Image.open(OUT / 'after' / (name + '.png')).convert('RGB')
++        # Screenshot evidence: pale field and actual dark message ink in the empty media area.
++        checks[name + '-pale-field'] = min(picture.getpixel((30, 300))) > 220
++        ink = sum(max(pixel) < 180 for pixel in picture.crop((350, 540, 730, 620)).getdata())
++        checks[name + '-message-ink'] = ink > 100
++    old = ET.parse(ROOT / 'docs/evidence/p240/detail-layout/android/after-restored-top.xml')
++    new = ET.parse(OUT / 'android/real-detail-top.xml')
++    for label in ('生化危机：爆发夜', '2026年9月16日 · 美国/德国/法国 · 1小时34分钟',
++                  '▶  播放', '影片标记', '收藏', '更多操作', '展开简介'):
++        def bounds(tree):
++            return [n.get('bounds') for n in tree.iter('node')
++                    if label in (n.get('text'), n.get('content-desc'))]
++        a, b = bounds(old), bounds(new)
++        checks['real-' + label + '-geometry'] = bool(a) and a == b
++    return checks
++
++
++if __name__ == '__main__':
++    checks = verify()
++    result = {'checks': checks, 'passed': sum(checks.values()), 'total': len(checks)}
++    print(json.dumps(result, ensure_ascii=False, indent=2))
++    raise SystemExit(0 if all(checks.values()) else 1)

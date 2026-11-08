@@ -1,0 +1,152 @@
+{
+  "base": "513239ab",
+  "device": "b6e950ee",
+  "files": {
+    "docs/evidence/p240/detail-artwork/.gitattributes": {
+      "bytes": 85,
+      "sha256": "406ed8e7384fa324ba983858c3b0ec929b34cf44e84d20444ef65343c8099167"
+    },
+    "docs/evidence/p240/detail-artwork/build-before.log": {
+      "bytes": 3863,
+      "sha256": "f2efafca65d95e6827b9cfdec991d19deb7dc0df32b414078342353a0d70b128"
+    },
+    "docs/evidence/p240/detail-artwork/build-probe.log": {
+      "bytes": 3791,
+      "sha256": "fed2667b2cda93f6d6fd8620928b02cf199308a7378bcf4cd9e1e85d6c7d6115"
+    },
+    "docs/evidence/p240/detail-artwork/build.log": {
+      "bytes": 4777,
+      "sha256": "3ead010c4fe4fb2c892638b59beceff0c6969b4960c6da988251c44f74956208"
+    },
+    "docs/evidence/p240/detail-artwork/operations.jsonl": {
+      "bytes": 62,
+      "sha256": "2acf34cf5953d534ca417d688fb6b7b4dbc0c091a12778dfe3b3365c11235ec8"
+    },
+    "docs/evidence/p240/detail-artwork/source.patch": {
+      "bytes": 19018,
+      "sha256": "7be4b0549bd2b2a327666c520ee953d3b92d12a01a95eb69494bd419bfb20a2b"
+    },
+    "docs/evidence/p240/detail-artwork/status.md": {
+      "bytes": 3428,
+      "sha256": "abf2ee637e7d62ce4035caeb073755477a635d6b444a1d635b77c13ffa45a2e6"
+    },
+    "docs/evidence/p240/detail-artwork/verification.json": {
+      "bytes": 1163,
+      "sha256": "1097edf0c91896700932495c55983dcb88a0deb1a53f2f3f8f373f9a97d8fb8a"
+    },
+    "docs/evidence/p240/detail-artwork/after/failed-art.png": {
+      "bytes": 82424,
+      "sha256": "1a6c72c616505e99c0a142b3c0818427cf2eacee8344e12fac29ef59069395b1"
+    },
+    "docs/evidence/p240/detail-artwork/after/failed-logo.png": {
+      "bytes": 76089,
+      "sha256": "8aa31992b9aa8b7be1efb5b16c3f82e47207e77ecf88e3064460a771a97f1c3e"
+    },
+    "docs/evidence/p240/detail-artwork/after/instrumentation.txt": {
+      "bytes": 35,
+      "sha256": "22b7172e2e3df3da75a817061900287143a3e9a87ce3f115b77ba76d437ef9b2"
+    },
+    "docs/evidence/p240/detail-artwork/after/large-long.png": {
+      "bytes": 143796,
+      "sha256": "213f8e232d1b1b4dc827358a5f6940ba06a0a578969ff549275cbbeef1ab4d3c"
+    },
+    "docs/evidence/p240/detail-artwork/after/missing-art.png": {
+      "bytes": 77384,
+      "sha256": "7368ae220344644a624482fa61daa3b203ef641d173f3da09da742f4f144bdb9"
+    },
+    "docs/evidence/p240/detail-artwork/after/no-logo-long.png": {
+      "bytes": 132853,
+      "sha256": "df2a2de3d0cfd2b9d2b3ebe4ee3a3915711bf5a83af3fee4d6a33b5a1b89d813"
+    },
+    "docs/evidence/p240/detail-artwork/after/no-logo-short.png": {
+      "bytes": 55417,
+      "sha256": "f9509f1f6c4064c95df2ed928fc378d83c595b83b14931461520ccd49a9095df"
+    },
+    "docs/evidence/p240/detail-artwork/after/report.json": {
+      "bytes": 5960,
+      "sha256": "146f5c23a7927479f0c56095f7490c9f6db259f4e1fe08b32696f0cc3bc40ba2"
+    },
+    "docs/evidence/p240/detail-artwork/after/successful-logo.png": {
+      "bytes": 73139,
+      "sha256": "32ac107c8152e93b9f9ea6b9449d1352189241df61b599a7f94191f85cee2e03"
+    },
+    "docs/evidence/p240/detail-artwork/android/real-detail-top-stack.json": {
+      "bytes": 184,
+      "sha256": "33b4ae7cda2c574183bd327a8a9bd0875bf61b27dca14862630da549e6524909"
+    },
+    "docs/evidence/p240/detail-artwork/android/real-detail-top.png": {
+      "bytes": 2268968,
+      "sha256": "6dc80e8e7c622b05a721d5437e3b22314bee18c509d224ec9756601d3d6a2c57"
+    },
+    "docs/evidence/p240/detail-artwork/android/real-detail-top.xml": {
+      "bytes": 8939,
+      "sha256": "62eb9d8f1a83d089d4ec12e999890ed68a03e374e42fffb0323c4bea428515a9"
+    },
+    "docs/evidence/p240/detail-artwork/before/failed-art.png": {
+      "bytes": 79272,
+      "sha256": "74a7c9bccf4711605fe48fdd585684f58ebf85e4afef12c1cdc5c8af740e41a6"
+    },
+    "docs/evidence/p240/detail-artwork/before/failed-logo.png": {
+      "bytes": 45643,
+      "sha256": "2aaf631b07abc04ae540aedc6c332301313358702ec9e1f25b05bd92d015fd34"
+    },
+    "docs/evidence/p240/detail-artwork/before/instrumentation.txt": {
+      "bytes": 36,
+      "sha256": "4b7d3067e9669c7a9c1dbdf1770937796c54064bbb15d38dc948e1d9c3474548"
+    },
+    "docs/evidence/p240/detail-artwork/before/large-long.png": {
+      "bytes": 98334,
+      "sha256": "8041bfc339be710396974c885599830baea1735181202e669889a09e21cd4363"
+    },
+    "docs/evidence/p240/detail-artwork/before/missing-art.png": {
+      "bytes": 51360,
+      "sha256": "6922f51d538d361a2524170b3add0002f1bcd68f6c7a6818b6dd47dfefb997dc"
+    },
+    "docs/evidence/p240/detail-artwork/before/no-logo-long.png": {
+      "bytes": 86463,
+      "sha256": "0144bc34f718b241c13751d5d734381f945e977687ad4330057bf58c2ca3b5f2"
+    },
+    "docs/evidence/p240/detail-artwork/before/no-logo-short.png": {
+      "bytes": 55079,
+      "sha256": "341d3470d3ac68ccc742cec8208e02db73bfaf37cb4cc91910a22c2142bc3455"
+    },
+    "docs/evidence/p240/detail-artwork/before/report.json": {
+      "bytes": 5589,
+      "sha256": "f88c70d484fa70afe9298359b6e939ff8d3030116085dacb5654744cea50d7c4"
+    },
+    "docs/evidence/p240/detail-artwork/before/successful-logo.png": {
+      "bytes": 72764,
+      "sha256": "29f83098171c62280d233927d789881b5dd8e8d4495e498d4de0dbd49bcc3252"
+    },
+    "android/app/build.gradle.kts": {
+      "bytes": 4317,
+      "sha256": "43abeee9a31fadd0d12d841307442263b62b2478a9e422b1c6c327efe0e61395",
+      "normalization": "LF"
+    },
+    "android/app/src/main/java/com/kivo/cinema/ui/detail/DetailHeroContent.kt": {
+      "bytes": 5544,
+      "sha256": "ebac0d34cfe8ea9ff75b6bc0bd100add1d3878768f0b8926ec0bab7caccd787a",
+      "normalization": "LF"
+    },
+    "android/app/src/main/java/com/kivo/cinema/ui/detail/DetailBackdrop.kt": {
+      "bytes": 2807,
+      "sha256": "c4161a6e4dbcc992ea12a5655bc251ba41ab1a0eeefa3ab76a28a5f0d3e56dab",
+      "normalization": "LF"
+    },
+    "android/app/src/androidTest/java/com/kivo/cinema/ui/detail/DetailArtworkInstrumentation.kt": {
+      "bytes": 7076,
+      "sha256": "c3fc96f3e3936c0a6d8095f6cfb3262f6f9a7314ecf670249a62761980b2e969",
+      "normalization": "LF"
+    },
+    "tools/reference/rex/detail_artwork_device.py": {
+      "bytes": 3046,
+      "sha256": "5e2976cc157c362b34a2a0e85ad213dfb7bb55d52f91ba6668c858993f8e8c30",
+      "normalization": "LF"
+    },
+    "tools/reference/rex/verify_detail_artwork.py": {
+      "bytes": 2500,
+      "sha256": "bd684f5cdad42b79c767f913df8e447f37c47a527632a330b782e2e653ee6599",
+      "normalization": "LF"
+    }
+  }
+}
