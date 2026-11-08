@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -119,7 +120,6 @@ class MovieDetailActivity : ComponentActivity() {
         val context = LocalContext.current
         var details by remember { mutableStateOf<TmdbDetail.Details?>(null) }
         var error by remember { mutableStateOf<String?>(null) }
-        // 与首页同名同义：环境色（由艺术图下部实测得来）
         var media by remember { mutableStateOf<MediaMatch.Matched?>(null) }
         var fieldColor by remember { mutableStateOf(DesignTokens.pageBackground) }
         LaunchedEffect(id, isTv) {
@@ -132,7 +132,6 @@ class MovieDetailActivity : ComponentActivity() {
                     val bmp = withContext(Dispatchers.IO) { TmdbImageCache.load(url) }
                     bmp?.let { fieldColor = PosterPalette.ambientOf(it) }
                 }
-                // 本地片源匹配（240 §9）：拿列表 → 按标题匹配 → 无匹配则走空态
                 media = withContext(Dispatchers.IO) {
                     MediaMatch.find(LocalVideoSource.query(this@MovieDetailActivity), d.title)
                 }
@@ -140,7 +139,6 @@ class MovieDetailActivity : ComponentActivity() {
         }
         val listState = rememberLazyListState()
         val density = LocalDensity.current
-        // 首页同款：色场 = 环境色 →（滚动 390dp）→ 页面浅色
         val scrimColor: State<Color> = remember {
             derivedStateOf {
                 val scrollDp = if (listState.firstVisibleItemIndex == 0)
@@ -149,42 +147,54 @@ class MovieDetailActivity : ComponentActivity() {
                     fieldColor, DesignTokens.pageBackground, (scrollDp / 390f).coerceIn(0f, 1f))
             }
         }
+        // 材质随滚动变浅：过阈值后转深色文字（参照滚动态是深字压浅磨砂）
         val chromeDark by remember {
-            derivedStateOf { HomeAtmosphere.lightForeground(scrimColor.value) }
+            derivedStateOf {
+                val sc = if (listState.firstVisibleItemIndex == 0)
+                    listState.firstVisibleItemScrollOffset / density.density else 390f
+                sc < DETAIL_CHROME_FLIP_DP
+            }
         }
         LaunchedEffect(chromeDark) { onDarkStatusIcons(!chromeDark) }
         val fg = if (chromeDark) Color.White else DesignTokens.textMain
         val fgSub = if (chromeDark) Color.White.copy(alpha = .72f) else DesignTokens.textSub
 
         Box(Modifier.fillMaxSize().drawBehind { drawRect(scrimColor.value) }) {
+            val scrollDpNow = {
+                if (listState.firstVisibleItemIndex == 0)
+                    listState.firstVisibleItemScrollOffset / density.density else 390f
+            }
+            // 底层：艺术图固定不动（240 §12）。不裁剪、不铺渐变。
+            Box(Modifier.fillMaxWidth().height(DETAIL_HERO_DP.dp)) {
+                HeroArt(details, error, fg, scrimColor)
+            }
+            // 提亮层：随滚动增强，把艺术图冲淡为浅色（参照 10 帧里艺术图原地不动、逐渐变浅）
+            Box(Modifier.fillMaxSize().drawBehind {
+                drawRect(Color.White.copy(
+                    alpha = (scrollDpNow() / DETAIL_WASH_FULL_DP).coerceIn(0f, 1f) *
+                        DETAIL_WASH_MAX_ALPHA))
+            })
+            // 上层：内容层，向上滑时逐段盖住底层幕布
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 60.dp),
             ) {
-                item(key = "hero") {
-                    Box(Modifier.fillMaxWidth().height(DETAIL_HERO_DP.dp)) {
-                        HeroArt(details, error, fg, scrimColor)
-                        val h = details
-                        if (h != null) {
-                            TitleLayer(h, fg)
-                            Box(Modifier.fillMaxWidth().offset(y = DETAIL_META_TOP_DP.dp)) {
-                                MetaLine(h, fg)
-                            }
-                            Box(Modifier.fillMaxWidth().offset(y = DETAIL_ACTIONS_TOP_DP.dp)) {
-                                ActionRow(isTv, context, media) { m ->
-                                    startActivity(Intent(this@MovieDetailActivity,
-                                        DetailActivity::class.java)
-                                        .putExtra("kivo.media", m.item.path)
-                                        .putExtra("kivo.durationMs", m.item.durationMs))
-                                }
-                            }
-                        }
-                    }
-                }
+                // 透明占位：露出底层幕布
+                item(key = "spacer") { Spacer(Modifier.height(DETAIL_TITLE_TOP_DP.dp)) }
                 val d = details
                 if (d != null) {
-                    if (d.overview.isNotBlank()) item(key = "overview") { Overview(d.overview, fg) }
+                    item(key = "title") { TitleLayer(d, fg) }
+                    item(key = "meta") { MetaLine(d, fg) }
+                    item(key = "actions") { ActionRow(isTv, context, media) { m ->
+                        startActivity(Intent(this@MovieDetailActivity, DetailActivity::class.java)
+                            .putExtra("kivo.media", m.item.path)
+                            .putExtra("kivo.durationMs", m.item.durationMs))
+                    } }
+                    // 以下各段带不透明底色：滚上来时盖住幕布
+                    if (d.overview.isNotBlank()) item(key = "overview") {
+                        Overview(d.overview, fg, scrimColor)
+                    }
                     if (d.rating > 0f) item(key = "badges") {
                         Box(Modifier.fillMaxWidth().padding(top = 14.dp)) {
                             RatingBadges(listOf("TMDB" to d.rating),
@@ -192,11 +202,10 @@ class MovieDetailActivity : ComponentActivity() {
                                 valueColor = fg)
                         }
                     }
-                    // 240 §9：有匹配 → 播放资源 + 媒体信息卡；无匹配 → 空态块
                     val mm = media
                     if (mm != null) {
                         item(key = "source") {
-                            Column {
+                            Column(Modifier.fillMaxWidth()) {
                                 Spacer(Modifier.height(56.dp))
                                 PlaySourceHeader(mm.quality, fg)
                                 Spacer(Modifier.height(12.dp))
@@ -206,17 +215,21 @@ class MovieDetailActivity : ComponentActivity() {
                         }
                     } else {
                         item(key = "empty") {
-                            Column {
+                            Column(Modifier.fillMaxWidth()) {
                                 Spacer(Modifier.height(70.dp))
                                 EmptyResourceBlock(fg)
                             }
                         }
                     }
                     d.studioLogo?.let { url ->
-                        item(key = "studio") { StudioLogo(url, fg) }
+                        item(key = "studio") {
+                            Column(Modifier.fillMaxWidth()) {
+                                StudioLogo(url, fg)
+                            }
+                        }
                     }
                     if (d.cast.isNotEmpty()) item(key = "cast") {
-                        Column {
+                        Column(Modifier.fillMaxWidth()) {
                             Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
                             SectionHeader("演职员", fg)
                             Spacer(Modifier.height(14.dp))
@@ -225,7 +238,7 @@ class MovieDetailActivity : ComponentActivity() {
                     }
                     if (d.certifications.isNotEmpty() || d.contentNotes.isNotEmpty()) {
                         item(key = "guide") {
-                            Column {
+                            Column(Modifier.fillMaxWidth()) {
                                 Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
                                 SectionHeader("家长指南", fg)
                                 Spacer(Modifier.height(20.dp))
@@ -234,7 +247,7 @@ class MovieDetailActivity : ComponentActivity() {
                         }
                     }
                     if (d.genres.isNotEmpty()) item(key = "genres") {
-                        Column {
+                        Column(Modifier.fillMaxWidth()) {
                             Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
                             SectionHeader("分类", fg)
                             Spacer(Modifier.height(12.dp))
@@ -243,7 +256,7 @@ class MovieDetailActivity : ComponentActivity() {
                     }
                     d.trailerKey?.let { key ->
                         item(key = "trailer") {
-                            Column {
+                            Column(Modifier.fillMaxWidth()) {
                                 Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
                                 SectionHeader("预告片", fg)
                                 Spacer(Modifier.height(12.dp))
@@ -255,7 +268,7 @@ class MovieDetailActivity : ComponentActivity() {
                         }
                     }
                     if (d.stills.isNotEmpty()) item(key = "stills") {
-                        Column {
+                        Column(Modifier.fillMaxWidth()) {
                             Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
                             SectionHeader("剧照", fg)
                             Spacer(Modifier.height(12.dp))
@@ -263,7 +276,7 @@ class MovieDetailActivity : ComponentActivity() {
                         }
                     }
                     if (d.similar.isNotEmpty()) item(key = "similar") {
-                        Column {
+                        Column(Modifier.fillMaxWidth()) {
                             Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
                             SectionHeader("相似作品", fg)
                             Spacer(Modifier.height(10.dp))
@@ -273,7 +286,8 @@ class MovieDetailActivity : ComponentActivity() {
                 } else if (error != null) {
                     item(key = "error") {
                         Text(error!!, fontSize = 14.sp, color = fgSub,
-                            modifier = Modifier.padding(start = DETAIL_PAD_DP.dp, top = 16.dp))
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(start = DETAIL_PAD_DP.dp, top = 16.dp))
                     }
                 }
             }
@@ -281,28 +295,19 @@ class MovieDetailActivity : ComponentActivity() {
         }
     }
 
-    /** 幕布：507dp 艺术图原色铺满，**不铺遮罩**——页面底色即艺术图下部色，天然无缝（240 §6）。 */
+    /**
+     * 幕布（240 §12）：底层固定层，**不铺渐变**——覆盖边界由上层内容的不透明底色产生。
+     * 主图用剧照（不含烧死片名），片名交给 [TitleLayer]；无剧照才退海报。
+     */
     @Composable
     private fun HeroArt(details: TmdbDetail.Details?, error: String?, fg: Color,
                         scrimColor: State<Color>) {
         Box(Modifier.fillMaxSize()) {
             val d = details
-            // 240 §10：幕布主图用**剧照**（不含烧死片名），片名交给独立 logo 图层
             val art = d?.backdropUrl ?: d?.posterUrl.orEmpty()
             if (art.isNotEmpty()) TmdbImage(art, d?.title.orEmpty(), Modifier.fillMaxSize())
-            // 下缘色场（首页同款机制，起点下移到 55% 以保住海报标题区）
-            Box(Modifier.fillMaxSize().drawBehind {
-                val c = scrimColor.value
-                drawRect(Brush.verticalGradient(
-                    0f to c.copy(alpha = 0f),
-                    .72f to c.copy(alpha = 0f),
-                    .85f to c.copy(alpha = .55f),
-                    .94f to c.copy(alpha = .88f),
-                    1f to c))
-            })
             if (d == null && error != null) {
-                Text(error, fontSize = 13.sp, color = fg,
-                    textAlign = TextAlign.Center,
+                Text(error, fontSize = 13.sp, color = fg, textAlign = TextAlign.Center,
                     modifier = Modifier.align(Alignment.Center).padding(horizontal = 24.dp))
             }
         }
@@ -316,8 +321,7 @@ class MovieDetailActivity : ComponentActivity() {
     @Composable
     private fun TitleLayer(d: TmdbDetail.Details, fg: Color) {
         Box(
-            Modifier.fillMaxWidth().offset(y = DETAIL_TITLE_TOP_DP.dp)
-                .height(DETAIL_TITLE_BAND_DP.dp)
+            Modifier.fillMaxWidth().height(DETAIL_TITLE_BAND_DP.dp)
                 .padding(horizontal = 24.dp),
             contentAlignment = Alignment.BottomCenter,
         ) {
@@ -341,13 +345,13 @@ class MovieDetailActivity : ComponentActivity() {
             fontSize = 13.sp, lineHeight = 13.sp,
             color = fg, textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
-                .padding(horizontal = DETAIL_PAD_DP.dp),
+                .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 18.dp),
         )
     }
 
     /** 简介：左对齐 15sp/行高 14，最多 2 行（240 §5.2 E4）。 */
     @Composable
-    private fun Overview(text: String, fg: Color) {
+    private fun Overview(text: String, fg: Color, scrimColor: State<Color>) {
         Text(
             text = text,
             fontSize = 15.sp, lineHeight = 14.sp,
@@ -367,7 +371,8 @@ class MovieDetailActivity : ComponentActivity() {
         val glyph = Color.White.copy(alpha = .95f)
         val playable = media != null
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = DETAIL_PAD_DP.dp),
+            Modifier.fillMaxWidth()
+                .padding(start = DETAIL_PAD_DP.dp, end = DETAIL_PAD_DP.dp, top = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(9.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -445,6 +450,12 @@ private const val DETAIL_HERO_DP = 589.5f   // 2:3 海报满宽（393×1.5）
 private const val DETAIL_META_TOP_DP = 510.5f
 /** 主操作行叠在海报下缘。 */
 private const val DETAIL_ACTIONS_TOP_DP = 541f
+/** 文字翻色阈值：滚过此处材质已足够浅，转深色文字。 */
+private const val DETAIL_CHROME_FLIP_DP = 70f
+/** 提亮上限：滚到底时艺术图被冲淡到这个白色透明度。 */
+private const val DETAIL_WASH_MAX_ALPHA = .86f
+/** 达到提亮上限所需的滚动量。 */
+private const val DETAIL_WASH_FULL_DP = 300f
 /** 片名图层高度带（logo 或文字，底对齐）。 */
 private const val DETAIL_TITLE_BAND_DP = 88f
 /** 片名图层顶边 = meta 顶 510.5 − 间距 18 − 带高 88。 */
