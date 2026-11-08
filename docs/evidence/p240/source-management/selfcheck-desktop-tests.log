@@ -1,0 +1,189 @@
+Start testing: Nov 09 03:11 �й���׼ʱ��
+----------------------------------------------------------
+237/290 Testing: kivo_p12c_ring_buffer_tests
+237/290 Test: kivo_p12c_ring_buffer_tests
+Command: "C:/kivo video/build/ninja-debug/backend/kivo_p12c_ring_buffer_tests.exe"
+Directory: C:/kivo video/build/ninja-debug/backend
+"kivo_p12c_ring_buffer_tests" start time: Nov 09 03:11 �й���׼ʱ��
+Output:
+----------------------------------------------------------
+=== P12-C2 SpscAudioRingBuffer tests ===
+[PASS] R1 基本写读
+[PASS] R2 环绕顺序
+[PASS] R3 写满短写
+[PASS] R4 空读不改输出
+[PASS] R5 不覆盖未读
+[PASS] R6 并发 100 万帧
+[PASS] R7 热路径零分配
+[PASS] R8 容量取整与非法参数
+[PASS] R9 立体声不串道
+--- 断言 433 项，失败 0 项 ---
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"kivo_p12c_ring_buffer_tests" end time: Nov 09 03:11 �й���׼ʱ��
+"kivo_p12c_ring_buffer_tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+238/290 Testing: kivo_p12c_pcm_tests
+238/290 Test: kivo_p12c_pcm_tests
+Command: "C:/kivo video/build/ninja-debug/backend/kivo_p12c_pcm_tests.exe"
+Directory: C:/kivo video/build/ninja-debug/backend
+"kivo_p12c_pcm_tests" start time: Nov 09 03:11 �й���׼ʱ��
+Output:
+----------------------------------------------------------
+=== P12-C3 PcmFormatConverter tests ===
+[PASS] P1 16bit 定点比例与满幅对称
+[PASS] P2 32bit 定点比例
+[PASS] P3 float32 原样透传
+[PASS] P4 半帧被拒
+[PASS] P5 目标容量不足被拒
+[PASS] P6 无效格式被拒
+[PASS] P7 立体声交错保持
+[PASS] P8 非对齐源地址
+[PASS] P9 帧长数学与零字节输入
+--- 断言 44 项，失败 0 项 ---
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"kivo_p12c_pcm_tests" end time: Nov 09 03:11 �й���׼ʱ��
+"kivo_p12c_pcm_tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+239/290 Testing: kivo_p12c4_clock_tests
+239/290 Test: kivo_p12c4_clock_tests
+Command: "C:/kivo video/build/ninja-debug/backend/kivo_p12c4_clock_tests.exe"
+Directory: C:/kivo video/build/ninja-debug/backend
+"kivo_p12c4_clock_tests" start time: Nov 09 03:11 �й���׼ʱ��
+Output:
+----------------------------------------------------------
+=== P12-C4 AaudioClockSource tests ===
+[PASS] C1 时间戳倒退被拒绝
+[PASS] C2 时间戳跳变被钳制
+[PASS] C2b 正常推进不被误伤
+[PASS] C3 切换采样率位置连续
+[PASS] C4 外推加入经过时间
+[PASS] C5 陈旧时间戳停止外推
+[PASS] C6 启动期返回 0 不计失败
+[PASS] C7 首个成功读数不被钳制
+[PASS] C8 回退档1 getFramesRead
+[PASS] C9 回退档2 减 latency
+[PASS] C10 三档全废则冻结
+[PASS] C11 主导来源反映真实
+[PASS] C12 系统时钟单调且自报
+[PASS] C13 异常窗口以事件结尾
+[PASS] C14 窗口最多三次
+[PASS] C15 首次观测只建基线
+[PASS] C16 同步前进落在最低档
+[PASS] C17 钳制幅度计入越阈值
+[PASS] C18 负残差按幅度记录
+[PASS] C19 seek 丢基线不清计数
+[PASS] C20 长间隔零残差是假钳制
+[PASS] C21 候选倒退也记间隔
+[PASS] C22 间隔加残差可以一起越线
+[PASS] C23 零点取第一个间隔的起点
+[PASS] C28 长间隔位置相对会话起点
+[PASS] C29 首末长间隔分开放
+[PASS] C24 长间隔等量前进不算跳变
+[PASS] C25 真跳变仍被钳制
+[PASS] C26 间隔吃掉大部分前进不钳制
+[PASS] C27 钳制后只放行 allowance
+--- 断言 148 项，失败 0 项 ---
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"kivo_p12c4_clock_tests" end time: Nov 09 03:11 �й���׼ʱ��
+"kivo_p12c4_clock_tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+240/290 Testing: kivo_p12c5_pace_tests
+240/290 Test: kivo_p12c5_pace_tests
+Command: "C:/kivo video/build/ninja-debug/backend/kivo_p12c5_pace_tests.exe"
+Directory: C:/kivo video/build/ninja-debug/backend
+"kivo_p12c5_pace_tests" start time: Nov 09 03:11 �й���׼ʱ��
+Output:
+----------------------------------------------------------
+=== P12-C5 FramePacer tests ===
+[PASS] C5-1 首帧即刻到期
+[PASS] C5-2 早到则睡到到期
+[PASS] C5-3 容差内不睡
+[PASS] C5-4 迟到 50ms 仍呈现
+[PASS] C5-5 迟到 150ms 丢弃并记原因
+[PASS] C5-6 连续落后触发追帧
+[PASS] C5-7 追到即退出追帧
+[PASS] C5-8 pts 重复/倒退不倒退
+[PASS] C5-9 时钟跳变重锚
+[PASS] C5-10 短暂停更按墙钟外推
+[PASS] C5-11 停更过久降为自走
+[PASS] C5-12 随时钟推进正常呈现
+[PASS] C5-13 阈值边界精确
+[PASS] C5-14 分位数准确
+[PASS] C5-15 溢出桶保留极值
+[PASS] C5-16 睡过头计入抖动
+[PASS] C5-17 分位数不超过极值
+[PASS] C7-1 不睡但到期时刻不变
+[PASS] C7-2 提前量不污染 lateness
+[PASS] C7-3 默认仍然睡
+[PASS] C7-4 跨度排除启动瞬态
+[PASS] C8-1 呈现时刻 lateness 等于音画偏差
+[PASS] C8-2 at_time 路径没有呈现样本
+[PASS] C8-3 at_time 的 lateness 是提交提前量
+[PASS] C8-4 分布可独立重放分位数
+[PASS] C8-5 时钟分档逐帧不漏
+[PASS] S1 累积漂移超过 45ms 才重锚
+[PASS] S3 漂移计数走到 summary
+[PASS] S4 断断续续的超前也被拦
+[PASS] S5 启动期外的中台阶被吃掉
+[PASS] S6 领先量等于位置减墙钟
+[PASS] S7 时钟台阶注入且门只吃一次
+[PASS] S8 迟滞带一次还完且稳态不触发
+[PASS] S9 速率误差：门开追住/门关涨到 ppm
+[PASS] S10 复位时刻：启动期那一笔落在 1s
+[PASS] P14I-1 三段占满整圈
+[PASS] P14I-2 残差吃掉剩下的
+[PASS] P14I-3 分段超 gap 钳零
+[PASS] P14I-4 最差圈带自己的分段
+[PASS] P14I-5 分档左闭右开
+[PASS] P14Q-1 一帧不交付则每条决策都算未交付
+[PASS] P14Q-2 交付了的一帧不进未交付
+[PASS] P14Q-3 丢帧已记 dropped 不再算未交付
+[PASS] P14Q-4 重复交付变负且不钳零
+--- 断言 491 项，失败 0 项 ---
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"kivo_p12c5_pace_tests" end time: Nov 09 03:11 �й���׼ʱ��
+"kivo_p12c5_pace_tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+253/290 Testing: kivo_p12c6_pipeline_tests
+253/290 Test: kivo_p12c6_pipeline_tests
+Command: "C:/kivo video/build/ninja-debug/backend/kivo_p12c6_pipeline_tests.exe"
+Directory: C:/kivo video/build/ninja-debug/backend
+"kivo_p12c6_pipeline_tests" start time: Nov 09 03:11 �й���׼ʱ��
+Output:
+----------------------------------------------------------
+=== P12-C6 SubmitSequencer tests ===
+[PASS] C6-1 新建先读包
+[PASS] C6-2 读到包先送再读
+[PASS] C6-3 输入满不读下一包
+[PASS] C6-4 EOS 取已送出最大 pts
+[PASS] C6-5 EOS 送出即收工
+[PASS] C6-6 EOS 只发一次
+[PASS] C6-7 终止带非空原因
+[PASS] C6-8 pts 乱序不影响 EOS
+[PASS] C6-9 步骤名稳定
+--- 断言 42 项，失败 0 项 ---
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"kivo_p12c6_pipeline_tests" end time: Nov 09 03:11 �й���׼ʱ��
+"kivo_p12c6_pipeline_tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Nov 09 03:11 �й���׼ʱ��

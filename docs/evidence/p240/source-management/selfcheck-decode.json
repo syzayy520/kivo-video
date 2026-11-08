@@ -1,0 +1,234 @@
+{
+  "schema": "kivo.p12c.decode/19",
+  "generated_at_unix_ms": 1794165280170,
+  "source": {
+    "mime": "video/hevc",
+    "width": 3840,
+    "height": 2160,
+    "duration_us": 5000000,
+    "encryption": {
+      "crypto_mode_present": false,
+      "crypto_mode": null,
+      "crypto_mode_name": null,
+      "default_iv_size": null,
+      "key_declared": false,
+      "verdict": "unknown",
+      "reason": "track format carries no crypto-mode key, so the platform did not declare whether this track is encrypted; playback continues, but this run cannot prove the track was clear"
+    }
+  },
+  "decoder": {
+    "backend": "mediacodec",
+    "codec_name": "OMX.qcom.video.decoder.hevc",
+    "output_target": "surface"
+  },
+  "color": {
+    "source_mime": "video/hevc",
+    "source_profile": 2,
+    "source_is_10bit": true,
+    "negotiated_format": 2141391878,
+    "negotiated_name": "qcom_private",
+    "negotiated_bit_depth": null,
+    "color_standard": 1,
+    "color_transfer": 3,
+    "color_range": 2,
+    "source_color_standard": 71,
+    "source_color_transfer": 0,
+    "source_color_range": 2,
+    "delivered_color_standard": 71,
+    "delivered_color_transfer": 0,
+    "delivered_color_range": 2,
+    "configure_format": {
+      "copied": true,
+      "fallback_reason": null
+    },
+    "hdr": {
+      "kind": "sdr",
+      "kind_reason": "standard=71(unknown), transfer=0(unknown) — transfer is neither ST2084(PQ) nor HLG",
+      "static_info_bytes": null,
+      "dataspace": {
+        "applied": false,
+        "value": 0,
+        "reason": "source is SDR; its dataspace is left untouched on purpose"
+      },
+      "dataspace_readback": {
+        "ok": true,
+        "value": 0,
+        "reason": null
+      },
+      "tonemap": {
+        "implemented": false,
+        "reason": "source is SDR; there is nothing to tone-map"
+      }
+    },
+    "dv": {
+      "verdict": "not_dolby_vision",
+      "dv_profile": null,
+      "dv_level": null,
+      "bl_compatibility_id": null,
+      "bl_mime": null,
+      "configure_format_rebuilt": false,
+      "reason": "mime is video/hevc; not a Dolby Vision track"
+    },
+    "verdict": "indeterminate",
+    "reason": "source is 10-bit (profile 2) but the negotiated output is qcom_private(2141391878) [vendor-private: does not express bit depth] — bit depth is not expressed by this value, so 10-bit delivery is unverified on this path"
+  },
+  "seek": {
+    "requests": 0,
+    "target_us": null,
+    "landing_us": null,
+    "prepare_us": null,
+    "first_frame_us": null,
+    "total_us": null,
+    "budget_us": 150000,
+    "pass": false,
+    "video_first_pts_us": null,
+    "reason": "no seek happened in this run; the 150 ms budget cannot be judged from a run without a seek",
+    "av": {
+      "applicable": false,
+      "audio_present": false,
+    "audio_landing_us": null,
+      "gap_us": -1,
+      "limit_us": 40000,
+      "pass": false,
+      "reason": "source has no audio track (or audio was not attached); the A/V criterion does not apply to this run — this is not a pass"
+    }
+  },
+  "counters": {
+    "samples_submitted": 300,
+    "samples_rejected": 0,
+    "bytes_submitted": 15895894,
+    "frames_received": 301,
+    "frames_released": 301,
+    "frames_rendered": 300,
+    "frames_dropped_late": 0,
+    "frames_discarded_no_surface": 0
+  },
+  "pipeline": {
+    "mode": "merged",
+    "present": true,
+    "present_schedule": "surface_at_time",
+    "submit": {
+      "calls": 584,
+      "mean_us": 672.823630,
+      "total_us": 392929,
+      "max_us": 7605
+    },
+    "eos": {
+      "calls": 2,
+      "mean_us": 4666.000000,
+      "total_us": 9332,
+      "max_us": 9024
+    },
+    "receive": {
+      "calls": 312,
+      "mean_us": 361.057692,
+      "total_us": 112650,
+      "max_us": 6802
+    },
+    "release": {
+      "calls": 301,
+      "mean_us": 611.993355,
+      "total_us": 184210,
+      "max_us": 3345
+    }
+  },
+  "surface_rebuild": {
+    "rebuilds": 0,
+    "gap_ms": -1,
+    "resume_ms": -1,
+    "frames_lead": 0
+  },
+  "metrics": {
+    "cpu": {"valid": true, "reason": "", "wall_ns": 5092369634, "thread_cpu_ns": 1114598275, "process_cpu_ns": 2696901753, "thread_ratio": 0.218876, "process_ratio": 0.529597},
+    "alloc": {"hook_installed": true, "armed": false, "calls_total": 95, "calls_steady": 85, "bytes_total": 24779617, "bytes_steady": 5304237, "thread_count": 2, "overflow_calls": 0, "threads": [{"tid": 13115, "name": "com.kivo.cinema", "calls": 93, "bytes": 24779553, "calls_steady": 83, "bytes_steady": 5304173}, {"tid": 14392, "name": "kivo-decode", "calls": 2, "bytes": 64, "calls_steady": 2, "bytes_steady": 64}]},
+    "buffers": {"pool_owner": "codec", "received": 301, "released": 301, "in_flight": 0, "leaked": 0, "reason": ""},
+    "present_gap": {"iterations": 311, "long_gaps": 0, "max_gap_ns": 19554115, "worst_submit_ns": 1974114, "worst_pump_ns": 17576719, "worst_pace_ns": 14429427, "worst_release_ns": 2271771, "worst_unaccounted_ns": 3282, "buckets": [16, 47, 248, 0, 0, 0, 0, 0, 0]}
+  },
+  "timing": {
+    "wall_us": 4983175,
+    "position_us": 4979713,
+    "first_frame_latency_us": 48886,
+    "decode_fps": 60.202582,
+    "speed_vs_realtime": 1.003376,
+    "pause_count": 0,
+    "pause_total_us": 0
+  },
+  "cold_start": {
+    "applicable": true,
+    "first_frame_us": 48886,
+    "budget_us": 300000,
+    "pass": true,
+    "reason": null
+  },
+  "outcome": {
+    "completed": true,
+    "end_reason": "completed",
+    "error": ""
+  },
+  "pace": {
+    "enabled": true,
+    "clock_source": "system",
+    "rate_ppm": -40.612386,
+    "phase_error_ns": -52,
+    "publish_cost_ns": 557969,
+    "frame_duration_ns": 16667000,
+    "derived_fps": 59.998800,
+    "frames_decided": 300,
+    "presented": 300,
+    "dropped": 0,
+    "drop_ratio": 0.000000,
+    "drop_ratio_measured": true,
+    "drop_ratio_reason": "",
+    "catch_up_events": 0,
+    "catch_up_frames": 0,
+    "catch_up_measured": true,
+    "catch_up_reason": "",
+    "over_budget_frames": 0,
+    "over_budget_frames_measured": false,
+    "over_budget_frames_reason": "no present-timestamp samples: in surface_at_time the compositor decides when a frame is shown, so only the submit lead (schedule_lead_ns) is observable",
+    "lateness_ns": {
+      "samples": 0,
+      "measured": false,
+      "reason": "no present-timestamp samples: in surface_at_time the compositor decides when a frame is shown, so only the submit lead (schedule_lead_ns) is observable",
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0
+    },
+    "interval_ns": {
+      "p50": -125000,
+      "p95": 375000,
+      "p99": 625000,
+      "max": 854614
+    },
+    "clock_mix": {
+      "primary_frames": 0,
+      "fallback_frames": 0,
+      "system_frames": 300
+    },
+    "schedule_lead_ns": {
+      "samples": 300,
+      "p01": -49875000,
+      "p10": -49875000,
+      "p50": -49875000,
+      "p90": -49625000,
+      "p99": -40625000,
+      "min": -49938468,
+      "max": 3646,
+      "spread": 250000
+    },
+    "clock_health": {
+      "extrapolated_frames": 0,
+      "free_run_frames": 0,
+      "jump_rebases": 0,
+      "monotonic_rejects": 0,
+      "stale_readings": 0
+    },
+    "wait": {
+      "count": 0,
+      "total_ns": 0
+    },
+    "sampled_at_frames": 300
+  }
+}

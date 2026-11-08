@@ -1,0 +1,11 @@
+PASS normalize default ports; preserve path case; reject credential/query URLs
+PASS paste labels preserve password spaces and punctuation; blank password distinct from absent
+PASS URL userinfo decoded without corrupting plus; removed from address
+PASS multiple URLs, conflicting fields and ports require review
+PASS encrypted reload, blank password, secret-safe string, and randomized ciphertext
+PASS duplicate rejected; different accounts allowed; stale edit and deletion protected
+PASS interleaved repository writers preserve every source
+PASS failed disk write preserves old configuration and permits retry
+PASS authenticated corruption and unknown schemas are visible and never overwritten
+PASS missing Keystore key cannot regenerate or discard saved accounts
+10 cases PASS
