@@ -1,0 +1,98 @@
+{
+  "scope": "saved XML geometry, stack and operation assertions; not pixel/motion/network timing",
+  "checks": [
+    {
+      "check": "overview collapsed geometry",
+      "pass": true
+    },
+    {
+      "check": "overview expanded action",
+      "pass": true
+    },
+    {
+      "check": "movie: parent nodes restored",
+      "pass": true
+    },
+    {
+      "check": "movie: exactly one child",
+      "pass": true
+    },
+    {
+      "check": "movie: parent stack restored",
+      "pass": true
+    },
+    {
+      "check": "first load retry visible",
+      "pass": true
+    },
+    {
+      "check": "first load recovered correct movie",
+      "pass": true
+    },
+    {
+      "check": "TV: parent nodes restored",
+      "pass": true
+    },
+    {
+      "check": "TV: exactly one child",
+      "pass": true
+    },
+    {
+      "check": "TV: parent stack restored",
+      "pass": true
+    },
+    {
+      "check": "TV child title",
+      "pass": true
+    },
+    {
+      "check": "TV child episode metadata",
+      "pass": true
+    },
+    {
+      "check": "horizontal movie return",
+      "pass": true
+    },
+    {
+      "check": "refresh retained every original node",
+      "pass": true
+    },
+    {
+      "check": "refresh retry offered",
+      "pass": true
+    },
+    {
+      "check": "refresh retry geometry",
+      "pass": true
+    },
+    {
+      "check": "dismiss restored geometry",
+      "pass": true
+    },
+    {
+      "check": "three failure injections restored in order",
+      "pass": true
+    },
+    {
+      "check": "release_first_load_failure: four taps recorded",
+      "pass": true
+    },
+    {
+      "check": "release_tv_similar_navigation: four taps recorded",
+      "pass": true
+    }
+  ],
+  "pass": true,
+  "mutations": [
+    {
+      "mutation": "TV returned text bounds shifted",
+      "caught": true
+    },
+    {
+      "mutation": "duplicate child Activity",
+      "caught": true
+    }
+  ],
+  "base_plus_patch_exact_source_bytes_with_recorded_newlines": true,
+  "patch_replay": "git -c core.autocrlf=false apply source.patch; materialize each code entry newline from manifest"
+}

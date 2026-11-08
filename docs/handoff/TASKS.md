@@ -8,7 +8,7 @@
 | R0 基线归档 | `DONE`，仅归档范围 | 保存已认可版本；源码正式集成并推送于90561977，不再盲调 | [截图、源码补丁与构建记录](../evidence/p240/layered-scroll/status.md)；不代表全部视觉通过 |
 | R1 证据与交互盘点 | `DOING` | 静态89文件、32场景、333文案已索引；已补六款播放器观察与详情缩放实测，全部动作仍未测 | [REA审计](../reference/rex-teardown/audit/status.md)、[播放器取舍](../design/ui/replica/player-study.md)；下一步详情动作/状态服务 |
 | M1 媒体分层动效 | `DONE`，仅静态媒体范围 | 首页跟手分层/色场/页点/吸附、详情上滑放大；最终版已覆盖安装K40 | [录像、图像配准、构建安装与复算](../evidence/p240/media-motion/status.md)；预告成功播放、帧时性能和全页像素仍未测 |
-| R2 详情交互闭环 | `DOING` | 已接收藏/待看/已观看持久化、简介/导航；按用户反馈重做底部卡片，真机已验状态/取消/重启/重载；相似返回及失败等完整回归待验 | [阶段证据](../evidence/p240/detail-actions/status.md)、[状态/家族树设计](../design/ui/replica/detail-actions.md)；未称整卡完成 |
+| R2 详情交互闭环 | `DOING` | 标记/底部操作卡片已测；修复刷新错误遮片名，电影/剧集连点与返回、简介、首载失败/恢复、刷新失败/重试/关闭真机通过；播放/预告/字号仍待验 | [操作阶段](../evidence/p240/detail-actions/status.md)、[导航异常回归](../evidence/p240/detail-regression/status.md)、[设计](../design/ui/replica/detail-regression.md)；未称整卡完成 |
 | R3 首页数据与生命周期 | `TODO` | 动态 feed/缓存、默认图片、可选预告与后台释放 | 同片与多片场景；弱网/无网；设置关时不创建预告播放器 |
 | R4 其他页面逐页闭环 | `TODO` | 搜索→媒体库/资源库表单→设置/真实统计 | 一页闭环再下一页；先盘点已有功能 |
 | R5 播放器界面与手势 | `TODO` | 独立高风险卡，后置 | 单独设计；不得改坏后端/JNI/Surface；禁止软解回退 |

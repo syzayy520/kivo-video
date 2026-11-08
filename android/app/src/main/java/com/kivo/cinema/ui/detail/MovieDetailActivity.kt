@@ -18,16 +18,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
 import com.kivo.cinema.media.marks.FilmKey
 import com.kivo.cinema.media.marks.FilmMark
 import com.kivo.cinema.ui.detail.actions.DetailActionRow
 import com.kivo.cinema.ui.detail.actions.rememberDetailActions
+import com.kivo.cinema.ui.detail.loading.DetailLoadFeedback
 import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,7 +43,6 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.kivo.cinema.library.LocalVideoSource
 import com.kivo.cinema.tmdb.TmdbClient
@@ -302,13 +301,11 @@ class MovieDetailActivity : ComponentActivity() {
             }
             if (details == null && loading) CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center), color = fg)
-            if (error != null) Column(Modifier.align(Alignment.Center)
-                .padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(error!!, color = fg, fontSize = 14.sp)
-                TextButton(onClick = { if (!loading) reload++ }, enabled = !loading) {
-                    Text(if (loading) "正在重试…" else "重试加载", color = fg)
-                }
-            }
+            DetailLoadFeedback(error, details != null, loading,
+                onRetry = { if (!loading) reload++ },
+                modifier = if (details != null) Modifier.align(Alignment.BottomCenter)
+                    .navigationBarsPadding().padding(16.dp)
+                else Modifier.align(Alignment.Center).padding(horizontal = 24.dp))
             BackCircle(onBack)
         }
     }

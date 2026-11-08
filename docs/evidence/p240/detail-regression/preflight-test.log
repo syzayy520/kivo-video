@@ -1,0 +1,48 @@
+Test project C:/kivo video/build/vs-debug-ffmpeg
+    Start 244: kivo_p12c_ring_buffer_tests
+1/5 Test #244: kivo_p12c_ring_buffer_tests ......   Passed    0.02 sec
+    Start 245: kivo_p12c_pcm_tests
+Could not find executable C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c_pcm_tests.exe
+Looked in the following places:
+C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c_pcm_tests.exe
+C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c_pcm_tests.exe.exe
+C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/Debug/kivo_p12c_pcm_tests.exe
+C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/Debug/kivo_p12c_pcm_tests.exe.exe
+Debug/C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c_pcm_tests.exe
+Debug/C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c_pcm_tests.exe.exe
+2/5 Test #245: kivo_p12c_pcm_tests ..............***Not Run   0.00 sec
+Unable to find executable: C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c_pcm_tests.exe
+    Start 246: kivo_p12c4_clock_tests
+3/5 Test #246: kivo_p12c4_clock_tests ...........   Passed    0.02 sec
+    Start 247: kivo_p12c5_pace_tests
+Could not find executable C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c5_pace_tests.exe
+Looked in the following places:
+C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c5_pace_tests.exe
+C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c5_pace_tests.exe.exe
+C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/Debug/kivo_p12c5_pace_tests.exe
+C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/Debug/kivo_p12c5_pace_tests.exe.exe
+Debug/C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c5_pace_tests.exe
+Debug/C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c5_pace_tests.exe.exe
+Unable to find executable: C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c5_pace_tests.exe
+4/5 Test #247: kivo_p12c5_pace_tests ............***Not Run   0.00 sec
+    Start 260: kivo_p12c6_pipeline_tests
+Could not find executable C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c6_pipeline_tests.exe
+Looked in the following places:
+C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c6_pipeline_tests.exe
+C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c6_pipeline_tests.exe.exe
+C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/Debug/kivo_p12c6_pipeline_tests.exe
+C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/Debug/kivo_p12c6_pipeline_tests.exe.exe
+Debug/C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c6_pipeline_tests.exe
+Debug/C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c6_pipeline_tests.exe.exe
+Unable to find executable: C:/kivo video/build/vs-debug-ffmpeg/backend/Debug/kivo_p12c6_pipeline_tests.exe
+5/5 Test #260: kivo_p12c6_pipeline_tests ........***Not Run   0.00 sec
+
+40% tests passed, 3 tests failed out of 5
+
+Total Test time (real) =   0.07 sec
+
+The following tests FAILED:
+	245 - kivo_p12c_pcm_tests (Not Run)
+	247 - kivo_p12c5_pace_tests (Not Run)
+	260 - kivo_p12c6_pipeline_tests (Not Run)
+Errors while running CTest

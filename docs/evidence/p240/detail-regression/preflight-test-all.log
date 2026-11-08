@@ -1,0 +1,15 @@
+Test project C:/kivo video/build/vs-debug-ffmpeg
+    Start 244: kivo_p12c_ring_buffer_tests
+1/5 Test #244: kivo_p12c_ring_buffer_tests ......   Passed    0.02 sec
+    Start 245: kivo_p12c_pcm_tests
+2/5 Test #245: kivo_p12c_pcm_tests ..............   Passed    0.01 sec
+    Start 246: kivo_p12c4_clock_tests
+3/5 Test #246: kivo_p12c4_clock_tests ...........   Passed    0.02 sec
+    Start 247: kivo_p12c5_pace_tests
+4/5 Test #247: kivo_p12c5_pace_tests ............   Passed    0.02 sec
+    Start 260: kivo_p12c6_pipeline_tests
+5/5 Test #260: kivo_p12c6_pipeline_tests ........   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =   0.10 sec

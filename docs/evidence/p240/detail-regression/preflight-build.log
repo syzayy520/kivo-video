@@ -1,0 +1,66 @@
+CMake is re-running because C:/kivo video/build/vs-debug-ffmpeg/backend/CMakeFiles/generate.stamp is out-of-date.
+  the file 'C:/kivo video/backend/CMakeLists.txt'
+  is newer than 'C:/kivo video/build/vs-debug-ffmpeg/backend/CMakeFiles/generate.stamp.depend'
+  result='-1'
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.22621.
+-- FFmpeg SDK root: C:/kivo video/third_party/ffmpeg-sdk
+-- KIVO Qt6_DIR=C:/tmp/KivoMusicQt_ascii_lyrics_normalizer/.qt/6.8.3/msvc2022_64/lib/cmake/Qt6
+-- KIVO Qt bin dir=C:/tmp/KivoMusicQt_ascii_lyrics_normalizer/.qt/6.8.3/msvc2022_64/bin
+-- KIVO Qt plugin dir=C:/tmp/KivoMusicQt_ascii_lyrics_normalizer/.qt/6.8.3/msvc2022_64/plugins
+-- KIVO Qt qml dir=C:/tmp/KivoMusicQt_ascii_lyrics_normalizer/.qt/6.8.3/msvc2022_64/qml
+-- KIVO windeployqt=C:/tmp/KivoMusicQt_ascii_lyrics_normalizer/.qt/6.8.3/msvc2022_64/bin/windeployqt.exe
+-- Configuring done (2.1s)
+-- Generating done (5.0s)
+-- Build files have been written to: C:/kivo video/build/vs-debug-ffmpeg
+适用于 .NET Framework MSBuild 版本 18.6.3+84d3e95b4
+
+  Checking File Globs
+  Building Custom Rule C:/kivo video/backend/CMakeLists.txt
+  正在扫描源以查找模块依赖项...
+  frame_position_extrapolator.cxx
+  system_clock_source.cxx
+  clock_offset_source.cxx
+  audio_clock_types.cxx
+  pcm_format_converter.cxx
+  monotonic_clock_guard.cxx
+  spsc_audio_ring_buffer.cxx
+  正在编译...
+  audio_clock_types.cxx
+  frame_position_extrapolator.cxx
+  pcm_format_converter.cxx
+  spsc_audio_ring_buffer.cxx
+  system_clock_source.cxx
+  clock_offset_source.cxx
+  monotonic_clock_guard.cxx
+  kivo_p12c_core_audio.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c_core_audio.lib
+  Building Custom Rule C:/kivo video/backend/CMakeLists.txt
+  正在扫描源以查找模块依赖项...
+  spsc_audio_ring_buffer_tests.cpp
+  正在编译...
+  spsc_audio_ring_buffer_tests.cpp
+  kivo_p12c_ring_buffer_tests.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c_ring_buffer_tests.exe
+适用于 .NET Framework MSBuild 版本 18.6.3+84d3e95b4
+
+  Checking File Globs
+  正在扫描源以查找模块依赖项...
+  kivo_p12c_core_audio.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c_core_audio.lib
+  Building Custom Rule C:/kivo video/backend/CMakeLists.txt
+  正在扫描源以查找模块依赖项...
+  aaudio_monotonic_now.cxx
+  aaudio_clock_source.cxx
+  aaudio_clock_trace.cxx
+  aaudio_clock_tail.cxx
+  audio_clock_tests.cpp
+  aaudio_timestamp_reading.cxx
+  正在编译...
+  audio_clock_tests.cpp
+  aaudio_timestamp_reading.cxx
+  aaudio_clock_trace.cxx
+  aaudio_monotonic_now.cxx
+  aaudio_clock_source.cxx
+  aaudio_clock_tail.cxx
+C:\kivo video\backend\tests\video\audio_plane\p12c4_clock_tests\audio_clock_tests.cpp(502,11): warning C4834: 放弃具有 [[nodiscard]] 属性的函数的返回值 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_p12c4_clock_tests.vcxproj]
+C:\kivo video\backend\tests\video\audio_plane\p12c4_clock_tests\audio_clock_tests.cpp(512,11): warning C4834: 放弃具有 [[nodiscard]] 属性的函数的返回值 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_p12c4_clock_tests.vcxproj]
+C:\kivo video\backend\tests\video\audio_plane\p12c4_clock_tests\audio_clock_tests.cpp(524,11): warning C4834: 放弃具有 [[nodiscard]] 属性的函数的返回值 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_p12c4_clock_tests.vcxproj]
+C:\kivo video\backend\tests\video\audio_plane\p12c4_clock_tests\audio_clock_tests.cpp(535,11): warning C4834: 放弃具有 [[nodiscard]] 属性的函数的返回值 [C:\kivo video\build\vs-debug-ffmpeg\backend\kivo_p12c4_clock_tests.vcxproj]
+  kivo_p12c4_clock_tests.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c4_clock_tests.exe

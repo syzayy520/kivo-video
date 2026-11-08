@@ -4,7 +4,7 @@
 > 已认可基线正式集成并推送于 `90561977`：[认可基线](../evidence/p240/layered-scroll/status.md)。
 > M1 静态媒体动效真机回归已收口：[首页分层切换/连续色场/吸附、详情上滑缩放](../evidence/p240/media-motion/status.md)。最终版已覆盖安装K40；默认预告关闭，未卸载清数据。
 > 后续唯一规划入口：[roadmap.md](../design/ui/replica/roadmap.md)，旧稿裁决：[review.md](../design/ui/replica/review.md)。
-> R2 正在实现：已接标记本地持久化、简介/导航，并按用户反馈将菜单重做为底部圆角操作卡片；最终版已覆盖安装K40，状态/取消/重启/重载已测，[阶段证据与未测项](../evidence/p240/detail-actions/status.md)。相似返回、失败与播放等完整回归仍待验。[多播放器观察与取舍](../design/ui/replica/player-study.md) 已补；目标是Kivo独立设计的细节精度，不整页照搬REX。
+> R2 正在实现：标记持久化与底部操作卡片已测，[操作阶段证据](../evidence/p240/detail-actions/status.md)；本轮修复刷新错误遮片名，最终版已覆盖安装K40。简介、电影/剧集连续点击与返回、首载失败/恢复、刷新失败/重试/关闭已测，[导航与异常证据](../evidence/p240/detail-regression/status.md)。播放、预告及字号等完整回归仍待验。[多播放器观察与取舍](../design/ui/replica/player-study.md) 已补；目标是Kivo独立设计的细节精度，不整页照搬REX。
 > R1全场景、R3、预告成功播放、帧时性能及全页像素仍未验完；短暂启动黑屏仍存在。不重置其他助手改动。下文是独立后端台账。
 
 > 最后更新：2026-11-01 19:30（P15-A2 收口：**`media_rate` 一直是个没有窗口的比值** ——

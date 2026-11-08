@@ -1,0 +1,101 @@
+适用于 .NET Framework MSBuild 版本 18.6.3+84d3e95b4
+
+  Checking File Globs
+  正在扫描源以查找模块依赖项...
+  kivo_p12c_core_audio.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c_core_audio.lib
+  正在扫描源以查找模块依赖项...
+  kivo_p12c_ring_buffer_tests.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c_ring_buffer_tests.exe
+适用于 .NET Framework MSBuild 版本 18.6.3+84d3e95b4
+
+  Checking File Globs
+  正在扫描源以查找模块依赖项...
+  kivo_p12c_core_audio.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c_core_audio.lib
+  Building Custom Rule C:/kivo video/backend/CMakeLists.txt
+  正在扫描源以查找模块依赖项...
+  pcm_format_converter_tests.cpp
+  正在编译...
+  pcm_format_converter_tests.cpp
+  kivo_p12c_pcm_tests.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c_pcm_tests.exe
+适用于 .NET Framework MSBuild 版本 18.6.3+84d3e95b4
+
+  Checking File Globs
+  正在扫描源以查找模块依赖项...
+  kivo_p12c_core_audio.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c_core_audio.lib
+  正在扫描源以查找模块依赖项...
+  kivo_p12c4_clock_tests.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c4_clock_tests.exe
+适用于 .NET Framework MSBuild 版本 18.6.3+84d3e95b4
+
+  Checking File Globs
+  正在扫描源以查找模块依赖项...
+  kivo_p12c_core_audio.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c_core_audio.lib
+  Building Custom Rule C:/kivo video/backend/CMakeLists.txt
+  正在扫描源以查找模块依赖项...
+  pace_policy.cxx
+  pace_drift_series.cxx
+  sampling_mode.cxx
+  pace_drift_trend.cxx
+  pace_stats.cxx
+  pace_action.cxx
+  present_gap.cxx
+  pace_histogram.cxx
+  pace_window_stats.cxx
+  pace_drift_window.cxx
+  pace_hac.cxx
+  pace_worst_episode.cxx
+  pace_halves_agreement.cxx
+  pace_measurability.cxx
+  pace_drift_budget.cxx
+  pace_lead_trace.cxx
+  pace_wall_offset.cxx
+  pace_discontinuity_ledger.cxx
+  pace_now.cxx
+  pace_gate_scale.cxx
+  clock_position_tracker.cxx
+  frame_pacer.cxx
+  正在编译...
+  pace_histogram.cxx
+  pace_drift_series.cxx
+  pace_drift_trend.cxx
+  pace_policy.cxx
+  sampling_mode.cxx
+  pace_action.cxx
+  pace_stats.cxx
+  present_gap.cxx
+  pace_window_stats.cxx
+  pace_worst_episode.cxx
+  pace_halves_agreement.cxx
+  pace_drift_window.cxx
+  pace_measurability.cxx
+  pace_hac.cxx
+  pace_drift_budget.cxx
+  pace_lead_trace.cxx
+  pace_discontinuity_ledger.cxx
+  frame_pacer.cxx
+  clock_position_tracker.cxx
+  pace_wall_offset.cxx
+  pace_now.cxx
+  pace_gate_scale.cxx
+  kivo_p12c_core_pace.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c_core_pace.lib
+  Building Custom Rule C:/kivo video/backend/CMakeLists.txt
+  正在扫描源以查找模块依赖项...
+  frame_pacer_tests.cpp
+  正在编译...
+  frame_pacer_tests.cpp
+  kivo_p12c5_pace_tests.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c5_pace_tests.exe
+适用于 .NET Framework MSBuild 版本 18.6.3+84d3e95b4
+
+  Checking File Globs
+  Building Custom Rule C:/kivo video/backend/CMakeLists.txt
+  正在扫描源以查找模块依赖项...
+  submit_sequencer.cxx
+  submit_types.cxx
+  正在编译...
+  submit_types.cxx
+  submit_sequencer.cxx
+  kivo_p12c_core_pipeline.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c_core_pipeline.lib
+  Building Custom Rule C:/kivo video/backend/CMakeLists.txt
+  正在扫描源以查找模块依赖项...
+  submit_sequencer_tests.cpp
+  正在编译...
+  submit_sequencer_tests.cpp
+  kivo_p12c6_pipeline_tests.vcxproj -> C:\kivo video\build\vs-debug-ffmpeg\backend\Debug\kivo_p12c6_pipeline_tests.exe
