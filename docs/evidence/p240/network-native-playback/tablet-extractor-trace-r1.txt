@@ -1,0 +1,22 @@
+t=2105 source=2 item=3 login=ok
+t=2119 http_begin offset=0 end=4095
+t=3441 http_ready offset=0 end=4095 total=7369631541
+t=3471 read_begin offset=0 size=16384
+t=3472 http_begin offset=0 end=1048575
+t=5386 http_ready offset=0 end=1048575 total=7369631541
+t=5394 read_end offset=0 bytes=16384 elapsed_ms=1923
+t=5397 read_begin offset=16384 size=65536
+t=5693 read_end offset=16384 bytes=65536 elapsed_ms=295
+t=5697 read_begin offset=81920 size=131072
+t=6003 read_end offset=81920 bytes=131072 elapsed_ms=305
+t=6054 read_begin offset=212992 size=131072
+t=6066 read_end offset=212992 bytes=131072 elapsed_ms=12
+t=6070 read_begin offset=344064 size=131072
+t=6272 read_end offset=344064 bytes=131072 elapsed_ms=201
+t=6287 read_begin offset=7369596928 size=8192
+t=6398 http_begin offset=7369596928 end=7369631540
+t=7743 http_ready offset=7369596928 end=7369631540 total=7369631541
+t=7748 read_end offset=7369596928 bytes=8192 elapsed_ms=1461
+t=7763 tracks=3 mimes=video/hevc,audio/eac3,audio/eac3 io_reason=none
+t=7768 PASS bounded extractor probe events=18
+INSTRUMENTATION_CODE: -1

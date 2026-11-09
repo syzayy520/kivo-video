@@ -16,7 +16,8 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 
 /** A seekable, bounded HTTP Range source for the existing native fd pipeline. */
-class HttpRangeFile(context: Context, private val address: String) : AutoCloseable {
+class HttpRangeFile(context: Context, private val address: String,
+                    private val trace: ((String) -> Unit)? = null) : AutoCloseable {
     private val storage = context.getSystemService(StorageManager::class.java)
     private val cancelled = AtomicBoolean(false)
     private val readers = CopyOnWriteArrayList<Reader>()
@@ -74,6 +75,7 @@ class HttpRangeFile(context: Context, private val address: String) : AutoCloseab
     }
 
     private fun connect(start: Long, end: Long): HttpURLConnection {
+        if (trace != null) emit("http_begin offset=$start end=$end")
         check(!cancelled.get()) { "播放已取消" }
         val connection = URL(address).openConnection() as HttpURLConnection
         connection.connectTimeout = 8_000
@@ -100,7 +102,12 @@ class HttpRangeFile(context: Context, private val address: String) : AutoCloseab
         val encoding = connection.contentEncoding
         if (!encoding.isNullOrBlank() && !encoding.equals("identity", true))
             throw IOException("服务器未提供原始媒体字节")
+        if (trace != null) emit("http_ready offset=$start end=$end total=$total")
         return end to total
+    }
+
+    private fun emit(event: String) {
+        trace?.let { observer -> runCatching { observer(event) } }
     }
 
     private fun disconnect(connection: HttpURLConnection) {
@@ -119,6 +126,8 @@ class HttpRangeFile(context: Context, private val address: String) : AutoCloseab
         override fun onGetSize(): Long = size
 
         override fun onRead(offset: Long, size: Int, data: ByteArray): Int {
+            val began = if (trace != null) System.nanoTime() else 0L
+            if (trace != null) emit("read_begin offset=$offset size=$size")
             try {
                 if (cancelled.get() || released.get()) throw IOException("播放已取消")
                 if (offset < 0) throw IOException("读取位置无效")
@@ -149,8 +158,10 @@ class HttpRangeFile(context: Context, private val address: String) : AutoCloseab
                     filled += read
                     cursor += read
                 }
+                if (trace != null) emit("read_end offset=$offset bytes=$filled elapsed_ms=${(System.nanoTime() - began) / 1_000_000}")
                 return filled
             } catch (e: Exception) {
+                if (trace != null) emit("read_error offset=$offset type=${e.javaClass.simpleName} elapsed_ms=${(System.nanoTime() - began) / 1_000_000}")
                 failureReason = if (cancelled.get()) "播放已取消" else when (e) {
                     is IOException -> if (e.message?.startsWith("服务器") == true ||
                         e.message == "网络片源提前结束") e.message!! else "网络读取失败（${e.javaClass.simpleName}）"
