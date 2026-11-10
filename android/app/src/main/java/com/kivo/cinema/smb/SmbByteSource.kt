@@ -45,6 +45,7 @@ class SmbByteSource private constructor(
     private val channel = SmbPreadChannel(
         address, credential, filePath, gate, reader,
         onReconnected = { window.invalidate() },
+        onBytes = { stats.onDeliver(it) },
     )
 
     private val ahead = SmbReadAhead(
@@ -66,6 +67,12 @@ class SmbByteSource private constructor(
     @Volatile private var prefetchEnabled = false
 
     override fun size(): Long = sizeBytes
+
+    /**
+     * 累计从网络读到的字节。**只用于诊断**：拿它除以时间就是这条源实际吃到的带宽，
+     * 与解码侧需要的码率一比，就能分清卡顿是"网络供不上"还是"解码跟不上"。
+     */
+    fun deliveredBytes(): Long = stats.deliveredBytes
 
     override fun readAt(offset: Long, buf: ByteArray, off: Int, len: Int): Int = synchronized(lock) {
         if (closed) return -1

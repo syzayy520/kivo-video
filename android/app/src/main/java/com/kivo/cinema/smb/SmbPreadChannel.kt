@@ -24,6 +24,8 @@ internal class SmbPreadChannel(
     initialReader: SmbReader,
     private val nowMs: () -> Long = { System.nanoTime() / 1_000_000 },
     private val onReconnected: () -> Unit = {},
+    /** 每拿到 n 字节回报一次（诊断用的带宽计数，不参与任何决策）。 */
+    private val onBytes: (Int) -> Unit = {},
 ) {
     private var reader: SmbReader = initialReader
     private var dead = false
@@ -41,7 +43,10 @@ internal class SmbPreadChannel(
         if (!dead) {
             try {
                 val read = reader.pread(offset, buf, off, len)
-                if (read > 0) gate.noteSuccess()
+                if (read > 0) {
+                    gate.noteSuccess()
+                    onBytes(read)
+                }
                 return read
             } catch (_: Exception) {
                 // 落到重连路径。真实原因由重连结果决定：成功就没事，
@@ -63,7 +68,7 @@ internal class SmbPreadChannel(
         dead = false
         gate.noteSuccess()
         onReconnected()
-        return fresh.pread(offset, buf, off, len)
+        return fresh.pread(offset, buf, off, len).also { if (it > 0) onBytes(it) }
     }
 
     /**

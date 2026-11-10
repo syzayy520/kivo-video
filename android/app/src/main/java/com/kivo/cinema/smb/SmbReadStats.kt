@@ -29,8 +29,18 @@ internal class SmbReadStats(
     private var missJumpMax = 0L
     private var nextReportAtMs = 0L
 
+    /** 累计从网络拿到的字节。**不随上报清零** —— 它回答的是"整段播放一共吃了多少带宽"。 */
+    private var bytesTotal = 0L
+
+    /** 当前累计字节。用于对照"解码侧需要多少"，判断卡顿是网络供不上还是解码跟不上。 */
+    val deliveredBytes: Long get() = bytesTotal
+
     fun onRead() {
         ++reads
+    }
+
+    fun onDeliver(bytes: Int) {
+        if (bytes > 0) bytesTotal += bytes
     }
 
     fun onHit(fromPrefetch: Boolean) {
