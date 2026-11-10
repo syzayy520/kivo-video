@@ -24,10 +24,25 @@ import android.net.NetworkCapabilities
  */
 object NetworkLinkMonitor {
 
-    fun isOnline(context: Context): Boolean {
-        val manager = context.getSystemService(ConnectivityManager::class.java) ?: return true
-        val network = manager.activeNetwork ?: return false
-        val capabilities = manager.getNetworkCapabilities(network) ?: return true
-        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    fun isOnline(context: Context): Boolean = try {
+        val manager = context.getSystemService(ConnectivityManager::class.java)
+        when {
+            manager == null -> true
+            else -> {
+                val network = manager.activeNetwork
+                if (network == null) {
+                    false
+                } else {
+                    val capabilities = manager.getNetworkCapabilities(network)
+                    capabilities == null ||
+                        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                }
+            }
+        }
+    } catch (_: SecurityException) {
+        // 没声明 ACCESS_NETWORK_STATE 时 activeNetwork 抛异常，而不是返回 null。
+        // 这里保守返回 true：宁可多试一次网络，也不要因为一次查询失败把还能读的播放判死。
+        // （manifest 已经声明了权限，这条兜底是防止有人删掉它时静默改变行为。）
+        true
     }
 }

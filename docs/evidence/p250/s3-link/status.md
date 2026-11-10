@@ -60,6 +60,25 @@ PASS 网络恢复后继续播放
 `BUFFERING` 出现在 `STALL` 之前，说明看门狗比"位置 5 秒不动"这条被动判据更早发现 ——
 这正是"网络状态是系统事实，不该等 IO 报错"的直接体现。
 
+---
+
+## 三之二、归因更正（2026-11-10 晚补记，原文保留不改）
+
+上面这段结论**数字对、归因错**。
+
+补权限后复测（`docs/evidence/p250/s6-link-permission/`）：主 manifest 当时漏了
+`ACCESS_NETWORK_STATE`，`ConnectivityManager.activeNetwork` 抛 `SecurityException`，
+被 `RangeFd` 看门狗里的 `runCatching` 吞掉 —— **看门狗在真机上一直没工作过**。
+
+那 1000 ms 的真实来源：`svc wifi disable` 让内核拆掉 socket，正在阻塞的 `poll`
+立刻返回错误 → `smb2_pread` 快速失败 → `RangeFd.onRead` catch → `stalled = true`。
+**是"Wi-Fi 被关掉"这个动作快，不是我们察觉快。**
+
+补权限后同条件复测仍为 1000 ms（5/5 PASS），证明归因与那个数字无关。
+
+看门狗的适用场景是"连接没断但对端不响应"（NAT 超时、AP 信号弱、睡眠唤醒），
+本机造不出该场景，**这一条仍无证据**。
+
 ## 四、过程中发现的事实（三条，都很关键）
 
 ### 4.1 libsmb2 的读超时在断网时**不按设定值生效**

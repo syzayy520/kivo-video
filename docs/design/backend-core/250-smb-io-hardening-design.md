@@ -204,6 +204,13 @@ object NetworkLinkMonitor {
 真机实测（K40 / 4K HEVC 硬解）：`位置停止后 1000 ms 首次上报重连中`，比测试自身的
 `STALL`（5 s 判定）还早 4 秒。
 
+> **归因更正（2026-11-10 晚，补权限后复测）**：上面那 1000 ms **不是看门狗挣来的**。
+> 主 manifest 原来漏了 `ACCESS_NETWORK_STATE`，`activeNetwork` 抛 `SecurityException`，
+> 看门狗在真机上一直失效；那 1 秒来自"`svc wifi disable` 让内核拆掉 socket、阻塞读立刻报错"。
+> 补权限后复测仍是 1000 ms —— 数字对，机制错。
+> 看门狗真正的用武之地是"连接没断但对端不响应"（NAT 表项超时、AP 信号弱），
+> 那个场景本卡造不出来，**没有证据**。详见 `docs/evidence/p250/s6-link-permission/`。
+
 **D4 · `SmbByteSource` 拆成 6 个单职责单元**
 
 现状 664 行、6 职责。拆分依据不是"按行数切"，是按**改动理由**切：谁会在什么情况下被改。
