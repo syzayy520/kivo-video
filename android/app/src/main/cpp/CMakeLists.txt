@@ -466,6 +466,7 @@ add_library(kivo_player SHARED
     "jni/jni_ffmpeg_bridge.cxx"
     "jni/jni_subtitle_bridge.cxx"
     "jni/jni_smb2_bridge.cxx"
+    "jni/jni_smb2_list.cxx"
 )
 
 # 220：libsmb2 静态库（third_party/libsmb2-android/build.sh 产物；SenPlayer 同款库）

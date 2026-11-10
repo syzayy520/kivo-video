@@ -30,7 +30,7 @@ class SmbSession(
         }
         ctx = created
         val rc = Smb2Native.nativeConnect(
-            created, address.host, address.port, address.share,
+            created, address.authority, address.share,
             credential.username, credential.password, credential.domain,
         )
         if (rc != 0) {

@@ -24,8 +24,14 @@ object Smb2Native {
      */
     external fun nativeSetReadTimeout(ctx: Long, seconds: Int): Int
 
-    /** 连到 [share]；返回 0 成功。share 用 "IPC$" 时是枚举共享的前置连接。 */
-    external fun nativeConnect(ctx: Long, host: String, port: Int, share: String,
+    /**
+     * 连到 [share]；返回 0 成功。share 用 `IPC$` 时是枚举共享的前置连接。
+     *
+     * [authority] 必须是 [SmbAddress.authority] 的形态（IPv6 带方括号、端口总是显式）。
+     * native 侧不再拼 `host + ":" + port` —— 那个拼串正是 IPv6 从来连不上的原因，
+     * 而且藏在 JNI 里，单测够不着。
+     */
+    external fun nativeConnect(ctx: Long, authority: String, share: String,
                                user: String, pass: String, domain: String): Int
 
     /** 列目录，返回 JSON 数组 [{"name","dir","size"}]；失败返回 null。 */
@@ -37,10 +43,10 @@ object Smb2Native {
     external fun nativeOpen(ctx: Long, path: String): Long
     external fun nativeSize(ctx: Long, fh: Long): Long
 
-    /** 读进新数组（兼容路径，S2 起播放走 [nativeReadInto]）。 */
-    external fun nativeReadAt(ctx: Long, fh: Long, offset: Long, len: Int): ByteArray?
-
-    /** 直接读进调用方的 ByteArray；返回字节数，0 = EOF，<0 = 失败。 */
+    /**
+     * 直接读进调用方的 ByteArray；返回字节数，0 = EOF，**<0 是失败且保留原值**
+     * （NT status 或 `-errno`），交给 [SmbError.fromReadCode] 归因。
+     */
     external fun nativeReadInto(ctx: Long, fh: Long, offset: Long, buf: ByteArray,
                                 off: Int, len: Int): Int
 

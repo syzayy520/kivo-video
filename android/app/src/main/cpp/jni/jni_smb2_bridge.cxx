@@ -1,38 +1,35 @@
-// libsmb2 的 JNI 桥（220 设计稿 D1 定案实验：与 SenPlayer 同款库同形态）。
+// libsmb2 的通道原语 JNI 桥（220 定案：与 SenPlayer 同款库同形态；250 做健壮性收口）。
 //
-// 单一职责：libsmb2 同步 API 的薄封装——无解码/播放逻辑。
-// 线程模型：一个 context 一个线程串行调（spike 单线程；LocalRangeProxy 侧再加锁）。
-// 错误纪律（G9）：每个调用后检查 rc，错误文本经 nativeGetError 交给 Kotlin 组装 reason。
+// 单一职责：连接、打开、读、关闭、错误读取。目录列举与共享枚举在
+// `jni_smb2_list.cxx`（那两个是 JSON 生产者，改动的理由不同）。
+//
+// 线程模型：一个 context 一个线程串行调；并发由 Kotlin 侧串行化。
+// 错误纪律（G9）：每个调用后检查 rc，失败返回原值，由 Kotlin 组装用户文案。
+//
+// 250 的两处结构变化：
+// 1. 字符串一律经 `jni_string_convert`（UTF-8 ↔ UTF-16）。原先用
+//    `NewStringUTF` / `GetStringUTFChars`，它们走 modified UTF-8，与 SMB 的
+//    标准 UTF-8 不兼容：含 emoji 的文件名要么 abort、要么路径字节错。
+// 2. 连接参数收**已规范化的 authority**（`[v6]:port`），不再在这里拼
+//    `host + ":" + port`：IPv6 漏了方括号就永远连不上，而这个拼串原先藏在这一层。
 
 #include <jni.h>
 #include <fcntl.h>
-#include <string>
-#include <cstring>
-#include <vector>
 
+#include <cstring>
+#include <string>
+
+#include "jni_smb2_context.hpp"
+#include "jni_string_convert.hpp"
 #include "smb2.h"
 #include "libsmb2.h"
-#include "libsmb2-raw.h"
-#include "libsmb2-share-enum.h"
 
 namespace {
 
-jstring to_jstring(JNIEnv* env, const char* s) {
-    return env->NewStringUTF(s == nullptr ? "" : s);
-}
-
-std::string to_std(JNIEnv* env, jstring s) {
-    if (s == nullptr) return "";
-    const char* c = env->GetStringUTFChars(s, nullptr);
-    std::string out = c == nullptr ? "" : c;
-    if (c != nullptr) env->ReleaseStringUTFChars(s, c);
-    return out;
-}
-
-// user 为空 → 传 NULL（libsmb2 匿名语义，SenPlayer 空凭据形态对位）
-const char* user_or_null(const std::string& user) {
-    return user.empty() ? nullptr : user.c_str();
-}
+using kivo::jni_bridge::ctx_of;
+using kivo::jni_bridge::fh_of;
+using kivo::jni_bridge::to_utf8;
+using kivo::jni_bridge::user_or_null;
 
 }  // namespace
 
@@ -50,103 +47,62 @@ Java_com_kivo_cinema_smb_Smb2Native_nativeCreate(JNIEnv* /*env*/, jobject /*thiz
 
 JNIEXPORT void JNICALL
 Java_com_kivo_cinema_smb_Smb2Native_nativeDestroy(JNIEnv* /*env*/, jobject /*thiz*/, jlong ctxPtr) {
-    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
-    if (ctx != nullptr) smb2_destroy_context(ctx);
+    if (auto* ctx = ctx_of(ctxPtr)) {
+        smb2_destroy_context(ctx);
+    }
 }
 
-// 读阶段超时（250 D2）。连接与打开文件仍用 nativeCreate 里的 15 s ——
-// 慢网络上的认证 + 树连接真的要几秒；而单次 READ 真机最坏 300 ms 量级，
-// 3 s 已是 10 倍余量。两者混用一个值，就会出现"为了读快把连接也掐死"。
+// 读阶段超时（250 D2）。连接与打开文件仍用 nativeCreate 里那 15 s —— 慢网络上的
+// 认证 + 树连接真要几秒；单次 READ 真机最坏 300 ms 量级，3 s 已是 10 倍余量。
 //
-// 这个值决定"多久才知道读没回来"，是断网体验的直接上限：
-// 15 s 时用户看到的是卡住十几秒没反应，3 s 才谈得上"5 秒内提示"。
+// 注意：真机实测这个值在"连接半死"时**不生效**（断网后 pread 仍 15 s 才回），
+// 所以断网感知由 Kotlin 侧 `NetworkLinkMonitor` + `RangeFd` 看门狗承担。
+// 这里保留是为了给"真的卡住的 PDU"一个上限，不承担用户体验指标。
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_smb_Smb2Native_nativeSetReadTimeout(JNIEnv* /*env*/, jobject /*thiz*/,
                                                          jlong ctxPtr, jint seconds) {
-    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
+    auto* ctx = ctx_of(ctxPtr);
     if (ctx == nullptr || seconds <= 0) return -1;
     smb2_set_timeout(ctx, static_cast<int>(seconds));
     return 0;
 }
 
+// [authority] 形如 `host:port` / `[::1]:445`，由 `SmbAddress.authority` 规范化后传入。
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_smb_Smb2Native_nativeConnect(JNIEnv* env, jobject /*thiz*/, jlong ctxPtr,
-                                                  jstring host, jint port, jstring share,
+                                                  jstring authority, jstring share,
                                                   jstring user, jstring pass, jstring domain) {
-    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
+    auto* ctx = ctx_of(ctxPtr);
     if (ctx == nullptr) return -1;
-    std::string h = to_std(env, host);
-    std::string s = to_std(env, share);
-    std::string u = to_std(env, user);
-    std::string p = to_std(env, pass);
-    std::string d = to_std(env, domain);
+    const std::string hostPort = to_utf8(env, authority);
+    const std::string shareName = to_utf8(env, share);
+    const std::string userName = to_utf8(env, user);
+    const std::string password = to_utf8(env, pass);
+    const std::string domainName = to_utf8(env, domain);
 
-    if (!d.empty()) smb2_set_domain(ctx, d.c_str());
-    if (!u.empty()) smb2_set_user(ctx, u.c_str());
+    if (!domainName.empty()) smb2_set_domain(ctx, domainName.c_str());
+    if (!userName.empty()) smb2_set_user(ctx, userName.c_str());
     // 密码为空 → 不调 smb2_set_password（保持 NULL）——libsmb2 auth.c L760：
     // password==NULL 才走匿名分支（NTLMSSP_NEGOTIATE_ANONYMOUS 0x800 标志）。
-    // 空字符串 ≠ NULL：会发"空用户+空密码 NTLMv2"，小米路由实测拒（0xc0000022）。
-    if (!p.empty()) smb2_set_password(ctx, p.c_str());
+    if (!password.empty()) smb2_set_password(ctx, password.c_str());
 
-    std::string hostPort = h + ":" + std::to_string(port);
-    int rc = smb2_connect_share(ctx, hostPort.c_str(), s.c_str(), user_or_null(u));
-    return static_cast<jint>(rc);
-}
-
-JNIEXPORT jstring JNICALL
-Java_com_kivo_cinema_smb_Smb2Native_nativeList(JNIEnv* env, jobject /*thiz*/, jlong ctxPtr,
-                                               jstring path) {
-    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
-    if (ctx == nullptr) return to_jstring(env, "[]");
-    std::string dir = to_std(env, path);
-    while (dir.size() > 1 && dir.back() == '/') dir.pop_back();
-
-    struct smb2dir* d = smb2_opendir(ctx, dir.empty() ? nullptr : dir.c_str());
-    if (d == nullptr) {
-        // 错误文本由 Kotlin 经 nativeGetError 读取
-        return nullptr;
-    }
-    std::string json = "[";
-    bool first = true;
-    struct smb2dirent* ent;
-    while ((ent = smb2_readdir(ctx, d)) != nullptr) {
-        std::string name = ent->name;
-        if (name == "." || name == "..") continue;
-        if (!first) json += ",";
-        first = false;
-        bool isDir = ent->st.smb2_type == SMB2_TYPE_DIRECTORY;
-        json += "{\"name\":\"";
-        // 最小 JSON 转义（文件名可能含引号/反斜杠）
-        for (char c : name) {
-            if (c == '"' || c == '\\') json += '\\';
-            json += c;
-        }
-        json += "\",\"dir\":";
-        json += isDir ? "true" : "false";
-        json += ",\"size\":";
-        json += std::to_string(ent->st.smb2_size);
-        json += "}";
-    }
-    smb2_closedir(ctx, d);
-    json += "]";
-    return to_jstring(env, json.c_str());
+    return static_cast<jint>(
+        smb2_connect_share(ctx, hostPort.c_str(), shareName.c_str(), user_or_null(userName)));
 }
 
 JNIEXPORT jlong JNICALL
 Java_com_kivo_cinema_smb_Smb2Native_nativeOpen(JNIEnv* env, jobject /*thiz*/, jlong ctxPtr,
                                                jstring path) {
-    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
+    auto* ctx = ctx_of(ctxPtr);
     if (ctx == nullptr) return 0;
-    std::string p = to_std(env, path);
-    struct smb2fh* fh = smb2_open(ctx, p.c_str(), O_RDONLY);
-    return reinterpret_cast<jlong>(fh);
+    return reinterpret_cast<jlong>(smb2_open(ctx, to_utf8(env, path).c_str(), O_RDONLY));
 }
 
 JNIEXPORT jlong JNICALL
 Java_com_kivo_cinema_smb_Smb2Native_nativeSize(JNIEnv* /*env*/, jobject /*thiz*/, jlong ctxPtr,
                                                jlong fhPtr) {
-    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
-    auto* fh = reinterpret_cast<struct smb2fh*>(fhPtr);
+    auto* ctx = ctx_of(ctxPtr);
+    auto* fh = fh_of(fhPtr);
     if (ctx == nullptr || fh == nullptr) return -1;
     struct smb2_stat_64 st;
     std::memset(&st, 0, sizeof(st));
@@ -154,102 +110,49 @@ Java_com_kivo_cinema_smb_Smb2Native_nativeSize(JNIEnv* /*env*/, jobject /*thiz*/
     return static_cast<jlong>(st.smb2_size);
 }
 
-JNIEXPORT jbyteArray JNICALL
-Java_com_kivo_cinema_smb_Smb2Native_nativeReadAt(JNIEnv* env, jobject /*thiz*/, jlong ctxPtr,
-                                                 jlong fhPtr, jlong offset, jint len) {
-    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
-    auto* fh = reinterpret_cast<struct smb2fh*>(fhPtr);
-    if (ctx == nullptr || fh == nullptr || len <= 0) return nullptr;
-    std::vector<char> buf(static_cast<size_t>(len));
-    int64_t n = smb2_pread(ctx, fh, reinterpret_cast<uint8_t*>(buf.data()),
-                           static_cast<uint32_t>(len), static_cast<uint64_t>(offset));
-    if (n < 0) return nullptr;
-    jbyteArray arr = env->NewByteArray(static_cast<jsize>(n));
-    if (arr != nullptr) {
-        env->SetByteArrayRegion(arr, 0, static_cast<jsize>(n),
-                                reinterpret_cast<const jbyte*>(buf.data()));
-    }
-    return arr;
-}
-
 // 直接读进调用方给的 ByteArray（243 S2）：只跨界一次，省掉 native 侧 vector +
-// NewByteArray + 二次拷贝。返回读到的字节数；0 = EOF；<0 = 失败（读 nativeGetError / nativeNtStatus）。
+// NewByteArray + 二次拷贝。
+//
+// 250 D9：**失败返回 rc 原值**（NT status 或 -errno），不再压成 -1。
+// 压成 -1 就只能拿 smb2_get_nterror 去解释，而超时路径没有回复报文、那个值是
+// 上一次回复留下的 —— "这次超时"会被译成"上次的权限错误"。
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_smb_Smb2Native_nativeReadInto(JNIEnv* env, jobject /*thiz*/, jlong ctxPtr,
                                                    jlong fhPtr, jlong offset, jbyteArray buf,
                                                    jint off, jint len) {
-    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
-    auto* fh = reinterpret_cast<struct smb2fh*>(fhPtr);
+    auto* ctx = ctx_of(ctxPtr);
+    auto* fh = fh_of(fhPtr);
     if (ctx == nullptr || fh == nullptr || buf == nullptr || len <= 0 || off < 0) return -1;
     if (env->GetArrayLength(buf) < off + len) return -1;
     jbyte* dst = env->GetByteArrayElements(buf, nullptr);
     if (dst == nullptr) return -1;
-    int64_t n = smb2_pread(ctx, fh, reinterpret_cast<uint8_t*>(dst + off),
-                           static_cast<uint32_t>(len), static_cast<uint64_t>(offset));
+    const int64_t read = smb2_pread(ctx, fh, reinterpret_cast<uint8_t*>(dst + off),
+                                    static_cast<uint32_t>(len), static_cast<uint64_t>(offset));
     env->ReleaseByteArrayElements(buf, dst, 0);  // 0 = 拷回并释放
-    if (n < 0) return -1;
-    return static_cast<jint>(n);
+    return static_cast<jint>(read);
 }
 
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_smb_Smb2Native_nativeCloseFh(JNIEnv* /*env*/, jobject /*thiz*/, jlong ctxPtr,
                                                   jlong fhPtr) {
-    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
-    auto* fh = reinterpret_cast<struct smb2fh*>(fhPtr);
+    auto* ctx = ctx_of(ctxPtr);
+    auto* fh = fh_of(fhPtr);
     if (ctx == nullptr || fh == nullptr) return -1;
     return static_cast<jint>(smb2_close(ctx, fh));
 }
 
 JNIEXPORT jstring JNICALL
 Java_com_kivo_cinema_smb_Smb2Native_nativeGetError(JNIEnv* env, jobject /*thiz*/, jlong ctxPtr) {
-    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
-    if (ctx == nullptr) return to_jstring(env, "context null");
-    return to_jstring(env, smb2_get_error(ctx));
-}
-
-// 共享枚举（243 D1）：必须已连到 IPC$。返回 JSON 数组
-// [{"name":..,"remark":..,"type":..}]；失败返回 null，错误文本仍走 nativeGetError。
-// type 为 SMB2_SHARE_TYPE_*（0=磁盘 1=打印 2=设备 3=IPC），隐藏共享带 0x80000000。
-JNIEXPORT jstring JNICALL
-Java_com_kivo_cinema_smb_Smb2Native_nativeListShares(JNIEnv* env, jobject /*thiz*/, jlong ctxPtr) {
-    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
-    if (ctx == nullptr) return nullptr;
-    struct smb2_share_enum_reply* reply =
-        smb2_share_enum_sync(ctx, SMB2_SHARE_INFO_1);
-    if (reply == nullptr) return nullptr;
-
-    std::string json = "[";
-    bool first = true;
-    for (uint32_t i = 0; i < reply->entries_read; i++) {
-        struct smb2_share_info_1* info = &reply->share_info.info_1[i];
-        if (info->netname == nullptr) continue;
-        if (!first) json += ",";
-        first = false;
-        json += "{\"name\":\"";
-        for (const char* p = info->netname; *p; ++p) {
-            if (*p == '"' || *p == '\\') json += '\\';
-            json += *p;
-        }
-        json += "\",\"remark\":\"";
-        if (info->remark != nullptr) {
-            for (const char* p = info->remark; *p; ++p) {
-                if (*p == '"' || *p == '\\') json += '\\';
-                json += *p;
-            }
-        }
-        json += "\",\"type\":";
-        json += std::to_string(info->type);
-        json += "}";
-    }
-    json += "]";
-    smb2_free_data(ctx, reply);
-    return to_jstring(env, json.c_str());
+    auto* ctx = ctx_of(ctxPtr);
+    if (ctx == nullptr) return kivo::jni_bridge::to_jstring(env, "context null");
+    return kivo::jni_bridge::to_jstring(env, smb2_get_error(ctx));
 }
 
 // 最近一次失败的 NT status（243 D7 错误分类用）；0 = 无错误。
 JNIEXPORT jint JNICALL
-Java_com_kivo_cinema_smb_Smb2Native_nativeNtStatus(JNIEnv* /*env*/, jobject /*thiz*/, jlong ctxPtr) {
-    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
+Java_com_kivo_cinema_smb_Smb2Native_nativeNtStatus(JNIEnv* /*env*/, jobject /*thiz*/,
+                                                   jlong ctxPtr) {
+    auto* ctx = ctx_of(ctxPtr);
     if (ctx == nullptr) return 0;
     return static_cast<jint>(smb2_get_nterror(ctx));
 }

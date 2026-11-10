@@ -16,6 +16,9 @@ class SmbShareLister(
     private val credential: SmbCredential = SmbCredential.ANONYMOUS,
 ) {
 
+    /** `host:port` 的规范形态（IPv6 带方括号）。由 [SmbAddress] 生成，不在这里拼串。 */
+    private val authority: String = SmbAddress(host = host, port = port).authority
+
     fun list(): List<SmbShare> {
         val ctx = Smb2Native.nativeCreate()
         if (ctx == 0L) {
@@ -23,7 +26,7 @@ class SmbShareLister(
         }
         try {
             val rc = Smb2Native.nativeConnect(
-                ctx, host, port, IPC_SHARE,
+                ctx, authority, IPC_SHARE,
                 credential.username, credential.password, credential.domain,
             )
             if (rc != 0) {

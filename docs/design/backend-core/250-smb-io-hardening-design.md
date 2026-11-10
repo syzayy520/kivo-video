@@ -364,10 +364,12 @@ android/app/src/main/cpp/jni/
     utf8_codec.hpp        新  ≤120      标准 UTF-8 → UTF-16（libsmb2 → Java 方向）
     utf16_codec.hpp       新  ≤110      UTF-16 → 标准 UTF-8（Java → libsmb2 方向）
     jni_smb2_json.hpp     新  ≤70       JSON 字符串转义（含 <0x20 → \u00XX）
-    jni_string_convert.hpp 改 54→≤70    to_utf8 / to_jstring 改走 utf8_codec（两个方向都修）
-    jni_smb2_bridge.cxx   改 242→≤175  用 json/string 工具；+ nativeSetReadTimeout；+ 读失败返回 rc；
-                                        删 nativeReadAt（死接口，S2 起无人调用）
-    CMakeLists.txt        改            + 无（全部是 .hpp，无需新增编译单元）
+    jni_smb2_context.hpp  新  ≤40       ctx_of / fh_of / user_or_null（桥与 list 共用）
+    jni_string_convert.hpp 改 54→≤73    to_utf8 / to_jstring 改走 utf8_codec（两个方向都修）
+    jni_smb2_bridge.cxx   改 242→≤175  通道原语：连/开/读/关/错误；+ nativeSetReadTimeout；
+                                        + 读失败返回 rc；删 nativeReadAt（死接口）
+    jni_smb2_list.cxx     新  ≤95       两个 JSON 生产者：nativeList / nativeListShares
+    CMakeLists.txt        改            + jni_smb2_list.cxx（唯一一处构建改动）
 
 docs/design/backend-core/
     250-smb-io-hardening-design.md  本文

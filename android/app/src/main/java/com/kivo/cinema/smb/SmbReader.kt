@@ -29,7 +29,7 @@ class SmbReader(
         }
         ctx = created
         val rc = Smb2Native.nativeConnect(
-            created, address.host, address.port, address.share,
+            created, address.authority, address.share,
             credential.username, credential.password, credential.domain,
         )
         if (rc != 0) {
@@ -66,7 +66,11 @@ class SmbReader(
     fun pread(offset: Long, buf: ByteArray, off: Int, len: Int): Int {
         check(ctx != 0L && fh != 0L) { "SMB 读取器尚未打开" }
         val read = Smb2Native.nativeReadInto(ctx, fh, offset, buf, off, len)
-        if (read < 0) throw translate(SmbStage.READ)
+        if (read < 0) {
+            // 250 D9：用返回码本身归因。拿 smb2_get_nterror 兜底会把"这次超时"
+            // 译成"上次的错误" —— 超时路径没有回复报文，那个值是残值。
+            throw SmbError.fromReadCode(read, credential.anonymous) ?: translate(SmbStage.READ)
+        }
         return read
     }
 
