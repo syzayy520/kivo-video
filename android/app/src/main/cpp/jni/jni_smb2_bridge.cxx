@@ -18,6 +18,7 @@
 
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include "jni_smb2_context.hpp"
 #include "jni_string_convert.hpp"
@@ -110,12 +111,19 @@ Java_com_kivo_cinema_smb_Smb2Native_nativeSize(JNIEnv* /*env*/, jobject /*thiz*/
     return static_cast<jlong>(st.smb2_size);
 }
 
-// 直接读进调用方给的 ByteArray（243 S2）：只跨界一次，省掉 native 侧 vector +
-// NewByteArray + 二次拷贝。
+// 直接读进调用方给的 ByteArray（243 S2）。
 //
 // 250 D9：**失败返回 rc 原值**（NT status 或 -errno），不再压成 -1。
 // 压成 -1 就只能拿 smb2_get_nterror 去解释，而超时路径没有回复报文、那个值是
 // 上一次回复留下的 —— "这次超时"会被译成"上次的权限错误"。
+//
+// 251：**不再用 `GetByteArrayElements` + `Release(...,0)`**。
+// 那对函数在 4 MiB 量级上要 pin 住 Java 堆里的大对象、并在 Release 时全量回写。
+// 真机实测（K40 + 小米路由 + 20.9 GB 4K 原盘，同一台 NAS）：
+//   纯 C++ 直调 libsmb2 读 4 MiB：74.2 ms / 53.9 MB/s
+//   经这对函数读 4 MiB：          287.9 ms / 10.4 MB/s      —— 差 5.2 倍
+// 改成"读进线程本地缓冲，再 SetByteArrayRegion 拷一次"：一次拷贝、不 pin、缓冲可复用。
+// 线程本地是必要的：fd 回调线程与预读线程各读各的，共用一块会互相踩。
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_smb_Smb2Native_nativeReadInto(JNIEnv* env, jobject /*thiz*/, jlong ctxPtr,
                                                    jlong fhPtr, jlong offset, jbyteArray buf,
@@ -124,11 +132,17 @@ Java_com_kivo_cinema_smb_Smb2Native_nativeReadInto(JNIEnv* env, jobject /*thiz*/
     auto* fh = fh_of(fhPtr);
     if (ctx == nullptr || fh == nullptr || buf == nullptr || len <= 0 || off < 0) return -1;
     if (env->GetArrayLength(buf) < off + len) return -1;
-    jbyte* dst = env->GetByteArrayElements(buf, nullptr);
-    if (dst == nullptr) return -1;
-    const int64_t read = smb2_pread(ctx, fh, reinterpret_cast<uint8_t*>(dst + off),
+
+    static thread_local std::vector<uint8_t> scratch;
+    const auto wanted = static_cast<std::size_t>(len);
+    if (scratch.size() < wanted) scratch.resize(wanted);
+
+    const int64_t read = smb2_pread(ctx, fh, scratch.data(),
                                     static_cast<uint32_t>(len), static_cast<uint64_t>(offset));
-    env->ReleaseByteArrayElements(buf, dst, 0);  // 0 = 拷回并释放
+    if (read > 0) {
+        env->SetByteArrayRegion(buf, off, static_cast<jsize>(read),
+                                reinterpret_cast<const jbyte*>(scratch.data()));
+    }
     return static_cast<jint>(read);
 }
 

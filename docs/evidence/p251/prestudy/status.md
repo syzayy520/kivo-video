@@ -105,23 +105,63 @@ AHEAD prefetch=off 5.2 MB/s / on 3.9 MB/s / 放大 0.75x
 **该改动已 `git checkout` 回滚**，`SmbReadTuning` 保持 247 的验证值（6 MiB 环 / 1 MiB chunk）。
 没有证据的改动不入库 —— 这条在这次守住了。
 
-## 五、251 应该做什么（方向已改）
+## 五、实验 4：零拷贝 JNI（已落地）
 
-不再做异步流水线。按证据排序：
+按 §五 旧清单的第 1 条做了最小改动：`nativeReadInto` 不再用
+`GetByteArrayElements` + `Release(...,0)`，改为读进**线程本地** `std::vector`
+再 `SetByteArrayRegion` 拷一次。
 
-1. **JNI 零拷贝**（最大头，实验 3 直指）
-   `nativeReadInto` 改用 `NewDirectByteBuffer` + `GetDirectBufferAddress`，
-   Kotlin 侧用 `allocateDirect` 做网络读缓冲，避免 `GetByteArrayElements` 的 pin/拷贝。
-   这一步做完，实验 2 的 53.9 MB/s 才有机会在应用里兑现。
-2. **读放大**（第 1 步之后才有意义）
-   `aheadChunk` 1 → 4 MiB，`SmbReadWindow.blockBytes` 2 → 4 MiB。
-   前提：JNI 单次 4 MiB 的耗时接近纯 C++ 的 74 ms。
-3. **重新决定要不要预读**
-   实验 4 表明"第二条连接"整体为负。若第 1、2 步把单条连接的吞吐做到 50 MB/s，
-   预读线程存在的理由（"遮蔽同步读的长尾"）就消失了 —— 可能应该**删掉预读**，
-   而不是继续优化它。
+| chunk | 改前 | 改后 | 纯 C++ |
+| --- | --- | --- | --- |
+| 64 KiB | 3.3 | 4.7 | 2.3 |
+| 256 KiB | 7.9 | 10.4 | 9.5 |
+| 512 KiB | 9.2 | 11.6 | 12.4 |
+| 1 MiB | 7.8 | **12.4** | 13.2 |
+| 2 MiB | 10.5 | 11.2 | 26.3 |
+| 4 MiB | 10.4 | 11.8 | 53.9 |
 
-## 六、复算
+两个结论：
+
+1. **1 MiB 已追平纯 C++**（12.4 vs 13.2）。JNI 拷贝确实是一部分代价。
+2. **4 MiB 仍差 3.4 倍**（253.4 ms vs 74.2 ms）。说明还有一块 3 倍的开销没定位。
+   最可能是 libsmb2 内部按 `max_read_size` 把大读拆成多个 READ 请求 ——
+   若拆成 4 × 1 MiB，4 × 74 = 296 ms，与实测 253 ms 同量级。
+   **这一条没有证据**（`struct smb2_context` 不透明，读不到 `max_read_size`），
+   列为 251 的下一个待查项。
+
+**这条同时证伪了"读放大"**：改后 1 MiB（12.4）仍优于 4 MiB（11.8）。
+所以 `aheadChunk` 保持 1 MiB 是对的，之前的回滚是对的。
+
+**回归**：seek 4/4 PASS，落点 `27105 ms`（改前 `27106`），`first_frame=3.9ms`，
+`frames=67 dropped=0` —— 零拷贝没有引入任何回归。
+
+### 顺带拿到生产路径的数字（补权限后终于能跑）
+
+```
+WINDOW 64KiB sequential -> 5.4 MB/s      （关预读，走块窗口）
+AHEAD  64KiB sequential -> 5.0 MB/s      （开预读）
+```
+
+裸读 1 MiB 是 12.4 MB/s，**走窗口只剩 5.4** —— 掉了一半。
+24 MiB 实测 4.43 s，而理论值（12 次 2 MiB 填充 × 153 ms）只有 1.84 s。
+**窗口层的额外开销是下一个靶子**，而且它才是直接影响播放的那个数：
+4K 原盘要 15 MB/s，现在只有 5.4。
+
+---
+
+## 六、251 应该做什么（按 §五 实验后的状态重排）
+
+1. ~~JNI 零拷贝~~ —— **已完成**，1 MiB 追平纯 C++。
+2. **查窗口层为什么掉一半**（新第一优先级）
+   裸读 12.4 → 窗口 5.4。要么 `fill` 被拆成了多次小读，要么 `copyIfPresent` 大量 miss。
+   查法：在 `SmbReadWindow.fill` 前后打点统计 fill 次数与总字节，与理论值对比。
+3. **查 4 MiB 的 3 倍额外开销**（怀疑 libsmb2 拆包）
+   若是拆包，`smb2_set_max_read_size` 或者干脆放弃大 chunk。
+4. **重新决定要不要预读**
+   本机数据一致指向"第二条连接为负"（5.4 → 5.0，0.93x）。
+   等第 2 步把单连接做到 10+ MB/s，再决定是否删掉 `SmbReadAhead`。
+
+## 七、复算
 
 ```bash
 # 实验 1、2 的程序是一次性的（不进仓库），编译方式：
@@ -141,7 +181,7 @@ adb shell am instrument -w -e smbHost 192.168.5.1 -e smbShare XiaoMi \
   com.kivo.cinema.test/com.kivo.cinema.smb.SmbReadAheadInstrumentation
 ```
 
-## 七、这一轮没做到的
+## 八、这一轮没做到的
 
 - 实验 3 的 B/C 段（走窗口的 64 KiB 顺序读）被 `SecurityException` 打断，见
   `../../p250/s6-link-permission/status.md`。补上权限后可以通过同一个工具复跑。
