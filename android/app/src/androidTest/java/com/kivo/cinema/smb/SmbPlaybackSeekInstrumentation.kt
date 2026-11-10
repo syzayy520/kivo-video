@@ -120,7 +120,7 @@ class SmbPlaybackSeekInstrumentation : Instrumentation() {
                 //   - 这两项仍 ≈5s 或缺失                        → 帧没跳到 25s，
                 //     问题在 demux 之后的送包/解码。
                 // 只打印、不改任何播放逻辑；数据本就由 poll() 每 100ms 缓存，零额外 IO。
-                log("SUMMARY", session.lastSummary.replace('\n', ' ').replace('\r', ' '))
+                log("SUMMARY", session.currentSummary().replace('\n', ' ').replace('\r', ' '))
                 // 判据必须看**实际播放位置**，不能只看原生上报的 landing。
                 // 244 实测：landing=25000 ms（关键帧对齐）、actual=5182 ms，旧判据
                 // `landing > 0 || |actual-target| < 60s` 让这种"报告成功但没跳"直接过关。

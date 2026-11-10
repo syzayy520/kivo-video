@@ -111,3 +111,47 @@ seek 之后 `demux=[backend=none …]` —— 抓诊断时源已经不在了（`
 `kivo_backend_ffmpeg` 先使用 → 展开成 `/include` → `fatal error: 'ass/ass.h'`。
 **这台机器上的 native 全量重建一直是坏的**，增量构建恰好跳过 —— 也解释了
 "改了后端代码、构建 7 秒完成、行为却没变"这类假象。定义前置后，全量重建 35 s 通过。
+
+## 八、2026-11-10 深夜：seek 的真相已经查到最后一层
+
+诊断链补齐（会话计数 + demux 事实 + JNI 计数 + 快照落点 + 会话地址）后，
+Shelter 上跳 600 秒的真实情况是：
+
+```
+demux=[backend=ffmpeg ... len=12186004520 idx=653
+       target=600000000 landed=594469000 avio=1275431492
+       calls=1 async=1 src=0 alive=1 seen=594469000
+snap=594469000   jni=1   seekptr=0xb4000073834b5000 sumptr=0xb4000073834b5000
+```
+
+**结论（都是实测，不是推断）：**
+
+1. **解封装层的 seek 完全正确**：`landed=594469000` = **594.469 s**，
+   与 ffprobe 在同一个文件上得到的落点**一模一样**；`avio=1275431492` 说明
+   读取位置确实从 0 跳到了 1.275 GB；`rc=0`。
+2. **会话层也拿到了正确落点**：`seen=594469000`（在 `seek_to` 里、source seek 之后立刻抓的）。
+3. **但 JNI 读出来是 0**：JNI 紧跟 `seek_to` 之后读落点，得到 0，
+   于是 `handle->last_seek_landing_us = 0`、Kotlin 侧 `positionUs = 0`、
+   时钟没有 rebase，画面停在起播位置 —— 这就是用户看到的"拖了进度条，画面从头开始"。
+4. **不是两个对象**：`seekptr == sumptr`（seek 用的会话与 summary 报的是同一个）。
+
+### 已经排除的假设
+
+| 假设 | 排除依据 |
+| --- | --- |
+文件没有索引 / FFmpeg 跳不动 | ffprobe 0.294 s 跳到 594.469 s；我们的 `idx=653` |
+平台 MediaExtractor 的锅 | MKV 走的是 FFmpeg（`backend=ffmpeg`），不是平台提取器 |
+文件长度被截断 | `len=12186004520` 与真实大小一致 |
+AVIO 的 seek 没实现 | avio 位置确实从 0 跳到 1.275 GB |
+seek 没进会话 | `calls=1`、`jni=1`、`seen` 有值 |
+两个会话对象 | `seekptr == sumptr` |
+
+### 剩下的唯一矛盾（下一轮的一行改动即可钉死）
+
+同一个对象、同一个成员，`seek_to` 刚写进去的 594469000，JNI 紧接着读出来是 0，
+而两秒后读快照又是 594469000。**下一步：在 JNI 读取点把 `video_landing` 自己打出来**
+（现在只打了两秒后的快照值），就能分清是"读的时候就是 0"还是"读到了但被覆盖"。
+
+同时把 JNI 的落点来源从 `snapshot().seek.landing_us` 改成会话直读
+（`DecodeSession::seek_landing_us()`）—— 落点应当由"刚完成 seek 的那次调用"直接交出去，
+不该绕一圈再读回来。这条改动本身没解决问题，但它把问题范围缩小到了"读取那一刻"。

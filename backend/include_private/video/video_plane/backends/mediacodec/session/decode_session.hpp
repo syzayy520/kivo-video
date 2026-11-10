@@ -209,6 +209,22 @@ public:
     /// 取统计快照。线程安全，可在任意线程调用。
     [[nodiscard]] DecodeStats snapshot() const;
 
+    /// 252：**直读**最近一次 seek 的落点（不走 snapshot）。
+    ///
+    /// 真机实测：JNI 紧跟 seek 之后读 `snapshot().seek.landing_us` 拿到的是 0，
+    /// 而两秒后读同一份快照就是正确的 594.469 s —— 落点在会话里是有的，
+    /// 只是"绕一圈从快照取"这条路在这一刻拿不到。seek 的落点必须由
+    /// "刚完成 seek 的那次调用"直接交出去。
+    [[nodiscard]] std::int64_t seek_landing_us() const { return seek_.landing_us; }
+
+    /// 252：**直读**最近一次 seek 的落点（不走 snapshot）。
+    ///
+    /// 真机实测：JNI 紧跟 seek 之后读 `snapshot().seek.landing_us` 拿到的是 0，
+    /// 而两秒后读同一份快照就是正确的 594.469 s —— 落点在会话里是有的，
+    /// 只是"绕一圈从快照取"这条路在这一刻拿不到。seek 的落点必须由
+    /// "刚完成 seek 的那次调用"直接交出去。
+
+
     /// 容器声明的时长（微秒），未知返回 -1。
     ///
     /// 为什么单独开一个入口而不是塞进 `snapshot()`：`DecodeStats` 每秒被取样多次，
@@ -257,6 +273,34 @@ private:
     /// 252：**在 seek 之后立刻**抓一份 demux 诊断。
     /// 源随后会被重新打开（resume 路径），源自己那份会被擦掉 —— 所以副本存在会话里。
     demux::DemuxSource::SeekDiagnostics last_seek_diag_{};
+
+    /// 252：seek 路径的三个计数 —— 会话收到几次 seek、其中几次走了异步读、
+    /// 几次真的调到了源。用来回答"seek 到底绕去了哪"。
+    std::int64_t seek_calls_ = 0;
+    std::int64_t seek_via_async_ = 0;
+    std::int64_t seek_via_source_ = 0;
+    bool source_alive_at_seek_ = false;
+
+
+    /// 252：**直读**最近一次 seek 的落点。
+    ///
+    /// 为什么不用 `snapshot().seek.landing_us`：真机实测（JNI 紧跟 seek 之后读快照）读到的是 0，
+    /// 而两秒后再读同一份快照就是正确的 594.469 s —— 落点在会话里是有的，
+    /// 只是**从快照取**这条路在这一刻拿不到。seek 的落点必须由"刚完成 seek 的那次调用"
+    /// 直接交出去，不能绕一圈再读回来。
+
+
+    /// 252：**直读**最近一次 seek 的落点。
+    ///
+    /// 为什么不用 `snapshot().seek.landing_us`：真机实测（JNI 紧跟 seek 之后读快照）读到的是 0，
+    /// 而两秒后再读同一份快照就是正确的 594.469 s —— 落点在会话里是有的，
+    /// 只是**从快照取**这条路在这一刻拿不到。seek 的落点必须由"刚完成 seek 的那次调用"
+    /// 直接交出去，不能绕一圈再读回来。
+
+
+    /// 252：seek_to **实际收到**的落点（来自 async/source 的返回值）。
+    /// 与 demux 报告的落点对比，就能定位落点是在"异步边界"丢的还是"往上报"时丢的。
+    std::int64_t landing_seen_ = -1;
 
     MediaExtractorSource source_;
     std::unique_ptr<core::decode::AsyncSampleReader> async_source_;

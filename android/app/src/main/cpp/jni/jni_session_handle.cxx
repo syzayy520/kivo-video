@@ -239,7 +239,13 @@ int session_start(SessionHandle* handle, std::string& error) {
     return 0;
 }
 
+/// 252 诊断：JNI 层 seek 被调了几次（区分"JNI 没被调"与"调了但没进会话"）。
+static std::int64_t g_session_seek_calls = 0;
+/// 252：seek 时用的会话地址 —— 与 summary 里报的比对，能判断是不是同一个对象。
+static const void* g_seek_session_ptr = nullptr;
+
 int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& error) {
+    ++g_session_seek_calls;
     if (handle == nullptr || !handle->session) {
         error = "session handle is null";
         return 1;
@@ -262,6 +268,7 @@ int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& err
         error = handle->audio->runtime_error();
         return fail(handle, 11, "seek audio gate: " + error);
     }
+    g_seek_session_ptr = static_cast<const void*>(handle->session.get());
     const auto outcome = handle->session->seek_to(target_us, /*defer_start=*/true);
     if (!outcome.ok()) {
         error = outcome.message;
@@ -270,7 +277,8 @@ int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& err
         return fail(handle, rejected ? 9 : 10, "seek: " + error);
     }
     // 线程已停，snapshot 在这里读是安全的（也正因为如此才不需要为 landing 单开一个 getter）。
-    const std::int64_t video_landing = handle->session->snapshot().seek.landing_us;
+    // 252：直读会话里的落点，不绕 snapshot —— 实测紧跟 seek 之后读快照会拿到 0。
+    const std::int64_t video_landing = handle->session->seek_landing_us();
 
     bool audio_present = false;
     std::int64_t audio_landing_us = -1;
@@ -557,7 +565,9 @@ std::string session_summary(SessionHandle* handle) {
     }
     const auto stats = handle->session->snapshot();
 
-    char buffer[896] = {};
+    // 252：把 snapshot 里的 seek 落点单独打出来 —— 会话层说 594.469 s、
+    // 而 JNI 读到的却是 0，这两个数必须能并排比。
+    char buffer[960] = {};
     const auto audio_error = handle->audio ? handle->audio->runtime_error() : std::string{};
     const auto& error = stats.error.empty() ? audio_error : stats.error;
     std::snprintf(buffer, sizeof(buffer),
@@ -567,7 +577,7 @@ std::string session_summary(SessionHandle* handle) {
                   // 复制的一行，复制出去就只剩 "p99=0.1ms"。这个 p99 是**逐帧**的
                   // 节拍迟到量（每帧都进直方图），与 `av_drift` 里抽稀口径的 p99
                   // 不是同一个数，对着比会得出"两处矛盾"的假结论。
-                  "pace_lateness_p99[per_frame]=%.1fms completed=%d error=%s demux=[%s]",
+                  "pace_lateness_p99[per_frame]=%.1fms completed=%d error=%s demux=[%s] jni=%lld snap=%lld seekptr=%p sumptr=%p",
                   stats.codec_name.c_str(), stats.mime.c_str(), stats.width, stats.height,
                   static_cast<long long>(handle->session->duration_us()),
                   stats.pipeline_mode.c_str(),
@@ -582,7 +592,12 @@ std::string session_summary(SessionHandle* handle) {
                   stats.pace.enabled ? stats.pace.clock_source.c_str() : "off",
                   static_cast<double>(stats.pace.lateness_p99_ns) / 1'000'000.0,
                   stats.completed ? 1 : 0, error.empty() ? "-" : error.c_str(),
-                  handle->session->demux_seek_summary().c_str());
+                  handle->session->demux_seek_summary().c_str(),
+                  static_cast<long long>(g_session_seek_calls),
+                  static_cast<long long>(stats.seek.landing_us),
+                  g_seek_session_ptr, static_cast<const void*>(handle->session.get()),
+                  static_cast<long long>(stats.seek.landing_us),
+                  static_cast<long long>(stats.seek.landing_us));
     return std::string(buffer);
 }
 

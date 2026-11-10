@@ -290,12 +290,16 @@ SessionOutcome DecodeSession::start() {
 
 std::string DecodeSession::demux_seek_summary() const {
     const auto d = last_seek_diag_;
-    char buffer[192] = {};
+    char buffer[320] = {};
     std::snprintf(buffer, sizeof(buffer),
-                  "backend=%s idx=%d rc=%d target=%lld landed=%lld avio=%lld len=%lld",
+                  "backend=%s idx=%d rc=%d target=%lld landed=%lld avio=%lld len=%lld "
+                  "calls=%lld async=%lld src=%lld alive=%d seen=%lld",
                   d.backend[0] ? d.backend : "none", d.index_entries, d.seek_rc,
                   static_cast<long long>(d.target_us), static_cast<long long>(d.landed_us),
-                  static_cast<long long>(d.avio_pos), static_cast<long long>(d.avio_len));
+                  static_cast<long long>(d.avio_pos), static_cast<long long>(d.avio_len),
+                  static_cast<long long>(seek_calls_), static_cast<long long>(seek_via_async_),
+                  static_cast<long long>(seek_via_source_), source_alive_at_seek_ ? 1 : 0,
+                  static_cast<long long>(landing_seen_));
     return std::string(buffer);
 }
 
@@ -330,10 +334,18 @@ SessionOutcome DecodeSession::seek_to(std::int64_t target_us, bool defer_start) 
     }
 
     // 2. 定位。返回**实际落点**（PREVIOUS_SYNC ⇒ 应 ≤ target）。
+    ++seek_calls_;
+    source_alive_at_seek_ = source_.has_source();
+    if (async_source_) {
+        ++seek_via_async_;
+    } else {
+        ++seek_via_source_;
+    }
     const std::int64_t landing = async_source_ ? async_source_->seek_to(target_us)
                                              : source_.seek_to(target_us);
     // 252：**seek 之后立刻**抓诊断（源在 resume 路径会被重开，源里那份会丢）。
     last_seek_diag_ = source_.seek_diagnostics();
+    landing_seen_ = landing;
     seek_.requests += 1;
     seek_.target_us = target_us;
     seek_.landing_us = landing;

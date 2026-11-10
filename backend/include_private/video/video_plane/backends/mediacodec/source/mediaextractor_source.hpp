@@ -57,6 +57,9 @@ public:
     /// 252：转发底层 demux 的 seek 事实（谁跳的、跳没跳、索引有多少条）。
     [[nodiscard]] demux::DemuxSource::SeekDiagnostics seek_diagnostics() const;
 
+    /// 252：源是否还开着（impl_ 是否还在）。seek 前后对比它，能判断"seek 时源被释放了没有"。
+    [[nodiscard]] bool has_source() const { return impl_ != nullptr; }
+
     /// `"platform"` 或 `"ffmpeg"`；未打开时为 `"none"`。
     [[nodiscard]] const char* backend_name() const {
         return impl_ ? impl_->backend_name() : "none";

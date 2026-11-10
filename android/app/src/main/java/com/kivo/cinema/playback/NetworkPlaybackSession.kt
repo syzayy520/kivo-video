@@ -232,6 +232,14 @@ class NetworkPlaybackSession(context: Context, private val input: RangeSource) {
         positionUs = native.positionUs().coerceAtLeast(0)
     }
 
+    /**
+     * 立刻取一份**当前**的原生摘要（不依赖轮询缓存）。
+     *
+     * 252：seek 之后会话可能离开 PLAYING/PAUSED，轮询会停，
+     * `lastSummary` 就停在 seek 之前那一刻 —— 拿它判断"seek 到底做了什么"会看错。
+     */
+    fun currentSummary(): String = session?.summary().orEmpty()
+
     fun seekTo(targetUs: Long): Long {
         val requestId = seekIds.incrementAndGet()
         command(onRejected = {
