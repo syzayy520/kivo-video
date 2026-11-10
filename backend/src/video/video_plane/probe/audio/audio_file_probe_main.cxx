@@ -31,7 +31,7 @@ namespace core = kivo::video::core;
 
 /// 环形缓冲容量（毫秒）。300ms 足够吸收解码抖动与调度停顿，
 /// 又不至于像 1 秒缓冲那样让"停止/切歌"明显拖尾。
-constexpr std::int32_t kRingCapacityMillis = 300;
+constexpr std::int32_t kRingCapacityMillis = 600;  ///< 与播放器同值（252）
 
 /// 起流前至少要灌进来的帧数，用 burst 的倍数表达：
 /// 一个 burst 的量只能撑过一次回调，遇到调度抖动立刻欠载；

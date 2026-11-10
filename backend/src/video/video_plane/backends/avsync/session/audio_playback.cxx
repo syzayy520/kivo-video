@@ -16,14 +16,27 @@ namespace kivo::video::avsync {
 namespace {
 
 /// 环形缓冲容量（毫秒）。与 `kivo_audio_file_probe` 取同一值：
-/// 300ms 足够吸收解码抖动与调度停顿，又不至于让"停止"明显拖尾。
 /// **两边必须一致** —— 否则同一片源在探针和播放器里得到不同的欠载数，
 /// 而"哪一份是对照基线"就说不清了。
-constexpr std::int32_t kRingCapacityMillis = 300;
+///
+/// 252：300 → 600，依据是**真机读画像**，不是感觉：
+///   · SMB 窗口填充 `fill_avg ≈ 55 ms`、`fill_max ≈ 190–260 ms`（1 MiB 块，
+///     这台 NAS 的 `max_read_size` 就是 1 MiB）；
+///   · 音频与视频共用同一条读路径（同一个 `RangeFd` → 同一个窗口 →
+///     同一条 libsmb2 连接），于是音频排在视频后面，一次填充就是一次停顿；
+///   · 实测整条管线最长停 **320 ms**（`clock.tail.max_mono_step_ns`），
+///     而 300 ms 的环（扣掉约 150 ms 的钟延迟只剩 ≈150 ms 余量）**必然被抽干**
+///     → 补静音 → 听得见的杂音。
+/// 600 ms 让余量回到 ≈450 ms > 实测最长停顿，代价是多约 300 ms 延迟
+/// （A/V 同步不受影响：音频钟是主时钟，音画一起平移）。
+/// mpv 的 `demuxer-cache-duration` 默认也是 1 秒量级，这个量级不算奢侈。
+constexpr std::int32_t kRingCapacityMillis = 600;
 
 /// 起流前的预灌水位，用 burst 的倍数表达：
-/// 一个 burst 只能撑过一次回调，3 个才扛得住一次调度抖动。
-constexpr std::int32_t kPrefillBursts = 3;
+/// 一个 burst 只能撑过一次回调；**要盖住一次网络停顿就得预灌到水位线以上**。
+/// 252：3 → 15（约 300 ms @48kHz/960 帧每 burst）。原来只预灌 3 个 burst
+/// （60 ms），意味着**起播瞬间环几乎是空的** —— 起播后第一次网络停顿就会抽干它。
+constexpr std::int32_t kPrefillBursts = 15;
 
 /// 等时钟首个有效时间戳的上限。C4 实测启动开销 24–146 ms，2 s 是宽容的兜底。
 constexpr std::int64_t kClockReadyTimeoutNs = 2'000'000'000;
