@@ -113,8 +113,7 @@ class SmbPlaybackSeekInstrumentation : Instrumentation() {
                 Thread.sleep(2_000)
                 val actual = session.positionUs
                 log("SEEK", "target=${target / 1000} ms landing=${landing / 1000} ms " +
-                    "actual=${actual / 1000} ms error=$error")
-                // P244 诊断：把原生 summary 带进报告。判"落点 25s 但实际 5s"要二分：
+                    "actual=${actual / 1000} ms error=$error trace=${session.lastSeekTrace()}")                // P244 诊断：把原生 summary 带进报告。判"落点 25s 但实际 5s"要二分：
                 //   - seek.first_frame_us / video_first_pts_us ≈ 25s  → 帧确实跳到 25s，
                 //     位置不动是 pacer/时钟未 rebase 到 landing；
                 //   - 这两项仍 ≈5s 或缺失                        → 帧没跳到 25s，

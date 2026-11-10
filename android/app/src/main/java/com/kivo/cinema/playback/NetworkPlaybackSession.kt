@@ -240,6 +240,9 @@ class NetworkPlaybackSession(context: Context, private val input: RangeSource) {
      */
     fun currentSummary(): String = session?.summary().orEmpty()
 
+    /** 252 诊断：上一次 seek 的现场（句柄 / 返回码 / 连续两次读到的落点）。 */
+    fun lastSeekTrace(): String = session?.lastSeekTrace.orEmpty()
+
     fun seekTo(targetUs: Long): Long {
         val requestId = seekIds.incrementAndGet()
         command(onRejected = {

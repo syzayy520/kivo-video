@@ -243,9 +243,20 @@ int session_start(SessionHandle* handle, std::string& error) {
 static std::int64_t g_session_seek_calls = 0;
 /// 252：seek 时用的会话地址 —— 与 summary 里报的比对，能判断是不是同一个对象。
 static const void* g_seek_session_ptr = nullptr;
-
+static const void* g_seek_handle_ptr = nullptr;
+/// 252：JNI **读取点**上真正拿到的落点。与两秒后的快照值并排比：
+/// 读的时候就是 0 → 读取路径不对；读到 594469000 但最后是 0 → 中间被覆盖。
+static std::int64_t g_video_landing_seen = -1;
+/// 252: 函数末尾到底有没有走到（用于定位“末尾赋值没生效”）。
+static int g_seek_tail_reached = 0;
+/// 252：native seek 的起止时刻（纳秒），用来量"这次 seek 到底耗时多久"。
+static std::int64_t g_seek_begin_ns = 0;
+static std::int64_t g_seek_end_ns = 0;
+static std::int64_t g_video_seek_ms = -1;
+static std::int64_t g_audio_seek_ms = -1;
 int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& error) {
     ++g_session_seek_calls;
+    g_seek_begin_ns = std::chrono::steady_clock::now().time_since_epoch().count();
     if (handle == nullptr || !handle->session) {
         error = "session handle is null";
         return 1;
@@ -269,7 +280,12 @@ int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& err
         return fail(handle, 11, "seek audio gate: " + error);
     }
     g_seek_session_ptr = static_cast<const void*>(handle->session.get());
+    g_seek_handle_ptr = static_cast<const void*>(handle);
+    g_seek_handle_ptr = static_cast<const void*>(handle);
+    const auto video_begin = std::chrono::steady_clock::now();
     const auto outcome = handle->session->seek_to(target_us, /*defer_start=*/true);
+    g_video_seek_ms = static_cast<std::int64_t>(
+        (std::chrono::steady_clock::now() - video_begin).count() / 1'000'000);
     if (!outcome.ok()) {
         error = outcome.message;
         const bool rejected =
@@ -279,6 +295,15 @@ int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& err
     // 线程已停，snapshot 在这里读是安全的（也正因为如此才不需要为 landing 单开一个 getter）。
     // 252：直读会话里的落点，不绕 snapshot —— 实测紧跟 seek 之后读快照会拿到 0。
     const std::int64_t video_landing = handle->session->seek_landing_us();
+    g_video_landing_seen = video_landing;
+    // 252: 落点在这里就已经拿到了，立刻记到句柄上。之前只在函数末尾赋值，
+    // 而实测句柄里一直是 -1（末尾那行没被执行到），于是 Kotlin 侧读到 0、
+    // positionUs=0、时钟没 rebase —— 用户看到的就是"拖了进度条，画面从头开始"。
+    handle->last_seek_landing_us = video_landing;
+    // 252: **落点在这里就已经拿到了，立刻记到句柄上。**
+    // 之前只在函数末尾赋值，而实测句柄里一直是 -1（末尾那行没被执行到），
+    // 于是 Kotlin 侧读到 0、positionUs=0、时钟没 rebase —— 画面从头开始。
+    handle->last_seek_landing_us = video_landing;
 
     bool audio_present = false;
     std::int64_t audio_landing_us = -1;
@@ -286,7 +311,10 @@ int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& err
     if (handle->audio != nullptr && handle->audio->is_started()) {
         audio_present = true;
         const std::int64_t audio_target = video_landing >= 0 ? video_landing : target_us;
+        const auto audio_begin = std::chrono::steady_clock::now();
         const auto audio_result = handle->audio->seek_to(audio_target);
+        g_audio_seek_ms = static_cast<std::int64_t>(
+            (std::chrono::steady_clock::now() - audio_begin).count() / 1'000'000);
         audio_landing_us = audio_result.landing_us;
         if (!audio_result.ok) {
             audio_error = audio_result.reason;
@@ -311,6 +339,8 @@ int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& err
         return fail(handle, 10, "seek resume: " + error);
     }
     handle->last_seek_landing_us = video_landing;
+    g_seek_tail_reached = 1;
+    g_seek_end_ns = std::chrono::steady_clock::now().time_since_epoch().count();
     handle->last_error.clear();
     return 0;
 }
@@ -577,7 +607,7 @@ std::string session_summary(SessionHandle* handle) {
                   // 复制的一行，复制出去就只剩 "p99=0.1ms"。这个 p99 是**逐帧**的
                   // 节拍迟到量（每帧都进直方图），与 `av_drift` 里抽稀口径的 p99
                   // 不是同一个数，对着比会得出"两处矛盾"的假结论。
-                  "pace_lateness_p99[per_frame]=%.1fms completed=%d error=%s demux=[%s] jni=%lld snap=%lld seekptr=%p sumptr=%p",
+                  "pace_lateness_p99[per_frame]=%.1fms completed=%d error=%s demux=[%s] jni=%lld snap=%lld seen=%lld last=%lld herr=%s seekms=%lld vms=%lld ams=%lld",
                   stats.codec_name.c_str(), stats.mime.c_str(), stats.width, stats.height,
                   static_cast<long long>(handle->session->duration_us()),
                   stats.pipeline_mode.c_str(),
@@ -595,9 +625,15 @@ std::string session_summary(SessionHandle* handle) {
                   handle->session->demux_seek_summary().c_str(),
                   static_cast<long long>(g_session_seek_calls),
                   static_cast<long long>(stats.seek.landing_us),
-                  g_seek_session_ptr, static_cast<const void*>(handle->session.get()),
-                  static_cast<long long>(stats.seek.landing_us),
-                  static_cast<long long>(stats.seek.landing_us));
+                  static_cast<long long>(g_video_landing_seen),
+                  static_cast<long long>(handle->last_seek_landing_us),
+                  handle->last_error.empty() ? "-" : handle->last_error.c_str(),
+                  static_cast<long long>(
+                      g_seek_end_ns > g_seek_begin_ns
+                          ? (g_seek_end_ns - g_seek_begin_ns) / 1'000'000
+                          : -1),
+                  static_cast<long long>(g_video_seek_ms),
+                  static_cast<long long>(g_audio_seek_ms));
     return std::string(buffer);
 }
 

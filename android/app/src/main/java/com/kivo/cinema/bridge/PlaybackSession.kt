@@ -87,6 +87,14 @@ class PlaybackSession(
 
     var lastSeekLandingUs: Long = -1L; private set
 
+    /**
+     * 252 诊断：上一次 seek 的完整现场（句柄 / 返回码 / 连续两次读到的落点）。
+     *
+     * 目的只有一个：分清"读早了"（第一次读 0、紧接着第二次读 594469000）
+     * 与"读错了句柄"（两次都是 0）。这两种情况的修法完全不同。
+     */
+    var lastSeekTrace: String = ""
+
     fun seekTo(positionUs: Long): Int {
         if (!running) {
             lastError = "seekTo called before start"
@@ -95,8 +103,15 @@ class PlaybackSession(
         val rc = NativePlayer.nativeSessionSeek(handle, positionUs)
         if (rc != 0) {
             lastError = NativePlayer.nativeSessionLastError(handle)
+            // 252：失败路径也要留现场 —— 原来只在成功分支记，失败时反而什么都没有。
+            lastSeekTrace = "handle=$handle rc=$rc nativeErr=${lastError.ifBlank { "<empty>" }}"
         } else {
             lastSeekLandingUs = NativePlayer.nativeSessionSeekLandingUs(handle)
+            // 252：隔 200 ms 再读一次 —— 两次不同就说明 native seek 返回时还没做完
+            // （读早了）；两次相同就说明读错了句柄。
+            Thread.sleep(200)
+            val again = NativePlayer.nativeSessionSeekLandingUs(handle)
+            lastSeekTrace = "handle=$handle rc=$rc landing=$lastSeekLandingUs after200=$again"
         }
         return rc
     }
