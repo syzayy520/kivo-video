@@ -156,14 +156,15 @@ CMake Error at CMakeLists.txt:14 (message):
 依赖方向是单向的：`android/` → `backend/`，反向不存在。
 `backend/` 不许 include 任何 Android 头文件，`core/` 下更是一个都不许有（见 `docs/handoff/CURRENT.md` §六）。
 
-### 0.3 换机器必补的三样（不是代码问题，是环境问题）
+### 0.3 换机器必补的四样（不是代码问题，是环境问题）
 
-把整个仓库拷到另一台机器后，代码是全的、构建却起不来。这三样都属于"绑定本机"：
+把整个仓库拷到另一台机器后，代码是全的、构建却起不来。这四样都属于"绑定本机"：
 
 | 缺什么 | 为什么会缺 | 不补的现象 | 怎么补 |
 | --- | --- | --- | --- |
 | `android/local.properties` | 被 `android/.gitignore` 忽略；里面写的 `sdk.dir` 是本机路径 | 构建 18 秒后失败：`SDK location not found...`（实测 2026-10-29） | `echo 'sdk.dir=C:/Android/sdk' > android/local.properties` |
 | `third_party/ffmpeg-sdk/{include,bin,lib}` | `include`/`bin` 是指向 `C:\ffmpeg-sdk\...` 绝对路径的 junction，`lib` 由本机 DLL 导出表生成 | 桌面端 `LNK1104: 无法打开文件 avformat.lib` | `bootstrap.cmd "C:\ffmpeg-sdk\ffmpeg-n7.1-latest-win64-gpl-shared-7.1"`（幂等；**需本机已装该源 SDK**） |
+| `build/libsmb2-android/arm64/lib/libsmb2.a` | 由 `third_party/libsmb2-android/build.sh` 交叉编译产出，落在 `.gitignore` 的 `build/` 下 → **不入库**（2026-11-10 补记：`git clone` 下来直接 `assembleDebug` 会链接失败） | APK 能打出来，但一播 SMB 就 `UnsatisfiedLinkError`：`nativeCreate` 等全部符号缺失 | `bash third_party/libsmb2-android/build.sh arm64`（需 NDK `27.2.12479018`，脚本里写死） |
 | adb 授权 | `~/.android/adbkey` 绑定本机用户 | `adb devices` 为空 / `unauthorized` | 重建 `~/.android/adbkey`，细节见 `docs/handoff/CURRENT.md` §五 |
 
 > Android 构建**不需要** FFmpeg（`kivo_player` 只链 `android`/`log`/`mediandk`/`aaudio`），

@@ -512,3 +512,44 @@ S1 落文件时有三个单元超预算。按"超出即拆"处理，拆法不是
 4. **只删不加**：`nativeReadAt`、内联 JSON 转义、`smb2_set_timeout(15)` 的读路径含义，先删干净再用新的。
 5. **没有证据不说完成**：每个阶段在 `docs/evidence/p250/` 留下可复算产物。
 6. **不静默降级**：`SmbReadAhead.Disabled` 必须带非空 reason 且进 logcat，用户可见态由现有 `stalled` 承担。
+
+---
+
+## 九、参数表（G7 闸门：逐条对代码）
+
+六个常量原本散在两个语言三个文件里，没有一张表能一眼看完。这里集中列出，
+**改动任何一个都必须同步本表**，CI 里用 `grep` 比对（见 §四 G7）。
+
+| 参数 | 值 | 位置 | 依据 |
+| --- | --- | --- | --- |
+| `DEFAULT_BLOCK_BYTES` | 2 MiB | `SmbReadTuning` | 1 MiB 时命中率 82%（MKV 交织距离超过 1 MiB） |
+| `DEFAULT_BLOCK_COUNT` | 6 | `SmbReadTuning` | `Shelter` 2×TrueHD + PGS 需 4 条轨常驻，留 2 格机动 |
+| `DEFAULT_AHEAD_BYTES` | 6 MiB | `SmbReadTuning` | 3.6 MB/s 码率下 ≈ 提前 1.7 s，吸收两次抖动 |
+| `DEFAULT_AHEAD_CHUNK` | 1 MiB | `SmbReadTuning` | 1 MiB/92 ms ≈ 11 MB/s；再小被往返次数拖住 |
+| `DEFAULT_AHEAD_WAIT_NS` | 350 ms | `SmbReadTuning` | 覆盖"预读在路上、就差这一下"；秒级会白耗帧预算 |
+| `SMALL_FILE_BYTES` | 256 MiB | `SmbReadTuning` | 以下降到 2 块 / 2 MiB |
+| `MEDIUM_FILE_BYTES` | 2 GiB | `SmbReadTuning` | 以下降到 4 块 / 4 MiB |
+| `BASE_MS` (退避起点) | 400 | `SmbRetryGate` | 243 真机验证值，不改 |
+| `CAP_MS` (退避封顶) | 4 000 | `SmbRetryGate` | 同上 |
+| `INTERVAL_MS` (画像上报) | 4 000 | `SmbReadStats` | ≈96 帧，够看出锯齿、不刷爆日志 |
+| `READ_TIMEOUT_SECONDS` | 3 | `SmbReader` | 单次 1 MiB 最坏 300 ms → 10 倍余量。**实测断网时不生效**，见 D2 |
+| connect 超时 | 15 s | `jni_smb2_bridge.cxx` `nativeCreate` | 慢网络上的认证 + 树连接真要几秒 |
+| `DEFAULT_PATIENCE_MS` | 20 000 | `RangeFd` | 覆盖 Wi-Fi 重连（2–5 s）与 NAS 短时重启 |
+| `LINK_POLL_MS` | 1 000 | `RangeFd` | 看门狗间隔；实测提示延迟 1000 ms |
+| fd 层重试退避 | 250 / 500 / 1000 | `RangeFd.onRead` | 不打爆服务器，恢复后 1 s 内接上 |
+| `TIMEOUT_MS` (mDNS) | 8 000 | `SmbDiscovery` | 浏览窗口，到点自动停 |
+
+**单路常驻内存**：`blockBytes × blockCount + aheadBytes` = 2 MiB × 6 + 6 MiB = **18 MiB**
+（大文件档）。软解双路 = 36 MiB。这是 247 实测档，不是浪费：
+四条轨常驻换来命中率 100%、同步读 0 次。
+
+---
+
+## 十、本卡结题时仍然开着的口子
+
+| 口子 | 归谁 |
+| --- | --- |
+| 断网后**恢复**仍要 17 s（12 s 断网 + 5 s 重连） | 251：可中断读 / 异步流水线 |
+| 硬解路径仍关闭预读（命中率 91–95%，5–9% 同步读 87–140 ms） | 251：换掉"第二条连接"这个形态后再开 |
+| 含 emoji 的文件名、IPv6 真能连上 —— 只有自检与单测，没有整链路真机证据 | 待共享可写 / 路由开 IPv6 时补 G6 |
+| `jni_string_convert.hpp` 73 行（预算 70） | 注释超 3 行，不拆（§六 已记） |
