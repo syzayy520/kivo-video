@@ -467,6 +467,79 @@ if(TARGET kivo_backend_ffmpeg_audio)
 endif()
 
 # ---------------------------------------------------------------------------
+# 253：kivo_mpv —— libmpv 内核的 JNI 适配层（**独立家族**，与旧内核并列不混合）
+# ---------------------------------------------------------------------------
+# 家族边界见 docs/design/backend-core/253-mpv-kernel-family-tree.md：
+#   B1 不得引用 backend/.../backends/ 的任何头文件
+#   B2 不得直接调用 FFmpeg API
+#   B3 不得碰 Android UI
+#   B4 跨文件调用一律走 mpv/mpv_session.hpp
+#   B5 每个 .cpp ≤ 300 行
+#
+# libmpv.so 与它依赖的 libav*.so 是**预编译产物**（交叉编译脚本见
+# android/app/buildscripts/mpv/build-libmpv.sh），不进版本库；
+# 缺失时这个目标整体跳过 —— 旧内核照常构建，播放页的引擎开关决定用哪条链路。
+set(KIVO_MPV_PREBUILT "${CMAKE_CURRENT_LIST_DIR}/mpv/prebuilt/arm64-v8a" CACHE PATH
+    "libmpv 预编译产物目录（buildscripts/mpv/build-libmpv.sh 生成）")
+
+if(EXISTS "${KIVO_MPV_PREBUILT}/libmpv.so")
+    add_library(kivo_mpv SHARED
+        "mpv/mpv_session.cpp"
+        "mpv/mpv_event_loop.cpp"
+        "mpv/mpv_commands.cpp"
+        "mpv/mpv_gl_render.cpp"
+        "mpv/mpv_java_vm.cpp"
+        "mpv/jni_mpv_bridge.cpp"
+    )
+
+    target_include_directories(kivo_mpv PRIVATE "${CMAKE_CURRENT_LIST_DIR}/mpv")
+
+    target_compile_options(kivo_mpv PRIVATE
+        -Wall -Wextra -Wpedantic -Wshadow
+    )
+
+    # libmpv 是动态库：链接时只声明依赖，实际 .so 随 APK 一起打包。
+    # 用 IMPORTED target 而不是 find_library —— 后者只在 Android 平台库目录里找，
+    # 找不到我们自带的预编译产物。
+    add_library(mpv_prebuilt SHARED IMPORTED)
+    set_target_properties(mpv_prebuilt PROPERTIES
+        IMPORTED_LOCATION "${KIVO_MPV_PREBUILT}/libmpv.so"
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/mpv")
+
+    # mpv_java_vm.cpp 要调 FFmpeg 的 av_jni_set_java_vm（注册 JavaVM），
+    # 所以这里额外链接 libavcodec.so 并给出它的头文件路径。
+    # 【为什么需要注册 JavaVM】
+    # mpv 的硬解驱动（hwdec_aimagereader）与音频输出（ao=audiotrack）都在
+    # 第一次使用时去取 JavaVM，宿主不注册就拿不到 ⇒ 表现为
+    # "No Java virtual machine has been registered"。
+    # mpv-android 的做法见其 app/src/main/jni/main.cpp:44。
+    add_library(mpv_avcodec_prebuilt SHARED IMPORTED)
+    set_target_properties(mpv_avcodec_prebuilt PROPERTIES
+        IMPORTED_LOCATION "${KIVO_MPV_PREBUILT}/libavcodec.so"
+        INTERFACE_INCLUDE_DIRECTORIES "${KIVO_MPV_PREBUILT}/include")
+
+    target_link_libraries(kivo_mpv PRIVATE
+        mpv_prebuilt
+        mpv_avcodec_prebuilt
+        android
+        log
+        EGL
+        GLESv2
+    )
+
+    # 【为什么需要 --undefined-version】
+    # FFmpeg 导出的是带版本的符号（av_jni_set_java_vm@@LIBAVCODEC_61），
+    # 而 NDK 默认的链接选项不允许把带版本符号当作无版本名解析
+    # （实测：加上 NDK 的 --no-defined-version 后链接报
+    #   "undefined symbol: av_jni_set_java_vm"）。
+    # --undefined-version 允许链接器接受这种引用。
+    # 【为什么不重编 ffmpeg 去掉版本】
+    # 那是 8 分钟的重编；而这个 flag 只影响"怎么找到符号"，不影响运行时语义
+    # （Android 的动态链接器本来就按无版本名解析）。
+    target_link_options(kivo_mpv PRIVATE "-Wl,--undefined-version")
+endif()
+
+# ---------------------------------------------------------------------------
 # kivo_player —— JNI 共享库（唯一对外 .so）
 # ---------------------------------------------------------------------------
 add_library(kivo_player SHARED
