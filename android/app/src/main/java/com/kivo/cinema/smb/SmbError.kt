@@ -34,6 +34,13 @@ object SmbError {
     private const val PASSWORD_EXPIRED = 0xC0000071L
     private const val ACCOUNT_DISABLED = 0xC0000072L
 
+    /** 服务端没在超时窗口内回包。libsmb2 由 `smb2_timeout_pdus` 产生，**没有回复报文**。 */
+    private const val IO_TIMEOUT = 0xC0000121L
+
+    /** NT status 家族的判定掩码：高位 0xC0 开头的才是 NT status，其余是 -errno。 */
+    private const val NT_STATUS_MASK = 0xFFFF0000L
+    private const val NT_STATUS_FAMILY = 0xC0000000L
+
     fun translate(stage: SmbStage, ntStatus: Int, raw: String, anonymous: Boolean): SmbFailure {
         val status = ntStatus.toLong() and 0xFFFFFFFFL
         val detail = "nt=0x${status.toString(16)} raw=$raw"
@@ -60,9 +67,31 @@ object SmbError {
             BAD_NETWORK_NAME -> "找不到这个共享，可能已被删除或改名"
             OBJECT_PATH_NOT_FOUND, OBJECT_NAME_NOT_FOUND -> "路径不存在，请返回上一级重试"
 
+            IO_TIMEOUT -> "服务器没有响应（超时），请检查网络或服务器状态"
+
             else -> fallback(where, raw)
         }
         return SmbFailure(where, reason, detail)
+    }
+
+    /**
+     * 读调用返回码 → 失败（250 D9）。`code >= 0` 表示成功，返回 null。
+     *
+     * 为什么要专门走这条路：`smb2_pread` 失败时返回 `cb_data->status`（NT status，
+     * 高位 0xC0，作为 int32 是负数）或 `-errno`（sync 层早期失败）。上一版把两者
+     * 都压成 `-1`，然后拿 `smb2_get_nterror()` 去解释 —— 而超时路径**没有回复报文**，
+     * 那个值是上一次回复留下的。于是"这次超时"会被译成"上次的权限错误"。
+     *
+     * 现在用返回码本身判定，不再猜。
+     */
+    fun fromReadCode(code: Int, anonymous: Boolean = false): SmbFailure? {
+        if (code >= 0) return null
+        val bits = code.toLong() and 0xFFFFFFFFL
+        if ((bits and NT_STATUS_MASK) == NT_STATUS_FAMILY) {
+            return translate(SmbStage.READ, code, "", anonymous)
+        }
+        val errno = -code
+        return SmbFailure(SmbStage.READ, SmbErrno.text(errno), "errno=$errno")
     }
 
     /** 非 NT 错误（DNS/连接被拒/超时/解析）走这里。 */

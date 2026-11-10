@@ -328,7 +328,8 @@ android/app/src/main/java/com/kivo/cinema/
     SmbReadStats.kt       新  ≤120      画像采集（命中/填充耗时/块号分布）+ 4 s 上报
     SmbRetryGate.kt       新  ≤110      退避状态机（含 online 闸门），纯逻辑可测
     SmbReader.kt          改  82→≤95    connect 后设读超时；失败带 rc 归因
-    SmbError.kt           改  82→≤115   + IO_TIMEOUT 单列；+ fromReadCode(NT status / errno 区分)
+    SmbError.kt           改  82→≤111   + IO_TIMEOUT 单列；+ fromReadCode（只判 NT status 家族）
+    SmbErrno.kt           新  ≤70       系统 errno → 文案（与"服务端说什么"分家，见 §3.2 修订）
     SmbAddress.kt         改  93→≤110   + authority（IPv6 方括号/端口唯一形态）
     discovery/SmbDiscovery.kt 改 104→104 删 substringBefore('%')（保留 zone id）
     ui/SmbBrowserActivity.kt  改 279→279 断链时 error 文案换"网络已断开"（同行走另一分支）
@@ -342,7 +343,9 @@ android/app/src/main/java/com/kivo/cinema/
     PlayerComposeActivity.kt 改 1000→1001  open(...) 传 online provider（**迁移例外：+1 行**）
 
 android/app/src/main/cpp/jni/
-    utf8_codec.hpp        新  ≤120      UTF-8 ↔ UTF-16 纯函数（无 JNI 类型，无异常抛出）
+    unicode_limits.hpp    新  ≤40       码点边界与 U+FFFD（两个方向共用，避免真相分裂）
+    utf8_codec.hpp        新  ≤120      标准 UTF-8 → UTF-16（libsmb2 → Java 方向）
+    utf16_codec.hpp       新  ≤110      UTF-16 → 标准 UTF-8（Java → libsmb2 方向）
     jni_smb2_json.hpp     新  ≤70       JSON 字符串转义（含 <0x20 → \u00XX）
     jni_string_convert.hpp 改 54→≤70    to_utf8 / to_jstring 改走 utf8_codec（两个方向都修）
     jni_smb2_bridge.cxx   改 242→≤175  用 json/string 工具；+ nativeSetReadTimeout；+ 读失败返回 rc；
@@ -380,6 +383,16 @@ ui/*  ──►  smb/*  ──►  net/ByteSource
 | `SmbReadStats` | 记录"刚才读得好不好" | 若开始"决定"任何事，越界 |
 | `SmbRetryGate` | 回答"现在能不能再试" | 若开始"执行"重试，越界 |
 | `SmbByteSource` | 按什么顺序问上面五个 | 若开始"实现"任何一件，越界 |
+
+**实施期修订（2026-11-10 · S1）**
+
+S1 落文件时有三个单元超预算。按"超出即拆"处理，拆法不是按行数切，是按**改动理由**切：
+
+| 原计划 | 实际 | 为什么这样拆 |
+| --- | --- | --- |
+| `SmbError.kt` ≤115（实测 133） | 拆出 `SmbErrno.kt`（37 行），`SmbError` 回到 111 | 两者上游不同：一个翻"服务端报文说什么"（账号/共享/权限），一个翻"本机 socket 出了什么事"（网线/DNS/重置）。合成一个 `when` 就是两个上游共用一个修改点 |
+| `utf8_codec.hpp` ≤120（实测 163） | 拆成 `unicode_limits.hpp`（25）+ `utf8_codec.hpp`（108）+ `utf16_codec.hpp`（80） | 两个方向**不共享辅助函数**（一个 decode_utf8+append_utf16，一个 decode_utf16+append_utf8），只有常量共用。共用常量单独成文件，避免"一边改了一边没改" |
+| `SmbReadTuning.kt` ≤100（实测 101） | 合并两行常量注释，99 行 | **不拆**。它只有一个职责（参数推导），101 行只是注释偏长，拆开会出现两个都叫 Tuning 的文件 |
 
 **不新增的东西**
 

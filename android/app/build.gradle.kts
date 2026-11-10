@@ -114,4 +114,10 @@ dependencies {
     implementation("androidx.webkit:webkit:1.12.1")
     // SMB：libsmb2（third_party/libsmb2-android），协议逻辑在 smb/ + jni_smb2_bridge.cxx。
     // 243 S1 删除了 jcifs-ng 与它的 slf4j-simple 诊断依赖（旧后端已被 libsmb2 取代）。
+
+    // 250 F 闸门：SMB 的纯逻辑族（地址解析 / 参数推导 / 退避状态机 / 错误映射）在 JVM 上跑。
+    // 之前这些只有 instrumented 覆盖，反馈周期是"插设备 40 秒"，于是 IPv6 拼接与
+    // modified-UTF-8 这类边界 bug 一直没被测出来。junit 4.13.2 已在本地 Gradle 缓存，
+    // 加这一行不需要联网。
+    testImplementation("junit:junit:4.13.2")
 }

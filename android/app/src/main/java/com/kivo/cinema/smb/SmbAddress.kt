@@ -19,6 +19,22 @@ data class SmbAddress(
     /** 还没有指定共享——需要先枚举再让用户选。 */
     val needsShare: Boolean get() = share.isEmpty()
 
+    /**
+     * `host:port` 的唯一正确形态（250 D10）。交给 JNI 的东西只有这一种，不再在 native 侧拼串。
+     *
+     * 两条硬要求：
+     * - **IPv6 必须带方括号**。libsmb2 的 `socket.c` 只有在首字符是 `[` 时才按 IPv6 解析，
+     *   否则在第一个 `:` 处切分 —— `::1:445` 会被切成 host=`::1`、port=`1:445`，
+     *   然后 `getaddrinfo` 失败。上一版直接拼 `h + ":" + port`，所以 IPv6 从来没通过。
+     * - **链路本地的 `%wlan0` 必须保留**。zone id 是"从哪个网卡出去"，去掉它
+     *   `fe80::` 开头的地址不可路由。
+     */
+    val authority: String
+        get() = buildString {
+            if (host.indexOf(':') >= 0) append('[').append(host).append(']') else append(host)
+            append(':').append(port)
+        }
+
     /** 完整共享内路径（libsmb2 要的形态，不带前导斜杠）。 */
     fun filePath(extra: String = ""): String =
         listOf(share, path, extra.trim('/'))
