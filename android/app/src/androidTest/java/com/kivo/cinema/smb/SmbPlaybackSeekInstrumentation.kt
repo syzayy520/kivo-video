@@ -92,7 +92,9 @@ class SmbPlaybackSeekInstrumentation : Instrumentation() {
             }
 
             case("seek 到中段并落位") {
-                val target = session.durationUs / 2
+                // 252：可指定落点，用来区分"所有 seek 都不行"与"远距离 seek 才不行"。
+                val target = args?.getString("seekTargetMs")?.toLongOrNull()?.times(1000L)
+                    ?: (session.durationUs / 2)
                 val requestId = session.seekTo(target)
                 val deadline = System.currentTimeMillis() + 20_000
                 var landing = -1L
