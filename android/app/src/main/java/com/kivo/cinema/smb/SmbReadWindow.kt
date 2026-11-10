@@ -51,6 +51,11 @@ internal class SmbReadWindow(private val tuning: SmbReadTuning) {
         val length = minOf(tuning.blockBytes.toLong(), sizeBytes - aligned).toInt()
         if (length <= 0) return -1L
 
+        // 该块已完整驻留就直接返回：**跨块边界的那次请求**会带着仍落在本块的 offset 走到这里，
+        // 若照旧填一遍，就是把刚读进来的整块又读一次。真机实测（251）24 MiB 顺序读因此
+        // 实际拉了 50 MiB —— 一倍的带宽白烧，吞吐从 7.8 掉到 4.0 MB/s。
+        residentEnd(aligned, sizeBytes, length)?.let { return it }
+
         val slot = pickSlot(aligned)
         val data = slots[slot] ?: ByteArray(tuning.blockBytes).also { slots[slot] = it }
         // 先标废：中途抛异常时，这个槽位不能继续以旧偏移的身份被命中。
@@ -72,6 +77,23 @@ internal class SmbReadWindow(private val tuning: SmbReadTuning) {
             starts[index] = -1L
             lengths[index] = 0
         }
+    }
+
+    /**
+     * 若 [aligned] 这一块已经**完整**驻留，返回它的结束偏移；否则 null。
+     *
+     * "完整"只认两种：读满了整块，或读到了文件尾（尾部块本来就短）。
+     * 中途短读（传输异常）留下的半块不算 —— 那种情形必须重读，否则会拿残数据当有效数据。
+     */
+    private fun residentEnd(aligned: Long, sizeBytes: Long, want: Int): Long? {
+        for (index in slots.indices) {
+            if (starts[index] != aligned) continue
+            val length = lengths[index]
+            if (length < want && aligned + length < sizeBytes) return null
+            used[index] = ++clock
+            return aligned + length
+        }
+        return null
     }
 
     /** 块内偏移换算：返回该偏移所属块的起始位置。 */

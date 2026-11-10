@@ -1,3 +1,7 @@
+> 2026-11-10 20:05 **251 第二步：块窗口的"双倍读取"已修（WINDOW 5.4 → 7.2 MB/s）**。24 MiB 顺序读实际从网上拉了 **50 MiB** —— 跨块边界那次请求的 `offset` 仍落在前一块，`fill` 于是把刚读进来的整块又读了一遍。修法 22 行：`SmbReadWindow.fill` 开头判"该块已完整驻留就直接返回"。生产路径 WINDOW 5.4→**7.2**、AHEAD 5.0→**6.9**，裸读上限 8.6–8.9，客户端已吃 83–90%。JVM 单测 42→47 例。[证据](../evidence/p251/window-double-fill/status.md)
+> 同时更正上一条的两个错：① §② 的纯 C++ "4 MiB 53.9 MB/s"是**测量错误**（`bytes = ok * chunk` 算的是请求字节），服务端 `max_read_size` 协商结果为 **1 MiB**，`smb2_pread` 超了只回 1 MiB，所以"JNI 差 5 倍"不成立；② 上一轮推断"12 次跨块读吃掉 1.4 s"是**算错**（`fill_avg` 除以了含空操作的 count），实测只有 193 ms/12 次，拼接优化只值 6%，已决定不做。
+> **硬上限**：这台小米路由单连接 8–9 MB/s（1 MiB / ~120 ms），4K 原盘要 15 MB/s —— **不是播放器能解决的**，除非换服务端或上有线。
+
 > 2026-11-10 19:35 **P250 S6 补丁 + 251 前置实验**：两件事都推翻了我之前的判断，记在这里免得后人重走。
 > ① **真机 bug**：主 manifest 漏了 `ACCESS_NETWORK_STATE`，`activeNetwork` 抛 `SecurityException`，S3 加的断网看门狗**在真机上从未生效**。S3 那个"15002 → 1000 ms"是数字对、归因错（真实机制是 `svc wifi disable` 让 socket 立刻报错）。已补权限 + 加兜底，见 [证据](../evidence/p250/s6-link-permission/status.md)。
 > ② **251 的方向要改**：原计划"单连接异步流水线"被实验否掉（4 在途只涨 5%）；"放大 chunk"在纯 C++ 下成立（1→4 MiB：13.2→53.9 MB/s），但**经 JNI 只有 10.4 MB/s，差 5 倍** —— 真瓶颈是 `nativeReadInto` 的 `GetByteArrayElements` 大数组 pin/拷贝。临时改 `aheadChunk` 4 MiB 实测软解反而慢 25%，已回滚。见 [前置实验](../evidence/p251/prestudy/status.md)。

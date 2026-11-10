@@ -529,10 +529,10 @@ S1 落文件时有三个单元超预算。按"超出即拆"处理，拆法不是
 
 | 参数 | 值 | 位置 | 依据 |
 | --- | --- | --- | --- |
-| `DEFAULT_BLOCK_BYTES` | 2 MiB | `SmbReadTuning` | 1 MiB 时命中率 82%（MKV 交织距离超过 1 MiB） |
+| `DEFAULT_BLOCK_BYTES` | 2 MiB | `SmbReadTuning` | 1 MiB 时命中率 82%（MKV 交织距离超过 1 MiB）。251 实测服务端 `max_read_size` = 1 MiB，故一块 = 2 次往返；往返总数不随块大小变，2 MiB 保持 |
 | `DEFAULT_BLOCK_COUNT` | 6 | `SmbReadTuning` | `Shelter` 2×TrueHD + PGS 需 4 条轨常驻，留 2 格机动 |
 | `DEFAULT_AHEAD_BYTES` | 6 MiB | `SmbReadTuning` | 3.6 MB/s 码率下 ≈ 提前 1.7 s，吸收两次抖动 |
-| `DEFAULT_AHEAD_CHUNK` | 1 MiB | `SmbReadTuning` | 1 MiB/92 ms ≈ 11 MB/s；再小被往返次数拖住 |
+| `DEFAULT_AHEAD_CHUNK` | 1 MiB | `SmbReadTuning` | 251 实测 1 MiB / 122 ms ≈ 8.6 MB/s，已是单连接上限；再大没有收益（服务端单次 READ 封在 1 MiB） |
 | `DEFAULT_AHEAD_WAIT_NS` | 350 ms | `SmbReadTuning` | 覆盖"预读在路上、就差这一下"；秒级会白耗帧预算 |
 | `SMALL_FILE_BYTES` | 256 MiB | `SmbReadTuning` | 以下降到 2 块 / 2 MiB |
 | `MEDIUM_FILE_BYTES` | 2 GiB | `SmbReadTuning` | 以下降到 4 块 / 4 MiB |
@@ -560,3 +560,4 @@ S1 落文件时有三个单元超预算。按"超出即拆"处理，拆法不是
 | 硬解路径仍关闭预读（命中率 91–95%，5–9% 同步读 87–140 ms） | 251：换掉"第二条连接"这个形态后再开 |
 | 含 emoji 的文件名、IPv6 真能连上 —— 只有自检与单测，没有整链路真机证据 | 待共享可写 / 路由开 IPv6 时补 G6 |
 | `jni_string_convert.hpp` 73 行（预算 70） | 注释超 3 行，不拆（§六 已记） |
+| **单连接吞吐上限 8–9 MB/s**（服务端 `max_read_size` = 1 MiB × 约 120 ms 往返），4K 原盘要 15 MB/s | **客户端已无法再提**：窗口路径 7.2（裸读的 83%）、预读 6.9。要更快只能换服务端（真 NAS / 有线）。见 [251 证据](../../evidence/p251/window-double-fill/status.md) |
