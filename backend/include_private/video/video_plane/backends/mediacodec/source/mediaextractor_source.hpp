@@ -54,6 +54,9 @@ public:
     [[nodiscard]] SampleReadStatus read_next_sample(SampleView& out);
     [[nodiscard]] std::int64_t seek_to(std::int64_t time_us);
 
+    /// 252：转发底层 demux 的 seek 事实（谁跳的、跳没跳、索引有多少条）。
+    [[nodiscard]] demux::DemuxSource::SeekDiagnostics seek_diagnostics() const;
+
     /// `"platform"` 或 `"ffmpeg"`；未打开时为 `"none"`。
     [[nodiscard]] const char* backend_name() const {
         return impl_ ? impl_->backend_name() : "none";

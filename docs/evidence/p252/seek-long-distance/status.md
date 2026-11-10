@@ -70,3 +70,44 @@ adb shell "am instrument -w -e smbHost 192.168.5.1 -e smbShare XiaoMi \
 ```
 
 **关预读（App 的实际策略）两窗都是 0 丢帧、1.00x。** 与 `Shelter` 上的结论一致。
+
+## 七、2026-11-10 深夜追加：诊断设施已就位（seek 仍未修）
+
+为把"到底跳没跳"变成可复算事实，加了一条原生诊断链（走已有的 summary 通道，
+不新增日志体系）：
+
+- `DemuxSource::SeekDiagnostics`：请求落点 / 实际落点 / `av_seek_frame` 返回值 /
+  目标轨索引条数 / avio 位置 / 交给 avio 的文件长度。
+- `FfmpegDemuxSource` 在 `open_fd` 时把**文件长度**与**索引条数**挂进 `backend_label_`，
+  在 `seek_to` 里记录 seek 的事实。
+- `DecodeSession` 在 **seek 之后立刻**抓一份副本（源在 resume 路径会被重开，源里那份会丢）。
+- JNI summary 追加 `demux=[...]` 字段，真机从 instrument 输出直接读。
+
+### 已经拿到的硬事实
+
+```
+backend=ffmpeg tb=1/1000 start=0 sb=0 len=12186004520 idx=653 sidx=12
+```
+
+- **我们走的是 FFmpeg 解封装**（不是平台 MediaExtractor）；
+- **文件长度正确**（12 186 004 520 = 真实大小，没有 int 截断）；
+- **FFmpeg 建出了 653 条索引条目** —— 索引在。
+
+而同一时刻 ffprobe 用同一个文件（PC 端挂载）跳到 600 s 只花 **0.294 s**，落点 594.469 s。
+**所以文件没问题、FFmpeg 也能跳，缺口在我们的 avio/会话这一侧。**
+
+### 还没定位到的那一段
+
+seek 之后 `demux=[backend=none …]` —— 抓诊断时源已经不在了（`impl_` 为空），
+说明 seek 走的可能不是 `source_.seek_to()` 这条（例如走了 `AsyncSampleReader` 的
+异步路径，或 seek 前源被释放）。下一步就是在 `AsyncSampleReader::seek_to` /
+`DecodeSession::seek_to` 上加一行"到底调没调到源"的记录，把最后这一段钉死。
+
+判据不变：任意位置 `|actual − target| ≤ 5 s`，且不再出现 landing=0。
+
+### 顺带修掉的构建 bug（重要）
+
+`KIVO_LIBASS_ANDROID_DIST` 在 CMake 文件末尾才定义，却被前面的
+`kivo_backend_ffmpeg` 先使用 → 展开成 `/include` → `fatal error: 'ass/ass.h'`。
+**这台机器上的 native 全量重建一直是坏的**，增量构建恰好跳过 —— 也解释了
+"改了后端代码、构建 7 秒完成、行为却没变"这类假象。定义前置后，全量重建 35 s 通过。

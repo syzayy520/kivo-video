@@ -557,7 +557,7 @@ std::string session_summary(SessionHandle* handle) {
     }
     const auto stats = handle->session->snapshot();
 
-    char buffer[640] = {};
+    char buffer[896] = {};
     const auto audio_error = handle->audio ? handle->audio->runtime_error() : std::string{};
     const auto& error = stats.error.empty() ? audio_error : stats.error;
     std::snprintf(buffer, sizeof(buffer),
@@ -567,7 +567,7 @@ std::string session_summary(SessionHandle* handle) {
                   // 复制的一行，复制出去就只剩 "p99=0.1ms"。这个 p99 是**逐帧**的
                   // 节拍迟到量（每帧都进直方图），与 `av_drift` 里抽稀口径的 p99
                   // 不是同一个数，对着比会得出"两处矛盾"的假结论。
-                  "pace_lateness_p99[per_frame]=%.1fms completed=%d error=%s",
+                  "pace_lateness_p99[per_frame]=%.1fms completed=%d error=%s demux=[%s]",
                   stats.codec_name.c_str(), stats.mime.c_str(), stats.width, stats.height,
                   static_cast<long long>(handle->session->duration_us()),
                   stats.pipeline_mode.c_str(),
@@ -581,7 +581,8 @@ std::string session_summary(SessionHandle* handle) {
                   static_cast<double>(stats.first_frame_latency_us) / 1000.0,
                   stats.pace.enabled ? stats.pace.clock_source.c_str() : "off",
                   static_cast<double>(stats.pace.lateness_p99_ns) / 1'000'000.0,
-                  stats.completed ? 1 : 0, error.empty() ? "-" : error.c_str());
+                  stats.completed ? 1 : 0, error.empty() ? "-" : error.c_str(),
+                  handle->session->demux_seek_summary().c_str());
     return std::string(buffer);
 }
 

@@ -288,6 +288,17 @@ SessionOutcome DecodeSession::start() {
     return begin_run();
 }
 
+std::string DecodeSession::demux_seek_summary() const {
+    const auto d = last_seek_diag_;
+    char buffer[192] = {};
+    std::snprintf(buffer, sizeof(buffer),
+                  "backend=%s idx=%d rc=%d target=%lld landed=%lld avio=%lld len=%lld",
+                  d.backend[0] ? d.backend : "none", d.index_entries, d.seek_rc,
+                  static_cast<long long>(d.target_us), static_cast<long long>(d.landed_us),
+                  static_cast<long long>(d.avio_pos), static_cast<long long>(d.avio_len));
+    return std::string(buffer);
+}
+
 SessionOutcome DecodeSession::seek_to(std::int64_t target_us, bool defer_start) {
     if (!opened_) {
         return {SessionOutcome::Code::kNotOpen, "seek called before open"};
@@ -321,6 +332,8 @@ SessionOutcome DecodeSession::seek_to(std::int64_t target_us, bool defer_start) 
     // 2. 定位。返回**实际落点**（PREVIOUS_SYNC ⇒ 应 ≤ target）。
     const std::int64_t landing = async_source_ ? async_source_->seek_to(target_us)
                                              : source_.seek_to(target_us);
+    // 252：**seek 之后立刻**抓诊断（源在 resume 路径会被重开，源里那份会丢）。
+    last_seek_diag_ = source_.seek_diagnostics();
     seek_.requests += 1;
     seek_.target_us = target_us;
     seek_.landing_us = landing;

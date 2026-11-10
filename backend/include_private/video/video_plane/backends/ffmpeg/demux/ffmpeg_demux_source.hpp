@@ -49,6 +49,8 @@ public:
 
     [[nodiscard]] SampleReadStatus read_next_sample(SampleView& out) override;
     [[nodiscard]] std::int64_t seek_to(std::int64_t time_us) override;
+
+    [[nodiscard]] SeekDiagnostics seek_diagnostics() const override { return last_seek_; }
     /// 返回带实测数字的标签，例如 `ffmpeg tb=1/1000 start=14083000 first=14083000`。
     /// 把这些数写进 summary 而不是日志：本机 logcat 读不出任何缓冲（实测 0 行），
     /// 日志等于不存在的证据。
@@ -79,6 +81,13 @@ private:
     TrackEncryption encryption_{};
     TrackKind kind_ = TrackKind::kVideo;
     int stream_index_ = -1;
+
+    /// 252：最近一次 seek 的事实，用于在 summary 里回答"到底跳没跳"。
+    SeekDiagnostics last_seek_{};
+
+    /// 252：交给 avio 的文件长度。若它小于真实大小，SEEK_END 就够不到尾部 Cues，
+    /// FFmpeg 建不出索引 → 远距离 seek 只能落到 0。
+    std::int64_t avio_length_ = -1;
     std::vector<std::uint8_t> sample_buffer_;
     bool have_pending_ = false;
     bool cancelled_ = false;

@@ -126,10 +126,15 @@ ExtractOutcome FfmpegDemuxSource::select_stream(const TrackKind kind) {
     avformat_flush(context_);
     have_pending_ = false;
 
+    // 252：把"文件长度"与"索引条数"挂进标签 —— 这两个数字直接决定远距离 seek 能不能成：
+    // 长度被截断 → FFmpeg 读不到尾部 Cues → 索引为 0 → seek 只能落到 0。
     backend_label_ = "ffmpeg tb=" + std::to_string(selected->time_base.num) + "/" +
                      std::to_string(selected->time_base.den) + " start=" +
                      std::to_string(start) + " sb=" +
-                     std::to_string(static_cast<long long>(selected->start_time));
+                     std::to_string(static_cast<long long>(selected->start_time)) +
+                     " len=" + std::to_string(static_cast<long long>(avio_length_)) +
+                     " idx=" + std::to_string(avformat_index_get_entries_count(selected)) +
+                     " sidx=" + std::to_string(context_->nb_streams);
 
     // csd 与样本必须同一种封装。MKV 的 `CodecPrivate` 是 hvcC/avcC（AVCC 形状），
     // 而 MediaCodec 的输入需要 AnnexB（起始码）。两者混用会让解码器
@@ -170,6 +175,7 @@ ExtractOutcome FfmpegDemuxSource::select_stream(const TrackKind kind) {
 
 ExtractOutcome FfmpegDemuxSource::open_fd(int fd, std::int64_t offset, std::int64_t length,
                                           const std::string& label, const TrackKind kind) {
+    avio_length_ = length;
     release();
 
     if (fd < 0) {
@@ -318,7 +324,18 @@ std::int64_t FfmpegDemuxSource::seek_to(std::int64_t time_us) {
 
     // AVSEEK_FLAG_BACKWARD：落到目标之前最近的关键帧，与平台
     // AMEDIAEXTRACTOR_SEEK_PREVIOUS_SYNC 同语义。返回实际落点、不是目标值。
-    if (av_seek_frame(context_, stream_index_, target, AVSEEK_FLAG_BACKWARD) < 0) {
+    last_seek_ = SeekDiagnostics{};
+    last_seek_.avio_len = avio_length_;
+    last_seek_.target_us = time_us;
+    last_seek_.backend = backend_name();
+    if (stream_index_ >= 0 && stream_index_ < static_cast<int>(context_->nb_streams)) {
+        // FFmpeg 7 的索引条数要问公开 API（AVStream 不再直接暴露该字段）。
+        last_seek_.index_entries =
+            avformat_index_get_entries_count(context_->streams[stream_index_]);
+    }
+    const int seek_rc = av_seek_frame(context_, stream_index_, target, AVSEEK_FLAG_BACKWARD);
+    last_seek_.seek_rc = seek_rc;
+    if (seek_rc < 0) {
         return -1;
     }
     avformat_flush(context_);
@@ -340,7 +357,10 @@ std::int64_t FfmpegDemuxSource::seek_to(std::int64_t time_us) {
 
     have_pending_ = true;
     const std::int64_t pts = packet_time(packet_);
-    return av_rescale_q(pts, stream->time_base, kMicrosPerSecond);
+    const std::int64_t landed = av_rescale_q(pts, stream->time_base, kMicrosPerSecond);
+    last_seek_.landed_us = landed;
+    last_seek_.avio_pos = context_->pb ? context_->pb->pos : -1;
+    return landed;
 }
 
 }  // namespace kivo::video::demux

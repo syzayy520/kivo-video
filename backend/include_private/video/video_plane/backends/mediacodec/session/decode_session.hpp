@@ -215,6 +215,9 @@ public:
     /// 而时长在 open 之后就不变了；更重要的是它必须能被 **UI 在起播后立刻读到** ——
     /// MKV 由 native 解封装，Kotlin 侧的平台 probe 拿不到它，
     /// 缺了这个通道播放器就只能显示 `0:00:00 / 0:00:00`，进度条不可用。
+    /// 252：最近一次 seek 的事实（谁跳的、索引多少条、落到哪），供 summary 输出。
+    [[nodiscard]] std::string demux_seek_summary() const;
+
     [[nodiscard]] std::int64_t duration_us() const;
 
     /// 取节拍器的**完整**摘要（含直方图桶计数），用于 C8 的独立复算导出。
@@ -250,6 +253,10 @@ private:
     /// 按当前模式起线程。
     void launch_workers();
     void halt_workers(bool preserve_input);
+
+    /// 252：**在 seek 之后立刻**抓一份 demux 诊断。
+    /// 源随后会被重新打开（resume 路径），源自己那份会被擦掉 —— 所以副本存在会话里。
+    demux::DemuxSource::SeekDiagnostics last_seek_diag_{};
 
     MediaExtractorSource source_;
     std::unique_ptr<core::decode::AsyncSampleReader> async_source_;

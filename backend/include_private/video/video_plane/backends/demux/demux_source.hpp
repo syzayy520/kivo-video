@@ -62,6 +62,19 @@ public:
     /// 定位到指定微秒，返回**实际落点**（关键帧 pts），失败返回 -1。
     [[nodiscard]] virtual std::int64_t seek_to(std::int64_t time_us) = 0;
 
+    /// 252 诊断：最近一次 seek 的可复算事实（请求落点 / 实际落点 / 索引条目数 / avio 位置）。
+    /// 默认空实现：平台提取器没有索引概念，填 -1 表示"不适用"。
+    struct SeekDiagnostics {
+        std::int64_t target_us = -1;
+        std::int64_t landed_us = -1;
+        int seek_rc = 0;
+        int index_entries = -1;
+        std::int64_t avio_pos = -1;
+        std::int64_t avio_len = -1;   ///< 交给 avio 的文件长度（截断会读不到尾部 Cues → 无索引）
+        const char* backend = "";
+    };
+    [[nodiscard]] virtual SeekDiagnostics seek_diagnostics() const { return {}; }
+
     /// "platform" 或 "ffmpeg"。必须写进证据与 summary：
     /// 走了哪条解析路径是可复算事实，不能靠猜。
     [[nodiscard]] virtual const char* backend_name() const = 0;
