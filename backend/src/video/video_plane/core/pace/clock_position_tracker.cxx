@@ -83,11 +83,16 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
     if (!has_previous_) {
         // 首次：位置就是设备给的，没有历史可比，谈不上跳变。
         has_previous_ = true;
-        first_mono_ns_ = mono_ns;
+        if (!has_trace_origin_) {
+            has_trace_origin_ = true;
+            first_mono_ns_ = mono_ns;
+        }
         origin_mono_ns_ = mono_ns;
         origin_position_ns_ = snapshot.position_ns;
         previous_mono_ns_ = mono_ns;
         previous_raw_ns_ = snapshot.position_ns;
+        last_fresh_raw_ns_ = snapshot.position_ns;
+        last_fresh_mono_ns_ = mono_ns;
         previous_position_ns_ = snapshot.position_ns;
         position_ns_ = snapshot.position_ns;
         if (snapshot.stale) {
@@ -100,10 +105,6 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
         // P14-Y：这一帧开始时位置在哪。`step` 要的是"实际推进了多少"，
         // 而三条分支（外推 / 跳变 / 正常）各自推进方式不同，事后再算就算不清了。
         const std::int64_t position_before_ns = position_ns_;
-        // P13-S：这一帧要减掉的超前量（0 = 不复位）。声明在分支外，
-        // 因为减法必须发生在倒退钳制**之后**，而钳制在分支外。
-        std::int64_t rebase_excess_ns = 0;
-        (void)rebase_excess_ns;
 
         if (snapshot.stale) {
             ++stale_readings_;
@@ -117,20 +118,23 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
                 reading.health = ClockHealth::kFreeRun;
                 ++free_run_readings_;
             } else {
-                // 一个 burst 级的停更：按墙钟补。误差在微秒级，
-                // 比"冻结位置让帧越等越晚"好得多。
+                // 短暂失效按墙钟补；恢复后以原始绝对位置重新对齐。
                 position_ns_ += wall_delta_ns;
                 reading.health = ClockHealth::kExtrapolated;
                 ++extrapolated_readings_;
             }
         } else {
             stale_since_mono_ns_ = 0;
-            const std::int64_t drift_ns = raw_delta_ns - wall_delta_ns;
+            // 与上一个新鲜读数比较同一段时间，不能把 stale 后的整段补报
+            // 与最后一帧的墙钟 delta 比，否则正常恢复也会被当成跳变。
+            const std::int64_t drift_ns = (snapshot.position_ns - last_fresh_raw_ns_) -
+                                          (mono_ns - last_fresh_mono_ns_);
             if (drift_ns > policy_.jump_limit_ns || drift_ns < -policy_.jump_limit_ns) {
                 // 位置一次跳了远超墙钟的量：换采样率 / seek / 设备重建。
                 // 照原样用会让 due_at 整体平移，随后整段被判"迟到"→ 全丢。
                 // 这一步改用墙钟增量，保持时间轴连续。
                 position_ns_ += wall_delta_ns;
+                raw_position_offset_ns_ = position_ns_ - snapshot.position_ns;
                 reading.jump_rebased = true;
                 ++jump_rebases_;
                 // P16-P1B32：估计器的基准必须跟着 rebase 一起重来。
@@ -142,10 +146,12 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
                 // P13-S：累积漂移门。`jump_limit_ns` 只管"一次跳 1 秒"，
                 // 管不到"每帧只快 1.5%" —— 那种误差攒 8 秒就是 119 ms，
                 // 而所有计数器都显示正常（真机实测，见 `91-p13r-status.md`）。
-                // 位置按原始增量推进；领先量在钳制之后按**两端之差**统一算（P13-AA），
-                // 这里不再做逐帧累积 —— 那本账漏掉了 stale / 跳变 / 钳制三条分支。
-                position_ns_ += raw_delta_ns;
+                // 恢复不能在已外推的位置上再加 delta（重复计时），也不能
+                // 在 FreeRun 的冻结位置上只加最后一帧（漏算整段）。
+                position_ns_ = snapshot.position_ns + raw_position_offset_ns_;
             }
+            last_fresh_raw_ns_ = snapshot.position_ns;
+            last_fresh_mono_ns_ = mono_ns;
             reading.health = ClockHealth::kFresh;
         }
 
@@ -196,7 +202,8 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
         // 两臂只差这一个开关，其余（门开、注入、片源）完全相同 —— 否则比的不是这件事。
         cum_drift_ns_ = policy_.step_repay
                             ? raw_lead_ns
-                            : raw_lead_ns - discontinuities_.offset_ns();
+                            : raw_lead_ns - (discontinuities_.offset_ns() -
+                                             segment_discontinuity_offset_ns_);
         // P13-AC：真正的迟滞是**两个阈值**，不是一个阈值加一个目标。
         //
         // 第一版写成"`cum > limit` 就修到 `limit − band`"，可每帧只修 2 ms，
@@ -230,6 +237,7 @@ ClockPositionTracker::Reading ClockPositionTracker::read() noexcept {
                 // `lead_before` 就只能靠 `cum + correction` 反推，两处算同一个数。
                 record_rebase(mono_ns, correction_ns, cum_drift_ns_);
                 position_ns_ -= correction_ns;
+                raw_position_offset_ns_ -= correction_ns;
                 cum_drift_ns_ -= correction_ns;
                 reading.backward_clamped = false;
                 reading.drift_rebased = true;
@@ -324,6 +332,9 @@ void ClockPositionTracker::skip_pause(std::int64_t now_ns) noexcept {
     // 上一帧的时刻前移到 now —— pause 那一段墙钟不进 `wall_delta`，
     // 于是 stale 外推分支拿不到那 2 秒，位置不会被凭空推前。
     if (has_previous_) {
+        const std::int64_t skipped_ns = std::max<std::int64_t>(0, now_ns - previous_mono_ns_);
+        origin_mono_ns_ += skipped_ns;
+        last_fresh_mono_ns_ += skipped_ns;
         previous_mono_ns_ = now_ns;
     }
     // pause 期间不该被算作"时钟停更"，否则 resume 后 stale 计时从 pause 起点算，
@@ -337,23 +348,17 @@ void ClockPositionTracker::reset() noexcept {
     has_previous_ = false;
     previous_mono_ns_ = 0;
     previous_raw_ns_ = 0;
+    last_fresh_raw_ns_ = 0;
+    last_fresh_mono_ns_ = 0;
+    raw_position_offset_ns_ = 0;
     previous_position_ns_ = 0;
     position_ns_ = 0;
     stale_since_mono_ns_ = 0;
     cum_drift_ns_ = 0;
     correcting_ = false;
-    rebase_first_at_ns_ = 0;
-    rebase_max_ = RebaseSample{};
-    // 数组不能整体赋值（C3863）。逐个清 —— 只有 8 个，不值得为它引入 `std::fill`
-    // 背后的头文件依赖（core/ 下刻意不用 `<algorithm>` 之外的容器设施）。
-    for (RebaseSample& sample : rebase_recent_) {
-        sample = RebaseSample{};
-    }
-    rebase_head_ = 0;
-    rebase_count_ = 0;
-    // P14-Y：不连续那本账与复位轨迹同寿命 —— 换片源之后，"上一段吃过多少台阶"
-    // 不能接着算进这一段的门里。
-    discontinuities_.reset();
+    // 计数、最大值与最近8笔同为会话诊断，seek不能只清轨迹而保留次数。
+    // 判定仅扣当前段的台阶，不能让保留的历史账改变新段的门输入。
+    segment_discontinuity_offset_ns_ = discontinuities_.offset_ns();
     anchored_ = false;
     anchor_pts_ns_ = 0;
     anchor_position_ns_ = 0;

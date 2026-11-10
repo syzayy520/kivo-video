@@ -8,6 +8,7 @@
 #include "video/video_plane/backends/mediacodec/decode/decoded_frame.hpp"
 #include "video/video_plane/backends/mediacodec/session/decode_stage_step.hpp"
 #include "video/video_plane/backends/mediacodec/session/present_schedule.hpp"
+#include "video/video_plane/core/pace/pace_action.hpp"
 
 namespace kivo::video::core::pace {
 class FramePacer;
@@ -74,6 +75,8 @@ public:
 
     void run();
 
+    [[nodiscard]] const char* operation() const noexcept { return operation_.load(); }
+
     /// 最近一次 `pump()` 的整段耗时（含等帧、节拍睡眠、交帧）。
     /// 配合 `last_pace_ns()` / `last_release_ns()` 给出"这一圈的时间花在哪"。
     ///
@@ -90,6 +93,13 @@ public:
     /// 会被算进解码耗时，fps 会莫名其妙地掉一截。
     void finish();
 
+    /// 线程已停止：恢复同一帧及其单次节拍决策；更新排除暂停后的墙钟起点。
+    void resume(std::chrono::steady_clock::time_point started_at,
+                std::int64_t paused_ns, std::int64_t now_ns);
+
+    /// seek/最终停止在 join 后归还持有的输出槽，绝不呈现。
+    void discard_pending();
+
 private:
     /// 处理一张已经收到的帧：节拍判定 → 释放 → 记账。返回 kDone 表示收到 EOS 帧。
     StageStep handle_frame(const DecodedFrame& frame);
@@ -100,6 +110,11 @@ private:
     StageStep abort(const std::string& reason);
 
     Deps deps_;
+    std::atomic<const char*> operation_{"idle"};
+    DecodedFrame pending_frame_{};
+    core::pace::PaceDecision pending_decision_{};
+    bool has_pending_ = false;
+    bool decision_valid_ = false;
 
     /// 最近一次有进展（收到帧）的时刻。EOS 卡死判定以它为基准，
     /// 而不是以 `started_at` —— 慢速吐帧时前者不会误判。

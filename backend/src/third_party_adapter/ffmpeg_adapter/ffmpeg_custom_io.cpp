@@ -96,6 +96,11 @@ FfmpegFormatHandle FfmpegAdapter::open_custom_io(const FfmpegInputConfig& config
         delete owner;
         return {};
     }
+    // **必须标可 seek**：`avio_alloc_context` 默认 `seekable = 0`，
+    // 即使传了 seek 回调 FFmpeg 也当纯流处理 —— mkv 于是不能读 Cues 索引，
+    // 时间戳退化成不可靠的推断值（真机：VC-1 片源全部帧 pts=0，进度条恒 0）。
+    // 回调本身是真的支持随机读（`pread`），所以这里如实声明能力。
+    owner->avio->seekable = AVIO_SEEKABLE_NORMAL;
 
     AVFormatContext* context = avformat_alloc_context();
     if (context == nullptr) {

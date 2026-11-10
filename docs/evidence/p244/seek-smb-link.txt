@@ -1,0 +1,87 @@
+244 · SMB 链路 seek 复验（结转项 #2 解除）
+
+设备：MatePad MRR-W29（`CFE6R21B12000179`），Android 12
+时间：2026-11-10 07:02
+服务器：`192.168.5.1`，共享 **`视频`**（不是原先记录的 `XiaoMi`）
+
+## 一、解卡过程（为什么之前"共享不存在"）
+
+原记录：`net use \\192.168.5.1\XiaoMi` → 系统错误 67。本轮复查发现共享是**改名了**：
+
+```
+net use
+  OK  N:  \\192.168.5.1\视频      Disk
+  OK  O:  \\192.168.5.1\<另一共享>  Disk
+```
+
+`N:/` 下可见目录：`111`、`tv`、`学习`、`电影` —— 共享**可用且可写**（匿名可写，已实测）。
+所以"`XiaoMi` 不存在"是真的，但"服务器共享不可用"不成立，问题只是**共享名从 `XiaoMi` 变成了 `视频`**。
+
+## 二、同源对照的做法
+
+不拿共享里现成的大片做对照（编码/时长/音轨不一致，无法归因），
+而是把**本地复验用的同一份文件**上传到共享，做成真正同源：
+
+```
+cp local-seek.mkv  → N:/kivo-test/local-seek.mkv   (2270964 B, H.264+MKV, 无音轨, 60 s)
+cp mkv-audio.mkv   → N:/kivo-test/mkv-audio.mkv    (773318 B,  H.264+MKV, AAC,  20 s)
+```
+
+命令（`smbPath` 相对共享根，`smbShare` 用中文名）：
+
+```
+adb -s CFE6R21B12000179 shell am instrument -w \
+  -e smbHost 192.168.5.1 -e smbShare 视频 -e smbPath kivo-test/local-seek.mkv \
+  com.kivo.cinema.test/com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation
+```
+
+## 三、组 A：SMB + H.264 MKV + 无音轨（`pace=system`，本卡主场景）
+
+P243 OPEN kivo-test/local-seek.mkv size=2270964
+P243 START codec=OMX.qcom.video.decoder.avc dur=60000000 audio=false
+PASS 起播（准备 + 首帧会话就绪）
+P243 POSITION 0 ms → 3009 ms
+PASS 位置推进（3 秒窗口）
+P243 SEEK target=30000 ms landing=25000 ms actual=27012 ms error=
+P243 SUMMARY codec=OMX.qcom.video.decoder.avc mime=video/avc 1280x720 dur=60000000 pipe=merged
+             frames=65 recv=65 rel=65 dropped=0 samples=66 first_frame=9.4ms
+             pace=system pace_lateness_p99[per_frame]=0.0ms completed=0 error=-
+PASS seek 到中段并落位
+P243 RESUME 27012 ms → 30012 ms
+PASS seek 后继续推进
+4/4 PASS
+
+→ `OPEN` 行是 `kivo-test/local-seek.mkv`（**无 `local` 前缀**），确认走的是 SMB 源而非本地对照；
+`actual=27012`，与平板本地（27080）、K40 本地（27106）在同一量级。
+
+## 四、组 B：SMB + H.264 MKV + AAC（`pace=audio_timestamp`，音频路径回归）
+
+P243 OPEN kivo-test/mkv-audio.mkv size=773318
+P243 START codec=OMX.qcom.video.decoder.avc dur=20021000 audio=true
+PASS 起播（准备 + 首帧会话就绪）
+P243 POSITION 0 ms → 3044 ms
+PASS 位置推进（3 秒窗口）
+P243 SEEK target=10010 ms landing=8333 ms actual=10498 ms error=
+P243 SUMMARY ... audio=true ... pace=audio_timestamp ... dropped=0 first_frame=4.3ms
+PASS seek 到中段并落位
+P243 RESUME 10498 ms → 13464 ms
+PASS seek 后继续推进
+4/4 PASS
+
+→ `audio=true`、时钟档仍为 `pace=audio_timestamp`（未被 `rebase` 改动影响），
+与本地音频对照（10480 / 10467）一致。
+
+## 五、结论
+
+1. **SMB 链路的 seek 已真机验证通过**，视频-only 与带音轨两组均 4/4 PASS。
+   原先担心的"`RangeFd` fd 输入 / `asyncInput=true` 落点时机不同"没有造成差异。
+2. `session_seek` 的修复（`system_clock->rebase(video_landing)`）对 SMB 同样生效——
+   因为它挂在共用路径上，与输入方式无关。
+3. 244 结转项 #2 **解除**。14 个字的教训：**"共享不存在"要区分「名字变了」和「服务没了」**，
+   本轮就是前者，卡了一个多小时的复验。
+
+## 六、现场清理
+
+共享上的 `N:/kivo-test/` 为本次复验临时目录（两份小文件，约 3 MB）。
+共享根还残留一个 `smbprobe.txt`（写权限探测用，删除被本机 safe-delete 拦下未成功）。
+→ 两者均需在方便时手工清理；本卡不擅自对共享做删除操作。

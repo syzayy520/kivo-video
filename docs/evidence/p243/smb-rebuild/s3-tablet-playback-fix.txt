@@ -1,0 +1,86 @@
+# 平板 SMB 播放不了 —— 真因与修复（2026-11-10 07:44–07:52）
+
+> 设备：MatePad MRR-W29（Android 12，2560×1600），真实 UI 路径（非 instrumentation）。
+> 触发方式：资源库 → 源「小米 192.168.5.1」 → 共享「视频」 → `kivo-test` → 点 `local-seek.mkv`。
+
+## 一、症状（修复前）
+
+点文件后不是播放，而是**黑屏播放器 + 左上角一行字 + 时间恒 0**：
+
+```
+这个资源库还没有选择共享
+0:00:00 / 0:00:00        ← 进度条两端都在，但完全不动
+```
+
+注意：**同一台平板、同一个共享、同一个文件**，走 `SmbPlaybackSeekInstrumentation`
+（`NetworkPlaybackSession` + `SmbByteSource` 直连）是 **4/4 PASS**：
+
+```
+P243 OPEN kivo-test/local-seek.mkv size=2270964
+P243 POSITION 0 ms → 3056 ms
+P243 SEEK target=30000 ms landing=25000 ms actual=27153 ms error=
+P243 RESUME 27153 ms → 30114 ms
+4/4 PASS
+```
+
+所以不是 SMB 协议、不是解码、不是网络——**是播放器拿不到共享名**。
+
+## 二、根因链（三处配合才出这个现象）
+
+| # | 位置 | 行为 |
+| --- | --- | --- |
+| 1 | `SmbBrowserActivity.onSharePicked` | 用户在页内选中共享后，只在内存里建 `target = base.copy(share=…, path="")`，**没有写回源记录**（`SourceStore` 里该源 `share` 仍为空） |
+| 2 | `SmbBrowserActivity.open` | 启动播放器时只传 `kivo.sourceId` + `kivo.smbPath`（共享内路径），**不传共享名** |
+| 3 | `PlayerComposeActivity.startSmbPlayback` | 按 `sourceId` 回读源记录 → 解析出的地址 `share` 为空 → `check(!address.needsShare)` 抛 `IllegalStateException("这个资源库还没有选择共享")` |
+
+平板的源是「枚举共享」形态（创建时没写共享名），所以必然命中；
+K40 的源是手填形态（`address` 里带 `XiaoMi`），`needsShare == false`，所以 K40 一直能播。
+**这就是"只有平板播不了"的全部原因。**
+
+## 三、修复（两个文件，各一处）
+
+1. `SmbBrowserActivity` 新增 `@Volatile private var activeShare`；`connect()` 成功后记录
+   `address.share`；`open()` 里 `.putExtra("kivo.smbShare", activeShare)`。
+2. `PlayerComposeActivity.startSmbPlayback(...)` 增 `shareOverride` 参数，读 `kivo.smbShare`；
+   地址解析后 `if (shareOverride.isNotBlank()) parsed.copy(share = shareOverride) else parsed`。
+
+不改源存储、不改凭据通道（凭据仍只走加密存储，**不进 Intent**，符合 243 D5）。
+行数：`SmbBrowserActivity` 279 行（改动前后持平，压缩了同文件的冗余注释腾出预算）；
+`SmbError.kt` 82 行（持平）。
+
+## 四、修复后验证（真实 UI，平板）
+
+| # | 操作 | 结果 |
+| --- | --- | --- |
+| 1 | 资源库 → 小米 → 视频 → kivo-test | ✅ 正常进目录，列出 `local-seek.mkv`(2.2 MB) / `mkv-audio.mkv`(755.2 KB) |
+| 2 | 点 `local-seek.mkv` | ✅ 画面出彩条测试图，`0:00:13 / 0:01:00`，位置推进（修复前恒 `0:00:00`） |
+| 3 | 点 `mkv-audio.mkv`（带 AAC 音轨） | ✅ 正常播放并播到结尾（`播放结束`） |
+| 4 | 播放中拖进度条到约 60% | ✅ 画面自带秒表从 `4` 跳到 `30`，随后继续走到 `0:00:59 / 0:01:00` |
+
+## 五、顺带修掉的同类缺陷：错误阶段细分
+
+`SmbError.translate` 原来把 negotiate / session setup / tree connect 全归 `SmbStage.CONNECT`，
+同一个 `ACCESS_DENIED` 只能给一句含糊话。现按 `smb2_get_error()` 原文细分
+（`libsmb2.c:703` `Tree Connect failed` / `:894` `Session setup failed`）：
+
+| 场景 | 修复前（stage / 文案） | 修复后 |
+| --- | --- | --- |
+| 平板连未授权共享 `XiaoMi` | `连接` / 服务器拒绝了这个连接：可能共享未对本机开放，或需要账号密码 | `共享` / 这个共享没有对本机开放，需要账号密码或服务器授权 |
+| 共享名不存在 | `连接` / 找不到这个共享… | `共享` / 找不到这个共享，可能已被删除或改名（不变） |
+| 已授权共享 `视频` | 4/4 PASS | 4/4 PASS（零回归） |
+
+原始输出：
+
+```
+FAIL stage=共享 reason=这个共享没有对本机开放，需要账号密码或服务器授权
+     detail=nt=0xc0000022 raw=Tree Connect failed with (0xc0000022) STATUS_ACCESS_DENIED.
+FAIL stage=共享 reason=找不到这个共享，可能已被删除或改名
+     detail=nt=0xc00000cc raw=Tree Connect failed with (0xc00000cc) STATUS_BAD_NETWORK_NAME.
+```
+
+## 六、已知未做（不阻塞，需用户定）
+
+1. **源不记忆共享**：用户在页内选的共享没有写回源记录，下次进同一个源还要再选一次。
+   修复它要改 `SourceStore`（加密存储，K40 上已有源），风险高于收益，故本轮未动。
+2. `PlayerComposeActivity` 的 `audio open: no audio track among 1 tracks` 仍显示在画面左上角，
+   是诊断文本泄漏到用户界面（`local-seek.mkv` 无音轨，属正常信息，但不应常驻）。

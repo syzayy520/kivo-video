@@ -1,0 +1,47 @@
+INSTRUMENTATION_STATUS: stream=PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response; evicted backward read reopens (3 requests including probe)
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS independent proxy descriptors support exact random reads
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.avc
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS production network host starts native hardware video and attaches audio
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS pause freezes media position and resume advances it
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS seek request=2 target_us=8000000 landing_us=8000000 advances_after_completion
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS seek request=3 target_us=2000000 landing_us=2000000 advances_after_completion
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS forward and backward seek use the native A/V session
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS steady wall_ms=3002 rate=0.9885293137908061 samples=0:2266667,1001:3200031,2001:4233498,3002:5234232
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=FAIL IllegalStateException: pace frame accounting mismatch
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=CHECK media_curve wall_ms:position_s=0:0.0,1006:1.002818,2069:1.204,3096:2.600696,4118:3.600425,5136:4.634943
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response; evicted backward read reopens (3 requests including probe)
+PASS independent proxy descriptors support exact random reads
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.avc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS seek request=2 target_us=8000000 landing_us=8000000 advances_after_completion
+PASS seek request=3 target_us=2000000 landing_us=2000000 advances_after_completion
+PASS forward and backward seek use the native A/V session
+PASS steady wall_ms=3002 rate=0.9885293137908061 samples=0:2266667,1001:3200031,2001:4233498,3002:5234232
+FAIL IllegalStateException: pace frame accounting mismatch
+CHECK media_curve wall_ms:position_s=0:0.0,1006:1.002818,2069:1.204,3096:2.600696,4118:3.600425,5136:4.634943
+
+INSTRUMENTATION_CODE: 0

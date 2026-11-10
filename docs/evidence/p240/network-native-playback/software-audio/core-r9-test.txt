@@ -1,0 +1,21 @@
+Test project C:/kivo video/build/vs-debug
+    Start 239: kivo_p12c4_clock_tests
+1/8 Test #239: kivo_p12c4_clock_tests ...........   Passed    0.01 sec
+    Start 240: kivo_p12c5_pace_tests
+2/8 Test #240: kivo_p12c5_pace_tests ............   Passed    0.01 sec
+    Start 241: kivo_pause_resume_pace_tests
+3/8 Test #241: kivo_pause_resume_pace_tests .....   Passed    0.01 sec
+    Start 242: kivo_timestamp_cadence_tests
+4/8 Test #242: kivo_timestamp_cadence_tests .....   Passed    0.01 sec
+    Start 243: kivo_p13d_drift_tests
+5/8 Test #243: kivo_p13d_drift_tests ............   Passed    0.01 sec
+    Start 269: kivo_p14t_clock_lead_tests
+6/8 Test #269: kivo_p14t_clock_lead_tests .......   Passed    0.01 sec
+    Start 273: kivo_p14y_discontinuity_tests
+7/8 Test #273: kivo_p14y_discontinuity_tests ....   Passed    0.01 sec
+    Start 274: kivo_p14z_step_repay_tests
+8/8 Test #274: kivo_p14z_step_repay_tests .......   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 8
+
+Total Test time (real) =   0.11 sec

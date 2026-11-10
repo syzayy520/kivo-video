@@ -336,7 +336,9 @@ using core::pace::SignedHistogram;
 ///
 /// 与 `kivo.p12c.decode/5` 的关系：那个只讲视频侧，这个讲"音视频一起跑的时候"。
 /// 两者不是替代关系 —— `decode/5` 是纯视频基线，`sync/1` 才回答 G7。
-constexpr const char* kSchema = "kivo.p12c.sync/43";
+// /44：视频输出槽账加入停止归还，节拍账只接受其中已决策未交付的子集。
+// /45：pace 按会话累计，停止/无面归属与决策同范围；video 仍为最近一段。
+constexpr const char* kSchema = "kivo.p12c.sync/45";
 
 [[nodiscard]] std::string fixed6(double value) {
     char buffer[32] = {};
@@ -1493,6 +1495,8 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "    \"frames_dropped_late\": " << video.frames_dropped_late << ",\n";
     // D1：换面空窗期丢的帧。与"节拍判它太晚"分开记，否则一次切后台看起来像节拍崩了。
     out << "    \"frames_discarded_no_surface\": " << video.frames_discarded_no_surface << ",\n";
+    out << "    \"frames_discarded_on_stop\": " << video.frames_discarded_on_stop << ",\n";
+    out << "    \"frames_discarded_on_stop_undelivered\": " << video.frames_discarded_on_stop_undelivered << ",\n";
     out << "    \"samples_submitted\": " << video.samples_submitted << ",\n";
     out << "    \"samples_rejected\": " << video.samples_rejected << ",\n";
     out << "    \"wall_us\": " << video.wall_micros << ",\n";
@@ -1557,14 +1561,17 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
     out << "    \"frames_decided\": " << pace.frames_decided << ",\n";
     out << "    \"presented\": " << pace.presented << ",\n";
     out << "    \"dropped\": " << pace.dropped << ",\n";
+    out << "    \"accounting_scope\": \"session\",\n";
+    out << "    \"discarded_on_stop\": " << pace.discarded_on_stop << ",\n";
+    out << "    \"discarded_no_surface\": " << pace.discarded_no_surface << ",\n";
     // P14-Q：这三格必须连着读 —— `1800 = 1800 + 0 + 0`。
     // 差额印在这里，是因为 `/27` 时它**不占任何一格**：真机出过一次
     // `decided = 1800 / presented = 84 / dropped = 0`，1716 帧凭空消失，
     // 而 `drop_ratio` 还写着 0.0。
     //
     // 值由 `FramePacer::summary()` 算（那里才看得到 `frames_decided_`）。
-    // 这一层只印，不判断 —— 判断留给 S2，用 `video.frames_discarded_no_surface`
-    // 跨块对账。两处各判一次，迟早在某个边界上分家。
+    // 这一层只印，不判断。S2 使用同会话累计归属闭合；video 是最近一段，
+    // seek 之后不能拿它解释整次播放的差额。
     out << "    \"undelivered_frames\": " << pace.undelivered_frames << ",\n";
     // P14-N：这一格是 `lateness_` 直方图的派生量（`count_abs_beyond`），
     // 上游一个样本都没有时它必然是 0 —— 而 0 读起来是"没有超预算帧"。
@@ -1716,12 +1723,16 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
         << ", \"diverged\": " << (audio.output_format_diverged ? "true" : "false") << "},\n";
     out << "    \"ring_capacity_frames\": " << audio.ring_capacity_frames << ",\n";
     out << "    \"prefill_reached\": " << (audio.prefill_reached ? "true" : "false") << ",\n";
+    out << "    \"prefill_budget_millis\": " << audio.prefill_budget_millis << ",\n";
+    out << "    \"prefill_initial_wait_millis\": " << audio.prefill_initial_wait_millis << ",\n";
+    out << "    \"prefill_last_wait_millis\": " << audio.prefill_last_wait_millis << ",\n";
+    out << "    \"prefill_max_wait_millis\": " << audio.prefill_max_wait_millis << ",\n";
     out << "    \"startup_millis\": " << audio.startup_millis << ",\n";
     out << "    \"clock_start_ns\": " << audio.clock_start_ns << ",\n";
     out << "    \"clock_end_ns\": " << audio.clock_end_ns << ",\n";
     out << "    \"feed\": {\"packets_submitted\": " << audio.feed.packets_submitted
         << ", \"chunks_received\": " << audio.feed.chunks_received << ", \"frames_decoded\": "
-        << audio.feed.frames_decoded << ", \"frames_written\": " << audio.feed.frames_written
+        << audio.feed.frames_decoded << ", \"decoded_peak\": " << audio.feed.decoded_peak << ", \"frames_written\": " << audio.feed.frames_written
         << ", \"frames_dropped\": " << audio.feed.frames_dropped << ", \"ring_full_waits\": "
         << audio.feed.ring_full_waits << ", \"reached_eos\": "
         << (audio.feed.reached_eos ? "true" : "false") << "},\n";
@@ -1741,7 +1752,11 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
         << audio.clock.timestamp_not_started << ", \"timestamp_fail\": "
         << audio.clock.timestamp_fail << ", \"monotonic_rejects\": "
         << audio.clock.monotonic_rejects << ", \"jumps_clamped\": " << audio.clock.jumps_clamped
-        << ", \"latency_frames\": " << audio.clock.latency_frames;
+        << ", \"latency_frames\": " << audio.clock.latency_frames
+        << ", \"timestamp_age_budget_ns\": " << audio.clock.timestamp_age_budget_ns
+        << ", \"max_timestamp_age_ns\": " << audio.clock.max_timestamp_age_ns
+        << ", \"timestamp_stale\": " << audio.clock.timestamp_stale
+        << ", \"max_extrapolation_ns\": " << audio.clock.max_extrapolation_ns;
 
     // P14-E：异常时刻的原始观测窗口。
     //

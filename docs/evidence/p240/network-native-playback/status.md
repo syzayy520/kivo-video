@@ -13,7 +13,7 @@
 已在两机`install -r`成功，均返回MainActivity。未将重新安装等同真实源音视频通过。
 
 用户建议默认软解。两机合成证据实际音频codec均为`c2.android.aac.decoder`，
-已经是系统软件音频解码；真实E-AC3缺失需要接入相应实现，现有Android FFmpeg构建尚未启用该codec。
+已经是系统软件音频解码；真实E-AC3缺失需要接入相应实现，此前关于Android FFmpeg未启用该codec的判断有误：实际config_components.h及静态库均含EAC3，缺少的是当前会话的PCM接线。
 音频兼容与视频默认策略必须分别验收，不能靠切换一个总开关算播放闭环。
 
 ## 真实源读取修复（最新，整体验收仍 DOING）

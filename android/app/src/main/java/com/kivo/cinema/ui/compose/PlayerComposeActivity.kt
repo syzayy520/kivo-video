@@ -56,6 +56,92 @@ class PlayerComposeActivity : ComponentActivity() {
 
     private val positionPoll = object : Runnable {
         override fun run() {
+            // 软解分支放最前：它与网络会话互斥，先判掉就不必让下面每条分支都写一次 `if`。
+            val soft = smbSoftSession
+            if (soft != null) {
+                val dur = soft.durationUs()
+                if (dur > 0) durationMs = dur / 1000
+                val pos = soft.positionUs()
+                if (pos >= 0) {
+                    positionMs = (pos / 1000).let { if (durationMs > 0) it.coerceAtMost(durationMs) else it }
+                    // 端到端速率实测。会话内部的 decode_ms/wall_us 记的是解码线程自己，
+                    // 用户看到的"卡"还要叠加渲染、闸门与主线程这一层，只有站在播放页
+                    // 量"媒体时间 / 墙钟时间"才是用户视角的那个数。
+                    val nowMs = System.currentTimeMillis()
+                    // 音频侧同一时刻的两个读数：`played` 是真正在响的位置，
+                    // `position` 是解码写环的位置。两者之差就是环里排队的量。
+                    // 只打 position 会把"排队的"误当成"已响的"，音画对齐永远差几百毫秒。
+                    val aPlayed = smbSoftAudio?.playedUs() ?: -1L
+                    // 音频出声之后，把它交给视频会话做主时钟：视频从此贴着声音走
+                    // （超前就睡、落后就丢帧），不再各自守时。
+                    // 音频还没出声时推 -1，让视频先按自身节拍跑起来，不必干等。
+                    soft.setAudioClockUs(aPlayed)
+                    if (softRateMarkMs == 0L) {
+                        softRateMarkMs = nowMs
+                        softRateMarkPosUs = pos
+                        softAudioMarkUs = aPlayed
+                    } else if (nowMs - softRateMarkMs >= 2000) {
+                        val dMediaUs = pos - softRateMarkPosUs
+                        val dWallUs = (nowMs - softRateMarkMs) * 1000
+                        val ratio = if (dWallUs > 0) dMediaUs.toDouble() / dWallUs else 0.0
+                        // 音频也要单独量速率。若 arate 不是 1.00，说明声音自己在快放/慢放，
+                        // 那么无论视频怎么对齐都会越走越偏 —— 这是与"视频落后"完全不同的病因。
+                        val dAudioUs = if (aPlayed >= 0 && softAudioMarkUs >= 0) {
+                            aPlayed - softAudioMarkUs
+                        } else -1L
+                        val aRate = if (dAudioUs > 0 && dWallUs > 0) {
+                            dAudioUs.toDouble() / dWallUs
+                        } else 0.0
+                        // **音画偏移**：正在响的声音位置 − 正在显示的画面前沿。
+                        // 正值 = 声音超前于画面；负值 = 声音落后。人耳容忍约 ±40 ms。
+                        val avDiffUs = if (aPlayed >= 0) aPlayed - pos else 0L
+                        smbTrace("soft rate media=+${dMediaUs / 1000}ms wall=+${dWallUs / 1000}ms " +
+                            "ratio=${"%.2f".format(java.util.Locale.US, ratio)} " +
+                            "arate=${"%.2f".format(java.util.Locale.US, aRate)} " +
+                            "avdiff=${avDiffUs / 1000}ms gated=$smbSoftAudioGated")
+                        softRateMarkMs = nowMs
+                        softRateMarkPosUs = pos
+                        softAudioMarkUs = aPlayed
+                    }
+                }
+                // 极端情况兜底闸门（**不再是常规同步手段**）。
+                //
+                // 常规同步已经交给"音频主时钟 + 视频丢帧/等待"（见 setAudioClockUs）。
+                // 这里只保留一跳保险：视频彻底解不动时（例如设备完全不支持、
+                // 单帧要几百毫秒），音频会一路跑到前面几十秒，那时必须停下来等，
+                // 否则声音和画面差出分钟级，比"声音断一下"糟糕得多。
+                //
+                // 阈值从原来的 800 ms 提到 5 s：800 ms 是过去"各自守时"时代用来凑数的，
+                // 现在视频会主动追音频，再按 800 ms 去停流只会打断正在对齐的过程，
+                // 让音频时钟冻结、视频又追上来，变成来回振荡。
+                val audioSync = smbSoftAudio
+                if (audioSync != null && isPlaying && pos >= 0) {
+                    val audioPos = audioSync.positionUs()
+                    if (audioPos >= 0) {
+                        val leadUs = audioPos - pos
+                        if (!smbSoftAudioGated && leadUs > 5_000_000) {
+                            audioSync.setPaused(true)
+                            smbSoftAudioGated = true
+                            smbTrace("soft audio gated: lead=$leadUs us")
+                        } else if (smbSoftAudioGated && leadUs < 1_000_000) {
+                            audioSync.setPaused(false)
+                            smbSoftAudioGated = false
+                            smbTrace("soft audio resumed: lead=$leadUs us")
+                        }
+                    }
+                }
+                if (!soft.isRunning()) {
+                    // 线程退出只有两种结局：跑到 EOS，或读/解失败。位置是否到头是唯一
+                    // 客户端可分辨的判据——不区分就会把"播完了"报成"中断"。
+                    statusText = if (durationMs > 0 && positionMs >= durationMs - 1000) "播放结束" else "软解中断"
+                    isPlaying = false
+                    controlsVisible = true
+                    return
+                }
+                if (System.currentTimeMillis() - lastTouchMs > 3000) controlsVisible = false
+                android.os.Handler(mainLooper).postDelayed(this, 200)
+                return
+            }
             val netSession = smbNetSession
             if (netSession != null) {
                 durationMs = netSession.durationUs / 1000
@@ -74,50 +160,45 @@ class PlayerComposeActivity : ComponentActivity() {
                         return
                     }
                     else -> {
-                        if (netSession.lastError.isNotBlank()) {
-                            statusText = netSession.lastError
-                            controlsVisible = true
-                        } else if (System.currentTimeMillis() - lastTouchMs > 3000) {
-                            controlsVisible = false
+                        when {
+                            // 断网重连是**暂时**状态：画面停在最后一帧，明确告诉用户在等网络，
+                            // 而不是让状态文字一直显示"正在播放"（用户会以为卡死了）。
+                            netSession.buffering -> {
+                                statusText = "网络中断，正在重连…"
+                                controlsVisible = true
+                            }
+                            netSession.lastError.isNotBlank() -> {
+                                statusText = netSession.lastError
+                                controlsVisible = true
+                            }
+                            else -> {
+                                // 重连成功后把状态文字收回来，否则会一直挂着"正在重连…"。
+                                if (statusText.startsWith("网络中断")) {
+                                    statusText = if (netSession.hasAudio) "正在播放"
+                                    else "正在播放 · 片源没有音轨"
+                                }
+                                if (System.currentTimeMillis() - lastTouchMs > 3000) {
+                                    controlsVisible = false
+                                }
+                            }
                         }
                     }
                 }
                 android.os.Handler(mainLooper).postDelayed(this, 100)
                 return
             }
-            val ffSession = smbFfSession
-            if (ffSession != null) {
-                // 220：SMB 路径的位置/结束上报；durationMs 兜底（open 后异步才可知）
-                if (durationMs <= 0) {
-                    val d = ffSession.durationUs() / 1000
-                    if (d > 0) durationMs = d
-                }
-                positionMs = (ffSession.positionUs() / 1000).coerceAtMost(durationMs)
-                if (!ffSession.isRunning() && smbStarted != 0L) {
-                    val reason = runCatching { ffSession.stopAndCollectEvidence() }
-                        .getOrElse { "stop failed" }
-                    // 证据落盘（断连/结束原因可复算）
-                    try {
-                        val dir = java.io.File(getExternalFilesDir(null), "evidence").apply { mkdirs() }
-                        java.io.File(dir, "p220-end.json").writeText(reason)
-                    } catch (e: Exception) { }
-                    statusText = "SMB 播放结束: ${reason.takeLast(60)}"
-                    smbFfSession = null
-                    runCatching { smbProxy?.close() }
-                    runCatching { smbSource?.close() }
-                    isPlaying = false
-                    controlsVisible = true
-                    return
-                }
-                // SMB v1：控制条常显（自动隐藏留到 UI 卡统一做——tap 翻转与
-                // 100ms 轮询的时序在截屏取证里互相干扰，本轮先保证判据可读）
-                controlsVisible = true
-                android.os.Handler(mainLooper).postDelayed(this, 100)
-                return
-            }
             val session = playbackSession ?: return
             // EOS 后时钟外推会越过片长（真机实测 205s/60s 片）——clamp 到时长
             positionMs = (session.positionUs() / 1000).coerceAtMost(durationMs)
+            // 244 取证：每秒打一次原生会话的帧账与时间戳。
+            // 「位置恒 0」到底是没解出帧，还是有帧但 pts 全 0 —— 只有这行能分开。
+            if (com.kivo.cinema.BuildConfig.DEBUG) {
+                val now = System.currentTimeMillis()
+                if (now - lastSummaryLogMs >= 1000) {
+                    lastSummaryLogMs = now
+                    Log.i(TAG, "summary: ${runCatching { session.summary() }.getOrElse { "n/a" }}")
+                }
+            }
             // 3s 无操作自动隐藏（D4）；预览窗口期间不隐藏（取证 harness 需要）
             if (previewMs < 0 && System.currentTimeMillis() - lastTouchMs > 3000) {
                 controlsVisible = false
@@ -126,6 +207,8 @@ class PlayerComposeActivity : ComponentActivity() {
         }
     }
     private var lastTouchMs = 0L
+    /** 244 取证用：上次打印 summary 的时间（每秒一次）。 */
+    private var lastSummaryLogMs = 0L
 
     companion object {
         private const val TAG = "KivoCompose"
@@ -172,9 +255,17 @@ class PlayerComposeActivity : ComponentActivity() {
                             casting = castDevice != null,
                             onCastClick = { openCastSheet() },
                             onSeek = { ms ->
-                                smbNetSession?.seekTo(ms * 1000)
-                                    ?: smbFfSession?.seekTo(ms * 1000)
-                                    ?: playbackSession?.seekTo(ms * 1000)
+                                val soft = smbSoftSession
+                                when {
+                                    soft != null -> {
+                                        soft.seekTo(ms * 1000)
+                                        // 声音是独立链路，必须一起定位，否则画面对了声音还是旧的。
+                                        smbSoftAudio?.seekTo(ms * 1000)
+                                        positionMs = ms
+                                    }
+                                    smbNetSession != null -> smbNetSession?.seekTo(ms * 1000)
+                                    else -> playbackSession?.seekTo(ms * 1000)
+                                }
                             },
                             onScrub = { ms ->
                                 lastTouchMs = System.currentTimeMillis()
@@ -209,6 +300,7 @@ class PlayerComposeActivity : ComponentActivity() {
 
     // PlayerSurfaceView.Listener 的回调（由 AndroidView 工厂里的匿名 Listener 转发）
     fun onSurfaceAvailable(holder: SurfaceHolder) {
+        if (finishRequested || isDestroyed) return
         surfaceReady = true
         maybeStartPlayback(holder)
     }
@@ -228,6 +320,7 @@ class PlayerComposeActivity : ComponentActivity() {
     }
 
     private fun maybeStartPlayback(holder: SurfaceHolder) {
+        if (finishRequested || isDestroyed) return
         // surface 回调本身就是"面可用"的证明——不再依赖 Listener 的 surfaceReady 标志
         surfaceReady = true
         if (playbackStarted) {
@@ -235,9 +328,10 @@ class PlayerComposeActivity : ComponentActivity() {
             playbackSession?.rebind(holder.surface)
             return
         }
-        val smbJson = intent.getStringExtra("kivo.smb") ?: ""
-        if (smbJson.isNotBlank()) {
-            startSmbPlayback(holder, smbJson)
+        val smbSourceId = intent.getStringExtra("kivo.sourceId")
+        val smbPath = intent.getStringExtra("kivo.smbPath")
+        if (!smbSourceId.isNullOrBlank() && !smbPath.isNullOrBlank()) {
+            startSmbPlayback(holder, smbSourceId, smbPath, intent.getStringExtra("kivo.smbShare").orEmpty())
             return
         }
 
@@ -335,12 +429,52 @@ class PlayerComposeActivity : ComponentActivity() {
         Log.i(TAG, "playback started: ${media.absolutePath} (service adopted)")
     }
 
-    // ---- 220：SMB 片源播放（libsmb2 → 本地 Range 代理 → FFmpeg http）----
-    private var smbSource: com.kivo.cinema.smb.Smb2Native.Source? = null
-    private var smbProxy: com.kivo.cinema.net.LocalRangeProxy? = null
-    private var smbFfSession: com.kivo.cinema.bridge.FfmpegPlaybackSession? = null
+    // ---- 243：SMB 片源播放（libsmb2 → SmbByteSource → RangeFd → 解码器 fd）----
+    // 传输层由 RangeFd + SmbByteSource 持有，Activity 只持有会话；不在这里再存读句柄。
     private var smbNetSession: com.kivo.cinema.playback.NetworkPlaybackSession? = null
-    private var smbStarted = 0L
+    /**
+     * 软解会话（VC-1 / 平台无解码器时走这条）。
+     *
+     * 与 [smbNetSession] **互斥**：同一次播放只有一条视频链路。分成两个字段而不是
+     * 一个联合类型，是因为两者的控制面不同（进度来自另一套计数），
+     * 混成一个类型只会让每个调用点都写一次 `if`。
+     */
+    private var smbSoftSession: com.kivo.cinema.bridge.FfmpegPlaybackSession? = null
+    /** 软解音频（独立 fd + 独立 demux）：TrueHD/AC3/DTS 没有平台解码器，只能自己解。 */
+    private var smbSoftAudio: com.kivo.cinema.playback.SoftAudioSession? = null
+    /** 音频自己那个 fd 的所有者。丢了它 fd 就被回收，音频线程立刻读到 EIO。 */
+    private var smbSoftAudioPfd: android.os.ParcelFileDescriptor? = null
+    /** 音频是否被音画闸门压住了（视频追不上实时时主动停流）。 */
+    private var smbSoftAudioGated = false
+    /** 软解片源的字节源：RangeFd 由它产出，软解会话释放后才能关。 */
+    private var smbSoftRange: com.kivo.cinema.net.RangeFd? = null
+    /**
+     * 音频专用的字节源 —— **必须与视频那个分开**。
+     *
+     * `SmbByteSource` 只有一把锁和一个 1 MiB 预读窗口。视频按帧读、音频按 64 KiB 读，
+     * 两者偏移在文件里相差几 MB，共用一个源就会互相把窗口顶掉：每次读都不命中，
+     * 每次读都变成一次 1 MiB 的 SMB 往返（设备侧约 11 MB/s，即每次 ~95 ms），
+     * 而且还要排队等同一把锁。观感就是几帧一动 —— 用户报的"卡成 PPT"。
+     * 各开一条连接、各持一个窗口，顺序读才能命中自己那一段。
+     */
+    private var smbSoftAudioSource: com.kivo.cinema.smb.SmbByteSource? = null
+    private var smbSoftAudioRange: com.kivo.cinema.net.RangeFd? = null
+    /** 端到端速率采样的上一个落点（媒体时间 / 墙钟），只用于诊断日志。 */
+    private var softRateMarkMs = 0L
+    private var softRateMarkPosUs = -1L
+
+    /** 上次采样时"正在响的"音频位置（µs）。-1 = 还没有可用读数。 */
+    private var softAudioMarkUs = -1L
+    /**
+     * 当前这次播放是不是 SMB 片源。
+     *
+     * 投屏分支要按它判断：243 之后 SMB 走 `SmbByteSource → RangeFd`，
+     * 已经没有"本地的 SmbSource 字段"可看，只能靠路由标记。
+     */
+    private var smbPlayback = false
+    // Main-thread ownership includes sessions already closing after Surface loss.
+    private val closingNetworks = mutableSetOf<com.kivo.cinema.playback.NetworkPlaybackSession>()
+    private var finishRequested = false
 
     private fun smbTrace(msg: String) {
         Log.i(TAG, msg)
@@ -354,46 +488,78 @@ class PlayerComposeActivity : ComponentActivity() {
     private var networkGeneration = 0
     private var networkPreparationCancelled: java.util.concurrent.atomic.AtomicBoolean? = null
 
-    private fun startSmbPlayback(holder: SurfaceHolder, smbJson: String) {
-        val cfg = com.kivo.cinema.smb.SmbConfig.fromJson(smbJson)
-        if (cfg == null) {
-            statusText = "SMB连接信息无效"
-            controlsVisible = true
-            return
-        }
+    /**
+     * 只收 `sourceId + 共享内路径`（243 D5）：凭据从加密存储读，**不再经过 Intent**。
+     * 旧 `kivo.smb` JSON 通道已删除——它会把明文密码带进 Intent。
+     */
+    private fun startSmbPlayback(holder: SurfaceHolder, sourceId: String, filePath: String, shareOverride: String = "") {
         playbackStarted = true
         statusText = "正在连接SMB…"
         val generation = ++networkGeneration
         val cancelled = java.util.concurrent.atomic.AtomicBoolean(false)
         networkPreparationCancelled = cancelled
         Thread({
-            val source = com.kivo.cinema.smb.Smb2Native.Source(cfg)
-            var proxy: com.kivo.cinema.net.LocalRangeProxy? = null
+            var source: com.kivo.cinema.smb.SmbByteSource? = null
             try {
-                source.connect()
+                val record = com.kivo.cinema.sources.storage.SourceStore(this)
+                    .read().getOrNull()?.firstOrNull { it.id == sourceId }
+                    ?: throw IllegalStateException("找不到这个资源库，可能已被移除")
+                val parsed = com.kivo.cinema.smb.SmbAddress.parse(record.address)
+                // 共享可能是用户在浏览页里选的、源记录里没写（枚举形态）；页内选的名字随 Intent 带来。
+                val address = if (shareOverride.isNotBlank()) parsed.copy(share = shareOverride) else parsed
+                check(!address.needsShare) { "这个资源库还没有选择共享" }
+                // SmbByteSource 自己负责连接、预读与断线重连（243 D3/借鉴 F:\kivo 音乐播放器）。
+                val opened = com.kivo.cinema.smb.SmbByteSource.open(
+                    address,
+                    com.kivo.cinema.smb.SmbCredential(
+                        username = record.username, password = record.password),
+                    filePath,
+                )
+                source = opened
                 check(!cancelled.get())
-                val opened = source.openForRead(cfg.path)
-                proxy = com.kivo.cinema.net.LocalRangeProxy(opened)
-                val port = proxy.start()
-                val readyProxy = proxy
+                // 243 D3：SMB 直接产 fd，不再经本地 HTTP 代理。
+                val range = com.kivo.cinema.net.RangeFd(
+                    opened,
+                    getSystemService(android.os.storage.StorageManager::class.java),
+                )
+                // 起播前判定链路：平台能解走硬解（历史行为零回归），
+                // 解不了（如 VC-1——设备没有该解码器）走 FFmpeg 软解。
+                // **必须在后台线程判定**：MediaExtractor 要读文件头，SMB 上一次
+                // setDataSource 就是一次网络往返，放主线程会直接卡住输入。
+                val routing = com.kivo.cinema.bridge.FfmpegRouting.probe(range)
+                smbTrace("smb routing: ${routing.decision} / ${routing.reason}")
                 runOnUiThread {
-                    if (cancelled.get() || isDestroyed || generation != networkGeneration || !surfaceReady) {
-                        Thread { runCatching { readyProxy.close() }; runCatching { source.close() } }.start()
+                    if (cancelled.get() || finishRequested || isDestroyed || generation != networkGeneration || !surfaceReady) {
+                        Thread { runCatching { range.close() }; runCatching { opened.close() } }.start()
                         return@runOnUiThread
                     }
                     networkPreparationCancelled = null
-                    smbSource = source
-                    smbProxy = readyProxy
-                    startUrlPlayback(holder, "http://127.0.0.1:$port/kivo", "SMB", "smb")
-                    loadDanmaku(cfg.path)
+                    if (routing.useFfmpeg) {
+                        // 软解是顺序流式读（FFmpeg 一个读指针往前走），预读命中率实测 100%，
+                        // 开了才能跑到 24 fps。
+                        opened.setPrefetchEnabled(true)
+                        startSoftPlayback(holder, range, routing, filePath, generation, cancelled,
+                            address,
+                            com.kivo.cinema.smb.SmbCredential(
+                                username = record.username, password = record.password))
+                    } else {
+                        // 硬解由 MediaExtractor 驱动，访问是"突然要一大片"的突发形态：
+                        // 预读提前读的数据大半用不上，还会跟主读抢同一条 SMB 链路，
+                        // 实测帧率 24.00 → 20.27、末尾出现 567 ms 卡顿。这里关掉，
+                        // 让块缓存独自承担（命中率 91~95%）。
+                        opened.setPrefetchEnabled(false)
+                        startNetworkPlayback(holder,
+                            com.kivo.cinema.playback.NetworkPlaybackSession(this, range), "smb")
+                    }
+                    loadDanmaku(filePath)
                 }
             } catch (e: Exception) {
-                runCatching { proxy?.close() }
-                runCatching { source.close() }
+                runCatching { source?.close() }
                 runOnUiThread {
-                    if (!cancelled.get() && !isDestroyed && generation == networkGeneration) {
+                    if (!cancelled.get() && !finishRequested && !isDestroyed && generation == networkGeneration) {
                         networkPreparationCancelled = null
-                        statusText = "SMB连接失败（${e.javaClass.simpleName}），请检查网络和共享权限"
+                        statusText = e.message?.takeIf { it.isNotBlank() }
+                            ?: "SMB连接失败（${e.javaClass.simpleName}）"
                         isPlaying = false
                         controlsVisible = true
                     }
@@ -405,18 +571,27 @@ class PlayerComposeActivity : ComponentActivity() {
     /** Emby and SMB share the same native A/V pipeline. Preparation never blocks main. */
     private fun startUrlPlayback(holder: SurfaceHolder, url: String, label: String,
                                  routing: String) {
+        startNetworkPlayback(holder,
+            com.kivo.cinema.playback.NetworkPlaybackSession(this, url), routing)
+    }
+
+    /** SMB 走 fd 直连（243 D3）：RangeFd(SmbByteSource) → ParcelFileDescriptor → 解码器。 */
+    private fun startNetworkPlayback(holder: SurfaceHolder,
+                                     netSession: com.kivo.cinema.playback.NetworkPlaybackSession,
+                                     routing: String) {
+        if (finishRequested || isDestroyed) return
         playbackStarted = true
+        // 投屏分支要按"这次播放是不是 SMB"来判断，不能再看 smbSource（243 之后它恒空）。
+        smbPlayback = routing == "smb"
         statusText = "正在准备网络播放…"
-        val netSession = com.kivo.cinema.playback.NetworkPlaybackSession(this, url)
         smbNetSession = netSession
         netSession.start(holder.surface) { result ->
-            if (isDestroyed || smbNetSession !== netSession) return@start
+            if (finishRequested || isDestroyed || smbNetSession !== netSession) return@start
             if (result == 0) {
                 durationMs = netSession.durationUs / 1000
                 statusText = if (netSession.hasAudio) "正在播放" else "正在播放 · 片源没有音轨"
                 isPlaying = true
-                smbStarted = System.currentTimeMillis()
-                lastTouchMs = smbStarted
+                lastTouchMs = System.currentTimeMillis()
                 android.os.Handler(mainLooper).post(positionPoll)
             } else {
                 statusText = "网络视频无法播放：${netSession.lastError}"
@@ -426,24 +601,227 @@ class PlayerComposeActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * 软解起播（平台没有这个编码的解码器时走这条，例如 VC-1）。
+     *
+     * 与 [startNetworkPlayback] 的分工：硬解会话内部自己管线程与轮询；软解要
+     * "先 open 再 start"两段，且 open 会读文件头（SMB 上是一次网络往返），
+     * 所以整段放后台线程，只有结果回主线程落状态。
+     *
+     * fd 所有权：`range.openDescriptor()` 产出的描述符由会话持有到 [FfmpegPlaybackSession.close]，
+     * RangeFd 本身由 Activity 持有到 [closeNetworkPlayback]——顺序反了就是读到已关闭的描述符。
+     */
+    private fun startSoftPlayback(
+        holder: SurfaceHolder,
+        range: com.kivo.cinema.net.RangeFd,
+        routing: com.kivo.cinema.bridge.FfmpegRouting.Decision,
+        filePath: String,
+        generation: Int,
+        cancelled: java.util.concurrent.atomic.AtomicBoolean,
+        address: com.kivo.cinema.smb.SmbAddress,
+        credential: com.kivo.cinema.smb.SmbCredential,
+    ) {
+        playbackStarted = true
+        smbPlayback = true
+        statusText = "正在用软解打开…"
+        smbSoftRange = range
+        val surface = holder.surface
+        if (surface == null || !surface.isValid) {
+            statusText = "播放窗口还没准备好"
+            isPlaying = false
+            controlsVisible = true
+            return
+        }
+        Thread({
+            val label = filePath.substringAfterLast('/').ifBlank { "smb-media" }
+            val session = com.kivo.cinema.bridge.FfmpegPlaybackSession(
+                label,
+                { range.openDescriptor() },
+                range.size,
+                routing.decision,
+                routing.reason,
+            )
+            var failure: String? = null
+            try {
+                val openRc = session.openVideo(surface)
+                if (openRc != 0) {
+                    failure = "软解打不开这个片源：${session.nativeError().ifBlank { "rc=$openRc" }}"
+                } else {
+                    val startRc = session.start()
+                    if (startRc != 0) {
+                        failure = "软解启动失败：${session.nativeError().ifBlank { "rc=$startRc" }}"
+                    }
+                }
+            } catch (e: Exception) {
+                failure = "软解启动异常（${e.javaClass.simpleName}）"
+            }
+            val reason = failure
+            if (reason != null) {
+                runCatching { session.close() }
+                runOnUiThread {
+                    if (cancelled.get() || finishRequested || isDestroyed || generation != networkGeneration) return@runOnUiThread
+                    networkPreparationCancelled = null
+                    statusText = reason
+                    isPlaying = false
+                    controlsVisible = true
+                }
+                return@Thread
+            }
+            runOnUiThread {
+                if (cancelled.get() || finishRequested || isDestroyed || generation != networkGeneration) {
+                    Thread { runCatching { session.close() } }.start()
+                    return@runOnUiThread
+                }
+                networkPreparationCancelled = null
+                smbSoftSession = session
+                smbSoftAudioGated = false
+                softRateMarkMs = 0L
+                softRateMarkPosUs = -1L
+                softAudioMarkUs = -1L
+                val dur = session.durationUs()
+                durationMs = if (dur > 0) dur / 1000 else 0L
+                statusText = "正在播放 · 软解"
+                isPlaying = true
+                lastTouchMs = System.currentTimeMillis()
+                android.os.Handler(mainLooper).post(positionPoll)
+                // 音频在**独立线程 + 独立字节源**上挂载。理由见 [smbSoftAudioSource]：
+                // 和视频共用一个 SmbByteSource 会让两边互相顶掉 1 MiB 预读窗口，每次读
+                // 都退化成一次 SMB 往返。另外 open() 本身是一次网络往返，不能放主线程。
+                Thread({
+                    mountSoftAudio(label, address, credential, filePath, generation)
+                }, "KivoSmbSoftAudio").start()
+            }
+        }, "KivoSmbSoftPrepare").start()
+    }
+
+    /**
+     * 挂软解音频。**用自己的 SmbByteSource / RangeFd / fd**，不复用视频那条。
+     *
+     * 复用会让 `SmbByteSource` 唯一那个 1 MiB 窗口在"视频偏移"和"音频偏移"之间反复
+     * 失效 —— 两个偏移在文件里相差几 MB，等于每次读都不命中、每读一次就 1 MiB 往返，
+     * 还要排同一把锁。用户看到的就是几帧一动的 PPT。
+     */
+    private fun mountSoftAudio(
+        label: String,
+        address: com.kivo.cinema.smb.SmbAddress,
+        credential: com.kivo.cinema.smb.SmbCredential,
+        filePath: String,
+        generation: Int,
+    ) {
+        var src: com.kivo.cinema.smb.SmbByteSource? = null
+        var audioRange: com.kivo.cinema.net.RangeFd? = null
+        var fd: android.os.ParcelFileDescriptor? = null
+        try {
+            src = com.kivo.cinema.smb.SmbByteSource.open(address, credential, filePath)
+            // 音频轨读取同样是顺序流式（FFmpeg demux 一个读指针），必须开预读。
+            // 关掉的话每 1 MiB 都要同步等一次网络往返（实测 fill_avg 213 ms），
+            // 音频环随时可能被抽干，表现就是隔几秒断一下。
+            src.setPrefetchEnabled(true)
+            audioRange = com.kivo.cinema.net.RangeFd(
+                src, getSystemService(android.os.storage.StorageManager::class.java))
+            fd = audioRange.openDescriptor()
+            val audio = com.kivo.cinema.playback.SoftAudioSession(label, fd, audioRange.size)
+            if (audio.start() != 0) {
+                smbTrace("soft audio start failed: ${audio.describeFailure()}")
+                runCatching { audio.close() }
+                runCatching { fd.close() }
+                runCatching { audioRange.close() }
+                runCatching { src.close() }
+                return
+            }
+            val keepSrc = src
+            val keepRange = audioRange
+            val keepFd = fd
+            runOnUiThread {
+                // 竞态：音频连上时用户可能已经返回/换了片源。
+                if (generation != networkGeneration || smbSoftSession == null) {
+                    Thread({
+                        runCatching { audio.close() }
+                        runCatching { keepFd.close() }
+                        runCatching { keepRange.close() }
+                        runCatching { keepSrc.close() }
+                    }, "KivoSmbSoftAudioDrop").start()
+                    return@runOnUiThread
+                }
+                smbSoftAudio = audio
+                smbSoftAudioPfd = keepFd
+                smbSoftAudioRange = keepRange
+                smbSoftAudioSource = keepSrc
+                smbTrace("soft audio mounted: own source + own window")
+            }
+        } catch (e: Exception) {
+            smbTrace("soft audio source failed: ${e.message?.take(120)}")
+            runCatching { fd?.close() }
+            runCatching { audioRange?.close() }
+            runCatching { src?.close() }
+        }
+    }
+
     private fun closeNetworkPlayback() {
         ++networkGeneration
         networkPreparationCancelled?.set(true)
         networkPreparationCancelled = null
         val network = smbNetSession
         smbNetSession = null
-        val proxy = smbProxy
-        smbProxy = null
-        val source = smbSource
-        smbSource = null
-        val cleanup = {
-            runCatching { proxy?.close() }
-            runCatching { source?.close() }
-            Unit
+        if (network != null) {
+            closingNetworks += network
+            network.stop {
+                android.os.Handler(mainLooper).post { closingNetworks -= network }
+            }
         }
-        if (network != null) network.stop(cleanup)
-        else if (proxy != null || source != null) Thread(cleanup, "KivoSmbClose").start()
+        // 软解的 close() 会 join 解码线程（内部还可能有阻塞读），不能放主线程。
+        // 顺序固定：先停会话（它借用的 fd 还活着），再关 RangeFd（fd 的所有者）。
+        val soft = smbSoftSession
+        smbSoftSession = null
+        val softAudio = smbSoftAudio
+        smbSoftAudio = null
+        val softAudioPfd = smbSoftAudioPfd
+        smbSoftAudioPfd = null
+        smbSoftAudioGated = false
+        val softRange = smbSoftRange
+        smbSoftRange = null
+        val softAudioRange = smbSoftAudioRange
+        smbSoftAudioRange = null
+        val softAudioSource = smbSoftAudioSource
+        smbSoftAudioSource = null
+        softRateMarkMs = 0L
+        softRateMarkPosUs = -1L
+        softAudioMarkUs = -1L
+        if (soft != null || softRange != null || softAudio != null ||
+            softAudioRange != null || softAudioSource != null) {
+            Thread({
+                // 先停两个会话（它们借用的 fd 还活着），再逐层回收 fd / RangeFd / 字节源。
+                runCatching { softAudio?.close() }
+                runCatching { soft?.close() }
+                runCatching { softAudioPfd?.close() }
+                runCatching { softAudioRange?.close() }
+                runCatching { softAudioSource?.close() }
+                runCatching { softRange?.close() }
+            }, "KivoSmbSoftClose").start()
+        }
     }
+
+    override fun finish() {
+        if (finishRequested) return
+        finishRequested = true
+        // Keep the Activity's Surface alive until the serialized native owner stops releasing.
+        closeNetworkPlayback()
+        val pending = closingNetworks.toList()
+        if (pending.isEmpty()) {
+            super.finish()
+            return
+        }
+        isPlaying = false
+        statusText = "正在关闭播放…"
+        var remaining = pending.size // callbacks below always count on main
+        pending.forEach { network -> network.stop {
+            android.os.Handler(mainLooper).post {
+                if (--remaining == 0 && !isDestroyed) finishAfterPlaybackClosed()
+            }
+        } }
+    }
+
+    private fun finishAfterPlaybackClosed() { super.finish() }
 
     private fun loadDanmaku(mediaPath: String) {
         try {
@@ -468,6 +846,20 @@ class PlayerComposeActivity : ComponentActivity() {
 
     private fun togglePlayPause() {
         lastTouchMs = System.currentTimeMillis()
+        smbSoftSession?.let { soft ->
+            val nowPaused = !soft.isPaused()
+            if (soft.setPaused(nowPaused) == 0) {
+                isPlaying = !nowPaused
+                smbSoftAudio?.setPaused(nowPaused)
+                // 用户主动暂停/播放优先于音画闸门：把闸门状态清掉，
+                // 否则恢复播放后闸门还记着"已压住"，音频就再也起不来了。
+                smbSoftAudioGated = nowPaused
+            } else {
+                statusText = "播放控制失败：${soft.nativeError()}"
+                controlsVisible = true
+            }
+            return
+        }
         smbNetSession?.let { network ->
             network.setPaused(network.state == com.kivo.cinema.playback.NetworkPlaybackSession.State.PLAYING)
             return
@@ -550,7 +942,7 @@ class PlayerComposeActivity : ComponentActivity() {
                 if (currentMediaPath().isNotBlank()) currentMediaPath()
                 else playUrlOverride).name.ifBlank { "kivo" }
             val rc = when {
-                smbSource != null -> -2   // SMB 片源投屏留 v2（需第二 SmbByteSource）
+                smbPlayback -> -2   // SMB 片源投屏留 v2（需要第二条 SmbByteSource 给渲染器取流）
                 playUrlOverride.isNotBlank() ->
                     castController.castUrl(device, playUrlOverride, title)
                 else -> castController.castSource(
@@ -678,8 +1070,6 @@ class PlayerComposeActivity : ComponentActivity() {
             Thread { runCatching { castController.stop() } }.start()
             castDevice = null
         }
-        smbFfSession?.let { s -> runCatching { s.stopAndCollectEvidence() } }
-        smbFfSession = null
         closeNetworkPlayback()
         thumbnailReader?.release()
         thumbnailReader = null

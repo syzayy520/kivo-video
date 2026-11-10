@@ -1,0 +1,12 @@
+P243 OPEN 视频/电影/The.Furious.2026.2160p.iTunes.WEB-DL.DDP.5.1.Atmos.HDR10+.H.265-CHDWEB.mkv size=20905428916
+P243 START codec=OMX.qcom.video.decoder.hevc dur=6791201000 audio=true
+PASS 起播（准备 + 首帧会话就绪）
+P243 STALL 位置停在 25233 ms（已 5000 ms 未推进）
+P243 RESUME 停 16002 ms 后从 25233 ms 接上，现在 41996 ms
+P243 TAIL state=PLAYING pos=119695 ms err=
+PASS 断网期间会话没有判死
+PASS 观察到断网造成的停顿
+P243 RECOVERED 停顿 16002 ms 后恢复
+PASS 网络恢复后继续播放
+4/4 PASS
+

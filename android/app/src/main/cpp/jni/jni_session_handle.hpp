@@ -52,6 +52,8 @@ void session_destroy(SessionHandle* handle);
 ///
 /// 成功返回 0；失败返回非 0 并把原因写进 error。
 [[nodiscard]] int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& error);
+/// Serialized control-thread value, captured before restarting video; -1 until success.
+[[nodiscard]] std::int64_t session_seek_landing_us(SessionHandle* handle);
 void session_stop(SessionHandle* handle);
 
 /// 开启按节拍呈现（P12-C5）。必须在 `session_start` 之前调用。
@@ -92,7 +94,8 @@ void session_stop(SessionHandle* handle);
 /// 失败一定返回非 0 且写 error：音频开不起来时**不许**悄悄退回 system 时钟继续播，
 /// 否则会产出一份"看起来有 av_drift、其实是节拍偏移"的假证据。
 [[nodiscard]] int session_open_audio(SessionHandle* handle, int fd, std::int64_t length,
-                                     const std::string& label, std::string& error);
+                                     const std::string& label, std::string& error,
+                                     int prefill_timeout_millis = 500);
 
 /// 写 A/V 合并证据（`kivo.p12c.sync/1`）。**必须在 `session_stop` 之后调用**：
 /// 它要读节拍器的完整直方图，那个接口只在工作线程 join 之后才安全。
@@ -115,7 +118,7 @@ void session_stop(SessionHandle* handle);
 ///        `due_at` 再交（C5 结构，回退路径）。只在配了节拍且 `present == true` 时有意义。
 ///        默认 true 的依据见 `23-p12c7-status.md` §五。
 [[nodiscard]] int session_set_pipeline(SessionHandle* handle, bool split, bool present,
-                                       bool at_time, std::string& error);
+                                       bool at_time, bool async_input, std::string& error);
 
 /// 把当前统计写成 JSON 证据文件。
 [[nodiscard]] int session_write_stats(SessionHandle* handle, const std::string& path,

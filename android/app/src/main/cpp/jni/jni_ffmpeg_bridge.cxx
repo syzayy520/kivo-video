@@ -19,6 +19,7 @@
 #include <string>
 
 #include "jni_call_guard.hpp"
+#include "video/video_plane/backends/avsync/session/soft_audio_session.hpp"
 #include "video/video_plane/runtime/local_media/ffmpeg_local_playback_session.hpp"
 #include "video/video_plane/runtime/local_media/ffmpeg_render_sink.hpp"
 
@@ -38,10 +39,23 @@ struct FfmpegSessionHandle {
     }
 };
 
+/// 软解音频的独立句柄。
+///
+/// 为什么不做进上面那个：视频句柄持有一个 ANativeWindow，音频没有窗口；
+/// 两者的 open 参数、失败码、销毁顺序都不一样，合成一个只会到处写 `if`。
+struct SoftAudioHandle {
+    std::unique_ptr<kivo::video::avsync::SoftAudioSession> session;
+    std::string last_error;
+};
+
 }  // namespace
 
 inline FfmpegSessionHandle* ffmpeg_handle(jlong raw) noexcept {
     return reinterpret_cast<FfmpegSessionHandle*>(static_cast<std::uintptr_t>(raw));
+}
+
+inline SoftAudioHandle* soft_audio_handle(jlong raw) noexcept {
+    return reinterpret_cast<SoftAudioHandle*>(static_cast<std::uintptr_t>(raw));
 }
 
 std::string to_std_string(JNIEnv* env, jstring value) {
@@ -174,6 +188,32 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegSeekTo(JNIEnv* env, jobject
     (void)handle->session->seekTo(static_cast<std::int64_t>(targetUs));
     KIVO_JNI_END_VOID(env, nullptr, "nativeFfmpegSeekTo")
 
+JNIEXPORT jint JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegSetPaused(JNIEnv* env, jobject /*thiz*/,
+                                                               jlong raw, jboolean paused)
+    KIVO_JNI_BEGIN
+    auto* handle = ffmpeg_handle(raw);
+    if (handle == nullptr || handle->session == nullptr) {
+        return 1;
+    }
+    const auto outcome = handle->session->setPaused(paused == JNI_TRUE);
+    if (!outcome.ok()) {
+        handle->record_error("ffmpegSetPaused", outcome.message);
+        return 2;
+    }
+    return 0;
+KIVO_JNI_END_INT(env, nullptr, "ffmpegSetPaused")
+
+JNIEXPORT void JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegSetAudioClockUs(JNIEnv* env,
+                                                                     jobject /*thiz*/,
+                                                                     jlong raw, jlong clockUs)
+    KIVO_JNI_BEGIN
+    auto* handle = ffmpeg_handle(raw);
+    if (handle == nullptr || handle->session == nullptr) return;
+    handle->session->setAudioClockUs(static_cast<std::int64_t>(clockUs));
+    KIVO_JNI_END_VOID(env, nullptr, "nativeFfmpegSetAudioClockUs")
+
 JNIEXPORT jlong JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegPositionUs(JNIEnv* env, jobject /*thiz*/,
                                                                 jlong raw)
@@ -242,5 +282,149 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeFfmpegLastError(JNIEnv* env,
     }
     return env->NewStringUTF(handle->last_error.c_str());
 KIVO_JNI_END_STRING(env, nullptr, "ffmpegLastError")
+
+// ---- 软解音频：与上面的视频会话平行，句柄互不相通 ----
+
+JNIEXPORT jlong JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioCreate(JNIEnv* env,
+                                                               jobject /*thiz*/) KIVO_JNI_BEGIN
+    auto* handle = new SoftAudioHandle();
+    handle->session = std::make_unique<kivo::video::avsync::SoftAudioSession>();
+    return reinterpret_cast<jlong>(handle);
+KIVO_JNI_END_LONG(env, nullptr, "softAudioCreate")
+
+JNIEXPORT jint JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioOpen(JNIEnv* env, jobject /*thiz*/,
+                                                             jlong raw, jstring label, jint fd,
+                                                             jlong length) KIVO_JNI_BEGIN
+    auto* handle = soft_audio_handle(raw);
+    if (handle == nullptr || handle->session == nullptr) {
+        return 1;
+    }
+    if (!handle->session->open(fd, length, to_std_string(env, label))) {
+        handle->last_error = handle->session->stats().error;
+        KIVO_LOGW("softAudioOpen: %s", handle->last_error.c_str());
+        return 2;
+    }
+    return 0;
+KIVO_JNI_END_INT(env, nullptr, "softAudioOpen")
+
+JNIEXPORT jint JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioStart(JNIEnv* env, jobject /*thiz*/,
+                                                              jlong raw) KIVO_JNI_BEGIN
+    auto* handle = soft_audio_handle(raw);
+    if (handle == nullptr || handle->session == nullptr) {
+        return 1;
+    }
+    if (!handle->session->start()) {
+        handle->last_error = handle->session->stats().error;
+        return 2;
+    }
+    return 0;
+KIVO_JNI_END_INT(env, nullptr, "softAudioStart")
+
+JNIEXPORT void JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioSetPaused(JNIEnv* env, jobject /*thiz*/,
+                                                                  jlong raw, jboolean paused)
+    KIVO_JNI_BEGIN
+    auto* handle = soft_audio_handle(raw);
+    if (handle != nullptr && handle->session != nullptr) {
+        handle->session->setPaused(paused == JNI_TRUE);
+    }
+KIVO_JNI_END_VOID(env, nullptr, "softAudioSetPaused")
+
+JNIEXPORT void JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioSeekTo(JNIEnv* env, jobject /*thiz*/,
+                                                               jlong raw, jlong target_us)
+    KIVO_JNI_BEGIN
+    auto* handle = soft_audio_handle(raw);
+    if (handle != nullptr && handle->session != nullptr) {
+        handle->session->seekTo(static_cast<std::int64_t>(target_us));
+    }
+KIVO_JNI_END_VOID(env, nullptr, "softAudioSeekTo")
+
+JNIEXPORT jlong JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioPositionUs(JNIEnv* env, jobject /*thiz*/,
+                                                                   jlong raw) KIVO_JNI_BEGIN
+    auto* handle = soft_audio_handle(raw);
+    if (handle == nullptr || handle->session == nullptr) return -1;
+    return static_cast<jlong>(handle->session->positionUs());
+KIVO_JNI_END_LONG(env, nullptr, "softAudioPositionUs")
+
+JNIEXPORT jlong JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioPlayedUs(JNIEnv* env, jobject /*thiz*/,
+                                                                jlong raw) KIVO_JNI_BEGIN
+    auto* handle = soft_audio_handle(raw);
+    if (handle == nullptr || handle->session == nullptr) return -1;
+    return static_cast<jlong>(handle->session->playedUs());
+KIVO_JNI_END_LONG(env, nullptr, "softAudioPlayedUs")
+
+JNIEXPORT jlong JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioDurationUs(JNIEnv* env, jobject /*thiz*/,
+                                                                   jlong raw) KIVO_JNI_BEGIN
+    auto* handle = soft_audio_handle(raw);
+    if (handle == nullptr || handle->session == nullptr) return -1;
+    return static_cast<jlong>(handle->session->durationUs());
+KIVO_JNI_END_LONG(env, nullptr, "softAudioDurationUs")
+
+JNIEXPORT jboolean JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioRunning(JNIEnv* env, jobject /*thiz*/,
+                                                                jlong raw) KIVO_JNI_BEGIN
+    auto* handle = soft_audio_handle(raw);
+    return static_cast<jboolean>(handle != nullptr && handle->session != nullptr &&
+                                 handle->session->isRunning());
+KIVO_JNI_END(env, nullptr, "softAudioRunning", jboolean)
+
+JNIEXPORT jboolean JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioHasOutput(JNIEnv* env, jobject /*thiz*/,
+                                                                  jlong raw) KIVO_JNI_BEGIN
+    auto* handle = soft_audio_handle(raw);
+    return static_cast<jboolean>(handle != nullptr && handle->session != nullptr &&
+                                 handle->session->hasOutput());
+KIVO_JNI_END(env, nullptr, "softAudioHasOutput", jboolean)
+
+JNIEXPORT jstring JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioStats(JNIEnv* env, jobject /*thiz*/,
+                                                              jlong raw) KIVO_JNI_BEGIN
+    auto* handle = soft_audio_handle(raw);
+    if (handle == nullptr || handle->session == nullptr) {
+        return env->NewStringUTF("{}");
+    }
+    const auto& s = handle->session->stats();
+    std::string json = "{\"codec\":\"" + s.codec + "\",\"container\":\"" + s.container +
+                       "\",\"packets_read\":" + std::to_string(s.packets_read) +
+                       ",\"frames_written\":" + std::to_string(s.frames_written) +
+                       ",\"ring_full_waits\":" + std::to_string(s.ring_full_waits) +
+                       ",\"read_errors\":" + std::to_string(s.read_errors) +
+                       ",\"src_rate\":" + std::to_string(s.source_sample_rate) +
+                       ",\"src_channels\":" + std::to_string(s.source_channels) +
+                       ",\"out_rate\":" + std::to_string(s.output_sample_rate) +
+                       ",\"eos\":" + (s.reached_eos ? "true" : "false") + ",\"error\":\"" +
+                       s.error + "\"}";
+    return env->NewStringUTF(json.c_str());
+KIVO_JNI_END_STRING(env, nullptr, "softAudioStats")
+
+JNIEXPORT void JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioStop(JNIEnv* env, jobject /*thiz*/,
+                                                             jlong raw) KIVO_JNI_BEGIN
+    auto* handle = soft_audio_handle(raw);
+    if (handle != nullptr && handle->session != nullptr) {
+        handle->session->stop();
+    }
+KIVO_JNI_END_VOID(env, nullptr, "softAudioStop")
+
+JNIEXPORT void JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSoftAudioDestroy(JNIEnv* env, jobject /*thiz*/,
+                                                                jlong raw) KIVO_JNI_BEGIN
+    auto* handle = soft_audio_handle(raw);
+    if (handle == nullptr) {
+        return;
+    }
+    if (handle->session != nullptr) {
+        handle->session->stop();
+        handle->session.reset();
+    }
+    delete handle;
+KIVO_JNI_END_VOID(env, nullptr, "softAudioDestroy")
 
 }  // extern "C"

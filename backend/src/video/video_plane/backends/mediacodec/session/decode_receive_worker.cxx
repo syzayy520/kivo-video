@@ -54,25 +54,29 @@ DecodeReceiveWorker::DecodeReceiveWorker(Deps deps)
     : deps_(deps), last_progress_at_(deps.started_at) {}
 
 StageStep DecodeReceiveWorker::pump(bool allow_wait) {
-    DecodedFrame frame;
     const auto begin = SteadyClock::now();
     // 每圈重置：`last_*` 描述的是"这一圈"，不是"上一圈留下的值"。
     last_pace_ns_ = 0;
     last_release_ns_ = 0;
 
-    const DecodeOutcome outcome =
-        deps_.decoder->receive(frame, allow_wait ? kReceiveWaitUs : 0);
-    deps_.receive_cost->record(elapsed_us(begin, SteadyClock::now()));
-
-    StageStep step;
-    if (outcome.ok() || outcome.end_of_stream()) {
-        step = handle_frame(frame);
-    } else if (outcome.try_again()) {
-        step = check_eos_stall();
-    } else {
-        step = abort(outcome.message);
+    if (!has_pending_) {
+        operation_.store("codec.receive");
+        const DecodeOutcome outcome =
+            deps_.decoder->receive(pending_frame_, allow_wait ? kReceiveWaitUs : 0);
+        operation_.store("idle");
+        deps_.receive_cost->record(elapsed_us(begin, SteadyClock::now()));
+        if (outcome.ok() || outcome.end_of_stream()) {
+            has_pending_ = true;
+            decision_valid_ = false;
+            deps_.counters->frames_received.fetch_add(1, std::memory_order_relaxed);
+        } else {
+            const auto step = outcome.try_again() ? check_eos_stall() : abort(outcome.message);
+            last_pump_ns_ = nanos_since(begin);
+            return step;
+        }
     }
-
+    const auto step = deps_.gate->stop_requested() ? StageStep::kDone
+                                                  : handle_frame(pending_frame_);
     last_pump_ns_ = nanos_since(begin);
     return step;
 }
@@ -94,10 +98,9 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
         // 为什么不计入 `frames_rendered`：它占了一个输出槽但不是一帧内容。
         // C5 的证据里 `samples_submitted=192 / frames_rendered=193` 就是这个 +1，
         // 当时混在"多解出一帧"里没被认出来 —— 那会让 fps 与帧数断言同时偏 1。
-        deps_.counters->frames_received.fetch_add(1, std::memory_order_relaxed);
-
         const auto release_begin = SteadyClock::now();
         const DecodeOutcome released = deps_.decoder->release_frame(frame.index, false);
+        has_pending_ = false; // 平台失败也不能重试同一个不确定所有权的槽。
         deps_.release_cost->record(elapsed_us(release_begin, SteadyClock::now()));
         last_release_ns_ = nanos_since(release_begin);
         if (!released.ok()) {
@@ -109,8 +112,6 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
         return StageStep::kDone;
     }
 
-    deps_.counters->frames_received.fetch_add(1, std::memory_order_relaxed);
-
     // ---- 呈现决策 ----
     // 没有节拍器时与 P12-B 一致：收到就交（render=true）。
     // 有节拍器时先问"现在该不该呈现"：
@@ -119,23 +120,30 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
     //    由合成器在合成时按时间显示（C7）。
     const bool at_time = deps_.present_schedule == PresentSchedule::kSurfaceAtTime;
     bool render = deps_.present_frames;
-    core::pace::PaceDecision decision;
+    auto& decision = pending_decision_;
     std::int64_t present_at_ns = 0;
     if (deps_.pacer != nullptr && deps_.present_frames) {
         const auto pace_begin = SteadyClock::now();
-        decision = deps_.pacer->arrive(frame.presentation_time_us * 1000);
+        if (!decision_valid_) {
+            operation_.store("pacer.arrive");
+            decision = deps_.pacer->arrive(frame.presentation_time_us * 1000);
+            decision_valid_ = true;
+        }
+        operation_.store("idle");
         render = decision.action != core::pace::PaceAction::kDrop &&
                  decision.action != core::pace::PaceAction::kCatchUp;
-        if (at_time && render) {
+        if (render && (at_time || decision.action == core::pace::PaceAction::kWait)) {
             // 提前量必须受 BufferQueue 深度约束：Surface 只有 3–4 个槽，
             // 一路提前提交会把槽填满，release 反而阻塞在队列上 —— 那就退化成 C5
             // 还多付一层延迟。睡到"最早可以提交的时刻"再交，提前量恒定。
-            const std::int64_t cap_ns =
-                kMaxScheduleLeadFrames * decision.frame_duration_ns;
-            const std::int64_t lead_ns =
-                decision.due_at_ns - core::pace::monotonic_now_ns();
-            if (lead_ns > cap_ns) {
-                core::pace::wait_until_ns(decision.due_at_ns - cap_ns);
+            const std::int64_t cap_ns = at_time
+                ? kMaxScheduleLeadFrames * decision.frame_duration_ns : 0;
+            operation_.store(at_time ? "surface.schedule_wait" : "pacer.resume_wait");
+            const bool ready = deps_.pacer->wait_until(decision.due_at_ns - cap_ns);
+            operation_.store("idle");
+            if (!ready) {
+                last_pace_ns_ = nanos_since(pace_begin);
+                return StageStep::kDone; // pending 和 decision 留给 resume/stop。
             }
         }
         // 呈现（或排程）在场的时刻：release 调用之前的瞬间。晚几微秒无所谓，
@@ -146,6 +154,8 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
         last_pace_ns_ = nanos_since(pace_begin);
     }
 
+    if (deps_.gate->stop_requested()) return StageStep::kDone;
+
     // P12-D1：面摘掉期间一律不渲染。
     // 节拍照跑（时间轴不能停），但缓冲只还回去、不碰 Surface ——
     // 旧 BufferQueue 已经 disconnect，往上交付轻则丢帧、重则在驱动里崩。
@@ -155,13 +165,16 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
         deps_.surface_detached->load(std::memory_order_acquire)) {
         render = false;
         discarded_no_surface = true;
-        deps_.counters->frames_discarded_no_surface.fetch_add(1, std::memory_order_relaxed);
     }
 
     const auto release_begin = SteadyClock::now();
+    operation_.store("codec.release");
     const DecodeOutcome released =
         (at_time && render) ? deps_.decoder->release_frame_at(frame.index, decision.due_at_ns)
                             : deps_.decoder->release_frame(frame.index, render);
+    has_pending_ = false;
+    decision_valid_ = false;
+    operation_.store("idle");
     deps_.release_cost->record(elapsed_us(release_begin, SteadyClock::now()));
     last_release_ns_ = nanos_since(release_begin);
 
@@ -220,6 +233,10 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
         deps_.counters->first_frame_pts_us.compare_exchange_strong(
             expected_pts, frame.presentation_time_us, std::memory_order_relaxed);
     } else if (discarded_no_surface) {
+        deps_.counters->frames_discarded_no_surface.fetch_add(1, std::memory_order_relaxed);
+        if (deps_.pacer != nullptr && deps_.present_frames) {
+            deps_.pacer->note_discarded_no_surface();
+        }
         // 已经在上面记进 `frames_discarded_no_surface`。
         // **不能再记一次 `frames_dropped_late`** —— 那不是节拍判它太晚，
         // 是当时没有面可上。混记的直接后果：一次 500ms 的切后台会凭空多出 15 个丢帧，
@@ -239,6 +256,44 @@ StageStep DecodeReceiveWorker::handle_frame(const DecodedFrame& frame) {
     }
 
     return StageStep::kProgress;
+}
+
+void DecodeReceiveWorker::resume(SteadyClock::time_point started_at,
+                                  std::int64_t paused_ns, std::int64_t now_ns) {
+    deps_.started_at = started_at;
+    last_progress_at_ += std::chrono::nanoseconds(paused_ns);
+    if (deps_.pacer != nullptr) {
+        if (has_pending_ && decision_valid_) {
+            deps_.pacer->resume_pending(pending_decision_, paused_ns, now_ns);
+        } else {
+            deps_.pacer->resume_at(now_ns);
+        }
+    }
+}
+
+void DecodeReceiveWorker::discard_pending() {
+    if (!has_pending_) return;
+    const bool undelivered = decision_valid_ && !pending_frame_.end_of_stream &&
+        (pending_decision_.action == core::pace::PaceAction::kPresent ||
+         pending_decision_.action == core::pace::PaceAction::kWait);
+    operation_.store("codec.discard_on_stop");
+    const auto begin = SteadyClock::now();
+    const auto released = deps_.decoder->release_frame(pending_frame_.index, false);
+    has_pending_ = false;
+    decision_valid_ = false;
+    operation_.store("idle");
+    deps_.release_cost->record(elapsed_us(begin, SteadyClock::now()));
+    if (!released.ok()) {
+        (void)abort(released.message);
+        return;
+    }
+    deps_.counters->frames_released.fetch_add(1, std::memory_order_relaxed);
+    deps_.counters->frames_discarded_on_stop.fetch_add(1, std::memory_order_relaxed);
+    if (undelivered) {
+        deps_.counters->frames_discarded_on_stop_undelivered.fetch_add(1, std::memory_order_relaxed);
+        deps_.pacer->note_discarded_on_stop();
+    }
+    deps_.gate->signal_input_room();
 }
 
 StageStep DecodeReceiveWorker::check_eos_stall() {

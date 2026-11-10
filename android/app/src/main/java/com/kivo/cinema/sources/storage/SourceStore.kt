@@ -8,7 +8,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
-/** Synchronous disk boundary; callers dispatch off the UI thread. No cached empty fallback. */
+/**
+ * 源记录的磁盘边界（243 D5：schema 2）。
+ *
+ * 兼容策略：schema 1 只存过 Emby，读到时按 `emby` 解释并原样保留；写回一律 schema 2。
+ * 任何解析失败都不覆盖原文件 —— 用户的服务器列表比"干净启动"重要。
+ */
 class SourceStore(private val file: File, private val cipher: SourceCipher = SourceCipher()) {
     constructor(context: Context) : this(File(context.noBackupFilesDir, "sources/accounts.bin"))
 
@@ -32,18 +37,22 @@ class SourceStore(private val file: File, private val cipher: SourceCipher = Sou
         val atomic = AtomicFile(file)
         if (!file.exists() && !File(file.path + ".bak").exists()) return emptyList()
         val json = JSONObject(cipher.decrypt(atomic.readFully()).toString(Charsets.UTF_8))
-        if (json.getInt("schema") != 1) throw SourceFailure("源记录版本不受支持；原记录已保留")
+        val schema = json.getInt("schema")
+        if (schema !in SUPPORTED_SCHEMAS) throw SourceFailure("源记录版本不受支持；原记录已保留")
         val records = json.getJSONArray("sources")
         val result = (0 until records.length()).map { index ->
             val item = records.getJSONObject(index)
-            if (item.getString("protocol") != "emby") throw SourceFailure("源协议不受支持；原记录已保留")
+            // schema 1 时代只存在 Emby，缺失的 protocol 按 emby 解释。
+            val protocol = if (schema == 1) SourceRecord.PROTOCOL_EMBY
+                           else item.optString("protocol", SourceRecord.PROTOCOL_EMBY)
+            if (protocol !in SourceRecord.PROTOCOLS) throw SourceFailure("源协议不受支持；原记录已保留")
             SourceRecord(item.getString("id"), item.getLong("revision"), item.getString("name"),
                 item.getString("address"), item.getString("username"), item.getString("password"),
-                flag(item, "hidden", false), flag(item, "defaultHome", false),
+                protocol, flag(item, "hidden", false), flag(item, "defaultHome", false),
                 flag(item, "aggregateEnabled", true), flag(item, "aggregateSearchEnabled", true))
         }
         require(result.map { it.id }.distinct().size == result.size)
-        require(result.map { it.address to it.username }.distinct().size == result.size)
+        require(result.map { Triple(it.protocol, it.address, it.username) }.distinct().size == result.size)
         require(result.count { it.defaultHome } <= 1)
         return result
     }
@@ -51,11 +60,12 @@ class SourceStore(private val file: File, private val cipher: SourceCipher = Sou
     private fun encode(records: List<SourceRecord>): ByteArray {
         val array = JSONArray()
         records.forEach { record -> array.put(JSONObject().put("id", record.id)
-            .put("revision", record.revision).put("protocol", "emby").put("name", record.name)
+            .put("revision", record.revision).put("protocol", record.protocol)
+            .put("name", record.name)
             .put("address", record.address).put("username", record.username).put("password", record.password)
             .put("hidden", record.hidden).put("defaultHome", record.defaultHome)
             .put("aggregateEnabled", record.aggregateEnabled).put("aggregateSearchEnabled", record.aggregateSearchEnabled)) }
-        return JSONObject().put("schema", 1).put("sources", array).toString().toByteArray(Charsets.UTF_8)
+        return JSONObject().put("schema", SCHEMA).put("sources", array).toString().toByteArray(Charsets.UTF_8)
     }
 
     private fun flag(item: JSONObject, name: String, default: Boolean): Boolean {
@@ -69,5 +79,9 @@ class SourceStore(private val file: File, private val cipher: SourceCipher = Sou
         catch (_: Exception) { Result.failure(SourceFailure("无法读取或保存源记录；原记录已保留，请检查存储后重试")) }
     }
 
-    private companion object { val diskLock = Any() }
+    private companion object {
+        const val SCHEMA = 2
+        val SUPPORTED_SCHEMAS = setOf(1, SCHEMA)
+        val diskLock = Any()
+    }
 }

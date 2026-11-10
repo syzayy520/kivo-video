@@ -32,7 +32,7 @@ FramePositionExtrapolator::Result FramePositionExtrapolator::extrapolate(
     }
 
     if (elapsed_ns > stale_after_ns_) {
-        // 时间戳两个 burst 都没更新：设备多半没在推进。
+        // 时间戳超过调用方明确指定的发布年龄预算。
         // 此时必须停止外推，否则时钟会无中生有地往前跑，
         // 同步器就去追一个根本不存在的进度。
         ++stale_freezes_;

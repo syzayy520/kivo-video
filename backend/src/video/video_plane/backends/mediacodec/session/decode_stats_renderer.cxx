@@ -67,7 +67,9 @@ namespace {
 ///   /14（P14-A）：新增 `metrics` —— 三把以前没有的尺子（CPU 占比 / 堆分配次数 /
 ///            输出缓冲归属）。**每个都带可用性与理由**：这一族最容易把"没测到"
 ///            印成 0，而 0 看起来永远是好消息。
-constexpr const char* kSchema = "kivo.p12c.decode/19";
+// /20：停止归还与已决策未交付子集分列，不能用总数解释节拍差额。
+// /21：pace 累计归属与 sync/45 同契约，counters 保持最近一段。
+constexpr const char* kSchema = "kivo.p12c.decode/21";
 
 /// 可选 int：`< 0` 一律写 `null`。
 /// E1 定的规矩（`08-p12-family-tree.md` §三之十二 第 3 条）：未知不写 0/-1，
@@ -371,7 +373,9 @@ std::string render_decode_stats_json(const DecodeStats& stats,
     out << "    \"frames_rendered\": " << stats.frames_rendered << ",\n";
     out << "    \"frames_dropped_late\": " << stats.frames_dropped_late << ",\n";
     // D1：换面空窗期丢的帧。与"节拍判它太晚"分开记，否则一换面就像节拍崩了。
-    out << "    \"frames_discarded_no_surface\": " << stats.frames_discarded_no_surface << "\n";
+    out << "    \"frames_discarded_no_surface\": " << stats.frames_discarded_no_surface << ",\n";
+    out << "    \"frames_discarded_on_stop\": " << stats.frames_discarded_on_stop << ",\n";
+    out << "    \"frames_discarded_on_stop_undelivered\": " << stats.frames_discarded_on_stop_undelivered << "\n";
     out << "  },\n";
 
     // 流水线段：P12-C6 的全部原料。
@@ -526,6 +530,10 @@ std::string render_decode_stats_json(const DecodeStats& stats,
         out << "    \"frames_decided\": " << pace.frames_decided << ",\n";
         out << "    \"presented\": " << pace.presented << ",\n";
         out << "    \"dropped\": " << pace.dropped << ",\n";
+        out << "    \"accounting_scope\": \"session\",\n";
+        out << "    \"undelivered_frames\": " << pace.undelivered_frames << ",\n";
+        out << "    \"discarded_on_stop\": " << pace.discarded_on_stop << ",\n";
+        out << "    \"discarded_no_surface\": " << pace.discarded_no_surface << ",\n";
         out << "    \"drop_ratio\": " << fixed6(pace.drop_ratio) << ",\n";
         // P14-L：下面三格都是**派生**计数，它们的 0 各自可能是三种完全不同的意思。
         // 每格背后那一对 `_measured` / `_reason` 就是"这个 0 读不读得懂"。

@@ -1,0 +1,63 @@
+INSTRUMENTATION_STATUS: stream=PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response; evicted backward read reopens (3 requests including probe)
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS independent proxy descriptors support exact random reads
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.avc
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS production network host starts native hardware video and attaches audio
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS pause freezes media position and resume advances it
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS seek request=2 target_us=8000000 landing_us=8000000 advances_after_completion
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS seek request=3 target_us=2000000 landing_us=2000000 advances_after_completion
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS forward and backward seek use the native A/V session
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS steady wall_ms=3001 rate=1.0105714761746085 samples=0:2340062,1001:3339120,2001:4339013,3001:5372787
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS video output slots and pace subset close exactly; repeated stop listeners delivered
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS report media_rate=1.000017516
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=CHECK audio_codec=ffmpeg:eac3 decoded_frames=296448 peak=0.0883928 audible_frames=260928
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=CHECK prefill_budget_ms=8000 initial_wait_ms=9 max_wait_ms=9
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS exit serializes native teardown; evidence confirms rendered audio and audio master clock
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=CHECK media_curve wall_ms:position_s=0:0.0,1006:0.987765,2010:1.288029,3015:2.539084,4020:3.539511,5026:4.53927
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response; evicted backward read reopens (3 requests including probe)
+PASS independent proxy descriptors support exact random reads
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.avc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS seek request=2 target_us=8000000 landing_us=8000000 advances_after_completion
+PASS seek request=3 target_us=2000000 landing_us=2000000 advances_after_completion
+PASS forward and backward seek use the native A/V session
+PASS steady wall_ms=3001 rate=1.0105714761746085 samples=0:2340062,1001:3339120,2001:4339013,3001:5372787
+PASS video output slots and pace subset close exactly; repeated stop listeners delivered
+PASS report media_rate=1.000017516
+CHECK audio_codec=ffmpeg:eac3 decoded_frames=296448 peak=0.0883928 audible_frames=260928
+CHECK prefill_budget_ms=8000 initial_wait_ms=9 max_wait_ms=9
+PASS exit serializes native teardown; evidence confirms rendered audio and audio master clock
+CHECK media_curve wall_ms:position_s=0:0.0,1006:0.987765,2010:1.288029,3015:2.539084,4020:3.539511,5026:4.53927
+
+INSTRUMENTATION_CODE: -1

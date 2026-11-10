@@ -49,6 +49,10 @@ struct AudioPlaybackStats {
     // ── 缓冲与供给 ──
     std::int32_t ring_capacity_frames = 0;
     bool prefill_reached = false;
+    std::int32_t prefill_budget_millis = 500;
+    std::int64_t prefill_initial_wait_millis = -1;
+    std::int64_t prefill_last_wait_millis = -1;
+    std::int64_t prefill_max_wait_millis = 0;
     mediacodec::AudioDecodeFeedStats feed{};
 
     // ── 输出与时钟 ──

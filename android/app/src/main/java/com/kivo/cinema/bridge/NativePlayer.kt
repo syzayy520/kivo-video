@@ -112,6 +112,7 @@ object NativePlayer {
      * @return 0 成功；9 被拒绝（前置条件不满足）；10 执行失败。原因走 [nativeSessionLastError]
      */
     external fun nativeSessionSeek(handle: Long, targetUs: Long): Int
+    external fun nativeSessionSeekLandingUs(handle: Long): Long
 
     /**
      * 开启按节拍呈现（P12-C5）。必须在 [nativeSessionStart] 之前调用。
@@ -161,6 +162,7 @@ object NativePlayer {
         split: Boolean,
         present: Boolean,
         atTime: Boolean,
+        asyncInput: Boolean,
     ): Int
 
     /**
@@ -176,7 +178,8 @@ object NativePlayer {
         handle: Long,
         label: String,
         fd: Int,
-        length: Long
+        length: Long,
+        prefillTimeoutMs: Int = 500
     ): Int
 
     /**
@@ -228,6 +231,9 @@ object NativePlayer {
 
     external fun nativeFfmpegSeekTo(handle: Long, targetUs: Long)
 
+    /** 暂停 / 恢复软解会话。0 = 成功。暂停中 seek 仍可用。 */
+    external fun nativeFfmpegSetPaused(handle: Long, paused: Boolean): Int
+
     external fun nativeFfmpegPositionUs(handle: Long): Long
 
     external fun nativeFfmpegDurationUs(handle: Long): Long
@@ -245,6 +251,45 @@ object NativePlayer {
 
     /** 最近一次失败原因（G9 通道，与硬解侧同款）。 */
     external fun nativeFfmpegLastError(handle: Long): String
+
+    // ---- 软解音频（独立句柄）：fd → FFmpeg demux/decode → AAudio ----
+
+    external fun nativeSoftAudioCreate(): Long
+
+    external fun nativeSoftAudioOpen(handle: Long, label: String, fd: Int, length: Long): Int
+
+    external fun nativeSoftAudioStart(handle: Long): Int
+
+    external fun nativeSoftAudioSetPaused(handle: Long, paused: Boolean)
+
+    external fun nativeSoftAudioSeekTo(handle: Long, targetUs: Long)
+
+    external fun nativeSoftAudioPositionUs(handle: Long): Long
+
+    /**
+     * 实际正在出声的媒体位置（µs）。
+     *
+     * 与 [nativeSoftAudioPositionUs] 的区别是**语义**，不是精度：那个是"解码写环的位置"，
+     * 领先实际出声最多 700 ms（环 500 + 预灌 200）。音画对齐只能用这个。
+     */
+    external fun nativeSoftAudioPlayedUs(handle: Long): Long
+
+    /** 把正在出声的音频位置交给视频软解会话做主时钟（µs）。-1 = 退回自身 pts 节拍。 */
+    external fun nativeFfmpegSetAudioClockUs(handle: Long, clockUs: Long)
+
+    external fun nativeSoftAudioDurationUs(handle: Long): Long
+
+    external fun nativeSoftAudioRunning(handle: Long): Boolean
+
+    /** 是否真的开出了 AAudio 流（false = 音轨解不了或设备打不开）。 */
+    external fun nativeSoftAudioHasOutput(handle: Long): Boolean
+
+    /** 统计 JSON（codec/包数/欠载/错误），用于把事实写进诊断。 */
+    external fun nativeSoftAudioStats(handle: Long): String
+
+    external fun nativeSoftAudioStop(handle: Long)
+
+    external fun nativeSoftAudioDestroy(handle: Long)
 
     // ---- 212：字幕渲染（libass 桥）。句柄与两个播放会话完全独立。 ----
 

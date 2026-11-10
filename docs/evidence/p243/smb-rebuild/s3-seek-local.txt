@@ -1,0 +1,11 @@
+P243 OPEN local /sdcard/Android/data/com.kivo.cinema/files/media/local-hevc.mp4 size=29167311
+P243 START codec=OMX.qcom.video.decoder.hevc dur=5000000 audio=false
+PASS 起播（准备 + 首帧会话就绪）
+P243 POSITION 0 ms → 2971 ms
+PASS 位置推进（3 秒窗口）
+P243 SEEK target=2500 ms landing=2000 ms error=
+PASS seek 到中段并落位
+P243 RESUME 3183 ms → 5999 ms
+PASS seek 后继续推进
+4/4 PASS
+

@@ -1,0 +1,13 @@
+P243 OPEN 视频/电影/The.Furious.2026.2160p.iTunes.WEB-DL.DDP.5.1.Atmos.HDR10+.H.265-CHDWEB.mkv size=20905428916
+P243 START codec=OMX.qcom.video.decoder.hevc dur=6791201000 audio=true
+PASS 起播（准备 + 首帧会话就绪）
+P243 POSITION 0 ms → 2867 ms
+PASS 位置推进（3 秒窗口）
+P243 SEEK target=3395600 ms landing=0 ms actual=2867 ms error=
+FAIL java.lang.IllegalStateException: seek 未生效：target=3395600 landing=0 actual=2867
+	at com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation.onStart$lambda$9(SmbPlaybackSeekInstrumentation.kt:116)
+	at com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation$$ExternalSyntheticLambda2.invoke(D8$$SyntheticClass:0)
+	at com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation.case(SmbPlaybackSeekInstrumentation.kt:145)
+	at com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation.onStart(SmbPlaybackSeekInstrumentation.kt:94)
+	at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:2418)
+

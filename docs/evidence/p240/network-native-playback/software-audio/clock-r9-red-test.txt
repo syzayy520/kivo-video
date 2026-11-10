@@ -1,0 +1,24 @@
+Test project C:/kivo video/build/vs-debug
+    Start 242: kivo_timestamp_cadence_tests
+1/1 Test #242: kivo_timestamp_cadence_tests .....***Failed    0.01 sec
+FAIL line 44: reading.health == pace::ClockHealth::kFresh
+FAIL line 44: reading.health == pace::ClockHealth::kFresh
+FAIL line 44: reading.health == pace::ClockHealth::kFresh
+FAIL line 44: reading.health == pace::ClockHealth::kFresh
+FAIL line 44: reading.health == pace::ClockHealth::kFresh
+FAIL line 44: reading.health == pace::ClockHealth::kFresh
+FAIL line 44: reading.health == pace::ClockHealth::kFresh
+FAIL line 44: reading.health == pace::ClockHealth::kFresh
+FAIL line 44: reading.health == pace::ClockHealth::kFresh
+FAIL line 44: reading.health == pace::ClockHealth::kFresh
+FAIL line 44: reading.health == pace::ClockHealth::kFresh
+timestamp cadence/recovery: 5162 checks, 4874 failures
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.03 sec
+
+The following tests FAILED:
+	242 - kivo_timestamp_cadence_tests (Failed)
+Errors while running CTest

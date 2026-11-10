@@ -1,0 +1,5 @@
+INSTRUMENTATION_STATUS: stream=PASS sparse cache holes/overlap/bounds/LRU/edges/concurrency; shared descriptor head/index 3 HTTP requests; probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response (2 including probe)
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=PASS sparse cache holes/overlap/bounds/LRU/edges/concurrency; shared descriptor head/index 3 HTTP requests; probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response (2 including probe)
+INSTRUMENTATION_CODE: -1

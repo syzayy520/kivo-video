@@ -1,0 +1,426 @@
+PASS sparse cache holes/overlap/bounds/LRU/edges/concurrency; shared head/index and interleaved 4MiB continuous/index each 3 HTTP requests; probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response (2 including probe)
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+FAIL stage=prepare type=IllegalStateException state=PREPARING (details withheld for real-source privacy)
+CHECK media_curve wall_ms:position_s=
+IO events=207 retained=207
+IO t_ms=2 http_begin reader=0 offset=0 end=4095
+IO t_ms=1443 http_ready reader=0 offset=0 end=4095 total=7369631541
+IO t_ms=1450 read_begin reader=1 offset=0 size=16384
+IO t_ms=1450 http_begin reader=1 offset=0 end=7369631540
+IO t_ms=3232 http_ready reader=1 offset=0 end=7369631540 total=7369631541
+IO t_ms=3234 read_end reader=1 offset=0 bytes=16384 network_bytes=16384 elapsed_ms=1784
+IO t_ms=3236 read_begin reader=1 offset=16384 size=65536
+IO t_ms=3509 read_end reader=1 offset=16384 bytes=65536 network_bytes=65536 elapsed_ms=273
+IO t_ms=3510 read_begin reader=1 offset=81920 size=131072
+IO t_ms=3733 read_end reader=1 offset=81920 bytes=131072 network_bytes=131072 elapsed_ms=222
+IO t_ms=3737 read_begin reader=1 offset=212992 size=131072
+IO t_ms=3845 read_end reader=1 offset=212992 bytes=131072 network_bytes=131072 elapsed_ms=108
+IO t_ms=3846 read_begin reader=1 offset=344064 size=131072
+IO t_ms=3935 read_end reader=1 offset=344064 bytes=131072 network_bytes=131072 elapsed_ms=89
+IO t_ms=3943 read_begin reader=1 offset=1527808 size=8192
+IO t_ms=3943 http_begin reader=1 offset=1527808 end=7369631540
+IO t_ms=5790 http_ready reader=1 offset=1527808 end=7369631540 total=7369631541
+IO t_ms=5791 read_end reader=1 offset=1527808 bytes=8192 network_bytes=8192 elapsed_ms=1848
+IO t_ms=5792 read_begin reader=1 offset=3354624 size=8192
+IO t_ms=5894 http_begin reader=1 offset=3354624 end=7369631540
+IO t_ms=7965 http_ready reader=1 offset=3354624 end=7369631540 total=7369631541
+IO t_ms=7966 read_end reader=1 offset=3354624 bytes=8192 network_bytes=8192 elapsed_ms=2173
+IO t_ms=7968 read_begin reader=1 offset=4857856 size=4096
+IO t_ms=8069 http_begin reader=1 offset=4857856 end=7369631540
+IO t_ms=10195 http_ready reader=1 offset=4857856 end=7369631540 total=7369631541
+IO t_ms=10195 read_end reader=1 offset=4857856 bytes=4096 network_bytes=4096 elapsed_ms=2227
+IO t_ms=10197 read_begin reader=1 offset=5263360 size=8192
+IO t_ms=10999 read_end reader=1 offset=5263360 bytes=8192 network_bytes=409600 elapsed_ms=801
+IO t_ms=11000 read_begin reader=1 offset=5681152 size=4096
+IO t_ms=11519 read_end reader=1 offset=5681152 bytes=4096 network_bytes=413696 elapsed_ms=519
+IO t_ms=11520 read_begin reader=1 offset=6250496 size=8192
+IO t_ms=11588 read_end reader=1 offset=6250496 bytes=8192 network_bytes=573440 elapsed_ms=68
+IO t_ms=11588 read_begin reader=1 offset=6762496 size=4096
+IO t_ms=11750 read_end reader=1 offset=6762496 bytes=4096 network_bytes=507904 elapsed_ms=161
+IO t_ms=11750 read_begin reader=1 offset=7241728 size=8192
+IO t_ms=11825 read_end reader=1 offset=7241728 bytes=8192 network_bytes=483328 elapsed_ms=74
+IO t_ms=11825 read_begin reader=1 offset=7823360 size=4096
+IO t_ms=11891 read_end reader=1 offset=7823360 bytes=4096 network_bytes=577536 elapsed_ms=65
+IO t_ms=11891 read_begin reader=1 offset=7946240 size=8192
+IO t_ms=11903 read_end reader=1 offset=7946240 bytes=8192 network_bytes=126976 elapsed_ms=11
+IO t_ms=11903 read_begin reader=1 offset=8548352 size=4096
+IO t_ms=11975 read_end reader=1 offset=8548352 bytes=4096 network_bytes=598016 elapsed_ms=71
+IO t_ms=11975 read_begin reader=1 offset=9048064 size=8192
+IO t_ms=12025 read_end reader=1 offset=9048064 bytes=8192 network_bytes=503808 elapsed_ms=49
+IO t_ms=12025 read_begin reader=1 offset=9551872 size=8192
+IO t_ms=12139 read_end reader=1 offset=9551872 bytes=8192 network_bytes=503808 elapsed_ms=113
+IO t_ms=12140 read_begin reader=1 offset=9777152 size=4096
+IO t_ms=12153 read_end reader=1 offset=9777152 bytes=4096 network_bytes=221184 elapsed_ms=13
+IO t_ms=12153 read_begin reader=1 offset=9805824 size=8192
+IO t_ms=12155 read_end reader=1 offset=9805824 bytes=8192 network_bytes=32768 elapsed_ms=1
+IO t_ms=12155 read_begin reader=1 offset=11157504 size=4096
+IO t_ms=12257 http_begin reader=1 offset=11157504 end=7369631540
+IO t_ms=14384 http_ready reader=1 offset=11157504 end=7369631540 total=7369631541
+IO t_ms=14384 read_end reader=1 offset=11157504 bytes=4096 network_bytes=4096 elapsed_ms=2229
+IO t_ms=14385 read_begin reader=1 offset=12500992 size=4096
+IO t_ms=14486 http_begin reader=1 offset=12500992 end=7369631540
+IO t_ms=16569 http_ready reader=1 offset=12500992 end=7369631540 total=7369631541
+IO t_ms=16569 read_end reader=1 offset=12500992 bytes=4096 network_bytes=4096 elapsed_ms=2183
+IO t_ms=16570 read_begin reader=1 offset=13910016 size=4096
+IO t_ms=16672 http_begin reader=1 offset=13910016 end=7369631540
+IO t_ms=18794 http_ready reader=1 offset=13910016 end=7369631540 total=7369631541
+IO t_ms=18795 read_end reader=1 offset=13910016 bytes=4096 network_bytes=4096 elapsed_ms=2224
+IO t_ms=18797 read_begin reader=1 offset=14921728 size=4096
+IO t_ms=19865 read_end reader=1 offset=14921728 bytes=4096 network_bytes=1011712 elapsed_ms=1068
+IO t_ms=19867 read_begin reader=1 offset=15720448 size=4096
+IO t_ms=20043 read_end reader=1 offset=15720448 bytes=4096 network_bytes=798720 elapsed_ms=176
+IO t_ms=20044 read_begin reader=1 offset=16433152 size=8192
+IO t_ms=20160 read_end reader=1 offset=16433152 bytes=8192 network_bytes=716800 elapsed_ms=116
+IO t_ms=20161 read_begin reader=1 offset=16592896 size=4096
+IO t_ms=20183 read_end reader=1 offset=16592896 bytes=4096 network_bytes=155648 elapsed_ms=22
+IO t_ms=20183 read_begin reader=1 offset=18112512 size=8192
+IO t_ms=20285 http_begin reader=1 offset=18112512 end=7369631540
+IO t_ms=22088 http_ready reader=1 offset=18112512 end=7369631540 total=7369631541
+IO t_ms=22089 read_end reader=1 offset=18112512 bytes=8192 network_bytes=8192 elapsed_ms=1905
+IO t_ms=22090 read_begin reader=1 offset=19644416 size=8192
+IO t_ms=22192 http_begin reader=1 offset=19644416 end=7369631540
+IO t_ms=24529 http_ready reader=1 offset=19644416 end=7369631540 total=7369631541
+IO t_ms=24529 read_end reader=1 offset=19644416 bytes=8192 network_bytes=8192 elapsed_ms=2439
+IO t_ms=24532 read_begin reader=1 offset=21151744 size=4096
+IO t_ms=24633 http_begin reader=1 offset=21151744 end=7369631540
+IO t_ms=26681 http_ready reader=1 offset=21151744 end=7369631540 total=7369631541
+IO t_ms=26681 read_end reader=1 offset=21151744 bytes=4096 network_bytes=4096 elapsed_ms=2149
+IO t_ms=26683 read_begin reader=1 offset=22659072 size=8192
+IO t_ms=26785 http_begin reader=1 offset=22659072 end=7369631540
+IO t_ms=28626 http_ready reader=1 offset=22659072 end=7369631540 total=7369631541
+IO t_ms=28627 read_end reader=1 offset=22659072 bytes=8192 network_bytes=8192 elapsed_ms=1944
+IO t_ms=28629 read_begin reader=1 offset=22708224 size=8192
+IO t_ms=28800 read_end reader=1 offset=22708224 bytes=8192 network_bytes=49152 elapsed_ms=170
+IO t_ms=28800 read_begin reader=1 offset=24268800 size=4096
+IO t_ms=28902 http_begin reader=1 offset=24268800 end=7369631540
+IO t_ms=32157 http_ready reader=1 offset=24268800 end=7369631540 total=7369631541
+IO t_ms=32157 read_end reader=1 offset=24268800 bytes=4096 network_bytes=4096 elapsed_ms=3357
+IO t_ms=32159 read_begin reader=1 offset=25829376 size=4096
+IO t_ms=32260 http_begin reader=1 offset=25829376 end=7369631540
+IO t_ms=34359 http_ready reader=1 offset=25829376 end=7369631540 total=7369631541
+IO t_ms=34360 read_end reader=1 offset=25829376 bytes=4096 network_bytes=4096 elapsed_ms=2201
+IO t_ms=34362 read_begin reader=1 offset=26484736 size=4096
+IO t_ms=35181 read_end reader=1 offset=26484736 bytes=4096 network_bytes=655360 elapsed_ms=819
+IO t_ms=35182 read_begin reader=1 offset=27987968 size=8192
+IO t_ms=35283 http_begin reader=1 offset=27987968 end=7369631540
+IO t_ms=37034 http_ready reader=1 offset=27987968 end=7369631540 total=7369631541
+IO t_ms=37034 read_end reader=1 offset=27987968 bytes=8192 network_bytes=8192 elapsed_ms=1852
+IO t_ms=37036 read_begin reader=1 offset=29511680 size=4096
+IO t_ms=37137 http_begin reader=1 offset=29511680 end=7369631540
+IO t_ms=39300 http_ready reader=1 offset=29511680 end=7369631540 total=7369631541
+IO t_ms=39301 read_end reader=1 offset=29511680 bytes=4096 network_bytes=4096 elapsed_ms=2265
+IO t_ms=39303 read_begin reader=1 offset=30765056 size=4096
+IO t_ms=39405 http_begin reader=1 offset=30765056 end=7369631540
+IO t_ms=41627 http_ready reader=1 offset=30765056 end=7369631540 total=7369631541
+IO t_ms=41628 read_end reader=1 offset=30765056 bytes=4096 network_bytes=4096 elapsed_ms=2324
+IO t_ms=41629 read_begin reader=1 offset=31580160 size=8192
+IO t_ms=42681 read_end reader=1 offset=31580160 bytes=8192 network_bytes=819200 elapsed_ms=1051
+IO t_ms=42682 read_begin reader=1 offset=31875072 size=4096
+IO t_ms=42753 read_end reader=1 offset=31875072 bytes=4096 network_bytes=290816 elapsed_ms=70
+IO t_ms=42754 read_begin reader=1 offset=33378304 size=8192
+IO t_ms=42855 http_begin reader=1 offset=33378304 end=7369631540
+IO t_ms=44697 http_ready reader=1 offset=33378304 end=7369631540 total=7369631541
+IO t_ms=44698 read_end reader=1 offset=33378304 bytes=8192 network_bytes=8192 elapsed_ms=1944
+IO t_ms=44699 read_begin reader=1 offset=34902016 size=8192
+IO t_ms=44800 http_begin reader=1 offset=34902016 end=7369631540
+IO t_ms=47157 http_ready reader=1 offset=34902016 end=7369631540 total=7369631541
+IO t_ms=47158 read_end reader=1 offset=34902016 bytes=8192 network_bytes=8192 elapsed_ms=2458
+IO t_ms=47159 read_begin reader=1 offset=35123200 size=8192
+IO t_ms=47710 read_end reader=1 offset=35123200 bytes=8192 network_bytes=221184 elapsed_ms=550
+IO t_ms=47711 read_begin reader=1 offset=36663296 size=8192
+IO t_ms=47813 http_begin reader=1 offset=36663296 end=7369631540
+IO t_ms=49957 http_ready reader=1 offset=36663296 end=7369631540 total=7369631541
+IO t_ms=49958 read_end reader=1 offset=36663296 bytes=8192 network_bytes=8192 elapsed_ms=2247
+IO t_ms=49960 read_begin reader=1 offset=38182912 size=8192
+IO t_ms=50061 http_begin reader=1 offset=38182912 end=7369631540
+IO t_ms=52278 http_ready reader=1 offset=38182912 end=7369631540 total=7369631541
+IO t_ms=52279 read_end reader=1 offset=38182912 bytes=8192 network_bytes=8192 elapsed_ms=2318
+IO t_ms=52281 read_begin reader=1 offset=39714816 size=4096
+IO t_ms=52382 http_begin reader=1 offset=39714816 end=7369631540
+IO t_ms=54477 http_ready reader=1 offset=39714816 end=7369631540 total=7369631541
+IO t_ms=54477 read_end reader=1 offset=39714816 bytes=4096 network_bytes=4096 elapsed_ms=2196
+IO t_ms=54479 read_begin reader=1 offset=40194048 size=4096
+IO t_ms=55325 read_end reader=1 offset=40194048 bytes=4096 network_bytes=479232 elapsed_ms=846
+IO t_ms=55326 read_begin reader=1 offset=41320448 size=4096
+IO t_ms=55427 http_begin reader=1 offset=41320448 end=7369631540
+IO t_ms=57400 http_ready reader=1 offset=41320448 end=7369631540 total=7369631541
+IO t_ms=57400 read_end reader=1 offset=41320448 bytes=4096 network_bytes=4096 elapsed_ms=2074
+IO t_ms=57403 read_begin reader=1 offset=42233856 size=4096
+IO t_ms=58323 read_end reader=1 offset=42233856 bytes=4096 network_bytes=913408 elapsed_ms=920
+IO t_ms=58323 read_begin reader=1 offset=43778048 size=4096
+IO t_ms=58425 http_begin reader=1 offset=43778048 end=7369631540
+IO t_ms=60614 http_ready reader=1 offset=43778048 end=7369631540 total=7369631541
+IO t_ms=60615 read_end reader=1 offset=43778048 bytes=4096 network_bytes=4096 elapsed_ms=2291
+IO t_ms=60617 read_begin reader=1 offset=44863488 size=4096
+IO t_ms=60719 http_begin reader=1 offset=44863488 end=7369631540
+IO t_ms=63013 http_ready reader=1 offset=44863488 end=7369631540 total=7369631541
+IO t_ms=63022 read_end reader=1 offset=44863488 bytes=4096 network_bytes=4096 elapsed_ms=2404
+IO t_ms=63023 read_begin reader=1 offset=46407680 size=8192
+IO t_ms=63125 http_begin reader=1 offset=46407680 end=7369631540
+IO t_ms=65307 http_ready reader=1 offset=46407680 end=7369631540 total=7369631541
+IO t_ms=65310 read_end reader=1 offset=46407680 bytes=8192 network_bytes=8192 elapsed_ms=2286
+IO t_ms=65312 read_begin reader=1 offset=46968832 size=8192
+IO t_ms=66227 read_end reader=1 offset=46968832 bytes=8192 network_bytes=561152 elapsed_ms=915
+IO t_ms=66227 read_begin reader=1 offset=48484352 size=4096
+IO t_ms=66329 http_begin reader=1 offset=48484352 end=7369631540
+IO t_ms=68563 http_ready reader=1 offset=48484352 end=7369631540 total=7369631541
+IO t_ms=68563 read_end reader=1 offset=48484352 bytes=4096 network_bytes=4096 elapsed_ms=2335
+IO t_ms=68565 read_begin reader=1 offset=48779264 size=8192
+IO t_ms=69302 read_end reader=1 offset=48779264 bytes=8192 network_bytes=299008 elapsed_ms=737
+IO t_ms=69303 read_begin reader=1 offset=50327552 size=4096
+IO t_ms=69404 http_begin reader=1 offset=50327552 end=7369631540
+IO t_ms=71647 http_ready reader=1 offset=50327552 end=7369631540 total=7369631541
+IO t_ms=71649 read_end reader=1 offset=50327552 bytes=4096 network_bytes=4096 elapsed_ms=2345
+IO t_ms=71650 read_begin reader=1 offset=50851840 size=8192
+IO t_ms=72614 read_end reader=1 offset=50851840 bytes=8192 network_bytes=528384 elapsed_ms=964
+IO t_ms=72615 read_begin reader=1 offset=52367360 size=4096
+IO t_ms=72717 http_begin reader=1 offset=52367360 end=7369631540
+IO t_ms=75289 http_ready reader=1 offset=52367360 end=7369631540 total=7369631541
+IO t_ms=75289 read_end reader=1 offset=52367360 bytes=4096 network_bytes=4096 elapsed_ms=2674
+IO t_ms=75291 read_begin reader=1 offset=53964800 size=4096
+IO t_ms=75392 http_begin reader=1 offset=53964800 end=7369631540
+IO t_ms=77877 http_ready reader=1 offset=53964800 end=7369631540 total=7369631541
+IO t_ms=77878 read_end reader=1 offset=53964800 bytes=4096 network_bytes=4096 elapsed_ms=2586
+IO t_ms=77879 read_begin reader=1 offset=55463936 size=8192
+IO t_ms=77980 http_begin reader=1 offset=55463936 end=7369631540
+IO t_ms=80335 http_ready reader=1 offset=55463936 end=7369631540 total=7369631541
+IO t_ms=80336 read_end reader=1 offset=55463936 bytes=8192 network_bytes=8192 elapsed_ms=2457
+IO t_ms=80338 read_begin reader=1 offset=56975360 size=8192
+IO t_ms=80440 http_begin reader=1 offset=56975360 end=7369631540
+IO t_ms=82656 http_ready reader=1 offset=56975360 end=7369631540 total=7369631541
+IO t_ms=82657 read_end reader=1 offset=56975360 bytes=8192 network_bytes=8192 elapsed_ms=2318
+IO t_ms=82658 read_begin reader=1 offset=57217024 size=4096
+IO t_ms=83332 read_end reader=1 offset=57217024 bytes=4096 network_bytes=237568 elapsed_ms=674
+IO t_ms=83333 read_begin reader=1 offset=58814464 size=8192
+IO t_ms=83435 http_begin reader=1 offset=58814464 end=7369631540
+IO t_ms=85662 http_ready reader=1 offset=58814464 end=7369631540 total=7369631541
+IO t_ms=85662 read_end reader=1 offset=58814464 bytes=8192 network_bytes=8192 elapsed_ms=2328
+IO t_ms=85663 read_begin reader=1 offset=60334080 size=4096
+IO t_ms=85764 http_begin reader=1 offset=60334080 end=7369631540
+IO t_ms=87711 http_ready reader=1 offset=60334080 end=7369631540 total=7369631541
+IO t_ms=87711 read_end reader=1 offset=60334080 bytes=4096 network_bytes=4096 elapsed_ms=2048
+IO t_ms=87713 read_begin reader=1 offset=61796352 size=4096
+IO t_ms=87815 http_begin reader=1 offset=61796352 end=7369631540
+IO t_ms=90166 http_ready reader=1 offset=61796352 end=7369631540 total=7369631541
+IO t_ms=90167 read_end reader=1 offset=61796352 bytes=4096 network_bytes=4096 elapsed_ms=2453
+IO t_ms=90169 read_begin reader=1 offset=63295488 size=8192
+IO t_ms=90190 http_begin reader=1 offset=63295488 end=7369631540
+IO t_ms=90190 read_error reader=1 offset=63295488 type=IllegalStateException elapsed_ms=21
+IO t_ms=90191 read_begin reader=1 offset=63295488 size=4096
+IO t_ms=90191 read_error reader=1 offset=63295488 type=IOException elapsed_ms=0
+IO t_ms=90196 read_begin reader=1 offset=63295488 size=4096
+IO t_ms=90196 read_error reader=1 offset=63295488 type=IOException elapsed_ms=0
+
+PASS sparse cache holes/overlap/bounds/LRU/edges/concurrency; shared head/index and interleaved 4MiB continuous/index each 3 HTTP requests; probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response (2 including probe)
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+FAIL stage=prepare type=IllegalStateException state=PREPARING (details withheld for real-source privacy)
+CHECK media_curve wall_ms:position_s=
+IO events=207 retained=207
+IO t_ms=2 http_begin reader=0 offset=0 end=4095
+IO t_ms=1443 http_ready reader=0 offset=0 end=4095 total=7369631541
+IO t_ms=1450 read_begin reader=1 offset=0 size=16384
+IO t_ms=1450 http_begin reader=1 offset=0 end=7369631540
+IO t_ms=3232 http_ready reader=1 offset=0 end=7369631540 total=7369631541
+IO t_ms=3234 read_end reader=1 offset=0 bytes=16384 network_bytes=16384 elapsed_ms=1784
+IO t_ms=3236 read_begin reader=1 offset=16384 size=65536
+IO t_ms=3509 read_end reader=1 offset=16384 bytes=65536 network_bytes=65536 elapsed_ms=273
+IO t_ms=3510 read_begin reader=1 offset=81920 size=131072
+IO t_ms=3733 read_end reader=1 offset=81920 bytes=131072 network_bytes=131072 elapsed_ms=222
+IO t_ms=3737 read_begin reader=1 offset=212992 size=131072
+IO t_ms=3845 read_end reader=1 offset=212992 bytes=131072 network_bytes=131072 elapsed_ms=108
+IO t_ms=3846 read_begin reader=1 offset=344064 size=131072
+IO t_ms=3935 read_end reader=1 offset=344064 bytes=131072 network_bytes=131072 elapsed_ms=89
+IO t_ms=3943 read_begin reader=1 offset=1527808 size=8192
+IO t_ms=3943 http_begin reader=1 offset=1527808 end=7369631540
+IO t_ms=5790 http_ready reader=1 offset=1527808 end=7369631540 total=7369631541
+IO t_ms=5791 read_end reader=1 offset=1527808 bytes=8192 network_bytes=8192 elapsed_ms=1848
+IO t_ms=5792 read_begin reader=1 offset=3354624 size=8192
+IO t_ms=5894 http_begin reader=1 offset=3354624 end=7369631540
+IO t_ms=7965 http_ready reader=1 offset=3354624 end=7369631540 total=7369631541
+IO t_ms=7966 read_end reader=1 offset=3354624 bytes=8192 network_bytes=8192 elapsed_ms=2173
+IO t_ms=7968 read_begin reader=1 offset=4857856 size=4096
+IO t_ms=8069 http_begin reader=1 offset=4857856 end=7369631540
+IO t_ms=10195 http_ready reader=1 offset=4857856 end=7369631540 total=7369631541
+IO t_ms=10195 read_end reader=1 offset=4857856 bytes=4096 network_bytes=4096 elapsed_ms=2227
+IO t_ms=10197 read_begin reader=1 offset=5263360 size=8192
+IO t_ms=10999 read_end reader=1 offset=5263360 bytes=8192 network_bytes=409600 elapsed_ms=801
+IO t_ms=11000 read_begin reader=1 offset=5681152 size=4096
+IO t_ms=11519 read_end reader=1 offset=5681152 bytes=4096 network_bytes=413696 elapsed_ms=519
+IO t_ms=11520 read_begin reader=1 offset=6250496 size=8192
+IO t_ms=11588 read_end reader=1 offset=6250496 bytes=8192 network_bytes=573440 elapsed_ms=68
+IO t_ms=11588 read_begin reader=1 offset=6762496 size=4096
+IO t_ms=11750 read_end reader=1 offset=6762496 bytes=4096 network_bytes=507904 elapsed_ms=161
+IO t_ms=11750 read_begin reader=1 offset=7241728 size=8192
+IO t_ms=11825 read_end reader=1 offset=7241728 bytes=8192 network_bytes=483328 elapsed_ms=74
+IO t_ms=11825 read_begin reader=1 offset=7823360 size=4096
+IO t_ms=11891 read_end reader=1 offset=7823360 bytes=4096 network_bytes=577536 elapsed_ms=65
+IO t_ms=11891 read_begin reader=1 offset=7946240 size=8192
+IO t_ms=11903 read_end reader=1 offset=7946240 bytes=8192 network_bytes=126976 elapsed_ms=11
+IO t_ms=11903 read_begin reader=1 offset=8548352 size=4096
+IO t_ms=11975 read_end reader=1 offset=8548352 bytes=4096 network_bytes=598016 elapsed_ms=71
+IO t_ms=11975 read_begin reader=1 offset=9048064 size=8192
+IO t_ms=12025 read_end reader=1 offset=9048064 bytes=8192 network_bytes=503808 elapsed_ms=49
+IO t_ms=12025 read_begin reader=1 offset=9551872 size=8192
+IO t_ms=12139 read_end reader=1 offset=9551872 bytes=8192 network_bytes=503808 elapsed_ms=113
+IO t_ms=12140 read_begin reader=1 offset=9777152 size=4096
+IO t_ms=12153 read_end reader=1 offset=9777152 bytes=4096 network_bytes=221184 elapsed_ms=13
+IO t_ms=12153 read_begin reader=1 offset=9805824 size=8192
+IO t_ms=12155 read_end reader=1 offset=9805824 bytes=8192 network_bytes=32768 elapsed_ms=1
+IO t_ms=12155 read_begin reader=1 offset=11157504 size=4096
+IO t_ms=12257 http_begin reader=1 offset=11157504 end=7369631540
+IO t_ms=14384 http_ready reader=1 offset=11157504 end=7369631540 total=7369631541
+IO t_ms=14384 read_end reader=1 offset=11157504 bytes=4096 network_bytes=4096 elapsed_ms=2229
+IO t_ms=14385 read_begin reader=1 offset=12500992 size=4096
+IO t_ms=14486 http_begin reader=1 offset=12500992 end=7369631540
+IO t_ms=16569 http_ready reader=1 offset=12500992 end=7369631540 total=7369631541
+IO t_ms=16569 read_end reader=1 offset=12500992 bytes=4096 network_bytes=4096 elapsed_ms=2183
+IO t_ms=16570 read_begin reader=1 offset=13910016 size=4096
+IO t_ms=16672 http_begin reader=1 offset=13910016 end=7369631540
+IO t_ms=18794 http_ready reader=1 offset=13910016 end=7369631540 total=7369631541
+IO t_ms=18795 read_end reader=1 offset=13910016 bytes=4096 network_bytes=4096 elapsed_ms=2224
+IO t_ms=18797 read_begin reader=1 offset=14921728 size=4096
+IO t_ms=19865 read_end reader=1 offset=14921728 bytes=4096 network_bytes=1011712 elapsed_ms=1068
+IO t_ms=19867 read_begin reader=1 offset=15720448 size=4096
+IO t_ms=20043 read_end reader=1 offset=15720448 bytes=4096 network_bytes=798720 elapsed_ms=176
+IO t_ms=20044 read_begin reader=1 offset=16433152 size=8192
+IO t_ms=20160 read_end reader=1 offset=16433152 bytes=8192 network_bytes=716800 elapsed_ms=116
+IO t_ms=20161 read_begin reader=1 offset=16592896 size=4096
+IO t_ms=20183 read_end reader=1 offset=16592896 bytes=4096 network_bytes=155648 elapsed_ms=22
+IO t_ms=20183 read_begin reader=1 offset=18112512 size=8192
+IO t_ms=20285 http_begin reader=1 offset=18112512 end=7369631540
+IO t_ms=22088 http_ready reader=1 offset=18112512 end=7369631540 total=7369631541
+IO t_ms=22089 read_end reader=1 offset=18112512 bytes=8192 network_bytes=8192 elapsed_ms=1905
+IO t_ms=22090 read_begin reader=1 offset=19644416 size=8192
+IO t_ms=22192 http_begin reader=1 offset=19644416 end=7369631540
+IO t_ms=24529 http_ready reader=1 offset=19644416 end=7369631540 total=7369631541
+IO t_ms=24529 read_end reader=1 offset=19644416 bytes=8192 network_bytes=8192 elapsed_ms=2439
+IO t_ms=24532 read_begin reader=1 offset=21151744 size=4096
+IO t_ms=24633 http_begin reader=1 offset=21151744 end=7369631540
+IO t_ms=26681 http_ready reader=1 offset=21151744 end=7369631540 total=7369631541
+IO t_ms=26681 read_end reader=1 offset=21151744 bytes=4096 network_bytes=4096 elapsed_ms=2149
+IO t_ms=26683 read_begin reader=1 offset=22659072 size=8192
+IO t_ms=26785 http_begin reader=1 offset=22659072 end=7369631540
+IO t_ms=28626 http_ready reader=1 offset=22659072 end=7369631540 total=7369631541
+IO t_ms=28627 read_end reader=1 offset=22659072 bytes=8192 network_bytes=8192 elapsed_ms=1944
+IO t_ms=28629 read_begin reader=1 offset=22708224 size=8192
+IO t_ms=28800 read_end reader=1 offset=22708224 bytes=8192 network_bytes=49152 elapsed_ms=170
+IO t_ms=28800 read_begin reader=1 offset=24268800 size=4096
+IO t_ms=28902 http_begin reader=1 offset=24268800 end=7369631540
+IO t_ms=32157 http_ready reader=1 offset=24268800 end=7369631540 total=7369631541
+IO t_ms=32157 read_end reader=1 offset=24268800 bytes=4096 network_bytes=4096 elapsed_ms=3357
+IO t_ms=32159 read_begin reader=1 offset=25829376 size=4096
+IO t_ms=32260 http_begin reader=1 offset=25829376 end=7369631540
+IO t_ms=34359 http_ready reader=1 offset=25829376 end=7369631540 total=7369631541
+IO t_ms=34360 read_end reader=1 offset=25829376 bytes=4096 network_bytes=4096 elapsed_ms=2201
+IO t_ms=34362 read_begin reader=1 offset=26484736 size=4096
+IO t_ms=35181 read_end reader=1 offset=26484736 bytes=4096 network_bytes=655360 elapsed_ms=819
+IO t_ms=35182 read_begin reader=1 offset=27987968 size=8192
+IO t_ms=35283 http_begin reader=1 offset=27987968 end=7369631540
+IO t_ms=37034 http_ready reader=1 offset=27987968 end=7369631540 total=7369631541
+IO t_ms=37034 read_end reader=1 offset=27987968 bytes=8192 network_bytes=8192 elapsed_ms=1852
+IO t_ms=37036 read_begin reader=1 offset=29511680 size=4096
+IO t_ms=37137 http_begin reader=1 offset=29511680 end=7369631540
+IO t_ms=39300 http_ready reader=1 offset=29511680 end=7369631540 total=7369631541
+IO t_ms=39301 read_end reader=1 offset=29511680 bytes=4096 network_bytes=4096 elapsed_ms=2265
+IO t_ms=39303 read_begin reader=1 offset=30765056 size=4096
+IO t_ms=39405 http_begin reader=1 offset=30765056 end=7369631540
+IO t_ms=41627 http_ready reader=1 offset=30765056 end=7369631540 total=7369631541
+IO t_ms=41628 read_end reader=1 offset=30765056 bytes=4096 network_bytes=4096 elapsed_ms=2324
+IO t_ms=41629 read_begin reader=1 offset=31580160 size=8192
+IO t_ms=42681 read_end reader=1 offset=31580160 bytes=8192 network_bytes=819200 elapsed_ms=1051
+IO t_ms=42682 read_begin reader=1 offset=31875072 size=4096
+IO t_ms=42753 read_end reader=1 offset=31875072 bytes=4096 network_bytes=290816 elapsed_ms=70
+IO t_ms=42754 read_begin reader=1 offset=33378304 size=8192
+IO t_ms=42855 http_begin reader=1 offset=33378304 end=7369631540
+IO t_ms=44697 http_ready reader=1 offset=33378304 end=7369631540 total=7369631541
+IO t_ms=44698 read_end reader=1 offset=33378304 bytes=8192 network_bytes=8192 elapsed_ms=1944
+IO t_ms=44699 read_begin reader=1 offset=34902016 size=8192
+IO t_ms=44800 http_begin reader=1 offset=34902016 end=7369631540
+IO t_ms=47157 http_ready reader=1 offset=34902016 end=7369631540 total=7369631541
+IO t_ms=47158 read_end reader=1 offset=34902016 bytes=8192 network_bytes=8192 elapsed_ms=2458
+IO t_ms=47159 read_begin reader=1 offset=35123200 size=8192
+IO t_ms=47710 read_end reader=1 offset=35123200 bytes=8192 network_bytes=221184 elapsed_ms=550
+IO t_ms=47711 read_begin reader=1 offset=36663296 size=8192
+IO t_ms=47813 http_begin reader=1 offset=36663296 end=7369631540
+IO t_ms=49957 http_ready reader=1 offset=36663296 end=7369631540 total=7369631541
+IO t_ms=49958 read_end reader=1 offset=36663296 bytes=8192 network_bytes=8192 elapsed_ms=2247
+IO t_ms=49960 read_begin reader=1 offset=38182912 size=8192
+IO t_ms=50061 http_begin reader=1 offset=38182912 end=7369631540
+IO t_ms=52278 http_ready reader=1 offset=38182912 end=7369631540 total=7369631541
+IO t_ms=52279 read_end reader=1 offset=38182912 bytes=8192 network_bytes=8192 elapsed_ms=2318
+IO t_ms=52281 read_begin reader=1 offset=39714816 size=4096
+IO t_ms=52382 http_begin reader=1 offset=39714816 end=7369631540
+IO t_ms=54477 http_ready reader=1 offset=39714816 end=7369631540 total=7369631541
+IO t_ms=54477 read_end reader=1 offset=39714816 bytes=4096 network_bytes=4096 elapsed_ms=2196
+IO t_ms=54479 read_begin reader=1 offset=40194048 size=4096
+IO t_ms=55325 read_end reader=1 offset=40194048 bytes=4096 network_bytes=479232 elapsed_ms=846
+IO t_ms=55326 read_begin reader=1 offset=41320448 size=4096
+IO t_ms=55427 http_begin reader=1 offset=41320448 end=7369631540
+IO t_ms=57400 http_ready reader=1 offset=41320448 end=7369631540 total=7369631541
+IO t_ms=57400 read_end reader=1 offset=41320448 bytes=4096 network_bytes=4096 elapsed_ms=2074
+IO t_ms=57403 read_begin reader=1 offset=42233856 size=4096
+IO t_ms=58323 read_end reader=1 offset=42233856 bytes=4096 network_bytes=913408 elapsed_ms=920
+IO t_ms=58323 read_begin reader=1 offset=43778048 size=4096
+IO t_ms=58425 http_begin reader=1 offset=43778048 end=7369631540
+IO t_ms=60614 http_ready reader=1 offset=43778048 end=7369631540 total=7369631541
+IO t_ms=60615 read_end reader=1 offset=43778048 bytes=4096 network_bytes=4096 elapsed_ms=2291
+IO t_ms=60617 read_begin reader=1 offset=44863488 size=4096
+IO t_ms=60719 http_begin reader=1 offset=44863488 end=7369631540
+IO t_ms=63013 http_ready reader=1 offset=44863488 end=7369631540 total=7369631541
+IO t_ms=63022 read_end reader=1 offset=44863488 bytes=4096 network_bytes=4096 elapsed_ms=2404
+IO t_ms=63023 read_begin reader=1 offset=46407680 size=8192
+IO t_ms=63125 http_begin reader=1 offset=46407680 end=7369631540
+IO t_ms=65307 http_ready reader=1 offset=46407680 end=7369631540 total=7369631541
+IO t_ms=65310 read_end reader=1 offset=46407680 bytes=8192 network_bytes=8192 elapsed_ms=2286
+IO t_ms=65312 read_begin reader=1 offset=46968832 size=8192
+IO t_ms=66227 read_end reader=1 offset=46968832 bytes=8192 network_bytes=561152 elapsed_ms=915
+IO t_ms=66227 read_begin reader=1 offset=48484352 size=4096
+IO t_ms=66329 http_begin reader=1 offset=48484352 end=7369631540
+IO t_ms=68563 http_ready reader=1 offset=48484352 end=7369631540 total=7369631541
+IO t_ms=68563 read_end reader=1 offset=48484352 bytes=4096 network_bytes=4096 elapsed_ms=2335
+IO t_ms=68565 read_begin reader=1 offset=48779264 size=8192
+IO t_ms=69302 read_end reader=1 offset=48779264 bytes=8192 network_bytes=299008 elapsed_ms=737
+IO t_ms=69303 read_begin reader=1 offset=50327552 size=4096
+IO t_ms=69404 http_begin reader=1 offset=50327552 end=7369631540
+IO t_ms=71647 http_ready reader=1 offset=50327552 end=7369631540 total=7369631541
+IO t_ms=71649 read_end reader=1 offset=50327552 bytes=4096 network_bytes=4096 elapsed_ms=2345
+IO t_ms=71650 read_begin reader=1 offset=50851840 size=8192
+IO t_ms=72614 read_end reader=1 offset=50851840 bytes=8192 network_bytes=528384 elapsed_ms=964
+IO t_ms=72615 read_begin reader=1 offset=52367360 size=4096
+IO t_ms=72717 http_begin reader=1 offset=52367360 end=7369631540
+IO t_ms=75289 http_ready reader=1 offset=52367360 end=7369631540 total=7369631541
+IO t_ms=75289 read_end reader=1 offset=52367360 bytes=4096 network_bytes=4096 elapsed_ms=2674
+IO t_ms=75291 read_begin reader=1 offset=53964800 size=4096
+IO t_ms=75392 http_begin reader=1 offset=53964800 end=7369631540
+IO t_ms=77877 http_ready reader=1 offset=53964800 end=7369631540 total=7369631541
+IO t_ms=77878 read_end reader=1 offset=53964800 bytes=4096 network_bytes=4096 elapsed_ms=2586
+IO t_ms=77879 read_begin reader=1 offset=55463936 size=8192
+IO t_ms=77980 http_begin reader=1 offset=55463936 end=7369631540
+IO t_ms=80335 http_ready reader=1 offset=55463936 end=7369631540 total=7369631541
+IO t_ms=80336 read_end reader=1 offset=55463936 bytes=8192 network_bytes=8192 elapsed_ms=2457
+IO t_ms=80338 read_begin reader=1 offset=56975360 size=8192
+IO t_ms=80440 http_begin reader=1 offset=56975360 end=7369631540
+IO t_ms=82656 http_ready reader=1 offset=56975360 end=7369631540 total=7369631541
+IO t_ms=82657 read_end reader=1 offset=56975360 bytes=8192 network_bytes=8192 elapsed_ms=2318
+IO t_ms=82658 read_begin reader=1 offset=57217024 size=4096
+IO t_ms=83332 read_end reader=1 offset=57217024 bytes=4096 network_bytes=237568 elapsed_ms=674
+IO t_ms=83333 read_begin reader=1 offset=58814464 size=8192
+IO t_ms=83435 http_begin reader=1 offset=58814464 end=7369631540
+IO t_ms=85662 http_ready reader=1 offset=58814464 end=7369631540 total=7369631541
+IO t_ms=85662 read_end reader=1 offset=58814464 bytes=8192 network_bytes=8192 elapsed_ms=2328
+IO t_ms=85663 read_begin reader=1 offset=60334080 size=4096
+IO t_ms=85764 http_begin reader=1 offset=60334080 end=7369631540
+IO t_ms=87711 http_ready reader=1 offset=60334080 end=7369631540 total=7369631541
+IO t_ms=87711 read_end reader=1 offset=60334080 bytes=4096 network_bytes=4096 elapsed_ms=2048
+IO t_ms=87713 read_begin reader=1 offset=61796352 size=4096
+IO t_ms=87815 http_begin reader=1 offset=61796352 end=7369631540
+IO t_ms=90166 http_ready reader=1 offset=61796352 end=7369631540 total=7369631541
+IO t_ms=90167 read_end reader=1 offset=61796352 bytes=4096 network_bytes=4096 elapsed_ms=2453
+IO t_ms=90169 read_begin reader=1 offset=63295488 size=8192
+IO t_ms=90190 http_begin reader=1 offset=63295488 end=7369631540
+IO t_ms=90190 read_error reader=1 offset=63295488 type=IllegalStateException elapsed_ms=21
+IO t_ms=90191 read_begin reader=1 offset=63295488 size=4096
+IO t_ms=90191 read_error reader=1 offset=63295488 type=IOException elapsed_ms=0
+IO t_ms=90196 read_begin reader=1 offset=63295488 size=4096
+IO t_ms=90196 read_error reader=1 offset=63295488 type=IOException elapsed_ms=0
+

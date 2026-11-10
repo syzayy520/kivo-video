@@ -1,0 +1,28 @@
+INSTRUMENTATION_RESULT: shortMsg=Process crashed.
+INSTRUMENTATION_CODE: 0
+
+--- 2026-11-10 07:22 复跑（设备唤醒解锁后），上面那次 crash 的成因已确认 ---
+# runner: com.kivo.cinema.smb.discovery.SmbDiscoveryInstrumentation
+# 命令: adb -s <serial> shell am instrument -w \
+#         com.kivo.cinema.test/com.kivo.cinema.smb.discovery.SmbDiscoveryInstrumentation
+
+## K40 M2012K11AC（Android 13 / MIUI，192.168.5.152）
+P243 FOUND 192.168.5.197:445 N1
+PASS 启动 mDNS 浏览并收集 10 秒
+P243 TOTAL 1 台: 192.168.5.197(N1)
+PASS 结果非空且端口为 445
+2/2 PASS
+
+## MatePad MRR-W29（Android 12 / EMUI，192.168.5.37）
+P243 FOUND 192.168.5.197:445 N1
+PASS 启动 mDNS 浏览并收集 10 秒
+P243 TOTAL 1 台: 192.168.5.197(N1)
+PASS 结果非空且端口为 445
+2/2 PASS
+
+## 结论
+- 两台均 2/2 PASS，S5 真机验收通过；端口 445 正确。
+- 两台都未发现小米路由（192.168.5.1）——与 2026-11-09 PC 侧 zeroconf 结论一致：
+  路由器不广播 `_smb._tcp`，只能枚举 / 手填。
+- 上面那条 `Process crashed` 是**设备息屏**导致（instrumentation 起前台 Activity 也被 MIUI 拦），
+  唤醒解锁后一次通过，**不是 ROM 组播限制**。

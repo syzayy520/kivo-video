@@ -44,7 +44,8 @@ public:
     /// @param fd 只读描述符，由调用方持有（与视频侧同一个文件的两个 fd 之一）
     /// @param length 文件字节数
     /// 成功返回 true；失败返回 false 并把原因写进 `stats().error`。
-    [[nodiscard]] bool open(int fd, std::int64_t length, const std::string& label);
+    [[nodiscard]] bool open(int fd, std::int64_t length, const std::string& label,
+                            int prefill_timeout_millis = 500);
 
     /// 起流，并等到音频时钟拿到首个有效时间戳。
     ///
@@ -61,20 +62,11 @@ public:
         std::string reason;
     };
 
-    /// 定位到指定时刻（P12-F2）。
-    ///
-    /// 顺序固定，改之前先想清楚每一步为什么在它前面：
-    /// 1. `feeder.stop()`：先让环的写者停下（`ring.reset()` 要求两个线程都停）；
-    /// 2. `output.stop()`：再停读者。**不 `close`** —— 重开一次流的启动方差是 24–146 ms（C1），
-    ///    为一次 seek 白花一百毫秒不划算；
-    /// 3. 定位 → `decoder.flush()` → `ring.reset()`；
-    /// 4. 重新供给 + 预灌（与起播同一水位）+ 起流；
-    /// 5. **`clock.rebase(landing)`**：停/启流之后帧位置归零，不重锚时钟会退回 0，
-    ///    视频被节拍器拖回片头。这一步漏了，所有计数都正常但画面是错的。
-    ///
-    /// 返回 `landing_us < 0` 表示定位失败；此时**仍然会恢复播放**（从当前残留位置继续），
-    /// 并把原因写进 `reason` —— 让调用方决定是中止还是继续，而不是让音频静默消失。
+    /// 静音栅栏 → 停供给 → 定位/flush/reset → 预灌 → 放音/重锚。
+    /// AAudio 流与帧计数不重建。失败保持静音，调用方取消 I/O 并停止会话。
     [[nodiscard]] SeekResult seek_to(std::int64_t target_us);
+    /// Silence before any potentially blocking video/network positioning.
+    [[nodiscard]] bool prepare_seek();
 
     /// 停止。顺序固定：停供给 → 排空 → 取时钟 → 停流。
     /// 反过来（先停流）会让环里剩的数据永远没人取，被如实记成大量欠载。
@@ -88,6 +80,9 @@ public:
     [[nodiscard]] bool pause();
     [[nodiscard]] bool resume();
 
+    /// Terminal decode error, safe to poll from the serialized control thread.
+    [[nodiscard]] std::string runtime_error() const;
+
     [[nodiscard]] bool is_open() const noexcept { return opened_; }
     [[nodiscard]] bool is_started() const noexcept { return started_; }
 
@@ -98,8 +93,10 @@ public:
     [[nodiscard]] const AudioPlaybackStats& stats() const noexcept { return stats_; }
 
 private:
+    [[nodiscard]] bool prefill();
+
     mediacodec::MediaExtractorSource source_;
-    mediacodec::MediaCodecAudioDecoder decoder_;
+    std::unique_ptr<core::audio::AudioDecoder> decoder_;
 
     /// 声明顺序即销毁顺序（逆序）：`feeder_` 引用前四个，
     /// `output_` 引用 `ring_source_`，`ring_source_` 引用 `ring_`。

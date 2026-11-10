@@ -1,0 +1,8 @@
+k40-operations-eac3-r16-sync.json: OK  /45  frames=102 dropped=0 clock=audio_timestamp fallback=0 xrun=1 | av_drift 不可测量（理由已记录） | media_rate=1.000028
+    · 门限量纲：45 ms 在 3.2 s 窗口上等价 13916 ppm（门已动作，撞门时间不可算）
+    · 复位轨迹：共 1 笔，最大 37.95 ms 落在 1.78 s
+    · 不连续账：1 笔，累计 77.93 ms，最大 77.93 ms（position_step）
+    · 分配：稳态 67 次 / 总计 72 次
+    · 跨度作用域：4 段 / last_segment；段内 102 帧、全场 155 帧
+—— 合计 1 份：媒体速率 判得动 1、其中越界已登记 0、不可判 0
+覆盖：1 份 sync 证据（/1–/45）

@@ -1,0 +1,13 @@
+Test project C:/kivo video/build/vs-debug
+    Start 237: kivo_p12c_ring_buffer_tests
+1/4 Test #237: kivo_p12c_ring_buffer_tests ......   Passed    0.04 sec
+    Start 239: kivo_p12c4_clock_tests
+2/4 Test #239: kivo_p12c4_clock_tests ...........   Passed    0.04 sec
+    Start 241: kivo_pause_resume_pace_tests
+3/4 Test #241: kivo_pause_resume_pace_tests .....   Passed    0.03 sec
+    Start 242: kivo_timestamp_cadence_tests
+4/4 Test #242: kivo_timestamp_cadence_tests .....   Passed    0.03 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =   0.18 sec

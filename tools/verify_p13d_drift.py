@@ -44,6 +44,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from verification.frame_accounting import stop_accounting, session_pace_accounting
+
 # 与 C++ 侧逐字一致。写死而不是从 JSON 读，是为了让"读到的常量"本身也被检查：
 # 哪天窗口数被改了而脚本没跟上，这里会报错，而不是悄悄用新常量算出"通过"。
 EXPECTED_WINDOW_COUNT = 8
@@ -266,7 +268,7 @@ SCHEMA_PREFIX = "kivo.p12c.sync"
 #
 # 区间端点各自有名字，因为它们是两个不同的决定：
 SCHEMA_MIN = 3      # 再往前分位数挂在顶层、键名不带口径，判据结构上对不上
-SCHEMA_LATEST = 43  # 升 schema 同步（Y36 Z37 AA38 AC39 AF40 AG41 P15A42 A2-43）
+SCHEMA_LATEST = 45  # /45：节拍累计归属与决策按会话闭合
 SCHEMA_ORDER = tuple(f"/{version}" for version in range(SCHEMA_MIN, SCHEMA_LATEST + 1))
 
 
@@ -2057,9 +2059,8 @@ FRAME_ACCOUNTING_FIELDS = ("frames_decided", "presented", "dropped")
 def check_frame_accounting(report: Report, doc: dict[str, Any], schema: str) -> None:
     """S0–S4：节拍侧那本账必须能加（P14-Q）。
 
-    一帧被 `arrive()` 决策之后，它的去向只有四种：呈现、丢弃、追帧、没有面。
-    前三者由 `presented` / `dropped` 记，第四种由 `video.frames_discarded_no_surface`
-    记。**四者之和必须等于 `frames_decided`** —— 不等就是有帧连去向都没有。
+    已决策的帧必须由呈现、丢弃、无窗口或停止时归还的未交付子集交代。
+    停止总数还包含未决策帧、EOS、已判丢弃帧，不能拿它解释节拍差额。
 
     ── 与 Q 组 / R 组最大的不同：这一组对**全部版本**生效，不设 `_schemas_from` ──
 
@@ -2110,6 +2111,22 @@ def check_frame_accounting(report: Report, doc: dict[str, Any], schema: str) -> 
     if discarded_field is None:
         discarded = 0
 
+    holder = doc.get("video") if isinstance(doc.get("video"), dict) else doc.get("counters", {})
+    session_scope = schema == "kivo.p12c.decode/21" or (
+        schema.startswith("kivo.p12c.sync/") and _schema_version(schema) >= 45)
+    required_stop = schema in ("kivo.p12c.decode/20", "kivo.p12c.decode/21") or (
+        schema.startswith("kivo.p12c.sync/") and _schema_version(schema) >= 44)
+    stop_undelivered = 0
+    stop_valid = True
+    try:
+        _, stop_undelivered, stop_notes = stop_accounting(holder, required_stop)
+        report.add("S7 停止归还子集合法", True, "；".join(stop_notes) or "非负整数且子集不超过总数")
+    except ValueError as exc:
+        stop_valid = False
+        report.add("S7 停止归还子集合法", False, str(exc))
+    report.add("S8 帧计数非负", min(decided, presented, dropped, discarded) >= 0,
+               f"decided={decided}, presented={presented}, dropped={dropped}, no_surface={discarded}")
+
     # ---- S1：报告里那一格必须与三个源数自洽 ----
     #
     # 不设版本闸门（旧证据没有这一格，跳过并说明），因为它是**定义式**：
@@ -2141,8 +2158,15 @@ def check_frame_accounting(report: Report, doc: dict[str, Any], schema: str) -> 
     # 病因在 S3。若这里也判，负差额必然 `!= dns`（dns >= 0）—— 于是 S3
     # 永远无法单独红，而报错会指错方向（读者会去查"少记了原因"）。
     # 判据的重叠区必须写清：每条要有**唯一**能抓它的样本。
-    if diff < 0:
-        report.add("S2 未交付帧数 = 没有面可上的帧数", True,
+    if session_scope:
+        try:
+            session_pace_accounting(pace, holder)
+            report.add("S2 未交付帧数有精确归属", True,
+                       "会话累计闭合且累计归属不小于最近段；未混用 seek 前后的计数")
+        except ValueError as exc:
+            report.add("S2 未交付帧数有精确归属", False, str(exc))
+    elif diff < 0:
+        report.add("S2 未交付帧数有精确归属", True,
                    f"不可判：差额 {diff} 为负（{presented} + {dropped} > {decided}），"
                    "那不是'少记了原因'，是'同一帧被记了两次'—— 病因在 S3")
     else:
@@ -2151,18 +2175,19 @@ def check_frame_accounting(report: Report, doc: dict[str, Any], schema: str) -> 
         # 注意这里**不能 return**：S3/S4/S5/S6 与这一条无关，提前退出等于把它们关掉
         # （P13-C 那次"判据写在 return 之后"是同一个病的另一种写法）。
         if discarded_field is None and diff != 0:
-            report.add("S2 未交付帧数 = 没有面可上的帧数", False,
+            report.add("S2 未交付帧数有精确归属", False,
                        f"差额 {diff}，而这一份里**根本没有** `frames_discarded_no_surface`"
                        "（`video` 与 `counters` 都没有）：先确认这一格去哪了，"
                        "再谈那几帧有没有原因")
         else:
-            report.add("S2 未交付帧数 = 没有面可上的帧数", diff == discarded,
+            explained = discarded + stop_undelivered
+            report.add("S2 未交付帧数有精确归属", stop_valid and diff == explained,
                        f"差额 {diff}（{decided} 决策 − {presented} 呈现 − {dropped} 丢弃），"
-                       f"而 `frames_discarded_no_surface` = {discarded}"
+                       f"而 no_surface = {discarded}，stop_undelivered = {stop_undelivered}"
                        f"（读自 `{discarded_field}`）："
-                       f"{diff - discarded} 帧连去向都没有。这不是丢帧（那会记进 dropped），"
-                       "是决策之后、交付之前消失的帧" if diff != discarded
-                       else (f"差额 {diff} 全部由 `frames_discarded_no_surface` 交代"
+                       f"{diff - explained} 帧连去向都没有。这不是丢帧（那会记进 dropped），"
+                       "是决策之后、交付之前消失的帧" if diff != explained
+                       else (f"差额 {diff} 全部由无窗口及停止未交付子集交代"
                              f"（读自 `{discarded_field}`）"
                              if diff else f"{decided} 帧全部落地：{presented} 呈现 + {dropped} 丢弃"))
 

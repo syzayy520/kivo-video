@@ -1,0 +1,5 @@
+PASS 共享枚举（IPC$ + NetrShareEnum）
+PASS 连到共享并列出根目录
+PASS 随机读：文件头 1 MiB + 尾部 1 MiB
+3/3 PASS
+

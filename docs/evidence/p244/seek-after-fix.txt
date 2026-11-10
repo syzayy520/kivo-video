@@ -1,0 +1,23 @@
+P243 OPEN local /sdcard/Android/data/com.kivo.cinema/files/media/local-seek.mkv size=2270964
+P243 START codec=OMX.qcom.video.decoder.avc dur=60000000 audio=false
+PASS 起播（准备 + 首帧会话就绪）
+P243 POSITION 0 ms → 3003 ms
+PASS 位置推进（3 秒窗口）
+P243 SEEK target=30000 ms landing=25000 ms actual=27080 ms error=
+PASS seek 到中段并落位
+P243 RESUME 27080 ms → 30151 ms
+PASS seek 后继续推进
+4/4 PASS
+
+# 244 · seek 修复后复测（SystemClockSource::rebase on seek）
+# 设备：MatePad MRR-W29 / CFE6R21B12000179（Android 12）
+# 时间：2026-11-10 06:53
+# 命令：
+#   adb -s CFE6R21B12000179 shell am instrument -w \
+#     -e localPath /sdcard/Android/data/com.kivo.cinema/files/media/local-seek.mkv \
+#     com.kivo.cinema.test/com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation
+#
+# 判据：actual ∈ target ± 5 s（收紧后）。
+# 修复前：actual=5129 ms → FAIL（见 seek-before-fix-tightened.txt）。
+# 修复后：actual=27080 ms（25 s 关键帧 + 2 s 等待内正常推进）→ PASS。
+# RESUME 27080 → 30151：从落点继续推进，位置真正跳到了 25 s 关键帧。

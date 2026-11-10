@@ -29,10 +29,13 @@ internal fun SourceManagementContent(record: SourceRecord, onDismiss: () -> Unit
             TextButton(onClick = onDismiss, enabled = !busy) { Text("关闭") }
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            SourceIcon(SourceIconKind.EMBY)
+            SourceIcon(if (record.isSmb) SourceIconKind.SMB else SourceIconKind.EMBY)
             Column(Modifier.weight(1f)) {
                 Text(record.name, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                Text("Emby 媒体服务器", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    if (record.isSmb) "SMB 网络共享 · ${record.address.removePrefix("smb://")}"
+                    else "Emby 媒体服务器",
+                    fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         Surface(shape = MaterialTheme.shapes.medium) {

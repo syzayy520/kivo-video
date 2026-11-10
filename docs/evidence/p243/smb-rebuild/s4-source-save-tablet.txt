@@ -1,0 +1,15 @@
+P243 BEFORE 已有 2 条源
+P243 SAVED 小米路由 smb smb://192.168.5.1/XiaoMi user=<匿名> id=dc8bf914-37fd-4021-a826-57ad8d4ac9bd
+PASS 写入 SMB 源（schema 2）
+P243 RELOAD 小米路由 still there, cipher ok
+PASS 读回：protocol / address / 密文不含明文
+FAIL com.kivo.cinema.smb.SmbFailure: 服务器不允许匿名访问，请填写账号和密码
+	at com.kivo.cinema.smb.SmbError.translate(SmbError.kt:64)
+	at com.kivo.cinema.smb.SmbSession.translate(SmbSession.kt:79)
+	at com.kivo.cinema.smb.SmbSession.connect(SmbSession.kt:37)
+	at com.kivo.cinema.sources.SmbSourceSaveInstrumentation.onStart$lambda$18(SmbSourceSaveInstrumentation.kt:87)
+	at com.kivo.cinema.sources.SmbSourceSaveInstrumentation$$ExternalSyntheticLambda3.invoke(D8$$SyntheticClass:0)
+	at com.kivo.cinema.sources.SmbSourceSaveInstrumentation.case(SmbSourceSaveInstrumentation.kt:107)
+	at com.kivo.cinema.sources.SmbSourceSaveInstrumentation.onStart(SmbSourceSaveInstrumentation.kt:80)
+	at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:2338)
+

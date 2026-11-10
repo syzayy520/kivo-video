@@ -3,9 +3,23 @@ package com.kivo.cinema.sources
 import java.net.URI
 import java.util.Locale
 
-/** A service root, never a playback URL. Credentials and query tokens are forbidden. */
+/**
+ * 源地址规范化（243 D5）。一个地址只描述"服务根"，不携带账号、查询参数或片段。
+ *
+ * 支持两种形态：
+ * - `emby`：`http(s)://host[:port][/path]`（原有语义，默认补 https）
+ * - `smb`：`smb://host[:port][/share][/path]`（243 新增；大小写与空格原样保留，
+ *   因为 SMB 的共享名和文件名都是大小写敏感/可含空格的）
+ */
 object SourceAddress {
-    fun normalize(input: String): String {
+
+    fun normalize(input: String, protocol: String = SourceRecord.PROTOCOL_EMBY): String =
+        when (protocol) {
+            SourceRecord.PROTOCOL_SMB -> normalizeSmb(input)
+            else -> normalizeHttp(input)
+        }
+
+    private fun normalizeHttp(input: String): String {
         val raw = input.trim()
         require(raw.isNotEmpty()) { "请输入服务器地址" }
         val uri = try { URI(if (raw.contains("://")) raw else "https://$raw") }
@@ -21,5 +35,15 @@ object SourceAddress {
         val path = uri.rawPath.orEmpty().trimEnd('/')
         require(!path.contains(Regex("(?i)%2e|(?:^|/)\\.\\.?(?:/|$)"))) { "地址路径不能包含相对跳转" }
         return "$scheme://$host${port?.let { ":$it" }.orEmpty()}$path"
+    }
+
+    /** 复用 [com.kivo.cinema.smb.SmbAddress] 的解析规则，保证表单、存储、连接三处同一个标准。 */
+    private fun normalizeSmb(input: String): String {
+        val address = try {
+            com.kivo.cinema.smb.SmbAddress.parse(input)
+        } catch (e: IllegalArgumentException) {
+            throw IllegalArgumentException(e.message ?: "请输入有效的 SMB 地址")
+        }
+        return address.toUri()
     }
 }

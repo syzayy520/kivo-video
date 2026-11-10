@@ -1,0 +1,23 @@
+test_eos_drop_and_undecided_slots_cannot_hide_missing_picture (test_frame_accounting.PaceAccountingTests) ... ok
+test_invalid_subset_and_negative_counters_fail (test_frame_accounting.PaceAccountingTests) ... ok
+test_only_undelivered_subset_explains_pace_loss (test_frame_accounting.PaceAccountingTests) ... ok
+test_aggregate_registers_both_versions_and_requires_decode_fields (test_frame_accounting.SessionPaceTests) ... ok
+test_aggregate_registers_session_versions (test_frame_accounting.SessionPaceTests) ... ok
+test_legacy_and_upgrade_verify (test_frame_accounting.SessionPaceTests) ... ok
+test_multi_seek_uses_session_dispositions (test_frame_accounting.SessionPaceTests) ... ok
+test_new_schema_missing_fields_rejected (test_frame_accounting.SessionPaceTests) ... ok
+test_returned_slots_close_output_account_without_inflating_span (test_frame_accounting.SessionPaceTests) ... ok
+test_session_mutations_fail_both_verifiers (test_frame_accounting.SessionPaceTests) ... ok
+test_wrong_totals_and_scope_cannot_hide_losses (test_frame_accounting.SessionPaceTests) ... ok
+test_both_fields_required (test_frame_accounting.StopContractTests) ... ok
+test_invalid_types_and_subset_are_rejected (test_frame_accounting.StopContractTests) ... ok
+test_legacy_absence_is_explicit (test_frame_accounting.StopContractTests) ... ok
+test_aggregate_registers_both_versions_and_requires_decode_fields (test_frame_accounting.SyncAccountingTests) ... ok
+test_legacy_and_upgrade_verify (test_frame_accounting.SyncAccountingTests) ... ok
+test_new_schema_missing_fields_rejected (test_frame_accounting.SyncAccountingTests) ... ok
+test_returned_slots_close_output_account_without_inflating_span (test_frame_accounting.SyncAccountingTests) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.357s
+
+OK

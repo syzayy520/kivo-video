@@ -4,11 +4,11 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import com.kivo.cinema.smb.SmbSource
+import com.kivo.cinema.net.ByteSource
 import javax.net.ssl.HttpsURLConnection
 
 /**
- * WebDAV 源（221 设计稿 D1）：实现 [SmbSource.ByteSource] 同一接口——
+ * WebDAV 源（221 设计稿 D1）：实现 [ByteSource] 同一接口——
  * LocalRangeProxy / NetworkPlaybackSession 直接复用，与 SMB 通道完全同构。
  *
  * 协议：PROPFIND(Depth:1) 浏览 + GET(Range) 随机读——java.net.HttpURLConnection
@@ -129,7 +129,7 @@ class WebDavSource(private val config: WebDavConfig) {
 
     /** HTTP Range 随机读源（实现 ByteSource 接口）。 */
     inner class HttpByteSource(private val fileUrl: String, private val sizeBytes: Long) :
-        SmbSource.ByteSource {
+        ByteSource {
         override fun size(): Long = sizeBytes
 
         override fun readAt(offset: Long, buf: ByteArray, off: Int, len: Int): Int {

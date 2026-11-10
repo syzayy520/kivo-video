@@ -1,6 +1,8 @@
 #include "video/video_plane/backends/mediacodec/session/audio_decode_feeder.hpp"
 
 #include <chrono>
+#include <algorithm>
+#include <cmath>
 
 #include "video/video_plane/core/audio/pcm_format_converter.hpp"
 
@@ -22,7 +24,7 @@ constexpr int kMaxIdleRoundsWithoutEos = 500;
 }  // namespace
 
 AudioDecodeFeeder::AudioDecodeFeeder(MediaExtractorSource& source,
-                                     MediaCodecAudioDecoder& decoder,
+                                     core::audio::AudioDecoder& decoder,
                                      core::audio::SpscAudioRingBuffer& ring)
     : source_(source), decoder_(decoder), ring_(ring) {}
 
@@ -35,6 +37,11 @@ void AudioDecodeFeeder::start() {
         return;
     }
     stop_requested_.store(false);
+    // A new decode run follows seek/flush. Keep cumulative counts, never carry
+    // terminal flags into the new segment (otherwise it stops after one packet).
+    stats_.reached_eos = false;
+    stats_.eos_flag_seen = false;
+    stats_.error.clear();
     finished_.store(false);
     worker_ = std::thread(&AudioDecodeFeeder::loop, this);
 }
@@ -144,7 +151,7 @@ void AudioDecodeFeeder::loop() {
 void AudioDecodeFeeder::drain_once(std::int64_t timeout_us, bool& got_data) {
     got_data = false;
 
-    mediacodec::PcmChunk chunk;
+    core::audio::PcmChunk chunk;
     const auto received = decoder_.receive(chunk, timeout_us);
 
     if (received.end_of_stream()) {
@@ -197,6 +204,13 @@ void AudioDecodeFeeder::drain_once(std::int64_t timeout_us, bool& got_data) {
         return;
     }
 
+    for (std::size_t i = 0; i < static_cast<std::size_t>(converted.frames_written) * output.channel_count; ++i) {
+        if (!std::isfinite(converted_[i])) {
+            stats_.error = "decoder produced non-finite PCM";
+            return;
+        }
+        stats_.decoded_peak = std::max(stats_.decoded_peak, std::abs(converted_[i]));
+    }
     push_frames(converted_.data(), converted.frames_written);
     got_data = true;
 }

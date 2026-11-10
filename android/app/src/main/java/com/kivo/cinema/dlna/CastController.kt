@@ -48,7 +48,7 @@ class CastController(private val context: Context) {
     }
 
     /** 投本地/远端 ByteSource（LAN 代理 URL）。阻塞，调用方备线程。 */
-    fun castSource(device: DlnaDevice, source: com.kivo.cinema.smb.SmbSource.ByteSource,
+    fun castSource(device: DlnaDevice, source: com.kivo.cinema.net.ByteSource,
                    title: String): Int {
         val port = startLanProxy(source)
         return castUrl(device, "http://${wifiIp()}:$port/kivo", title)
@@ -87,7 +87,7 @@ class CastController(private val context: Context) {
         return rc
     }
 
-    private fun startLanProxy(source: com.kivo.cinema.smb.SmbSource.ByteSource): Int {
+    private fun startLanProxy(source: com.kivo.cinema.net.ByteSource): Int {
         runCatching { proxy?.close() }
         val p = LocalRangeProxy(source, bindAddress = "0.0.0.0")
         val port = p.start()

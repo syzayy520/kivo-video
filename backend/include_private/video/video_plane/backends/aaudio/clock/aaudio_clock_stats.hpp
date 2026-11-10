@@ -59,6 +59,9 @@ struct AaudioClockStats {
     std::int32_t sample_rate = 0;
     std::int64_t last_position_ns = 0;
     std::int64_t max_extrapolation_ns = 0;
+    std::int64_t timestamp_age_budget_ns = 0; ///< 有界外推预算，不代表硬件精度
+    std::int64_t max_timestamp_age_ns = 0;    ///< 成功读取的原始时间戳最大年龄
+    std::int64_t timestamp_stale = 0;         ///< 成功但年龄超预算的读数
     std::int64_t latency_frames = 0;  ///< 最近一次估出的 "已写入 − 已呈现"
 
     /// 最后一次实际发布时用的来源。全冻结时 `dominant_source()` 靠它兜底 ——

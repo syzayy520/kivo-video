@@ -23,11 +23,14 @@ public:
 
     /// seek 之后重设时钟基准（P12-F2）。
     ///
-    /// **默认空实现是刻意的**：`SystemClockSource` 的位置来自墙钟，没有"媒体基准"可重设；
-    /// 让它假装能 rebase 只会制造一条永远不对的分支。
-    ///
     /// 音频时钟必须覆盖它 —— 停/启一次 AAudio 流之后帧位置会归零，
     /// 不重设基准，媒体时间会退回 0，视频被节拍器拖回片头。
+    ///
+    /// `SystemClockSource` 也必须覆盖（244）：视频无音轨时进度取自系统钟的墙钟绝对量，
+    /// seek 后若只 `reset()` 把原点挪回 now、不把原点挪到 demux 落点 landing，
+    /// 进度会停在 seek 前的位置（真机：landing=25 s、进度恒 ~5 s）。
+    /// 原注释说"没有媒体基准可重设"在 seek 场景并不成立 —— landing 就是那个基准。
+    /// 默认空实现只留给"纯墙钟、从不 seek 到具体时刻"的场合。
     virtual void rebase(std::int64_t /*media_position_ns*/) noexcept {}
 };
 

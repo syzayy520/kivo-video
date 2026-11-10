@@ -2334,6 +2334,33 @@ endif()
 add_test(NAME kivo_p12c5_pace_tests COMMAND kivo_p12c5_pace_tests)
 set_tests_properties(kivo_p12c5_pace_tests PROPERTIES TIMEOUT 60)
 
+add_executable(kivo_pause_resume_pace_tests
+  tests/video/pace/pause_resume_tests/main.cpp
+)
+target_link_libraries(kivo_pause_resume_pace_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_pause_resume_pace_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_pause_resume_pace_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_pause_resume_pace_tests COMMAND kivo_pause_resume_pace_tests)
+set_tests_properties(kivo_pause_resume_pace_tests PROPERTIES TIMEOUT 30)
+
+add_executable(kivo_timestamp_cadence_tests
+  tests/video/pace/timestamp_cadence_tests/main.cpp
+  src/video/video_plane/backends/aaudio/clock/aaudio_clock_source.cxx
+  src/video/video_plane/backends/aaudio/clock/aaudio_clock_trace.cxx
+  src/video/video_plane/backends/aaudio/clock/aaudio_clock_tail.cxx
+  src/video/video_plane/backends/aaudio/clock/aaudio_monotonic_now.cxx
+  src/video/video_plane/backends/aaudio/clock/aaudio_timestamp_reading.cxx
+)
+target_link_libraries(kivo_timestamp_cadence_tests PRIVATE kivo_p12c_core_pace)
+target_compile_features(kivo_timestamp_cadence_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_timestamp_cadence_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_timestamp_cadence_tests COMMAND kivo_timestamp_cadence_tests)
+set_tests_properties(kivo_timestamp_cadence_tests PROPERTIES TIMEOUT 30)
+
 # ─── P13-D: 抽稀序列与漂移趋势 ───
 # 两个纯计算族（抽稀 + 回归），零平台依赖，因此能在桌面上把逻辑钉死：
 # 喂一条 1000 ppm 的直线必须算回 1000，喂 30fps 与 60fps 的同片长必须采到同样多的点。
@@ -2543,6 +2570,7 @@ set_tests_properties(kivo_p13n_quantile_tests PROPERTIES TIMEOUT 60)
 # 抽成纯状态机再测：它守的是"输入满不许读下一包"和"EOS 只发一次"这两条
 # 踩过就丢数据的规矩。线程间的一致性由真机计数器闭合来守。
 set(KIVO_P12C_CORE_PIPELINE_SOURCES
+  src/video/video_plane/core/decode/async_sample_reader.cxx
   src/video/video_plane/core/pipeline/submit_types.cxx
   src/video/video_plane/core/pipeline/submit_sequencer.cxx
 )
@@ -2566,6 +2594,13 @@ if(MSVC)
 endif()
 add_test(NAME kivo_p12c6_pipeline_tests COMMAND kivo_p12c6_pipeline_tests)
 set_tests_properties(kivo_p12c6_pipeline_tests PROPERTIES TIMEOUT 60)
+
+add_executable(kivo_async_sample_reader_tests
+  tests/video/decode/async_sample_reader_tests/main.cpp)
+target_link_libraries(kivo_async_sample_reader_tests PRIVATE kivo_p12c_core_pipeline)
+target_compile_features(kivo_async_sample_reader_tests PRIVATE cxx_std_23)
+add_test(NAME kivo_async_sample_reader_tests COMMAND kivo_async_sample_reader_tests)
+set_tests_properties(kivo_async_sample_reader_tests PROPERTIES TIMEOUT 20)
 
 # ─── P12-D4: 会话收尾顺序 ───
 # 顺序被提成了一份 constexpr 表（`session_teardown_plan.hpp`，纯头文件），

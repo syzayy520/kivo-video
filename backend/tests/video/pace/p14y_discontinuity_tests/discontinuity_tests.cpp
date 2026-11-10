@@ -222,7 +222,7 @@ void t11_drop_ring_keeps_the_shape() {
     CHECK(!trace.truncated);
 }
 
-// ---- ④ 停一次再补回来：门一次都不用动 ----------------------------------------
+// ---- ④ 恢复只补实际缺额，门仍偿还真实领先量 ----------------------------------
 
 void t04_stall_then_catch_up_is_booked_but_still_repaid() {
     g_now_ns = 0;
@@ -246,15 +246,11 @@ void t04_stall_then_catch_up_is_booked_but_still_repaid() {
     const pace::DiscontinuityTrace trace = rig.tracker.discontinuity_trace();
     CHECK(trace.extrapolated >= 1);
     CHECK(trace.stepped >= 1);
-    // 补回来的那一笔约 +113 ms（留一帧容差：墙钟按帧推进，取整难免差一点）。
-    CHECK(trace.offset_ns > 100 * kMs);
-    CHECK(trace.offset_ns < 130 * kMs);
-    // **本卡只观测**：台阶被认出来、记下来了……
-    // ……而门照旧还它一次（P13-S 的契约）。若哪天这里变成 0，
-    // 说明有人真的改了行为 —— 那时 S5–S7 必须一起改，且要留下为什么。
+    // r9：stale 已外推过一帧，恢复必须扣掉这笔，不能重复加到设备绝对位置上。
+    // 真实领先 = 113ms - 一帧；旧预期 113ms 把重复计时也算成了钟的台阶。
+    CHECK(trace.offset_ns == 113 * kMs - kFrame30);
     CHECK(rig.tracker.drift_rebases() == 1);
-    CHECK(rig.tracker.drift_max_correction_ns() > 50 * kMs);
-    CHECK(rig.tracker.drift_max_correction_ns() < 100 * kMs);
+    CHECK(rig.tracker.drift_max_correction_ns() == 113 * kMs - kFrame30 - 40 * kMs);
 }
 
 // ---- ⑤ 有拒绝标志时分类是它 -------------------------------------------------
@@ -306,7 +302,7 @@ void t07_ledger_ignores_gate_state() {
 
     const pace::DiscontinuityTrace trace = rig.tracker.discontinuity_trace();
     CHECK(trace.stepped >= 1);
-    CHECK(trace.offset_ns > 100 * kMs);
+    CHECK(trace.offset_ns == 113 * kMs - kFrame30);
     CHECK(rig.tracker.drift_rebases() == 0);  // 门关着本来也不动，账却记了
 }
 
@@ -323,9 +319,9 @@ void t08_steady_clock_books_nothing() {
     CHECK(rig.tracker.drift_rebases() == 0);
 }
 
-// ---- ⑨ reset 之后不再背旧账 -------------------------------------------------
+// ---- ⑨ reset 保留会话诊断，新位置仍从新段起算 -------------------------------
 
-void t09_tracker_reset_clears_the_ledger() {
+void t09_tracker_reset_preserves_diagnostics() {
     g_now_ns = 0;
     Rig rig(true);
     run_normal(rig, 40);
@@ -337,11 +333,15 @@ void t09_tracker_reset_clears_the_ledger() {
     rig.clock.position_ns = position_at_stall + 113 * kMs + kFrame30;
     g_now_ns += kFrame30;
     (void)rig.tracker.read();
-    CHECK(rig.tracker.discontinuity_trace().events > 0);
+    const auto before = rig.tracker.discontinuity_trace();
+    CHECK(before.events > 0);
 
     rig.tracker.reset();
-    CHECK(rig.tracker.discontinuity_trace().events == 0);
-    CHECK(rig.tracker.discontinuity_trace().offset_ns == 0);
+    CHECK(rig.tracker.discontinuity_trace().events == before.events);
+    CHECK(rig.tracker.discontinuity_trace().offset_ns == before.offset_ns);
+    const auto fresh = rig.tracker.read();
+    CHECK(fresh.position_ns == rig.clock.position_ns);
+    CHECK(fresh.elapsed_ns == 0);
 }
 
 }  // namespace
@@ -355,7 +355,7 @@ int main() {
     t06_startup_steps_are_not_booked();
     t07_ledger_ignores_gate_state();
     t08_steady_clock_books_nothing();
-    t09_tracker_reset_clears_the_ledger();
+    t09_tracker_reset_preserves_diagnostics();
     t10_jump_max_keeps_the_largest_discarded();
     t11_drop_ring_keeps_the_shape();
 

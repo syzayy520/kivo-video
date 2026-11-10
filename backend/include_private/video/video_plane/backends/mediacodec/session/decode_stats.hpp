@@ -44,6 +44,8 @@ struct DecodeStats {
     /// 闭合关系：`frames_received == frames_rendered + frames_dropped_late
     ///          + frames_discarded_no_surface + 1`（末尾 EOS 缓冲）。
     std::int64_t frames_discarded_no_surface = 0;
+    std::int64_t frames_discarded_on_stop = 0;
+    std::int64_t frames_discarded_on_stop_undelivered = 0;
     std::int64_t first_frame_latency_us = -1; ///< 从开始送包到首帧上屏；-1 表示无帧
 
     /// P16-P1B26：当前媒体位置（µs）。`-1` = 还没起播（与 0 µs 严格区分）。

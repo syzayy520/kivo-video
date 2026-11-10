@@ -1,11 +1,13 @@
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 #include <string>
 
 #include "video/video_plane/backends/mediacodec/session/decode_stage_step.hpp"
 #include "video/video_plane/backends/mediacodec/source/sample_view.hpp"
 #include "video/video_plane/core/pipeline/submit_sequencer.hpp"
+#include "video/video_plane/core/decode/async_sample_reader.hpp"
 
 namespace kivo::video::mediacodec {
 
@@ -28,6 +30,7 @@ class DecodeSubmitWorker {
 public:
     struct Deps {
         MediaExtractorSource* source = nullptr;
+        core::decode::AsyncSampleReader* async_source = nullptr;
         MediaCodecVideoDecoder* decoder = nullptr;
         DecodePipelineGate* gate = nullptr;
         DecodePipelineCounters* counters = nullptr;
@@ -47,6 +50,11 @@ public:
     /// 在自己的线程里循环到收工。等待一律带超时，因此 `stop()` 不会卡满一整轮。
     void run();
 
+    [[nodiscard]] const char* operation() const noexcept { return operation_.load(); }
+    [[nodiscard]] bool finished() const noexcept {
+        return sequencer_.next() == core::pipeline::SubmitStep::kFinished;
+    }
+
 private:
     StageStep read_sample();
     StageStep submit_pending(bool allow_wait);
@@ -54,6 +62,7 @@ private:
     StageStep abort(const std::string& reason);
 
     Deps deps_;
+    std::atomic<const char*> operation_{"idle"};
     core::pipeline::SubmitSequencer sequencer_;
 
     /// 待送包。数据指向解封装器内部缓冲，**下一次 `read_next_sample` 即失效**，

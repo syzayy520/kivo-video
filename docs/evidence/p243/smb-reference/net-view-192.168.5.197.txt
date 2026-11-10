@@ -1,0 +1,11 @@
+﻿net : 发生系统错误 1707。
+所在位置 行:510 字符: 9
++ $out2 = net view \\192.168.5.197 2>&1 | Out-String
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (发生系统错误 1707。:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+网络地址无效。
+
+

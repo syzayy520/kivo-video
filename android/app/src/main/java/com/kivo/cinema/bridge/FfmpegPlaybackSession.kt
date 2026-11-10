@@ -18,8 +18,31 @@ class FfmpegPlaybackSession(
     private val mediaFile: File,
     private val displayName: String,
     private val routingDecision: String,
-    private val routingReason: String
+    private val routingReason: String,
+    /**
+     * 网络片源（SMB / WebDAV / HTTP）：每次调用须返回**新** fd，由本类持有到 [close]。
+     * 为空时走 [mediaFile] 本地路径。fd 必须活过整个会话——native 只借用不持有。
+     */
+    private val descriptorSource: (() -> ParcelFileDescriptor)? = null,
+    private val sourceLength: Long = -1L
 ) {
+    /**
+     * 网络片源的便利构造：没有本地文件，但走完全同一条 fd 软解路径。
+     *
+     * 存在的理由：SMB 片源自始至终只有一个 `ParcelFileDescriptor`（`RangeFd` 产出），
+     * 而软解会话要的是"能随机读的 fd + 长度"——两者本就是同一个东西。
+     * 为了凑一个 `File` 而把片子落到磁盘是倒退，所以这里显式区分两种输入。
+     */
+    constructor(
+        displayName: String,
+        descriptorSource: () -> ParcelFileDescriptor,
+        sourceLength: Long,
+        routingDecision: String,
+        routingReason: String
+    ) : this(
+        File("network-media"), displayName, routingDecision, routingReason,
+        descriptorSource, sourceLength
+    )
 
     private var handle = 0L
     private var videoFd: ParcelFileDescriptor? = null
@@ -33,13 +56,15 @@ class FfmpegPlaybackSession(
             return -1
         }
         val fd = runCatching {
-            ParcelFileDescriptor.open(mediaFile, ParcelFileDescriptor.MODE_READ_ONLY)
+            descriptorSource?.invoke()
+                ?: ParcelFileDescriptor.open(mediaFile, ParcelFileDescriptor.MODE_READ_ONLY)
         }.getOrNull()
         if (fd == null) {
             lastError = "ParcelFileDescriptor.open failed"
             return -1
         }
         videoFd = fd
+        val length = if (sourceLength >= 0) sourceLength else mediaFile.length()
 
         handle = runCatching { NativePlayer.nativeFfmpegCreate() }.getOrElse { 0L }
         if (handle == 0L) {
@@ -51,7 +76,7 @@ class FfmpegPlaybackSession(
                 handle,
                 displayName,
                 fd.fd,
-                mediaFile.length(),
+                length,
                 surface,
                 routingDecision,
                 routingReason
@@ -97,6 +122,35 @@ class FfmpegPlaybackSession(
     fun seekTo(targetUs: Long) {
         runCatching { NativePlayer.nativeFfmpegSeekTo(handle, targetUs) }
     }
+
+    /**
+     * 把"正在出声的音频位置"交给视频会话做主时钟（µs）。传 -1 退回自身 pts 节拍。
+     *
+     * 这是音画同步的唯一开关：不推的话，视频只守自己的表，两条 1.0x 时间轴一旦
+     * 起点错开（音频要 demux + 开 AAudio，实测晚 1.4 s）就会**永远**错开。
+     */
+    fun setAudioClockUs(us: Long) {
+        if (handle == 0L) return
+        runCatching { NativePlayer.nativeFfmpegSetAudioClockUs(handle, us) }
+    }
+
+    private var pausedFlag = false
+
+    /**
+     * 暂停 / 恢复。返回 0 = 成功。
+     *
+     * 语义是"会话内阻塞取包与呈现"，不是关闭会话——解码器、SMB 连接、表面都保留，
+     * 因此恢复没有重开代价。暂停中 [seekTo] 依然生效。
+     */
+    fun setPaused(paused: Boolean): Int {
+        val rc = runCatching {
+            NativePlayer.nativeFfmpegSetPaused(handle, paused)
+        }.getOrElse { -1 }
+        if (rc == 0) pausedFlag = paused
+        return rc
+    }
+
+    fun isPaused(): Boolean = pausedFlag
 
     /** 当前媒体位置（µs）；-1 = 未知。 */
     fun positionUs(): Long = runCatching {
@@ -152,6 +206,43 @@ object FfmpegRouting {
 
     data class Decision(val useFfmpeg: Boolean, val decision: String, val reason: String)
 
+    /**
+     * 网络片源（SMB / WebDAV / HTTP）的判定入口。
+     *
+     * 与 [probe] 的唯一差别是"怎么把字节喂给平台探测"：本地文件给路径，
+     * 网络片源只能给 fd。**判据本身一字不改**——两条路径必须给出同一个结论，
+     * 否则同一个片源换个传输方式就换了解码后端。
+     *
+     * fd 打不开属于故障而不是能力缺失，但也不能阻断播放：判到软解至少还有机会播，
+     * 判到硬解则必然失败。理由原文进证据。
+     */
+    fun probe(input: com.kivo.cinema.net.RangeSource): Decision {
+        val pfd = runCatching { input.openDescriptor() }.getOrElse {
+            return Decision(
+                true, "ffmpeg",
+                "cannot open source fd (${it.javaClass.simpleName}); assuming platform cannot decode"
+            )
+        }
+        return pfd.use { descriptor ->
+            val extractor = android.media.MediaExtractor()
+            val containerOk = runCatching {
+                extractor.setDataSource(descriptor.fileDescriptor, 0, input.size)
+            }.isSuccess
+            if (!containerOk) {
+                runCatching { extractor.release() }
+                return@use Decision(
+                    true, "ffmpeg",
+                    "MediaExtractor.setDataSource failed over fd (container unsupported)"
+                )
+            }
+            try {
+                decide(extractor)
+            } finally {
+                runCatching { extractor.release() }
+            }
+        }
+    }
+
     fun probe(media: File): Decision {
         val extractor = android.media.MediaExtractor()
         // 判据 1（容器可解）：setDataSource 抛异常 = 平台明说"读不了" → 软解。
@@ -169,36 +260,96 @@ object FfmpegRouting {
             )
         }
         return try {
-            var videoFormat: android.media.MediaFormat? = null
-            for (i in 0 until extractor.trackCount) {
-                val format = extractor.getTrackFormat(i)
-                val mime = format.getString(android.media.MediaFormat.KEY_MIME) ?: continue
-                if (mime.startsWith("video/")) {
-                    videoFormat = format
-                    break
-                }
-            }
-            val format = videoFormat
-            if (format == null) {
-                Decision(
-                    true, "ffmpeg",
-                    "MediaExtractor found no video track (container likely unsupported)"
-                )
-            } else {
-                // 判据 2（解码可解）：平台找不到解码器（含软解解码器）→ 软解。
-                val mime = format.getString(android.media.MediaFormat.KEY_MIME) ?: "?"
-                val decoderName = runCatching {
-                    android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
-                        .findDecoderForFormat(format)
-                }.getOrNull()
-                if (decoderName == null) {
-                    Decision(true, "ffmpeg", "no MediaCodec decoder for $mime")
-                } else {
-                    Decision(false, "mediacodec", "decoder '$decoderName' available for $mime")
-                }
-            }
+            decide(extractor)
         } finally {
             runCatching { extractor.release() }
         }
+    }
+
+    /**
+     * 容器已打开之后的判据 2：有没有视频轨、平台有没有解码器。
+     *
+     * 抽出来是因为本地与网络两条入口只有"打开方式"不同，判据必须共用——
+     * 复制一份就意味着以后改判定会漏掉一条路径。
+     */
+    private fun decide(extractor: android.media.MediaExtractor): Decision {
+        var videoFormat: android.media.MediaFormat? = null
+        for (i in 0 until extractor.trackCount) {
+            val format = extractor.getTrackFormat(i)
+            val mime = format.getString(android.media.MediaFormat.KEY_MIME) ?: continue
+            if (mime.startsWith("video/")) {
+                videoFormat = format
+                break
+            }
+        }
+        val format = videoFormat
+            ?: return Decision(
+                true, "ffmpeg",
+                "MediaExtractor found no video track (container likely unsupported)"
+            )
+        // 判据 2（解码可解）：平台找不到解码器（含软解解码器）→ 软解。
+        val mime = format.getString(android.media.MediaFormat.KEY_MIME) ?: "?"
+        val decoderName = runCatching {
+            android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
+                .findDecoderForFormat(format)
+        }.getOrNull()
+        if (decoderName != null) {
+            return Decision(false, "mediacodec", "decoder '$decoderName' available for $mime")
+        }
+
+        // 兜底：findDecoderForFormat 会拿 MediaFormat 里的 profile/level 去严格比对设备
+        // 声明的 profile 表，表里没列到就拒绝。实机证据（p249）：本机 c2.qti.hevc.decoder
+        // 支持 4096x2304、1080p 实测 118~259 fps，但 profile 表未声明 Main10，
+        // 于是 10bit HEVC 片源被判成"平台无解码器"、整片退到软解 —— 1080p 10bit 软解
+        // 在这台设备上只有 20 fps 上下（sws 单帧就 21ms），观感就是卡成 PPT。
+        // 同一个文件用系统播放器打开可正常硬解（MediaCodecList 只按 mime 匹配）。
+        // 所以这里补一条"按 mime 找硬件解码器 + 校验尺寸"的兜底，只认硬件，不放软解进来。
+        val hardware = runCatching { findHardwareDecoder(format, mime) }.getOrNull()
+        return if (hardware != null) {
+            Decision(
+                false, "mediacodec",
+                "hardware decoder '$hardware' via mime fallback for $mime (profile table lacks this profile)"
+            )
+        } else {
+            Decision(true, "ffmpeg", "no MediaCodec decoder for $mime")
+        }
+    }
+
+    /**
+     * 按 mime 找**硬件**视频解码器并校验尺寸。找不到返回 null。
+     *
+     * 只认硬件：软解解码器（OMX.google.* / c2.android.*）能创建不代表能实时播放，
+     * 把它们放进硬解路径只会换来更差的软解 + 一条没走通的同步链路。
+     */
+    private fun findHardwareDecoder(
+        format: android.media.MediaFormat,
+        mime: String,
+    ): String? {
+        val width = runCatching { format.getInteger(android.media.MediaFormat.KEY_WIDTH) }.getOrNull() ?: -1
+        val height = runCatching { format.getInteger(android.media.MediaFormat.KEY_HEIGHT) }.getOrNull() ?: -1
+        val list = android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
+        for (info in list.codecInfos) {
+            if (info.isEncoder) continue
+            if (!info.supportedTypes.any { it.equals(mime, ignoreCase = true) }) continue
+            if (!isHardwareCodec(info)) continue
+            val video = runCatching { info.getCapabilitiesForType(mime).videoCapabilities }
+                .getOrNull() ?: continue
+            if (width > 0 && height > 0) {
+                val sizeOk = runCatching { video.isSizeSupported(width, height) }.getOrNull() ?: false
+                if (!sizeOk) continue
+            }
+            return info.name
+        }
+        return null
+    }
+
+    /** API 29 起有权威标记；更低版本退化为按名字排除已知软解实现。 */
+    private fun isHardwareCodec(info: android.media.MediaCodecInfo): Boolean {
+        if (android.os.Build.VERSION.SDK_INT >= 29) {
+            return runCatching { info.isHardwareAccelerated }.getOrDefault(false)
+        }
+        val n = info.name.lowercase(java.util.Locale.US)
+        return !n.startsWith("omx.google.") && !n.startsWith("c2.android.") &&
+            !n.contains("software")
     }
 }

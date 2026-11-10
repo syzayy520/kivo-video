@@ -77,15 +77,15 @@ class PlaybackSession(
      */
     /** 当前媒体位置（µs；-1 = 未起播）。212 字幕叠加的时间源。 */
     fun positionUs(): Long {
-        val rc = runCatching {
+        return runCatching {
             NativePlayer.nativeSessionPositionUs(handle)
         }.getOrElse {
             android.util.Log.w("KivoCinema", "positionUs exception: ${it.message}")
             -1L
         }
-        android.util.Log.w("KivoCinema", "positionUs: handle=$handle rc=$rc")
-        return rc
     }
+
+    var lastSeekLandingUs: Long = -1L; private set
 
     fun seekTo(positionUs: Long): Int {
         if (!running) {
@@ -95,6 +95,8 @@ class PlaybackSession(
         val rc = NativePlayer.nativeSessionSeek(handle, positionUs)
         if (rc != 0) {
             lastError = NativePlayer.nativeSessionLastError(handle)
+        } else {
+            lastSeekLandingUs = NativePlayer.nativeSessionSeekLandingUs(handle)
         }
         return rc
     }
@@ -144,7 +146,7 @@ class PlaybackSession(
      * 有音轨却开不起来是**故障**，调用方应当中止这一轮 —— 不能退回 system 时钟继续播，
      * 那会产出一份"看起来有 av_drift、其实是节拍偏移"的假证据。
      */
-    fun openAudio(): Int {
+    fun openAudio(prefillTimeoutMs: Int = 500): Int {
         if (handle == 0L) {
             lastError = "openAudio before openVideo"
             return -1
@@ -164,7 +166,7 @@ class PlaybackSession(
         audioFd = fd
 
         val rc = runCatching {
-            NativePlayer.nativeSessionOpenAudio(handle, displayName, fd.fd, sourceLength)
+            NativePlayer.nativeSessionOpenAudio(handle, displayName, fd.fd, sourceLength, prefillTimeoutMs)
         }.getOrElse { -1 }
         if (rc != 0) {
             lastError = nativeErrorOr("audio failed rc=$rc")
@@ -226,13 +228,14 @@ class PlaybackSession(
     }
 
     /** 定流水线结构与呈现排程。同样必须在 [start] 之前。 */
-    fun configurePipeline(split: Boolean, present: Boolean, atTime: Boolean): Int {
+    fun configurePipeline(split: Boolean, present: Boolean, atTime: Boolean,
+                          asyncInput: Boolean = false): Int {
         if (handle == 0L) {
             lastError = "configurePipeline before openVideo"
             return -1
         }
         val rc = runCatching {
-            NativePlayer.nativeSessionSetPipeline(handle, split, present, atTime)
+            NativePlayer.nativeSessionSetPipeline(handle, split, present, atTime, asyncInput)
         }.getOrElse { -1 }
         if (rc != 0) {
             lastError = nativeErrorOr("pipeline failed rc=$rc")
@@ -310,10 +313,17 @@ class PlaybackSession(
         running = false
     }
 
-    fun writeSyncStats(path: String): Int =
-        if (handle == 0L) -1 else runCatching {
-            NativePlayer.nativeSessionWriteSyncStats(handle, path)
-        }.getOrElse { -1 }
+    fun writeSyncStats(path: String): Int {
+        if (handle == 0L) {
+            lastError = "writeSyncStats before open"
+            return -1
+        }
+        val rc = runCatching { NativePlayer.nativeSessionWriteSyncStats(handle, path) }.getOrElse { -1 }
+        // 失败原因必须落在 lastError 上：调用方（长稳测试）只能通过它拿到
+        // "为什么没写成"，否则只能看到一个光秃秃的返回码。
+        if (rc != 0) lastError = nativeErrorOr("writeSyncStats rc=$rc")
+        return rc
+    }
 
     /** 停止并释放。可重复调用；fd 一定在 native 释放之后才关。 */
     fun close() {

@@ -1,0 +1,704 @@
+t=1936 source=2 item=3 login=ok
+t=1949 http_begin offset=0 end=4095
+t=4479 http_ready offset=0 end=4095 total=7369631541
+t=4517 read_begin offset=0 size=16384
+t=4519 http_begin offset=0 end=7369631540
+t=6307 http_ready offset=0 end=7369631540 total=7369631541
+t=6315 read_end offset=0 bytes=16384 elapsed_ms=1797
+t=6319 read_begin offset=16384 size=65536
+t=6520 read_end offset=16384 bytes=65536 elapsed_ms=201
+t=6526 read_begin offset=81920 size=131072
+t=6753 read_end offset=81920 bytes=131072 elapsed_ms=226
+t=6785 read_begin offset=212992 size=131072
+t=6886 read_end offset=212992 bytes=131072 elapsed_ms=100
+t=6889 read_begin offset=344064 size=131072
+t=6971 read_end offset=344064 bytes=131072 elapsed_ms=82
+t=6985 read_begin offset=7369596928 size=8192
+t=7089 http_begin offset=7369596928 end=7369631540
+t=9083 http_ready offset=7369596928 end=7369631540 total=7369631541
+t=9088 read_end offset=7369596928 bytes=8192 elapsed_ms=2102
+t=9105 tracks=3 mimes=video/hevc,audio/eac3,audio/eac3 io_reason=none
+t=9112 read_begin offset=475136 size=131072
+t=9140 http_begin offset=475136 end=7369631540
+t=10410 http_ready offset=475136 end=7369631540 total=7369631541
+t=10618 read_end offset=475136 bytes=131072 elapsed_ms=1506
+t=10621 read_begin offset=606208 size=131072
+t=10939 read_end offset=606208 bytes=131072 elapsed_ms=317
+t=10941 read_begin offset=737280 size=131072
+t=11082 read_end offset=737280 bytes=131072 elapsed_ms=140
+t=11085 read_begin offset=868352 size=131072
+t=11151 read_end offset=868352 bytes=131072 elapsed_ms=66
+t=11157 read_begin offset=999424 size=131072
+t=11218 read_end offset=999424 bytes=131072 elapsed_ms=61
+t=11221 read_begin offset=1130496 size=131072
+t=11277 read_end offset=1130496 bytes=131072 elapsed_ms=55
+t=11281 read_begin offset=1261568 size=131072
+t=11443 read_end offset=1261568 bytes=131072 elapsed_ms=162
+t=11447 read_begin offset=1392640 size=131072
+t=11458 read_end offset=1392640 bytes=131072 elapsed_ms=11
+t=11473 read_begin offset=1523712 size=131072
+t=11484 read_end offset=1523712 bytes=131072 elapsed_ms=10
+t=11486 read_begin offset=1654784 size=131072
+t=11500 read_end offset=1654784 bytes=131072 elapsed_ms=14
+t=11502 read_begin offset=1785856 size=131072
+t=11581 read_end offset=1785856 bytes=131072 elapsed_ms=78
+t=11584 read_begin offset=1916928 size=131072
+t=11601 read_end offset=1916928 bytes=131072 elapsed_ms=17
+t=11608 read_begin offset=2048000 size=131072
+t=11624 read_end offset=2048000 bytes=131072 elapsed_ms=16
+t=11626 read_begin offset=2179072 size=131072
+t=11647 read_end offset=2179072 bytes=131072 elapsed_ms=21
+t=11650 read_begin offset=2310144 size=131072
+t=11667 read_end offset=2310144 bytes=131072 elapsed_ms=16
+t=11669 read_begin offset=2441216 size=131072
+t=11686 read_end offset=2441216 bytes=131072 elapsed_ms=16
+t=11698 video packet=0 pts_us=0 delta_us=1 bytes=967446 elapsed_ms=2589
+t=11703 video packet=1 pts_us=667000 delta_us=667000 bytes=536989 elapsed_ms=4
+t=11707 video packet=2 pts_us=333000 delta_us=-334000 bytes=76216 elapsed_ms=2
+t=11709 video packet=3 pts_us=167000 delta_us=-166000 bytes=38089 elapsed_ms=2
+t=11712 video packet=4 pts_us=83000 delta_us=-84000 bytes=24866 elapsed_ms=2
+t=11715 video packet=5 pts_us=42000 delta_us=-41000 bytes=12854 elapsed_ms=2
+t=11717 video packet=6 pts_us=125000 delta_us=83000 bytes=11317 elapsed_ms=2
+t=11720 video packet=7 pts_us=250000 delta_us=125000 bytes=25595 elapsed_ms=1
+t=11722 video packet=8 pts_us=208000 delta_us=-42000 bytes=10853 elapsed_ms=1
+t=11724 video packet=9 pts_us=292000 delta_us=84000 bytes=12030 elapsed_ms=1
+t=11726 video packet=10 pts_us=500000 delta_us=208000 bytes=22640 elapsed_ms=1
+t=11728 video packet=11 pts_us=417000 delta_us=-83000 bytes=32665 elapsed_ms=1
+t=11731 video packet=12 pts_us=375000 delta_us=-42000 bytes=12073 elapsed_ms=2
+t=11734 video packet=13 pts_us=458000 delta_us=83000 bytes=16434 elapsed_ms=1
+t=11743 read_begin offset=2572288 size=131072
+t=11750 read_end offset=2572288 bytes=131072 elapsed_ms=7
+t=11752 read_begin offset=2703360 size=131072
+t=11759 read_end offset=2703360 bytes=131072 elapsed_ms=7
+t=11761 read_begin offset=2834432 size=131072
+t=11769 read_end offset=2834432 bytes=131072 elapsed_ms=7
+t=11770 read_begin offset=2965504 size=131072
+t=11777 read_end offset=2965504 bytes=131072 elapsed_ms=6
+t=11781 video packet=14 pts_us=583000 delta_us=125000 bytes=10206 elapsed_ms=47
+t=11783 video packet=15 pts_us=542000 delta_us=-41000 bytes=6611 elapsed_ms=0
+t=11784 video packet=16 pts_us=625000 delta_us=83000 bytes=4720 elapsed_ms=0
+t=11786 video packet=17 pts_us=1333000 delta_us=708000 bytes=443242 elapsed_ms=1
+t=11788 video packet=18 pts_us=1000000 delta_us=-333000 bytes=20351 elapsed_ms=1
+t=11791 video packet=19 pts_us=833000 delta_us=-167000 bytes=13878 elapsed_ms=2
+t=11800 video packet=20 pts_us=750000 delta_us=-83000 bytes=10280 elapsed_ms=8
+t=11801 video packet=21 pts_us=708000 delta_us=-42000 bytes=5159 elapsed_ms=0
+t=11801 video packet=22 pts_us=792000 delta_us=84000 bytes=4834 elapsed_ms=0
+t=11802 video packet=23 pts_us=917000 delta_us=125000 bytes=8059 elapsed_ms=0
+t=11803 video packet=24 pts_us=875000 delta_us=-42000 bytes=4698 elapsed_ms=0
+t=11804 video packet=25 pts_us=958000 delta_us=83000 bytes=4177 elapsed_ms=0
+t=11807 video packet=26 pts_us=1167000 delta_us=209000 bytes=15844 elapsed_ms=2
+t=11811 video packet=27 pts_us=1083000 delta_us=-84000 bytes=9539 elapsed_ms=4
+t=11812 video packet=28 pts_us=1042000 delta_us=-41000 bytes=5149 elapsed_ms=0
+t=11813 video packet=29 pts_us=1125000 delta_us=83000 bytes=6801 elapsed_ms=0
+t=11823 video packet=30 pts_us=1250000 delta_us=125000 bytes=12900 elapsed_ms=9
+t=11824 video packet=31 pts_us=1208000 delta_us=-42000 bytes=7929 elapsed_ms=0
+t=11826 read_begin offset=3096576 size=131072
+t=11833 read_end offset=3096576 bytes=131072 elapsed_ms=6
+t=11835 read_begin offset=3227648 size=131072
+t=11841 read_end offset=3227648 bytes=131072 elapsed_ms=5
+t=11842 read_begin offset=3358720 size=131072
+t=11848 read_end offset=3358720 bytes=131072 elapsed_ms=5
+t=11850 read_begin offset=3489792 size=131072
+t=11856 read_end offset=3489792 bytes=131072 elapsed_ms=5
+t=11859 video packet=32 pts_us=1292000 delta_us=84000 bytes=8534 elapsed_ms=34
+t=11861 video packet=33 pts_us=2000000 delta_us=708000 bytes=293871 elapsed_ms=1
+t=11863 video packet=34 pts_us=1667000 delta_us=-333000 bytes=31291 elapsed_ms=1
+t=11865 video packet=35 pts_us=1500000 delta_us=-167000 bytes=21652 elapsed_ms=1
+t=11868 video packet=36 pts_us=1417000 delta_us=-83000 bytes=15566 elapsed_ms=2
+t=11870 video packet=37 pts_us=1375000 delta_us=-42000 bytes=10081 elapsed_ms=1
+t=11873 video packet=38 pts_us=1458000 delta_us=83000 bytes=11104 elapsed_ms=2
+t=11875 video packet=39 pts_us=1583000 delta_us=125000 bytes=15183 elapsed_ms=1
+t=11878 video packet=40 pts_us=1542000 delta_us=-41000 bytes=11254 elapsed_ms=1
+t=11880 video packet=41 pts_us=1625000 delta_us=83000 bytes=9760 elapsed_ms=2
+t=11883 video packet=42 pts_us=1833000 delta_us=208000 bytes=22501 elapsed_ms=1
+t=11886 video packet=43 pts_us=1750000 delta_us=-83000 bytes=12618 elapsed_ms=2
+t=11887 video packet=44 pts_us=1708000 delta_us=-42000 bytes=8184 elapsed_ms=0
+t=11889 video packet=45 pts_us=1792000 delta_us=84000 bytes=8758 elapsed_ms=2
+t=11891 video packet=46 pts_us=1917000 delta_us=125000 bytes=16323 elapsed_ms=2
+t=11896 video packet=47 pts_us=1875000 delta_us=-42000 bytes=9575 elapsed_ms=4
+t=11898 read_begin offset=3620864 size=131072
+t=11904 read_end offset=3620864 bytes=131072 elapsed_ms=5
+t=11905 read_begin offset=3751936 size=131072
+t=11910 read_end offset=3751936 bytes=131072 elapsed_ms=5
+t=11912 read_begin offset=3883008 size=131072
+t=11917 read_end offset=3883008 bytes=131072 elapsed_ms=5
+t=11919 read_begin offset=4014080 size=131072
+t=11925 read_end offset=4014080 bytes=131072 elapsed_ms=6
+t=11931 video packet=48 pts_us=1958000 delta_us=83000 bytes=11242 elapsed_ms=34
+t=11933 video packet=49 pts_us=2667000 delta_us=709000 bytes=353494 elapsed_ms=2
+t=11935 video packet=50 pts_us=2333000 delta_us=-334000 bytes=47621 elapsed_ms=2
+t=11936 video packet=51 pts_us=2167000 delta_us=-166000 bytes=30930 elapsed_ms=1
+t=11938 video packet=52 pts_us=2083000 delta_us=-84000 bytes=19460 elapsed_ms=1
+t=11940 video packet=53 pts_us=2042000 delta_us=-41000 bytes=12821 elapsed_ms=1
+t=11942 video packet=54 pts_us=2125000 delta_us=83000 bytes=11665 elapsed_ms=1
+t=11944 video packet=55 pts_us=2250000 delta_us=125000 bytes=19521 elapsed_ms=2
+t=11946 video packet=56 pts_us=2208000 delta_us=-42000 bytes=12132 elapsed_ms=2
+t=11947 video packet=57 pts_us=2292000 delta_us=84000 bytes=10521 elapsed_ms=1
+t=11949 video packet=58 pts_us=2500000 delta_us=208000 bytes=15415 elapsed_ms=1
+t=11959 read_begin offset=4145152 size=131072
+t=11965 read_end offset=4145152 bytes=131072 elapsed_ms=5
+t=11967 read_begin offset=4276224 size=131072
+t=11972 read_end offset=4276224 bytes=131072 elapsed_ms=5
+t=11974 read_begin offset=4407296 size=131072
+t=11980 read_end offset=4407296 bytes=131072 elapsed_ms=6
+t=11982 read_begin offset=4538368 size=131072
+t=11987 read_end offset=4538368 bytes=131072 elapsed_ms=5
+t=11991 video packet=59 pts_us=2417000 delta_us=-83000 bytes=9882 elapsed_ms=41
+t=11992 video packet=60 pts_us=2375000 delta_us=-42000 bytes=6440 elapsed_ms=0
+t=11993 video packet=61 pts_us=2458000 delta_us=83000 bytes=4167 elapsed_ms=0
+t=11994 video packet=62 pts_us=2583000 delta_us=125000 bytes=5241 elapsed_ms=0
+t=11994 video packet=63 pts_us=2542000 delta_us=-41000 bytes=2332 elapsed_ms=0
+t=11995 video packet=64 pts_us=2625000 delta_us=83000 bytes=1431 elapsed_ms=0
+t=11997 video packet=65 pts_us=3333000 delta_us=708000 bytes=514609 elapsed_ms=1
+t=11999 read_begin offset=4669440 size=131072
+t=12005 read_end offset=4669440 bytes=131072 elapsed_ms=5
+t=12006 read_begin offset=4800512 size=131072
+t=12011 read_end offset=4800512 bytes=131072 elapsed_ms=4
+t=12013 read_begin offset=4931584 size=131072
+t=12047 read_end offset=4931584 bytes=131072 elapsed_ms=34
+t=12049 read_begin offset=5062656 size=131072
+t=12054 read_end offset=5062656 bytes=131072 elapsed_ms=5
+t=12056 video packet=66 pts_us=3000000 delta_us=-333000 bytes=23935 elapsed_ms=58
+t=12066 video packet=67 pts_us=2833000 delta_us=-167000 bytes=13023 elapsed_ms=8
+t=12067 video packet=68 pts_us=2750000 delta_us=-83000 bytes=3957 elapsed_ms=0
+t=12068 video packet=69 pts_us=2708000 delta_us=-42000 bytes=918 elapsed_ms=0
+t=12069 video packet=70 pts_us=2792000 delta_us=84000 bytes=881 elapsed_ms=0
+t=12070 video packet=71 pts_us=2917000 delta_us=125000 bytes=4355 elapsed_ms=0
+t=12072 video packet=72 pts_us=2875000 delta_us=-42000 bytes=897 elapsed_ms=0
+t=12073 video packet=73 pts_us=2958000 delta_us=83000 bytes=822 elapsed_ms=0
+t=12086 video packet=74 pts_us=3167000 delta_us=209000 bytes=11262 elapsed_ms=12
+t=12087 video packet=75 pts_us=3083000 delta_us=-84000 bytes=4176 elapsed_ms=0
+t=12088 video packet=76 pts_us=3042000 delta_us=-41000 bytes=766 elapsed_ms=0
+t=12089 video packet=77 pts_us=3125000 delta_us=83000 bytes=895 elapsed_ms=0
+t=12090 video packet=78 pts_us=3250000 delta_us=125000 bytes=4705 elapsed_ms=1
+t=12090 video packet=79 pts_us=3208000 delta_us=-42000 bytes=894 elapsed_ms=0
+t=12091 video packet=80 pts_us=3292000 delta_us=84000 bytes=944 elapsed_ms=0
+t=12093 video packet=81 pts_us=4000000 delta_us=708000 bytes=300650 elapsed_ms=1
+t=12095 video packet=82 pts_us=3667000 delta_us=-333000 bytes=23821 elapsed_ms=1
+t=12101 video packet=83 pts_us=3500000 delta_us=-167000 bytes=11537 elapsed_ms=6
+t=12101 video packet=84 pts_us=3417000 delta_us=-83000 bytes=5104 elapsed_ms=0
+t=12103 video packet=85 pts_us=3375000 delta_us=-42000 bytes=1061 elapsed_ms=1
+t=12103 video packet=86 pts_us=3458000 delta_us=83000 bytes=1011 elapsed_ms=0
+t=12104 video packet=87 pts_us=3583000 delta_us=125000 bytes=5176 elapsed_ms=0
+t=12105 video packet=88 pts_us=3542000 delta_us=-41000 bytes=1134 elapsed_ms=0
+t=12106 video packet=89 pts_us=3625000 delta_us=83000 bytes=1065 elapsed_ms=0
+t=12120 read_begin offset=5193728 size=131072
+t=12125 read_end offset=5193728 bytes=131072 elapsed_ms=5
+t=12127 read_begin offset=5324800 size=131072
+t=12135 read_end offset=5324800 bytes=131072 elapsed_ms=7
+t=12136 read_begin offset=5455872 size=131072
+t=12143 read_end offset=5455872 bytes=131072 elapsed_ms=6
+t=12144 read_begin offset=5586944 size=131072
+t=12150 read_end offset=5586944 bytes=131072 elapsed_ms=5
+t=12152 video packet=90 pts_us=3833000 delta_us=208000 bytes=11536 elapsed_ms=45
+t=12153 video packet=91 pts_us=3750000 delta_us=-83000 bytes=5038 elapsed_ms=0
+t=12153 video packet=92 pts_us=3708000 delta_us=-42000 bytes=1089 elapsed_ms=0
+t=12154 video packet=93 pts_us=3792000 delta_us=84000 bytes=1217 elapsed_ms=0
+t=12155 video packet=94 pts_us=3917000 delta_us=125000 bytes=5212 elapsed_ms=0
+t=12156 video packet=95 pts_us=3875000 delta_us=-42000 bytes=1131 elapsed_ms=0
+t=12156 video packet=96 pts_us=3958000 delta_us=83000 bytes=1174 elapsed_ms=0
+t=12158 video packet=97 pts_us=4667000 delta_us=709000 bytes=174640 elapsed_ms=1
+t=12160 video packet=98 pts_us=4333000 delta_us=-334000 bytes=24421 elapsed_ms=1
+t=12167 video packet=99 pts_us=4167000 delta_us=-166000 bytes=11460 elapsed_ms=6
+t=12167 video packet=100 pts_us=4083000 delta_us=-84000 bytes=5382 elapsed_ms=0
+t=12168 video packet=101 pts_us=4042000 delta_us=-41000 bytes=1351 elapsed_ms=0
+t=12168 video packet=102 pts_us=4125000 delta_us=83000 bytes=1342 elapsed_ms=0
+t=12169 video packet=103 pts_us=4250000 delta_us=125000 bytes=5616 elapsed_ms=0
+t=12170 video packet=104 pts_us=4208000 delta_us=-42000 bytes=1443 elapsed_ms=1
+t=12170 video packet=105 pts_us=4292000 delta_us=84000 bytes=1353 elapsed_ms=0
+t=12184 video packet=106 pts_us=4500000 delta_us=208000 bytes=11305 elapsed_ms=13
+t=12185 video packet=107 pts_us=4417000 delta_us=-83000 bytes=5506 elapsed_ms=0
+t=12185 video packet=108 pts_us=4375000 delta_us=-42000 bytes=1091 elapsed_ms=0
+t=12186 video packet=109 pts_us=4458000 delta_us=83000 bytes=1104 elapsed_ms=0
+t=12187 video packet=110 pts_us=4583000 delta_us=125000 bytes=5062 elapsed_ms=0
+t=12188 video packet=111 pts_us=4542000 delta_us=-41000 bytes=1039 elapsed_ms=1
+t=12188 video packet=112 pts_us=4625000 delta_us=83000 bytes=1175 elapsed_ms=0
+t=12190 video packet=113 pts_us=5333000 delta_us=708000 bytes=206276 elapsed_ms=1
+t=12195 video packet=114 pts_us=5000000 delta_us=-333000 bytes=20710 elapsed_ms=1
+t=12202 video packet=115 pts_us=4833000 delta_us=-167000 bytes=10332 elapsed_ms=6
+t=12203 video packet=116 pts_us=4750000 delta_us=-83000 bytes=4787 elapsed_ms=0
+t=12204 video packet=117 pts_us=4708000 delta_us=-42000 bytes=969 elapsed_ms=0
+t=12205 video packet=118 pts_us=4792000 delta_us=84000 bytes=805 elapsed_ms=1
+t=12205 video packet=119 pts_us=4917000 delta_us=125000 bytes=3709 elapsed_ms=0
+t=12206 video packet=120 pts_us=4875000 delta_us=-42000 bytes=691 elapsed_ms=0
+t=12207 video packet=121 pts_us=4958000 delta_us=83000 bytes=632 elapsed_ms=0
+t=12208 video packet=122 pts_us=5167000 delta_us=209000 bytes=8071 elapsed_ms=0
+t=12283 video packet=123 pts_us=5083000 delta_us=-84000 bytes=3139 elapsed_ms=75
+t=12284 video packet=124 pts_us=5042000 delta_us=-41000 bytes=565 elapsed_ms=0
+t=12285 video packet=125 pts_us=5125000 delta_us=83000 bytes=598 elapsed_ms=0
+t=12286 video packet=126 pts_us=5250000 delta_us=125000 bytes=2540 elapsed_ms=1
+t=12286 video packet=127 pts_us=5208000 delta_us=-42000 bytes=526 elapsed_ms=0
+t=12287 video packet=128 pts_us=5292000 delta_us=84000 bytes=485 elapsed_ms=0
+t=12289 video packet=129 pts_us=6000000 delta_us=708000 bytes=60211 elapsed_ms=1
+t=12295 video packet=130 pts_us=5667000 delta_us=-333000 bytes=15713 elapsed_ms=6
+t=12295 video packet=131 pts_us=5500000 delta_us=-167000 bytes=6521 elapsed_ms=0
+t=12296 video packet=132 pts_us=5417000 delta_us=-83000 bytes=2282 elapsed_ms=0
+t=12297 video packet=133 pts_us=5375000 delta_us=-42000 bytes=422 elapsed_ms=0
+t=12297 video packet=134 pts_us=5458000 delta_us=83000 bytes=314 elapsed_ms=0
+t=12298 video packet=135 pts_us=5583000 delta_us=125000 bytes=1644 elapsed_ms=1
+t=12298 video packet=136 pts_us=5542000 delta_us=-41000 bytes=295 elapsed_ms=0
+t=12299 video packet=137 pts_us=5625000 delta_us=83000 bytes=285 elapsed_ms=0
+t=12305 video packet=138 pts_us=5833000 delta_us=208000 bytes=3775 elapsed_ms=6
+t=12305 video packet=139 pts_us=5750000 delta_us=-83000 bytes=878 elapsed_ms=0
+t=12306 video packet=140 pts_us=5708000 delta_us=-42000 bytes=232 elapsed_ms=0
+t=12306 video packet=141 pts_us=5792000 delta_us=84000 bytes=150 elapsed_ms=0
+t=12307 video packet=142 pts_us=5917000 delta_us=125000 bytes=574 elapsed_ms=0
+t=12307 video packet=143 pts_us=5875000 delta_us=-42000 bytes=187 elapsed_ms=0
+t=12308 video packet=144 pts_us=5958000 delta_us=83000 bytes=173 elapsed_ms=0
+t=12309 video packet=145 pts_us=6208000 delta_us=250000 bytes=6750 elapsed_ms=0
+t=12318 video packet=146 pts_us=6083000 delta_us=-125000 bytes=650 elapsed_ms=9
+t=12319 video packet=147 pts_us=6042000 delta_us=-41000 bytes=230 elapsed_ms=1
+t=12319 video packet=148 pts_us=6125000 delta_us=83000 bytes=284 elapsed_ms=0
+t=12320 video packet=149 pts_us=6167000 delta_us=42000 bytes=163 elapsed_ms=0
+t=12325 video packet=150 pts_us=6250000 delta_us=83000 bytes=68223 elapsed_ms=5
+t=12326 video packet=151 pts_us=6917000 delta_us=667000 bytes=111 elapsed_ms=1
+t=12326 video packet=152 pts_us=6583000 delta_us=-334000 bytes=105 elapsed_ms=0
+t=12327 video packet=153 pts_us=6417000 delta_us=-166000 bytes=105 elapsed_ms=0
+t=12328 video packet=154 pts_us=6333000 delta_us=-84000 bytes=105 elapsed_ms=0
+t=12328 video packet=155 pts_us=6292000 delta_us=-41000 bytes=105 elapsed_ms=0
+t=12329 video packet=156 pts_us=6375000 delta_us=83000 bytes=105 elapsed_ms=0
+t=12330 video packet=157 pts_us=6500000 delta_us=125000 bytes=105 elapsed_ms=0
+t=12339 video packet=158 pts_us=6458000 delta_us=-42000 bytes=105 elapsed_ms=9
+t=12340 video packet=159 pts_us=6542000 delta_us=84000 bytes=105 elapsed_ms=0
+t=12340 video packet=160 pts_us=6750000 delta_us=208000 bytes=105 elapsed_ms=0
+t=12341 video packet=161 pts_us=6667000 delta_us=-83000 bytes=105 elapsed_ms=0
+t=12342 video packet=162 pts_us=6625000 delta_us=-42000 bytes=105 elapsed_ms=0
+t=12342 video packet=163 pts_us=6708000 delta_us=83000 bytes=105 elapsed_ms=0
+t=12343 video packet=164 pts_us=6833000 delta_us=125000 bytes=105 elapsed_ms=0
+t=12343 video packet=165 pts_us=6792000 delta_us=-41000 bytes=105 elapsed_ms=0
+t=12345 video packet=166 pts_us=6875000 delta_us=83000 bytes=105 elapsed_ms=1
+t=12350 video packet=167 pts_us=7583000 delta_us=708000 bytes=155469 elapsed_ms=4
+t=12351 video packet=168 pts_us=7250000 delta_us=-333000 bytes=145 elapsed_ms=0
+t=12351 video packet=169 pts_us=7083000 delta_us=-167000 bytes=109 elapsed_ms=0
+t=12352 video packet=170 pts_us=7000000 delta_us=-83000 bytes=106 elapsed_ms=0
+t=12353 video packet=171 pts_us=6958000 delta_us=-42000 bytes=105 elapsed_ms=0
+t=12353 video packet=172 pts_us=7042000 delta_us=84000 bytes=105 elapsed_ms=0
+t=12354 video packet=173 pts_us=7167000 delta_us=125000 bytes=107 elapsed_ms=0
+t=12354 video packet=174 pts_us=7125000 delta_us=-42000 bytes=105 elapsed_ms=0
+t=12357 video packet=175 pts_us=7208000 delta_us=83000 bytes=107 elapsed_ms=2
+t=12357 video packet=176 pts_us=7417000 delta_us=209000 bytes=112 elapsed_ms=0
+t=12358 video packet=177 pts_us=7333000 delta_us=-84000 bytes=250 elapsed_ms=0
+t=12365 video packet=178 pts_us=7292000 delta_us=-41000 bytes=9678 elapsed_ms=6
+t=12366 video packet=179 pts_us=7375000 delta_us=83000 bytes=141 elapsed_ms=0
+t=12367 video packet=180 pts_us=7500000 delta_us=125000 bytes=218 elapsed_ms=0
+t=12368 video packet=181 pts_us=7458000 delta_us=-42000 bytes=111 elapsed_ms=1
+t=12369 video packet=182 pts_us=7542000 delta_us=84000 bytes=110 elapsed_ms=0
+t=12377 video packet=183 pts_us=8250000 delta_us=708000 bytes=31088 elapsed_ms=8
+t=12378 video packet=184 pts_us=7917000 delta_us=-333000 bytes=142 elapsed_ms=0
+t=12379 video packet=185 pts_us=7750000 delta_us=-167000 bytes=142 elapsed_ms=0
+t=12381 video packet=186 pts_us=7667000 delta_us=-83000 bytes=232 elapsed_ms=0
+t=12382 video packet=187 pts_us=7625000 delta_us=-42000 bytes=109 elapsed_ms=0
+t=12383 video packet=188 pts_us=7708000 delta_us=83000 bytes=109 elapsed_ms=0
+t=12384 video packet=189 pts_us=7833000 delta_us=125000 bytes=203 elapsed_ms=0
+t=12385 video packet=190 pts_us=7792000 delta_us=-41000 bytes=111 elapsed_ms=0
+t=12398 video packet=191 pts_us=7875000 delta_us=83000 bytes=110 elapsed_ms=12
+t=12399 video packet=192 pts_us=8083000 delta_us=208000 bytes=111 elapsed_ms=0
+t=12400 video packet=193 pts_us=8000000 delta_us=-83000 bytes=211 elapsed_ms=0
+t=12400 video packet=194 pts_us=7958000 delta_us=-42000 bytes=111 elapsed_ms=0
+t=12401 video packet=195 pts_us=8042000 delta_us=84000 bytes=111 elapsed_ms=0
+t=12402 video packet=196 pts_us=8167000 delta_us=125000 bytes=187 elapsed_ms=0
+t=12402 video packet=197 pts_us=8125000 delta_us=-42000 bytes=112 elapsed_ms=0
+t=12403 video packet=198 pts_us=8208000 delta_us=83000 bytes=110 elapsed_ms=0
+t=12411 video packet=199 pts_us=8917000 delta_us=709000 bytes=375 elapsed_ms=7
+t=12412 video packet=200 pts_us=8583000 delta_us=-334000 bytes=124 elapsed_ms=0
+t=12413 video packet=201 pts_us=8417000 delta_us=-166000 bytes=110 elapsed_ms=0
+t=12414 video packet=202 pts_us=8333000 delta_us=-84000 bytes=207 elapsed_ms=0
+t=12415 video packet=203 pts_us=8292000 delta_us=-41000 bytes=110 elapsed_ms=0
+t=12415 video packet=204 pts_us=8375000 delta_us=83000 bytes=110 elapsed_ms=0
+t=12416 video packet=205 pts_us=8500000 delta_us=125000 bytes=197 elapsed_ms=0
+t=12417 video packet=206 pts_us=8458000 delta_us=-42000 bytes=109 elapsed_ms=0
+t=12428 video packet=207 pts_us=8542000 delta_us=84000 bytes=110 elapsed_ms=10
+t=12429 video packet=208 pts_us=8750000 delta_us=208000 bytes=109 elapsed_ms=0
+t=12430 video packet=209 pts_us=8667000 delta_us=-83000 bytes=206 elapsed_ms=0
+t=12430 video packet=210 pts_us=8625000 delta_us=-42000 bytes=109 elapsed_ms=0
+t=12431 video packet=211 pts_us=8708000 delta_us=83000 bytes=110 elapsed_ms=0
+t=12432 video packet=212 pts_us=8833000 delta_us=125000 bytes=207 elapsed_ms=1
+t=12432 video packet=213 pts_us=8792000 delta_us=-41000 bytes=109 elapsed_ms=0
+t=12433 video packet=214 pts_us=8875000 delta_us=83000 bytes=110 elapsed_ms=0
+t=12440 video packet=215 pts_us=9583000 delta_us=708000 bytes=106 elapsed_ms=6
+t=12440 video packet=216 pts_us=9250000 delta_us=-333000 bytes=109 elapsed_ms=0
+t=12441 video packet=217 pts_us=9083000 delta_us=-167000 bytes=107 elapsed_ms=0
+t=12442 video packet=218 pts_us=9000000 delta_us=-83000 bytes=176 elapsed_ms=0
+t=12442 video packet=219 pts_us=8958000 delta_us=-42000 bytes=110 elapsed_ms=0
+t=12443 video packet=220 pts_us=9042000 delta_us=84000 bytes=110 elapsed_ms=0
+t=12444 video packet=221 pts_us=9167000 delta_us=125000 bytes=175 elapsed_ms=0
+t=12445 video packet=222 pts_us=9125000 delta_us=-42000 bytes=109 elapsed_ms=1
+t=12456 video packet=223 pts_us=9208000 delta_us=83000 bytes=107 elapsed_ms=11
+t=12457 video packet=224 pts_us=9417000 delta_us=209000 bytes=105 elapsed_ms=1
+t=12457 video packet=225 pts_us=9333000 delta_us=-84000 bytes=174 elapsed_ms=0
+t=12458 video packet=226 pts_us=9292000 delta_us=-41000 bytes=109 elapsed_ms=0
+t=12459 video packet=227 pts_us=9375000 delta_us=83000 bytes=109 elapsed_ms=0
+t=12459 video packet=228 pts_us=9500000 delta_us=125000 bytes=174 elapsed_ms=0
+t=12460 video packet=229 pts_us=9458000 delta_us=-42000 bytes=109 elapsed_ms=0
+t=12461 video packet=230 pts_us=9542000 delta_us=84000 bytes=109 elapsed_ms=0
+t=12469 video packet=231 pts_us=10208000 delta_us=666000 bytes=10287 elapsed_ms=7
+t=12470 video packet=232 pts_us=9875000 delta_us=-333000 bytes=109 elapsed_ms=0
+t=12471 video packet=233 pts_us=9708000 delta_us=-167000 bytes=183 elapsed_ms=0
+t=12472 video packet=234 pts_us=9625000 delta_us=-83000 bytes=108 elapsed_ms=0
+t=12472 video packet=235 pts_us=9667000 delta_us=42000 bytes=106 elapsed_ms=0
+t=12473 video packet=236 pts_us=9792000 delta_us=125000 bytes=110 elapsed_ms=0
+t=12474 video packet=237 pts_us=9750000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=12474 video packet=238 pts_us=9833000 delta_us=83000 bytes=106 elapsed_ms=0
+t=12514 video packet=239 pts_us=10042000 delta_us=209000 bytes=181 elapsed_ms=39
+t=12516 video packet=240 pts_us=9958000 delta_us=-84000 bytes=107 elapsed_ms=0
+t=12516 video packet=241 pts_us=9917000 delta_us=-41000 bytes=107 elapsed_ms=0
+t=12517 video packet=242 pts_us=10000000 delta_us=83000 bytes=106 elapsed_ms=0
+t=12518 video packet=243 pts_us=10125000 delta_us=125000 bytes=110 elapsed_ms=0
+t=12519 video packet=244 pts_us=10083000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=12520 video packet=245 pts_us=10167000 delta_us=84000 bytes=108 elapsed_ms=0
+t=12526 video packet=246 pts_us=10250000 delta_us=83000 bytes=233576 elapsed_ms=5
+t=12527 video packet=247 pts_us=10917000 delta_us=667000 bytes=103 elapsed_ms=0
+t=12528 video packet=248 pts_us=10583000 delta_us=-334000 bytes=105 elapsed_ms=0
+t=12529 video packet=249 pts_us=10417000 delta_us=-166000 bytes=105 elapsed_ms=0
+t=12530 video packet=250 pts_us=10333000 delta_us=-84000 bytes=105 elapsed_ms=0
+t=12531 video packet=251 pts_us=10292000 delta_us=-41000 bytes=105 elapsed_ms=1
+t=12531 video packet=252 pts_us=10375000 delta_us=83000 bytes=105 elapsed_ms=0
+t=12532 video packet=253 pts_us=10500000 delta_us=125000 bytes=105 elapsed_ms=0
+t=12542 video packet=254 pts_us=10458000 delta_us=-42000 bytes=105 elapsed_ms=10
+t=12543 video packet=255 pts_us=10542000 delta_us=84000 bytes=105 elapsed_ms=0
+t=12543 video packet=256 pts_us=10750000 delta_us=208000 bytes=105 elapsed_ms=0
+t=12544 video packet=257 pts_us=10667000 delta_us=-83000 bytes=105 elapsed_ms=0
+t=12545 video packet=258 pts_us=10625000 delta_us=-42000 bytes=105 elapsed_ms=0
+t=12545 video packet=259 pts_us=10708000 delta_us=83000 bytes=105 elapsed_ms=0
+t=12546 video packet=260 pts_us=10833000 delta_us=125000 bytes=105 elapsed_ms=0
+t=12547 video packet=261 pts_us=10792000 delta_us=-41000 bytes=105 elapsed_ms=0
+t=12549 video packet=262 pts_us=10875000 delta_us=83000 bytes=105 elapsed_ms=2
+t=12554 video packet=263 pts_us=11583000 delta_us=708000 bytes=83196 elapsed_ms=5
+t=12555 video packet=264 pts_us=11250000 delta_us=-333000 bytes=489 elapsed_ms=0
+t=12556 video packet=265 pts_us=11083000 delta_us=-167000 bytes=109 elapsed_ms=1
+t=12556 video packet=266 pts_us=11000000 delta_us=-83000 bytes=106 elapsed_ms=0
+t=12557 video packet=267 pts_us=10958000 delta_us=-42000 bytes=105 elapsed_ms=0
+t=12557 video packet=268 pts_us=11042000 delta_us=84000 bytes=105 elapsed_ms=0
+t=12558 video packet=269 pts_us=11167000 delta_us=125000 bytes=107 elapsed_ms=0
+t=12559 video packet=270 pts_us=11125000 delta_us=-42000 bytes=105 elapsed_ms=1
+t=12568 video packet=271 pts_us=11208000 delta_us=83000 bytes=107 elapsed_ms=9
+t=12569 video packet=272 pts_us=11417000 delta_us=209000 bytes=215 elapsed_ms=0
+t=12570 video packet=273 pts_us=11333000 delta_us=-84000 bytes=148 elapsed_ms=0
+t=12570 video packet=274 pts_us=11292000 delta_us=-41000 bytes=198 elapsed_ms=0
+t=12571 video packet=275 pts_us=11375000 delta_us=83000 bytes=151 elapsed_ms=0
+t=12573 video packet=276 pts_us=11500000 delta_us=125000 bytes=161 elapsed_ms=0
+t=12574 video packet=277 pts_us=11458000 delta_us=-42000 bytes=151 elapsed_ms=0
+t=12574 video packet=278 pts_us=11542000 delta_us=84000 bytes=109 elapsed_ms=0
+t=12584 video packet=279 pts_us=12250000 delta_us=708000 bytes=28778 elapsed_ms=9
+t=12585 video packet=280 pts_us=11917000 delta_us=-333000 bytes=4729 elapsed_ms=0
+t=12586 video packet=281 pts_us=11750000 delta_us=-167000 bytes=615 elapsed_ms=0
+t=12587 video packet=282 pts_us=11667000 delta_us=-83000 bytes=288 elapsed_ms=0
+t=12588 video packet=283 pts_us=11625000 delta_us=-42000 bytes=126 elapsed_ms=1
+t=12588 video packet=284 pts_us=11708000 delta_us=83000 bytes=123 elapsed_ms=0
+t=12589 video packet=285 pts_us=11833000 delta_us=125000 bytes=570 elapsed_ms=0
+t=12590 video packet=286 pts_us=11792000 delta_us=-41000 bytes=169 elapsed_ms=0
+t=12602 video packet=287 pts_us=11875000 delta_us=83000 bytes=159 elapsed_ms=12
+t=12603 video packet=288 pts_us=12083000 delta_us=208000 bytes=2060 elapsed_ms=0
+t=12604 video packet=289 pts_us=12000000 delta_us=-83000 bytes=688 elapsed_ms=0
+t=12605 video packet=290 pts_us=11958000 delta_us=-42000 bytes=163 elapsed_ms=0
+t=12605 video packet=291 pts_us=12042000 delta_us=84000 bytes=257 elapsed_ms=0
+t=12606 video packet=292 pts_us=12167000 delta_us=125000 bytes=1367 elapsed_ms=0
+t=12607 video packet=293 pts_us=12125000 delta_us=-42000 bytes=262 elapsed_ms=1
+t=12607 video packet=294 pts_us=12208000 delta_us=83000 bytes=283 elapsed_ms=0
+t=12614 video packet=295 pts_us=12917000 delta_us=709000 bytes=7045 elapsed_ms=6
+t=12614 video packet=296 pts_us=12583000 delta_us=-334000 bytes=950 elapsed_ms=0
+t=12615 video packet=297 pts_us=12417000 delta_us=-166000 bytes=413 elapsed_ms=0
+t=12616 video packet=298 pts_us=12333000 delta_us=-84000 bytes=558 elapsed_ms=0
+t=12616 video packet=299 pts_us=12292000 delta_us=-41000 bytes=272 elapsed_ms=0
+t=12617 video packet=300 pts_us=12375000 delta_us=83000 bytes=174 elapsed_ms=0
+t=12618 video packet=301 pts_us=12500000 delta_us=125000 bytes=514 elapsed_ms=0
+t=12618 video packet=302 pts_us=12458000 delta_us=-42000 bytes=203 elapsed_ms=0
+t=12627 video packet=303 pts_us=12542000 delta_us=84000 bytes=228 elapsed_ms=8
+t=12627 video packet=304 pts_us=12750000 delta_us=208000 bytes=353 elapsed_ms=0
+t=12628 video packet=305 pts_us=12667000 delta_us=-83000 bytes=508 elapsed_ms=0
+t=12629 video packet=306 pts_us=12625000 delta_us=-42000 bytes=222 elapsed_ms=0
+t=12629 video packet=307 pts_us=12708000 delta_us=83000 bytes=187 elapsed_ms=0
+t=12630 video packet=308 pts_us=12833000 delta_us=125000 bytes=502 elapsed_ms=0
+t=12630 video packet=309 pts_us=12792000 delta_us=-41000 bytes=209 elapsed_ms=0
+t=12631 video packet=310 pts_us=12875000 delta_us=83000 bytes=234 elapsed_ms=0
+t=12637 video packet=311 pts_us=13583000 delta_us=708000 bytes=3319 elapsed_ms=5
+t=12638 video packet=312 pts_us=13250000 delta_us=-333000 bytes=910 elapsed_ms=0
+t=12639 video packet=313 pts_us=13083000 delta_us=-167000 bytes=272 elapsed_ms=0
+t=12639 video packet=314 pts_us=13000000 delta_us=-83000 bytes=535 elapsed_ms=0
+t=12640 video packet=315 pts_us=12958000 delta_us=-42000 bytes=194 elapsed_ms=0
+t=12641 video packet=316 pts_us=13042000 delta_us=84000 bytes=213 elapsed_ms=1
+t=12641 video packet=317 pts_us=13167000 delta_us=125000 bytes=469 elapsed_ms=0
+t=12642 video packet=318 pts_us=13125000 delta_us=-42000 bytes=204 elapsed_ms=0
+t=12653 video packet=319 pts_us=13208000 delta_us=83000 bytes=194 elapsed_ms=10
+t=12653 video packet=320 pts_us=13417000 delta_us=209000 bytes=370 elapsed_ms=0
+t=12654 video packet=321 pts_us=13333000 delta_us=-84000 bytes=505 elapsed_ms=0
+t=12657 video packet=322 pts_us=13292000 delta_us=-41000 bytes=196 elapsed_ms=0
+t=12658 video packet=323 pts_us=13375000 delta_us=83000 bytes=181 elapsed_ms=0
+t=12663 video packet=324 pts_us=13500000 delta_us=125000 bytes=484 elapsed_ms=0
+t=12664 video packet=325 pts_us=13458000 delta_us=-42000 bytes=167 elapsed_ms=0
+t=12665 video packet=326 pts_us=13542000 delta_us=84000 bytes=226 elapsed_ms=0
+t=12671 video packet=327 pts_us=14250000 delta_us=708000 bytes=3681 elapsed_ms=6
+t=12671 video packet=328 pts_us=13917000 delta_us=-333000 bytes=741 elapsed_ms=0
+t=12672 video packet=329 pts_us=13750000 delta_us=-167000 bytes=228 elapsed_ms=0
+t=12672 video packet=330 pts_us=13667000 delta_us=-83000 bytes=414 elapsed_ms=0
+t=12673 video packet=331 pts_us=13625000 delta_us=-42000 bytes=181 elapsed_ms=0
+t=12674 video packet=332 pts_us=13708000 delta_us=83000 bytes=144 elapsed_ms=1
+t=12674 video packet=333 pts_us=13833000 delta_us=125000 bytes=405 elapsed_ms=0
+t=12675 video packet=334 pts_us=13792000 delta_us=-41000 bytes=169 elapsed_ms=0
+t=12685 video packet=335 pts_us=13875000 delta_us=83000 bytes=188 elapsed_ms=10
+t=12686 video packet=336 pts_us=14083000 delta_us=208000 bytes=307 elapsed_ms=0
+t=12686 video packet=337 pts_us=14000000 delta_us=-83000 bytes=383 elapsed_ms=0
+t=12687 video packet=338 pts_us=13958000 delta_us=-42000 bytes=189 elapsed_ms=0
+t=12688 video packet=339 pts_us=14042000 delta_us=84000 bytes=165 elapsed_ms=0
+t=12688 video packet=340 pts_us=14167000 delta_us=125000 bytes=498 elapsed_ms=0
+t=12689 video packet=341 pts_us=14125000 delta_us=-42000 bytes=167 elapsed_ms=0
+t=12690 video packet=342 pts_us=14208000 delta_us=83000 bytes=208 elapsed_ms=0
+t=12736 video packet=343 pts_us=14917000 delta_us=709000 bytes=7489 elapsed_ms=45
+t=12737 video packet=344 pts_us=14583000 delta_us=-334000 bytes=3517 elapsed_ms=0
+t=12737 video packet=345 pts_us=14417000 delta_us=-166000 bytes=1113 elapsed_ms=0
+t=12738 video packet=346 pts_us=14333000 delta_us=-84000 bytes=789 elapsed_ms=0
+t=12739 video packet=347 pts_us=14292000 delta_us=-41000 bytes=374 elapsed_ms=0
+t=12739 video packet=348 pts_us=14375000 delta_us=83000 bytes=212 elapsed_ms=0
+t=12740 video packet=349 pts_us=14500000 delta_us=125000 bytes=419 elapsed_ms=0
+t=12740 video packet=350 pts_us=14458000 delta_us=-42000 bytes=185 elapsed_ms=0
+t=12748 video packet=351 pts_us=14542000 delta_us=84000 bytes=155 elapsed_ms=7
+t=12749 video packet=352 pts_us=14750000 delta_us=208000 bytes=362 elapsed_ms=0
+t=12749 video packet=353 pts_us=14667000 delta_us=-83000 bytes=283 elapsed_ms=0
+t=12750 video packet=354 pts_us=14625000 delta_us=-42000 bytes=122 elapsed_ms=0
+t=12750 video packet=355 pts_us=14708000 delta_us=83000 bytes=139 elapsed_ms=0
+t=12751 video packet=356 pts_us=14833000 delta_us=125000 bytes=144 elapsed_ms=0
+t=12751 video packet=357 pts_us=14792000 delta_us=-41000 bytes=119 elapsed_ms=0
+t=12752 video packet=358 pts_us=14875000 delta_us=83000 bytes=111 elapsed_ms=0
+t=12766 video packet=359 pts_us=15250000 delta_us=375000 bytes=2211 elapsed_ms=14
+t=12767 video packet=360 pts_us=15083000 delta_us=-167000 bytes=1243 elapsed_ms=0
+t=12767 video packet=361 pts_us=15000000 delta_us=-83000 bytes=184 elapsed_ms=0
+t=12768 video packet=362 pts_us=14958000 delta_us=-42000 bytes=127 elapsed_ms=0
+t=12768 video packet=363 pts_us=15042000 delta_us=84000 bytes=108 elapsed_ms=0
+t=12769 video packet=364 pts_us=15167000 delta_us=125000 bytes=697 elapsed_ms=0
+t=12770 video packet=365 pts_us=15125000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=12770 video packet=366 pts_us=15208000 delta_us=83000 bytes=209 elapsed_ms=0
+t=12772 video packet=367 pts_us=15292000 delta_us=84000 bytes=128276 elapsed_ms=1
+t=12779 video packet=368 pts_us=15958000 delta_us=666000 bytes=123904 elapsed_ms=6
+t=12779 video packet=369 pts_us=15625000 delta_us=-333000 bytes=6709 elapsed_ms=0
+t=12781 video packet=370 pts_us=15458000 delta_us=-167000 bytes=1612 elapsed_ms=0
+t=12782 video packet=371 pts_us=15375000 delta_us=-83000 bytes=983 elapsed_ms=0
+t=12782 video packet=372 pts_us=15333000 delta_us=-42000 bytes=598 elapsed_ms=0
+t=12783 video packet=373 pts_us=15417000 delta_us=84000 bytes=118 elapsed_ms=0
+t=12783 video packet=374 pts_us=15542000 delta_us=125000 bytes=170 elapsed_ms=0
+t=12784 video packet=375 pts_us=15500000 delta_us=-42000 bytes=117 elapsed_ms=0
+t=12793 video packet=376 pts_us=15583000 delta_us=83000 bytes=108 elapsed_ms=9
+t=12794 video packet=377 pts_us=15792000 delta_us=209000 bytes=306 elapsed_ms=0
+t=12794 video packet=378 pts_us=15708000 delta_us=-84000 bytes=173 elapsed_ms=0
+t=12795 video packet=379 pts_us=15667000 delta_us=-41000 bytes=107 elapsed_ms=0
+t=12795 video packet=380 pts_us=15750000 delta_us=83000 bytes=106 elapsed_ms=0
+t=12796 video packet=381 pts_us=15875000 delta_us=125000 bytes=150 elapsed_ms=0
+t=12796 video packet=382 pts_us=15833000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=12797 video packet=383 pts_us=15917000 delta_us=84000 bytes=106 elapsed_ms=0
+t=12803 video packet=384 pts_us=16625000 delta_us=708000 bytes=57814 elapsed_ms=6
+t=12803 video packet=385 pts_us=16292000 delta_us=-333000 bytes=260 elapsed_ms=0
+t=12804 video packet=386 pts_us=16125000 delta_us=-167000 bytes=4304 elapsed_ms=0
+t=12804 video packet=387 pts_us=16042000 delta_us=-83000 bytes=191 elapsed_ms=0
+t=12805 video packet=388 pts_us=16000000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=12805 video packet=389 pts_us=16083000 delta_us=83000 bytes=106 elapsed_ms=0
+t=12806 video packet=390 pts_us=16208000 delta_us=125000 bytes=220 elapsed_ms=0
+t=12806 video packet=391 pts_us=16167000 delta_us=-41000 bytes=329 elapsed_ms=0
+t=12814 video packet=392 pts_us=16250000 delta_us=83000 bytes=108 elapsed_ms=7
+t=12815 video packet=393 pts_us=16458000 delta_us=208000 bytes=113 elapsed_ms=1
+t=12816 video packet=394 pts_us=16375000 delta_us=-83000 bytes=164 elapsed_ms=0
+t=12816 video packet=395 pts_us=16333000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=12817 video packet=396 pts_us=16417000 delta_us=84000 bytes=107 elapsed_ms=0
+t=12818 video packet=397 pts_us=16542000 delta_us=125000 bytes=169 elapsed_ms=0
+t=12819 video packet=398 pts_us=16500000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=12819 video packet=399 pts_us=16583000 delta_us=83000 bytes=107 elapsed_ms=0
+t=12825 video packet=400 pts_us=17292000 delta_us=709000 bytes=3629 elapsed_ms=5
+t=12825 video packet=401 pts_us=16958000 delta_us=-334000 bytes=269 elapsed_ms=0
+t=12826 video packet=402 pts_us=16792000 delta_us=-166000 bytes=121 elapsed_ms=0
+t=12827 video packet=403 pts_us=16708000 delta_us=-84000 bytes=198 elapsed_ms=0
+t=12828 video packet=404 pts_us=16667000 delta_us=-41000 bytes=108 elapsed_ms=1
+t=12828 video packet=405 pts_us=16750000 delta_us=83000 bytes=107 elapsed_ms=0
+t=12829 video packet=406 pts_us=16875000 delta_us=125000 bytes=177 elapsed_ms=0
+t=12830 video packet=407 pts_us=16833000 delta_us=-42000 bytes=107 elapsed_ms=0
+t=12839 video packet=408 pts_us=16917000 delta_us=84000 bytes=108 elapsed_ms=9
+t=12840 video packet=409 pts_us=17125000 delta_us=208000 bytes=134 elapsed_ms=0
+t=12841 video packet=410 pts_us=17042000 delta_us=-83000 bytes=191 elapsed_ms=0
+t=12843 video packet=411 pts_us=17000000 delta_us=-42000 bytes=105 elapsed_ms=1
+t=12844 video packet=412 pts_us=17083000 delta_us=83000 bytes=107 elapsed_ms=1
+t=12845 video packet=413 pts_us=17208000 delta_us=125000 bytes=182 elapsed_ms=1
+t=12845 video packet=414 pts_us=17167000 delta_us=-41000 bytes=105 elapsed_ms=0
+t=12846 video packet=415 pts_us=17250000 delta_us=83000 bytes=107 elapsed_ms=0
+t=12852 video packet=416 pts_us=17958000 delta_us=708000 bytes=936 elapsed_ms=6
+t=12853 video packet=417 pts_us=17625000 delta_us=-333000 bytes=197 elapsed_ms=0
+t=12854 video packet=418 pts_us=17458000 delta_us=-167000 bytes=113 elapsed_ms=0
+t=12855 video packet=419 pts_us=17375000 delta_us=-83000 bytes=172 elapsed_ms=0
+t=12856 video packet=420 pts_us=17333000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=12857 video packet=421 pts_us=17417000 delta_us=84000 bytes=107 elapsed_ms=0
+t=12857 video packet=422 pts_us=17542000 delta_us=125000 bytes=155 elapsed_ms=0
+t=12858 video packet=423 pts_us=17500000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=12870 video packet=424 pts_us=17583000 delta_us=83000 bytes=106 elapsed_ms=11
+t=12870 video packet=425 pts_us=17792000 delta_us=209000 bytes=114 elapsed_ms=0
+t=12873 video packet=426 pts_us=17708000 delta_us=-84000 bytes=168 elapsed_ms=0
+t=12874 video packet=427 pts_us=17667000 delta_us=-41000 bytes=106 elapsed_ms=1
+t=12874 video packet=428 pts_us=17750000 delta_us=83000 bytes=107 elapsed_ms=0
+t=12875 video packet=429 pts_us=17875000 delta_us=125000 bytes=157 elapsed_ms=0
+t=12876 video packet=430 pts_us=17833000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=12877 video packet=431 pts_us=17917000 delta_us=84000 bytes=107 elapsed_ms=1
+t=12878 video packet=432 pts_us=18625000 delta_us=708000 bytes=14588 elapsed_ms=1
+t=12884 video packet=433 pts_us=18292000 delta_us=-333000 bytes=9146 elapsed_ms=5
+t=12885 video packet=434 pts_us=18125000 delta_us=-167000 bytes=113 elapsed_ms=0
+t=12886 video packet=435 pts_us=18042000 delta_us=-83000 bytes=118 elapsed_ms=1
+t=12886 video packet=436 pts_us=18000000 delta_us=-42000 bytes=107 elapsed_ms=0
+t=12887 video packet=437 pts_us=18083000 delta_us=83000 bytes=107 elapsed_ms=0
+t=12888 video packet=438 pts_us=18208000 delta_us=125000 bytes=1090 elapsed_ms=0
+t=12888 video packet=439 pts_us=18167000 delta_us=-41000 bytes=110 elapsed_ms=0
+t=12889 video packet=440 pts_us=18250000 delta_us=83000 bytes=107 elapsed_ms=0
+t=12900 video packet=441 pts_us=18458000 delta_us=208000 bytes=225 elapsed_ms=11
+t=12901 video packet=442 pts_us=18375000 delta_us=-83000 bytes=117 elapsed_ms=0
+t=12902 video packet=443 pts_us=18333000 delta_us=-42000 bytes=107 elapsed_ms=0
+t=12903 video packet=444 pts_us=18417000 delta_us=84000 bytes=107 elapsed_ms=0
+t=12904 video packet=445 pts_us=18542000 delta_us=125000 bytes=117 elapsed_ms=0
+t=12905 video packet=446 pts_us=18500000 delta_us=-42000 bytes=107 elapsed_ms=0
+t=12906 video packet=447 pts_us=18583000 delta_us=83000 bytes=107 elapsed_ms=0
+t=12907 video packet=448 pts_us=19167000 delta_us=584000 bytes=2044 elapsed_ms=0
+t=12915 video packet=449 pts_us=18875000 delta_us=-292000 bytes=4362 elapsed_ms=8
+t=12916 video packet=450 pts_us=18750000 delta_us=-125000 bytes=189 elapsed_ms=0
+t=12917 video packet=451 pts_us=18667000 delta_us=-83000 bytes=1008 elapsed_ms=0
+t=12918 video packet=452 pts_us=18708000 delta_us=41000 bytes=108 elapsed_ms=0
+t=12919 video packet=453 pts_us=18792000 delta_us=84000 bytes=1051 elapsed_ms=0
+t=12920 video packet=454 pts_us=18833000 delta_us=41000 bytes=106 elapsed_ms=1
+t=12920 video packet=455 pts_us=19000000 delta_us=167000 bytes=2185 elapsed_ms=0
+t=12921 video packet=456 pts_us=18917000 delta_us=-83000 bytes=1038 elapsed_ms=0
+t=12957 video packet=457 pts_us=18958000 delta_us=41000 bytes=106 elapsed_ms=35
+t=12958 video packet=458 pts_us=19083000 delta_us=125000 bytes=151 elapsed_ms=0
+t=12959 video packet=459 pts_us=19042000 delta_us=-41000 bytes=106 elapsed_ms=0
+t=12959 video packet=460 pts_us=19125000 delta_us=83000 bytes=5380 elapsed_ms=0
+t=12961 video packet=461 pts_us=19208000 delta_us=83000 bytes=179937 elapsed_ms=1
+t=12968 video packet=462 pts_us=19875000 delta_us=667000 bytes=45109 elapsed_ms=6
+t=12969 video packet=463 pts_us=19542000 delta_us=-333000 bytes=6742 elapsed_ms=0
+t=12969 video packet=464 pts_us=19375000 delta_us=-167000 bytes=1748 elapsed_ms=0
+t=12970 video packet=465 pts_us=19292000 delta_us=-83000 bytes=748 elapsed_ms=0
+t=12970 video packet=466 pts_us=19250000 delta_us=-42000 bytes=388 elapsed_ms=0
+t=12971 video packet=467 pts_us=19333000 delta_us=83000 bytes=106 elapsed_ms=0
+t=12971 video packet=468 pts_us=19458000 delta_us=125000 bytes=115 elapsed_ms=0
+t=12972 video packet=469 pts_us=19417000 delta_us=-41000 bytes=106 elapsed_ms=0
+t=12982 video packet=470 pts_us=19500000 delta_us=83000 bytes=106 elapsed_ms=10
+t=12983 video packet=471 pts_us=19708000 delta_us=208000 bytes=338 elapsed_ms=0
+t=12983 video packet=472 pts_us=19625000 delta_us=-83000 bytes=119 elapsed_ms=0
+t=12984 video packet=473 pts_us=19583000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=12985 video packet=474 pts_us=19667000 delta_us=84000 bytes=106 elapsed_ms=1
+t=12985 video packet=475 pts_us=19792000 delta_us=125000 bytes=105 elapsed_ms=0
+t=12986 video packet=476 pts_us=19750000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=12986 video packet=477 pts_us=19833000 delta_us=83000 bytes=106 elapsed_ms=0
+t=12992 video packet=478 pts_us=20542000 delta_us=709000 bytes=57556 elapsed_ms=5
+t=12993 video packet=479 pts_us=20208000 delta_us=-334000 bytes=335 elapsed_ms=0
+t=12993 video packet=480 pts_us=20042000 delta_us=-166000 bytes=4016 elapsed_ms=0
+t=12994 video packet=481 pts_us=19958000 delta_us=-84000 bytes=126 elapsed_ms=0
+t=12995 video packet=482 pts_us=19917000 delta_us=-41000 bytes=106 elapsed_ms=0
+t=12995 video packet=483 pts_us=20000000 delta_us=83000 bytes=110 elapsed_ms=0
+t=12996 video packet=484 pts_us=20125000 delta_us=125000 bytes=507 elapsed_ms=0
+t=12997 video packet=485 pts_us=20083000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=13006 video packet=486 pts_us=20167000 delta_us=84000 bytes=113 elapsed_ms=9
+t=13007 video packet=487 pts_us=20375000 delta_us=208000 bytes=112 elapsed_ms=0
+t=13008 video packet=488 pts_us=20292000 delta_us=-83000 bytes=128 elapsed_ms=0
+t=13009 video packet=489 pts_us=20250000 delta_us=-42000 bytes=106 elapsed_ms=1
+t=13009 video packet=490 pts_us=20333000 delta_us=83000 bytes=106 elapsed_ms=0
+t=13010 video packet=491 pts_us=20458000 delta_us=125000 bytes=124 elapsed_ms=0
+t=13011 video packet=492 pts_us=20417000 delta_us=-41000 bytes=106 elapsed_ms=0
+t=13011 video packet=493 pts_us=20500000 delta_us=83000 bytes=106 elapsed_ms=0
+t=13017 video packet=494 pts_us=21208000 delta_us=708000 bytes=3041 elapsed_ms=5
+t=13018 video packet=495 pts_us=20875000 delta_us=-333000 bytes=195 elapsed_ms=0
+t=13019 video packet=496 pts_us=20708000 delta_us=-167000 bytes=125 elapsed_ms=0
+t=13020 video packet=497 pts_us=20625000 delta_us=-83000 bytes=139 elapsed_ms=1
+t=13020 video packet=498 pts_us=20583000 delta_us=-42000 bytes=105 elapsed_ms=0
+t=13021 video packet=499 pts_us=20667000 delta_us=84000 bytes=105 elapsed_ms=0
+t=13022 video packet=500 pts_us=20792000 delta_us=125000 bytes=131 elapsed_ms=0
+t=13022 video packet=501 pts_us=20750000 delta_us=-42000 bytes=105 elapsed_ms=0
+t=13032 video packet=502 pts_us=20833000 delta_us=83000 bytes=107 elapsed_ms=9
+t=13033 video packet=503 pts_us=21042000 delta_us=209000 bytes=114 elapsed_ms=0
+t=13033 video packet=504 pts_us=20958000 delta_us=-84000 bytes=129 elapsed_ms=0
+t=13034 video packet=505 pts_us=20917000 delta_us=-41000 bytes=105 elapsed_ms=0
+t=13034 video packet=506 pts_us=21000000 delta_us=83000 bytes=106 elapsed_ms=0
+t=13035 video packet=507 pts_us=21125000 delta_us=125000 bytes=119 elapsed_ms=0
+t=13036 video packet=508 pts_us=21083000 delta_us=-42000 bytes=105 elapsed_ms=0
+t=13036 video packet=509 pts_us=21167000 delta_us=84000 bytes=106 elapsed_ms=0
+t=13042 video packet=510 pts_us=21875000 delta_us=708000 bytes=489 elapsed_ms=5
+t=13043 video packet=511 pts_us=21542000 delta_us=-333000 bytes=148 elapsed_ms=0
+t=13043 video packet=512 pts_us=21375000 delta_us=-167000 bytes=110 elapsed_ms=0
+t=13044 video packet=513 pts_us=21292000 delta_us=-83000 bytes=115 elapsed_ms=0
+t=13045 video packet=514 pts_us=21250000 delta_us=-42000 bytes=106 elapsed_ms=1
+t=13045 video packet=515 pts_us=21333000 delta_us=83000 bytes=106 elapsed_ms=0
+t=13046 video packet=516 pts_us=21458000 delta_us=125000 bytes=114 elapsed_ms=0
+t=13047 video packet=517 pts_us=21417000 delta_us=-41000 bytes=106 elapsed_ms=0
+t=13059 video packet=518 pts_us=21500000 delta_us=83000 bytes=106 elapsed_ms=12
+t=13060 video packet=519 pts_us=21708000 delta_us=208000 bytes=109 elapsed_ms=0
+t=13061 video packet=520 pts_us=21625000 delta_us=-83000 bytes=114 elapsed_ms=0
+t=13061 video packet=521 pts_us=21583000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=13062 video packet=522 pts_us=21667000 delta_us=84000 bytes=106 elapsed_ms=0
+t=13063 video packet=523 pts_us=21792000 delta_us=125000 bytes=114 elapsed_ms=0
+t=13063 video packet=524 pts_us=21750000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=13064 video packet=525 pts_us=21833000 delta_us=83000 bytes=106 elapsed_ms=0
+t=13066 video packet=526 pts_us=22542000 delta_us=709000 bytes=20728 elapsed_ms=1
+t=13072 video packet=527 pts_us=22208000 delta_us=-334000 bytes=8843 elapsed_ms=5
+t=13073 video packet=528 pts_us=22042000 delta_us=-166000 bytes=115 elapsed_ms=0
+t=13073 video packet=529 pts_us=21958000 delta_us=-84000 bytes=109 elapsed_ms=0
+t=13074 video packet=530 pts_us=21917000 delta_us=-41000 bytes=106 elapsed_ms=0
+t=13075 video packet=531 pts_us=22000000 delta_us=83000 bytes=106 elapsed_ms=0
+t=13075 video packet=532 pts_us=22125000 delta_us=125000 bytes=113 elapsed_ms=0
+t=13076 video packet=533 pts_us=22083000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=13077 video packet=534 pts_us=22167000 delta_us=84000 bytes=109 elapsed_ms=0
+t=13087 video packet=535 pts_us=22375000 delta_us=208000 bytes=410 elapsed_ms=10
+t=13088 video packet=536 pts_us=22292000 delta_us=-83000 bytes=125 elapsed_ms=0
+t=13088 video packet=537 pts_us=22250000 delta_us=-42000 bytes=107 elapsed_ms=0
+t=13089 video packet=538 pts_us=22333000 delta_us=83000 bytes=106 elapsed_ms=0
+t=13089 video packet=539 pts_us=22458000 delta_us=125000 bytes=107 elapsed_ms=0
+t=13090 video packet=540 pts_us=22417000 delta_us=-41000 bytes=106 elapsed_ms=0
+t=13090 video packet=541 pts_us=22500000 delta_us=83000 bytes=106 elapsed_ms=0
+t=13091 video packet=542 pts_us=23125000 delta_us=625000 bytes=1393 elapsed_ms=0
+t=13098 video packet=543 pts_us=22833000 delta_us=-292000 bytes=4870 elapsed_ms=6
+t=13099 video packet=544 pts_us=22667000 delta_us=-166000 bytes=2551 elapsed_ms=0
+t=13100 video packet=545 pts_us=22583000 delta_us=-84000 bytes=1398 elapsed_ms=0
+t=13101 video packet=546 pts_us=22625000 delta_us=42000 bytes=116 elapsed_ms=0
+t=13101 video packet=547 pts_us=22750000 delta_us=125000 bytes=127 elapsed_ms=0
+t=13102 video packet=548 pts_us=22708000 delta_us=-42000 bytes=109 elapsed_ms=0
+t=13103 video packet=549 pts_us=22792000 delta_us=84000 bytes=105 elapsed_ms=0
+t=13104 video packet=550 pts_us=22958000 delta_us=166000 bytes=3114 elapsed_ms=0
+t=13145 video packet=551 pts_us=22875000 delta_us=-83000 bytes=1668 elapsed_ms=41
+t=13146 video packet=552 pts_us=22917000 delta_us=42000 bytes=135 elapsed_ms=0
+t=13147 video packet=553 pts_us=23042000 delta_us=125000 bytes=207 elapsed_ms=0
+t=13148 video packet=554 pts_us=23000000 delta_us=-42000 bytes=107 elapsed_ms=0
+t=13149 video packet=555 pts_us=23083000 delta_us=83000 bytes=127 elapsed_ms=0
+t=13151 video packet=556 pts_us=23167000 delta_us=84000 bytes=135719 elapsed_ms=2
+t=13153 video packet=557 pts_us=23833000 delta_us=666000 bytes=97138 elapsed_ms=1
+t=13161 video packet=558 pts_us=23500000 delta_us=-333000 bytes=10895 elapsed_ms=7
+t=13162 video packet=559 pts_us=23333000 delta_us=-167000 bytes=3791 elapsed_ms=0
+t=13163 video packet=560 pts_us=23250000 delta_us=-83000 bytes=1401 elapsed_ms=0
+t=13163 video packet=561 pts_us=23208000 delta_us=-42000 bytes=293 elapsed_ms=0
+t=13164 video packet=562 pts_us=23292000 delta_us=84000 bytes=108 elapsed_ms=0
+t=13164 video packet=563 pts_us=23417000 delta_us=125000 bytes=113 elapsed_ms=0
+t=13165 video packet=564 pts_us=23375000 delta_us=-42000 bytes=107 elapsed_ms=0
+t=13165 video packet=565 pts_us=23458000 delta_us=83000 bytes=107 elapsed_ms=0
+t=13177 video packet=566 pts_us=23667000 delta_us=209000 bytes=230 elapsed_ms=11
+t=13178 video packet=567 pts_us=23583000 delta_us=-84000 bytes=115 elapsed_ms=0
+t=13178 video packet=568 pts_us=23542000 delta_us=-41000 bytes=107 elapsed_ms=0
+t=13179 video packet=569 pts_us=23625000 delta_us=83000 bytes=107 elapsed_ms=0
+t=13179 video packet=570 pts_us=23750000 delta_us=125000 bytes=107 elapsed_ms=0
+t=13180 video packet=571 pts_us=23708000 delta_us=-42000 bytes=107 elapsed_ms=0
+t=13181 video packet=572 pts_us=23792000 delta_us=84000 bytes=107 elapsed_ms=0
+t=13188 video packet=573 pts_us=24500000 delta_us=708000 bytes=141000 elapsed_ms=5
+t=13188 video packet=574 pts_us=24167000 delta_us=-333000 bytes=424 elapsed_ms=0
+t=13189 video packet=575 pts_us=24000000 delta_us=-167000 bytes=7633 elapsed_ms=0
+t=13190 video packet=576 pts_us=23917000 delta_us=-83000 bytes=111 elapsed_ms=0
+t=13190 video packet=577 pts_us=23875000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=13191 video packet=578 pts_us=23958000 delta_us=83000 bytes=107 elapsed_ms=0
+t=13191 video packet=579 pts_us=24083000 delta_us=125000 bytes=419 elapsed_ms=0
+t=13192 video packet=580 pts_us=24042000 delta_us=-41000 bytes=115 elapsed_ms=0
+t=13202 video packet=581 pts_us=24125000 delta_us=83000 bytes=108 elapsed_ms=10
+t=13203 video packet=582 pts_us=24333000 delta_us=208000 bytes=107 elapsed_ms=0
+t=13203 video packet=583 pts_us=24250000 delta_us=-83000 bytes=130 elapsed_ms=0
+t=13204 video packet=584 pts_us=24208000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=13205 video packet=585 pts_us=24292000 delta_us=84000 bytes=106 elapsed_ms=0
+t=13205 video packet=586 pts_us=24417000 delta_us=125000 bytes=121 elapsed_ms=0
+t=13206 video packet=587 pts_us=24375000 delta_us=-42000 bytes=106 elapsed_ms=0
+t=13206 video packet=588 pts_us=24458000 delta_us=83000 bytes=106 elapsed_ms=0
+t=13213 video packet=589 pts_us=25167000 delta_us=709000 bytes=4282 elapsed_ms=6
+t=13214 video packet=590 pts_us=24833000 delta_us=-334000 bytes=178 elapsed_ms=0
+t=13215 video packet=591 pts_us=24667000 delta_us=-166000 bytes=122 elapsed_ms=0
+t=13216 video packet=592 pts_us=24583000 delta_us=-84000 bytes=178 elapsed_ms=0
+t=13216 video packet=593 pts_us=24542000 delta_us=-41000 bytes=106 elapsed_ms=0
+t=13217 video packet=594 pts_us=24625000 delta_us=83000 bytes=106 elapsed_ms=0
+t=13219 video packet=595 pts_us=24750000 delta_us=125000 bytes=152 elapsed_ms=1
+t=13219 video packet=596 pts_us=24708000 delta_us=-42000 bytes=105 elapsed_ms=0
+t=13229 video packet=597 pts_us=24792000 delta_us=84000 bytes=106 elapsed_ms=9
+t=13230 video packet=598 pts_us=25000000 delta_us=208000 bytes=115 elapsed_ms=0
+t=13231 video packet=599 pts_us=24917000 delta_us=-83000 bytes=145 elapsed_ms=0
+t=13240 PASS bounded extractor probe events=140
+INSTRUMENTATION_CODE: -1

@@ -19,8 +19,9 @@ class SourceManagerModel internal constructor(app: Application,
     private val repository: SourceRepository,
     private val authenticate: (SourceRecord) -> Unit,
 ) : AndroidViewModel(app) {
-    constructor(app: Application) : this(app, SourceRepository(SourceStore(app)), {
-        EmbyClient(it.address).login(it.username, it.password)
+    constructor(app: Application) : this(app, SourceRepository(SourceStore(app)), { record ->
+        if (record.protocol == SourceRecord.PROTOCOL_SMB) verifySmb(record)
+        else EmbyClient(record.address).login(record.username, record.password)
     })
     var records by mutableStateOf<List<SourceRecord>>(emptyList()); private set
     val visibleRecords get() = records.filter { com.kivo.cinema.sources.access.SourceEligibility.visible(it,
@@ -36,6 +37,8 @@ class SourceManagerModel internal constructor(app: Application,
     var address by mutableStateOf("")
     var username by mutableStateOf("")
     var password by mutableStateOf("")
+    /** 当前草稿的协议；编辑已有源时由记录带入，新建时由"添加"入口选定。 */
+    var protocol by mutableStateOf(SourceRecord.PROTOCOL_EMBY); private set
     private var original: SourceRecord? = null
     private var job: Job? = null
     private var generation = 0
@@ -63,8 +66,18 @@ class SourceManagerModel internal constructor(app: Application,
         if (busy || !ready) return
         if (record?.hidden == true && !com.kivo.cinema.sources.access.SourceAccessSession.unlocked) return
         original = record
+        protocol = record?.protocol ?: SourceRecord.PROTOCOL_EMBY
         name = record?.name.orEmpty(); address = record?.address.orEmpty()
         username = record?.username.orEmpty(); password = record?.password.orEmpty()
+        error = null; editing = true
+    }
+
+    /** 新建源时选定协议（表单字段随协议变化）。 */
+    fun startNew(kind: String) {
+        if (busy || !ready) return
+        original = null
+        protocol = if (kind in SourceRecord.PROTOCOLS) kind else SourceRecord.PROTOCOL_EMBY
+        name = ""; address = ""; username = ""; password = ""
         error = null; editing = true
     }
 
@@ -84,15 +97,16 @@ class SourceManagerModel internal constructor(app: Application,
     fun save() {
         if (busy || !ready) return
         if (!draftVisible) { error = "请先解锁资源库"; return }
-        val normalized = runCatching { SourceAddress.normalize(address) }.getOrElse {
-            error = "请检查完整服务器地址"; return
+        val normalized = runCatching { SourceAddress.normalize(address, protocol) }.getOrElse {
+            error = it.message?.takeIf { m -> m.isNotBlank() } ?: "请检查完整服务器地址"; return
         }
-        if (username.isBlank()) { error = "请输入账号"; return }
+        // Emby 必须有账号；SMB 允许匿名（用户名留空 = 匿名访问）。
+        if (protocol == SourceRecord.PROTOCOL_EMBY && username.isBlank()) { error = "请输入账号"; return }
         val previous = original
         val draft = SourceRecord(id = previous?.id ?: java.util.UUID.randomUUID().toString(),
             revision = (previous?.revision ?: 0) + 1,
-            name = name.trim().ifEmpty { URI(normalized).host }, address = normalized,
-            username = username.trim(), password = password)
+            name = name.trim().ifEmpty { defaultName(normalized) }, address = normalized,
+            username = username.trim(), password = password, protocol = protocol)
         if (records.any { it.id != draft.id && it.sameAccount(draft) }) {
             error = "此服务器的该账号已添加"; return
         }
@@ -145,7 +159,20 @@ class SourceManagerModel internal constructor(app: Application,
         }
     }
 
-    private fun clearDraft() { name = ""; address = ""; username = ""; password = ""; original = null; error = null }
+    /** 名称留空时的兜底：Emby 用主机名，SMB 用共享名（没有共享就用主机名）。 */
+    private fun defaultName(normalized: String): String = runCatching {
+        if (protocol == SourceRecord.PROTOCOL_SMB) {
+            val smb = com.kivo.cinema.smb.SmbAddress.parse(normalized)
+            smb.share.ifEmpty { smb.host }
+        } else {
+            URI(normalized).host
+        }
+    }.getOrNull()?.takeIf { it.isNotBlank() } ?: "未命名"
+
+    private fun clearDraft() {
+        name = ""; address = ""; username = ""; password = ""; original = null; error = null
+        protocol = SourceRecord.PROTOCOL_EMBY
+    }
     private fun safeError(e: Throwable): String = when (e) {
         is SourceFailure -> e.reason
         is EmbyClient.HttpFailure -> when (e.code) {
@@ -154,9 +181,36 @@ class SourceManagerModel internal constructor(app: Application,
             404 -> "未找到Emby服务，请检查地址和服务路径"
             else -> "服务器暂时无法完成请求（${e.code}）"
         }
+        is com.kivo.cinema.smb.SmbFailure -> e.reason
         is java.net.UnknownHostException -> "找不到服务器，请检查地址和网络"
         is java.net.SocketTimeoutException -> "连接超时，请稍后重试"
         is javax.net.ssl.SSLException -> "安全连接失败，请检查服务器证书"
         else -> "操作未完成，请检查网络或稍后重试"
+    }
+}
+
+/**
+ * SMB 的"验证"就是真连一次（243 D5）：
+ * - 地址带共享 → 连到该共享（验证账号与权限）；
+ * - 地址只写主机 → 连 IPC$ 枚举共享，至少要能看到一个，否则明确告诉用户写共享名。
+ *
+ * 放在文件级而不是 model 里，是因为它只依赖协议层，不需要 Android 上下文。
+ */
+private fun verifySmb(record: SourceRecord) {
+    val address = com.kivo.cinema.smb.SmbAddress.parse(record.address)
+    val credential = com.kivo.cinema.smb.SmbCredential(
+        username = record.username,
+        password = record.password,
+    )
+    if (address.needsShare) {
+        val shares = com.kivo.cinema.smb.SmbShareLister(address.host, address.port, credential).list()
+        if (shares.isEmpty()) {
+            throw com.kivo.cinema.smb.SmbFailure(
+                com.kivo.cinema.smb.SmbStage.SHARE,
+                "服务器没有列出共享，请在地址里写明共享名（例如 smb://主机/视频）",
+            )
+        }
+    } else {
+        com.kivo.cinema.smb.SmbSession(address, credential).use { it.connect() }
     }
 }

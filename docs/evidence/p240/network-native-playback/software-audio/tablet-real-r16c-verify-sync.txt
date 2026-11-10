@@ -1,0 +1,7 @@
+tablet-real-r16c-sync.json: OK  /45  frames=489 dropped=0 clock=audio_timestamp fallback=2 xrun=0 | av_drift 不可测量（理由已记录） | media_rate=0.999856
+    · 门限量纲：45 ms 在 20.2 s 窗口上等价 2231 ppm，按本轮速率 312.3 s 撞门
+    · 不连续账：1 笔，累计 46.09 ms，最大 46.09 ms（position_step）
+    · 分配：稳态 396 次 / 总计 403 次
+    · 跨度作用域：4 段 / last_segment；段内 489 帧、全场 527 帧
+—— 合计 1 份：媒体速率 判得动 1、其中越界已登记 0、不可判 0
+覆盖：1 份 sync 证据（/1–/45）

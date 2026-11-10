@@ -273,12 +273,19 @@ class MainActivity : ComponentActivity() {
                             overviewModifier = Modifier.navigationSource(backdrop),
                             onNavigationGuard = { sourceNavigationGuard = it },
                             onUnlock = { action -> sourceUnlock.authenticate(sources::reportError, action) },
-                            onOpenSmb = { startActivity(
-                                android.content.Intent(this@MainActivity,
-                                    com.kivo.cinema.smb.SmbActivity::class.java)) },
-                            onOpenEmby = { sourceId -> startActivity(
-                                android.content.Intent(this@MainActivity,
-                                    com.kivo.cinema.emby.EmbyActivity::class.java).putExtra("kivo.sourceId", sourceId)) },
+                            onOpenSource = { source ->
+                                // 243：SMB 与 Emby 都是"源"，按协议决定打开哪个浏览页。
+                                val target = if (source.protocol == com.kivo.cinema.sources.SourceRecord.PROTOCOL_SMB) {
+                                    android.content.Intent(this@MainActivity,
+                                        com.kivo.cinema.smb.ui.SmbBrowserActivity::class.java)
+                                        .putExtra("kivo.sourceId", source.id)
+                                } else {
+                                    android.content.Intent(this@MainActivity,
+                                        com.kivo.cinema.emby.EmbyActivity::class.java)
+                                        .putExtra("kivo.sourceId", source.id)
+                                }
+                                startActivity(target)
+                            },
                             onOpenLibrary = { openLibrary() },
                             onOpenPrivate = { startActivity(
                                 android.content.Intent(this@MainActivity,

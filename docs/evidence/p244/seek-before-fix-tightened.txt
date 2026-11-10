@@ -1,0 +1,25 @@
+244 · 收紧判据后、修复前的复现（证明判据能变红）
+
+设备：MatePad MRR-W29 / CFE6R21B12000179（Android 12）
+命令：
+  adb -s CFE6R21B12000179 shell am instrument -w \
+    -e localPath /sdcard/Android/data/com.kivo.cinema/files/media/local-seek.mkv \
+    com.kivo.cinema.test/com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation
+时间：2026-11-10 06:45 / 06:48（重跑两次一致）
+测试 APK：判据已收紧为 actual ∈ target ± 5 s（SmbPlaybackSeekInstrumentation.kt:116-122）
+
+P243 OPEN local /sdcard/Android/data/com.kivo.cinema/files/media/local-seek.mkv size=2270964
+P243 START codec=OMX.qcom.video.decoder.avc dur=60000000 audio=false
+PASS 起播（准备 + 首帧会话就绪）
+P243 POSITION 0 ms → 2985 ms
+PASS 位置推进（3 秒窗口）
+P243 SEEK target=30000 ms landing=25000 ms actual=5129 ms error=
+FAIL java.lang.IllegalStateException: seek 未生效：target=30000 ms landing=25000 ms actual=5129 ms（允许 ±5 s）
+
+logcat 的 positionUs 轨迹（墙钟线性、seek 前后连续、从不跳 25 s）：
+11.406 session seek ok: target=30000000 us
+11.443 positionUs rc=3066749
+...
+13.594 rc=5229624
+
+结论：收紧后的判据正确判红。旧判据 `landing > 0 || |actual-target| < 60s` 会放过这次假成功。

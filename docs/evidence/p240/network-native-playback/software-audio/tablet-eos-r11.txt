@@ -1,0 +1,59 @@
+INSTRUMENTATION_STATUS: stream=PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response; evicted backward read reopens (3 requests including probe)
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS independent proxy descriptors support exact random reads
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.avc
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS production network host starts native hardware video and attaches audio
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS pause freezes media position and resume advances it
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS steady wall_ms=6004 rate=0.9887451698867422 samples=0:1400496,1001:2334097,2001:3338026,3002:4368545,4002:5367191,5003:6400617,6004:7336922
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS natural EOS after pause/resume without seek
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS video output slots and pace subset close exactly; repeated stop listeners delivered
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS report media_rate=0.995261409
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS all decoded PCM written without pause loss
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=CHECK audio_codec=ffmpeg:eac3 decoded_frames=864768 peak=0.0883928 audible_frames=864768
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=CHECK prefill_budget_ms=8000 initial_wait_ms=6 max_wait_ms=6
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS exit serializes native teardown; evidence confirms rendered audio and audio master clock
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=CHECK media_curve wall_ms:position_s=1:0.0,1005:0.996814,2043:1.18,3058:2.233312,4075:3.238694,5096:4.270697,6112:5.26774,7141:6.305,8165:7.336922,9192:8.370895,10217:9.402341,11237:10.403408,12261:11.437352,13282:12.438333,14300:13.470666,15313:14.465712,16333:15.502563,17355:16.536456,18381:17.534787
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response; evicted backward read reopens (3 requests including probe)
+PASS independent proxy descriptors support exact random reads
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.avc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS steady wall_ms=6004 rate=0.9887451698867422 samples=0:1400496,1001:2334097,2001:3338026,3002:4368545,4002:5367191,5003:6400617,6004:7336922
+PASS natural EOS after pause/resume without seek
+PASS video output slots and pace subset close exactly; repeated stop listeners delivered
+PASS report media_rate=0.995261409
+PASS all decoded PCM written without pause loss
+CHECK audio_codec=ffmpeg:eac3 decoded_frames=864768 peak=0.0883928 audible_frames=864768
+CHECK prefill_budget_ms=8000 initial_wait_ms=6 max_wait_ms=6
+PASS exit serializes native teardown; evidence confirms rendered audio and audio master clock
+CHECK media_curve wall_ms:position_s=1:0.0,1005:0.996814,2043:1.18,3058:2.233312,4075:3.238694,5096:4.270697,6112:5.26774,7141:6.305,8165:7.336922,9192:8.370895,10217:9.402341,11237:10.403408,12261:11.437352,13282:12.438333,14300:13.470666,15313:14.465712,16333:15.502563,17355:16.536456,18381:17.534787
+
+INSTRUMENTATION_CODE: -1

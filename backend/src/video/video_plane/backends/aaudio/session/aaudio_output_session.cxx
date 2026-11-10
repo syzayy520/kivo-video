@@ -53,12 +53,8 @@ AaudioOpenOutcome AaudioOutputSession::open(const AaudioStreamConfig& config, Sa
         return outcome_;
     }
 
-    // P16-P1B2 / G9：burst 是时钟陈旧阈值的输入，取不到就不能猜。
-    //
-    // 旧行为是让 AaudioClockSource 悄悄退回 192（K40 在 48 kHz 下的 4 ms）：
-    // 证据里会写成"协商到 192"，与真协商到 192 无法区分；而别的设备上
-    // stale_after_ns = 2 × burst / sample_rate 会把"新鲜"误判成"陈旧"，
-    // 进而触发 FreeRun 降级，G7 的数字跟着失真。
+    // P16-P1B2 / G9：burst 是设备协商事实，取不到不能悄悄填 192。
+    // 它只参与有界外推预算下限，不能代表硬件时间戳的发布周期。
     //
     // 按 Direct Play First 的既有约定（AudioPlayback::open 对采样率不一致直接拒绝），
     // 这里也明确失败，并带非空 reason 走既有失败链：
@@ -140,15 +136,23 @@ bool AaudioOutputSession::pause() {
     if (state == AAUDIO_STREAM_STATE_PAUSING) {
         aaudio_stream_state_t next = state;
         AAudioStream_waitForStateChange(stream_, state, &next, kStateWaitNanos);
+        state = next;
     }
-    return true;
+    return state == AAUDIO_STREAM_STATE_PAUSED;
 }
 
 bool AaudioOutputSession::resume() {
     if (stream_ == nullptr) {
         return false;
     }
-    return AAudioStream_requestStart(stream_) == AAUDIO_OK;
+    if (AAudioStream_requestStart(stream_) != AAUDIO_OK) return false;
+    aaudio_stream_state_t state = AAudioStream_getState(stream_);
+    if (state == AAUDIO_STREAM_STATE_STARTING) {
+        aaudio_stream_state_t next = state;
+        AAudioStream_waitForStateChange(stream_, state, &next, kStateWaitNanos);
+        state = next;
+    }
+    return state == AAUDIO_STREAM_STATE_STARTED;
 }
 
 void AaudioOutputSession::stop() {

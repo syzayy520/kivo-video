@@ -1,0 +1,9 @@
+P243 SHARES XiaoMi||0
+PASS 共享枚举（IPC$ + NetrShareEnum）
+P243 ROOT XiaoMi → 17 项: .filetransfer_tmp/,.sysapihttpd/,.systemconfig/,.torrents/,.tunneluploads/,.upload_tmp/,lost+found/,TDDOWNLOAD/,ThunderDB/,timecapsule/,下载/,共享/
+P243 LEVEL2 .filetransfer_tmp → 0 项
+PASS 连到共享并列出根目录
+P243 READ 共享里没有可读文件，跳过随机读
+PASS 随机读：文件头 1 MiB + 尾部 1 MiB
+3/3 PASS
+

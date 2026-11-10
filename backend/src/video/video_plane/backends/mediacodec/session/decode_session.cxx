@@ -217,6 +217,14 @@ SessionOutcome DecodeSession::attach_pipeline(const PipelineSetup& setup) {
     mode_ = setup.mode;
     present_frames_ = setup.present_frames;
     present_schedule_ = setup.present_schedule;
+    if (setup.async_input && !async_source_) {
+        async_source_ = std::make_unique<core::decode::AsyncSampleReader>(
+            [this](SampleView& sample) { return source_.read_next_sample(sample); },
+            [this](std::int64_t target) { return source_.seek_to(target); });
+    } else if (!setup.async_input && async_source_) {
+        return {SessionOutcome::Code::kPipelineRejected,
+                "cannot disable async input after reader ownership transfer"};
+    }
     // pacer 可能已经建好了（attach_pacing 在前），把它对齐到当前的排程方式。
     if (pacer_ != nullptr) {
         pacer_->set_sleep_before_present(present_schedule_ == PresentSchedule::kCpuPaced);
@@ -297,6 +305,10 @@ SessionOutcome DecodeSession::seek_to(std::int64_t target_us, bool defer_start) 
     //    seek 必须复用已经 started 的 codec，靠 `flush()` 回到"已启动、无在途数据"。
     stop();
 
+    if (!failure_.text().empty()) {
+        return {SessionOutcome::Code::kSeekFailed, failure_.text()};
+    }
+
     // 1.5 抓一次冷启动首帧时延（P13-B）。**必须在 `begin_run()` 之前** ——
     // 它会把 counters 重置，之后这个数字就没了。只抓第一次。
     if (cold_start_first_frame_us_ < 0) {
@@ -307,7 +319,8 @@ SessionOutcome DecodeSession::seek_to(std::int64_t target_us, bool defer_start) 
     }
 
     // 2. 定位。返回**实际落点**（PREVIOUS_SYNC ⇒ 应 ≤ target）。
-    const std::int64_t landing = source_.seek_to(target_us);
+    const std::int64_t landing = async_source_ ? async_source_->seek_to(target_us)
+                                             : source_.seek_to(target_us);
     seek_.requests += 1;
     seek_.target_us = target_us;
     seek_.landing_us = landing;
@@ -322,8 +335,6 @@ SessionOutcome DecodeSession::seek_to(std::int64_t target_us, bool defer_start) 
 
     // 4. 起跑（或交给调用方起跑）。
     //    `defer_start` 用于"视频先定位、音频按视频落点定位、再一起起跑"这条编排（F2A）。
-    const SessionOutcome resumed = defer_start ? SessionOutcome{} : begin_run();
-
     if (landing < 0) {
         return {SessionOutcome::Code::kSeekFailed,
                 "extractor seek failed for target " + std::to_string(target_us) + " us"};
@@ -331,12 +342,12 @@ SessionOutcome DecodeSession::seek_to(std::int64_t target_us, bool defer_start) 
     if (!flushed.ok()) {
         return {SessionOutcome::Code::kSeekFailed, "flush after seek failed: " + flushed.message};
     }
-    return resumed;
+    return defer_start ? SessionOutcome{} : begin_run();
 }
 
-void DecodeSession::pause() {
+SessionOutcome DecodeSession::pause() {
     if (!started_ || paused_) {
-        return;
+        return {};
     }
     // P16-P1B32：从"按下的那一刻"起算，`stop()` 里 join 线程的几毫秒也算 pause
     // —— 那段时间画面确实没在推进。
@@ -344,8 +355,12 @@ void DecodeSession::pause() {
     ++pause_count_;
     // `stop()` 只停线程、disarm 分配计数、置 `started_=false`；codec / extractor / surface
     // 都保留 —— 这正是 `seek_to` 敢在 `stop()` 之后直接 `begin_run()` 的原因。
-    stop();
+    halt_workers(/*preserve_input=*/true);
+    if (!failure_.text().empty()) {
+        return {SessionOutcome::Code::kSeekFailed, failure_.text()};
+    }
     paused_ = true;
+    return {};
 }
 
 SessionOutcome DecodeSession::resume() {
@@ -357,14 +372,19 @@ SessionOutcome DecodeSession::resume() {
     }
     // P16-P1B32：先把本次 pause 的时长入账，再 `begin_run()` ——
     // 它要用 `paused_total_ns_` 算 `started_at`。
+    const auto now_ns = core::pace::monotonic_now_ns();
+    const auto paused_ns = pause_started_ns_ > 0 ? now_ns - pause_started_ns_ : 0;
     if (pause_started_ns_ > 0) {
-        paused_total_ns_ += core::pace::monotonic_now_ns() - pause_started_ns_;
+        paused_total_ns_ += paused_ns;
         pause_started_ns_ = 0;
     }
     // 先把 due 锚点推到 now：pause 超过 500 ms 时音频钟会 stale -> FreeRun，
     // 那里 `due_at = last_due + fd`，旧锚点会让第一帧迟到几百毫秒。
-    if (pacer_) {
-        pacer_->resume_at(core::pace::monotonic_now_ns());
+    if (receive_worker_) {
+        receive_worker_->resume(run_started_at_ + std::chrono::nanoseconds(paused_total_ns_),
+                                paused_ns, now_ns);
+    } else if (pacer_) {
+        pacer_->resume_at(now_ns);
     }
     const SessionOutcome outcome = begin_run(/*preserve_stats=*/true);
     if (outcome.ok()) {
@@ -431,13 +451,18 @@ SessionOutcome DecodeSession::begin_run(bool preserve_stats) {
 
     DecodeSubmitWorker::Deps submit_deps;
     submit_deps.source = &source_;
+    submit_deps.async_source = async_source_.get();
     submit_deps.decoder = &decoder_;
     submit_deps.gate = &gate_;
     submit_deps.counters = &counters_;
     submit_deps.failure = &failure_;
     submit_deps.submit_cost = &submit_cost_;
     submit_deps.eos_cost = &eos_cost_;
-    submit_worker_ = std::make_unique<DecodeSubmitWorker>(submit_deps);
+    if (!preserve_stats || !submit_worker_) {
+        submit_worker_ = std::make_unique<DecodeSubmitWorker>(submit_deps);
+    } else if (submit_worker_->finished()) {
+        gate_.note_submit_finished();
+    }
 
     DecodeReceiveWorker::Deps receive_deps;
     receive_deps.decoder = &decoder_;
@@ -456,7 +481,9 @@ SessionOutcome DecodeSession::begin_run(bool preserve_stats) {
     // `wall_micros = elapsed_us(started_at, now)` 自动变成"播放时长"，
     // pause 那 2 秒不会被算进 `speed_vs_realtime` 的分母。
     receive_deps.started_at = run_started_at_ + std::chrono::nanoseconds(paused_total_ns_);
-    receive_worker_ = std::make_unique<DecodeReceiveWorker>(receive_deps);
+    if (!preserve_stats || !receive_worker_) {
+        receive_worker_ = std::make_unique<DecodeReceiveWorker>(receive_deps);
+    }
 
     started_ = true;
     launch_workers();
@@ -526,6 +553,7 @@ void DecodeSession::run_merged() {
             ++submitted;
         }
         const std::int64_t submit_end_ns = core::pace::monotonic_now_ns();
+        if (gate_.stop_requested()) break;
 
         // 2. 收一帧。这里允许阻塞（2ms）：否则两段会在 TRY_AGAIN 上互相刷 CPU，
         //    而 P12-B/C5 的基线都是"没进展就阻塞一下"。
@@ -551,6 +579,11 @@ void DecodeSession::run_merged() {
 }
 
 void DecodeSession::stop() {
+    halt_workers(/*preserve_input=*/false);
+    paused_ = false;
+}
+
+void DecodeSession::halt_workers(bool preserve_input) {
     gate_.request_stop();
 
     // P16-P0 / D2：join 之前先做一次有界等待。
@@ -563,8 +596,10 @@ void DecodeSession::stop() {
     const std::int32_t expected_workers =
         started_ ? (mode_ == PipelineMode::kSplit ? 2 : 1) : 0;
     if (!gate_.wait_for_workers(expected_workers, kStopJoinBudgetUs)) {
-        failure_.mark("stop join timeout: worker threads did not exit within 500 ms; "
-                      "join may block on a platform call");
+        failure_.mark(std::string("stop join timeout after 500 ms; submit=") +
+                      (submit_worker_ ? submit_worker_->operation() : "absent") +
+                      "; receive=" +
+                      (receive_worker_ ? receive_worker_->operation() : "absent"));
     }
 
     // join 顺序固定 submit 在前：反过来的话，送包段可能正卡在"等输入空位"上，
@@ -579,11 +614,13 @@ void DecodeSession::stop() {
         merged_thread_.join();
     }
 
-    if (started_) {
-        // 线程都已退出，这里落最终墙钟与最后一次节拍快照是完全安全的。
-        receive_worker_->finish();
-        submit_worker_.reset();
+    // 先归还再出版，保证 decode 快照与 sync 的最终累计帧账一致。
+    // 暂停已冻结 wall；finish 的 compare_exchange 不会把暂停时长补进去。
+    if (!preserve_input && receive_worker_) receive_worker_->discard_pending();
+    if (receive_worker_) receive_worker_->finish();
+    if (!preserve_input) {
         receive_worker_.reset();
+        submit_worker_.reset();
     }
 
     // P14-A：**在渲染证据之前关掉计数**。
@@ -605,6 +642,12 @@ core::pace::PaceSummary DecodeSession::pace_summary_after_stop() const {
     return pacer_->summary();
 }
 
+std::int64_t DecodeSession::duration_us() const {
+    // 轨道时长在 open 时抄进 `VideoTrackInfo`，之后不再变化；
+    // 未打开或平台未声明时是 -1，调用方必须按"未知"处理而不是当 0。
+    return source_.track_info().duration_us;
+}
+
 DecodeStats DecodeSession::snapshot() const {
     // P14-A：**测量自己不算进被测量的东西。**
     //
@@ -623,6 +666,10 @@ DecodeStats DecodeSession::snapshot() const {
     stats.frames_dropped_late = counters_.frames_dropped_late.load(std::memory_order_relaxed);
     stats.frames_discarded_no_surface =
         counters_.frames_discarded_no_surface.load(std::memory_order_relaxed);
+    stats.frames_discarded_on_stop =
+        counters_.frames_discarded_on_stop.load(std::memory_order_relaxed);
+    stats.frames_discarded_on_stop_undelivered =
+        counters_.frames_discarded_on_stop_undelivered.load(std::memory_order_relaxed);
     stats.first_frame_latency_us =
         counters_.first_frame_latency_us.load(std::memory_order_relaxed);
     // P13-B：没 seek 过时，`counters` 里的就是冷启动值；seek 过则用单独存的那份。

@@ -1,3 +1,13 @@
+> 2026-11-10 07:52 **平板真实 UI「播不了」已修好**：症状是点片后黑屏播放器 +「这个资源库还没有选择共享」+ 时间恒 `0:00:00`（同文件走 instrumentation 是 4/4 PASS，故与协议/解码无关）。根因：平板的源是**枚举共享**形态（记录里 `share` 为空），用户在页内选完共享后，选择只留在 `Activity` 内存——既没写回源记录，也没随 Intent 传给播放器，播放器回源解析必然 `needsShare == true` 而拒绝；K40 的源手填了 `XiaoMi` 所以一直能播。修复：`SmbBrowserActivity` 记录 `activeShare` 并随 `kivo.smbShare` 传入，`PlayerComposeActivity.startSmbPlayback` 增 `shareOverride` 覆盖地址（凭据仍只走加密存储，D5 未变）。真机复验（平板）：`local-seek.mkv` 出彩条画面并推进到 `0:00:13 / 0:01:00`；`mkv-audio.mkv` 播到结尾；播放中拖进度条秒表 `4 → 30`、续播到 `0:00:59`。顺带把 `SmbError` 的 CONNECT 按 `smb2_get_error()` 原文细分（未授权共享现明确说"没有对本机开放"，不再一律提示填账号密码），已授权共享零回归。[证据](../evidence/p243/smb-rebuild/s3-tablet-playback-fix.txt)。
+
+> 2026-11-10 07:30 **SMB 线全部打通（两台设备都验过）**：之前"K40 连不上小米路由"是**我的参数错**——小米路由**按设备下发不同的共享列表**：平板看到 `TDDOWNLOAD/下载/共享/图片/文档/视频/音乐`（7 个），K40 只看到 `XiaoMi`（整盘）。被授权的共享能连，未授权的回 `Tree Connect failed 0xc0000022`（会话其实是通的）。按各自入口复测：K40 走 `XiaoMi` + 路径 `视频/…`，SMB 播放+seek **4/4 PASS**（`POSITION 0→2922 ms`、`SEEK 30000/25000/27006`、`RESUME 27006→30006`）；平板走 `视频`，同文件 **4/4 PASS**。更下层枚举→列目录→随机读头尾各 1 MiB，**两台 3/3 PASS**。243 的 **S5（`_smb._tcp` 自动发现）真机验收同时结清**：K40 与平板均 2/2 PASS，只发现 NAS `N1`，小米路由不广播该服务。基于误判的 245 卡与其证据目录已删除。[244 卡关闭记录](../evidence/p244/status.md)、[243 证据](../evidence/p243/smb-rebuild/status.md)。
+
+> 2026-11-10 播放故障卡 244 已 **CLOSED**（这是"另一位助手跟进播放故障"那条线的回报，不改下方 UI 任务优先级）：MKV 本地播放两个症状都修好并真机复验——起播黑屏/位置恒 0 是 H.264-in-MKV 缺 `h264_mp4toannexb`（只给 HEVC 装了，违反 [241 §四.2 契约](../design/backend-core/241-p240b-demux-design.md)），seek 后进度不跳是视频-only 时 `SystemClockSource` 未 `rebase` 到 demux 落点。真机三组：`local-seek.mkv` seek `5129 → 27080 ms`（判据收紧为 ±5 s）、`mkv-audio.mkv` / `h264-audio.mp4` 音频路径零回归。[证据与关闭记录](../evidence/p244/status.md)、[设计](../design/backend-core/244-seek-position-design.md)。**两条结转均已解除**（2026-11-10 07:00–07:02）：K40 复验通过（`actual=27106`，4/4 PASS）；SMB 链路也通过——共享只是从 `XiaoMi` 改名为 **`视频`**（`N:` 映射可用且可写），把同一份文件传上去做同源对照，无音轨 `actual=27012`、带音轨 `10498`，均 4/4 PASS。**唯一未验：跨 SoC 厂商**——两台 `ro.board.platform` 都是 `kona`、同一解码器 `OMX.qcom.video.decoder.avc`，「另一颗 SoC」的前提不成立，只证明了跨设备/跨 ROM。工作区仍有 144+ 个未提交改动，**244 的代码改动未单独提交**，与其他 WIP 一并保留。共享上 `N:/kivo-test/`、`smbprobe.txt` 待手工清理。
+
+> 2026-11-09 最新分工（覆盖下方播放优先及 R5 后置旧安排）：用户将播放故障交给另一位助手，本任务转入播放页 UI，新对话接续。[播放交接](../evidence/p240/network-native-playback/software-audio/status.md)记录平板真实 MKV 的 EAC3 音频阶段通过及累计丢弃/静音限制，手机真实 MKV 仍未通过，网络播放整卡仍 DOING。[UI 设计与文件边界](../design/ui/replica/playback/player-ui.md)已建立，尚未实施；先核对真实播放页参考，再改 Compose 展示层，不改 backend、bridge、NetworkPlaybackSession、HttpRangeFile 或 Surface/会话生命周期。保留全部未提交 WIP，不 reset、不卸载、不清数据。
+
+> 以下为此前阶段记录；涉及上述分工、音频状态和优先级时，以本条及链接交接为准。
+
 > 2026-11-09 网络读取修复：4KiB探测绕过CDN单字节总长误报；分包短读填满文件请求，两机合成操作回归通过，本轮视频迟到丢帧0，K40仍1次xrun。真实来源2平板可解析但E-AC3缺解码器；K40完整解析仍触发45秒诊断取消。整卡DOING；下一步手机解析取证/有界取消→音频兼容→真实网络稳态，SMB未验。[证据与边界](../evidence/p240/network-native-playback/status.md)。
 
 # 交接快照 · Kivo Video Android 后端核心
@@ -8,7 +18,15 @@
 
 > 2026-11-09 生命周期补测：真实宿主内部跳转/重建、三轮桌面返回及系统凭据取消通过；合成缺失源ID直达拒绝正常。[测试与边界](../evidence/p240/source-management/lifecycle/status.md)。生产代码未改，实际隐藏源成功解锁/锁屏/隐藏默认首页及手机矩阵仍未验，L2继续DOING。
 
-> 2026-11-09 L2服务器控制追加：隐藏/系统解锁、唯一默认首页、首页聚合和聚合搜索独立持久化已实现；最终包平板覆盖安装，隔离七组PASS，真实搜索偏好/默认启动与撤销已测。[阶段证据与未测边界](../evidence/p240/source-management/l2-controls-status.md)。实际聚合尚未接入；搜索请求、历史/建议/缓存隔离是L3硬闸门。系统凭据取消自动断言失败，不算通过；后台重锁与隐藏直达待验。L2仍DOING。用户新要求：平板管理/编辑弹层采用左右双栏，先设计再适配。
+> 2026-11-09 最新实施事实（替代下方“仅设计/未实施”旧记录）：用户已授权“去做吧”。平板左右等分、左页保留底部导航、右页独立全高管理/连接页已覆盖安装；紧凑入口及来源图标已接入。资源库入口渲染递归闪退已修，5轮切换同进程，合成草稿退出确认已测。[修复证据与未验范围](../evidence/p240/source-management/tablet-workspace/status.md)。L2仍DOING。
+
+> 2026-11-09 资源库入口追加：本地影片、SMB、私密区也统一紧凑豆腐块，与服务器网格同列宽及视觉规格；私密区锁定不展示数量/内容，点击先验证。已更新设计预览，Android未实施。
+
+> 2026-11-09 来源选择设计追加：媒体服务器 Emby / Plex / Jellyfin / 飞牛，文件存储 SMB / WebDAV，统一图标＋名称；新增协议先预留并标“暂未接入”，后续逐项实现。卡片单击始终进入服务器，长按或右上角三个点管理，不设选中态；底部胶囊导航及独立搜索按钮保留。仅已更新设计与交互预览，未改Android实现。
+
+> 2026-11-09 平板双栏澄清：用户要求仅规划设计，左侧资源库、右侧独立管理/编辑页面；此前弹窗内部双栏WIP已撤回并覆盖安装恢复。[页面双栏提案](../design/ui/library-rebuild/tablet-workspace.md)已记录，未实施，不能自动进入适配。L2仍DOING。
+>
+> 2026-11-09 L2服务器控制追加：隐藏/系统解锁、唯一默认首页、首页聚合和聚合搜索独立持久化已实现；最终包平板覆盖安装，隔离七组PASS，真实搜索偏好/默认启动与撤销已测。[阶段证据与未测边界](../evidence/p240/source-management/l2-controls-status.md)。实际聚合尚未接入；搜索请求、历史/建议/缓存隔离是L3硬闸门。系统凭据取消自动断言失败，不算通过；后台重锁与隐藏直达待验。L2仍DOING。
 
 > 2026-11-09 L2紧凑卡使用官方Emby图标、服名及真实电影/剧集数量，添加先选来源类型；新增6dp绿/红/灰状态点。平板已验在线→断网红→恢复，前台每60秒更新；[证据与未验项](../evidence/p240/source-management/l2-compact-status.md)。L2仍DOING。K40再次USB断开，最后大字检查后可能仍1.5倍，下次连接第一件事恢复font_scale=1.0并确认，不能沿用此前“字号已恢复”的结论。
 

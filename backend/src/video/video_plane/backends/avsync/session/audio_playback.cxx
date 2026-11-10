@@ -1,7 +1,12 @@
 #include "video/video_plane/backends/avsync/session/audio_playback.hpp"
 
 #include <chrono>
+#include <algorithm>
 #include <thread>
+
+#ifdef KIVO_ENABLE_FFMPEG_AUDIO
+#include "video/video_plane/backends/ffmpeg/audio/ffmpeg_audio_decoder.hpp"
+#endif
 
 #include "video/video_plane/backends/aaudio/clock/aaudio_monotonic_now.hpp"
 #include "video/video_plane/backends/aaudio/device/aaudio_format_names.hpp"
@@ -20,9 +25,6 @@ constexpr std::int32_t kRingCapacityMillis = 300;
 /// 一个 burst 只能撑过一次回调，3 个才扛得住一次调度抖动。
 constexpr std::int32_t kPrefillBursts = 3;
 
-/// 等预灌的上限（不是要求）：短音轨永远到不了目标水位。
-constexpr int kPrefillTimeoutMillis = 500;
-
 /// 等时钟首个有效时间戳的上限。C4 实测启动开销 24–146 ms，2 s 是宽容的兜底。
 constexpr std::int64_t kClockReadyTimeoutNs = 2'000'000'000;
 
@@ -35,11 +37,17 @@ AudioPlayback::~AudioPlayback() {
     stop();
 }
 
-bool AudioPlayback::open(int fd, std::int64_t length, const std::string& label) {
+bool AudioPlayback::open(int fd, std::int64_t length, const std::string& label,
+                         int prefill_timeout_millis) {
     if (opened_) {
         stats_.error = "audio playback already open";
         return false;
     }
+    if (prefill_timeout_millis <= 0 || prefill_timeout_millis > 30'000) {
+        stats_.error = "audio prefill budget must be within 1..30000ms";
+        return false;
+    }
+    stats_.prefill_budget_millis = prefill_timeout_millis;
 
     const auto extracted =
         source_.open_fd(fd, 0, length, label, mediacodec::TrackKind::kAudio);
@@ -61,19 +69,41 @@ bool AudioPlayback::open(int fd, std::int64_t length, const std::string& label) 
     declared.sample_rate = track.sample_rate;
     declared.channel_count = track.channel_count;
     declared.encoding = core::audio::PcmEncoding::kInt16;
-    decoder_.set_declared_format(declared);
-
-    const auto configured = decoder_.configure(track.mime, source_.track_format());
+    mediacodec::DecodeOutcome configured;
+    // 平台没有解码器的格式一律交给 FFmpeg 软解。
+    //
+    // 这份名单是"本机 MediaCodec 确实没有"的实测清单，不是猜测：
+    // AC3/EAC3 早就不在设备解码器里；TrueHD（audio/true-hd）与 DTS（audio/vnd.dts）
+    // 是蓝光 REMUX 最常见的两条音轨，设备同样没有。
+    // 名单外的格式仍然走平台：那是历史行为，动它没有收益。
+    const bool software_audio =
+        track.mime == "audio/ac3" || track.mime == "audio/eac3" ||
+        track.mime == "audio/true-hd" || track.mime == "audio/vnd.dts";
+    if (software_audio) {
+#ifdef KIVO_ENABLE_FFMPEG_AUDIO
+        auto software = std::make_unique<ffmpeg::FfmpegAudioDecoder>();
+        configured = software->configure(track.mime, declared);
+        decoder_ = std::move(software);
+#else
+        stats_.error = "software audio decoder unavailable for " + track.mime;
+        return false;
+#endif
+    } else {
+        auto platform = std::make_unique<mediacodec::MediaCodecAudioDecoder>();
+        platform->set_declared_format(declared);
+        configured = platform->configure(track.mime, source_.track_format());
+        decoder_ = std::move(platform);
+    }
     if (!configured.ok()) {
         stats_.error = "audio decoder configure: " + configured.message;
         return false;
     }
-    const auto decoder_started = decoder_.start();
+    const auto decoder_started = decoder_->start();
     if (!decoder_started.ok()) {
         stats_.error = "audio decoder start: " + decoder_started.message;
         return false;
     }
-    stats_.codec_name = decoder_.codec_name();
+    stats_.codec_name = decoder_->codec_name();
 
     ring_ = std::make_unique<core::audio::SpscAudioRingBuffer>(
         track.channel_count, track.sample_rate * kRingCapacityMillis / 1000);
@@ -125,7 +155,7 @@ bool AudioPlayback::open(int fd, std::int64_t length, const std::string& label) 
 
     // 起流后才建 feeder：先建的话，解码线程会在流还没开时就往里灌，
     // 灌满之后一直等排空，预灌水位就失去意义了。
-    feeder_ = std::make_unique<mediacodec::AudioDecodeFeeder>(source_, decoder_, *ring_);
+    feeder_ = std::make_unique<mediacodec::AudioDecodeFeeder>(source_, *decoder_, *ring_);
     opened_ = true;
     // P13-C：把内部状态映射到证据字段。
     // 在此之前 `stats_.opened` / `stats_.started` **从未被赋值** ——
@@ -146,13 +176,12 @@ bool AudioPlayback::start() {
     }
 
     feeder_->start();
-    stats_.prefill_reached = feeder_->wait_filled(
-        stats_.frames_per_burst * kPrefillBursts, kPrefillTimeoutMillis);
+    if (!prefill()) return false;
 
     const aaudio::AaudioOpenOutcome started = output_->start();
     if (!started.ok()) {
         stats_.error = "aaudio start: " + started.message;
-        feeder_->stop();
+        // The owner cancels network reads before joining this feeder.
         return false;
     }
     started_ = true;
@@ -191,11 +220,10 @@ bool AudioPlayback::start() {
     return true;
 }
 
-AudioPlayback::SeekResult AudioPlayback::seek_to(std::int64_t target_us) {
-    SeekResult out;
+bool AudioPlayback::prepare_seek() {
     if (!started_ || !feeder_ || !output_ || !ring_ || !ring_source_) {
-        out.reason = "audio playback is not running";
-        return out;
+        stats_.error = "audio playback is not running";
+        return false;
     }
 
     // P12-F2A：**不停止 AAudio 流**。
@@ -223,11 +251,18 @@ AudioPlayback::SeekResult AudioPlayback::seek_to(std::int64_t target_us) {
         std::this_thread::yield();
     }
     if (ring_source_->in_flight() != 0) {
-        // G9：不带着在途读者 reset 环；先解除静音，把非空 reason 交给上层决定是否中止。
-        // 上层 resume_after_seek() 无条件执行，会话不会卡在"线程已 join"的状态。
-        out.reason = "seek gate timeout: audio callback still inside render() after 10 ms; "
+        // 不带着在途读者 reset 环；失败保持静音，宿主统一取消 I/O 并停止会话。
+        stats_.error = "seek gate timeout: audio callback still inside render() after 10 ms; "
                      "refusing to reset the SPSC ring";
-        ring_source_->set_muted(false);
+        return false;
+    }
+    return true;
+}
+
+AudioPlayback::SeekResult AudioPlayback::seek_to(std::int64_t target_us) {
+    SeekResult out;
+    if (!prepare_seek()) {
+        out.reason = stats_.error;
         return out;
     }
 
@@ -236,12 +271,24 @@ AudioPlayback::SeekResult AudioPlayback::seek_to(std::int64_t target_us) {
 
     // 3. 定位 + 清在途。
     const std::int64_t landing = source_.seek_to(target_us);
-    const auto flushed = decoder_.flush();
+    out.landing_us = landing;
+    if (landing < 0) {
+        out.reason = stats_.error = "audio extractor seek failed";
+        return out;
+    }
+    const auto flushed = decoder_->flush();
+    if (!flushed.ok()) {
+        out.reason = stats_.error = "audio decoder flush failed: " + flushed.message;
+        return out;
+    }
     ring_->reset();
 
     // 4. 重新供给并灌到与起播同一水位。
     feeder_->start();
-    (void)feeder_->wait_filled(stats_.frames_per_burst * kPrefillBursts, kPrefillTimeoutMillis);
+    if (!prefill()) {
+        out.reason = stats_.error;
+        return out;
+    }
 
     // 5. **先放音、后对表**：放音之后第一个真实样本才是 landing 对应的音频；
     //    先锚表会让时钟在静音期间继续前进，视频反而提前。
@@ -251,31 +298,56 @@ AudioPlayback::SeekResult AudioPlayback::seek_to(std::int64_t target_us) {
         clock->rebase(landing * 1'000);
     }
 
-    out.landing_us = landing;
-    out.ok = landing >= 0 && flushed.ok();
-    if (!out.ok && out.reason.empty()) {
-        out.reason = landing < 0 ? "audio extractor seek failed"
-                                 : ("audio decoder flush failed: " + flushed.message);
-    }
+    out.ok = true;
     return out;
 }
 
-bool AudioPlayback::pause() {
-    // 先停供给再停流：反过来的话环会继续被填，resume 时听到的是一段"补上的旧声音"。
-    if (feeder_) {
-        feeder_->stop();
+bool AudioPlayback::prefill() {
+    const auto began = std::chrono::steady_clock::now();
+    stats_.prefill_reached = feeder_->wait_filled(
+        stats_.frames_per_burst * kPrefillBursts, stats_.prefill_budget_millis);
+    stats_.prefill_last_wait_millis = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - began).count();
+    if (stats_.prefill_initial_wait_millis < 0)
+        stats_.prefill_initial_wait_millis = stats_.prefill_last_wait_millis;
+    stats_.prefill_max_wait_millis = std::max(stats_.prefill_max_wait_millis,
+                                            stats_.prefill_last_wait_millis);
+    if (feeder_->finished()) {
+        const auto feed = feeder_->stats();
+        if (!feed.error.empty()) {
+            stats_.error = feed.error;
+            return false;
+        }
+        if (feed.reached_eos && ring_->available_frames() > 0) return true;
     }
-    return output_ ? output_->pause() : false;
+    if (stats_.prefill_reached) return true;
+    // Do not join a potentially blocked network reader here. The owner cancels I/O
+    // before stopping this object. No stream starts with an empty PCM ring.
+    stats_.error = "audio PCM prefill not ready within " +
+                   std::to_string(stats_.prefill_budget_millis) + "ms";
+    return false;
+}
+
+bool AudioPlayback::pause() {
+    // Keep pending packets and partial PCM alive. Once consumption pauses, the bounded
+    // ring applies backpressure; stopping the feeder here would discard its partial chunk.
+    if (output_ && output_->pause()) return true;
+    if (ring_source_) ring_source_->set_muted(true);
+    stats_.error = "audio output pause failed";
+    return false;
 }
 
 bool AudioPlayback::resume() {
-    if (!output_ || !output_->resume()) {
-        return false;
-    }
-    if (feeder_) {
-        feeder_->start();  // 返回 void：起不来会在下一次 render 里表现为欠载
-    }
-    return true;
+    if (output_ && output_->resume()) return true;
+    if (ring_source_) ring_source_->set_muted(true);
+    stats_.error = "audio output resume failed";
+    return false;
+}
+
+std::string AudioPlayback::runtime_error() const {
+    if (!stats_.error.empty()) return stats_.error;
+    // finished acquire publishes the worker's final stats; never read live counters.
+    return feeder_ && feeder_->finished() ? feeder_->stats().error : std::string{};
 }
 
 void AudioPlayback::stop() {
@@ -306,8 +378,8 @@ void AudioPlayback::stop() {
         stats_.feed = feeder_->stats();
     }
     if (!stats_.codec_name.empty()) {
-        stats_.output_format = decoder_.output_format();
-        stats_.output_format_diverged = decoder_.output_format_diverged();
+        stats_.output_format = decoder_->output_format();
+        stats_.output_format_diverged = decoder_->output_format_diverged();
     }
     if (stats_.error.empty() && !stats_.feed.error.empty()) {
         stats_.error = stats_.feed.error;

@@ -1,0 +1,13 @@
+phone-eos-r10-sync.json: OK  /45  frames=540 dropped=0 clock=audio_timestamp fallback=0 xrun=1 | av_drift 不可测量（理由已记录） | media_rate=0.992583
+    · 门限量纲：45 ms 在 16.8 s 窗口上等价 2680 ppm（门已动作，撞门时间不可算）
+    · 复位轨迹：共 1 笔，最大 34.47 ms 落在 1.79 s
+    · 不连续账：零事件
+    · 分配：稳态 0 次 / 总计 346 次
+    · 跨度作用域：2 段 / last_segment；段内 506 帧、全场 540 帧
+tablet-eos-r10-sync.json: OK  /45  frames=540 dropped=0 clock=audio_timestamp fallback=1 xrun=0 | av_drift 不可测量（理由已记录） | media_rate=0.993941
+    · 门限量纲：45 ms 在 16.8 s 窗口上等价 2675 ppm，按本轮速率 7.4 s 撞门
+    · 不连续账：1 笔，累计 49.26 ms，最大 49.26 ms（position_step）
+    · 分配：稳态 0 次 / 总计 340 次
+    · 跨度作用域：2 段 / last_segment；段内 505 帧、全场 540 帧
+—— 合计 2 份：媒体速率 判得动 2、其中越界已登记 0、不可判 0
+覆盖：2 份 sync 证据（/1–/45）

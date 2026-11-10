@@ -26,8 +26,8 @@ class AaudioClockSource final : public core::audio::AudioClockSource {
 public:
     using NowFn = std::int64_t (*)() noexcept;
 
-    /// `frames_per_burst` 用来定陈旧阈值（2 个 burst 还没更新就算卡住）。
-    /// 传 0 或负数时退回 4 ms 的保守值。
+    /// 有界预测预算为 max(100ms, 2*burst/rate)，burst 不代表硬件发布周期。
+    /// 非产品调用方传非正 burst 时使用明确可查的 192 帧兜底。
     AaudioClockSource(AaudioClockProbe& probe,
                       std::int32_t sample_rate,
                       std::int32_t frames_per_burst,

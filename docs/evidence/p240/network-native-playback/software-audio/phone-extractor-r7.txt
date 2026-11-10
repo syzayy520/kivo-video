@@ -1,0 +1,106 @@
+t=1620 source=2 item=3 login=ok
+t=1625 http_begin offset=0 end=4095
+t=4914 http_ready offset=0 end=4095 total=7369631541
+t=4924 read_begin offset=0 size=16384
+t=4924 http_begin offset=0 end=7369631540
+t=6828 http_ready offset=0 end=7369631540 total=7369631541
+t=6841 read_end offset=0 bytes=16384 elapsed_ms=1917
+t=6846 read_begin offset=16384 size=65536
+t=7090 read_end offset=16384 bytes=65536 elapsed_ms=244
+t=7092 read_begin offset=81920 size=131072
+t=7299 read_end offset=81920 bytes=131072 elapsed_ms=207
+t=7304 read_begin offset=212992 size=131072
+t=7445 read_end offset=212992 bytes=131072 elapsed_ms=141
+t=7447 read_begin offset=344064 size=131072
+t=7578 read_end offset=344064 bytes=131072 elapsed_ms=131
+t=7582 read_begin offset=1527808 size=8192
+t=7685 http_begin offset=1527808 end=7369631540
+t=9488 http_ready offset=1527808 end=7369631540 total=7369631541
+t=9490 read_end offset=1527808 bytes=8192 elapsed_ms=1907
+t=9492 read_begin offset=3354624 size=8192
+t=9593 http_begin offset=3354624 end=7369631540
+t=11719 http_ready offset=3354624 end=7369631540 total=7369631541
+t=11720 read_end offset=3354624 bytes=8192 elapsed_ms=2228
+t=11722 read_begin offset=4857856 size=4096
+t=11824 http_begin offset=4857856 end=7369631540
+t=13788 http_ready offset=4857856 end=7369631540 total=7369631541
+t=13790 read_end offset=4857856 bytes=4096 elapsed_ms=2067
+t=13797 read_begin offset=5263360 size=8192
+t=14452 read_end offset=5263360 bytes=8192 elapsed_ms=655
+t=14454 read_begin offset=5681152 size=4096
+t=14840 read_end offset=5681152 bytes=4096 elapsed_ms=385
+t=14841 read_begin offset=6250496 size=8192
+t=14916 read_end offset=6250496 bytes=8192 elapsed_ms=74
+t=14917 read_begin offset=6762496 size=4096
+t=15079 read_end offset=6762496 bytes=4096 elapsed_ms=162
+t=15081 read_begin offset=7241728 size=8192
+t=15141 read_end offset=7241728 bytes=8192 elapsed_ms=60
+t=15142 read_begin offset=7823360 size=4096
+t=15214 read_end offset=7823360 bytes=4096 elapsed_ms=71
+t=15215 read_begin offset=7946240 size=8192
+t=15245 read_end offset=7946240 bytes=8192 elapsed_ms=30
+t=15246 read_begin offset=8548352 size=4096
+t=15316 read_end offset=8548352 bytes=4096 elapsed_ms=69
+t=15317 read_begin offset=9048064 size=8192
+t=15361 read_end offset=9048064 bytes=8192 elapsed_ms=44
+t=15362 read_begin offset=9551872 size=8192
+t=15450 read_end offset=9551872 bytes=8192 elapsed_ms=87
+t=15451 read_begin offset=9777152 size=4096
+t=15469 read_end offset=9777152 bytes=4096 elapsed_ms=17
+t=15470 read_begin offset=9805824 size=8192
+t=15471 read_end offset=9805824 bytes=8192 elapsed_ms=0
+t=15471 read_begin offset=11157504 size=4096
+t=15572 http_begin offset=11157504 end=7369631540
+t=18172 http_ready offset=11157504 end=7369631540 total=7369631541
+t=18173 read_end offset=11157504 bytes=4096 elapsed_ms=2701
+t=18175 read_begin offset=12500992 size=4096
+t=18277 http_begin offset=12500992 end=7369631540
+t=20343 http_ready offset=12500992 end=7369631540 total=7369631541
+t=20345 read_end offset=12500992 bytes=4096 elapsed_ms=2169
+t=20347 read_begin offset=13910016 size=4096
+t=20448 http_begin offset=13910016 end=7369631540
+t=22700 http_ready offset=13910016 end=7369631540 total=7369631541
+t=22702 read_end offset=13910016 bytes=4096 elapsed_ms=2354
+t=22704 read_begin offset=14921728 size=4096
+t=23760 read_end offset=14921728 bytes=4096 elapsed_ms=1056
+t=23763 read_begin offset=15720448 size=4096
+t=24025 read_end offset=15720448 bytes=4096 elapsed_ms=262
+t=24026 read_begin offset=16433152 size=8192
+t=24146 read_end offset=16433152 bytes=8192 elapsed_ms=119
+t=24148 read_begin offset=16592896 size=4096
+t=24166 read_end offset=16592896 bytes=4096 elapsed_ms=18
+t=24166 read_begin offset=18112512 size=8192
+t=24268 http_begin offset=18112512 end=7369631540
+t=26486 http_ready offset=18112512 end=7369631540 total=7369631541
+t=26488 read_end offset=18112512 bytes=8192 elapsed_ms=2321
+t=26490 read_begin offset=19644416 size=8192
+t=26591 http_begin offset=19644416 end=7369631540
+t=28739 http_ready offset=19644416 end=7369631540 total=7369631541
+t=28741 read_end offset=19644416 bytes=8192 elapsed_ms=2250
+t=28743 read_begin offset=21151744 size=4096
+t=28844 http_begin offset=21151744 end=7369631540
+t=31076 http_ready offset=21151744 end=7369631540 total=7369631541
+t=31076 read_end offset=21151744 bytes=4096 elapsed_ms=2333
+t=31078 read_begin offset=22659072 size=8192
+t=31180 http_begin offset=22659072 end=7369631540
+t=33246 http_ready offset=22659072 end=7369631540 total=7369631541
+t=33248 read_end offset=22659072 bytes=8192 elapsed_ms=2169
+t=33250 read_begin offset=22708224 size=8192
+t=33406 read_end offset=22708224 bytes=8192 elapsed_ms=155
+t=33408 read_begin offset=24268800 size=4096
+t=33510 http_begin offset=24268800 end=7369631540
+t=35805 http_ready offset=24268800 end=7369631540 total=7369631541
+t=35806 read_end offset=24268800 bytes=4096 elapsed_ms=2398
+t=35809 read_begin offset=25829376 size=4096
+t=35911 http_begin offset=25829376 end=7369631540
+t=38305 http_ready offset=25829376 end=7369631540 total=7369631541
+t=38306 read_end offset=25829376 bytes=4096 elapsed_ms=2497
+t=38308 read_begin offset=26484736 size=4096
+t=39169 read_end offset=26484736 bytes=4096 elapsed_ms=861
+t=39170 read_begin offset=27987968 size=8192
+t=39272 http_begin offset=27987968 end=7369631540
+t=49923 deadline_cancel
+t=49931 tracks=0 mimes= io_reason=播放已取消
+t=49932 FAIL stage=extractor type=IllegalStateException
+t=49933 FAIL bounded extractor probe events=125
+INSTRUMENTATION_CODE: 0

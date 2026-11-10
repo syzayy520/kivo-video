@@ -120,6 +120,17 @@ public:
                                   std::vector<int>& audio_indices,
                                   std::vector<int>& subtitle_indices);
 
+    /// 只保留 [keep_stream] 一路，其余轨道标成 AVDISCARD_ALL。
+    ///
+    /// 存在理由（真机实测 2026-11-10）：1080p VC-1 片源里每个视频帧对应
+    /// **约 50 个**非视频包，光是把它们从 demuxer 里取出来再丢掉，就要吃掉
+    /// 每个视频帧 ~35 ms —— 和一个 24 fps 的帧间隔几乎一样长。标了 DISCARD_ALL
+    /// 之后 demuxer 直接跳过载荷，不再为这些包付出代价。
+    ///
+    /// 只在解封装之后、循环读包之前调用一次；`avformat_find_stream_info`
+    /// 之前调用无效（那时轨道还没建好）。
+    static void discard_streams_except(FfmpegFormatHandle handle, int keep_stream);
+
     // --- Stream info extraction ---
     static bool get_stream_codec_name(FfmpegFormatHandle handle, int stream_index,
                                       std::string& codec_name);
@@ -171,6 +182,30 @@ public:
     static std::string get_pixel_format_name(int pixel_format);
     static std::string get_sample_format_name(int sample_format);
     static std::string get_channel_layout_description(uint64_t channel_layout);
+
+    /// 诊断计时（24x）：把 `receive_frame_rgba` 拆成"avcodec 真解码"与
+    /// "swscale 转 RGBA"两段。存在的理由：整体 88 ms/帧 无法判断该优化谁——
+    /// 可能是解码器慢，也可能是 1080p 逐帧转 8.3 MB 的 RGBA 慢。
+    /// 全局累加，由会话在开始/结束时 reset 与读取。
+    struct DecodeTimings {
+        std::int64_t send_ns = 0;
+        std::int64_t send_calls = 0;
+        std::int64_t resize_ns = 0;
+        std::int64_t avcodec_ns = 0;
+        std::int64_t sws_ns = 0;
+        std::int64_t frames = 0;
+    };
+    static DecodeTimings take_decode_timings();
+    static void reset_decode_timings();
+
+    /// 归还一帧的 RGBA 缓冲到线程内池子，供下一帧复用（24x）。
+    ///
+    /// 必须归还的理由是真机实测出来的：每帧新建 `FfmpegFrameResult` 会让
+    /// `frame_data.resize(1920*1080*4)` 重新走一次 8.3 MB 的分配 + 清零，
+    /// 单这一项就 **69 ms/帧**，比真正的解码（8.3 ms）贵 8 倍。池化之后
+    /// 每帧只是交换一个指针，分配开销归零。
+    /// 调用方必须保证这块内存已经用完（渲染完成）再归还。
+    static void recycle_frame_buffer(std::vector<uint8_t>&& buffer);
 };
 
 }  // namespace kivo::cinema_engine

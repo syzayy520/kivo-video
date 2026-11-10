@@ -34,6 +34,10 @@ struct DecodePipelineCounters {
     /// 那个是节拍判的"太晚了不要"，这个是"想显示但没地方显示"。
     /// 两者混在一起，一换面就会看起来像"节拍崩了"。
     std::atomic<std::int64_t> frames_discarded_no_surface{0};
+    /// join 后 seek/stop 显式归还的 pending 输出槽（暂停本身不丢弃）。
+    std::atomic<std::int64_t> frames_discarded_on_stop{0};
+    /// stop总数的子集：已作Present/Wait决策但未交付，不含EOS/未决策/Drop。
+    std::atomic<std::int64_t> frames_discarded_on_stop_undelivered{0};
     std::atomic<std::int64_t> first_frame_latency_us{-1};  ///< -1 表示还没出过帧
     /// seek 后首帧的媒体 pts（P12-F2）。与上面那个是两件事：
     /// 那个是"多久出帧"，这个是"出的是哪一刻的帧"。错序/跳错位置会先体现在这里。
@@ -54,6 +58,9 @@ struct DecodePipelineCounters {
         frames_released.store(0, std::memory_order_relaxed);
         frames_rendered.store(0, std::memory_order_relaxed);
         frames_dropped_late.store(0, std::memory_order_relaxed);
+        frames_discarded_no_surface.store(0, std::memory_order_relaxed);
+        frames_discarded_on_stop.store(0, std::memory_order_relaxed);
+        frames_discarded_on_stop_undelivered.store(0, std::memory_order_relaxed);
         first_frame_latency_us.store(-1, std::memory_order_relaxed);
         first_frame_pts_us.store(-1, std::memory_order_relaxed);
         wall_micros.store(0, std::memory_order_relaxed);

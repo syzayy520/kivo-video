@@ -42,6 +42,9 @@ struct DecodePaceStats {
     std::int64_t frames_decided = 0;
     std::int64_t presented = 0;
     std::int64_t dropped = 0;
+    std::int64_t undelivered_frames = 0;
+    std::int64_t discarded_on_stop = 0;
+    std::int64_t discarded_no_surface = 0;
     double drop_ratio = 0.0;
     std::int64_t catch_up_events = 0;
     std::int64_t catch_up_frames = 0;

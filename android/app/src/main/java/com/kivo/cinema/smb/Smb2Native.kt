@@ -1,11 +1,13 @@
 package com.kivo.cinema.smb
 
 /**
- * libsmb2 的 Kotlin 绑定（220 设计稿 D1 定案实验）。
- * 与 [SmbSource]（jcifs）同一职责面：connect/list/open/readAt/size/close，
- * 供 spike 与后续 LocalRangeProxy 的 ByteSource 使用。
+ * libsmb2 的 JNI 声明（243 起为唯一 native 入口）。
  *
- * 错误纪律（G9）：native 返回负值/空时，调 [lastError] 取 libsmb2 的错误文本组装 reason。
+ * 这一层只声明"能做什么"，不持有状态、不做错误翻译——连接与生命周期归
+ * [SmbSession] / [SmbReader]，错误分类归 [SmbError]。
+ *
+ * 错误纪律（G9）：native 返回负值/空时，调用方必须用 [nativeNtStatus] +
+ * [nativeGetError] 组装用户可见 reason，不允许吞掉。
  */
 object Smb2Native {
 
@@ -13,87 +15,33 @@ object Smb2Native {
         System.loadLibrary("kivo_player")
     }
 
-    /** 打开的文件句柄 + 大小（smb2_open + fstat 一次完成）。 */
-    class Opened(val handle: Long, val size: Long)
-
     external fun nativeCreate(): Long
     external fun nativeDestroy(ctx: Long)
+
+    /** 连到 [share]；返回 0 成功。share 用 "IPC$" 时是枚举共享的前置连接。 */
     external fun nativeConnect(ctx: Long, host: String, port: Int, share: String,
                                user: String, pass: String, domain: String): Int
-    /** 返回 JSON 数组 [name,dir,size]；失败返回 null（读 nativeGetError）。 */
+
+    /** 列目录，返回 JSON 数组 [{"name","dir","size"}]；失败返回 null。 */
     external fun nativeList(ctx: Long, path: String): String?
+
+    /** 枚举共享（必须已连 IPC$），返回 JSON [{"name","remark","type"}]；失败返回 null。 */
+    external fun nativeListShares(ctx: Long): String?
+
     external fun nativeOpen(ctx: Long, path: String): Long
     external fun nativeSize(ctx: Long, fh: Long): Long
+
+    /** 读进新数组（兼容路径，S2 起播放走 [nativeReadInto]）。 */
     external fun nativeReadAt(ctx: Long, fh: Long, offset: Long, len: Int): ByteArray?
+
+    /** 直接读进调用方的 ByteArray；返回字节数，0 = EOF，<0 = 失败。 */
+    external fun nativeReadInto(ctx: Long, fh: Long, offset: Long, buf: ByteArray,
+                                off: Int, len: Int): Int
+
     external fun nativeCloseFh(ctx: Long, fh: Long): Int
+
     external fun nativeGetError(ctx: Long): String
 
-    class Smb2Exception(val stage: String, val target: String, detail: String) :
-        Exception("[$stage] $target: $detail")
-
-    /** libsmb2 后端：与 jcifs 版 SmbSource 同职责面。 */
-    class Source(private val config: SmbConfig) : AutoCloseable {
-        private var ctx: Long = 0
-        private var opened: Opened? = null
-
-        fun connect() {
-            ctx = nativeCreate()
-            if (ctx == 0L) throw Smb2Exception("create", config.host, "smb2_init_context failed")
-            val rc = nativeConnect(ctx, config.host, config.port, config.share,
-                config.username, config.password, config.domain)
-            if (rc != 0) {
-                val err = lastError()
-                close()
-                throw Smb2Exception("connect", "${config.host}:${config.port}/${config.share}", err)
-            }
-        }
-
-        fun list(subPath: String = config.path): List<SmbSource.Entry> {
-            val json = nativeList(ctx, subPath.trim('/'))
-                ?: throw Smb2Exception("browse", subPath, lastError())
-            val arr = org.json.JSONArray(json)
-            val out = ArrayList<SmbSource.Entry>(arr.length())
-            for (i in 0 until arr.length()) {
-                val o = arr.getJSONObject(i)
-                out.add(SmbSource.Entry(o.getString("name"), o.getBoolean("dir"), o.getLong("size")))
-            }
-            return out
-        }
-
-        fun openForRead(fileSubPath: String): NativeByteSource {
-            val rel = fileSubPath.trim('/')
-            val fh = nativeOpen(ctx, rel)
-            if (fh == 0L) throw Smb2Exception("open", rel, lastError())
-            val size = nativeSize(ctx, fh)
-            if (size < 0) {
-                nativeCloseFh(ctx, fh)
-                throw Smb2Exception("size", rel, lastError())
-            }
-            return NativeByteSource(fh, size)
-        }
-
-        fun lastError(): String = if (ctx != 0L) nativeGetError(ctx) else "context destroyed"
-
-        inner class NativeByteSource(private val fh: Long, private val sizeBytes: Long) :
-            SmbSource.ByteSource {
-            override fun size(): Long = sizeBytes
-            override fun readAt(offset: Long, buf: ByteArray, off: Int, len: Int): Int {
-                val data = nativeReadAt(ctx, fh, offset, len)
-                    ?: throw Smb2Exception("read", "${config.share}@$offset+$len", lastError())
-                System.arraycopy(data, 0, buf, off, data.size)
-                return data.size
-            }
-            override fun close() {
-                nativeCloseFh(ctx, fh)
-            }
-        }
-
-        override fun close() {
-            opened = null
-            if (ctx != 0L) {
-                nativeDestroy(ctx)
-                ctx = 0
-            }
-        }
-    }
+    /** 最近一次失败的 NT status（0xC00000xx）；配合 [SmbError.translate]。 */
+    external fun nativeNtStatus(ctx: Long): Int
 }

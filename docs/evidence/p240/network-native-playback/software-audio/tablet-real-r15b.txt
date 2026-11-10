@@ -1,0 +1,560 @@
+PASS sparse cache holes/overlap/bounds/LRU/edges/concurrency; shared head/index and interleaved 4MiB continuous/index each 3 HTTP requests; probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response (2 including probe)
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.hevc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS seek request=2 target_us=8000000 landing_us=6250000 advances_after_completion
+PASS seek request=3 target_us=2000000 landing_us=0 advances_after_completion
+PASS forward and backward seek use the native A/V session
+FAIL stage=steady type=Failure state=PLAYING (details withheld for real-source privacy)
+PROGRESS gate=rolling-2s rate=0.7684975024975025 samples_ms_us=0:565248,1001:1564536,2002:2103780
+CHECK media_curve wall_ms:position_s=1:0.0,1021:1.067607,2143:1.128,5782:0.0,6840:0.979143,7855:1.979932
+IO events=267 retained=267
+IO t_ms=1 http_begin reader=0 offset=0 end=4095
+IO t_ms=1547 http_ready reader=0 offset=0 end=4095 total=7369631541
+IO t_ms=1557 read_begin reader=1 offset=0 size=16384
+IO t_ms=1557 http_begin reader=1 offset=0 end=7369631540
+IO t_ms=3810 http_ready reader=1 offset=0 end=7369631540 total=7369631541
+IO t_ms=3817 read_end reader=1 offset=0 bytes=16384 network_bytes=16384 elapsed_ms=2259
+IO t_ms=3819 read_begin reader=1 offset=16384 size=65536
+IO t_ms=4349 read_end reader=1 offset=16384 bytes=65536 network_bytes=65536 elapsed_ms=529
+IO t_ms=4353 read_begin reader=1 offset=81920 size=131072
+IO t_ms=4617 read_end reader=1 offset=81920 bytes=131072 network_bytes=131072 elapsed_ms=263
+IO t_ms=4628 read_begin reader=1 offset=212992 size=131072
+IO t_ms=4795 read_end reader=1 offset=212992 bytes=131072 network_bytes=131072 elapsed_ms=166
+IO t_ms=4796 read_begin reader=1 offset=344064 size=131072
+IO t_ms=5044 read_end reader=1 offset=344064 bytes=131072 network_bytes=131072 elapsed_ms=248
+IO t_ms=5058 read_begin reader=1 offset=7369596928 size=8192
+IO t_ms=5059 http_begin reader=1 offset=7369596928 end=7369631540
+IO t_ms=7999 http_ready reader=1 offset=7369596928 end=7369631540 total=7369631541
+IO t_ms=8002 read_end reader=1 offset=7369596928 bytes=8192 network_bytes=8192 elapsed_ms=2943
+IO t_ms=8056 read_begin reader=2 offset=0 size=16384
+IO t_ms=8056 read_end reader=2 offset=0 bytes=16384 network_bytes=0 elapsed_ms=0
+IO t_ms=8057 read_begin reader=2 offset=16384 size=65536
+IO t_ms=8058 read_end reader=2 offset=16384 bytes=65536 network_bytes=0 elapsed_ms=0
+IO t_ms=8060 read_begin reader=2 offset=81920 size=131072
+IO t_ms=8060 read_end reader=2 offset=81920 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=8067 read_begin reader=2 offset=212992 size=131072
+IO t_ms=8068 read_end reader=2 offset=212992 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=8068 read_begin reader=2 offset=344064 size=131072
+IO t_ms=8069 read_end reader=2 offset=344064 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=8079 read_begin reader=2 offset=7369596928 size=8192
+IO t_ms=8079 read_end reader=2 offset=7369596928 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=8316 read_begin reader=3 offset=0 size=16384
+IO t_ms=8316 read_end reader=3 offset=0 bytes=16384 network_bytes=0 elapsed_ms=0
+IO t_ms=8317 read_begin reader=3 offset=16384 size=65536
+IO t_ms=8317 read_end reader=3 offset=16384 bytes=65536 network_bytes=0 elapsed_ms=0
+IO t_ms=8319 read_begin reader=3 offset=81920 size=131072
+IO t_ms=8319 read_end reader=3 offset=81920 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=8324 read_begin reader=3 offset=212992 size=131072
+IO t_ms=8325 read_end reader=3 offset=212992 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=8325 read_begin reader=3 offset=344064 size=131072
+IO t_ms=8325 read_end reader=3 offset=344064 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=8333 read_begin reader=3 offset=7369596928 size=8192
+IO t_ms=8333 read_end reader=3 offset=7369596928 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=8341 read_begin reader=3 offset=970752 size=8192
+IO t_ms=8365 read_end reader=3 offset=970752 bytes=8192 network_bytes=503808 elapsed_ms=24
+IO t_ms=8367 read_begin reader=3 offset=978944 size=16384
+IO t_ms=8368 read_end reader=3 offset=978944 bytes=16384 network_bytes=16384 elapsed_ms=0
+IO t_ms=8516 read_begin reader=3 offset=995328 size=65536
+IO t_ms=8519 read_end reader=3 offset=995328 bytes=65536 network_bytes=65536 elapsed_ms=3
+IO t_ms=8523 read_begin reader=3 offset=1060864 size=131072
+IO t_ms=8531 read_end reader=3 offset=1060864 bytes=131072 network_bytes=131072 elapsed_ms=8
+IO t_ms=8534 read_begin reader=3 offset=1527808 size=8192
+IO t_ms=8552 read_end reader=3 offset=1527808 bytes=8192 network_bytes=344064 elapsed_ms=18
+IO t_ms=8556 read_begin reader=3 offset=1605632 size=8192
+IO t_ms=8561 read_end reader=3 offset=1605632 bytes=8192 network_bytes=77824 elapsed_ms=4
+IO t_ms=8563 read_begin reader=3 offset=1642496 size=8192
+IO t_ms=8564 read_end reader=3 offset=1642496 bytes=8192 network_bytes=36864 elapsed_ms=1
+IO t_ms=8566 read_begin reader=3 offset=1667072 size=8192
+IO t_ms=8568 read_end reader=3 offset=1667072 bytes=8192 network_bytes=24576 elapsed_ms=1
+IO t_ms=8570 read_begin reader=3 offset=1683456 size=4096
+IO t_ms=8571 read_end reader=3 offset=1683456 bytes=4096 network_bytes=12288 elapsed_ms=0
+IO t_ms=8572 read_begin reader=3 offset=1691648 size=8192
+IO t_ms=8573 read_end reader=3 offset=1691648 bytes=8192 network_bytes=12288 elapsed_ms=0
+IO t_ms=8575 read_begin reader=3 offset=1720320 size=4096
+IO t_ms=8577 read_end reader=3 offset=1720320 bytes=4096 network_bytes=24576 elapsed_ms=2
+IO t_ms=8579 read_begin reader=3 offset=1728512 size=8192
+IO t_ms=8635 read_end reader=3 offset=1728512 bytes=8192 network_bytes=12288 elapsed_ms=56
+IO t_ms=8639 read_begin reader=3 offset=1740800 size=8192
+IO t_ms=8640 read_end reader=3 offset=1740800 bytes=8192 network_bytes=12288 elapsed_ms=0
+IO t_ms=8641 read_begin reader=3 offset=1765376 size=4096
+IO t_ms=8934 read_end reader=3 offset=1765376 bytes=4096 network_bytes=20480 elapsed_ms=291
+IO t_ms=8940 read_begin reader=3 offset=1798144 size=4096
+IO t_ms=8946 read_end reader=3 offset=1798144 bytes=4096 network_bytes=32768 elapsed_ms=6
+IO t_ms=8949 read_begin reader=3 offset=1810432 size=4096
+IO t_ms=8950 read_end reader=3 offset=1810432 bytes=4096 network_bytes=12288 elapsed_ms=0
+IO t_ms=8954 read_begin reader=3 offset=1826816 size=4096
+IO t_ms=8956 read_end reader=3 offset=1826816 bytes=4096 network_bytes=16384 elapsed_ms=1
+IO t_ms=8957 read_begin reader=3 offset=1835008 size=8192
+IO t_ms=8959 read_end reader=3 offset=1835008 bytes=8192 network_bytes=12288 elapsed_ms=1
+IO t_ms=8961 read_begin reader=3 offset=1843200 size=16384
+IO t_ms=8963 read_end reader=3 offset=1843200 bytes=16384 network_bytes=16384 elapsed_ms=2
+IO t_ms=8966 read_begin reader=3 offset=1859584 size=65536
+IO t_ms=8980 read_end reader=3 offset=1859584 bytes=65536 network_bytes=65536 elapsed_ms=14
+IO t_ms=8986 read_begin reader=3 offset=1925120 size=131072
+IO t_ms=9655 read_end reader=3 offset=1925120 bytes=131072 network_bytes=131072 elapsed_ms=669
+IO t_ms=9661 read_begin reader=3 offset=2314240 size=8192
+IO t_ms=9675 read_end reader=3 offset=2314240 bytes=8192 network_bytes=266240 elapsed_ms=13
+IO t_ms=9677 read_begin reader=3 offset=2334720 size=8192
+IO t_ms=9678 read_end reader=3 offset=2334720 bytes=8192 network_bytes=20480 elapsed_ms=1
+IO t_ms=9680 read_begin reader=3 offset=2351104 size=4096
+IO t_ms=9680 read_end reader=3 offset=2351104 bytes=4096 network_bytes=12288 elapsed_ms=0
+IO t_ms=9682 read_begin reader=3 offset=2359296 size=8192
+IO t_ms=9683 read_end reader=3 offset=2359296 bytes=8192 network_bytes=12288 elapsed_ms=1
+IO t_ms=9685 read_begin reader=3 offset=2367488 size=16384
+IO t_ms=9686 read_end reader=3 offset=2367488 bytes=16384 network_bytes=16384 elapsed_ms=1
+IO t_ms=9688 read_begin reader=3 offset=2383872 size=65536
+IO t_ms=9691 read_end reader=3 offset=2383872 bytes=65536 network_bytes=65536 elapsed_ms=2
+IO t_ms=9696 read_begin reader=3 offset=2449408 size=131072
+IO t_ms=9710 read_end reader=3 offset=2449408 bytes=131072 network_bytes=131072 elapsed_ms=14
+IO t_ms=9727 read_begin reader=3 offset=2772992 size=4096
+IO t_ms=9735 read_end reader=3 offset=2772992 bytes=4096 network_bytes=196608 elapsed_ms=7
+IO t_ms=9736 read_begin reader=3 offset=2801664 size=8192
+IO t_ms=9737 read_end reader=3 offset=2801664 bytes=8192 network_bytes=32768 elapsed_ms=1
+IO t_ms=9738 read_begin reader=3 offset=2826240 size=4096
+IO t_ms=9739 read_end reader=3 offset=2826240 bytes=4096 network_bytes=20480 elapsed_ms=0
+IO t_ms=9740 read_begin reader=3 offset=2838528 size=8192
+IO t_ms=9741 read_end reader=3 offset=2838528 bytes=8192 network_bytes=16384 elapsed_ms=0
+IO t_ms=9742 read_begin reader=3 offset=2850816 size=4096
+IO t_ms=9742 read_end reader=3 offset=2850816 bytes=4096 network_bytes=8192 elapsed_ms=0
+IO t_ms=9744 read_begin reader=3 offset=2863104 size=4096
+IO t_ms=9744 read_end reader=3 offset=2863104 bytes=4096 network_bytes=12288 elapsed_ms=0
+IO t_ms=9746 read_begin reader=3 offset=2875392 size=8192
+IO t_ms=9746 read_end reader=3 offset=2875392 bytes=8192 network_bytes=16384 elapsed_ms=0
+IO t_ms=9749 read_begin reader=3 offset=2887680 size=8192
+IO t_ms=9750 read_end reader=3 offset=2887680 bytes=8192 network_bytes=12288 elapsed_ms=0
+IO t_ms=9751 read_begin reader=3 offset=2895872 size=32768
+IO t_ms=9753 read_end reader=3 offset=2895872 bytes=32768 network_bytes=32768 elapsed_ms=1
+IO t_ms=9755 read_begin reader=3 offset=2932736 size=4096
+IO t_ms=9755 read_end reader=3 offset=2932736 bytes=4096 network_bytes=8192 elapsed_ms=0
+IO t_ms=9756 read_begin reader=3 offset=2940928 size=4096
+IO t_ms=9757 read_end reader=3 offset=2940928 bytes=4096 network_bytes=8192 elapsed_ms=0
+IO t_ms=9758 read_begin reader=3 offset=2949120 size=8192
+IO t_ms=9759 read_end reader=3 offset=2949120 bytes=8192 network_bytes=12288 elapsed_ms=0
+IO t_ms=9760 read_begin reader=3 offset=2965504 size=8192
+IO t_ms=9760 read_end reader=3 offset=2965504 bytes=8192 network_bytes=16384 elapsed_ms=0
+IO t_ms=9762 read_begin reader=3 offset=2973696 size=32768
+IO t_ms=9763 read_end reader=3 offset=2973696 bytes=32768 network_bytes=32768 elapsed_ms=1
+IO t_ms=9969 read_begin reader=2 offset=475136 size=131072
+IO t_ms=9970 read_end reader=2 offset=475136 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9972 read_begin reader=2 offset=606208 size=131072
+IO t_ms=9972 read_end reader=2 offset=606208 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9974 read_begin reader=2 offset=737280 size=131072
+IO t_ms=9974 read_end reader=2 offset=737280 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9976 read_begin reader=2 offset=868352 size=131072
+IO t_ms=9976 read_end reader=2 offset=868352 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9979 read_begin reader=2 offset=999424 size=131072
+IO t_ms=9979 read_end reader=2 offset=999424 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9980 read_begin reader=2 offset=1130496 size=131072
+IO t_ms=9981 read_end reader=2 offset=1130496 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9981 read_begin reader=2 offset=1261568 size=131072
+IO t_ms=9981 read_end reader=2 offset=1261568 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9998 read_begin reader=2 offset=1392640 size=131072
+IO t_ms=9999 read_end reader=2 offset=1392640 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10015 read_begin reader=2 offset=1523712 size=131072
+IO t_ms=10016 read_end reader=2 offset=1523712 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10017 read_begin reader=2 offset=1654784 size=131072
+IO t_ms=10017 read_end reader=2 offset=1654784 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10018 read_begin reader=2 offset=1785856 size=131072
+IO t_ms=10019 read_end reader=2 offset=1785856 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10019 read_begin reader=2 offset=1916928 size=131072
+IO t_ms=10020 read_end reader=2 offset=1916928 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10023 read_begin reader=2 offset=2048000 size=131072
+IO t_ms=10023 read_end reader=2 offset=2048000 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10024 read_begin reader=2 offset=2179072 size=131072
+IO t_ms=10024 read_end reader=2 offset=2179072 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10026 read_begin reader=2 offset=2310144 size=131072
+IO t_ms=10026 read_end reader=2 offset=2310144 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10027 read_begin reader=2 offset=2441216 size=131072
+IO t_ms=10027 read_end reader=2 offset=2441216 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10153 read_begin reader=2 offset=2572288 size=131072
+IO t_ms=10153 read_end reader=2 offset=2572288 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10160 read_begin reader=2 offset=2703360 size=131072
+IO t_ms=10161 read_end reader=2 offset=2703360 bytes=131072 network_bytes=0 elapsed_ms=1
+IO t_ms=10163 read_begin reader=2 offset=2834432 size=131072
+IO t_ms=10164 read_end reader=2 offset=2834432 bytes=131072 network_bytes=0 elapsed_ms=1
+IO t_ms=10165 read_begin reader=2 offset=2965504 size=131072
+IO t_ms=10181 read_end reader=2 offset=2965504 bytes=131072 network_bytes=90112 elapsed_ms=15
+IO t_ms=10907 read_begin reader=2 offset=3096576 size=131072
+IO t_ms=10912 read_end reader=2 offset=3096576 bytes=131072 network_bytes=131072 elapsed_ms=4
+IO t_ms=10913 read_begin reader=2 offset=3227648 size=131072
+IO t_ms=10919 read_end reader=2 offset=3227648 bytes=131072 network_bytes=131072 elapsed_ms=6
+IO t_ms=10920 read_begin reader=2 offset=3358720 size=131072
+IO t_ms=10926 read_end reader=2 offset=3358720 bytes=131072 network_bytes=131072 elapsed_ms=5
+IO t_ms=10927 read_begin reader=2 offset=3489792 size=131072
+IO t_ms=10933 read_end reader=2 offset=3489792 bytes=131072 network_bytes=131072 elapsed_ms=5
+IO t_ms=12399 read_begin reader=2 offset=7369605120 size=16384
+IO t_ms=12405 read_end reader=2 offset=7369605120 bytes=16384 network_bytes=16384 elapsed_ms=6
+IO t_ms=12407 read_begin reader=2 offset=7369621504 size=12288
+IO t_ms=12412 read_end reader=2 offset=7369621504 bytes=10037 network_bytes=10037 elapsed_ms=4
+IO t_ms=12418 read_begin reader=2 offset=5263360 size=8192
+IO t_ms=12519 http_begin reader=2 offset=5263360 end=7369631540
+IO t_ms=14393 http_ready reader=2 offset=5263360 end=7369631540 total=7369631541
+IO t_ms=14396 read_end reader=2 offset=5263360 bytes=8192 network_bytes=8192 elapsed_ms=1978
+IO t_ms=14401 read_begin reader=2 offset=5271552 size=131072
+IO t_ms=14889 read_end reader=2 offset=5271552 bytes=131072 network_bytes=131072 elapsed_ms=487
+IO t_ms=14894 read_begin reader=2 offset=5402624 size=65536
+IO t_ms=14905 read_end reader=2 offset=5402624 bytes=65536 network_bytes=65536 elapsed_ms=11
+IO t_ms=14907 read_begin reader=2 offset=5468160 size=131072
+IO t_ms=15198 read_end reader=2 offset=5468160 bytes=131072 network_bytes=131072 elapsed_ms=290
+IO t_ms=15202 read_begin reader=2 offset=5599232 size=131072
+IO t_ms=15295 read_end reader=2 offset=5599232 bytes=131072 network_bytes=131072 elapsed_ms=93
+IO t_ms=15296 read_begin reader=2 offset=5730304 size=131072
+IO t_ms=15353 read_end reader=2 offset=5730304 bytes=131072 network_bytes=131072 elapsed_ms=57
+IO t_ms=15371 read_begin reader=3 offset=7369605120 size=16384
+IO t_ms=15372 read_end reader=3 offset=7369605120 bytes=16384 network_bytes=0 elapsed_ms=0
+IO t_ms=15373 read_begin reader=3 offset=7369621504 size=12288
+IO t_ms=15373 read_end reader=3 offset=7369621504 bytes=10037 network_bytes=0 elapsed_ms=0
+IO t_ms=15378 read_begin reader=3 offset=5263360 size=8192
+IO t_ms=15378 read_end reader=3 offset=5263360 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=15381 read_begin reader=3 offset=5332992 size=8192
+IO t_ms=15381 read_end reader=3 offset=5332992 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=15382 read_begin reader=3 offset=5341184 size=16384
+IO t_ms=15382 read_end reader=3 offset=5341184 bytes=16384 network_bytes=0 elapsed_ms=0
+IO t_ms=15384 read_begin reader=3 offset=5357568 size=65536
+IO t_ms=15384 read_end reader=3 offset=5357568 bytes=65536 network_bytes=0 elapsed_ms=0
+IO t_ms=15388 read_begin reader=3 offset=5423104 size=131072
+IO t_ms=15388 read_end reader=3 offset=5423104 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=15417 read_begin reader=3 offset=5554176 size=131072
+IO t_ms=15417 read_end reader=3 offset=5554176 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=15418 read_begin reader=3 offset=5685248 size=131072
+IO t_ms=15418 read_end reader=3 offset=5685248 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=15419 read_begin reader=3 offset=5816320 size=131072
+IO t_ms=15423 read_end reader=3 offset=5816320 bytes=131072 network_bytes=86016 elapsed_ms=3
+IO t_ms=15423 read_begin reader=3 offset=5947392 size=131072
+IO t_ms=15781 read_end reader=3 offset=5947392 bytes=131072 network_bytes=131072 elapsed_ms=357
+IO t_ms=15872 read_begin reader=2 offset=5861376 size=131072
+IO t_ms=15873 read_end reader=2 offset=5861376 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=15873 read_begin reader=2 offset=5992448 size=131072
+IO t_ms=15877 read_end reader=2 offset=5992448 bytes=131072 network_bytes=45056 elapsed_ms=3
+IO t_ms=15878 read_begin reader=2 offset=6123520 size=131072
+IO t_ms=15884 read_end reader=2 offset=6123520 bytes=131072 network_bytes=131072 elapsed_ms=5
+IO t_ms=15885 read_begin reader=2 offset=6254592 size=131072
+IO t_ms=16218 read_end reader=2 offset=6254592 bytes=131072 network_bytes=131072 elapsed_ms=333
+IO t_ms=17659 read_begin reader=2 offset=3620864 size=131072
+IO t_ms=17659 http_begin reader=2 offset=3620864 end=7369631540
+IO t_ms=17939 read_begin reader=3 offset=3354624 size=8192
+IO t_ms=17939 read_end reader=3 offset=3354624 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17945 read_begin reader=3 offset=3403776 size=4096
+IO t_ms=17945 read_end reader=3 offset=3403776 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=17947 read_begin reader=3 offset=3432448 size=8192
+IO t_ms=17947 read_end reader=3 offset=3432448 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17949 read_begin reader=3 offset=3452928 size=8192
+IO t_ms=17949 read_end reader=3 offset=3452928 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17951 read_begin reader=3 offset=3465216 size=8192
+IO t_ms=17952 read_end reader=3 offset=3465216 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17953 read_begin reader=3 offset=3477504 size=8192
+IO t_ms=17953 read_end reader=3 offset=3477504 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17959 read_begin reader=3 offset=3497984 size=4096
+IO t_ms=17959 read_end reader=3 offset=3497984 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=17961 read_begin reader=3 offset=3510272 size=4096
+IO t_ms=17961 read_end reader=3 offset=3510272 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=17963 read_begin reader=3 offset=3518464 size=8192
+IO t_ms=17963 read_end reader=3 offset=3518464 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17966 read_begin reader=3 offset=3534848 size=8192
+IO t_ms=17966 read_end reader=3 offset=3534848 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17968 read_begin reader=3 offset=3547136 size=4096
+IO t_ms=17968 read_end reader=3 offset=3547136 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=17970 read_begin reader=3 offset=3551232 size=32768
+IO t_ms=17971 read_end reader=3 offset=3551232 bytes=32768 network_bytes=0 elapsed_ms=0
+IO t_ms=17972 read_begin reader=3 offset=3584000 size=65536
+IO t_ms=18497 read_error reader=2 offset=3620864 type=SocketException elapsed_ms=838
+IO t_ms=18497 read_error reader=3 offset=3584000 type=IOException elapsed_ms=524
+IO t_ms=18501 read_begin reader=2 offset=3751936 size=131072
+IO t_ms=18502 read_error reader=2 offset=3751936 type=IOException elapsed_ms=0
+IO t_ms=18503 read_begin reader=2 offset=3883008 size=131072
+IO t_ms=18504 read_error reader=2 offset=3883008 type=IOException elapsed_ms=0
+IO t_ms=18505 read_begin reader=2 offset=4014080 size=131072
+IO t_ms=18506 read_error reader=2 offset=4014080 type=IOException elapsed_ms=0
+IO t_ms=18509 read_begin reader=3 offset=3649536 size=131072
+IO t_ms=18511 read_error reader=3 offset=3649536 type=IOException elapsed_ms=1
+IO t_ms=18521 read_begin reader=3 offset=3584000 size=4096
+IO t_ms=18522 read_error reader=3 offset=3584000 type=IOException elapsed_ms=0
+IO t_ms=18524 read_begin reader=3 offset=3584000 size=4096
+IO t_ms=18524 read_error reader=3 offset=3584000 type=IOException elapsed_ms=0
+IO t_ms=18527 read_begin reader=3 offset=3584000 size=4096
+IO t_ms=18527 read_error reader=3 offset=3584000 type=IOException elapsed_ms=0
+IO t_ms=18529 read_begin reader=3 offset=3584000 size=4096
+IO t_ms=18529 read_error reader=3 offset=3584000 type=IOException elapsed_ms=0
+
+PASS sparse cache holes/overlap/bounds/LRU/edges/concurrency; shared head/index and interleaved 4MiB continuous/index each 3 HTTP requests; probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response (2 including probe)
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.hevc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS seek request=2 target_us=8000000 landing_us=6250000 advances_after_completion
+PASS seek request=3 target_us=2000000 landing_us=0 advances_after_completion
+PASS forward and backward seek use the native A/V session
+FAIL stage=steady type=Failure state=PLAYING (details withheld for real-source privacy)
+PROGRESS gate=rolling-2s rate=0.7684975024975025 samples_ms_us=0:565248,1001:1564536,2002:2103780
+CHECK media_curve wall_ms:position_s=1:0.0,1021:1.067607,2143:1.128,5782:0.0,6840:0.979143,7855:1.979932
+IO events=267 retained=267
+IO t_ms=1 http_begin reader=0 offset=0 end=4095
+IO t_ms=1547 http_ready reader=0 offset=0 end=4095 total=7369631541
+IO t_ms=1557 read_begin reader=1 offset=0 size=16384
+IO t_ms=1557 http_begin reader=1 offset=0 end=7369631540
+IO t_ms=3810 http_ready reader=1 offset=0 end=7369631540 total=7369631541
+IO t_ms=3817 read_end reader=1 offset=0 bytes=16384 network_bytes=16384 elapsed_ms=2259
+IO t_ms=3819 read_begin reader=1 offset=16384 size=65536
+IO t_ms=4349 read_end reader=1 offset=16384 bytes=65536 network_bytes=65536 elapsed_ms=529
+IO t_ms=4353 read_begin reader=1 offset=81920 size=131072
+IO t_ms=4617 read_end reader=1 offset=81920 bytes=131072 network_bytes=131072 elapsed_ms=263
+IO t_ms=4628 read_begin reader=1 offset=212992 size=131072
+IO t_ms=4795 read_end reader=1 offset=212992 bytes=131072 network_bytes=131072 elapsed_ms=166
+IO t_ms=4796 read_begin reader=1 offset=344064 size=131072
+IO t_ms=5044 read_end reader=1 offset=344064 bytes=131072 network_bytes=131072 elapsed_ms=248
+IO t_ms=5058 read_begin reader=1 offset=7369596928 size=8192
+IO t_ms=5059 http_begin reader=1 offset=7369596928 end=7369631540
+IO t_ms=7999 http_ready reader=1 offset=7369596928 end=7369631540 total=7369631541
+IO t_ms=8002 read_end reader=1 offset=7369596928 bytes=8192 network_bytes=8192 elapsed_ms=2943
+IO t_ms=8056 read_begin reader=2 offset=0 size=16384
+IO t_ms=8056 read_end reader=2 offset=0 bytes=16384 network_bytes=0 elapsed_ms=0
+IO t_ms=8057 read_begin reader=2 offset=16384 size=65536
+IO t_ms=8058 read_end reader=2 offset=16384 bytes=65536 network_bytes=0 elapsed_ms=0
+IO t_ms=8060 read_begin reader=2 offset=81920 size=131072
+IO t_ms=8060 read_end reader=2 offset=81920 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=8067 read_begin reader=2 offset=212992 size=131072
+IO t_ms=8068 read_end reader=2 offset=212992 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=8068 read_begin reader=2 offset=344064 size=131072
+IO t_ms=8069 read_end reader=2 offset=344064 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=8079 read_begin reader=2 offset=7369596928 size=8192
+IO t_ms=8079 read_end reader=2 offset=7369596928 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=8316 read_begin reader=3 offset=0 size=16384
+IO t_ms=8316 read_end reader=3 offset=0 bytes=16384 network_bytes=0 elapsed_ms=0
+IO t_ms=8317 read_begin reader=3 offset=16384 size=65536
+IO t_ms=8317 read_end reader=3 offset=16384 bytes=65536 network_bytes=0 elapsed_ms=0
+IO t_ms=8319 read_begin reader=3 offset=81920 size=131072
+IO t_ms=8319 read_end reader=3 offset=81920 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=8324 read_begin reader=3 offset=212992 size=131072
+IO t_ms=8325 read_end reader=3 offset=212992 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=8325 read_begin reader=3 offset=344064 size=131072
+IO t_ms=8325 read_end reader=3 offset=344064 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=8333 read_begin reader=3 offset=7369596928 size=8192
+IO t_ms=8333 read_end reader=3 offset=7369596928 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=8341 read_begin reader=3 offset=970752 size=8192
+IO t_ms=8365 read_end reader=3 offset=970752 bytes=8192 network_bytes=503808 elapsed_ms=24
+IO t_ms=8367 read_begin reader=3 offset=978944 size=16384
+IO t_ms=8368 read_end reader=3 offset=978944 bytes=16384 network_bytes=16384 elapsed_ms=0
+IO t_ms=8516 read_begin reader=3 offset=995328 size=65536
+IO t_ms=8519 read_end reader=3 offset=995328 bytes=65536 network_bytes=65536 elapsed_ms=3
+IO t_ms=8523 read_begin reader=3 offset=1060864 size=131072
+IO t_ms=8531 read_end reader=3 offset=1060864 bytes=131072 network_bytes=131072 elapsed_ms=8
+IO t_ms=8534 read_begin reader=3 offset=1527808 size=8192
+IO t_ms=8552 read_end reader=3 offset=1527808 bytes=8192 network_bytes=344064 elapsed_ms=18
+IO t_ms=8556 read_begin reader=3 offset=1605632 size=8192
+IO t_ms=8561 read_end reader=3 offset=1605632 bytes=8192 network_bytes=77824 elapsed_ms=4
+IO t_ms=8563 read_begin reader=3 offset=1642496 size=8192
+IO t_ms=8564 read_end reader=3 offset=1642496 bytes=8192 network_bytes=36864 elapsed_ms=1
+IO t_ms=8566 read_begin reader=3 offset=1667072 size=8192
+IO t_ms=8568 read_end reader=3 offset=1667072 bytes=8192 network_bytes=24576 elapsed_ms=1
+IO t_ms=8570 read_begin reader=3 offset=1683456 size=4096
+IO t_ms=8571 read_end reader=3 offset=1683456 bytes=4096 network_bytes=12288 elapsed_ms=0
+IO t_ms=8572 read_begin reader=3 offset=1691648 size=8192
+IO t_ms=8573 read_end reader=3 offset=1691648 bytes=8192 network_bytes=12288 elapsed_ms=0
+IO t_ms=8575 read_begin reader=3 offset=1720320 size=4096
+IO t_ms=8577 read_end reader=3 offset=1720320 bytes=4096 network_bytes=24576 elapsed_ms=2
+IO t_ms=8579 read_begin reader=3 offset=1728512 size=8192
+IO t_ms=8635 read_end reader=3 offset=1728512 bytes=8192 network_bytes=12288 elapsed_ms=56
+IO t_ms=8639 read_begin reader=3 offset=1740800 size=8192
+IO t_ms=8640 read_end reader=3 offset=1740800 bytes=8192 network_bytes=12288 elapsed_ms=0
+IO t_ms=8641 read_begin reader=3 offset=1765376 size=4096
+IO t_ms=8934 read_end reader=3 offset=1765376 bytes=4096 network_bytes=20480 elapsed_ms=291
+IO t_ms=8940 read_begin reader=3 offset=1798144 size=4096
+IO t_ms=8946 read_end reader=3 offset=1798144 bytes=4096 network_bytes=32768 elapsed_ms=6
+IO t_ms=8949 read_begin reader=3 offset=1810432 size=4096
+IO t_ms=8950 read_end reader=3 offset=1810432 bytes=4096 network_bytes=12288 elapsed_ms=0
+IO t_ms=8954 read_begin reader=3 offset=1826816 size=4096
+IO t_ms=8956 read_end reader=3 offset=1826816 bytes=4096 network_bytes=16384 elapsed_ms=1
+IO t_ms=8957 read_begin reader=3 offset=1835008 size=8192
+IO t_ms=8959 read_end reader=3 offset=1835008 bytes=8192 network_bytes=12288 elapsed_ms=1
+IO t_ms=8961 read_begin reader=3 offset=1843200 size=16384
+IO t_ms=8963 read_end reader=3 offset=1843200 bytes=16384 network_bytes=16384 elapsed_ms=2
+IO t_ms=8966 read_begin reader=3 offset=1859584 size=65536
+IO t_ms=8980 read_end reader=3 offset=1859584 bytes=65536 network_bytes=65536 elapsed_ms=14
+IO t_ms=8986 read_begin reader=3 offset=1925120 size=131072
+IO t_ms=9655 read_end reader=3 offset=1925120 bytes=131072 network_bytes=131072 elapsed_ms=669
+IO t_ms=9661 read_begin reader=3 offset=2314240 size=8192
+IO t_ms=9675 read_end reader=3 offset=2314240 bytes=8192 network_bytes=266240 elapsed_ms=13
+IO t_ms=9677 read_begin reader=3 offset=2334720 size=8192
+IO t_ms=9678 read_end reader=3 offset=2334720 bytes=8192 network_bytes=20480 elapsed_ms=1
+IO t_ms=9680 read_begin reader=3 offset=2351104 size=4096
+IO t_ms=9680 read_end reader=3 offset=2351104 bytes=4096 network_bytes=12288 elapsed_ms=0
+IO t_ms=9682 read_begin reader=3 offset=2359296 size=8192
+IO t_ms=9683 read_end reader=3 offset=2359296 bytes=8192 network_bytes=12288 elapsed_ms=1
+IO t_ms=9685 read_begin reader=3 offset=2367488 size=16384
+IO t_ms=9686 read_end reader=3 offset=2367488 bytes=16384 network_bytes=16384 elapsed_ms=1
+IO t_ms=9688 read_begin reader=3 offset=2383872 size=65536
+IO t_ms=9691 read_end reader=3 offset=2383872 bytes=65536 network_bytes=65536 elapsed_ms=2
+IO t_ms=9696 read_begin reader=3 offset=2449408 size=131072
+IO t_ms=9710 read_end reader=3 offset=2449408 bytes=131072 network_bytes=131072 elapsed_ms=14
+IO t_ms=9727 read_begin reader=3 offset=2772992 size=4096
+IO t_ms=9735 read_end reader=3 offset=2772992 bytes=4096 network_bytes=196608 elapsed_ms=7
+IO t_ms=9736 read_begin reader=3 offset=2801664 size=8192
+IO t_ms=9737 read_end reader=3 offset=2801664 bytes=8192 network_bytes=32768 elapsed_ms=1
+IO t_ms=9738 read_begin reader=3 offset=2826240 size=4096
+IO t_ms=9739 read_end reader=3 offset=2826240 bytes=4096 network_bytes=20480 elapsed_ms=0
+IO t_ms=9740 read_begin reader=3 offset=2838528 size=8192
+IO t_ms=9741 read_end reader=3 offset=2838528 bytes=8192 network_bytes=16384 elapsed_ms=0
+IO t_ms=9742 read_begin reader=3 offset=2850816 size=4096
+IO t_ms=9742 read_end reader=3 offset=2850816 bytes=4096 network_bytes=8192 elapsed_ms=0
+IO t_ms=9744 read_begin reader=3 offset=2863104 size=4096
+IO t_ms=9744 read_end reader=3 offset=2863104 bytes=4096 network_bytes=12288 elapsed_ms=0
+IO t_ms=9746 read_begin reader=3 offset=2875392 size=8192
+IO t_ms=9746 read_end reader=3 offset=2875392 bytes=8192 network_bytes=16384 elapsed_ms=0
+IO t_ms=9749 read_begin reader=3 offset=2887680 size=8192
+IO t_ms=9750 read_end reader=3 offset=2887680 bytes=8192 network_bytes=12288 elapsed_ms=0
+IO t_ms=9751 read_begin reader=3 offset=2895872 size=32768
+IO t_ms=9753 read_end reader=3 offset=2895872 bytes=32768 network_bytes=32768 elapsed_ms=1
+IO t_ms=9755 read_begin reader=3 offset=2932736 size=4096
+IO t_ms=9755 read_end reader=3 offset=2932736 bytes=4096 network_bytes=8192 elapsed_ms=0
+IO t_ms=9756 read_begin reader=3 offset=2940928 size=4096
+IO t_ms=9757 read_end reader=3 offset=2940928 bytes=4096 network_bytes=8192 elapsed_ms=0
+IO t_ms=9758 read_begin reader=3 offset=2949120 size=8192
+IO t_ms=9759 read_end reader=3 offset=2949120 bytes=8192 network_bytes=12288 elapsed_ms=0
+IO t_ms=9760 read_begin reader=3 offset=2965504 size=8192
+IO t_ms=9760 read_end reader=3 offset=2965504 bytes=8192 network_bytes=16384 elapsed_ms=0
+IO t_ms=9762 read_begin reader=3 offset=2973696 size=32768
+IO t_ms=9763 read_end reader=3 offset=2973696 bytes=32768 network_bytes=32768 elapsed_ms=1
+IO t_ms=9969 read_begin reader=2 offset=475136 size=131072
+IO t_ms=9970 read_end reader=2 offset=475136 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9972 read_begin reader=2 offset=606208 size=131072
+IO t_ms=9972 read_end reader=2 offset=606208 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9974 read_begin reader=2 offset=737280 size=131072
+IO t_ms=9974 read_end reader=2 offset=737280 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9976 read_begin reader=2 offset=868352 size=131072
+IO t_ms=9976 read_end reader=2 offset=868352 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9979 read_begin reader=2 offset=999424 size=131072
+IO t_ms=9979 read_end reader=2 offset=999424 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9980 read_begin reader=2 offset=1130496 size=131072
+IO t_ms=9981 read_end reader=2 offset=1130496 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9981 read_begin reader=2 offset=1261568 size=131072
+IO t_ms=9981 read_end reader=2 offset=1261568 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=9998 read_begin reader=2 offset=1392640 size=131072
+IO t_ms=9999 read_end reader=2 offset=1392640 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10015 read_begin reader=2 offset=1523712 size=131072
+IO t_ms=10016 read_end reader=2 offset=1523712 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10017 read_begin reader=2 offset=1654784 size=131072
+IO t_ms=10017 read_end reader=2 offset=1654784 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10018 read_begin reader=2 offset=1785856 size=131072
+IO t_ms=10019 read_end reader=2 offset=1785856 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10019 read_begin reader=2 offset=1916928 size=131072
+IO t_ms=10020 read_end reader=2 offset=1916928 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10023 read_begin reader=2 offset=2048000 size=131072
+IO t_ms=10023 read_end reader=2 offset=2048000 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10024 read_begin reader=2 offset=2179072 size=131072
+IO t_ms=10024 read_end reader=2 offset=2179072 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10026 read_begin reader=2 offset=2310144 size=131072
+IO t_ms=10026 read_end reader=2 offset=2310144 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10027 read_begin reader=2 offset=2441216 size=131072
+IO t_ms=10027 read_end reader=2 offset=2441216 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10153 read_begin reader=2 offset=2572288 size=131072
+IO t_ms=10153 read_end reader=2 offset=2572288 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=10160 read_begin reader=2 offset=2703360 size=131072
+IO t_ms=10161 read_end reader=2 offset=2703360 bytes=131072 network_bytes=0 elapsed_ms=1
+IO t_ms=10163 read_begin reader=2 offset=2834432 size=131072
+IO t_ms=10164 read_end reader=2 offset=2834432 bytes=131072 network_bytes=0 elapsed_ms=1
+IO t_ms=10165 read_begin reader=2 offset=2965504 size=131072
+IO t_ms=10181 read_end reader=2 offset=2965504 bytes=131072 network_bytes=90112 elapsed_ms=15
+IO t_ms=10907 read_begin reader=2 offset=3096576 size=131072
+IO t_ms=10912 read_end reader=2 offset=3096576 bytes=131072 network_bytes=131072 elapsed_ms=4
+IO t_ms=10913 read_begin reader=2 offset=3227648 size=131072
+IO t_ms=10919 read_end reader=2 offset=3227648 bytes=131072 network_bytes=131072 elapsed_ms=6
+IO t_ms=10920 read_begin reader=2 offset=3358720 size=131072
+IO t_ms=10926 read_end reader=2 offset=3358720 bytes=131072 network_bytes=131072 elapsed_ms=5
+IO t_ms=10927 read_begin reader=2 offset=3489792 size=131072
+IO t_ms=10933 read_end reader=2 offset=3489792 bytes=131072 network_bytes=131072 elapsed_ms=5
+IO t_ms=12399 read_begin reader=2 offset=7369605120 size=16384
+IO t_ms=12405 read_end reader=2 offset=7369605120 bytes=16384 network_bytes=16384 elapsed_ms=6
+IO t_ms=12407 read_begin reader=2 offset=7369621504 size=12288
+IO t_ms=12412 read_end reader=2 offset=7369621504 bytes=10037 network_bytes=10037 elapsed_ms=4
+IO t_ms=12418 read_begin reader=2 offset=5263360 size=8192
+IO t_ms=12519 http_begin reader=2 offset=5263360 end=7369631540
+IO t_ms=14393 http_ready reader=2 offset=5263360 end=7369631540 total=7369631541
+IO t_ms=14396 read_end reader=2 offset=5263360 bytes=8192 network_bytes=8192 elapsed_ms=1978
+IO t_ms=14401 read_begin reader=2 offset=5271552 size=131072
+IO t_ms=14889 read_end reader=2 offset=5271552 bytes=131072 network_bytes=131072 elapsed_ms=487
+IO t_ms=14894 read_begin reader=2 offset=5402624 size=65536
+IO t_ms=14905 read_end reader=2 offset=5402624 bytes=65536 network_bytes=65536 elapsed_ms=11
+IO t_ms=14907 read_begin reader=2 offset=5468160 size=131072
+IO t_ms=15198 read_end reader=2 offset=5468160 bytes=131072 network_bytes=131072 elapsed_ms=290
+IO t_ms=15202 read_begin reader=2 offset=5599232 size=131072
+IO t_ms=15295 read_end reader=2 offset=5599232 bytes=131072 network_bytes=131072 elapsed_ms=93
+IO t_ms=15296 read_begin reader=2 offset=5730304 size=131072
+IO t_ms=15353 read_end reader=2 offset=5730304 bytes=131072 network_bytes=131072 elapsed_ms=57
+IO t_ms=15371 read_begin reader=3 offset=7369605120 size=16384
+IO t_ms=15372 read_end reader=3 offset=7369605120 bytes=16384 network_bytes=0 elapsed_ms=0
+IO t_ms=15373 read_begin reader=3 offset=7369621504 size=12288
+IO t_ms=15373 read_end reader=3 offset=7369621504 bytes=10037 network_bytes=0 elapsed_ms=0
+IO t_ms=15378 read_begin reader=3 offset=5263360 size=8192
+IO t_ms=15378 read_end reader=3 offset=5263360 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=15381 read_begin reader=3 offset=5332992 size=8192
+IO t_ms=15381 read_end reader=3 offset=5332992 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=15382 read_begin reader=3 offset=5341184 size=16384
+IO t_ms=15382 read_end reader=3 offset=5341184 bytes=16384 network_bytes=0 elapsed_ms=0
+IO t_ms=15384 read_begin reader=3 offset=5357568 size=65536
+IO t_ms=15384 read_end reader=3 offset=5357568 bytes=65536 network_bytes=0 elapsed_ms=0
+IO t_ms=15388 read_begin reader=3 offset=5423104 size=131072
+IO t_ms=15388 read_end reader=3 offset=5423104 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=15417 read_begin reader=3 offset=5554176 size=131072
+IO t_ms=15417 read_end reader=3 offset=5554176 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=15418 read_begin reader=3 offset=5685248 size=131072
+IO t_ms=15418 read_end reader=3 offset=5685248 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=15419 read_begin reader=3 offset=5816320 size=131072
+IO t_ms=15423 read_end reader=3 offset=5816320 bytes=131072 network_bytes=86016 elapsed_ms=3
+IO t_ms=15423 read_begin reader=3 offset=5947392 size=131072
+IO t_ms=15781 read_end reader=3 offset=5947392 bytes=131072 network_bytes=131072 elapsed_ms=357
+IO t_ms=15872 read_begin reader=2 offset=5861376 size=131072
+IO t_ms=15873 read_end reader=2 offset=5861376 bytes=131072 network_bytes=0 elapsed_ms=0
+IO t_ms=15873 read_begin reader=2 offset=5992448 size=131072
+IO t_ms=15877 read_end reader=2 offset=5992448 bytes=131072 network_bytes=45056 elapsed_ms=3
+IO t_ms=15878 read_begin reader=2 offset=6123520 size=131072
+IO t_ms=15884 read_end reader=2 offset=6123520 bytes=131072 network_bytes=131072 elapsed_ms=5
+IO t_ms=15885 read_begin reader=2 offset=6254592 size=131072
+IO t_ms=16218 read_end reader=2 offset=6254592 bytes=131072 network_bytes=131072 elapsed_ms=333
+IO t_ms=17659 read_begin reader=2 offset=3620864 size=131072
+IO t_ms=17659 http_begin reader=2 offset=3620864 end=7369631540
+IO t_ms=17939 read_begin reader=3 offset=3354624 size=8192
+IO t_ms=17939 read_end reader=3 offset=3354624 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17945 read_begin reader=3 offset=3403776 size=4096
+IO t_ms=17945 read_end reader=3 offset=3403776 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=17947 read_begin reader=3 offset=3432448 size=8192
+IO t_ms=17947 read_end reader=3 offset=3432448 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17949 read_begin reader=3 offset=3452928 size=8192
+IO t_ms=17949 read_end reader=3 offset=3452928 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17951 read_begin reader=3 offset=3465216 size=8192
+IO t_ms=17952 read_end reader=3 offset=3465216 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17953 read_begin reader=3 offset=3477504 size=8192
+IO t_ms=17953 read_end reader=3 offset=3477504 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17959 read_begin reader=3 offset=3497984 size=4096
+IO t_ms=17959 read_end reader=3 offset=3497984 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=17961 read_begin reader=3 offset=3510272 size=4096
+IO t_ms=17961 read_end reader=3 offset=3510272 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=17963 read_begin reader=3 offset=3518464 size=8192
+IO t_ms=17963 read_end reader=3 offset=3518464 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17966 read_begin reader=3 offset=3534848 size=8192
+IO t_ms=17966 read_end reader=3 offset=3534848 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=17968 read_begin reader=3 offset=3547136 size=4096
+IO t_ms=17968 read_end reader=3 offset=3547136 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=17970 read_begin reader=3 offset=3551232 size=32768
+IO t_ms=17971 read_end reader=3 offset=3551232 bytes=32768 network_bytes=0 elapsed_ms=0
+IO t_ms=17972 read_begin reader=3 offset=3584000 size=65536
+IO t_ms=18497 read_error reader=2 offset=3620864 type=SocketException elapsed_ms=838
+IO t_ms=18497 read_error reader=3 offset=3584000 type=IOException elapsed_ms=524
+IO t_ms=18501 read_begin reader=2 offset=3751936 size=131072
+IO t_ms=18502 read_error reader=2 offset=3751936 type=IOException elapsed_ms=0
+IO t_ms=18503 read_begin reader=2 offset=3883008 size=131072
+IO t_ms=18504 read_error reader=2 offset=3883008 type=IOException elapsed_ms=0
+IO t_ms=18505 read_begin reader=2 offset=4014080 size=131072
+IO t_ms=18506 read_error reader=2 offset=4014080 type=IOException elapsed_ms=0
+IO t_ms=18509 read_begin reader=3 offset=3649536 size=131072
+IO t_ms=18511 read_error reader=3 offset=3649536 type=IOException elapsed_ms=1
+IO t_ms=18521 read_begin reader=3 offset=3584000 size=4096
+IO t_ms=18522 read_error reader=3 offset=3584000 type=IOException elapsed_ms=0
+IO t_ms=18524 read_begin reader=3 offset=3584000 size=4096
+IO t_ms=18524 read_error reader=3 offset=3584000 type=IOException elapsed_ms=0
+IO t_ms=18527 read_begin reader=3 offset=3584000 size=4096
+IO t_ms=18527 read_error reader=3 offset=3584000 type=IOException elapsed_ms=0
+IO t_ms=18529 read_begin reader=3 offset=3584000 size=4096
+IO t_ms=18529 read_error reader=3 offset=3584000 type=IOException elapsed_ms=0
+

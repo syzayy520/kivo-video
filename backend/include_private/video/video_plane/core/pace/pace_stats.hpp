@@ -57,6 +57,9 @@ struct PaceSummary {
     std::int64_t frames_decided = 0;
     std::int64_t presented = 0;      ///< kWait + kPresent
     std::int64_t dropped = 0;        ///< kDrop + kCatchUp
+    // 与决策计数同为全会话累计，不随seek/reset清零。
+    std::int64_t discarded_on_stop = 0;
+    std::int64_t discarded_no_surface = 0;
 
     /// **决策了、但没落地**的帧数（P14-Q）。`= frames_decided − presented − dropped`。
     ///
@@ -64,12 +67,11 @@ struct PaceSummary {
     /// release → Surface → 真正显示。那段路上有两种结局没被 `presented` 记：
     ///   ① 换面空窗期（`render` 被强制置 false）—— 已由
     ///      `DecodeStats::frames_discarded_no_surface` 单独记，**合法**；
-    ///   ② 会话在交付之前结束（屏幕熄灭、切后台、异常退出）—— 没有计数器。
+    ///   ② seek/stop 在交付前显式归还 —— frames_discarded_on_stop_undelivered。
     /// 两种在报告里长得一样，都是 `presented + dropped < frames_decided`。
     ///
     /// 这一格把那个差**印出来**，不让读者自己在脑子里减。
-    /// 它非 0 时只有一个合法的读法：**等于 `frames_discarded_no_surface`**
-    /// （判据 S2）。不等就是②——有帧连去向都没有。
+    /// 必须等于上面两个全会话归属计数之和；不能与最近一段的解码槽计数混用。
     ///
     /// 真机反例（P14-P 取证事故）：`frames_decided = 1800 / presented = 84 /
     /// dropped = 0`，差额 1716 帧在 `/27` 的报告里**不占任何一格**。
@@ -429,7 +431,7 @@ public:
     void note_presented(std::int64_t lateness_ns, std::int64_t media_ns,
                         DueStep step = {}) noexcept;
 
-    /// 锚点重建（seek / 换片源 / 停再起）。由 `FramePacer::reset()` 调用。
+    /// 连续段边界（seek / 换片源 / 暂停恢复）。由 FramePacer 编排调用。
     ///
     /// 只切漂移序列的段：`lateness` 的零点换了，跨过这一刻的回归拟合的是
     /// 两个零点之间的跳变，不只是速率差。累计计数一律不动。

@@ -1,0 +1,12 @@
+P243 OPEN 视频/电影/The.Furious.2026.2160p.iTunes.WEB-DL.DDP.5.1.Atmos.HDR10+.H.265-CHDWEB.mkv size=20905428916
+P243 START codec=OMX.qcom.video.decoder.hevc dur=6791201000 audio=true
+PASS 起播（准备 + 首帧会话就绪）
+P243 STALL 位置停在 31893 ms（已 5001 ms 未推进）
+P243 TAIL state=FAILED pos=31974 ms err=SMB 读取器尚未打开
+FAIL java.lang.IllegalStateException: 会话在断网期间失败：SMB 读取器尚未打开
+	at com.kivo.cinema.smb.SmbReconnectInstrumentation.onStart$lambda$7(SmbReconnectInstrumentation.kt:114)
+	at com.kivo.cinema.smb.SmbReconnectInstrumentation$$ExternalSyntheticLambda2.invoke(D8$$SyntheticClass:0)
+	at com.kivo.cinema.smb.SmbReconnectInstrumentation.case(SmbReconnectInstrumentation.kt:147)
+	at com.kivo.cinema.smb.SmbReconnectInstrumentation.onStart(SmbReconnectInstrumentation.kt:113)
+	at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:2418)
+

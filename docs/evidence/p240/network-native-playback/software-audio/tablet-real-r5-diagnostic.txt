@@ -1,0 +1,44 @@
+PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; random forward/backward reads reuse one bounded response (3 HTTP requests including probe and cross-range)
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+range=0-0 http=206 content_range=bytes 0-0/7369631541 length=1
+range=0-4095 http=206 content_range=bytes 0-4095/7369631541 length=4096
+range=4096-8191 http=206 content_range=bytes 4096-8191/7369631541 length=4096
+range=0- http=206 content_range=bytes 0-7369631540/7369631541 length=7369631541
+PASS real Range size=7369631541
+PASS real header read=16 container=ebml
+PASS proxy 64KiB prefix matches direct HTTP bytes
+CHECK truncated local 64KiB prefix tracks=3
+CHECK real extractor probe (45-second I/O deadline)
+CHECK extractor tracks=3 elapsed_ms=988 io_reason=none
+PASS real extractor tracks=3
+CHECK track mimes=video/hevc,audio/eac3,audio/eac3
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.hevc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS seek request=2 target_us=8000000 landing_us=6250000 advances_after_completion
+PASS seek request=3 target_us=2000000 landing_us=0 advances_after_completion
+PASS forward and backward seek use the native A/V session
+FAIL stage=steady type=IllegalStateException state=PLAYING (details withheld for real-source privacy)
+
+PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; random forward/backward reads reuse one bounded response (3 HTTP requests including probe and cross-range)
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+range=0-0 http=206 content_range=bytes 0-0/7369631541 length=1
+range=0-4095 http=206 content_range=bytes 0-4095/7369631541 length=4096
+range=4096-8191 http=206 content_range=bytes 4096-8191/7369631541 length=4096
+range=0- http=206 content_range=bytes 0-7369631540/7369631541 length=7369631541
+PASS real Range size=7369631541
+PASS real header read=16 container=ebml
+PASS proxy 64KiB prefix matches direct HTTP bytes
+CHECK truncated local 64KiB prefix tracks=3
+CHECK real extractor probe (45-second I/O deadline)
+CHECK extractor tracks=3 elapsed_ms=988 io_reason=none
+PASS real extractor tracks=3
+CHECK track mimes=video/hevc,audio/eac3,audio/eac3
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.hevc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS seek request=2 target_us=8000000 landing_us=6250000 advances_after_completion
+PASS seek request=3 target_us=2000000 landing_us=0 advances_after_completion
+PASS forward and backward seek use the native A/V session
+FAIL stage=steady type=IllegalStateException state=PLAYING (details withheld for real-source privacy)
+

@@ -140,11 +140,14 @@ PATH="$TOOLCHAIN/bin:$PATH" "$BASH" ./configure \
   --disable-programs --disable-doc --disable-debug \
   --disable-avdevice --disable-postproc --disable-avfilter \
   --enable-network --disable-autodetect --enable-zlib \
-  --enable-avformat --enable-avcodec --enable-swscale \
+  --enable-avformat --enable-avcodec --enable-swscale --enable-swresample \
   --enable-protocol=file --enable-protocol=tcp --enable-protocol=http \
   --enable-demuxer=hls \
   --enable-demuxer=rm,asf,avi,flv,matroska,mov,mpegts,mpegvideo,mp3,wav,ogg,aac \
   --enable-decoder=rv10,rv20,rv30,rv40,cook,sipr,atrac3,atrac3p,wmv1,wmv2,wmv3,vc1,wmav1,wmav2,wmavoice,wmapro,wmalossless,msmpeg4v2,msmpeg4v3,mpeg4,h264,hevc,aac,mp3,flv1,vp6,mjpeg,png \
+  --enable-decoder=truehd,mlp,ac3,eac3,dts,flac,opus,vorbis,alac,aac_latm \
+  --enable-decoder=pcm_s16le,pcm_s24le,pcm_s32le,pcm_f32le,pcm_bluray,pcm_dvd,pcm_u8 \
+  --enable-decoder=vorbis,mp2,tak,tta,wavpack,shorten \
   | tail -5
 
 echo "== make -j8 =="

@@ -7,4 +7,3 @@ PASS verified account edits preserve hidden/default/home/search preferences
 PASS stale preference write leaves bytes intact; all settings can be reversed
 PASS malformed privacy flags fail closed without overwriting the file
 7 cases PASS
-

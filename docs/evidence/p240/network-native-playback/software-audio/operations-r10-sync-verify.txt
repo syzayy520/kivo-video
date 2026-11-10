@@ -1,0 +1,8 @@
+phone-operations-r10-sync.json: FAIL  X1 trace.sampled=0，按 rebases=1 应为 1
+tablet-operations-r10-sync.json: OK  /45  frames=101 dropped=0 clock=audio_timestamp fallback=1 xrun=0 | av_drift 不可测量（理由已记录） | media_rate=0.999879
+    · 门限量纲：45 ms 在 3.2 s 窗口上等价 14050 ppm，按本轮速率 370.5 s 撞门
+    · 不连续账：零事件
+    · 分配：稳态 65 次 / 总计 70 次
+    · 跨度作用域：4 段 / last_segment；段内 101 帧、全场 154 帧
+—— 合计 1 份：媒体速率 判得动 1、其中越界已登记 0、不可判 0
+覆盖：1 份 sync 证据（/1–/45）

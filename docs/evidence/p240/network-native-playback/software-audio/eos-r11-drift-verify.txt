@@ -1,0 +1,69 @@
+
+✓ phone-eos-r11-sync.json
+  ✓ schema 受支持 —— kivo.p12c.sync/45
+  ✓ Q0 两处 measured/reason 齐全 —— over_budget_frames 与 lateness_ns 各自带一对 measured/reason
+  ✓ Q1 measured=true ⇒ reason 为空 —— 量到的那两格没有附理由（「量到了但附了理由」自相矛盾）
+  ✓ Q2 measured=false ⇒ 理由可读 —— 没量到的格都写了具体原因
+  ✓ Q3 measured=false ⇒ 值全为 0 —— 没量到的那两处没有印出非零值
+  ✓ Q4 lateness.measured == (samples > 0) —— measured=False 而 samples=0：可测性与样本数是同一件事，不该有两个答案
+  ✓ Q5 over_budget 与 lateness 同源 —— over_budget_frames_measured=False、lateness_ns.measured=False：后者是前者的输入，两格不该给出不同答案
+  ✓ R0 lateness_ns 带分辨力七格 —— lateness_ns 带两个三格 + `bucket_width_ns`（键名与 quantiles 逐字对齐）
+  ✓ R1 桶宽等于 250000 —— 证据 250000 vs 独立写死的 250000：不同说明 `SignedHistogram::kBucketWidthNs` 被动过，而那会让全部历史证据失去可比性
+  ✓ R2 分位数落在它自己声明的范围里 —— p50 / p99 都在各自的 [low, high] 内
+  ✓ R3 桶内样本数不超过总样本数 —— 两处都 ≤ samples
+  ✓ R4 measured=false ⇒ 七格全为 0 —— 没量到的块没有印出任何非零值（含新增四格）
+  ✓ R5 与 quantiles.per_frame 逐位相等 —— 不可判：本轮 `av_drift.quantiles` 是空对象（drift 不可测），没有孪生块可对。这不是一个'通过' —— 这一块的可复算性本轮无来源
+  ✓ S0 节拍侧三格在场 —— frames_decided / presented / dropped 三格齐全
+  ✓ S7 停止归还子集合法 —— 非负整数且子集不超过总数
+  ✓ S8 帧计数非负 —— decided=540, presented=540, dropped=0, no_surface=0
+  ✓ S1 undelivered 与三个源数自洽 —— 540 − 540 − 0 = 0，与印出的值相等
+  ✓ S2 未交付帧数有精确归属 —— 会话累计闭合且累计归属不小于最近段；未混用 seek 前后的计数
+  ✓ S3 已交付帧数不超过决策帧数 —— 540 / 540
+  ✓ S4 /28 起必须印出 undelivered_frames —— 在场，值 0
+  ✓ S5 收尾方式在场且合法 —— end_reason='completed'
+  ✓ S6 收尾方式与 completed/error 不矛盾 —— end_reason='completed' 与 completed=True 自洽
+  ✓ E1 av_drift 顶层无裸分位数 —— 没有不带口径就能拿到的 p99
+  ✓ 带 sampling 块
+  ✓ sampling.mode 合法 —— mode='not_measured'
+  ✓ 带 quantiles 块 —— 实际 dict: 一份分位数都没有时也必须是空对象，不是缺键
+  ✓ E2 无可比口径 ⇒ 为 null —— mode='not_measured' 却声称 None 可跨帧率比较
+  ✓ not_measured ⇒ measurable=false —— measurable=False
+  ✓ not_measured ⇒ quantiles 为空对象 —— quantiles={}：不可测时不许有分位数，空对象才说明「一份都没有」
+  ✓ not_measured ⇒ 带 unavailable_reason —— 不可测却不说原因，读者会把它当成「没有漂移」
+  ✓ not_measured ⇒ 也带 reason —— 口径名为 not_measured 时必须解释为什么
+
+✓ tablet-eos-r11-sync.json
+  ✓ schema 受支持 —— kivo.p12c.sync/45
+  ✓ Q0 两处 measured/reason 齐全 —— over_budget_frames 与 lateness_ns 各自带一对 measured/reason
+  ✓ Q1 measured=true ⇒ reason 为空 —— 量到的那两格没有附理由（「量到了但附了理由」自相矛盾）
+  ✓ Q2 measured=false ⇒ 理由可读 —— 没量到的格都写了具体原因
+  ✓ Q3 measured=false ⇒ 值全为 0 —— 没量到的那两处没有印出非零值
+  ✓ Q4 lateness.measured == (samples > 0) —— measured=False 而 samples=0：可测性与样本数是同一件事，不该有两个答案
+  ✓ Q5 over_budget 与 lateness 同源 —— over_budget_frames_measured=False、lateness_ns.measured=False：后者是前者的输入，两格不该给出不同答案
+  ✓ R0 lateness_ns 带分辨力七格 —— lateness_ns 带两个三格 + `bucket_width_ns`（键名与 quantiles 逐字对齐）
+  ✓ R1 桶宽等于 250000 —— 证据 250000 vs 独立写死的 250000：不同说明 `SignedHistogram::kBucketWidthNs` 被动过，而那会让全部历史证据失去可比性
+  ✓ R2 分位数落在它自己声明的范围里 —— p50 / p99 都在各自的 [low, high] 内
+  ✓ R3 桶内样本数不超过总样本数 —— 两处都 ≤ samples
+  ✓ R4 measured=false ⇒ 七格全为 0 —— 没量到的块没有印出任何非零值（含新增四格）
+  ✓ R5 与 quantiles.per_frame 逐位相等 —— 不可判：本轮 `av_drift.quantiles` 是空对象（drift 不可测），没有孪生块可对。这不是一个'通过' —— 这一块的可复算性本轮无来源
+  ✓ S0 节拍侧三格在场 —— frames_decided / presented / dropped 三格齐全
+  ✓ S7 停止归还子集合法 —— 非负整数且子集不超过总数
+  ✓ S8 帧计数非负 —— decided=540, presented=540, dropped=0, no_surface=0
+  ✓ S1 undelivered 与三个源数自洽 —— 540 − 540 − 0 = 0，与印出的值相等
+  ✓ S2 未交付帧数有精确归属 —— 会话累计闭合且累计归属不小于最近段；未混用 seek 前后的计数
+  ✓ S3 已交付帧数不超过决策帧数 —— 540 / 540
+  ✓ S4 /28 起必须印出 undelivered_frames —— 在场，值 0
+  ✓ S5 收尾方式在场且合法 —— end_reason='completed'
+  ✓ S6 收尾方式与 completed/error 不矛盾 —— end_reason='completed' 与 completed=True 自洽
+  ✓ E1 av_drift 顶层无裸分位数 —— 没有不带口径就能拿到的 p99
+  ✓ 带 sampling 块
+  ✓ sampling.mode 合法 —— mode='not_measured'
+  ✓ 带 quantiles 块 —— 实际 dict: 一份分位数都没有时也必须是空对象，不是缺键
+  ✓ E2 无可比口径 ⇒ 为 null —— mode='not_measured' 却声称 None 可跨帧率比较
+  ✓ not_measured ⇒ measurable=false —— measurable=False
+  ✓ not_measured ⇒ quantiles 为空对象 —— quantiles={}：不可测时不许有分位数，空对象才说明「一份都没有」
+  ✓ not_measured ⇒ 带 unavailable_reason —— 不可测却不说原因，读者会把它当成「没有漂移」
+  ✓ not_measured ⇒ 也带 reason —— 口径名为 not_measured 时必须解释为什么
+
+覆盖：2 份（判据真的跑了）
+结论：全部通过。

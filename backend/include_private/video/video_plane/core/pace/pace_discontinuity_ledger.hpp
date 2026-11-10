@@ -29,7 +29,7 @@ public:
     /// 出版用快照：分类计数 + 累计 + 环（升序展开）。
     [[nodiscard]] DiscontinuityTrace trace() const noexcept;
 
-    /// seek / 换片源：整本账清零（与 `RebaseTrace` 同寿命，只被 `reset()` 清）。
+    /// 显式清整本账。tracker 的 seek/reset 保留会话诊断，不调用本方法。
     void reset() noexcept;
 
 private:

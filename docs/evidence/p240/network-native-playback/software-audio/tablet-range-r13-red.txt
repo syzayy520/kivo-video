@@ -1,0 +1,7 @@
+INSTRUMENTATION_STATUS: stream=FAIL IllegalStateException: shared head/index reads reopened HTTP: 5 requests, expected 3
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+FAIL IllegalStateException: shared head/index reads reopened HTTP: 5 requests, expected 3
+
+INSTRUMENTATION_CODE: 0

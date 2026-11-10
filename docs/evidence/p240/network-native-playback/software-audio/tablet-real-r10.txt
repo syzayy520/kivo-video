@@ -1,0 +1,43 @@
+INSTRUMENTATION_STATUS: stream=PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response; evicted backward read reopens (3 requests including probe)
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.hevc
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS production network host starts native hardware video and attaches audio
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS pause freezes media position and resume advances it
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS seek request=2 target_us=8000000 landing_us=6250000 advances_after_completion
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS seek request=3 target_us=2000000 landing_us=0 advances_after_completion
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=PASS forward and backward seek use the native A/V session
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=FAIL stage=steady type=IllegalStateException state=PLAYING (details withheld for real-source privacy)
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: stream=CHECK media_curve wall_ms:position_s=1:0.0,1019:0.0,2038:0.0,3056:3.12353,4061:3.172,12939:0.0,13953:0.877903,14975:1.125658
+
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response; evicted backward read reopens (3 requests including probe)
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.hevc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS seek request=2 target_us=8000000 landing_us=6250000 advances_after_completion
+PASS seek request=3 target_us=2000000 landing_us=0 advances_after_completion
+PASS forward and backward seek use the native A/V session
+FAIL stage=steady type=IllegalStateException state=PLAYING (details withheld for real-source privacy)
+CHECK media_curve wall_ms:position_s=1:0.0,1019:0.0,2038:0.0,3056:3.12353,4061:3.172,12939:0.0,13953:0.877903,14975:1.125658
+
+INSTRUMENTATION_CODE: 0

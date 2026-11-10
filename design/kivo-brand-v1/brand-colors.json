@@ -1,0 +1,15 @@
+{
+  "brand": "kivo",
+  "concept": "K / 纯黑白影院",
+  "version": "1.1-monochrome",
+  "primary": "#171717",
+  "inverse": "#FFFFFF",
+  "paper": "#F5F5F3",
+  "neutral_gray": "#777777",
+  "effects": "无彩色、无渐变、无光效",
+  "minimum_symbol_size_px": 24,
+  "minimum_horizontal_logo_width_px": 110,
+  "clear_space": "至少标志左侧竖笔画宽度（44 / 256 画布单位）",
+  "type_note": "字标已转曲，不依赖系统字体；以 Segoe UI Semibold 为基础，单字微调间距。",
+  "scope_note": "独立设计提案；未改动应用源码，未完成商标近似检索。"
+}

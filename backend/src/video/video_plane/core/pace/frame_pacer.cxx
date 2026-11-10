@@ -21,17 +21,17 @@ bool FramePacer::stop_requested() const noexcept {
     return stop_flag_ != nullptr && stop_flag_->load(std::memory_order_relaxed);
 }
 
-void FramePacer::sleep_until(std::int64_t deadline_ns) noexcept {
+bool FramePacer::wait_until(std::int64_t deadline_ns) noexcept {
     // 切块睡：一次 `sleep_until` 睡 250ms 期间无法响应停止请求，
     // 那会让 stop() 出现可见卡顿。切块后最坏延迟一个块。
     for (;;) {
+        if (stop_requested()) {
+            return false;
+        }
         const std::int64_t mono_ns = now_();
         const std::int64_t remaining_ns = deadline_ns - mono_ns;
         if (remaining_ns <= 0) {
-            return;
-        }
-        if (stop_requested()) {
-            return;
+            return true;
         }
         const std::int64_t chunk_ns = remaining_ns < policy_.max_single_wait_ns
                                           ? remaining_ns
@@ -137,7 +137,7 @@ PaceDecision FramePacer::arrive(std::int64_t pts_ns) noexcept {
             if (sleep_before_present_) {
                 decision.wait_ns = due_at_ns - reading.mono_ns;
                 stats_.note_waited(decision.wait_ns);
-                sleep_until(due_at_ns);
+                (void)wait_until(due_at_ns);
             } else {
                 // 不睡：把该等的这段交给合成器（C7 的 AtTime 路径）。
                 // wait_ns 保持 0 且不进 stats_ —— 否则 C5 的"平均等待"会被
@@ -243,6 +243,19 @@ void FramePacer::note_scheduled(const PaceDecision& decision,
     frames_since_present_ = 0;
 }
 
+void FramePacer::resume_pending(PaceDecision& pending, std::int64_t paused_ns,
+                                std::int64_t now_ns) noexcept {
+    assert(paused_ns >= 0);
+    pending.due_at_ns += paused_ns;
+    if (has_last_due_) last_due_ns_ += paused_ns;
+    if (has_last_present_) last_present_ns_ += paused_ns;
+    reading_mono_ns_ += paused_ns;
+    consecutive_late_ = 0;
+    catching_up_ = false;
+    tracker_.skip_pause(now_ns);
+    stats_.note_anchor_reset(); // 连续段不跨暂停；累计计数保留。
+}
+
 void FramePacer::resume_at(std::int64_t now_ns) noexcept {
     // 只推"锚点"，不动 `frame_duration_` / 统计 / 帧计数。
     has_last_due_ = true;
@@ -258,6 +271,7 @@ void FramePacer::resume_at(std::int64_t now_ns) noexcept {
     // 不做的话 resume 后第一次读的 `wall_delta` 就是 pause 时长，
     // stale 外推会把位置凭空推前 2 秒（实测 2.044 s → 丢 58 帧）。
     tracker_.skip_pause(now_ns);
+    stats_.note_anchor_reset();
 }
 
 void FramePacer::reset() noexcept {
@@ -290,6 +304,8 @@ void FramePacer::reset() noexcept {
 PaceSummary FramePacer::summary() const noexcept {
     PaceSummary out = stats_.summary(frame_duration_ns_, tracker_.last_health());
     out.frames_decided = frames_decided_;
+    out.discarded_on_stop = discarded_on_stop_;
+    out.discarded_no_surface = discarded_no_surface_;
     // P14-Q：这一格只能在这里算 —— `frames_decided_` 是节拍器私有的，
     // `PaceStats::summary()` 里它恒为 0，算出来的"未交付"会是 `−presented −dropped`。
     // 同一个理由让 P14-L 把 `catch_up_measured` 也放在这里。

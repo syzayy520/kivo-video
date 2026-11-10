@@ -32,6 +32,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from session_end_reason import END_REASONS, end_reason_problems  # noqa: E402
+from verification.frame_accounting import stop_accounting  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 EVIDENCE = ROOT / "docs" / "evidence"
@@ -135,12 +136,13 @@ SYNC_QUANTILE_BLOCK_SCHEMAS = (
     # **`av_drift.quantiles` 的结构一个字没动** —— 这一版改的是"跨度描述哪一段"，
     # 不是任何分布。所以它照样进分块口径表。
     "kivo.p12c.sync/43",
+    "kivo.p12c.sync/44", "kivo.p12c.sync/45",
 )
 
 # P14-R：哪几版报告带 `end_reason`。两个集合分开写而不是写一次"≥ /29"，
 # 是因为解码侧与节拍侧的版本号**各自独立**（`decode/19` 与 `sync/29`）——
 # 一个公式套两个计数器，迟早会在某一侧升版而另一侧没升的那一轮上判错。
-SCHEMAS_WITH_DECODE_END_REASON = {"kivo.p12c.decode/19"}
+SCHEMAS_WITH_DECODE_END_REASON = {"kivo.p12c.decode/19", "kivo.p12c.decode/20", "kivo.p12c.decode/21"}
 SCHEMAS_WITH_SYNC_END_REASON = {"kivo.p12c.sync/29", "kivo.p12c.sync/30",
                                  "kivo.p12c.sync/31", "kivo.p12c.sync/32",
                                  "kivo.p12c.sync/33", "kivo.p12c.sync/34",
@@ -148,7 +150,7 @@ SCHEMAS_WITH_SYNC_END_REASON = {"kivo.p12c.sync/29", "kivo.p12c.sync/30",
                                  "kivo.p12c.sync/37", "kivo.p12c.sync/38",
                                  "kivo.p12c.sync/39", "kivo.p12c.sync/40",
                                  "kivo.p12c.sync/41", "kivo.p12c.sync/42",
-                                 "kivo.p12c.sync/43"}
+                                 "kivo.p12c.sync/43", "kivo.p12c.sync/44", "kivo.p12c.sync/45"}
 
 # ── schema 白名单 ──────────────────────────────────────────────────────────
 # 硬编码是刻意的摩擦：新增卡片必须显式加进来，让"格式变更"被看见一次。
@@ -180,6 +182,7 @@ KNOWN_SCHEMAS = {
     # 原本落空一格 —— 「停了、没报错、也没跑完」，而层 3 把它判为静默失败。
     # 那一格就是"被打断"，它需要一个名字才写得进报告。
     "kivo.p12c.decode/19",
+    "kivo.p12c.decode/20", "kivo.p12c.decode/21",
     "kivo.p12c.sync/1",
     # P13-D：`av_drift` 的分位数改由"按媒体时间抽稀到 20 Hz"的分布给出，
     # 并新增 sampling / per_frame / trend 三块。`/1` 的证据不重写（重写等于伪造），
@@ -350,6 +353,7 @@ KNOWN_SCHEMAS = {
     # P15-A2：`pace` 多 `span_segments`，`timeline` 多 `media_rate_scope`。
     # 阈值、分位数、门限一个都没动 —— 动的是"这个比值描述哪一段时间"。
     "kivo.p12c.sync/43",
+    "kivo.p12c.sync/44", "kivo.p12c.sync/45",
     "kivo.p12d5.present-timing/1",
     "kivo.p12e.color-probe/1",
     "kivo.p12e.hdr-probe/1", "kivo.p12e.hdr-probe/2", "kivo.p12e.hdr-probe/3",
@@ -525,6 +529,11 @@ def layer1_structure(path: Path, payload: dict, report: Report) -> None:
 
 def check_frames_closed(payload: dict, name: str, report: Report) -> None:
     counters = payload.get("counters") or {}
+    if payload.get("schema") in ("kivo.p12c.decode/20", "kivo.p12c.decode/21"):
+        try:
+            stop_accounting(counters, required=True)
+        except ValueError as exc:
+            report.fail(2, name, "停止归还账非法", str(exc))
     received = counters.get("frames_received")
     rendered = counters.get("frames_rendered")
     if isinstance(received, int) and isinstance(rendered, int):

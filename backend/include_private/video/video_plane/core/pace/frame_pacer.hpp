@@ -59,9 +59,11 @@ public:
     /// 顺序没有约定，构造期拿不到这个值。
     void set_sleep_before_present(bool enabled) noexcept { sleep_before_present_ = enabled; }
 
-    /// 判定这一帧。返回 `kWait` 时**内部已经睡完**（睡到 `due_at`）。
+    /// 每帧只判定一次。kWait 仅在 sleep_before_present=true 时内部等待；
+    /// 等待可能被 stop 取消，调用方必须检查停止标志并保留尚未交付的帧和决策。
+    /// 不自睡时由调用方可取消地等到提交期限，再向 Surface 交付 due_at。
     ///
-    /// 每帧恰好调用一次，返回值可以只用于分支，不必保存；
+    /// 跨暂停必须保存返回值，恢复只平移墙钟；
     /// 但若呈现了，应当调 `note_presented()` 回填真实时刻，否则抖动样本会缺。
     [[nodiscard]] PaceDecision arrive(std::int64_t pts_ns) noexcept;
 
@@ -83,6 +85,10 @@ public:
     /// 两者都会更新 `interval` 与 `frames_since_present_`（帧间隔规律性两条路径都要），
     /// 但只把偏移记进各自的直方图 —— 混记会让 `over_budget_frames` 把"正常提前"判成超预算。
     void note_scheduled(const PaceDecision& decision, std::int64_t submit_at_ns) noexcept;
+
+    /// 仅成功归还、已决策且尚未交付的Present/Wait帧。与arrive同线程或join后调用。
+    void note_discarded_on_stop() noexcept { ++discarded_on_stop_; }
+    void note_discarded_no_surface() noexcept { ++discarded_no_surface_; }
 
     /// seek / 换片源 / 停再起：清掉锚点、历史与追帧状态。计数不清（证据要的是全会话）。
     ///
@@ -112,6 +118,15 @@ public:
     /// **不清** `frame_duration` / 统计 / 帧计数 —— 那正是它和 `reset()` 的区别。
     void resume_at(std::int64_t now_ns) noexcept;
 
+    /// 已作出决策但尚未交付的帧跨暂停保留；只平移墙钟，不重读时钟/重做决策。
+    /// 仅在呈现线程停止后调用。paused_ns 从请求暂停到恢复起跑，必须非负。
+    void resume_pending(PaceDecision& pending, std::int64_t paused_ns,
+                        std::int64_t now_ns) noexcept;
+
+    /// 可取消的 deadline 等待，CPU 呈现与 Surface 提前量共用同一停止契约。
+    /// false 表示取消，调用方仍拥有输出帧，不能继续呈现或丢失该帧。
+    [[nodiscard]] bool wait_until(std::int64_t deadline_ns) noexcept;
+
     /// P16-P1B26：最近一次 `arrive()` 读到的媒体位置（纳秒）。
     /// 用 atomic 暴露是为了让 `snapshot()` 能跨线程读 —— 节拍器本身不加锁。
     [[nodiscard]] std::int64_t position_ns() const noexcept {
@@ -119,7 +134,6 @@ public:
     }
 
 private:
-    void sleep_until(std::int64_t deadline_ns) noexcept;
     /// present 与 scheduled 两条记账路共用同一个 DueStep 构造（P14-AA）。
     /// 各写一遍的话，漏一格不会有任何判据报红 —— 跨度会悄悄变成 0。
     [[nodiscard]] DueStep make_due_step(const PaceDecision& decision,
@@ -148,6 +162,8 @@ private:
     bool catching_up_ = false;
     std::int64_t catch_up_events_ = 0;
     std::int64_t frames_decided_ = 0;
+    std::int64_t discarded_on_stop_ = 0;
+    std::int64_t discarded_no_surface_ = 0;
 
     /// 本帧 `arrive()` 读到的钟读数（P13-R）。`note_presented()` 在交出之后才被调用，
     /// 那时再读一次会得到另一个数 —— 记的是**决策那一刻**的钟，必须在 `arrive()` 里留。

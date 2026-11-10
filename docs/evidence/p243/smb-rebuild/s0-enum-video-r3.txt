@@ -1,0 +1,13 @@
+P243 SHARES XiaoMi||0
+P243 SHARES 指定共享=视频（枚举命中共 0 个）
+PASS 共享枚举（IPC$ + NetrShareEnum）
+FAIL com.kivo.cinema.smb.SmbFailure: 服务器不允许匿名访问，请填写账号和密码
+	at com.kivo.cinema.smb.SmbError.translate(SmbError.kt:64)
+	at com.kivo.cinema.smb.SmbSession.translate(SmbSession.kt:79)
+	at com.kivo.cinema.smb.SmbSession.connect(SmbSession.kt:37)
+	at com.kivo.cinema.smb.SmbShareEnumInstrumentation.onStart$lambda$13(SmbShareEnumInstrumentation.kt:57)
+	at com.kivo.cinema.smb.SmbShareEnumInstrumentation$$ExternalSyntheticLambda3.invoke(D8$$SyntheticClass:0)
+	at com.kivo.cinema.smb.SmbShareEnumInstrumentation.case(SmbShareEnumInstrumentation.kt:128)
+	at com.kivo.cinema.smb.SmbShareEnumInstrumentation.onStart(SmbShareEnumInstrumentation.kt:54)
+	at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:2418)
+

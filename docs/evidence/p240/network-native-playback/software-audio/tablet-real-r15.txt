@@ -1,0 +1,110 @@
+PASS sparse cache holes/overlap/bounds/LRU/edges/concurrency; shared head/index and interleaved 4MiB continuous/index each 3 HTTP requests; probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response (2 including probe)
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+FAIL stage=prepare type=IllegalStateException state=FAILED (details withheld for real-source privacy)
+player_reason=网络读取失败（SocketException）
+CHECK media_curve wall_ms:position_s=
+IO events=48 retained=48
+IO t_ms=1 http_begin reader=0 offset=0 end=4095
+IO t_ms=1840 http_ready reader=0 offset=0 end=4095 total=7369631541
+IO t_ms=1852 read_begin reader=1 offset=0 size=16384
+IO t_ms=1852 http_begin reader=1 offset=0 end=7369631540
+IO t_ms=9116 http_ready reader=1 offset=0 end=7369631540 total=7369631541
+IO t_ms=15158 read_end reader=1 offset=0 bytes=16384 network_bytes=16384 elapsed_ms=13306
+IO t_ms=15163 read_begin reader=1 offset=16384 size=65536
+IO t_ms=24398 read_error reader=1 offset=16384 type=SocketTimeoutException elapsed_ms=9234
+IO t_ms=24412 read_begin reader=1 offset=81920 size=131072
+IO t_ms=24412 read_error reader=1 offset=81920 type=SocketException elapsed_ms=0
+IO t_ms=24415 read_begin reader=1 offset=16384 size=4096
+IO t_ms=24415 read_end reader=1 offset=16384 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=24416 read_begin reader=1 offset=20480 size=4096
+IO t_ms=24417 read_error reader=1 offset=20480 type=SocketException elapsed_ms=0
+IO t_ms=24426 read_begin reader=1 offset=7369596928 size=8192
+IO t_ms=24426 http_begin reader=1 offset=7369596928 end=7369631540
+IO t_ms=26736 http_ready reader=1 offset=7369596928 end=7369631540 total=7369631541
+IO t_ms=26740 read_end reader=1 offset=7369596928 bytes=8192 network_bytes=8192 elapsed_ms=2314
+IO t_ms=26798 read_begin reader=2 offset=0 size=16384
+IO t_ms=26799 read_end reader=2 offset=0 bytes=16384 network_bytes=0 elapsed_ms=0
+IO t_ms=26800 read_begin reader=2 offset=16384 size=65536
+IO t_ms=26801 read_error reader=2 offset=16384 type=SocketException elapsed_ms=0
+IO t_ms=26804 read_begin reader=2 offset=81920 size=131072
+IO t_ms=26804 read_error reader=2 offset=81920 type=SocketException elapsed_ms=0
+IO t_ms=26805 read_begin reader=2 offset=16384 size=4096
+IO t_ms=26805 read_end reader=2 offset=16384 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=26806 read_begin reader=2 offset=20480 size=4096
+IO t_ms=26807 read_error reader=2 offset=20480 type=SocketException elapsed_ms=0
+IO t_ms=26812 read_begin reader=2 offset=7369596928 size=8192
+IO t_ms=26812 read_end reader=2 offset=7369596928 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=27025 read_begin reader=3 offset=0 size=16384
+IO t_ms=27025 read_end reader=3 offset=0 bytes=16384 network_bytes=0 elapsed_ms=0
+IO t_ms=27026 read_begin reader=3 offset=16384 size=65536
+IO t_ms=27026 read_error reader=3 offset=16384 type=SocketException elapsed_ms=0
+IO t_ms=27029 read_begin reader=3 offset=81920 size=131072
+IO t_ms=27029 read_error reader=3 offset=81920 type=SocketException elapsed_ms=0
+IO t_ms=27030 read_begin reader=3 offset=16384 size=4096
+IO t_ms=27030 read_end reader=3 offset=16384 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=27031 read_begin reader=3 offset=20480 size=4096
+IO t_ms=27031 read_error reader=3 offset=20480 type=SocketException elapsed_ms=0
+IO t_ms=27037 read_begin reader=3 offset=7369596928 size=8192
+IO t_ms=27037 read_end reader=3 offset=7369596928 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=27045 read_begin reader=3 offset=970752 size=8192
+IO t_ms=27045 read_error reader=3 offset=970752 type=SocketException elapsed_ms=0
+IO t_ms=27046 read_begin reader=3 offset=970752 size=4096
+IO t_ms=27046 read_error reader=3 offset=970752 type=SocketException elapsed_ms=0
+IO t_ms=27048 read_begin reader=3 offset=970752 size=4096
+IO t_ms=27048 read_error reader=3 offset=970752 type=SocketException elapsed_ms=0
+
+PASS sparse cache holes/overlap/bounds/LRU/edges/concurrency; shared head/index and interleaved 4MiB continuous/index each 3 HTTP requests; probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response (2 including probe)
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+FAIL stage=prepare type=IllegalStateException state=FAILED (details withheld for real-source privacy)
+player_reason=网络读取失败（SocketException）
+CHECK media_curve wall_ms:position_s=
+IO events=48 retained=48
+IO t_ms=1 http_begin reader=0 offset=0 end=4095
+IO t_ms=1840 http_ready reader=0 offset=0 end=4095 total=7369631541
+IO t_ms=1852 read_begin reader=1 offset=0 size=16384
+IO t_ms=1852 http_begin reader=1 offset=0 end=7369631540
+IO t_ms=9116 http_ready reader=1 offset=0 end=7369631540 total=7369631541
+IO t_ms=15158 read_end reader=1 offset=0 bytes=16384 network_bytes=16384 elapsed_ms=13306
+IO t_ms=15163 read_begin reader=1 offset=16384 size=65536
+IO t_ms=24398 read_error reader=1 offset=16384 type=SocketTimeoutException elapsed_ms=9234
+IO t_ms=24412 read_begin reader=1 offset=81920 size=131072
+IO t_ms=24412 read_error reader=1 offset=81920 type=SocketException elapsed_ms=0
+IO t_ms=24415 read_begin reader=1 offset=16384 size=4096
+IO t_ms=24415 read_end reader=1 offset=16384 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=24416 read_begin reader=1 offset=20480 size=4096
+IO t_ms=24417 read_error reader=1 offset=20480 type=SocketException elapsed_ms=0
+IO t_ms=24426 read_begin reader=1 offset=7369596928 size=8192
+IO t_ms=24426 http_begin reader=1 offset=7369596928 end=7369631540
+IO t_ms=26736 http_ready reader=1 offset=7369596928 end=7369631540 total=7369631541
+IO t_ms=26740 read_end reader=1 offset=7369596928 bytes=8192 network_bytes=8192 elapsed_ms=2314
+IO t_ms=26798 read_begin reader=2 offset=0 size=16384
+IO t_ms=26799 read_end reader=2 offset=0 bytes=16384 network_bytes=0 elapsed_ms=0
+IO t_ms=26800 read_begin reader=2 offset=16384 size=65536
+IO t_ms=26801 read_error reader=2 offset=16384 type=SocketException elapsed_ms=0
+IO t_ms=26804 read_begin reader=2 offset=81920 size=131072
+IO t_ms=26804 read_error reader=2 offset=81920 type=SocketException elapsed_ms=0
+IO t_ms=26805 read_begin reader=2 offset=16384 size=4096
+IO t_ms=26805 read_end reader=2 offset=16384 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=26806 read_begin reader=2 offset=20480 size=4096
+IO t_ms=26807 read_error reader=2 offset=20480 type=SocketException elapsed_ms=0
+IO t_ms=26812 read_begin reader=2 offset=7369596928 size=8192
+IO t_ms=26812 read_end reader=2 offset=7369596928 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=27025 read_begin reader=3 offset=0 size=16384
+IO t_ms=27025 read_end reader=3 offset=0 bytes=16384 network_bytes=0 elapsed_ms=0
+IO t_ms=27026 read_begin reader=3 offset=16384 size=65536
+IO t_ms=27026 read_error reader=3 offset=16384 type=SocketException elapsed_ms=0
+IO t_ms=27029 read_begin reader=3 offset=81920 size=131072
+IO t_ms=27029 read_error reader=3 offset=81920 type=SocketException elapsed_ms=0
+IO t_ms=27030 read_begin reader=3 offset=16384 size=4096
+IO t_ms=27030 read_end reader=3 offset=16384 bytes=4096 network_bytes=0 elapsed_ms=0
+IO t_ms=27031 read_begin reader=3 offset=20480 size=4096
+IO t_ms=27031 read_error reader=3 offset=20480 type=SocketException elapsed_ms=0
+IO t_ms=27037 read_begin reader=3 offset=7369596928 size=8192
+IO t_ms=27037 read_end reader=3 offset=7369596928 bytes=8192 network_bytes=0 elapsed_ms=0
+IO t_ms=27045 read_begin reader=3 offset=970752 size=8192
+IO t_ms=27045 read_error reader=3 offset=970752 type=SocketException elapsed_ms=0
+IO t_ms=27046 read_begin reader=3 offset=970752 size=4096
+IO t_ms=27046 read_error reader=3 offset=970752 type=SocketException elapsed_ms=0
+IO t_ms=27048 read_begin reader=3 offset=970752 size=4096
+IO t_ms=27048 read_error reader=3 offset=970752 type=SocketException elapsed_ms=0
+

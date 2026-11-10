@@ -1,0 +1,23 @@
+Test project C:/kivo video/build/vs-debug
+    Start 237: kivo_p12c_ring_buffer_tests
+1/5 Test #237: kivo_p12c_ring_buffer_tests ......   Passed    0.02 sec
+    Start 239: kivo_p12c4_clock_tests
+2/5 Test #239: kivo_p12c4_clock_tests ...........   Passed    0.02 sec
+    Start 241: kivo_pause_resume_pace_tests
+3/5 Test #241: kivo_pause_resume_pace_tests .....   Passed    0.01 sec
+    Start 242: kivo_timestamp_cadence_tests
+4/5 Test #242: kivo_timestamp_cadence_tests .....   Passed    0.01 sec
+    Start 273: kivo_p14y_discontinuity_tests
+5/5 Test #273: kivo_p14y_discontinuity_tests ....***Failed    0.01 sec
+  FAIL C:\kivo video\backend\tests\video\pace\p14y_discontinuity_tests\discontinuity_tests.cpp:339  rig.tracker.discontinuity_trace().events == 0
+  FAIL C:\kivo video\backend\tests\video\pace\p14y_discontinuity_tests\discontinuity_tests.cpp:340  rig.tracker.discontinuity_trace().offset_ns == 0
+P14-Y discontinuity: 82 checked, 2 failed
+
+
+80% tests passed, 1 tests failed out of 5
+
+Total Test time (real) =   0.10 sec
+
+The following tests FAILED:
+	273 - kivo_p14y_discontinuity_tests (Failed)
+Errors while running CTest

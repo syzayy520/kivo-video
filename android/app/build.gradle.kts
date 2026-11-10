@@ -112,8 +112,6 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.webkit:webkit:1.12.1")
-    // 220：SMB 客户端（jcifs-ng，AC0 spike 选型；smbj 备选见设计稿 D1）
-    implementation("org.codelibs:jcifs:2.1.38")
-    // 220 诊断：jcifs 内部 SMB2 报文日志（slf4j-simple 落文件，收口前移除）
-    implementation("org.slf4j:slf4j-simple:1.7.30")
+    // SMB：libsmb2（third_party/libsmb2-android），协议逻辑在 smb/ + jni_smb2_bridge.cxx。
+    // 243 S1 删除了 jcifs-ng 与它的 slf4j-simple 诊断依赖（旧后端已被 libsmb2 取代）。
 }

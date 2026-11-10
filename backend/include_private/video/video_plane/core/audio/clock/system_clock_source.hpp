@@ -24,6 +24,14 @@ public:
     /// 重新起算（换片源、恢复播放时把 0 点挪到现在）。
     void reset() noexcept;
 
+    /// seek 之后把原点挪到**媒体基准** `media_position_ns`：`origin = now - position`。
+    ///
+    /// 与 `reset()` 的分工：`reset()` 把原点设成 now（位置归 0，用于"从头再算"）；
+    /// `rebase()` 让 `now().position_ns` 直接等于 `media_position_ns` 再随墙钟前进，
+    /// 用于"跳到某一点后继续播"。视频无音轨时的 seek 必须走这里 ——
+    /// 否则进度取自墙钟绝对量、原点不挪，会停在 seek 前的位置（244 真机：landing=25 s、进度恒 ~5 s）。
+    void rebase(std::int64_t media_position_ns) noexcept override;
+
     [[nodiscard]] std::int64_t origin_ns() const noexcept { return origin_ns_; }
 
 private:

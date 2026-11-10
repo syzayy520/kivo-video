@@ -77,7 +77,7 @@ public:
     /// 读者会把 `av_drift.p99` 当成全链路的音画偏差。
     [[nodiscard]] std::int64_t anchor_position_ns() const noexcept { return anchor_position_ns_; }
 
-    /// seek / 换片源：丢掉锚点与历史，下次 `read()` 当首次处理。
+    /// seek / 换片源：重建位置基线；累计健康计数和诊断轨迹保留到会话销毁。
     void reset() noexcept;
 
     /// P16-P1B32：pause 之后"跳过这段墙钟"，**不动**位置、锚点与漂移账。
@@ -88,8 +88,8 @@ public:
     /// `position_ns_ += wall_delta_ns` —— 位置凭空前进 2 秒，
     /// tracker 从此**永久超前**，视频为了追上丢掉 58 帧（实测值）。
     ///
-    /// 做法只有一句：把上一帧的单调时刻前移到 now。这样 resume 后第一次读到的
-    /// `wall_delta` 只剩 resume 之后那几毫秒，外推量回到正常范围。
+    /// 将上一帧单调时刻前移到 now，并按同一间隔前移墙钟原点及上次新鲜读数的
+    /// 比较基线。恢复后的外推、lead 与跳变比较都排除暂停时段；媒体位置不变。
     ///
     /// 不能改用 `reset()`：那会清锚点与 `cum_drift`，resume 首帧会被判迟到
     /// —— 正是 P1B29 引入 `preserve_stats` 要避免的。
@@ -120,7 +120,7 @@ public:
     /// P14-W 里那次 105 ms 到底是启动期盲区的一次还清，还是别的东西。
     [[nodiscard]] RebaseTrace rebase_trace() const noexcept;
     /// 钟的不连续那本账（P14-Y）。回答"这些台阶一共吃掉多少领先量、最大那笔长什么样"。
-    /// 门每帧从 `offset_ns()` 里减 —— 台阶不该被当成本事（漂移）还掉。
+    /// 探针对照扣本段 offset 增量；出版保留全会话诊断。
     [[nodiscard]] DiscontinuityTrace discontinuity_trace() const noexcept;
     [[nodiscard]] std::int64_t backward_clamps() const noexcept { return backward_clamps_; }
     [[nodiscard]] std::int64_t monotonic_rejects() const noexcept { return monotonic_rejects_; }
@@ -139,6 +139,9 @@ private:
     bool has_previous_ = false;
     std::int64_t previous_mono_ns_ = 0;
     std::int64_t previous_raw_ns_ = 0;
+    std::int64_t last_fresh_raw_ns_ = 0; ///< 跳变比较必须跨过整段 stale，避免把恢复当跳变
+    std::int64_t last_fresh_mono_ns_ = 0;
+    std::int64_t raw_position_offset_ns_ = 0; ///< 仅由明确的跳变/漂移修正改变
     std::int64_t previous_position_ns_ = 0;  ///< 上一次修补后的位置，倒退钳制的基准
     std::int64_t position_ns_ = 0;
     std::int64_t stale_since_mono_ns_ = 0;  ///< 0 表示当前不陈旧
@@ -159,8 +162,9 @@ private:
     /// `limit − band` 退出。只用一个阈值会让残差停在阈值下方一点（实测 44/45），
     /// 迟滞带就白设了。
     bool correcting_ = false;
-    /// 首帧读取的单调时刻：用来划"启动期"（P13-W）。
+    /// 会话首次读数，诊断事件跨 seek 使用同一个时间原点。
     std::int64_t first_mono_ns_ = 0;
+    bool has_trace_origin_ = false;
     /// 首帧的位置与墙钟原点（P13-AA）。领先量按 `position − (原点 + 墙钟增量)` 派生，
     /// 这样三条推进分支（正常 / stale 外推 / 跳变重锚）都被同一把尺子量到。
     std::int64_t origin_mono_ns_ = 0;
@@ -189,6 +193,8 @@ private:
     /// 不连续那本账（P14-Y）。**单独一个类而不是再塞一个环**：这条文件已经 257 行，
     /// 两个环、两套分类、两处累计混在一起，改哪个都得先把整段读完。
     DiscontinuityLedger discontinuities_;
+    /// 本段起点的累计台阶；探针只扣本段增量，历史诊断不参与新段判定。
+    std::int64_t segment_discontinuity_offset_ns_ = 0;
     ClockHealth last_health_ = ClockHealth::kFresh;
     core::audio::AudioClockSourceKind last_kind_ = core::audio::AudioClockSourceKind::kSystem;
 };

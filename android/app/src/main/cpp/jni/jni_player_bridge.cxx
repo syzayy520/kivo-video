@@ -176,11 +176,13 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSetPipeline(JNIEnv* env,
                                                                  jobject /*thiz*/, jlong handle,
                                                                  jboolean split,
                                                                  jboolean present,
-                                                                 jboolean at_time) KIVO_JNI_BEGIN
+                                                                 jboolean at_time,
+                                                                 jboolean async_input) KIVO_JNI_BEGIN
     auto* session = KIVO_JNI_SESSION(handle);
     std::string error;
     const int code = kivo::jni_bridge::session_set_pipeline(
-        session, split == JNI_TRUE, present == JNI_TRUE, at_time == JNI_TRUE, error);
+        session, split == JNI_TRUE, present == JNI_TRUE, at_time == JNI_TRUE,
+        async_input == JNI_TRUE, error);
     if (code != 0) {
         KIVO_LOGW("session pipeline failed: code=%d reason=%s", code, error.c_str());
         return static_cast<jint>(code);
@@ -206,6 +208,12 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSeek(JNIEnv* env, jobject 
     KIVO_JNI_END_INT(env, KIVO_JNI_SESSION(handle), "nativeSessionSeek")
 
 // 212：当前媒体位置（µs）——字幕叠加控制器的时间源（P16-P1B26 的 position_us）。
+JNIEXPORT jlong JNICALL
+Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionSeekLandingUs(JNIEnv* env, jobject,
+                                                                    jlong handle) KIVO_JNI_BEGIN
+    return kivo::jni_bridge::session_seek_landing_us(KIVO_JNI_SESSION(handle));
+    KIVO_JNI_END_LONG(env, KIVO_JNI_SESSION(handle), "nativeSessionSeekLandingUs")
+
 JNIEXPORT jlong JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionPositionUs(JNIEnv* env,
                                                                  jobject /*thiz*/,
@@ -244,13 +252,15 @@ Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionRebindSurface(JNIEnv* env,
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_bridge_NativePlayer_nativeSessionOpenAudio(JNIEnv* env, jobject /*thiz*/,
                                                                jlong handle, jstring label,
-                                                               jint fd, jlong length) KIVO_JNI_BEGIN
+                                                               jint fd, jlong length,
+                                                               jint prefill_timeout_millis) KIVO_JNI_BEGIN
     auto* session = KIVO_JNI_SESSION(handle);
     const std::string audio_label = kivo::jni_bridge::to_utf8(env, label);
 
     std::string error;
     const int code = kivo::jni_bridge::session_open_audio(
-        session, static_cast<int>(fd), static_cast<std::int64_t>(length), audio_label, error);
+        session, static_cast<int>(fd), static_cast<std::int64_t>(length), audio_label, error,
+        static_cast<int>(prefill_timeout_millis));
     if (code != 0) {
         KIVO_LOGW("session audio failed: code=%d reason=%s", code, error.c_str());
         return static_cast<jint>(code);

@@ -13,6 +13,9 @@ DecodePaceStats decode_pace_stats_from(const core::pace::PaceSummary& summary,
     out.frames_decided = summary.frames_decided;
     out.presented = summary.presented;
     out.dropped = summary.dropped;
+    out.undelivered_frames = summary.undelivered_frames;
+    out.discarded_on_stop = summary.discarded_on_stop;
+    out.discarded_no_surface = summary.discarded_no_surface;
     out.drop_ratio = summary.drop_ratio;
     out.catch_up_events = summary.catch_up_events;
     out.catch_up_frames = summary.catch_up_frames;

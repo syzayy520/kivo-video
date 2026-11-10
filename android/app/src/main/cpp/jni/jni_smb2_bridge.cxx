@@ -12,6 +12,8 @@
 
 #include "smb2.h"
 #include "libsmb2.h"
+#include "libsmb2-raw.h"
+#include "libsmb2-share-enum.h"
 
 namespace {
 
@@ -155,6 +157,25 @@ Java_com_kivo_cinema_smb_Smb2Native_nativeReadAt(JNIEnv* env, jobject /*thiz*/, 
     return arr;
 }
 
+// 直接读进调用方给的 ByteArray（243 S2）：只跨界一次，省掉 native 侧 vector +
+// NewByteArray + 二次拷贝。返回读到的字节数；0 = EOF；<0 = 失败（读 nativeGetError / nativeNtStatus）。
+JNIEXPORT jint JNICALL
+Java_com_kivo_cinema_smb_Smb2Native_nativeReadInto(JNIEnv* env, jobject /*thiz*/, jlong ctxPtr,
+                                                   jlong fhPtr, jlong offset, jbyteArray buf,
+                                                   jint off, jint len) {
+    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
+    auto* fh = reinterpret_cast<struct smb2fh*>(fhPtr);
+    if (ctx == nullptr || fh == nullptr || buf == nullptr || len <= 0 || off < 0) return -1;
+    if (env->GetArrayLength(buf) < off + len) return -1;
+    jbyte* dst = env->GetByteArrayElements(buf, nullptr);
+    if (dst == nullptr) return -1;
+    int64_t n = smb2_pread(ctx, fh, reinterpret_cast<uint8_t*>(dst + off),
+                           static_cast<uint32_t>(len), static_cast<uint64_t>(offset));
+    env->ReleaseByteArrayElements(buf, dst, 0);  // 0 = 拷回并释放
+    if (n < 0) return -1;
+    return static_cast<jint>(n);
+}
+
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_smb_Smb2Native_nativeCloseFh(JNIEnv* /*env*/, jobject /*thiz*/, jlong ctxPtr,
                                                   jlong fhPtr) {
@@ -169,6 +190,53 @@ Java_com_kivo_cinema_smb_Smb2Native_nativeGetError(JNIEnv* env, jobject /*thiz*/
     auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
     if (ctx == nullptr) return to_jstring(env, "context null");
     return to_jstring(env, smb2_get_error(ctx));
+}
+
+// 共享枚举（243 D1）：必须已连到 IPC$。返回 JSON 数组
+// [{"name":..,"remark":..,"type":..}]；失败返回 null，错误文本仍走 nativeGetError。
+// type 为 SMB2_SHARE_TYPE_*（0=磁盘 1=打印 2=设备 3=IPC），隐藏共享带 0x80000000。
+JNIEXPORT jstring JNICALL
+Java_com_kivo_cinema_smb_Smb2Native_nativeListShares(JNIEnv* env, jobject /*thiz*/, jlong ctxPtr) {
+    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
+    if (ctx == nullptr) return nullptr;
+    struct smb2_share_enum_reply* reply =
+        smb2_share_enum_sync(ctx, SMB2_SHARE_INFO_1);
+    if (reply == nullptr) return nullptr;
+
+    std::string json = "[";
+    bool first = true;
+    for (uint32_t i = 0; i < reply->entries_read; i++) {
+        struct smb2_share_info_1* info = &reply->share_info.info_1[i];
+        if (info->netname == nullptr) continue;
+        if (!first) json += ",";
+        first = false;
+        json += "{\"name\":\"";
+        for (const char* p = info->netname; *p; ++p) {
+            if (*p == '"' || *p == '\\') json += '\\';
+            json += *p;
+        }
+        json += "\",\"remark\":\"";
+        if (info->remark != nullptr) {
+            for (const char* p = info->remark; *p; ++p) {
+                if (*p == '"' || *p == '\\') json += '\\';
+                json += *p;
+            }
+        }
+        json += "\",\"type\":";
+        json += std::to_string(info->type);
+        json += "}";
+    }
+    json += "]";
+    smb2_free_data(ctx, reply);
+    return to_jstring(env, json.c_str());
+}
+
+// 最近一次失败的 NT status（243 D7 错误分类用）；0 = 无错误。
+JNIEXPORT jint JNICALL
+Java_com_kivo_cinema_smb_Smb2Native_nativeNtStatus(JNIEnv* /*env*/, jobject /*thiz*/, jlong ctxPtr) {
+    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
+    if (ctx == nullptr) return 0;
+    return static_cast<jint>(smb2_get_nterror(ctx));
 }
 
 }  // extern "C"

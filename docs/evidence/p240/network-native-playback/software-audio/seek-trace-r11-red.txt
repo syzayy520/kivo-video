@@ -1,0 +1,37 @@
+Test project C:/kivo video/build/vs-debug
+    Start 241: kivo_pause_resume_pace_tests
+1/1 Test #241: kivo_pause_resume_pace_tests .....***Failed    0.01 sec
+FAIL line 213: pacer.summary().drift_discontinuity.events == events
+FAIL line 214: pacer.summary().drift_rebase_trace.sampled == trace.sampled
+FAIL line 197: disc.events == events
+FAIL line 198: disc.sampled == sampled
+FAIL line 199: disc.offset_ns == events * 50'000'000LL
+FAIL line 200: disc.sampled_offset_ns == sampled * 50'000'000LL
+FAIL line 202: trace.sampled == (repay ? sampled : 0)
+FAIL line 213: pacer.summary().drift_discontinuity.events == events
+FAIL line 214: pacer.summary().drift_rebase_trace.sampled == trace.sampled
+FAIL line 197: disc.events == events
+FAIL line 198: disc.sampled == sampled
+FAIL line 199: disc.offset_ns == events * 50'000'000LL
+FAIL line 200: disc.sampled_offset_ns == sampled * 50'000'000LL
+FAIL line 202: trace.sampled == (repay ? sampled : 0)
+FAIL line 213: pacer.summary().drift_discontinuity.events == events
+FAIL line 197: disc.events == events
+FAIL line 198: disc.sampled == sampled
+FAIL line 199: disc.offset_ns == events * 50'000'000LL
+FAIL line 200: disc.sampled_offset_ns == sampled * 50'000'000LL
+FAIL line 213: pacer.summary().drift_discontinuity.events == events
+FAIL line 197: disc.events == events
+FAIL line 198: disc.sampled == sampled
+FAIL line 199: disc.offset_ns == events * 50'000'000LL
+FAIL line 200: disc.sampled_offset_ns == sampled * 50'000'000LL
+pause/resume: 269 checks, 24 failures
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.04 sec
+
+The following tests FAILED:
+	241 - kivo_pause_resume_pace_tests (Failed)
+Errors while running CTest

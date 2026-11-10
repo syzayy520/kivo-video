@@ -1,0 +1,28 @@
+244 · 音频路径回归（确认 SystemClockSource::rebase 不影响有音轨会话）
+
+修复只碰 `SystemClockSource`（仅在无音频时钟时创建，jni_session_handle.cxx:381）；
+有音轨时 `system_clock == nullptr`，音频钟的 rebase 仍由 AudioPlayback::seek_to 独占。
+下面两组有音轨片源均 `pace=audio_timestamp`、4/4 PASS。
+
+## mkv-audio.mkv（H.264 + MKV + AAC，20 s）
+P243 OPEN local /sdcard/Android/data/com.kivo.cinema/files/media/mkv-audio.mkv size=773318
+P243 START codec=OMX.qcom.video.decoder.avc dur=20021000 audio=true
+PASS 起播
+P243 POSITION 0 ms → 3042 ms
+PASS 位置推进
+P243 SEEK target=10010 ms landing=8333 ms actual=10480 ms error=
+PASS seek 到中段并落位
+P243 RESUME 10480 ms → 13550 ms
+PASS seek 后继续推进
+4/4 PASS
+
+## h264-audio.mp4（H.264 + MP4 + AAC，20 s，平台 extractor 路径）
+P243 START codec=OMX.qcom.video.decoder.avc dur=20000000 audio=true
+PASS 起播
+P243 POSITION 0 ms → 2966 ms
+PASS 位置推进
+P243 SEEK target=10000 ms landing=8333 ms actual=10467 ms error=
+PASS seek 到中段并落位
+P243 RESUME 10467 ms → 13545 ms
+PASS seek 后继续推进
+4/4 PASS

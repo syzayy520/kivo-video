@@ -1,0 +1,60 @@
+# K40 走小米路由 SMB 的播放与 seek（2026-11-10 07:24）
+
+设备：K40 M2012K11AC（Android 13 / MIUI），wlan0 192.168.5.152
+服务器：小米路由 192.168.5.1，匿名
+runner：`com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation`
+命令：
+
+```
+adb -s b6e950ee shell am instrument -w \
+  -e smbHost 192.168.5.1 -e smbShare XiaoMi \
+  -e smbPath 视频/kivo-test/local-seek.mkv \
+  com.kivo.cinema.test/com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation
+```
+
+## 结果：4/4 PASS
+
+```
+P243 OPEN 视频/kivo-test/local-seek.mkv size=2270964
+P243 START codec=OMX.qcom.video.decoder.avc dur=60000000 audio=false
+PASS 起播（准备 + 首帧会话就绪）
+P243 POSITION 0 ms → 2922 ms
+PASS 位置推进（3 秒窗口）
+P243 SEEK target=30000 ms landing=25000 ms actual=27006 ms error=
+P243 SUMMARY codec=OMX.qcom.video.decoder.avc mime=video/avc 1280x720 dur=60000000 pipe=merged frames=64 recv=65 rel=64 dropped=0 samples=66 wall=0.000s fps=0.00 speed=0.00x first_frame=4.6ms pace=system pace_lateness_p99[per_frame]=0.0ms completed=0 error=-
+PASS seek 到中段并落位
+P243 RESUME 27006 ms → 30006 ms
+PASS seek 后继续推进
+4/4 PASS
+```
+
+## 更下层：枚举 → 列目录 → 随机读（3/3 PASS）
+
+runner：`com.kivo.cinema.smb.SmbShareEnumInstrumentation`，`-e smbHost 192.168.5.1`
+
+```
+P243 SHARES XiaoMi||0
+PASS 共享枚举（IPC$ + NetrShareEnum）
+P243 ROOT XiaoMi → 17 项: .filetransfer_tmp/,.sysapihttpd/,.systemconfig/,.torrents/,
+     .tunneluploads/,.upload_tmp/,lost+found/,TDDOWNLOAD/,ThunderDB/,timecapsule/,
+     下载/,共享/,图片/,摄像机监控视频/,文档/,视频/,音乐/
+PASS 连到共享并列出根目录
+P243 READ .tunneluploads/ldotTb1YR9qZc1y1QhL0MA.tmp size=23853720 head=1048576 tail=1048576
+PASS 随机读：文件头 1 MiB + 尾部 1 MiB
+3/3 PASS
+```
+
+## 共享名必须各自枚举（这是本节的关键）
+
+同一时刻两台设备对同一路由的实测：
+
+| 设备 | 枚举到的共享 | `视频` | `XiaoMi` |
+| --- | --- | --- | --- |
+| 平板 | `TDDOWNLOAD,下载,共享,图片,文档,视频,音乐`（7 个） | ✅ 4/4 PASS（`actual=27047`） | ❌ `Tree Connect failed 0xc0000022` |
+| K40 | `XiaoMi`（1 个，整盘） | ❌ `Tree Connect failed 0xc0000022` | ✅ 4/4 PASS（`actual=27006`） |
+
+路由器按**设备**下发不同的共享列表，被授权的能连、未授权的回 `ACCESS_DENIED`。
+`smb2_get_error()` 原文是 `Tree Connect failed`，说明**匿名会话已建立成功**，
+失败在"这个共享不给这台设备连"，不是"匿名被拒"（现有文案会把用户导向填账号密码，属误导）。
+
+平板侧枚举 → 浏览（首个共享 `TDDOWNLOAD`，5 项）→ 随机读 1 MiB 头尾，同样 3/3 PASS。

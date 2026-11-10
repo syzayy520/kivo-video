@@ -16,12 +16,15 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 只服务本机回环；支持 GET/HEAD + Range: bytes=x-y（含开放区间 x- / -y）+
  * Content-Range/Accept-Ranges/206/416。FFmpeg 与 MediaExtractor 都是标准 HTTP 客户端。
  *
+ * 243 起**只服务于 DLNA 投屏**：渲染端只认 HTTP URL，必须有一个真 HTTP 服务。
+ * SMB / WebDAV 播放走 `net.RangeFd` 直接出 fd，不再经过这里。
+ *
  * 线程模型：accept 循环一线程 + 每连接一线程（播放器通常 1-2 个并发请求）；
  * ByteSource 由调用方持有并保证串行（SMB 连接非线程安全）——代理内用锁串行化。
  * 生命周期：[start] 后 [close] 停止；连接处理循环见 [running]。
  */
 class LocalRangeProxy(
-    private val source: com.kivo.cinema.smb.SmbSource.ByteSource,
+    private val source: ByteSource,
     private val bindAddress: String = "127.0.0.1",   // 230 投屏：绑 0.0.0.0 给渲染器取流
 ) {
     private var server: ServerSocket? = null

@@ -1,0 +1,16 @@
+PASS bounded probe avoids CDN one-byte size bug; fragmented/capped responses and short files preserve exact bytes; oversized response rejected
+PASS independent proxy descriptors support exact random reads
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.avc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS natural EOS after pause/resume without seek
+FAIL JSONException: No value for eos_flag_seen
+
+PASS bounded probe avoids CDN one-byte size bug; fragmented/capped responses and short files preserve exact bytes; oversized response rejected
+PASS independent proxy descriptors support exact random reads
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.avc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS natural EOS after pause/resume without seek
+FAIL JSONException: No value for eos_flag_seen
+

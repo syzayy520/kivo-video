@@ -13,14 +13,9 @@
 
 ## 配置要点（build.sh 的 configure 一行里都有）
 
-- `--disable-everything` 策略的反面：显式白名单——只开
-  `file` 协议 + 12 个 demuxer（rm/asf/avi/flv/mkv/mov/ts/mp3/wav/ogg/aac/mpegvideo）
-  + 25 个 decoder（RealVideo 系 / WMV/VC-1 系 / 通用兜底 h264/hevc/aac/mp3 等）。
-- 关掉 programs/doc/avdevice/postproc/avfilter/**network**——与 SenPlayer 同款
-  "只做 demux+decode" 的裁剪思路（`docs/reference/rex-teardown/03` §一）。
-- 静态库而非动态：Android APK 打不了带版本号的 soname
-  （`libavcodec.so.61` 不过 `*.so` 包名过滤），动态化改由上层封装单一
-  `libkivo_ffmpeg.so`。
+- 构建未使用 `--disable-everything`，保留 FFmpeg 默认启用项，并显式启用下列组件；
+  因此下列列表不是白名单。实际可用项须检查产物的 config_components.h 和库符号。
+  2026-11-09 本机静态库已核验 AC3/EAC3 decoder，无需为本次软件音频接线重编。
 
 ## LGPL 合规（v2.1+，动态使用方式）
 

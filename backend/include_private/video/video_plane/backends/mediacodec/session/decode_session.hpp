@@ -88,6 +88,8 @@ struct PacingSetup {
 /// 流水线配置。
 struct PipelineSetup {
     PipelineMode mode = PipelineMode::kMerged;
+    /// Isolate blocking network reads; local files retain the direct path.
+    bool async_input = false;
 
     /// 是否把解出的帧交给 Surface。
     ///
@@ -201,11 +203,19 @@ public:
     /// **不释放 codec / extractor**（`seek_to` 的注释 `decode_session.cxx:244-246` 已确认）。
     /// `resume()` 用 `begin_run(preserve_stats=true)` 重启线程（它会重新 `arm()`），
     /// 并先把 `pacer` 的 due 锚点推到 now，否则 pause > 500 ms 后第一帧会迟到。
-    void pause();
+    [[nodiscard]] SessionOutcome pause();
     [[nodiscard]] SessionOutcome resume();
 
     /// 取统计快照。线程安全，可在任意线程调用。
     [[nodiscard]] DecodeStats snapshot() const;
+
+    /// 容器声明的时长（微秒），未知返回 -1。
+    ///
+    /// 为什么单独开一个入口而不是塞进 `snapshot()`：`DecodeStats` 每秒被取样多次，
+    /// 而时长在 open 之后就不变了；更重要的是它必须能被 **UI 在起播后立刻读到** ——
+    /// MKV 由 native 解封装，Kotlin 侧的平台 probe 拿不到它，
+    /// 缺了这个通道播放器就只能显示 `0:00:00 / 0:00:00`，进度条不可用。
+    [[nodiscard]] std::int64_t duration_us() const;
 
     /// 取节拍器的**完整**摘要（含直方图桶计数），用于 C8 的独立复算导出。
     ///
@@ -239,8 +249,10 @@ private:
 
     /// 按当前模式起线程。
     void launch_workers();
+    void halt_workers(bool preserve_input);
 
     MediaExtractorSource source_;
+    std::unique_ptr<core::decode::AsyncSampleReader> async_source_;
     MediaCodecVideoDecoder decoder_;
 
     std::unique_ptr<core::pace::FramePacer> pacer_;

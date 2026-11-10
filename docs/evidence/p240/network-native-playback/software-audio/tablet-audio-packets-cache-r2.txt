@@ -1,0 +1,121 @@
+t=1700 source=2 item=3 login=ok
+t=1712 http_begin offset=0 end=4095
+t=3451 http_ready offset=0 end=4095 total=7369631541
+t=3478 read_begin offset=0 size=16384
+t=3479 http_begin offset=0 end=1048575
+t=5241 http_ready offset=0 end=1048575 total=7369631541
+t=5250 read_end offset=0 bytes=16384 elapsed_ms=1772
+t=5254 read_begin offset=16384 size=65536
+t=5577 read_end offset=16384 bytes=65536 elapsed_ms=322
+t=5591 read_begin offset=81920 size=131072
+t=5735 read_end offset=81920 bytes=131072 elapsed_ms=143
+t=5758 read_begin offset=212992 size=131072
+t=5872 read_end offset=212992 bytes=131072 elapsed_ms=113
+t=5877 read_begin offset=344064 size=131072
+t=5970 read_end offset=344064 bytes=131072 elapsed_ms=92
+t=5990 read_begin offset=7369596928 size=8192
+t=6093 http_begin offset=7369596928 end=7369631540
+t=7852 http_ready offset=7369596928 end=7369631540 total=7369631541
+t=7856 read_end offset=7369596928 bytes=8192 elapsed_ms=1866
+t=7872 tracks=3 mimes=video/hevc,audio/eac3,audio/eac3 io_reason=none
+t=7877 read_begin offset=970752 size=8192
+t=7889 http_begin offset=970752 end=2019327
+t=8871 http_ready offset=970752 end=2019327 total=7369631541
+t=8877 read_end offset=970752 bytes=8192 elapsed_ms=999
+t=8880 read_begin offset=978944 size=16384
+t=8885 read_end offset=978944 bytes=16384 elapsed_ms=4
+t=8889 read_begin offset=995328 size=65536
+t=9072 read_end offset=995328 bytes=65536 elapsed_ms=182
+t=9079 read_begin offset=1060864 size=131072
+t=9261 read_end offset=1060864 bytes=131072 elapsed_ms=182
+t=9265 read_begin offset=1527808 size=8192
+t=9506 read_end offset=1527808 bytes=8192 elapsed_ms=240
+t=9523 read_begin offset=1605632 size=8192
+t=9537 read_end offset=1605632 bytes=8192 elapsed_ms=13
+t=9544 read_begin offset=1642496 size=8192
+t=9558 read_end offset=1642496 bytes=8192 elapsed_ms=15
+t=9563 read_begin offset=1667072 size=8192
+t=9567 read_end offset=1667072 bytes=8192 elapsed_ms=4
+t=9576 read_begin offset=1683456 size=4096
+t=9579 read_end offset=1683456 bytes=4096 elapsed_ms=2
+t=9581 read_begin offset=1691648 size=8192
+t=9583 read_end offset=1691648 bytes=8192 elapsed_ms=2
+t=9585 read_begin offset=1720320 size=4096
+t=9587 read_end offset=1720320 bytes=4096 elapsed_ms=1
+t=9591 read_begin offset=1728512 size=8192
+t=9592 read_end offset=1728512 bytes=8192 elapsed_ms=1
+t=9595 read_begin offset=1740800 size=8192
+t=9597 read_end offset=1740800 bytes=8192 elapsed_ms=1
+t=9599 read_begin offset=1765376 size=4096
+t=9601 read_end offset=1765376 bytes=4096 elapsed_ms=2
+t=9604 read_begin offset=1798144 size=4096
+t=9618 read_end offset=1798144 bytes=4096 elapsed_ms=14
+t=9621 read_begin offset=1810432 size=4096
+t=9623 read_end offset=1810432 bytes=4096 elapsed_ms=1
+t=9625 read_begin offset=1826816 size=4096
+t=9627 read_end offset=1826816 bytes=4096 elapsed_ms=2
+t=9630 read_begin offset=1835008 size=8192
+t=9631 read_end offset=1835008 bytes=8192 elapsed_ms=1
+t=9633 read_begin offset=1843200 size=16384
+t=9635 read_end offset=1843200 bytes=16384 elapsed_ms=1
+t=9637 read_begin offset=1859584 size=65536
+t=9643 read_end offset=1859584 bytes=65536 elapsed_ms=5
+t=9648 read_begin offset=1925120 size=131072
+t=9987 http_begin offset=2019328 end=3067903
+t=10920 http_ready offset=2019328 end=3067903 total=7369631541
+t=10931 read_end offset=1925120 bytes=131072 elapsed_ms=1283
+t=10938 read_begin offset=2314240 size=8192
+t=11111 read_end offset=2314240 bytes=8192 elapsed_ms=173
+t=11115 read_begin offset=2334720 size=8192
+t=11117 read_end offset=2334720 bytes=8192 elapsed_ms=2
+t=11120 read_begin offset=2351104 size=4096
+t=11122 read_end offset=2351104 bytes=4096 elapsed_ms=1
+t=11125 read_begin offset=2359296 size=8192
+t=11127 read_end offset=2359296 bytes=8192 elapsed_ms=1
+t=11129 read_begin offset=2367488 size=16384
+t=11131 read_end offset=2367488 bytes=16384 elapsed_ms=1
+t=11133 read_begin offset=2383872 size=65536
+t=11138 read_end offset=2383872 bytes=65536 elapsed_ms=4
+t=11143 read_begin offset=2449408 size=131072
+t=11151 read_end offset=2449408 bytes=131072 elapsed_ms=8
+t=11173 read_begin offset=2772992 size=4096
+t=11185 read_end offset=2772992 bytes=4096 elapsed_ms=12
+t=11187 read_begin offset=2801664 size=8192
+t=11190 read_end offset=2801664 bytes=8192 elapsed_ms=2
+t=11192 read_begin offset=2826240 size=4096
+t=11194 read_end offset=2826240 bytes=4096 elapsed_ms=1
+t=11196 read_begin offset=2838528 size=8192
+t=11198 read_end offset=2838528 bytes=8192 elapsed_ms=1
+t=11200 read_begin offset=2850816 size=4096
+t=11202 read_end offset=2850816 bytes=4096 elapsed_ms=1
+t=11204 read_begin offset=2863104 size=4096
+t=11205 read_end offset=2863104 bytes=4096 elapsed_ms=0
+t=11207 read_begin offset=2875392 size=8192
+t=11209 read_end offset=2875392 bytes=8192 elapsed_ms=1
+t=11212 read_begin offset=2887680 size=8192
+t=11213 read_end offset=2887680 bytes=8192 elapsed_ms=1
+t=11215 read_begin offset=2895872 size=32768
+t=11218 read_end offset=2895872 bytes=32768 elapsed_ms=2
+t=11221 read_begin offset=2932736 size=4096
+t=11223 read_end offset=2932736 bytes=4096 elapsed_ms=1
+t=11225 read_begin offset=2940928 size=4096
+t=11225 read_end offset=2940928 bytes=4096 elapsed_ms=0
+t=11239 audio packet=0 pts_us=0 bytes=512 read_ms=2350
+t=11240 audio advance=0 elapsed_ms=0
+t=11241 audio packet=1 pts_us=0 bytes=512 read_ms=0
+t=11242 audio advance=1 elapsed_ms=0
+t=11242 audio packet=2 pts_us=0 bytes=512 read_ms=0
+t=11243 audio advance=2 elapsed_ms=0
+t=11244 audio packet=3 pts_us=0 bytes=512 read_ms=0
+t=11245 audio advance=3 elapsed_ms=0
+t=13634 audio seek_landing_us=6272000
+t=13636 audio-after-seek packet=0 pts_us=6272000 bytes=512 read_ms=0
+t=13636 audio-after-seek advance=0 elapsed_ms=0
+t=13637 audio-after-seek packet=1 pts_us=6272000 bytes=512 read_ms=0
+t=13638 audio-after-seek advance=1 elapsed_ms=0
+t=13639 audio-after-seek packet=2 pts_us=6272000 bytes=512 read_ms=0
+t=13639 audio-after-seek advance=2 elapsed_ms=0
+t=13640 audio-after-seek packet=3 pts_us=6272000 bytes=512 read_ms=0
+t=13641 audio-after-seek advance=3 elapsed_ms=0
+t=13648 PASS bounded extractor probe events=132
+INSTRUMENTATION_CODE: -1

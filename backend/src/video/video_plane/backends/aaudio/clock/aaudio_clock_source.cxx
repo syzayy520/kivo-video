@@ -1,9 +1,13 @@
 #include "video/video_plane/backends/aaudio/clock/aaudio_clock_source.hpp"
 
+#include <algorithm>
+
 namespace kivo::video::aaudio {
 namespace {
 
-/// 两个 burst 还没更新就算卡住。一个 burst 的陈旧是正常的（下一个还没来）。
+/// 回调 burst 与硬件时间戳发布周期不同。平板实测约 50ms 才发布一次，
+/// 即使回调每 2ms 一次。容纳两个已观察周期；超过预算仍明确标 stale。
+constexpr std::int64_t kTimestampAgeBudgetNs = 100'000'000;
 constexpr std::int64_t kStaleBursts = 2;
 /// P16-P1B2：仅作"其它调用方传 0"时的自卫（防非正陈旧阈值），产品路径不会走到 ——
 /// AaudioOutputSession::open() 已在拿不到设备真值时明确失败并带 reason（G9）。
@@ -13,7 +17,9 @@ constexpr std::int64_t kNanosPerSecond = 1'000'000'000;
 
 [[nodiscard]] std::int64_t stale_threshold_ns(std::int32_t frames_per_burst,
                                               std::int32_t sample_rate) noexcept {
-    return static_cast<std::int64_t>(frames_per_burst) * kStaleBursts * kNanosPerSecond / sample_rate;
+    return std::max(kTimestampAgeBudgetNs,
+                    static_cast<std::int64_t>(frames_per_burst) * kStaleBursts *
+                        kNanosPerSecond / sample_rate);
 }
 
 }  // namespace
@@ -31,6 +37,7 @@ AaudioClockSource::AaudioClockSource(AaudioClockProbe& probe,
                                          sample_rate > 0 ? sample_rate : 48000)),
       extrapolator_(sample_rate > 0 ? sample_rate : 48000, stale_after_ns_) {
     stats_.sample_rate = sample_rate_;
+    stats_.timestamp_age_budget_ns = stale_after_ns_;
 }
 
 const char* AaudioClockSource::fallback_reason() const noexcept {
@@ -50,6 +57,8 @@ core::audio::AudioClockSnapshot AaudioClockSource::now() {
 
         const std::int64_t mono_ns = now_fn_();
         last_mono_ns_ = mono_ns;
+        stats_.max_timestamp_age_ns =
+            std::max(stats_.max_timestamp_age_ns, mono_ns - reading.time_nanos);
         if (stats_.first_ok_frame_position < 0) {
             stats_.first_ok_frame_position = reading.frame_position;
             stats_.first_ok_time_nanos = reading.time_nanos;
@@ -72,6 +81,9 @@ core::audio::AudioClockSnapshot AaudioClockSource::now() {
         sample.sample_rate = sample_rate_;
 
         const auto extrapolated = extrapolator_.extrapolate(sample, mono_ns);
+        if (extrapolated.stale) {
+            ++stats_.timestamp_stale;
+        }
         if (extrapolated.extrapolated_ns > stats_.max_extrapolation_ns) {
             stats_.max_extrapolation_ns = extrapolated.extrapolated_ns;
         }
@@ -144,12 +156,12 @@ void AaudioClockSource::set_sample_rate(std::int32_t sample_rate) noexcept {
     extrapolator_.set_sample_rate(sample_rate);
     sample_rate_ = sample_rate;
 
-    // burst 的帧数不变，但换算成时间就变了，陈旧阈值必须跟着重算，
-    // 否则 44.1 kHz 下会把"刚好陈旧"误判成"还新鲜"。
+    // 保留发布年龄下限，同时重算 burst 对应的预算。
     stale_after_ns_ = stale_threshold_ns(frames_per_burst_, sample_rate_);
     extrapolator_.set_stale_after_ns(stale_after_ns_);
 
     stats_.sample_rate = sample_rate;
+    stats_.timestamp_age_budget_ns = stale_after_ns_;
 }
 
 core::audio::AudioClockSnapshot AaudioClockSource::publish(std::int64_t candidate_ns,

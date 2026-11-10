@@ -9,21 +9,30 @@ import android.os.storage.StorageManager
 import android.system.ErrnoException
 import android.system.OsConstants
 import java.io.IOException
-import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 /** A seekable, bounded HTTP Range source for the existing native fd pipeline. */
 class HttpRangeFile(context: Context, private val address: String,
-                    private val trace: ((String) -> Unit)? = null) : AutoCloseable {
+                    private val trace: ((String) -> Unit)? = null) : RangeSource {
     private val storage = context.getSystemService(StorageManager::class.java)
     private val cancelled = AtomicBoolean(false)
     private val readers = CopyOnWriteArrayList<Reader>()
     private val connections = CopyOnWriteArrayList<HttpURLConnection>()
-    @Volatile var size: Long = 0; private set
-    @Volatile var failureReason: String = ""; private set
+    private val readerIds = AtomicInteger()
+    private var sharedBytes: HttpByteCache? = null
+    private val ioLock = Any()
+    // LRU response list, at most two 1MiB windows for this media session.
+    // Independent absolute fd offsets do not require independent HTTP cursors.
+    private val streams = mutableListOf<HttpRangeStream>()
+    @Volatile override var size: Long = 0; private set
+    @Volatile override var failureReason: String = ""; private set
+
+    /** [RangeSource.open]：探测总长度，失败时写 [failureReason]。 */
+    override fun open() = prepare()
 
     fun prepare() {
         try {
@@ -38,6 +47,7 @@ class HttpRangeFile(context: Context, private val address: String,
                 size = range.second
                 check(size > 0) { "片源大小无效" }
                 check(!cancelled.get()) { "播放已取消" }
+                sharedBytes = HttpByteCache(size)
             } finally { disconnect(connection) }
         } catch (e: Exception) {
             if (failureReason.isBlank()) {
@@ -48,8 +58,8 @@ class HttpRangeFile(context: Context, private val address: String,
         }
     }
 
-    /** Each extractor owns an independent fd, stream and callback thread. */
-    fun openDescriptor(): ParcelFileDescriptor {
+    /** Each extractor owns an independent fd and callback thread. */
+    override fun openDescriptor(): ParcelFileDescriptor {
         check(size > 0 && !cancelled.get()) { "网络片源未就绪或已取消" }
         val reader = Reader()
         readers += reader
@@ -63,7 +73,7 @@ class HttpRangeFile(context: Context, private val address: String,
     }
 
     /** Called off the UI thread; aborts HTTP before native joins a blocked reader. */
-    fun cancel() {
+    override fun cancel() {
         cancelled.set(true)
         connections.forEach { runCatching { it.disconnect() } }
     }
@@ -72,10 +82,12 @@ class HttpRangeFile(context: Context, private val address: String,
     override fun close() {
         cancel()
         readers.toList().forEach { it.onRelease() }
+        synchronized(ioLock) { streams.forEach { it.close() }; streams.clear() }
+        sharedBytes?.clear()
     }
 
-    private fun connect(start: Long, end: Long): HttpURLConnection {
-        if (trace != null) emit("http_begin offset=$start end=$end")
+    private fun connect(start: Long, end: Long, readerId: Int = 0): HttpURLConnection {
+        if (trace != null) emit("http_begin reader=$readerId offset=$start end=$end")
         check(!cancelled.get()) { "播放已取消" }
         val connection = URL(address).openConnection() as HttpURLConnection
         connection.connectTimeout = 8_000
@@ -88,7 +100,7 @@ class HttpRangeFile(context: Context, private val address: String,
     }
 
     // Return response end and total; never accept a 200 response masquerading as seekable data.
-    private fun range(connection: HttpURLConnection, expectedStart: Long): Pair<Long, Long> {
+    private fun range(connection: HttpURLConnection, expectedStart: Long, readerId: Int = 0): Pair<Long, Long> {
         val code = connection.responseCode
         if (code != 206) throw IOException("服务器不支持范围读取（HTTP $code）")
         val match = Regex("bytes (\\d+)-(\\d+)/(\\d+)")
@@ -102,7 +114,7 @@ class HttpRangeFile(context: Context, private val address: String,
         val encoding = connection.contentEncoding
         if (!encoding.isNullOrBlank() && !encoding.equals("identity", true))
             throw IOException("服务器未提供原始媒体字节")
-        if (trace != null) emit("http_ready offset=$start end=$end total=$total")
+        if (trace != null) emit("http_ready reader=$readerId offset=$start end=$end total=$total")
         return end to total
     }
 
@@ -115,22 +127,43 @@ class HttpRangeFile(context: Context, private val address: String,
         connection.disconnect()
     }
 
+    /** Only under ioLock. cancel() can disconnect without waiting for this lock. */
+    private fun response(position: Long, readerId: Int): HttpRangeStream {
+        val existing = streams.filter { it.distance(position) != null }
+            .minByOrNull { it.distance(position)!! }
+        if (existing != null) {
+            streams.remove(existing)
+            streams += existing
+            return existing
+        }
+        if (streams.size == 2) streams.removeAt(0).close()
+        val connection = connect(position, size - 1, readerId)
+        try {
+            val end = range(connection, position, readerId).first
+            if (end >= size) throw IOException("服务器返回范围超出请求")
+            return HttpRangeStream(position, end, connection.inputStream,
+                { disconnect(connection) },
+                { at, bytes, start, count -> sharedBytes?.put(at, bytes, start, count) }
+            ).also { streams += it }
+        } catch (e: Exception) {
+            disconnect(connection)
+            throw e
+        }
+    }
+
     private inner class Reader : ProxyFileDescriptorCallback() {
+        private val id = readerIds.incrementAndGet()
         val thread = HandlerThread("KivoHttpFd").apply { start() }
         private val released = AtomicBoolean(false)
-        private var connection: HttpURLConnection? = null
-        private var stream: InputStream? = null
-        private var cursor = -1L
-        private var end = -1L
 
         override fun onGetSize(): Long = size
 
         override fun onRead(offset: Long, size: Int, data: ByteArray): Int {
             val began = if (trace != null) System.nanoTime() else 0L
-            if (trace != null) emit("read_begin offset=$offset size=$size")
+            if (trace != null) emit("read_begin reader=$id offset=$offset size=$size")
             try {
                 if (cancelled.get() || released.get()) throw IOException("播放已取消")
-                if (offset < 0) throw IOException("读取位置无效")
+                if (offset < 0 || size < 0) throw IOException("读取位置无效")
                 if (offset >= this@HttpRangeFile.size) return 0
                 if (size == 0) return 0
                 val count = minOf(size.toLong(), data.size.toLong(), this@HttpRangeFile.size - offset).toInt()
@@ -138,50 +171,49 @@ class HttpRangeFile(context: Context, private val address: String,
                 // read can be interpreted as EOF by the extractor/FUSE path.
                 // Fill the requested file span, stopping only at the known range end.
                 var filled = 0
+                var networkBytes = 0L
                 while (filled < count) {
                     if (cancelled.get() || released.get()) throw IOException("播放已取消")
                     val position = offset + filled
-                    if (cursor != position || stream == null || position > end) {
-                        dropStream()
-                        // At most 1 MiB per response; sequential reads reuse the same stream.
-                        val requestedEnd = minOf(this@HttpRangeFile.size - 1, position + 1024 * 1024 - 1)
-                        val next = connect(position, requestedEnd)
-                        connection = next
-                        end = range(next, position).first
-                        if (end > requestedEnd) throw IOException("服务器返回范围超出请求")
-                        stream = next.inputStream
-                        cursor = position
+                    // Memory hits never wait behind another descriptor's network read.
+                    val hit = sharedBytes?.copyTo(position, data, filled, count - filled) ?: 0
+                    if (hit > 0) {
+                        filled += hit
+                        continue
                     }
-                    val want = minOf((count - filled).toLong(), end - cursor + 1).toInt()
-                    val read = stream!!.read(data, filled, want)
-                    if (read <= 0) throw IOException("网络片源提前结束")
-                    filled += read
-                    cursor += read
+                    synchronized(ioLock) {
+                        if (cancelled.get() || released.get()) throw IOException("播放已取消")
+                        // Another reader may have supplied this hole while we waited.
+                        val cached = sharedBytes?.copyTo(position, data, filled, count - filled) ?: 0
+                        if (cached > 0) filled += cached else {
+                            val stream = response(position, id)
+                            val read = stream.read(position, data, filled, count - filled) {
+                                if (cancelled.get() || released.get()) throw IOException("播放已取消")
+                            }
+                            filled += read.copied
+                            networkBytes += read.networkBytes
+                            if (stream.exhausted) {
+                                streams.remove(stream)
+                                stream.close()
+                            }
+                        }
+                    }
                 }
-                if (trace != null) emit("read_end offset=$offset bytes=$filled elapsed_ms=${(System.nanoTime() - began) / 1_000_000}")
+                if (trace != null) emit("read_end reader=$id offset=$offset bytes=$filled network_bytes=$networkBytes elapsed_ms=${(System.nanoTime() - began) / 1_000_000}")
                 return filled
             } catch (e: Exception) {
-                if (trace != null) emit("read_error offset=$offset type=${e.javaClass.simpleName} elapsed_ms=${(System.nanoTime() - began) / 1_000_000}")
+                if (trace != null) emit("read_error reader=$id offset=$offset type=${e.javaClass.simpleName} elapsed_ms=${(System.nanoTime() - began) / 1_000_000}")
                 failureReason = if (cancelled.get()) "播放已取消" else when (e) {
                     is IOException -> if (e.message?.startsWith("服务器") == true ||
                         e.message == "网络片源提前结束") e.message!! else "网络读取失败（${e.javaClass.simpleName}）"
                     else -> "网络读取失败（${e.javaClass.simpleName}）"
                 }
-                dropStream()
                 throw ErrnoException("network read", OsConstants.EIO)
             }
         }
 
-        private fun dropStream() {
-            runCatching { stream?.close() }
-            stream = null
-            connection?.let { runCatching { disconnect(it) } }
-            connection = null
-        }
-
         override fun onRelease() {
             if (!released.compareAndSet(false, true)) return
-            dropStream()
             readers.remove(this)
             thread.quitSafely()
         }

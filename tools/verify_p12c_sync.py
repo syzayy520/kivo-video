@@ -36,6 +36,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from verification.frame_accounting import stop_accounting, session_pace_accounting
+
 # 与 C++ 侧逐字一致。写死而不是从 JSON 里读，是为了让"读到的常量"本身也被检查：
 # 如果哪天桶宽被改了而脚本没跟上，这里会报错，而不是悄悄用新常量算出"通过"。
 EXPECTED_BUCKET_WIDTH_NS = 250_000
@@ -70,7 +72,8 @@ class Failure(Exception):
 #:
 #: `/2` **从未存在过**（`/1` 直接跳到 `/3`），所以它不是"漏了"，是当时就没写。
 MIN_SCHEMA_VERSION = 1
-MAX_SCHEMA_VERSION = 43
+MAX_SCHEMA_VERSION = 45
+SCHEMA_WITH_STOP_ACCOUNTING = 44
 ABSENT_SCHEMA_VERSIONS = frozenset({2})
 
 #: 从这一版起，`pace.pts_span_ns`（实测首末 pts 差）与 `pace.clock_supplied_frames`
@@ -1198,6 +1201,12 @@ def verify(path: Path) -> tuple[str, list[str], str]:
             f"账目：`video.frames_discarded_no_surface` 缺格（/{version} 的这一份里没有），"
             f"四项闭合按 0 判 —— 它当时的闭合差本身就是 0，所以这个 0 不是假设出来的"
         )
+    stopped, _, stop_notes = stop_accounting(video, version >= SCHEMA_WITH_STOP_ACCOUNTING)
+    notes.extend(stop_notes)
+    if version >= 45:
+        session_pace_accounting(data["pace"], video)
+    if min(received, released, rendered, dropped, discarded) < 0:
+        raise Failure("视频输出槽计数不得为负")
     if released != received:
         raise Failure(f"frames_released={released} != frames_received={received}（有输出槽没归还）")
 
@@ -1225,10 +1234,10 @@ def verify(path: Path) -> tuple[str, list[str], str]:
         end_reason = "completed" if data.get("completed") is True else "interrupted"
     eos_frame = 1 if end_reason == "completed" else 0
 
-    if rendered + dropped + discarded + eos_frame != received:
+    if rendered + dropped + discarded + stopped + eos_frame != received:
         raise Failure(
             f"frames_rendered({rendered}) + frames_dropped_late({dropped}) + "
-            f"frames_discarded_no_surface({discarded}) + {eos_frame}"
+            f"frames_discarded_no_surface({discarded}) + frames_discarded_on_stop({stopped}) + {eos_frame}"
             f"（end_reason={end_reason!r}） != "
             f"frames_received({received})"
             + ("（末尾 EOS 缓冲没算对）" if eos_frame

@@ -1,3 +1,13 @@
+> 2026-11-10 07:52 **平板真实 UI 播不了已修**：点片后黑屏 +「这个资源库还没有选择共享」+ 时间恒 0（同文件 instrumentation 4/4 PASS）。根因是枚举形态的源 `share` 为空，用户页内选的共享只留在内存、没传给播放器；K40 源手填 `XiaoMi` 故不受影响。修复 `SmbBrowserActivity` 传 `kivo.smbShare` + `PlayerComposeActivity` 覆盖地址 share，凭据仍不进 Intent。复验：`local-seek.mkv` 播到 `0:00:13/0:01:00`、`mkv-audio.mkv` 播完、拖进度条 `4→30` 后续播到 `0:00:59`。顺带按 libsmb2 原文细分错误阶段（未授权共享不再提示填账号密码）。[证据](../evidence/p243/smb-rebuild/s3-tablet-playback-fix.txt)。
+
+> 2026-11-10 07:30 **SMB 打通，两台设备都验过**：所谓"K40 连不上小米路由"是我参数错——小米路由**按设备下发不同共享列表**（平板 7 个含 `视频`；K40 只有 `XiaoMi` 整盘），未授权共享回 `0xc0000022`。K40 走 `XiaoMi` 播放+seek **4/4 PASS**，平板走 `视频` **4/4 PASS**；枚举→列目录→随机读两台 **3/3 PASS**。243 **S5 自动发现**真机验收结清（两台 2/2 PASS，只发现 NAS `N1`；小米路由不广播 `_smb._tcp`）。误判产生的 245 卡已删除。[243 证据](../evidence/p243/smb-rebuild/status.md)、[244 记录](../evidence/p244/status.md)。
+
+> 2026-11-10 244 **CLOSED**（播放故障线结果）：MKV 本地播放起播黑屏 + seek 不跳均已修复并真机复验（`local-seek.mkv` seek `5129 → 27080 ms`；K40 `actual=27106`；SMB 走 `N:`→`\\192.168.5.1\视频` 同源对照 `27012` / 带音轨 `10498`，均 4/4 PASS），音频路径零回归。注意：K40 与平板 `ro.board.platform` 同为 `kona`，「另一颗 SoC」前提不成立，只证跨设备/跨 ROM；**唯一未验＝跨 SoC 厂商**。共享上 `N:/kivo-test/`、`smbprobe.txt` 待手工清理。[证据与关闭记录](../evidence/p244/status.md)。UI 任务优先级不受影响。
+
+> 2026-11-09 最新用户优先级：本任务先做播放页 UI，播放故障交由另一位助手跟进，原 R5 后置安排作废。[UI 设计与边界](../design/ui/replica/playback/player-ui.md)已建立，生产 UI 尚未实施；下一步从原始录像定位控制页及面板，按真实参考实现 Compose 组件，再在手机/平板保存截图和操作证据。播放现状以[阶段交接](../evidence/p240/network-native-playback/software-audio/status.md)为准：平板真实 MKV 的 EAC3 音频阶段通过且有累计丢弃/静音限制，手机真实 MKV 未通过，网络播放整卡仍 DOING。保留共享工作区全部 WIP，UI 不接管核心/网络/Surface 生命周期。
+
+> 以下为此前阶段记录；涉及上述分工、音频状态和优先级时，以本条及链接交接为准。
+
 > 2026-11-09 网络读取修复：4KiB探测绕过CDN单字节总长误报；分包短读填满文件请求，两机合成操作回归通过，本轮视频迟到丢帧0，K40仍1次xrun。真实来源2平板可解析但E-AC3缺解码器；K40完整解析仍触发45秒诊断取消。整卡DOING；下一步手机解析取证/有界取消→音频兼容→真实网络稳态，SMB未验。[证据与边界](../evidence/p240/network-native-playback/status.md)。
 
 # P12 任务清单 · 可执行台账
@@ -8,7 +18,15 @@
 
 > 2026-11-09 生命周期补测：真实宿主内部跳转/重建、三轮桌面返回及系统凭据取消通过；合成缺失源ID直达拒绝正常。[测试与边界](../evidence/p240/source-management/lifecycle/status.md)。生产代码未改，实际隐藏源成功解锁/锁屏/隐藏默认首页及手机矩阵仍未验，L2继续DOING。
 
-> 2026-11-09 L2服务器控制追加：[设计](../design/ui/library-rebuild/source-controls.md)、[证据](../evidence/p240/source-management/l2-controls-status.md)。隐藏/系统解锁、唯一默认首页、首页/搜索聚合独立保存已实现；七组隔离测试和偏好/默认启动真机阶段通过；系统取消/后台重锁/隐藏直达等未过闸，L2仍DOING。用户强调聚合搜索隐私，已加入[L3请求前过滤及历史缓存硬闸门](../design/ui/library-rebuild/l3-content-scope.md)。下一小步：平板管理/编辑弹层双栏适配，手机保持单栏。
+> 2026-11-09 最新实施事实（替代下方“仅设计/未实施”旧记录）：用户已授权“去做吧”。平板左右等分、左页保留底部导航、右页独立全高管理/连接页已覆盖安装；紧凑入口及来源图标已接入。资源库入口渲染递归闪退已修，5轮切换同进程，合成草稿退出确认已测。[修复证据与未验范围](../evidence/p240/source-management/tablet-workspace/status.md)。L2仍DOING。
+
+> 2026-11-09 设计追加：本地影片、SMB、私密区入口改为与服务器统一的紧凑豆腐块，分组保留；锁定私密区不显示内容及统计。设计预览已更新，待后续Android实施及真机验收。
+
+> 2026-11-09 来源预留：设计及交互预览纳入 Emby / Plex / Jellyfin / 飞牛 / SMB / WebDAV；未实现协议标“暂未接入”，逐项接入，不提前标完成。卡片单击进入、长按或三个点管理，无选中态；保留底部胶囊及独立搜索按钮。本轮未改Android实现。
+
+> 2026-11-09 平板布局：用户本轮只要求规划设计。[页面双栏提案](../design/ui/library-rebuild/tablet-workspace.md)采用左资源库、右管理/编辑，按需展开；未实施。错误的弹窗内部双栏WIP已撤回并恢复安装。不得把设计讨论当实施授权。
+>
+> 2026-11-09 L2服务器控制追加：[设计](../design/ui/library-rebuild/source-controls.md)、[证据](../evidence/p240/source-management/l2-controls-status.md)。隐藏/系统解锁、唯一默认首页、首页/搜索聚合独立保存已实现；七组隔离测试和偏好/默认启动真机阶段通过；系统取消/后台重锁/隐藏直达等未过闸，L2仍DOING。用户强调聚合搜索隐私，已加入[L3请求前过滤及历史缓存硬闸门](../design/ui/library-rebuild/l3-content-scope.md)。
 
 > 2026-11-09 L2追加：紧凑源卡、官方Emby图标、电影/剧集真实计数、来源类型选择与6dp在线点已实现；平板状态点真机证据见[记录](../evidence/p240/source-management/l2-compact-status.md)。L2保持DOING，重复预检/取消竞态/几十源等未测，不进入L3。K40断开后可能仍1.5字号，下次连接优先恢复1.0。
 
@@ -35,7 +53,7 @@
 | R2 详情交互闭环 | `DOING` | 标记/底部操作卡片已测；修复刷新错误遮片名，电影/剧集连点与返回、简介、首载失败/恢复、刷新失败/重试/关闭真机通过；播放入口与预告链接已测，系统栏/指南大字/分类换行已分阶段实测；片名/缺图已完成组件阶段及真实首屏回归；预告成功播放、完整多影片矩阵待验 | [操作阶段](../evidence/p240/detail-actions/status.md)、[导航异常回归](../evidence/p240/detail-regression/status.md)、[设计](../design/ui/replica/detail-regression.md)；未称整卡完成 |
 | R3 首页数据与生命周期 | `TODO` | 动态 feed/缓存、默认图片、可选预告与后台释放 | 同片与多片场景；弱网/无网；设置关时不创建预告播放器 |
 | R4 其他页面逐页闭环 | `TODO` | 搜索→媒体库/资源库表单→设置/真实统计 | 一页闭环再下一页；先盘点已有功能 |
-| R5 播放器界面与手势 | `TODO` | 独立高风险卡，后置 | 单独设计；不得改坏后端/JNI/Surface；禁止软解回退 |
+| R5 播放器界面与手势 | `TODO`，已建初步设计 | 用户已提前为当前 UI 优先项；先定位真实播放页参考，再实现控制层与面板 | [设计与边界](../design/ui/replica/playback/player-ui.md)；手机/平板截图及交互证据；不得改坏后端/JNI/Surface，播放故障由另一助手跟进 |
 
 以上卡片细则、文件边界、复现方法和回退要求见总规划。PRO/iCloud 不纳入。
 

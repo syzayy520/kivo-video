@@ -6,7 +6,7 @@
 #include <thread>
 #include <vector>
 
-#include "video/video_plane/backends/mediacodec/decode/mediacodec_audio_decoder.hpp"
+#include "video/video_plane/core/audio/audio_decoder.hpp"
 #include "video/video_plane/backends/mediacodec/source/mediaextractor_source.hpp"
 #include "video/video_plane/core/audio/pcm_format.hpp"
 #include "video/video_plane/core/audio/spsc_audio_ring_buffer.hpp"
@@ -21,6 +21,7 @@ struct AudioDecodeFeedStats {
     std::int64_t frames_written = 0;     ///< 真正写进环形缓冲的帧
     std::int64_t ring_full_waits = 0;    ///< 环满导致的等待次数（供大于求，正常背压）
     std::int64_t frames_dropped = 0;     ///< 因停止而丢弃的帧（非 0 必须在证据里显式出现）
+    float decoded_peak = 0.0F;  ///< Actual decoded PCM amplitude.
     bool reached_eos = false;
     bool eos_flag_seen = false;          ///< 是否真的收到平台的 EOS 标志
     std::string error;                   ///< 空表示正常走完
@@ -45,7 +46,7 @@ public:
     /// 拿它去算转换等于把"平台悄悄改了格式"这件事掩盖掉：
     /// 声道数一旦不符，交错数据的步长就错了，听感是噪声而不是"格式不对"。
     AudioDecodeFeeder(MediaExtractorSource& source,
-                      MediaCodecAudioDecoder& decoder,
+                      core::audio::AudioDecoder& decoder,
                       core::audio::SpscAudioRingBuffer& ring);
 
     ~AudioDecodeFeeder();
@@ -78,7 +79,7 @@ private:
     void push_frames(const float* interleaved, std::int32_t frame_count);
 
     MediaExtractorSource& source_;
-    MediaCodecAudioDecoder& decoder_;
+    core::audio::AudioDecoder& decoder_;
     core::audio::SpscAudioRingBuffer& ring_;
 
     std::vector<float> converted_;  ///< 转换暂存，仅在变大时分配

@@ -1,0 +1,1 @@
+{"codec":"ffmpeg:ac3","frames":864768,"eagain_retries":281,"channels":[{"index":0,"frequency_hz":997.0,"rms":0.062486},{"index":1,"frequency_hz":997.0,"rms":0.062486}],"eos":true,"flush_identical":true,"encrypted_rejected":true,"format_mismatch_rejected":true,"pass":true}

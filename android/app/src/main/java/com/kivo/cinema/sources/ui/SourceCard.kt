@@ -26,24 +26,29 @@ import com.kivo.cinema.sources.SourceRecord
 @Composable
 fun SourceCard(record: SourceRecord, onOpen: () -> Unit, onManage: () -> Unit,
     summary: com.kivo.cinema.sources.overview.SourceSummaries.Summary? = null) {
+    // SMB 源没有"库数量"这个概念，副标题就显示地址本身（用户也能靠它区分同名源）。
+    val smb = record.isSmb
     val counts = summary?.counts
     val subtitle = when {
+        smb -> record.address.removePrefix("smb://")
         counts != null -> "电影:${counts.movies}  剧集:${counts.series}"
         summary?.reason != null -> summary.reason
         else -> "正在读取数量…"
     }
     com.kivo.cinema.sources.ui.cards.SourceTile(record.name, subtitle, onOpen, onManage,
-        icon = { com.kivo.cinema.sources.ui.cards.SourceIcon(com.kivo.cinema.sources.ui.cards.SourceIconKind.EMBY) },
+        icon = { com.kivo.cinema.sources.ui.cards.SourceIcon(
+            if (smb) com.kivo.cinema.sources.ui.cards.SourceIconKind.SMB
+            else com.kivo.cinema.sources.ui.cards.SourceIconKind.EMBY) },
         accessory = {
-            Box(Modifier.size(6.dp).background(when (summary?.online) {
+            Box(Modifier.size(6.dp).background(when (if (smb) null else summary?.online) {
                 true -> Color(0xFF76C442)
                 false -> Color(0xFFE65361)
                 null -> Color(0xFFB8BBC4)
             }, CircleShape).semantics {
-                contentDescription = when (summary?.online) {
+                contentDescription = when (if (smb) null else summary?.online) {
                     true -> "服务器在线，最近检测可访问"
                     false -> "服务器连接失败或服务异常"
-                    null -> "服务器状态待检测"
+                    null -> if (smb) "已保存的网络共享" else "服务器状态待检测"
                 }
             })
             IconButton(onClick = onManage, modifier = Modifier.size(48.dp)

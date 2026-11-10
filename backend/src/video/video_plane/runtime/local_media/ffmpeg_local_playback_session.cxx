@@ -2,7 +2,16 @@
 
 #include <chrono>
 #include <cstdio>
+#include <limits>
 #include <utility>
+
+#ifdef __ANDROID__
+#include <android/log.h>
+#define KIVO_SOFT_LOG(...) \
+    __android_log_print(ANDROID_LOG_INFO, "KivoSoftDecode", __VA_ARGS__)
+#else
+#define KIVO_SOFT_LOG(...) ((void)0)
+#endif
 
 namespace kivo::video::video_plane::runtime::local_media {
 namespace {
@@ -35,7 +44,57 @@ std::int64_t steady_us() {
         .count();
 }
 
+/// 画面落后音频超过这个量就丢帧追赶。
+///
+/// 人耳对"声音早于画面"的容忍只有约 40 ms，但丢帧本身是可感知的，
+/// 所以不能一落后就丢：150 ms 是"再等一帧也追不回来"的量级，
+/// 低于它靠下一次不睡眠自然就追上了。
+constexpr std::int64_t kDropBehindUs = 150'000;
+/// 画面超前音频这么多就开始睡。留 50 ms 是因为渲染到真正上屏还有几毫秒，
+/// 且每帧渲染耗时本身有抖动；贴着 0 睡会让画面频繁赶在声音前面。
+constexpr std::int64_t kSleepAheadUs = 50'000;
+/// 音频时钟最多外推这么远。Kotlin 侧每 200 ms 推一次，超时未更新说明
+/// 音频侧卡住或已停，此时必须停止外推，否则视频会一路跑到前面去。
+constexpr std::int64_t kAudioClockExtrapolateLimitUs = 250'000;
+/// 音频时钟多久没更新就判定为"不再可用"，视频退回自身节拍。
+///
+/// 必须存在：片尾音频先结束、或音频被暂停时，`playedUs` 会定格。
+/// 若继续以它为准，视频每帧都判"画面超前"于是越睡越久 —— 画面就此冻在最后一帧，
+/// 观众看到的是"片子播到一半卡死"。800 ms 是"推了四次都没变"的量级。
+constexpr std::int64_t kAudioClockStaleUs = 800'000;
+
 }  // namespace
+
+std::int64_t FfmpegLocalPlaybackSession::effective_audio_clock_us_() {
+    const std::int64_t raw = audio_clock_us_.load(std::memory_order_relaxed);
+    if (raw < 0) {
+        audio_extrapolate_from_us_ = -1;
+        audio_extrapolate_wall_us_ = -1;
+        return -1;
+    }
+    const std::int64_t now = steady_us();
+    if (raw != audio_extrapolate_from_us_) {
+        // 新的采样到：以它为基准，从现在开始外推。
+        audio_extrapolate_from_us_ = raw;
+        audio_extrapolate_wall_us_ = now;
+        return raw;
+    }
+    if (audio_extrapolate_wall_us_ < 0) {
+        return raw;
+    }
+    const std::int64_t elapsed = now - audio_extrapolate_wall_us_;
+    if (elapsed > kAudioClockStaleUs) {
+        // 音频已经不再前进（片尾结束 / 被暂停 / 线程死了）。
+        // 必须交还主导权，否则视频会一直"等一个永远不会来的时间点"。
+        audio_extrapolate_from_us_ = -1;
+        audio_extrapolate_wall_us_ = -1;
+        return -1;
+    }
+    if (elapsed > kAudioClockExtrapolateLimitUs) {
+        return raw;
+    }
+    return raw + elapsed;
+}
 
 FfmpegLocalPlaybackSession::~FfmpegLocalPlaybackSession() {
     std::string evidence;
@@ -67,6 +126,18 @@ FfmpegSessionOutcome FfmpegLocalPlaybackSession::seekTo(std::int64_t target_us) 
         return {FfmpegSessionOutcome::Code::kNotStarted, "open() first"};
     }
     seek_request_us_.store(target_us, std::memory_order_relaxed);
+    // 暂停中也要能定位：worker 正阻塞在条件变量上，不叫醒它就永远看不到这个请求。
+    pause_cv_.notify_all();
+    return {};
+}
+
+FfmpegSessionOutcome FfmpegLocalPlaybackSession::setPaused(bool paused) {
+    if (!opened_) {
+        return {FfmpegSessionOutcome::Code::kNotStarted, "open() first"};
+    }
+    paused_.store(paused, std::memory_order_relaxed);
+    // 两种方向都要唤醒：暂停时 worker 要立刻停下来，恢复时要立刻继续。
+    pause_cv_.notify_all();
     return {};
 }
 
@@ -78,6 +149,8 @@ FfmpegSessionOutcome FfmpegLocalPlaybackSession::start() {
         return {FfmpegSessionOutcome::Code::kAlreadyRunning, "session is running"};
     }
     running_.store(true, std::memory_order_relaxed);
+    // 解码拆分计时是全局累加的，每次起播先清零，否则读到的是上一部片子的均值。
+    kivo::cinema_engine::FfmpegAdapter::reset_decode_timings();
     worker_ = std::thread([this] { run_loop_(); });
     return {};
 }
@@ -88,6 +161,9 @@ FfmpegSessionOutcome FfmpegLocalPlaybackSession::stop(std::string& evidence_json
     }
     if (worker_.joinable()) {
         running_.store(false, std::memory_order_relaxed);
+        // 暂停中的 worker 正阻塞在条件变量上：不叫醒它，join 会一直等下去。
+        paused_.store(false, std::memory_order_relaxed);
+        pause_cv_.notify_all();
         worker_.join();
     }
     opened_ = false;
@@ -108,18 +184,43 @@ FfmpegSessionOutcome FfmpegLocalPlaybackSession::stop(std::string& evidence_json
     json += "    \"frames_decoded\": " + std::to_string(counters_.frames_decoded) + ",\n";
     json += "    \"frames_rendered\": " + std::to_string(counters_.frames_rendered) + ",\n";
     json += "    \"render_failures\": " + std::to_string(counters_.render_failures) + ",\n";
+    json += "    \"frames_dropped\": " + std::to_string(counters_.frames_dropped) + ",\n";
     json += "    \"read_errors\": " + std::to_string(counters_.read_errors) + "\n";
     json += "  },\n";
     json += "  \"timing\": {\n";
     json += "    \"wall_us\": " + std::to_string(counters_.wall_us) + ",\n";
-    json += "    \"decode_ms_total\": " + std::to_string(counters_.decode_ms_total) + "\n";
+    json += "    \"read_ms_total\": " + std::to_string(counters_.read_ms_total) + ",\n";
+    json += "    \"decode_ms_total\": " + std::to_string(counters_.decode_ms_total) + ",\n";
+    json += "    \"render_ms_total\": " + std::to_string(render_ms_total_) + "\n";
     json += "  },\n";
+    // 24x：把 decode_ms_total 再拆一层。`avcodec_ms_per_frame` 是解码器本身的成本，
+    // `sws_ms_per_frame` 是 1080p YUV→RGBA 的成本，两者之和才等于单帧解码耗时。
+    // 没有这两个数就只能凭感觉"优化解码"，而真正的大头可能在色彩空间转换上。
+    {
+        const auto timings = kivo::cinema_engine::FfmpegAdapter::take_decode_timings();
+        const double frames = timings.frames > 0 ? static_cast<double>(timings.frames) : 0.0;
+        const double avcodec_ms = frames > 0 ? timings.avcodec_ns / 1e6 / frames : 0.0;
+        const double sws_ms = frames > 0 ? timings.sws_ns / 1e6 / frames : 0.0;
+        json += "  \"decode_breakdown\": { \"frames\": " + std::to_string(timings.frames) +
+                ", \"send_ms_per_call\": " +
+                std::to_string(timings.send_calls > 0
+                                   ? timings.send_ns / 1e6 / static_cast<double>(timings.send_calls)
+                                   : 0.0) +
+                ", \"send_calls\": " + std::to_string(timings.send_calls) +
+                ", \"avcodec_ms_per_frame\": " + std::to_string(avcodec_ms) +
+                ", \"sws_ms_per_frame\": " + std::to_string(sws_ms) + " },\n";
+    }
     json += "  \"render\": { \"sink\": \"" + std::string(sink_ ? sink_->name() : "none") +
             "\" },\n";
     json += "  \"routing\": { \"backend_decision\": \"" +
             escape_json(config_.routing_decision) + "\", \"reason\": \"" +
             escape_json(config_.routing_reason) + "\" },\n";
     json += "  \"pacing\": \"pts_sleep_simple\",\n";
+    // 进度诊断：首包原始 pts、首个可用 media_us、无时间戳帧数。
+    // 三个数一起读：frames_without_pts 等于 frames_decoded 就是"完全没时间戳"。
+    json += "  \"pts_diag\": { \"first_packet_pts\": " + std::to_string(first_packet_pts_) +
+            ", \"first_media_us\": " + std::to_string(first_media_us_) +
+            ", \"frames_without_pts\": " + std::to_string(frames_without_pts_) + " },\n";
     // 节拍曲线（220 诊断）：[wall_ms, media_s] 采样对
     json += "  \"pace_curve\": [";
     {
@@ -149,6 +250,7 @@ void FfmpegLocalPlaybackSession::run_loop_() {
     // --thread-ffmpeg-use 四段）。单线程持有一切后，桌面测试干净退出。
     const std::int64_t started_us = steady_us();
     std::int64_t first_pts_us = -1;
+    std::int64_t last_media_us = -1;
     std::int64_t pace_origin_us = 0;
     bool completed = false;
     bool error_reported = false;
@@ -197,6 +299,10 @@ void FfmpegLocalPlaybackSession::run_loop_() {
         return;
     }
     video_stream_ = video_indices.front();
+    // 只留视频这一路：其余轨道标丢弃，demuxer 就不再为它们付载荷代价。
+    // 没有这一步时每个视频帧要额外读 ~50 个包（实测 ~35 ms/帧，几乎等于
+    // 一个 24 fps 的帧间隔），播放速率被压到 0.3x。
+    kivo::cinema_engine::FfmpegAdapter::discard_streams_except(format_, video_stream_);
     kivo::cinema_engine::FfmpegAdapter::get_stream_codec_name(format_, video_stream_,
                                                               codec_name_);
     std::string source_pixel_format;
@@ -228,14 +334,63 @@ void FfmpegLocalPlaybackSession::run_loop_() {
                     auto fr = decoder_.flush("p220_seek");
                     if (!fr.success || fr.frame.frame_data.empty()) break;
                 }
-                first_pts_us = req;
+                // **不把请求值写进 position**：请求不是落点。真实落点由下一帧的 pts 给出，
+                // 提前写等于"进度条到了、画面没动"——那是最难被发现的假成功。
+                first_pts_us = -1;
+                last_media_us = -1;
                 pace_origin_us = steady_us();
-                position_us_.store(req, std::memory_order_relaxed);
+                // 定位后音频位置会跳变，旧的外推基准必须作废，否则视频会按
+                // 定位前的时间线继续睡/丢，跳转后头一两秒全是错位。
+                audio_extrapolate_from_us_ = -1;
+                audio_extrapolate_wall_us_ = -1;
+                // 暂停中定位：越过暂停继续读，直到解出一帧为止（预算见下）。
+                if (paused_.load(std::memory_order_relaxed)) {
+                    paused_decode_budget_ = 240;
+                }
             } else {
-                seek_request_us_.store(req, std::memory_order_relaxed);  // 失败重试下一轮
+                // 定位被拒：**不重试**。同一个目标再试一次还是同样结果，而重试会把
+                // 请求存回去，让暂停中的 wait 条件永远成立 —— 那是忙等烧 CPU、
+                // 画面又不动。留在原位继续播，进度条不动是诚实的反馈。
+                if (first_error_.empty()) {
+                    first_error_ = "seek rejected by demuxer";
+                }
             }
         }
+        // 暂停（软解补齐）：阻塞在这里，而不是"关掉解码器再重建"——恢复后接着
+        // 同一个码流位置往下走，不丢帧、不重开 SMB 连接。
+        //
+        // 暂停期间**不取包**：既省 CPU，也不会把网络读的一侧拖进超时重连。
+        // 谓词里带上 seek：暂停时拖进度条必须仍能定位，否则用户看到的是"卡死"。
+        if (paused_.load(std::memory_order_relaxed) && paused_decode_budget_ <= 0) {
+            std::unique_lock<std::mutex> lock(pause_mutex_);
+            pause_cv_.wait(lock, [this] {
+                return !paused_.load(std::memory_order_relaxed) ||
+                       !running_.load(std::memory_order_relaxed) ||
+                       seek_request_us_.load(std::memory_order_relaxed) >= 0;
+            });
+            if (!running_.load(std::memory_order_relaxed)) {
+                break;
+            }
+            if (!paused_.load(std::memory_order_relaxed)) {
+                // 真恢复：把节拍原点推到"现在"。
+                // 不重锚的话 due 会落后 now 整个暂停时长，恢复瞬间连续补帧——那是快进不是继续。
+                if (first_pts_us >= 0 && last_media_us >= 0) {
+                    pace_origin_us = steady_us() - (last_media_us - first_pts_us);
+                }
+            }
+            // 两种情形都回循环顶部：真恢复要让 seek 处理（若有）先跑；
+            // 仍暂停则一定是 seek 唤醒的，必须在**定位之后**才解那一帧。
+            continue;
+        }
+        if (paused_decode_budget_ > 0) {
+            --paused_decode_budget_;
+        }
+        const auto read_started = std::chrono::steady_clock::now();
         auto read_result = kivo::cinema_engine::FfmpegAdapter::read_packet(format_);
+        counters_.read_ms_total +=
+            std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() -
+                                                      read_started)
+                .count();
         if (read_result.eof) {
             completed = true;
             break;
@@ -274,6 +429,9 @@ void FfmpegLocalPlaybackSession::run_loop_() {
             continue;
         }
         ++counters_.video_packets;
+        if (first_packet_pts_ < 0) {
+            first_packet_pts_ = read_result.packet.pts;
+        }
         if (read_result.packet.is_key_frame) {
             ++counters_.keyframes;
         }
@@ -303,16 +461,51 @@ void FfmpegLocalPlaybackSession::run_loop_() {
             continue;
         }
         ++counters_.frames_decoded;
+        // 24x：分段记账。只报"解码多少毫秒"会把结论带偏 —— 实测 send 只有 7.7 ms，
+        // 但每帧实际走了 139 ms，差的那 130 ms 究竟在等 SMB 读、等 Surface 出缓冲，
+        // 还是在 sleep，只有把每帧总时长与各段并列才看得出来。
+        if (counters_.frames_decoded % 60 == 0) {
+            const auto t = kivo::cinema_engine::FfmpegAdapter::take_decode_timings();
+            const double frames = static_cast<double>(counters_.frames_decoded);
+            const double wall_ms = (steady_us() - started_us) / 1000.0;
+            const double per_frame_ms = wall_ms / frames;
+            const double send_ms =
+                t.send_calls > 0 ? t.send_ns / 1e6 / static_cast<double>(t.send_calls) : 0.0;
+            const double recv_ms = t.frames > 0 ? t.avcodec_ns / 1e6 / static_cast<double>(t.frames) : 0.0;
+            const double sws_ms = t.frames > 0 ? t.sws_ns / 1e6 / static_cast<double>(t.frames) : 0.0;
+            KIVO_SOFT_LOG(
+                "frame_budget frames=%lld fps=%.1f per=%.1fms | send=%.1f recv=%.1f sws=%.1f "
+                "resize=%.1f read=%.1f render=%.1f | decode_total=%.1f",
+                static_cast<long long>(counters_.frames_decoded),
+                wall_ms > 0 ? frames * 1000.0 / wall_ms : 0.0,
+                per_frame_ms, send_ms, recv_ms, sws_ms,
+                t.frames > 0 ? t.resize_ns / 1e6 / static_cast<double>(t.frames) : 0.0,
+                counters_.read_ms_total / frames,
+                render_ms_total_ / frames,
+                counters_.decode_ms_total / frames);
+        }
 
         // 节拍（simple pts sleep）：首帧起锚，之后每帧睡到"起点 + 媒体时间差"。
         // 差异如实出版（pacing 字段）；比硬解的 FramePacer 粗，M1 不追求等价。
         std::int64_t media_us = 0;
+        // VC-1 等部分软解码器**不**回填 `AVFrame::pts`，它保持 `AV_NOPTS_VALUE`
+        // （= INT64_MIN，非 0）。直接拿去 rescale 会溢出成负数，于是 `media_us > 0`
+        // 永远不成立 —— 真机表现是"画面在动、进度条停在 0:00:00"（2026-11-10 实测）。
+        // 这里显式把它当作"没有帧时间戳"，退回包时间戳。
+        constexpr std::int64_t kNopts = std::numeric_limits<std::int64_t>::min();
+        const std::int64_t frame_pts = result.frame.pts;
+        const std::int64_t packet_pts = read_result.packet.pts;
         const std::int64_t pts =
-            result.frame.pts != 0 ? result.frame.pts : read_result.packet.pts;
+            (frame_pts != 0 && frame_pts != kNopts) ? frame_pts
+            : (packet_pts != kNopts ? packet_pts : 0);
         if (kivo::cinema_engine::FfmpegAdapter::rescale_stream_timestamp_us(
                 format_, video_stream_, pts, media_us) &&
             media_us > 0) {
             position_us_.store(media_us, std::memory_order_relaxed);
+            last_media_us = media_us;
+            if (first_media_us_ < 0) {
+                first_media_us_ = media_us;
+            }
             // 节拍曲线采样（220 诊断）：每 100 帧记 (wall_ms, media_s)
             if (counters_.frames_decoded % 100 == 0) {
                 pace_samples_.emplace_back((steady_us() - started_us) / 1000,
@@ -322,16 +515,77 @@ void FfmpegLocalPlaybackSession::run_loop_() {
                 first_pts_us = media_us;
                 pace_origin_us = steady_us();
             }
-            const std::int64_t due = pace_origin_us + (media_us - first_pts_us);
-            std::int64_t now = steady_us();
-            if (due > now) {
-                std::this_thread::sleep_for(std::chrono::microseconds(due - now));
+
+            // 节拍分两条路：
+            //   有音频时钟 → **贴着声音走**（音频是主时钟）；
+            //   没有 → 退回自身 pts 节拍（无音轨 / 音频还没出声 / 暂停中）。
+            //
+            // 为什么必须让音频做主：视频和音频是两条独立会话，各自从 pts=0 起跑，
+            // 但启动时刻天然不同（20 GB REMUX 上音频要 demux + 探针 + 打开 AAudio，
+            // 实测晚 1.4 s）。两条 1.0x 的时间轴错开一个固定量就会**永远**错开 ——
+            // 各自守时，音画就差一秒多。这不是精度问题，是"谁说了算"的问题。
+            const std::int64_t clock_us = effective_audio_clock_us_();
+            if (clock_us > 0) {
+                const std::int64_t ahead_us = media_us - clock_us;
+                if (ahead_us < -kDropBehindUs) {
+                    // 画面落后声音太多：直接丢这一帧去追。
+                    // **丢帧必须归还缓冲**，否则每丢一帧漏掉一块 8.3 MB 的 RGBA，
+                    // 几十帧就能把进程撑爆。
+                    ++counters_.frames_dropped;
+                    kivo::cinema_engine::FfmpegAdapter::recycle_frame_buffer(
+                        std::move(result.frame.frame_data));
+                    continue;
+                }
+                if (ahead_us > kSleepAheadUs) {
+                    // 分段睡：起播时音频没就绪、视频可能一次要等一秒多，一口气睡死
+                    // 会让这段时间里的 seek / 暂停毫无响应。每 100 ms 出来看一眼。
+                    std::int64_t remain = ahead_us - kSleepAheadUs;
+                    while (remain > 0 && running_.load(std::memory_order_relaxed)) {
+                        const std::int64_t chunk =
+                            remain > 100'000 ? 100'000 : remain;
+                        std::this_thread::sleep_for(std::chrono::microseconds(chunk));
+                        remain -= chunk;
+                        if (seek_request_us_.load(std::memory_order_relaxed) >= 0 ||
+                            paused_.load(std::memory_order_relaxed)) {
+                            break;
+                        }
+                    }
+                }
+                // 落在 [−150 ms, +50 ms] 里：立刻上屏，不睡。
+                // 这个窗口就是"已经在正确位置"的定义，睡反而是错的。
+                if (counters_.frames_decoded % 60 == 0) {
+                    KIVO_SOFT_LOG("avsync media=%lld clock=%lld ahead=%lld dropped=%lld",
+                                  static_cast<long long>(media_us),
+                                  static_cast<long long>(clock_us),
+                                  static_cast<long long>(ahead_us),
+                                  static_cast<long long>(counters_.frames_dropped));
+                }
+            } else {
+                const std::int64_t due = pace_origin_us + (media_us - first_pts_us);
+                std::int64_t now = steady_us();
+                if (due > now) {
+                    std::this_thread::sleep_for(std::chrono::microseconds(due - now));
+                }
+            }
+        } else {
+            // 有帧但拿不到可用时间戳：进度条停住就是这个分支被走穿了。
+            // 计数进证据，下一次真机就不用再猜。
+            if (first_media_us_ < 0) {
+                ++frames_without_pts_;
             }
         }
 
         std::string render_error;
-        if (sink_ != nullptr && sink_->render(result.frame, render_error)) {
+        const auto render_started = std::chrono::steady_clock::now();
+        const bool rendered = sink_ != nullptr && sink_->render(result.frame, render_error);
+        render_ms_total_ +=
+            std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() -
+                                                      render_started)
+                .count();
+        if (rendered) {
             ++counters_.frames_rendered;
+            // 暂停中 seek 的目的已经达到：新位置的一帧解出并上屏，立刻回到暂停。
+            paused_decode_budget_ = 0;
         } else {
             ++counters_.render_failures;
             if (!error_reported && !render_error.empty()) {
@@ -339,6 +593,10 @@ void FfmpegLocalPlaybackSession::run_loop_() {
                 error_reported = true;
             }
         }
+        // 上屏之后这块 RGBA 就没用了，还给适配器复用 —— 不还会让下一帧重新
+        // 分配 8.3 MB（实测 69 ms/帧，是解码成本的 8 倍）。
+        kivo::cinema_engine::FfmpegAdapter::recycle_frame_buffer(
+            std::move(result.frame.frame_data));
     }
 
     // 3. 清理（本线程）。

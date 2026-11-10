@@ -1,0 +1,24 @@
+PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; random forward/backward reads reuse one bounded response (3 HTTP requests including probe and cross-range)
+PASS independent proxy descriptors support exact random reads
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.avc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS seek request=2 target_us=8000000 landing_us=8000000 advances_after_completion
+PASS seek request=3 target_us=2000000 landing_us=2000000 advances_after_completion
+PASS forward and backward seek use the native A/V session
+CHECK audio_codec=ffmpeg:eac3 decoded_frames=337920 peak=0.0883928 audible_frames=303360
+CHECK prefill_budget_ms=8000 initial_wait_ms=8 max_wait_ms=8
+PASS exit serializes native teardown; evidence confirms rendered audio and audio master clock
+
+PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; random forward/backward reads reuse one bounded response (3 HTTP requests including probe and cross-range)
+PASS independent proxy descriptors support exact random reads
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.avc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS seek request=2 target_us=8000000 landing_us=8000000 advances_after_completion
+PASS seek request=3 target_us=2000000 landing_us=2000000 advances_after_completion
+PASS forward and backward seek use the native A/V session
+CHECK audio_codec=ffmpeg:eac3 decoded_frames=337920 peak=0.0883928 audible_frames=303360
+CHECK prefill_budget_ms=8000 initial_wait_ms=8 max_wait_ms=8
+PASS exit serializes native teardown; evidence confirms rendered audio and audio master clock
+

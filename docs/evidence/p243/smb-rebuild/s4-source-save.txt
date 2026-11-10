@@ -1,0 +1,9 @@
+P243 BEFORE 已有 1 条源
+P243 SAVED 小米路由 smb smb://192.168.5.1/XiaoMi user=<匿名> id=aafe01e4-ba56-4545-ad60-8b948b5876e0
+PASS 写入 SMB 源（schema 2）
+P243 RELOAD 小米路由 still there, cipher ok
+PASS 读回：protocol / address / 密文不含明文
+P243 BROWSE 小米路由 → 17 项: .filetransfer_tmp,.sysapihttpd,.systemconfig,.torrents,.tunneluploads,.upload_tmp,lost+found,TDDOWNLOAD
+PASS 用保存的源连接并列出根目录
+3/3 PASS
+

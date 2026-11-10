@@ -154,10 +154,6 @@ class MediaLibraryActivity : ComponentActivity() {
         startActivity(intent)
     }
 
-    private fun openSmb() {
-        startActivity(Intent(this, com.kivo.cinema.smb.SmbActivity::class.java))
-    }
-
     private fun openEmby() {
         startActivity(Intent(this, com.kivo.cinema.emby.EmbyActivity::class.java))
     }

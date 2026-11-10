@@ -1,0 +1,47 @@
+244 · 第二台设备复验（K40）——跨设备/跨 ROM，**不是跨 SoC**
+
+设备：Redmi K40 / M2012K11AC（`b6e950ee`），Android 13 / MIUI，
+       `ro.board.platform = kona`，1080×2400
+时间：2026-11-10 07:00
+安装：与平板同一份构建产物（`app-debug.apk` 06:53 / `app-debug-androidTest.apk` 06:50），
+      两次 `adb install -r -d` 均 Success；媒体文件 `local-seek.mkv`（2270964 B）K40 上已存在
+命令：
+  adb -s b6e950ee shell am instrument -w \
+    -e localPath /sdcard/Android/data/com.kivo.cinema/files/media/local-seek.mkv \
+    com.kivo.cinema.test/com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation
+
+P243 OPEN local /sdcard/Android/data/com.kivo.cinema/files/media/local-seek.mkv size=2270964
+P243 START codec=OMX.qcom.video.decoder.avc dur=60000000 audio=false
+PASS 起播（准备 + 首帧会话就绪）
+P243 POSITION 0 ms → 2954 ms
+PASS 位置推进（3 秒窗口）
+P243 SEEK target=30000 ms landing=25000 ms actual=27106 ms error=
+P243 SUMMARY codec=OMX.qcom.video.decoder.avc mime=video/avc 1280x720 dur=60000000 pipe=merged
+             frames=67 recv=68 rel=67 dropped=0 samples=69 wall=0.000s fps=0.00 speed=0.00x
+             first_frame=4.7ms pace=system pace_lateness_p99[per_frame]=0.0ms completed=0 error=-
+PASS seek 到中段并落位
+P243 RESUME 27106 ms → 30106 ms
+PASS seek 后继续推进
+4/4 PASS
+
+## 结论
+
+1. **K40 4/4 PASS**，判据为收紧后的 `|actual - target| ≤ 5 s`：
+   `actual=27106`（target 30000、landing 25000）→ 真的跳到了 25 s 关键帧。
+   `RESUME 27106 → 30106` 从落点续播，与平板（27080 / 30151）行为一致。
+2. 时钟档 `pace=system`、`dropped=0`、`first_frame=4.7 ms`，与平板同型。
+3. **但这不是跨 SoC 复验** `ro.board.platform` 两台都是 **`kona`**（高通 SM8250 家族）：
+   - Redmi K40 M2012K11AC → kona / Android 13 / MIUI
+   - MatePad MRR-W29     → kona / Android 12 / EMUI-HarmonyOS
+
+   两台用的是**同一个解码器组件** `OMX.qcom.video.decoder.avc`。
+   所以本轮证明的是「**跨设备 + 跨 ROM + 跨系统版本**」可复现，
+   **不能**据此说「跨 SoC 厂商可复现」——真正的跨厂商（Mali/MediaTek/Kirin）一条证据都还没有。
+
+## 对 244 结转项的影响
+
+- 原结转项「K40 黑屏致第二设备复验未做」→ **已解除**：K40 已唤醒解锁
+  （`mCurrentFocus=com.miui.home/...Launcher`，不再是 null），复验完成。
+- 新结转项（更准确）：**跨 SoC 厂商复验仍缺**。但本修复是纯时钟基准（`origin_ns_` 赋值）
+  与 bitstream filter 选择，二者都不含 SoC 相关分支，理论上无厂商相关性；
+  若要彻底闭环，需在非高通设备上补跑同一条 instrumentation。

@@ -1,0 +1,11 @@
+P243 OPEN local /sdcard/Android/data/com.kivo.cinema/files/media/local-seek.mkv size=2270964
+P243 START codec=OMX.qcom.video.decoder.avc dur=60000000 audio=false
+PASS 起播（准备 + 首帧会话就绪）
+P243 POSITION 0 ms → 0 ms
+FAIL java.lang.IllegalStateException: 位置没有推进：0 → 0
+	at com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation.onStart$lambda$7(SmbPlaybackSeekInstrumentation.kt:90)
+	at com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation$$ExternalSyntheticLambda1.invoke(D8$$SyntheticClass:0)
+	at com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation.case(SmbPlaybackSeekInstrumentation.kt:145)
+	at com.kivo.cinema.smb.SmbPlaybackSeekInstrumentation.onStart(SmbPlaybackSeekInstrumentation.kt:85)
+	at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:2418)
+

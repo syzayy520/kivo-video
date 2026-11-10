@@ -1,0 +1,15 @@
+P243 SHARES XiaoMi||0
+PASS 共享枚举（IPC$ + NetrShareEnum）
+P243 ROOT XiaoMi → 17 项: .filetransfer_tmp/,.sysapihttpd/,.systemconfig/,.torrents/,.tunneluploads/,.upload_tmp/,lost+found/,TDDOWNLOAD/,ThunderDB/,timecapsule/,下载/,共享/,图片/,摄像机监控视频/,文档/,视频/,音乐/
+P243 LEVEL2 .filetransfer_tmp → 0 项
+P243 LEVEL2 .sysapihttpd → 14 项
+P243 LEVEL3 .sysapihttpd/.filetransfer_state → 0 项
+P243 LEVEL2 .systemconfig → 4 项
+P243 LEVEL3 .systemconfig/.thumbnails → 3 项
+P243 LEVEL2 .torrents → 0 项
+P243 LEVEL2 .tunneluploads → 3 项
+PASS 连到共享并列出根目录
+P243 READ .tunneluploads/ldotTb1YR9qZc1y1QhL0MA.tmp size=23853720 head=1048576 tail=1048576
+PASS 随机读：文件头 1 MiB + 尾部 1 MiB
+3/3 PASS
+

@@ -27,6 +27,7 @@ constexpr std::int64_t kRoomWaitUs = 500;
 DecodeSubmitWorker::DecodeSubmitWorker(Deps deps) : deps_(deps) {}
 
 StageStep DecodeSubmitWorker::pump(bool allow_wait) {
+    if (deps_.gate->stop_requested()) return StageStep::kIdle;
     switch (sequencer_.next()) {
         case core::pipeline::SubmitStep::kReadSample:
             return read_sample();
@@ -45,15 +46,23 @@ StageStep DecodeSubmitWorker::pump(bool allow_wait) {
 
 void DecodeSubmitWorker::run() {
     while (!deps_.gate->stop_requested()) {
-        if (pump(true) == StageStep::kDone) {
+        const auto step = pump(true);
+        if (step == StageStep::kDone) {
             return;
         }
+        // Async input may wait on HTTP. Bound polling without delaying stop.
+        if (step == StageStep::kIdle && deps_.async_source)
+            (void)deps_.gate->wait_for_input_room(kRoomWaitUs);
     }
 }
 
 StageStep DecodeSubmitWorker::read_sample() {
     SampleView sample{};
-    const SampleReadStatus status = deps_.source->read_next_sample(sample);
+    operation_.store(deps_.async_source ? "reader.poll" : "extractor.read_next_sample");
+    const SampleReadStatus status = deps_.async_source
+        ? deps_.async_source->poll(sample) : deps_.source->read_next_sample(sample);
+    operation_.store("idle");
+    if (status == SampleReadStatus::kTryAgain) return StageStep::kIdle;
 
     if (status == SampleReadStatus::kOk) {
         if (sample.is_encrypted) {
@@ -76,8 +85,11 @@ StageStep DecodeSubmitWorker::read_sample() {
 
 StageStep DecodeSubmitWorker::submit_pending(bool allow_wait) {
     for (;;) {
+        if (deps_.gate->stop_requested()) return StageStep::kIdle;
         const auto begin = SteadyClock::now();
+        operation_.store("codec.submit");
         const DecodeOutcome outcome = deps_.decoder->submit(pending_, 0);
+        operation_.store("idle");
         deps_.submit_cost->record(elapsed_us(begin, SteadyClock::now()));
 
         if (outcome.ok()) {
@@ -103,9 +115,12 @@ StageStep DecodeSubmitWorker::submit_pending(bool allow_wait) {
 
 StageStep DecodeSubmitWorker::signal_eos(bool allow_wait) {
     for (;;) {
+        if (deps_.gate->stop_requested()) return StageStep::kIdle;
         const auto begin = SteadyClock::now();
+        operation_.store("codec.signal_eos");
         const DecodeOutcome outcome =
             deps_.decoder->signal_end_of_stream(sequencer_.eos_presentation_us());
+        operation_.store("idle");
         deps_.eos_cost->record(elapsed_us(begin, SteadyClock::now()));
 
         if (outcome.ok()) {

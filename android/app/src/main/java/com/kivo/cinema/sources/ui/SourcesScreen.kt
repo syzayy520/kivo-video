@@ -33,7 +33,7 @@ import com.kivo.cinema.sources.ui.workspace.*
 /** Source overview, not a list of protocol implementations. Local/file entries remain usable. */
 @Composable
 fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: () -> Unit,
-    onOpenSmb: () -> Unit, onOpenPrivate: () -> Unit, onOpenEmby: (String) -> Unit,
+    onOpenPrivate: () -> Unit, onOpenSource: (SourceRecord) -> Unit,
     onUnlock: (() -> Unit) -> Unit,
     navigation: @Composable () -> Unit = {},
     overviewModifier: Modifier = Modifier,
@@ -92,14 +92,26 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: ()
                         modifier = Modifier.padding(top = 10.dp, bottom = 2.dp))
                 }
                 item(key = "local") { StorageEntryCard("本地影片", videoCount?.let { "$it 个视频" } ?: "查看本机影片", SourceIconKind.LOCAL) { navigate(onOpenLibrary) } }
-                item(key = "smb") { StorageEntryCard("SMB", "网络共享", SourceIconKind.SMB) { navigate(onOpenSmb) } }
+                item(key = "smb") {
+                    // 243：SMB 不再是一个跳到调试页的入口，而是"添加一个 SMB 源"；
+                    // 已保存的源会出现在下面的源卡列表里（与 Emby 同层）。
+                    StorageEntryCard("SMB", "网络共享", SourceIconKind.SMB) {
+                        navigate { model.startNew(SourceRecord.PROTOCOL_SMB) }
+                    }
+                }
                 item(key = "private") { StorageEntryCard("私密区", "已锁定", SourceIconKind.LOCK) { navigate(onOpenPrivate) } }
+                // 243：已保存的 SMB 源属于"本地与存储"，与"媒体服务器"分开。
+                items(visible.filter { it.isSmb }, key = { it.id }) { source ->
+                    SourceCard(source, { navigate { onOpenSource(source) } },
+                        { navigate { workspace.sourceId = source.id; workspace.choosingType = false } })
+                }
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Row(Modifier.padding(top = 12.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("媒体服务器", Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        if (model.ready) Text("${visible.size} 个", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        IconButton(onClick = { visible.forEach { model.summaries.request(it, force = true) } },
+                        val servers = visible.filter { !it.isSmb }
+                        if (model.ready) Text("${servers.size} 个", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        IconButton(onClick = { servers.forEach { model.summaries.request(it, force = true) } },
                             enabled = model.ready) { Text("↻", fontSize = 22.sp,
                                 modifier = Modifier.semantics { contentDescription = "刷新服务器状态与媒体数量" }) }
                     }
@@ -112,7 +124,7 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: ()
                         }
                     }
                 } else if (!model.ready) item { CircularProgressIndicator(Modifier.padding(20.dp)) }
-                else if (visible.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
+                else if (visible.none { !it.isSmb }) item(span = { GridItemSpan(maxLineSpan) }) {
                     Surface(shape = RoundedCornerShape(24.dp)) {
                         Column(Modifier.padding(28.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text("把你的电影库带进来", style = MaterialTheme.typography.titleLarge)
@@ -121,7 +133,7 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: ()
                         }
                     }
                 }
-                items(visible, key = { it.id }) { source ->
+                items(visible.filter { !it.isSmb }, key = { it.id }) { source ->
                     LaunchedEffect(source.id, source.revision, lifecycle) {
                         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                             while (true) {
@@ -130,7 +142,7 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: ()
                             }
                         }
                     }
-                    SourceCard(source, { navigate { onOpenEmby(source.id) } }, { navigate { workspace.sourceId = source.id; workspace.choosingType = false } },
+                    SourceCard(source, { navigate { onOpenSource(source) } }, { navigate { workspace.sourceId = source.id; workspace.choosingType = false } },
                         model.summaries.values[source.id]?.takeIf { it.revision == source.revision })
                 }
                 if (!model.editing && model.error != null) item(span = { GridItemSpan(maxLineSpan) }) {
@@ -149,7 +161,7 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: ()
                 }
             }
             val emby = { workspace.choosingType = false; model.edit() }
-            val smb = { workspace.clear(); onOpenSmb() }
+            val smb = { workspace.choosingType = false; model.startNew(SourceRecord.PROTOCOL_SMB) }
             when {
                 editingVisible -> if (wide) key(model.editingId) { SourceConnectionContent(model, dismiss) }
                     else EmbySourceForm(model, dismiss)

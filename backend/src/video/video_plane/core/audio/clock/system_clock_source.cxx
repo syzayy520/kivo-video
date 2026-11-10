@@ -28,4 +28,10 @@ AudioClockSnapshot SystemClockSource::now() {
 
 void SystemClockSource::reset() noexcept { origin_ns_ = steady_now_ns(); }
 
+void SystemClockSource::rebase(std::int64_t media_position_ns) noexcept {
+    // 让 `now().position_ns == media_position_ns + 已流逝墙钟`。
+    // seek 之后唯一正确的理解：进度应从落点继续，而不是从"播放开始"的墙钟继续（244）。
+    origin_ns_ = steady_now_ns() - media_position_ns;
+}
+
 }  // namespace kivo::video::core::audio

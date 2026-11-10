@@ -2,9 +2,8 @@ package com.kivo.cinema.net
 
 import java.io.RandomAccessFile
 
-/** 本地文件的 [com.kivo.cinema.smb.SmbSource.ByteSource] 实现（230 设计稿 D4）。 */
-class FileByteSource(path: String) :
-    com.kivo.cinema.smb.SmbSource.ByteSource {
+/** 本地文件的 [ByteSource] 实现（230 设计稿 D4）。 */
+class FileByteSource(path: String) : ByteSource {
 
     private val raf = RandomAccessFile(path, "r")
 

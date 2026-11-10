@@ -1,0 +1,6 @@
+PASS exhausted index preserves live media response (4 HTTP); concurrent same-hole single download; cached hit bypasses blocked I/O; cancel aborts network and lock-waiting readers; sparse cache holes/overlap/bounds/LRU/edges/concurrency; shared head/index and interleaved 4MiB continuous/index each 3 HTTP requests; probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response (2 including probe)
+FAIL IllegalStateException: Check failed.
+
+PASS exhausted index preserves live media response (4 HTTP); concurrent same-hole single download; cached hit bypasses blocked I/O; cancel aborts network and lock-waiting readers; sparse cache holes/overlap/bounds/LRU/edges/concurrency; shared head/index and interleaved 4MiB continuous/index each 3 HTTP requests; probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response (2 including probe)
+FAIL IllegalStateException: Check failed.
+

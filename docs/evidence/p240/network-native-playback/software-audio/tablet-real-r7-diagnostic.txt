@@ -1,0 +1,54 @@
+PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response; evicted backward read reopens (3 requests including probe)
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+range=0-0 http=206 content_range=bytes 0-0/7369631541 length=1
+range=0-4095 http=206 content_range=bytes 0-4095/7369631541 length=4096
+range=4096-8191 http=206 content_range=bytes 4096-8191/7369631541 length=4096
+range=0- http=206 content_range=bytes 0-7369631540/7369631541 length=7369631541
+PASS real Range size=7369631541
+PASS real header read=16 container=ebml
+PASS proxy 64KiB prefix matches direct HTTP bytes
+CHECK truncated local 64KiB prefix tracks=3
+CHECK real extractor probe (45-second I/O deadline)
+CHECK extractor tracks=3 elapsed_ms=1102 io_reason=none
+PASS real extractor tracks=3
+CHECK track mimes=video/hevc,audio/eac3,audio/eac3
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.hevc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS seek request=2 target_us=8000000 landing_us=6250000 advances_after_completion
+PASS seek request=3 target_us=2000000 landing_us=0 advances_after_completion
+PASS forward and backward seek use the native A/V session
+CHECK steady wall_ms=20000 start_us=275951 end_us=17027767 state=PLAYING
+PASS real server playback advances at least 15 seconds in a 20-second observation
+CHECK audio_codec=ffmpeg:eac3 decoded_frames=1125888 peak=0.467982 audible_frames=1090528
+CHECK prefill_budget_ms=8000 initial_wait_ms=1270 max_wait_ms=1270
+FAIL stage=teardown type=IllegalStateException state=CLOSED (details withheld for real-source privacy)
+CHECK media_curve wall_ms:position_s=1:0.0,1018:0.0,2038:0.0,3059:0.0,4123:3.324227,11979:0.0,13001:0.667957,14023:1.111952,15048:1.111952,16067:1.161952,17085:2.318162,18101:3.319516,19118:4.32054,20135:5.318172,21154:6.321141,22177:6.789305,23195:8.07194,24214:9.026122,25230:9.738887,26246:9.738887,27268:9.738887,28283:13.405366,29301:14.487199,30317:15.486984,31335:15.540972,32353:17.027767,33361:17.943262
+
+PASS probe/fragmented/capped/short-file exact bytes; oversized response rejected; continuous cross-window/wrapped/backward reads reuse one response; evicted backward read reopens (3 requests including probe)
+REAL saved non-hidden source-2 item-3; credentials and media identifiers omitted
+range=0-0 http=206 content_range=bytes 0-0/7369631541 length=1
+range=0-4095 http=206 content_range=bytes 0-4095/7369631541 length=4096
+range=4096-8191 http=206 content_range=bytes 4096-8191/7369631541 length=4096
+range=0- http=206 content_range=bytes 0-7369631540/7369631541 length=7369631541
+PASS real Range size=7369631541
+PASS real header read=16 container=ebml
+PASS proxy 64KiB prefix matches direct HTTP bytes
+CHECK truncated local 64KiB prefix tracks=3
+CHECK real extractor probe (45-second I/O deadline)
+CHECK extractor tracks=3 elapsed_ms=1102 io_reason=none
+PASS real extractor tracks=3
+CHECK track mimes=video/hevc,audio/eac3,audio/eac3
+CHECK production has_audio=true video_codec=OMX.qcom.video.decoder.hevc
+PASS production network host starts native hardware video and attaches audio
+PASS pause freezes media position and resume advances it
+PASS seek request=2 target_us=8000000 landing_us=6250000 advances_after_completion
+PASS seek request=3 target_us=2000000 landing_us=0 advances_after_completion
+PASS forward and backward seek use the native A/V session
+CHECK steady wall_ms=20000 start_us=275951 end_us=17027767 state=PLAYING
+PASS real server playback advances at least 15 seconds in a 20-second observation
+CHECK audio_codec=ffmpeg:eac3 decoded_frames=1125888 peak=0.467982 audible_frames=1090528
+CHECK prefill_budget_ms=8000 initial_wait_ms=1270 max_wait_ms=1270
+FAIL stage=teardown type=IllegalStateException state=CLOSED (details withheld for real-source privacy)
+CHECK media_curve wall_ms:position_s=1:0.0,1018:0.0,2038:0.0,3059:0.0,4123:3.324227,11979:0.0,13001:0.667957,14023:1.111952,15048:1.111952,16067:1.161952,17085:2.318162,18101:3.319516,19118:4.32054,20135:5.318172,21154:6.321141,22177:6.789305,23195:8.07194,24214:9.026122,25230:9.738887,26246:9.738887,27268:9.738887,28283:13.405366,29301:14.487199,30317:15.486984,31335:15.540972,32353:17.027767,33361:17.943262
+

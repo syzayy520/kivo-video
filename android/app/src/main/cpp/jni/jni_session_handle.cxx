@@ -49,6 +49,7 @@ struct SessionHandle {
     std::int64_t source_bytes = 0;
     std::string source_label;
     std::string last_error;
+    std::int64_t last_seek_landing_us = -1;
 };
 
 namespace {
@@ -257,7 +258,17 @@ int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& err
     //
     // 为什么不能"音频先跳"：F2 那样做时视频会先起跑，而音频时钟还在旧位置，
     // 节拍器按旧时钟排帧 —— 那是 F2 里另一个隐患。现在视频起跑被推到音频就绪之后。
+    if (handle->audio && handle->audio->is_started() && !handle->audio->prepare_seek()) {
+        error = handle->audio->runtime_error();
+        return fail(handle, 11, "seek audio gate: " + error);
+    }
     const auto outcome = handle->session->seek_to(target_us, /*defer_start=*/true);
+    if (!outcome.ok()) {
+        error = outcome.message;
+        const bool rejected =
+            outcome.code == kivo::video::mediacodec::SessionOutcome::Code::kSeekRejected;
+        return fail(handle, rejected ? 9 : 10, "seek: " + error);
+    }
     // 线程已停，snapshot 在这里读是安全的（也正因为如此才不需要为 landing 单开一个 getter）。
     const std::int64_t video_landing = handle->session->snapshot().seek.landing_us;
 
@@ -274,27 +285,30 @@ int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& err
         }
     }
 
-    // 无论前面成没成都要起跑：否则会话停在"线程已 join"的状态，下一次 snapshot 像卡死。
-    const auto resumed = handle->session->resume_after_seek();
     handle->session->record_audio_seek(audio_present, audio_landing_us);
-
-    if (!outcome.ok()) {
-        error = outcome.message;
-        const bool rejected =
-            outcome.code == kivo::video::mediacodec::SessionOutcome::Code::kSeekRejected;
-        return fail(handle, rejected ? 9 : 10, "seek: " + error);
+    if (!audio_error.empty()) {
+        error = audio_error;
+        return fail(handle, 11, "seek audio: " + error);
     }
+    // 244：视频无音轨时进度取自 `SystemClockSource` 的墙钟绝对量，节拍器 `reset()`
+    // 只清 tracker、不挪系统钟原点，于是 seek 后进度停在旧位置（真机：landing=25 s、进度恒 ~5 s）。
+    // 音频钟已在自己的 `seek_to` 里 rebase 过；`system_clock` 只在无音频时创建，这里补视频-only 一条。
+    // **必须在 `resume_after_seek()` 之前**：`begin_run()` 起线程后首帧立即读钟，先 rebase 才读到 landing。
+    if (handle->system_clock != nullptr && video_landing >= 0) {
+        handle->system_clock->rebase(video_landing * 1'000);  // µs → ns
+    }
+    const auto resumed = handle->session->resume_after_seek();
     if (!resumed.ok()) {
         error = resumed.message;
         return fail(handle, 10, "seek resume: " + error);
     }
-    if (!audio_error.empty()) {
-        // 音频失败不中止视频：画面仍然可看，而"不同步"这件事由证据里的 `seek.av` 明确写出。
-        error = audio_error;
-        return fail(handle, 11, "seek audio: " + error);
-    }
+    handle->last_seek_landing_us = video_landing;
     handle->last_error.clear();
     return 0;
+}
+
+std::int64_t session_seek_landing_us(SessionHandle* handle) {
+    return handle ? handle->last_seek_landing_us : -1;
 }
 
 void session_stop(SessionHandle* handle) {
@@ -324,22 +338,29 @@ int session_set_paused(SessionHandle* handle, bool paused, std::string& error) {
     if (paused) {
         // P16-P1B32：**先停音频**（立刻静音），再停视频线程。
         // 只停视频的话声音会继续放 —— 这是 P1B31 的遗漏，静态审查才发现。
-        if (handle->audio) {
-            // 音频停不下来不阻塞视频暂停：画面停住比声音多放一秒更重要。
-            // 平台拒绝时 `AaudioOutputSession::pause()` 已返回 false，这里不额外造错误码。
-            (void)handle->audio->pause();
+        const bool audio_ok = !handle->audio || handle->audio->pause();
+        const auto video = handle->session->pause();
+        if (!audio_ok) {
+            error = handle->audio->runtime_error();
+            return fail(handle, 13, error);
         }
-        handle->session->pause();
+        if (!video.ok()) {
+            error = video.message;
+            return fail(handle, 13, "pause: " + error);
+        }
         handle->last_error.clear();
         return 0;
     }
     // 恢复：先起音频（时钟先走），再起视频线程 —— 与 `seek_to` 的顺序一致。
-    if (handle->audio) {
-        (void)handle->audio->resume();
+    if (handle->audio && !handle->audio->resume()) {
+        error = handle->audio->runtime_error();
+        return fail(handle, 13, error);
     }
     const auto outcome = handle->session->resume();
     if (!outcome.ok()) {
         error = outcome.message;
+        if (handle->audio && !handle->audio->pause())
+            error += "; " + handle->audio->runtime_error();
         return fail(handle, 12, "resume: " + error);
     }
     handle->last_error.clear();
@@ -410,6 +431,7 @@ int session_set_pacing(SessionHandle* handle, int target_fps, bool allow_drop,
 }
 
 int session_set_pipeline(SessionHandle* handle, bool split, bool present, bool at_time,
+                         bool async_input,
                          std::string& error) {
     if (handle == nullptr || !handle->session) {
         error = "session handle is null";
@@ -419,6 +441,7 @@ int session_set_pipeline(SessionHandle* handle, bool split, bool present, bool a
     setup.mode = split ? kivo::video::mediacodec::PipelineMode::kSplit
                        : kivo::video::mediacodec::PipelineMode::kMerged;
     setup.present_frames = present;
+    setup.async_input = async_input;
     setup.present_schedule = at_time
                                  ? kivo::video::mediacodec::PresentSchedule::kSurfaceAtTime
                                  : kivo::video::mediacodec::PresentSchedule::kCpuPaced;
@@ -453,7 +476,8 @@ int session_write_stats(SessionHandle* handle, const std::string& path, std::str
 }
 
 int session_open_audio(SessionHandle* handle, int fd, std::int64_t length,
-                       const std::string& label, std::string& error) {
+                       const std::string& label, std::string& error,
+                       int prefill_timeout_millis) {
     if (handle == nullptr || !handle->session) {
         error = "session handle is null";
         return 1;
@@ -468,17 +492,18 @@ int session_open_audio(SessionHandle* handle, int fd, std::int64_t length,
     }
 
     auto playback = std::make_unique<kivo::video::avsync::AudioPlayback>();
-    if (!playback->open(fd, length, label)) {
+    if (!playback->open(fd, length, label, prefill_timeout_millis)) {
         error = playback->stats().error;
         return fail(handle, 10, "audio open: " + error);
     }
     // `start()` 会起流并等到时钟首个有效时间戳。**必须在视频起播之前完成** ——
     // 否则前几十帧会读到不推进的时钟，节拍器切成自生成时间轴，整轮 av_drift 变噪声。
-    if (!playback->start()) {
-        error = playback->stats().error;
+    handle->audio = std::move(playback);
+    if (!handle->audio->start()) {
+        // Keep ownership until the host cancels network I/O, then joins the feeder.
+        error = handle->audio->stats().error;
         return fail(handle, 11, "audio start: " + error);
     }
-    handle->audio = std::move(playback);
     handle->last_error.clear();
     return 0;
 }
@@ -533,8 +558,10 @@ std::string session_summary(SessionHandle* handle) {
     const auto stats = handle->session->snapshot();
 
     char buffer[640] = {};
+    const auto audio_error = handle->audio ? handle->audio->runtime_error() : std::string{};
+    const auto& error = stats.error.empty() ? audio_error : stats.error;
     std::snprintf(buffer, sizeof(buffer),
-                  "codec=%s mime=%s %dx%d pipe=%s frames=%lld recv=%lld rel=%lld dropped=%lld "
+                  "codec=%s mime=%s %dx%d dur=%lld pipe=%s frames=%lld recv=%lld rel=%lld dropped=%lld "
                   "samples=%lld wall=%.3fs fps=%.2f speed=%.2fx first_frame=%.1fms pace=%s "
                   // 口径写进键名，不是写在旁边的注释里：这条日志是 `adb logcat` 里最常被
                   // 复制的一行，复制出去就只剩 "p99=0.1ms"。这个 p99 是**逐帧**的
@@ -542,6 +569,7 @@ std::string session_summary(SessionHandle* handle) {
                   // 不是同一个数，对着比会得出"两处矛盾"的假结论。
                   "pace_lateness_p99[per_frame]=%.1fms completed=%d error=%s",
                   stats.codec_name.c_str(), stats.mime.c_str(), stats.width, stats.height,
+                  static_cast<long long>(handle->session->duration_us()),
                   stats.pipeline_mode.c_str(),
                   static_cast<long long>(stats.frames_rendered),
                   static_cast<long long>(stats.frames_received),
@@ -553,7 +581,7 @@ std::string session_summary(SessionHandle* handle) {
                   static_cast<double>(stats.first_frame_latency_us) / 1000.0,
                   stats.pace.enabled ? stats.pace.clock_source.c_str() : "off",
                   static_cast<double>(stats.pace.lateness_p99_ns) / 1'000'000.0,
-                  stats.completed ? 1 : 0, stats.error.empty() ? "-" : stats.error.c_str());
+                  stats.completed ? 1 : 0, error.empty() ? "-" : error.c_str());
     return std::string(buffer);
 }
 

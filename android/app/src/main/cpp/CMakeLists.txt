@@ -102,6 +102,7 @@ target_link_libraries(kivo_core_pace PUBLIC kivo_core_audio)
 # iOS 的 VideoToolbox 同样是「送样本 / 收帧」两段，这套时序要能直接搬过去。
 # ---------------------------------------------------------------------------
 add_library(kivo_core_pipeline STATIC
+    "${KIVO_BACKEND}/src/video/video_plane/core/decode/async_sample_reader.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pipeline/submit_types.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/pipeline/submit_sequencer.cxx"
     # P12-F1：seek 判定（纯逻辑，与 pipeline 同属"核心零平台依赖"）
@@ -115,6 +116,10 @@ target_include_directories(kivo_core_pipeline
 target_compile_options(kivo_core_pipeline PRIVATE
     -Wall -Wextra -Wpedantic -Wshadow
 )
+
+add_executable(kivo_async_sample_reader_tests
+    "${KIVO_BACKEND}/tests/video/decode/async_sample_reader_tests/main.cpp")
+target_link_libraries(kivo_async_sample_reader_tests PRIVATE kivo_core_pipeline)
 
 # ---------------------------------------------------------------------------
 # kivo_backend_mediacodec —— Android 硬解后端（设备探测部分）
@@ -137,7 +142,10 @@ add_library(kivo_backend_mediacodec STATIC
     "${KIVO_BACKEND}/src/video/video_plane/backends/mediacodec/device/mediacodec_framerate_capability.cxx"
 
     # ---- source：解封装 ----
+    # 门面：按容器选择实现。MKV 走 FFmpeg（平台解封装器不解析 SeekHead→Cues），
+    # 其余走平台。类名与公开 API 保持原样，调用点零改动。
     "${KIVO_BACKEND}/src/video/video_plane/backends/mediacodec/source/mediaextractor_source.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/backends/demux/platform_extractor_source.cxx"
     # P12-F3B：轨道加密（判定 + 取值；取值这层碰 AMediaFormat，只在 Android 上编）
     "${KIVO_BACKEND}/src/video/video_plane/backends/mediacodec/source/encryption_facts.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/backends/mediacodec/source/mediaformat_encryption.cxx"
@@ -325,6 +333,10 @@ if(EXISTS "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavcodec.a")
         "${KIVO_BACKEND}/src/third_party_adapter/ffmpeg_adapter/ffmpeg_custom_io.cpp"
         "${KIVO_BACKEND}/src/third_party_adapter/ffmpeg_adapter/ffmpeg_product_log_filter.cpp"
         "${KIVO_BACKEND}/src/decode_core/real_software_decode_runtime.cpp"
+        # P240-B：FFmpeg 容器解封装（MKV/WebM）。只解封装，不解码。
+        "${KIVO_BACKEND}/src/video/video_plane/backends/ffmpeg/demux/avio_bridge.cxx"
+        "${KIVO_BACKEND}/src/video/video_plane/backends/ffmpeg/demux/codec_config_builder.cxx"
+        "${KIVO_BACKEND}/src/video/video_plane/backends/ffmpeg/demux/ffmpeg_demux_source.cxx"
     )
     target_include_directories(kivo_backend_ffmpeg PUBLIC
         "${KIVO_BACKEND}/include_private"
@@ -345,6 +357,28 @@ if(EXISTS "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavcodec.a")
         z
         log
     )
+
+    # P240-B：解封装门面在 mediacodec 里按容器选实现，FFmpeg 实现的头/符号
+    # 属于本块。放开定义与链接，让 MKV 真机路径可用。
+    target_compile_definitions(kivo_backend_mediacodec PUBLIC KIVO_ENABLE_FFMPEG)
+    target_include_directories(kivo_backend_mediacodec PUBLIC
+        "${KIVO_FFMPEG_ANDROID_DIST}/include")
+    target_link_libraries(kivo_backend_mediacodec PUBLIC kivo_backend_ffmpeg)
+
+    # Packet-to-PCM only: no demux/output dependency or cycle with avsync.
+    add_library(kivo_backend_ffmpeg_audio STATIC
+        "${KIVO_BACKEND}/src/video/video_plane/backends/ffmpeg/audio/ffmpeg_audio_decoder.cxx")
+    target_include_directories(kivo_backend_ffmpeg_audio PUBLIC
+        "${KIVO_BACKEND}/include_private" "${KIVO_FFMPEG_ANDROID_DIST}/include")
+    target_link_directories(kivo_backend_ffmpeg_audio PUBLIC "${KIVO_FFMPEG_ANDROID_DIST}/lib")
+    target_compile_options(kivo_backend_ffmpeg_audio PRIVATE -Wall -Wextra -Wpedantic -Wshadow)
+    # This FFmpeg build's decoder registry also references Opus, which depends on swresample.
+    # The AC3/EAC3 path itself performs no resampling or remixing.
+    target_link_libraries(kivo_backend_ffmpeg_audio PUBLIC avcodec swresample avutil)
+
+    add_executable(kivo_ffmpeg_audio_tests
+        "${KIVO_BACKEND}/tests/video/audio_plane/ffmpeg_audio_decoder_tests/main.cpp")
+    target_link_libraries(kivo_ffmpeg_audio_tests PRIVATE kivo_backend_ffmpeg_audio avformat z log)
 
     add_executable(kivo_sd_probe
         "${KIVO_BACKEND}/src/video/video_plane/probe/sd_probe_main.cxx"
@@ -394,6 +428,7 @@ target_link_libraries(kivo_audio_file_probe PRIVATE
 # ---------------------------------------------------------------------------
 add_library(kivo_backend_avsync STATIC
     "${KIVO_BACKEND}/src/video/video_plane/backends/avsync/session/audio_playback.cxx"
+    "${KIVO_BACKEND}/src/video/video_plane/backends/avsync/session/soft_audio_session.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/backends/avsync/report/av_sync_report.cxx"
 )
 
@@ -410,6 +445,16 @@ target_link_libraries(kivo_backend_avsync PUBLIC
     kivo_backend_aaudio
     kivo_core_audio
 )
+
+if(TARGET kivo_backend_ffmpeg_audio)
+    target_link_libraries(kivo_backend_avsync PUBLIC kivo_backend_ffmpeg_audio)
+    target_compile_definitions(kivo_backend_avsync PRIVATE KIVO_ENABLE_FFMPEG_AUDIO)
+    # 软解音频自己解封装（平台 MediaExtractor 认不出 TrueHD/DTS/AC3），
+    # 所以要 FFmpeg 头与 libavformat。这条依赖只在本模块内部用，不外溢。
+    target_include_directories(kivo_backend_avsync PRIVATE "${KIVO_FFMPEG_ANDROID_DIST}/include")
+    target_link_directories(kivo_backend_avsync PUBLIC "${KIVO_FFMPEG_ANDROID_DIST}/lib")
+    target_link_libraries(kivo_backend_avsync PUBLIC avformat avcodec swresample avutil)
+endif()
 
 # ---------------------------------------------------------------------------
 # kivo_player —— JNI 共享库（唯一对外 .so）
