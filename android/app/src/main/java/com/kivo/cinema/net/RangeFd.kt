@@ -44,6 +44,14 @@ class RangeFd(
      * 而"有没有网"是系统事实，本来就不该等 IO 报错才知道。
      */
     private val online: (() -> Boolean)? = null,
+    /**
+     * 是否拥有 [source] 的生命周期。默认 true。
+     *
+     * false 用于"临时 fd"（252 路由探测）：探测结束要释放这个 fd，但**不能**把
+     * 正在用的数据源一起关掉。关闭代理 fd 会让阻塞中的读永远等不到回调线程，
+     * 所以探测的中断手段是 [cancel]（回调下一次读立刻抛 EIO），不是 close。
+     */
+    private val ownsSource: Boolean = true,
 ) : RangeSource {
 
     private val cancelled = AtomicBoolean(false)
@@ -110,7 +118,7 @@ class RangeFd(
     override fun close() {
         cancel()
         readers.toList().forEach { it.onRelease() }
-        runCatching { source.close() }
+        if (ownsSource) runCatching { source.close() }
     }
 
     private inner class Reader : ProxyFileDescriptorCallback() {

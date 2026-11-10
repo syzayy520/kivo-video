@@ -207,6 +207,15 @@ object FfmpegRouting {
     data class Decision(val useFfmpeg: Boolean, val decision: String, val reason: String)
 
     /**
+     * 路由探测的截止时间。
+     *
+     * 4 s 的依据：正常 MKV（头部 + 尾部索引）在网络 fd 上实测 <300 ms；
+     * 给 4 s 是十倍余量，同时把"整片扫描"限制在 4 s 内（按 15 MB/s 约 60 MiB，
+     * 相对 12 GB 可忽略）。到点关 fd，结论退回平台解码。
+     */
+    private const val PROBE_TIMEOUT_MS = 4_000L
+
+    /**
      * 网络片源（SMB / WebDAV / HTTP）的判定入口。
      *
      * 与 [probe] 的唯一差别是"怎么把字节喂给平台探测"：本地文件给路径，
@@ -223,23 +232,62 @@ object FfmpegRouting {
                 "cannot open source fd (${it.javaClass.simpleName}); assuming platform cannot decode"
             )
         }
-        return pfd.use { descriptor ->
+        // 截止时间（252）：某些 MKV 头部没有可用索引，`MediaExtractor.setDataSource`
+        // 会**从头线性扫完整片**。真机实测（Shelter，12.19 GB）：15.66 MB/s 连续下载、
+        // 13 分钟不返回，播放页永远停在「正在连接SMB…」，既无错误也无解码器。
+        //
+        // 中断手段是 `cancel()` 而不是 `close()`：关闭代理 fd 会让阻塞中的读等不到
+        // 回调线程（实测直接黑屏、连日志都没有）；cancel 只是把标志置上，
+        // 下一次读立刻抛 EIO，解析器自己收尾退出。
+        val timedOut = java.util.concurrent.atomic.AtomicBoolean(false)
+        val watchdog = java.util.Timer("KivoRouteProbe", true).apply {
+            schedule(object : java.util.TimerTask() {
+                override fun run() {
+                    timedOut.set(true)
+                    runCatching { input.cancel() }
+                }
+            }, PROBE_TIMEOUT_MS)
+        }
+        return try {
             val extractor = android.media.MediaExtractor()
             val containerOk = runCatching {
-                extractor.setDataSource(descriptor.fileDescriptor, 0, input.size)
+                extractor.setDataSource(pfd.fileDescriptor, 0, input.size)
             }.isSuccess
             if (!containerOk) {
                 runCatching { extractor.release() }
-                return@use Decision(
+                if (timedOut.get()) {
+                    return Decision(
+                        false, "mediacodec",
+                        "probe timed out after ${PROBE_TIMEOUT_MS} ms（容器需要整片扫描）；保持平台解码",
+                    )
+                }
+                return Decision(
                     true, "ffmpeg",
-                    "MediaExtractor.setDataSource failed over fd (container unsupported)"
+                    "MediaExtractor.setDataSource failed over fd (container unsupported)",
                 )
             }
-            try {
+            val decided = try {
                 decide(extractor)
             } finally {
                 runCatching { extractor.release() }
             }
+            // 截止优先于任何结论：超时说明解析器没能在预算内把容器读明白，
+            // 它此时给出的"没有视频轨"是**读不完**而不是**真没有**。
+            // 真机（Shelter）：4.1 s 超时后返回 "no video track"，据此退软解，
+            // 结果 0.37x 卡成 PPT；而平台解码实测 27 fps / 0 丢帧。
+            if (timedOut.get()) {
+                return Decision(
+                    false, "mediacodec",
+                    "probe timed out after ${PROBE_TIMEOUT_MS} ms（容器需要整片扫描）；保持平台解码",
+                )
+            }
+            return decided
+        } finally {
+            watchdog.cancel()
+            // 超时那条路**不关 fd**：解析器此时可能还阻塞在这个 fd 的读上，
+            // 关掉它会把准备线程一起挂住（真机实测：黑屏、零流量、既不报错也不起播）。
+            // 让它随探测对象一起被回收，代价是一个 fd，比卡死划算。
+            if (!timedOut.get()) runCatching { pfd.close() }
         }
     }
 

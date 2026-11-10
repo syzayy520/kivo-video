@@ -479,7 +479,10 @@ class PlayerComposeActivity : ComponentActivity() {
     private fun smbTrace(msg: String) {
         Log.i(TAG, msg)
         try {
-            val dir = java.io.File(getExternalFilesDir(null), "evidence").apply { mkdirs() }
+            // 写内部目录而不是 external：真机实测 `getExternalFilesDir(null)` 可能为 null，
+            // 那一刻 `File(null, "evidence")` 会静默失败 —— 日志等于没有，
+            // 排障时反而被"没有日志"误导（252 踩过）。
+            val dir = java.io.File(filesDir, "evidence").apply { mkdirs() }
             java.io.File(dir, "p220-status.log")
                 .appendText("${System.currentTimeMillis()} $msg\n")
         } catch (e: Exception) { }
@@ -519,6 +522,7 @@ class PlayerComposeActivity : ComponentActivity() {
                     online = { com.kivo.cinema.net.NetworkLinkMonitor.isOnline(applicationContext) },
                 )
                 source = opened
+                smbTrace("prepared open size=${opened.size()}")
                 check(!cancelled.get())
                 // 243 D3：SMB 直接产 fd，不再经本地 HTTP 代理。
                 val range = com.kivo.cinema.net.RangeFd(
@@ -526,12 +530,22 @@ class PlayerComposeActivity : ComponentActivity() {
                     getSystemService(android.os.storage.StorageManager::class.java),
                     online = { com.kivo.cinema.net.NetworkLinkMonitor.isOnline(applicationContext) },
                 )
-                // 起播前判定链路：平台能解走硬解（历史行为零回归），
-                // 解不了（如 VC-1——设备没有该解码器）走 FFmpeg 软解。
-                // **必须在后台线程判定**：MediaExtractor 要读文件头，SMB 上一次
-                // setDataSource 就是一次网络往返，放主线程会直接卡住输入。
-                val routing = com.kivo.cinema.bridge.FfmpegRouting.probe(range)
-                smbTrace("smb routing: ${routing.decision} / ${routing.reason}")
+                // 起播前判定链路：**网络片源不再做容器探测**（252）。
+                //
+                // 真机事故：探测用 `MediaExtractor` 走 SMB fd 解析容器，而 `Shelter`
+                // （12.19 GB）头部没有可用索引，解析器于是从头线性扫完整片 ——
+                // 实测 15.66 MB/s × 13 分钟不返回，播放页永远停在「正在连接SMB…」。
+                // 加截止时间只能止损；探测的唯一价值是那条罕见路径（平台没有该编码的
+                // 解码器，如 VC-1）。
+                //
+                // 改成"先按历史默认走平台解码，解不了再退软解"：正常文件零成本，
+                // 异常文件在**真正解码那一刻**才退，不必为了判断把整片读一遍。
+                val routing = com.kivo.cinema.bridge.FfmpegRouting.Decision(
+                    useFfmpeg = false,
+                    decision = "mediacodec",
+                    reason = "网络片源跳过容器探测（252）；平台解不了再退软解",
+                )
+                smbTrace("routing=${routing.decision} reason=${routing.reason}")
                 runOnUiThread {
                     if (cancelled.get() || finishRequested || isDestroyed || generation != networkGeneration || !surfaceReady) {
                         Thread { runCatching { range.close() }; runCatching { opened.close() } }.start()
@@ -552,8 +566,57 @@ class PlayerComposeActivity : ComponentActivity() {
                         // 实测帧率 24.00 → 20.27、末尾出现 567 ms 卡顿。这里关掉，
                         // 让块缓存独自承担（命中率 91~95%）。
                         opened.setPrefetchEnabled(false)
-                        startNetworkPlayback(holder,
-                            com.kivo.cinema.playback.NetworkPlaybackSession(this, range), "smb")
+                        val net = com.kivo.cinema.playback.NetworkPlaybackSession(this, range)
+                        // 252：平台解不了这个编码（如 VC-1）时退软解，而不是停在报错上。
+                        // 这条兜底取代了"起播前探测"——判断成本从"读完整片"降到"解不出第一帧"。
+                        startNetworkPlayback(holder, net, "smb") {
+                            // 平台解不了这个编码（实测 VC-1：`unsupported codec id 70`）→ 重开一条源走软解。
+                            // **不能复用原 range**：会话关闭时会把 source 一起关掉，再开 fd 只会得到
+                            // "handle is null"（真机踩过）。代价是多一次连接，只发生在这条罕见路径上。
+                            smbTrace("platform decode failed (${net.lastError}) -> ffmpeg (rebind)")
+                            runCatching { net.stop() }
+                            val credentials = com.kivo.cinema.smb.SmbCredential(
+                                record.username, record.password,
+                            )
+                            Thread {
+                                try {
+                                    val fresh = com.kivo.cinema.smb.SmbByteSource.open(
+                                        address, credentials, filePath,
+                                        online = {
+                                            com.kivo.cinema.net.NetworkLinkMonitor
+                                                .isOnline(applicationContext)
+                                        },
+                                    )
+                                    fresh.setPrefetchEnabled(true)
+                                    val freshRange = com.kivo.cinema.net.RangeFd(
+                                        fresh,
+                                        getSystemService(android.os.storage.StorageManager::class.java),
+                                        online = {
+                                            com.kivo.cinema.net.NetworkLinkMonitor
+                                                .isOnline(applicationContext)
+                                        },
+                                    )
+                                    runOnUiThread {
+                                        if (cancelled.get() || finishRequested || isDestroyed) {
+                                            runCatching { freshRange.close() }
+                                            return@runOnUiThread
+                                        }
+                                        startSoftPlayback(
+                                            holder, freshRange,
+                                            com.kivo.cinema.bridge.FfmpegRouting.Decision(
+                                                true, "ffmpeg", "platform decode failed; fallback (252)",
+                                            ),
+                                            filePath, generation, cancelled, address, credentials,
+                                        )
+                                    }
+                                } catch (e: Exception) {
+                                    runOnUiThread {
+                                        statusText = "这个片源无法播放：${e.message?.take(80)}"
+                                        controlsVisible = true
+                                    }
+                                }
+                            }.start()
+                        }
                     }
                     loadDanmaku(filePath)
                 }
@@ -582,7 +645,8 @@ class PlayerComposeActivity : ComponentActivity() {
     /** SMB 走 fd 直连（243 D3）：RangeFd(SmbByteSource) → ParcelFileDescriptor → 解码器。 */
     private fun startNetworkPlayback(holder: SurfaceHolder,
                                      netSession: com.kivo.cinema.playback.NetworkPlaybackSession,
-                                     routing: String) {
+                                     routing: String,
+                                     onPlatformFailed: (() -> Unit)? = null) {
         if (finishRequested || isDestroyed) return
         playbackStarted = true
         // 投屏分支要按"这次播放是不是 SMB"来判断，不能再看 smbSource（243 之后它恒空）。
@@ -598,6 +662,12 @@ class PlayerComposeActivity : ComponentActivity() {
                 lastTouchMs = System.currentTimeMillis()
                 android.os.Handler(mainLooper).post(positionPoll)
             } else {
+                // 平台解不了就走软解兜底（有的话）；没有兜底才报到界面上。
+                val fallback = onPlatformFailed
+                if (fallback != null) {
+                    fallback()
+                    return@start
+                }
                 statusText = "网络视频无法播放：${netSession.lastError}"
                 isPlaying = false
                 controlsVisible = true
