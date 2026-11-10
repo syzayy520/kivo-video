@@ -92,8 +92,27 @@ class SmbReconnectInstrumentation : Instrumentation() {
             val began = System.currentTimeMillis()
             var last = session.positionUs
             var lastChangeAt = began
+            // 252 S0：链路状态每 200 ms 采一次，把"恢复"这一刻钉死。
+            // 只有钉住它，才能把"等在飞的读"(B) 和"重连"(C) 分开 —— 前者要改 JNI，
+            // 后者改退避/连接参数就够，两者的修法完全不同。
+            var wasOnline = true
+            var offlineAt = 0L
+            var onlineAt = 0L
+            var resumeAfterOnlineMs = -1L
             while (System.currentTimeMillis() - began < windowSec * 1000L) {
-                Thread.sleep(1_000)
+                Thread.sleep(200)
+                val online = runCatching {
+                    com.kivo.cinema.net.NetworkLinkMonitor.isOnline(targetContext)
+                }.getOrDefault(true)
+                if (wasOnline && !online) {
+                    wasOnline = false
+                    offlineAt = System.currentTimeMillis()
+                    log("LINK", "离线 @ ${offlineAt - began} ms（位置 ${last / 1000} ms）")
+                } else if (!wasOnline && online) {
+                    wasOnline = true
+                    onlineAt = System.currentTimeMillis()
+                    log("LINK", "恢复 @ ${onlineAt - began} ms（断网 ${onlineAt - offlineAt} ms）")
+                }
                 if (session.state == NetworkPlaybackSession.State.FAILED) {
                     failedReason = session.lastError
                     break
@@ -109,7 +128,9 @@ class SmbReconnectInstrumentation : Instrumentation() {
                 if (pos > last + 200_000L) {
                     if (stallAt >= 0 && resumeLatencyMs < 0 && pos > stallAt + 1_000_000L) {
                         resumeLatencyMs = now - stallFromMs
-                        log("RESUME", "停 ${resumeLatencyMs} ms 后从 ${stallAt / 1000} ms 接上，现在 ${pos / 1000} ms")
+                        if (onlineAt > 0) resumeAfterOnlineMs = now - onlineAt
+                        log("RESUME", "停 ${resumeLatencyMs} ms 后从 ${stallAt / 1000} ms 接上，现在 ${pos / 1000} ms" +
+                            (if (onlineAt > 0) "；网络恢复后 ${resumeAfterOnlineMs} ms 接上" else ""))
                     }
                     last = pos
                     lastChangeAt = now
@@ -121,6 +142,9 @@ class SmbReconnectInstrumentation : Instrumentation() {
             }
             log("TAIL", "state=${session.state} pos=${session.positionUs / 1000} ms " +
                 "buffering=$sawBuffering err=${failedReason.ifEmpty { session.lastError }}")
+            log("SPLIT", "断网 ${if (offlineAt > 0 && onlineAt > 0) onlineAt - offlineAt else -1} ms；" +
+                "恢复后接上 ${resumeAfterOnlineMs} ms（判据 ≤2000）；" +
+                "合计停顿 ${resumeLatencyMs} ms")
 
             case("断网时上报重连中状态") {
                 check(sawBuffering) { "断网期间 buffering 始终为 false，界面无法提示\"正在重连\"" }

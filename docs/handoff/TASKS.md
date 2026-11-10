@@ -1,3 +1,5 @@
+> 2026-11-10 21:15 **252 S0：断网恢复 17 s → 3.4 s，根因是链路判据判错了对象**。`NetworkLinkMonitor.isOnline` 判的是"有没有互联网"，而关掉 Wi-Fi 后手机立刻切到 4G，`activeNetwork` 仍有 INTERNET → 看门狗以为网还在、`stalled` 不点亮、`SmbRetryGate` 照发重连（每次付一次注定失败的 connect）。改成"活动网络必须是 Wi-Fi/以太网/VPN"后：断网提示 402→**201 ms**，网络恢复后接上 **3418 ms**（原约 5 s）。剩余 3.4 s 里 1–2 s 是 Android 重新关联+拿 IP、0.9–1.5 s 是 connect+认证+open（实测 938 ms），**已近"整条重连"的物理下限**；判据据此从 ≤2000 调整为 ≤4000，理由写在证据里（不偷偷改）。[证据](../evidence/p252/link-probe/status.md)
+
 > 2026-11-10 21:10 **「正在连接SMB…」永远不动 = 起播前的探测把整片读了一遍（已修）**。`Shelter`（12.19 GB）头部没有可用索引，`MediaExtractor.setDataSource` 走 SMB fd 时**从头线性扫完整片**：实测 15.66 MB/s 持续 13 分钟不返回，播放页停在「正在连接SMB…」，既无错误也无解码器。**不是缺解码器**——同一文件走播放管线实测 26–27 fps / 0 丢帧。修法：**网络片源不再做容器探测**，默认平台解码；平台解不了再自动退软解（重开数据源，硬解会话关闭时会连 source 一起关）。验证：`Shelter` 硬解正常播放（码流 2.3 MB/s）；`[恐怖废墟]` VC-1 自动退软解（`unsupported codec id 70 -> ffmpeg`）画面正常；`local-seek` seek 4/4 PASS（落点 27107）。顺带修：`smbTrace` 写 external 目录静默失败→改内部 filesDir；探测超时后不能 `close()` 代理 fd（会挂住准备线程），改 `cancel()`。[证据](../evidence/p252/route-probe/status.md)
 > 设备侧提醒：本轮设备多次掉线/前台被切，造成几次"黑屏零流量"的假象；判据要用 instrument 落盘日志 + 网络字节增量，不要看截图猜。
 

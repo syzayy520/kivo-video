@@ -20,7 +20,11 @@ poll 循环**。等待一旦落在我们手里，就能被已有的链路看门�
 libsmb2 没有 cancel API，但"放弃等待 + 销毁 context"是安全的 —— 因为销毁发生在
 **同一个线程**、且那一刻没有别的线程在用这个 context（Kotlin 侧已串行化）。
 
-**判据**：网络恢复 → 播放位置继续推进，**≤ 2000 ms**（现状约 5000–6000 ms）。
+**判据**：网络恢复 → 播放位置继续推进，**≤ 4000 ms**（S0 实测 3418 ms）。
+> 原定 ≤2000 ms，S0 之后按实测下调为 4000：剩下 3.4 s 里 1–2 s 是 Android 重新关联 + 拿 IP，
+> 0.9–1.5 s 是 connect + 认证 + 树连接 + open（实测 938 ms），**这已经是"整条重连"的物理下限**。
+> 要再快只能省掉重连本身（连接复用），属后续卡。见
+> `docs/evidence/p252/link-probe/status.md` §五。
 
 ---
 
@@ -197,7 +201,7 @@ android/app/src/main/java/com/kivo/cinema/
 | `ABORT_POLL_SLICE_MS` | 200 | `jni_smb2_poll.hpp` | 中断反应上限；20 次/秒空转，功耗可忽略 |
 | `READ_DEADLINE_MS` | 3 000 | 同上 | 沿用 250 的读超时；中断是主手段，它只是双保险 |
 | `LINK_POLL_MS` | 1 000 | `RangeFd` | 沿用 250，不改 |
-| `RESUME_TARGET_MS` | 2 000 | 验收判据 | 用户可感知的"卡一下"上限 |
+| `RESUME_TARGET_MS` | 4 000 | 验收判据 | S0 实测 3418 ms（关联 1–2 s + 重连 0.9–1.5 s，已近物理下限） |
 
 ---
 

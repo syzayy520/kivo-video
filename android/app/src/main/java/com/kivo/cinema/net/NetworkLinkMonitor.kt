@@ -24,6 +24,17 @@ import android.net.NetworkCapabilities
  */
 object NetworkLinkMonitor {
 
+    /**
+     * 局域网是否可达 —— **不是**"有没有互联网"。
+     *
+     * 252 的真机教训：关掉 Wi-Fi 后手机立刻切到 4G，`activeNetwork` 仍有
+     * `NET_CAPABILITY_INTERNET`，于是这个函数一直返回 true、看门狗以为网还在、
+     * 重连照发不误 —— 断网 12 s 的测试里"恢复后接上"多花了约 5 s。
+     * 我们的片源在局域网上（SMB / WebDAV / NAS），**4G 通不等于 NAS 通**。
+     *
+     * 所以判据改成：当前活动网络必须是 Wi-Fi / 以太网 / VPN 之一
+     * （VPN 用于远程访问 NAS 的场景）。纯蜂窝 = 对我们的源等于离线。
+     */
     fun isOnline(context: Context): Boolean = try {
         val manager = context.getSystemService(ConnectivityManager::class.java)
         when {
@@ -34,8 +45,11 @@ object NetworkLinkMonitor {
                     false
                 } else {
                     val capabilities = manager.getNetworkCapabilities(network)
-                    capabilities == null ||
-                        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    capabilities != null &&
+                        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                        (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
+                            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN))
                 }
             }
         }
