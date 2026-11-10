@@ -1,5 +1,7 @@
 package com.kivo.cinema.smb
 
+import java.util.concurrent.atomic.AtomicLong
+
 /**
  * 读取画像（250 D4）。只记录，不决定任何事。
  *
@@ -12,17 +14,24 @@ package com.kivo.cinema.smb
  *
  * 上报函数由调用方注入（不在本类里直接调 `android.util.Log`），
  * 这样它在 JVM 单测里也能实例化。
+ *
+ * ── 252：计数改成原子 ─────────────────────────────────────────────────────
+ *
+ * 命中路径挪到网络读之外之后，视频线程与音频线程会**并发**调用这里的计数函数。
+ * 原来全是普通 `Long`/`Double` 字段，并发自增会丢计数，`fillMaxMs` 这种
+ * double 还可能被写坏 —— 而这份画像正是判断"卡顿是网络还是解码"的唯一依据，
+ * 数字不可信就等于没有。所以全部换成原子量。
  */
 internal class SmbReadStats(
     private val report: (String) -> Unit,
     private val nowMs: () -> Long = { System.nanoTime() / 1_000_000 },
 ) {
-    private var reads = 0L
-    private var hits = 0L
-    private var prefetchHits = 0L
-    private var fills = 0L
-    private var fillMs = 0.0
-    private var fillMaxMs = 0.0
+    private val reads = AtomicLong()
+    private val hits = AtomicLong()
+    private val prefetchHits = AtomicLong()
+    private val fills = AtomicLong()
+    private val fillMicros = AtomicLong()
+    private val fillMaxMicros = AtomicLong()
     private var missFirstBlock = -1L
     private var missLastBlock = -1L
     private var prevMissBlock = -1L
@@ -30,28 +39,33 @@ internal class SmbReadStats(
     private var nextReportAtMs = 0L
 
     /** 累计从网络拿到的字节。**不随上报清零** —— 它回答的是"整段播放一共吃了多少带宽"。 */
-    private var bytesTotal = 0L
+    private val bytesTotal = AtomicLong()
 
     /** 当前累计字节。用于对照"解码侧需要多少"，判断卡顿是网络供不上还是解码跟不上。 */
-    val deliveredBytes: Long get() = bytesTotal
+    val deliveredBytes: Long get() = bytesTotal.get()
 
     fun onRead() {
-        ++reads
+        reads.incrementAndGet()
     }
 
     fun onDeliver(bytes: Int) {
-        if (bytes > 0) bytesTotal += bytes
+        if (bytes > 0) bytesTotal.addAndGet(bytes.toLong())
     }
 
     fun onHit(fromPrefetch: Boolean) {
-        ++hits
-        if (fromPrefetch) ++prefetchHits
+        hits.incrementAndGet()
+        if (fromPrefetch) prefetchHits.incrementAndGet()
     }
 
     fun onFill(elapsedMs: Double) {
-        ++fills
-        fillMs += elapsedMs
-        if (elapsedMs > fillMaxMs) fillMaxMs = elapsedMs
+        fills.incrementAndGet()
+        val micros = (elapsedMs * 1000.0).toLong()
+        fillMicros.addAndGet(micros)
+        // 只增不减的最大值：并发写用 CAS 循环，避免"后写的更小值把大值盖掉"。
+        var current = fillMaxMicros.get()
+        while (micros > current && !fillMaxMicros.compareAndSet(current, micros)) {
+            current = fillMaxMicros.get()
+        }
     }
 
     /**
@@ -78,20 +92,21 @@ internal class SmbReadStats(
         if (now < nextReportAtMs) return
         nextReportAtMs = now + INTERVAL_MS
 
-        val percent = if (reads > 0) hits * 100.0 / reads else 0.0
-        val average = if (fills > 0) fillMs / fills else 0.0
+        val readCount = reads.getAndSet(0L)
+        val hitCount = hits.getAndSet(0L)
+        val prefetchCount = prefetchHits.getAndSet(0L)
+        val fillCount = fills.getAndSet(0L)
+        val fillTotal = fillMicros.getAndSet(0L)
+        val fillMax = fillMaxMicros.getAndSet(0L)
+
+        val percent = if (readCount > 0) hitCount * 100.0 / readCount else 0.0
+        val average = if (fillCount > 0) fillTotal / 1000.0 / fillCount else 0.0
         report(
             "stats reads=%d hits=%d (%.0f%%) prefetch=%d fills=%d fill_avg=%.1fms fill_max=%.1fms miss_blk=[%d..%d] jump_max=%d"
-                .format(reads, hits, percent, prefetchHits, fills, average, fillMaxMs,
-                    missFirstBlock, missLastBlock, missJumpMax),
+                .format(readCount, hitCount, percent, prefetchCount, fillCount, average,
+                    fillMax / 1000.0, missFirstBlock, missLastBlock, missJumpMax),
         )
 
-        reads = 0L
-        hits = 0L
-        prefetchHits = 0L
-        fills = 0L
-        fillMs = 0.0
-        fillMaxMs = 0.0
         missFirstBlock = -1L
         missLastBlock = -1L
         prevMissBlock = -1L

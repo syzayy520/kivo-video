@@ -33,13 +33,22 @@ class SmbByteSource private constructor(
     reader: SmbReader,
     private val tuning: SmbReadTuning,
     online: () -> Boolean,
+    /**
+     * 读取画像的上报出口（252）。
+     *
+     * 为什么必须可注入而不是写死 `Log.i`：这台设备（MIUI）会过滤应用的 logcat，
+     * 实测 50 秒只留下 74 行，`KivoSmbRead` 一行都看不到 —— 于是"读画像"这个
+     * 唯一的判据在真机上等于没有。注入之后，调用方可以同时写进 App 内部目录，
+     * 用 `run-as` 就能读出来。
+     */
+    private val reportSink: (String) -> Unit = { android.util.Log.i("KivoSmbRead", it) },
 ) : ByteSource {
 
     private val sizeBytes: Long = reader.size
     private val lock = Any()
     private val gate = SmbRetryGate(online = online)
     private val window = SmbReadWindow(tuning)
-    private val stats = SmbReadStats(report = { android.util.Log.i("KivoSmbRead", it) })
+    private val stats = SmbReadStats(report = reportSink)
 
     /** 重连成功后旧数据一律不可信。lambda 在调用时求值，所以可以引用后面声明的字段。 */
     private val channel = SmbPreadChannel(
@@ -165,12 +174,13 @@ class SmbByteSource private constructor(
             credential: SmbCredential,
             filePath: String,
             online: () -> Boolean = { true },
+            reportSink: (String) -> Unit = { android.util.Log.i("KivoSmbRead", it) },
         ): SmbByteSource {
             val reader = SmbReader(address, credential, filePath)
             reader.open()
             return SmbByteSource(
                 address, credential, filePath, reader,
-                SmbReadTuning.forFile(reader.size), online,
+                SmbReadTuning.forFile(reader.size), online, reportSink,
             )
         }
     }

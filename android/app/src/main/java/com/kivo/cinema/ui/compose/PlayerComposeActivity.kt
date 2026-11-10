@@ -520,6 +520,10 @@ class PlayerComposeActivity : ComponentActivity() {
                     // 250 D3：断网时 socket 不会立刻报错，只能"读失败后问一句有没有网"。
                     // 不注入这个，界面上要等满读超时才知道断了。
                     online = { com.kivo.cinema.net.NetworkLinkMonitor.isOnline(applicationContext) },
+                    // 252：读画像必须落到**能读出来的地方**。这台设备（MIUI）过滤应用
+                    // logcat，实测 50 秒只剩 74 行，Log.i 写的读画像一行都看不到 ——
+                    // 而"卡顿是网络还是解码"只有这份画像能回答。
+                    reportSink = { line -> smbTrace("smbread $line") },
                 )
                 source = opened
                 smbTrace("prepared open size=${opened.size()}")
