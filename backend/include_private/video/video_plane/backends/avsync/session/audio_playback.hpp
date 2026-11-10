@@ -102,6 +102,10 @@ public:
     /// 已完成的步骤数（= 卡住的那一步的下标）。
     [[nodiscard]] int last_seek_step_done() const { return seek_step_done_; }
 
+    /// 252：把底层解封装的 seek 事实拼成一行（谁跳的、索引几条、落点、avio 位置）。
+    /// 音频轨没有时间戳时落点会是 0 —— 有了这行才能分清"没跳"与"跳了但落点算不出"。
+    [[nodiscard]] std::string demux_seek_summary() const;
+
 private:
     std::int64_t seek_step_ms_[kSeekStepCount] = {};
     int seek_step_done_ = 0;

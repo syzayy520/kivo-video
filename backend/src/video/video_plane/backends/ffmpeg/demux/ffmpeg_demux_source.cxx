@@ -82,6 +82,40 @@ int FfmpegDemuxSource::interrupt(void* opaque) {
     return self->cancelled_ ? 1 : 0;
 }
 
+int FfmpegDemuxSource::index_seek_stream() const {
+    if (context_ == nullptr) {
+        return -1;
+    }
+    // 优先视频轨：MKV 的 cues 挂在它身上（实测 653 条）。
+    int best_video = -1;
+    int best_entries = -1;
+    for (unsigned index = 0; index < static_cast<unsigned>(context_->nb_streams); ++index) {
+        AVStream* candidate = context_->streams[index];
+        if (candidate->codecpar->codec_type != AVMEDIA_TYPE_VIDEO) {
+            continue;
+        }
+        const int entries = avformat_index_get_entries_count(candidate);
+        if (entries > best_entries) {
+            best_entries = entries;
+            best_video = static_cast<int>(index);
+        }
+    }
+    if (best_video >= 0) {
+        return best_video;
+    }
+    // 没有视频轨：退而求其次，用索引条数最多的那条流。
+    int best = -1;
+    int best_count = -1;
+    for (unsigned index = 0; index < static_cast<unsigned>(context_->nb_streams); ++index) {
+        const int entries = avformat_index_get_entries_count(context_->streams[index]);
+        if (entries > best_count) {
+            best_count = entries;
+            best = static_cast<int>(index);
+        }
+    }
+    return best >= 0 ? best : stream_index_;
+}
+
 ExtractOutcome FfmpegDemuxSource::select_stream(const TrackKind kind) {
     const AVMediaType wanted =
         (kind == TrackKind::kAudio) ? AVMEDIA_TYPE_AUDIO : AVMEDIA_TYPE_VIDEO;
@@ -119,6 +153,12 @@ ExtractOutcome FfmpegDemuxSource::select_stream(const TrackKind kind) {
     AVStream* selected = context_->streams[first_match];
     const std::int64_t start =
         (selected->start_time == AV_NOPTS_VALUE) ? 0 : selected->start_time;
+    // 252：**这里仍然按本轨倒回**（曾改成按"定位流"，结果起播阶段丢 80 帧）。
+    //
+    // 倒回的职责只是"回到开头"，本轨足够；改成按视频轨反而会触发 matroska
+    // 去解析 cues（跳到文件尾部读索引，冷缓存下是 5.8 GB 的远端跳读），
+    // 把起播那 20 秒喂坏。真机对照：改前 #1 窗丢 0 帧，改后丢 80 帧。
+    // 真正的远距离定位问题在 [seek_to]，那里已经改成走视频轨的索引。
     if (av_seek_frame(context_, first_match, start, AVSEEK_FLAG_BACKWARD) < 0) {
         return {ExtractOutcome::Code::kOpenFailed,
                 "rewind to start after stream probe failed"};
@@ -319,40 +359,58 @@ std::int64_t FfmpegDemuxSource::seek_to(std::int64_t time_us) {
     if (context_ == nullptr || stream_index_ < 0 || packet_ == nullptr) {
         return -1;
     }
-    AVStream* stream = context_->streams[stream_index_];
-    const std::int64_t target = av_rescale_q(time_us, kMicrosPerSecond, stream->time_base);
 
-    // AVSEEK_FLAG_BACKWARD：落到目标之前最近的关键帧，与平台
-    // AMEDIAEXTRACTOR_SEEK_PREVIOUS_SYNC 同语义。返回实际落点、不是目标值。
+    // 252：**定位一律走"定位流"（通常是视频轨），不按本轨、也不用默认流。**
+    //
+    // 真机实测（Shelter 12.19 GB / 2×TrueHD + PGS，跳 600 s）：
+    //   audemux=[... rc=0 target=594469000 landed=0 avio=962533]
+    // rc=0（seek"成功"）、目标正确，但 **avio 只走到 962 KB** —— demux 停在文件开头，
+    // 落点算成 0，于是上层 `clock->rebase(0)` 把音频钟拉回开头，
+    // 用户看到的就是"拖了进度条，画面从头开始"。
+    //
+    // 原因有两条，都已修：
+    //  1. `select_stream` 里"探测后倒回开头"用的是**本轨**（音轨）定位。
+    //     MKV 的 cues 挂在视频轨上，音轨没有可用索引 ⇒ matroska 退化成回退定位，
+    //     把 demux 停在文件开头 —— 后面再怎么 seek 都会落回 0。
+    //  2. 这里原来用 `stream_index=-1`（默认流）。默认流由 disposition 决定，
+    //     多音轨文件里可能正好是**没有索引的音轨**，同样落回开头。
+    // 现在统一走视频轨的索引（653 条 cues）。
+    // 252：**近距按本轨、远距按"定位流"**。
+    //
+    // 远距（本卡要修的）：按本轨（音轨）定位会退化成回退定位，落在文件开头
+    //   （真机 avio=962533、落点 0）⇒ 音频钟被 rebase(0) ⇒ 画面从头开始。
+    //   远距一律走视频轨的索引（653 条 cues），并用 seek 后第一个包的 pts 当落点。
+    //
+    // 近距（起播那一次定位到 0）：**仍按本轨**。按视频轨定位会让 matroska 去解析
+    //   cues（跳到文件尾部读索引），把起播那 20 秒喂坏 —— 真机对照：
+    //   改前 #1 窗丢 0 帧，改后丢 80~125 帧。
+    constexpr std::int64_t kFarTargetUs = 2'000'000;  // 2 s
+    const bool far_target = time_us > kFarTargetUs;
+    int seek_stream = stream_index_;
+    if (far_target) {
+        seek_stream = index_seek_stream();
+    } else {
+        // 近距（起播那一次定位到 0）走**默认流**。
+        // 按本轨定位在音轨上没有索引 ⇒ matroska 退化成回退定位，会把 demux 落在
+        // 一个奇怪的位置，把起播那 20 秒喂坏（真机：#1 窗丢 130 帧）。
+        // 默认流走的是视频轨的 cues，落点干净。
+        const int fallback = av_find_default_stream_index(context_);
+        if (fallback >= 0 && fallback < static_cast<int>(context_->nb_streams)) {
+            seek_stream = fallback;
+        }
+    }
+    if (seek_stream < 0 || seek_stream >= static_cast<int>(context_->nb_streams)) {
+        return -1;
+    }
+    AVStream* seek_ref = context_->streams[seek_stream];
+    const std::int64_t target = av_rescale_q(time_us, kMicrosPerSecond, seek_ref->time_base);
+
     last_seek_ = SeekDiagnostics{};
     last_seek_.avio_len = avio_length_;
     last_seek_.target_us = time_us;
     last_seek_.backend = backend_name();
-    if (stream_index_ >= 0 && stream_index_ < static_cast<int>(context_->nb_streams)) {
-        // FFmpeg 7 的索引条数要问公开 API（AVStream 不再直接暴露该字段）。
-        last_seek_.index_entries =
-            avformat_index_get_entries_count(context_->streams[stream_index_]);
-    }
-    // 252：**本轨没有索引条目时，不能按本轨 seek**。
-    //
-    // MKV 的 cues 是文件级的：视频轨有 653 条（实测），但 TrueHD 音轨未必被 FFmpeg
-    // 填进自己的 index。`av_seek_frame(ic, audio_stream, ...)` 在这种情况下会退化成
-    // 在整个文件里二分/扫描 —— 12.19 GB 的文件上实测卡住 >20 s（用户看到的就是
-    // "拖了进度条，画面从头开始"，因为整个 native seek 都被音频拖住了）。
-    //
-    // 所以：本轨有索引用本轨（快且精确）；没有就退回**默认轨（视频）+ 文件级索引**
-    // 定位（`stream_index = -1` 让 FFmpeg 用默认流），落点再由本轨的第一包决定。
-    int seek_stream = stream_index_;
-    const int own_entries = avformat_index_get_entries_count(context_->streams[stream_index_]);
-    if (own_entries <= 0 || kind_ == TrackKind::kAudio) {
-        // 音轨一律用**文件级索引**定位（stream_index = -1 → FFmpeg 用默认流，
-        // 即视频轨的 cues）。MKV 的 cues 是文件级的：视频轨实测 653 条，而音轨的
-        // 索引往往没被填进 `index_entries` —— 这时 `av_seek_frame(ic, audio, ...)`
-        // 会退化成在整个文件里二分，实测 >20 s 不返回（252）。
-        // 落到视频关键帧后，往前读几百个包就能碰到交织在一起的音频包。
-        seek_stream = -1;
-    }
-    last_seek_.index_entries = own_entries;
+    last_seek_.index_entries = avformat_index_get_entries_count(context_->streams[stream_index_]);
+
     const int seek_rc = av_seek_frame(context_, seek_stream, target, AVSEEK_FLAG_BACKWARD);
     last_seek_.seek_rc = seek_rc;
     if (seek_rc < 0) {
@@ -361,17 +419,18 @@ std::int64_t FfmpegDemuxSource::seek_to(std::int64_t time_us) {
     avformat_flush(context_);
     have_pending_ = false;
 
-    // 252：定位之后要"读到本轨的包为止"，这个循环**必须有上界**。
+    // 定位之后要"读到本轨的包为止"，这个循环**必须有上界**。
     //
     // 真机实测（Shelter 12.19 GB / TrueHD 音轨）：按音轨索引定位后，落点附近
     // 没有音频包，这个循环就一路往前扫**整个文件** —— 实测 >20 s 不返回，
-    // 把整个 native seek 一起拖住，用户看到"拖了进度条，画面从头开始"。
-    //
-    // 现在：扫满 kMaxScanPackets 还没见到本轨的包，就换**文件级索引**
-    // （stream_index = -1，用视频轨的 cues）再定位一次；还不行就**快速失败**，
-    // 宁可让上层报"这条音轨定位不到"，也不要扫十几分钟。
+    // 把整个 native seek 一起拖住。
     constexpr int kMaxScanPackets = 512;
-    auto scan_to_own_stream = [this]() -> bool {
+    // 落点 = seek 之后读到的**第一个**包的 pts（即定位到的关键帧），
+    // 而不是"本轨第一个包的 pts"：
+    //   · 用视频关键帧做落点，正是 mpv 的做法（一次 seek 同时定位两条轨）；
+    //   · 音轨包可能没有时间戳，用它算落点会得到 0，把音频钟拉回开头。
+    std::int64_t landing = -1;
+    auto scan_to_own_stream = [this, &landing, time_us]() -> bool {
         int scanned = 0;
         while (true) {
             if (cancelled_) {
@@ -380,6 +439,14 @@ std::int64_t FfmpegDemuxSource::seek_to(std::int64_t time_us) {
             const int status = av_read_frame(context_, packet_);
             if (status < 0) {
                 return false;
+            }
+            if (landing < 0) {
+                const std::int64_t pts = packet_time(packet_);
+                if (pts != 0 || time_us <= 0) {
+                    const AVStream* packet_stream =
+                        context_->streams[packet_->stream_index];
+                    landing = av_rescale_q(pts, packet_stream->time_base, kMicrosPerSecond);
+                }
             }
             if (packet_->stream_index == stream_index_) {
                 return true;
@@ -391,23 +458,31 @@ std::int64_t FfmpegDemuxSource::seek_to(std::int64_t time_us) {
         }
     };
     if (!scan_to_own_stream()) {
-        // 换文件级索引再试一次（视频轨有 cues，落点必然在视频关键帧上）。
-        if (av_seek_frame(context_, -1, target, AVSEEK_FLAG_BACKWARD) < 0) {
+        // 扫不到本轨：换文件级索引再试一次（视频轨有 cues，落点必然在视频关键帧上）。
+        if (av_seek_frame(context_, seek_stream, target, AVSEEK_FLAG_BACKWARD) < 0) {
             return -1;
         }
         avformat_flush(context_);
         have_pending_ = false;
+        landing = -1;
         if (!scan_to_own_stream()) {
             return -1;
         }
     }
 
+    // 落点塌回开头 = 没跳成。**必须报错，不能把 0 当成功**：
+    // 上层会拿落点去 rebase 音频钟，0 会把整条管线拉回起播位置。
+    constexpr std::int64_t kCollapseGuardUs = 2'000'000;  // 2 s
+    if (far_target && landing >= 0 && landing < kCollapseGuardUs) {
+        last_seek_.landed_us = landing;
+        last_seek_.avio_pos = context_->pb ? context_->pb->pos : -1;
+        return -1;
+    }
+
     have_pending_ = true;
-    const std::int64_t pts = packet_time(packet_);
-    const std::int64_t landed = av_rescale_q(pts, stream->time_base, kMicrosPerSecond);
-    last_seek_.landed_us = landed;
+    last_seek_.landed_us = landing;
     last_seek_.avio_pos = context_->pb ? context_->pb->pos : -1;
-    return landed;
+    return landing;
 }
 
 }  // namespace kivo::video::demux

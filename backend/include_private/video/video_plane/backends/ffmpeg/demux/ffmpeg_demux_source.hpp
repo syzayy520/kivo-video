@@ -85,6 +85,15 @@ private:
     /// 252：最近一次 seek 的事实，用于在 summary 里回答"到底跳没跳"。
     SeekDiagnostics last_seek_{};
 
+    /// 252：**用于定位的流**（不是本轨）。
+    ///
+    /// MKV 的 cues 是文件级的，但 FFmpeg 只会把它们挂到**有索引的那条流**上
+    /// （实测视频轨 653 条、TrueHD 音轨 27 条）。按音轨定位时，
+    /// matroska 的 `seek_frame` 找不到可用索引就退化成二分/回退，
+    /// 真机实测会把 demux 停在**文件开头**（avio=962533，落点 0）。
+    /// 所以定位一律走视频轨（没有视频轨时走索引条数最多的那条）。
+    [[nodiscard]] int index_seek_stream() const;
+
     /// 252：交给 avio 的文件长度。若它小于真实大小，SEEK_END 就够不到尾部 Cues，
     /// FFmpeg 建不出索引 → 远距离 seek 只能落到 0。
     std::int64_t avio_length_ = -1;

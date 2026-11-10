@@ -254,6 +254,11 @@ static std::int64_t g_seek_begin_ns = 0;
 static std::int64_t g_seek_end_ns = 0;
 static std::int64_t g_video_seek_ms = -1;
 static std::int64_t g_audio_seek_ms = -1;
+/// 252 诊断：音频 seek 的落点与成败。视频落点对（594.469 s）而位置不跳，
+/// 嫌疑就在这里 —— 音频落点为 -1 或音频 seek 失败 ⇒ 音频钟没有 rebase
+/// ⇒ 节拍器（以音频钟为主时钟）报出来的位置还是旧位置。
+static std::int64_t g_audio_landing_us = -1;
+static int g_audio_seek_ok = 0;
 int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& error) {
     ++g_session_seek_calls;
     g_seek_begin_ns = std::chrono::steady_clock::now().time_since_epoch().count();
@@ -316,6 +321,8 @@ int session_seek(SessionHandle* handle, std::int64_t target_us, std::string& err
         g_audio_seek_ms = static_cast<std::int64_t>(
             (std::chrono::steady_clock::now() - audio_begin).count() / 1'000'000);
         audio_landing_us = audio_result.landing_us;
+        g_audio_landing_us = audio_landing_us;
+        g_audio_seek_ok = audio_result.ok ? 1 : 0;
         if (!audio_result.ok) {
             audio_error = audio_result.reason;
         }
@@ -607,7 +614,7 @@ std::string session_summary(SessionHandle* handle) {
                   // 复制的一行，复制出去就只剩 "p99=0.1ms"。这个 p99 是**逐帧**的
                   // 节拍迟到量（每帧都进直方图），与 `av_drift` 里抽稀口径的 p99
                   // 不是同一个数，对着比会得出"两处矛盾"的假结论。
-                  "pace_lateness_p99[per_frame]=%.1fms completed=%d error=%s demux=[%s] jni=%lld snap=%lld seen=%lld last=%lld herr=%s seekms=%lld vms=%lld ams=%lld astep=%d ams_ms=%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld",
+                  "pace_lateness_p99[per_frame]=%.1fms completed=%d error=%s demux=[%s] jni=%lld snap=%lld seen=%lld last=%lld herr=%s seekms=%lld vms=%lld ams=%lld alanding=%lld aok=%d audemux=[%s] astep=%d ams_ms=%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld",
                   stats.codec_name.c_str(), stats.mime.c_str(), stats.width, stats.height,
                   static_cast<long long>(handle->session->duration_us()),
                   stats.pipeline_mode.c_str(),
@@ -634,6 +641,9 @@ std::string session_summary(SessionHandle* handle) {
                           : -1),
                   static_cast<long long>(g_video_seek_ms),
                   static_cast<long long>(g_audio_seek_ms),
+                  static_cast<long long>(g_audio_landing_us),
+                  g_audio_seek_ok ? 1 : 0,
+                  handle->audio ? handle->audio->demux_seek_summary().c_str() : "-",
                   handle->audio ? handle->audio->last_seek_step_done() : -1,
                   handle->audio ? handle->audio->last_seek_step_ms(0) : -1,
                   handle->audio ? handle->audio->last_seek_step_ms(1) : -1,

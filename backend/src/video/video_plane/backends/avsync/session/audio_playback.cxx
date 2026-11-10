@@ -1,3 +1,4 @@
+#include <cstdio>
 #include "video/video_plane/backends/avsync/session/audio_playback.hpp"
 
 #include <chrono>
@@ -270,6 +271,17 @@ bool AudioPlayback::prepare_seek() {
         return false;
     }
     return true;
+}
+
+std::string AudioPlayback::demux_seek_summary() const {
+    const auto d = source_.seek_diagnostics();
+    char buffer[224] = {};
+    std::snprintf(buffer, sizeof(buffer),
+                  "backend=%s idx=%d rc=%d target=%lld landed=%lld avio=%lld",
+                  d.backend[0] ? d.backend : "none", d.index_entries, d.seek_rc,
+                  static_cast<long long>(d.target_us), static_cast<long long>(d.landed_us),
+                  static_cast<long long>(d.avio_pos));
+    return std::string(buffer);
 }
 
 AudioPlayback::SeekResult AudioPlayback::seek_to(std::int64_t target_us) {
