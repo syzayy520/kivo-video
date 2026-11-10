@@ -322,8 +322,9 @@ android/app/src/main/java/com/kivo/cinema/
   smb/
     SmbByteSource.kt      改  664→≤180  契约实现：只编排顺序（预读→窗口→等预读→填窗→直读）+ 生命周期
     SmbReadTuning.kt      新  ≤100      参数推导与夹紧（纯数据，无 Android/无 libsmb2）
-    SmbReadWindow.kt      新  ≤180      按块对齐的 LRU 窗口 + 惰性分配；填充走注入的 readAt
-    SmbReadAhead.kt       新  ≤220      顺序预读：环缓冲 + 自有连接 + 代际校验 + 可重启（Idle/Running/Disabled）
+    SmbReadWindow.kt      新  ≤180      按块对齐的 LRU 窗口 + 惰性分配；填充走注入的"读满"回调
+    SmbReadRing.kt        新  ≤140      预读环纯数据：复制/消费/前移/代际校验（可单独单测）
+    SmbReadAhead.kt       新  ≤220      顺序预读：线程生命周期 + 网络读 + 代际交接 + 可重启
     SmbPreadChannel.kt    新  ≤170      一次读 + 重连 + 退避；对外只暴露 readAt
     SmbReadStats.kt       新  ≤120      画像采集（命中/填充耗时/块号分布）+ 4 s 上报
     SmbRetryGate.kt       新  ≤110      退避状态机（含 online 闸门），纯逻辑可测
@@ -393,6 +394,15 @@ S1 落文件时有三个单元超预算。按"超出即拆"处理，拆法不是
 | `SmbError.kt` ≤115（实测 133） | 拆出 `SmbErrno.kt`（37 行），`SmbError` 回到 111 | 两者上游不同：一个翻"服务端报文说什么"（账号/共享/权限），一个翻"本机 socket 出了什么事"（网线/DNS/重置）。合成一个 `when` 就是两个上游共用一个修改点 |
 | `utf8_codec.hpp` ≤120（实测 163） | 拆成 `unicode_limits.hpp`（25）+ `utf8_codec.hpp`（108）+ `utf16_codec.hpp`（80） | 两个方向**不共享辅助函数**（一个 decode_utf8+append_utf16，一个 decode_utf16+append_utf8），只有常量共用。共用常量单独成文件，避免"一边改了一边没改" |
 | `SmbReadTuning.kt` ≤100（实测 101） | 合并两行常量注释，99 行 | **不拆**。它只有一个职责（参数推导），101 行只是注释偏长，拆开会出现两个都叫 Tuning 的文件 |
+
+**实施期修订（2026-11-10 · S2）**
+
+| 原计划 | 实际 | 为什么这样拆 |
+| --- | --- | --- |
+| `SmbReadAhead.kt` ≤220（首版 241） | 拆出 `SmbReadRing.kt`（101 行），`SmbReadAhead` 回到 214 | 缓冲"怎么存"与"谁去填"是两个修改理由；拆出后代际校验/前移/边界可以在 JVM 上断言（S2 新增 10 个用例），以前只能靠真机播放 |
+| `setPrefetchEnabled(false)` = 永久关闭 | 改为 `ahead.pause()`，可再次开启 | 这是 D5 的内容（修 P1-3）。**有意变更**，不是搬运 |
+| `SmbByteSource` 内 `directRead` | 并入 `SmbPreadChannel.readFully` | "读满 / 读到 0 当异常 / 真 EOF 返回 -1"这条规则只该有一个实现；窗口与直读共用它 |
+| `fillWindow` 填完才写偏移 | `fill` 进入填充前先标废该槽 | 顺带修掉的**原缺陷**：填充中途抛异常时，槽位仍指旧偏移而内容已被写半截 → 下次"命中"返回错位数据（花屏级） |
 
 **不新增的东西**
 
