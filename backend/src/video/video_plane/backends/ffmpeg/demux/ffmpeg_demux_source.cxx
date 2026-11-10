@@ -333,7 +333,27 @@ std::int64_t FfmpegDemuxSource::seek_to(std::int64_t time_us) {
         last_seek_.index_entries =
             avformat_index_get_entries_count(context_->streams[stream_index_]);
     }
-    const int seek_rc = av_seek_frame(context_, stream_index_, target, AVSEEK_FLAG_BACKWARD);
+    // 252：**本轨没有索引条目时，不能按本轨 seek**。
+    //
+    // MKV 的 cues 是文件级的：视频轨有 653 条（实测），但 TrueHD 音轨未必被 FFmpeg
+    // 填进自己的 index。`av_seek_frame(ic, audio_stream, ...)` 在这种情况下会退化成
+    // 在整个文件里二分/扫描 —— 12.19 GB 的文件上实测卡住 >20 s（用户看到的就是
+    // "拖了进度条，画面从头开始"，因为整个 native seek 都被音频拖住了）。
+    //
+    // 所以：本轨有索引用本轨（快且精确）；没有就退回**默认轨（视频）+ 文件级索引**
+    // 定位（`stream_index = -1` 让 FFmpeg 用默认流），落点再由本轨的第一包决定。
+    int seek_stream = stream_index_;
+    const int own_entries = avformat_index_get_entries_count(context_->streams[stream_index_]);
+    if (own_entries <= 0 || kind_ == TrackKind::kAudio) {
+        // 音轨一律用**文件级索引**定位（stream_index = -1 → FFmpeg 用默认流，
+        // 即视频轨的 cues）。MKV 的 cues 是文件级的：视频轨实测 653 条，而音轨的
+        // 索引往往没被填进 `index_entries` —— 这时 `av_seek_frame(ic, audio, ...)`
+        // 会退化成在整个文件里二分，实测 >20 s 不返回（252）。
+        // 落到视频关键帧后，往前读几百个包就能碰到交织在一起的音频包。
+        seek_stream = -1;
+    }
+    last_seek_.index_entries = own_entries;
+    const int seek_rc = av_seek_frame(context_, seek_stream, target, AVSEEK_FLAG_BACKWARD);
     last_seek_.seek_rc = seek_rc;
     if (seek_rc < 0) {
         return -1;
@@ -341,18 +361,45 @@ std::int64_t FfmpegDemuxSource::seek_to(std::int64_t time_us) {
     avformat_flush(context_);
     have_pending_ = false;
 
-    while (true) {
-        if (cancelled_) {
+    // 252：定位之后要"读到本轨的包为止"，这个循环**必须有上界**。
+    //
+    // 真机实测（Shelter 12.19 GB / TrueHD 音轨）：按音轨索引定位后，落点附近
+    // 没有音频包，这个循环就一路往前扫**整个文件** —— 实测 >20 s 不返回，
+    // 把整个 native seek 一起拖住，用户看到"拖了进度条，画面从头开始"。
+    //
+    // 现在：扫满 kMaxScanPackets 还没见到本轨的包，就换**文件级索引**
+    // （stream_index = -1，用视频轨的 cues）再定位一次；还不行就**快速失败**，
+    // 宁可让上层报"这条音轨定位不到"，也不要扫十几分钟。
+    constexpr int kMaxScanPackets = 512;
+    auto scan_to_own_stream = [this]() -> bool {
+        int scanned = 0;
+        while (true) {
+            if (cancelled_) {
+                return false;
+            }
+            const int status = av_read_frame(context_, packet_);
+            if (status < 0) {
+                return false;
+            }
+            if (packet_->stream_index == stream_index_) {
+                return true;
+            }
+            av_packet_unref(packet_);
+            if (++scanned >= kMaxScanPackets) {
+                return false;
+            }
+        }
+    };
+    if (!scan_to_own_stream()) {
+        // 换文件级索引再试一次（视频轨有 cues，落点必然在视频关键帧上）。
+        if (av_seek_frame(context_, -1, target, AVSEEK_FLAG_BACKWARD) < 0) {
             return -1;
         }
-        const int status = av_read_frame(context_, packet_);
-        if (status < 0) {
+        avformat_flush(context_);
+        have_pending_ = false;
+        if (!scan_to_own_stream()) {
             return -1;
         }
-        if (packet_->stream_index == stream_index_) {
-            break;
-        }
-        av_packet_unref(packet_);
     }
 
     have_pending_ = true;

@@ -607,7 +607,7 @@ std::string session_summary(SessionHandle* handle) {
                   // 复制的一行，复制出去就只剩 "p99=0.1ms"。这个 p99 是**逐帧**的
                   // 节拍迟到量（每帧都进直方图），与 `av_drift` 里抽稀口径的 p99
                   // 不是同一个数，对着比会得出"两处矛盾"的假结论。
-                  "pace_lateness_p99[per_frame]=%.1fms completed=%d error=%s demux=[%s] jni=%lld snap=%lld seen=%lld last=%lld herr=%s seekms=%lld vms=%lld ams=%lld",
+                  "pace_lateness_p99[per_frame]=%.1fms completed=%d error=%s demux=[%s] jni=%lld snap=%lld seen=%lld last=%lld herr=%s seekms=%lld vms=%lld ams=%lld astep=%d ams_ms=%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld",
                   stats.codec_name.c_str(), stats.mime.c_str(), stats.width, stats.height,
                   static_cast<long long>(handle->session->duration_us()),
                   stats.pipeline_mode.c_str(),
@@ -633,7 +633,16 @@ std::string session_summary(SessionHandle* handle) {
                           ? (g_seek_end_ns - g_seek_begin_ns) / 1'000'000
                           : -1),
                   static_cast<long long>(g_video_seek_ms),
-                  static_cast<long long>(g_audio_seek_ms));
+                  static_cast<long long>(g_audio_seek_ms),
+                  handle->audio ? handle->audio->last_seek_step_done() : -1,
+                  handle->audio ? handle->audio->last_seek_step_ms(0) : -1,
+                  handle->audio ? handle->audio->last_seek_step_ms(1) : -1,
+                  handle->audio ? handle->audio->last_seek_step_ms(2) : -1,
+                  handle->audio ? handle->audio->last_seek_step_ms(3) : -1,
+                  handle->audio ? handle->audio->last_seek_step_ms(4) : -1,
+                  handle->audio ? handle->audio->last_seek_step_ms(5) : -1,
+                  handle->audio ? handle->audio->last_seek_step_ms(6) : -1,
+                  handle->audio ? handle->audio->last_seek_step_ms(7) : -1);
     return std::string(buffer);
 }
 

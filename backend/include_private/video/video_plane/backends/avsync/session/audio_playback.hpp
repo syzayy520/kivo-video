@@ -92,7 +92,19 @@ public:
     /// 事实快照。`feed` / `output` / `clock` 三组字段只有 `stop()` 之后才是终值。
     [[nodiscard]] const AudioPlaybackStats& stats() const noexcept { return stats_; }
 
+    /// 252 诊断：音频 seek 各步骤的耗时（毫秒）。**逐步写入**，所以即使 seek 卡住、
+    /// 没返回，也能从外面看到"卡在哪一步"（最后一个已完成的下标就是卡点之前的那一步）。
+    /// 下标含义见 `audio_playback.cxx` 的 `kSeekStep*` 常量。
+    static constexpr int kSeekStepCount = 8;
+    [[nodiscard]] std::int64_t last_seek_step_ms(int step) const {
+        return step >= 0 && step < kSeekStepCount ? seek_step_ms_[step] : -1;
+    }
+    /// 已完成的步骤数（= 卡住的那一步的下标）。
+    [[nodiscard]] int last_seek_step_done() const { return seek_step_done_; }
+
 private:
+    std::int64_t seek_step_ms_[kSeekStepCount] = {};
+    int seek_step_done_ = 0;
     [[nodiscard]] bool prefill();
 
     mediacodec::MediaExtractorSource source_;

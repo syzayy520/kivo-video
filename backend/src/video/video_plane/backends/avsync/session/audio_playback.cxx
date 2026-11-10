@@ -260,43 +260,78 @@ bool AudioPlayback::prepare_seek() {
 }
 
 AudioPlayback::SeekResult AudioPlayback::seek_to(std::int64_t target_us) {
+    // 252：逐步计时（写进可随时读的槽位），卡住时也能看出卡在哪一步。
+    constexpr int kStepPrepare = 0;
+    constexpr int kStepFeederStop = 1;
+    constexpr int kStepSourceSeek = 2;
+    constexpr int kStepDecoderFlush = 3;
+    constexpr int kStepRingReset = 4;
+    constexpr int kStepFeederStart = 5;
+    constexpr int kStepPrefill = 6;
+    constexpr int kStepRebase = 7;
+    const auto mark = [this](int step, std::int64_t elapsed_ms) {
+        if (step >= 0 && step < kSeekStepCount) {
+            seek_step_ms_[step] = elapsed_ms;
+            seek_step_done_ = step + 1;
+        }
+    };
+    const auto since = [] { return std::chrono::steady_clock::now(); };
+
     SeekResult out;
+    auto t0 = since();
     if (!prepare_seek()) {
+        mark(kStepPrepare, 0);
         out.reason = stats_.error;
         return out;
     }
+    mark(kStepPrepare, std::chrono::duration_cast<std::chrono::milliseconds>(since() - t0).count());
 
     // 2. 停写者。此后没有任何人碰环。
+    t0 = since();
     feeder_->stop();
+    mark(kStepFeederStop, std::chrono::duration_cast<std::chrono::milliseconds>(since() - t0).count());
 
     // 3. 定位 + 清在途。
+    t0 = since();
     const std::int64_t landing = source_.seek_to(target_us);
+    mark(kStepSourceSeek, std::chrono::duration_cast<std::chrono::milliseconds>(since() - t0).count());
     out.landing_us = landing;
     if (landing < 0) {
         out.reason = stats_.error = "audio extractor seek failed";
         return out;
     }
+    t0 = since();
     const auto flushed = decoder_->flush();
+    mark(kStepDecoderFlush, std::chrono::duration_cast<std::chrono::milliseconds>(since() - t0).count());
     if (!flushed.ok()) {
         out.reason = stats_.error = "audio decoder flush failed: " + flushed.message;
         return out;
     }
+    t0 = since();
     ring_->reset();
+    mark(kStepRingReset, std::chrono::duration_cast<std::chrono::milliseconds>(since() - t0).count());
 
     // 4. 重新供给并灌到与起播同一水位。
+    t0 = since();
     feeder_->start();
+    mark(kStepFeederStart, std::chrono::duration_cast<std::chrono::milliseconds>(since() - t0).count());
+    t0 = since();
     if (!prefill()) {
+        mark(kStepPrefill, std::chrono::duration_cast<std::chrono::milliseconds>(since() - t0).count());
         out.reason = stats_.error;
         return out;
     }
+    mark(kStepPrefill, std::chrono::duration_cast<std::chrono::milliseconds>(since() - t0).count());
 
     // 5. **先放音、后对表**：放音之后第一个真实样本才是 landing 对应的音频；
     //    先锚表会让时钟在静音期间继续前进，视频反而提前。
     ring_source_->set_muted(false);
+    t0 = since();
     if (auto* clock = output_->clock(); clock != nullptr && landing >= 0) {
         // 流没重启，帧计数连续，一次 rebase 足够（F2 里"锚两次吸收过渡"的做法不再需要）。
         clock->rebase(landing * 1'000);
     }
+    mark(kStepRebase, std::chrono::duration_cast<std::chrono::milliseconds>(since() - t0).count());
 
     out.ok = true;
     return out;
