@@ -320,6 +320,13 @@ target_link_libraries(kivo_hdr_probe PRIVATE
 # ---------------------------------------------------------------------------
 set(KIVO_FFMPEG_ANDROID_DIST "C:/re-tools/ffmpeg-android/dist" CACHE PATH
     "FFmpeg Android 静态库产物目录（third_party/ffmpeg-android/build.sh 生成）")
+# 252：libass 的 DIST 必须**在第一次使用之前**定义。
+# 原来它写在文件末尾（原第 506 行），而 `kivo_backend_ffmpeg` 在上面就用它拼
+# include 目录 —— 未定义时展开成 `/include`，于是全量重建报
+# `fatal error: 'ass/ass.h' file not found`。增量构建碰不到这条，所以一直没暴露；
+# 一旦删掉 .cxx 缓存就再也编不出来。
+set(KIVO_LIBASS_ANDROID_DIST "C:/re-tools/libass-android/dist" CACHE PATH
+    "libass Android 静态库产物目录（third_party/libass-android/build.sh 生成）")
 if(EXISTS "${KIVO_FFMPEG_ANDROID_DIST}/lib/libavcodec.a")
     # 软解家族（211）：fd 回调 + adapter 三件套 + runtime + 会话 + 窗口 sink。
     # 探针与 kivo_player（JNI 桥）共用这一个库；FFmpeg 头/库只在这里出现。

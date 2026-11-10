@@ -228,13 +228,40 @@ std::int64_t PlatformExtractorSource::seek_to(std::int64_t time_us) {
         AMEDIA_OK) {
         return -1;
     }
+    // 252：**平台报 OK 不等于跳到了目标**。
+    //
+    // 真机实测（Shelter 12.19 GB / 4K 原盘，均走 SMB）：
+    //   目标 60 s  → landing 50050 ms   正常
+    //   目标 180 s → landing 0 ms       画面回到开头，但 seekTo 返回 AMEDIA_OK
+    // 上层（DecodeSession::seek_to）只看"landing < 0 才算失败"，于是把"跳到 0"
+    // 当成功，用户看到的是"拖了进度条，画面从头开始"。
+    //
+    // 落点塌回开头说明 PREVIOUS_SYNC 在这个封装上找不到目标附近的同步点
+    // （MKV 索引不完整时就是这样）。先换 CLOSEST_SYNC 再试一次 —— 它对
+    // 不完整索引更宽容；仍然塌回开头就返回 -1，让上层明确报"seek 失败"，
+    // 而不是静默从头播。
+    constexpr std::int64_t kCollapseGuardUs = 2'000'000;  // 2 s
+    auto landing = AMediaExtractor_getSampleTime(extractor_);
+    if (time_us > kCollapseGuardUs && landing >= 0 && landing < kCollapseGuardUs) {
+        if (AMediaExtractor_seekTo(extractor_, time_us, AMEDIAEXTRACTOR_SEEK_CLOSEST_SYNC) !=
+            AMEDIA_OK) {
+            return -1;
+        }
+        landing = AMediaExtractor_getSampleTime(extractor_);
+        if (landing < 0 || landing < kCollapseGuardUs) {
+            return -1;
+        }
+    }
+    if (landing >= 0) {
+        return landing;
+    }
     // P12-F1：返回**实际落点**，不是请求值。
     //
     // 原来这里 `return time_us;`，于是"落点"字段恒等于目标 —— 一个永远成立的值
     // 比没有值更糟：它让"PREVIOUS_SYNC 是否真的落在目标之前"永远无法被证伪。
     // `seekTo` 只回状态码，落点要自己从当前位置读：seek 之后解封装器停在同步帧上，
     // `getSampleTime` 就是那一帧的 pts，而 `read_next_sample` 会先读它再 advance。
-    return AMediaExtractor_getSampleTime(extractor_);
+    return -1;  // 走到这里说明落点不可读（>= 0 的分支已在上面 return）
 }
 
 }  // namespace kivo::video::mediacodec
