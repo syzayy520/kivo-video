@@ -233,6 +233,9 @@ target_link_libraries(kivo_backend_aaudio PUBLIC log aaudio)
 add_library(kivo_core_audio STATIC
     "${KIVO_BACKEND}/src/video/video_plane/core/audio/spsc_audio_ring_buffer.cxx"
     "${KIVO_BACKEND}/src/video/video_plane/core/audio/pcm_format_converter.cxx"
+    # 252：5.1 → 立体声下混。真高清素材的人声几乎全在 FC（中置声道），
+    # 交给平台做 6→2 会把人声压掉；我们自己按 AC3 标准矩阵折。
+    "${KIVO_BACKEND}/src/video/video_plane/core/audio/pcm_channel_downmix.cxx"
     # P12-C4 时钟的纯逻辑部分。iOS 的 AudioUnit 走同一套外推与单调守卫，
     # 所以它们必须在这里，而不是 backends/aaudio/ 里。
     "${KIVO_BACKEND}/src/video/video_plane/core/audio/clock/audio_clock_types.cxx"

@@ -12,6 +12,7 @@
 #include "video/video_plane/backends/aaudio/clock/aaudio_monotonic_now.hpp"
 #include "video/video_plane/backends/aaudio/device/aaudio_format_names.hpp"
 #include "video/video_plane/core/audio/pcm_format.hpp"
+#include "video/video_plane/core/audio/pcm_channel_downmix.hpp"
 
 namespace kivo::video::avsync {
 namespace {
@@ -119,13 +120,37 @@ bool AudioPlayback::open(int fd, std::int64_t length, const std::string& label,
     }
     stats_.codec_name = decoder_->codec_name();
 
+    // 252：真高清音轨（TrueHD/DTS 5.1）**自己**折成立体声，不要交给平台。
+    //
+    // 为什么（全部有真机/实测依据，不是推测）：
+    //   · 片源侧：真高清素材的人声几乎全部在 FC（中置声道）。
+    //     实测 Shelter 的 TrueHD 5.1(side) 轨：FC 占总能量 70.7%，
+    //     FL/FR 各只有 12%/11%。这是"人声"听起来小得离谱的物理前提。
+    //   · 设备侧：我们的 AAudio 轨道是 6 声道（真机 dumpsys：
+    //     Chn mask 0x8000003F = AUDIO_CHANNEL_OUT_5POINT1_SIDE），
+    //     而输出线程是 Mixer channel Mask 0x3（front-left/front-right）。
+    //     6→2 的下混因此由**平台**做，而平台那条路径把 FC 压到 −3 dB 计入
+    //     —— 对人声主导的素材，人声被明显压掉。
+    //   · 横向对照：mpv / libmpv / SenPlayer 都是自己用 swresample 折成 2ch
+    //     再送设备，所以"别的播放器正常、我们不正常"。
+    //
+    // 折法用 AC3/Dolby 标准矩阵（FC 各 0.7071 进左右、丢弃 LFE），
+    // 见 core/audio/pcm_channel_downmix.hpp。
+    //
+    // 只对 5.1 生效：其它声道数仍按"与解码器输出一致"处理，不做隐式重映射。
+    const bool downmix_to_stereo = track.channel_count == core::audio::kSourceChannels5Point1;
+    const std::int32_t output_channel_count =
+        downmix_to_stereo ? core::audio::kStereoChannels : track.channel_count;
+    stats_.downmix_to_stereo = downmix_to_stereo;
+    stats_.output_channel_count = output_channel_count;
+
     ring_ = std::make_unique<core::audio::SpscAudioRingBuffer>(
-        track.channel_count, track.sample_rate * kRingCapacityMillis / 1000);
+        output_channel_count, track.sample_rate * kRingCapacityMillis / 1000);
     stats_.ring_capacity_frames = ring_->capacity_frames();
 
     aaudio::AaudioStreamConfig config;
     config.sample_rate = track.sample_rate;
-    config.channel_count = track.channel_count;
+    config.channel_count = output_channel_count;
     config.format = aaudio::AaudioStreamConfig::SampleFormat::kFloat;
     config.prefer_exclusive = true;
     config.prefer_low_latency = true;
@@ -142,14 +167,18 @@ bool AudioPlayback::open(int fd, std::int64_t length, const std::string& label,
         return false;
     }
 
-    // 协商结果与片源不一致就拒绝：本项目不做重采样（Direct Play First）。
+    // 协商结果与**输出**声道数不一致就拒绝：本项目不做重采样（Direct Play First）。
     // 硬播只会得到音高错误的输出，而且听感上很难归因。
+    //
+    // 比较对象是 output_channel_count 而不是 track.channel_count：
+    // 5.1 源时我们已经在解码后自己折成立体声，环与 AAudio 都是 2ch，
+    // 设备自然只能给 2ch —— 那是预期结果，不是"格式被改"。
     if (opened.sample_rate != track.sample_rate ||
-        opened.channel_count != track.channel_count) {
+        opened.channel_count != output_channel_count) {
         stats_.error = "aaudio negotiated " + std::to_string(opened.sample_rate) + "Hz/" +
                        std::to_string(opened.channel_count) + "ch but source is " +
                        std::to_string(track.sample_rate) + "Hz/" +
-                       std::to_string(track.channel_count) +
+                       std::to_string(output_channel_count) +
                        "ch; resampling is intentionally not implemented";
         output_->close();
         output_.reset();
@@ -170,6 +199,9 @@ bool AudioPlayback::open(int fd, std::int64_t length, const std::string& label,
     // 起流后才建 feeder：先建的话，解码线程会在流还没开时就往里灌，
     // 灌满之后一直等排空，预灌水位就失去意义了。
     feeder_ = std::make_unique<mediacodec::AudioDecodeFeeder>(source_, *decoder_, *ring_);
+    if (downmix_to_stereo) {
+        feeder_->set_downmix_policy(mediacodec::AudioDecodeFeeder::DownmixPolicy::kAllow);
+    }
     opened_ = true;
     // P13-C：把内部状态映射到证据字段。
     // 在此之前 `stats_.opened` / `stats_.started` **从未被赋值** ——

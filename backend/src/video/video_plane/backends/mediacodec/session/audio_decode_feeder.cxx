@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "video/video_plane/core/audio/pcm_format_converter.hpp"
+#include "video/video_plane/core/audio/pcm_channel_downmix.hpp"
 
 namespace kivo::video::mediacodec {
 namespace {
@@ -182,7 +183,15 @@ void AudioDecodeFeeder::drain_once(std::int64_t timeout_us, bool& got_data) {
     }
 
     // 环形缓冲的声道数是构造期定死的，两侧必须一致，否则写入即错位。
-    if (output.channel_count != ring_.channel_count()) {
+    //
+    // 唯一的例外是 5.1 → 立体声（显式开启时）：解码器出 6ch，环收 2ch，
+    // 中间由本文件做一次标准下混。理由见头文件 DownmixPolicy 的注释：
+    // 真高清素材的人声几乎全在 FC，交给平台做 6→2 会把人声压掉。
+    const bool downmix_requested =
+        downmix_policy_ == DownmixPolicy::kAllow &&
+        output.channel_count == core::audio::kSourceChannels5Point1 &&
+        ring_.channel_count() == core::audio::kStereoChannels;
+    if (!downmix_requested && output.channel_count != ring_.channel_count()) {
         stats_.error = "channel count mismatch: decoder=" + std::to_string(output.channel_count) +
                        " ring=" + std::to_string(ring_.channel_count());
         return;
@@ -211,6 +220,36 @@ void AudioDecodeFeeder::drain_once(std::int64_t timeout_us, bool& got_data) {
         }
         stats_.decoded_peak = std::max(stats_.decoded_peak, std::abs(converted_[i]));
     }
+
+    if (downmix_requested) {
+        // 5.1 → 立体声。矩阵见 core/audio/pcm_channel_downmix.hpp：
+        // FC 各 0.7071 进左右（LFE 丢弃），保住承载人声的中置声道。
+        const std::size_t needed =
+            static_cast<std::size_t>(converted.frames_written) * core::audio::kStereoChannels;
+        if (downmixed_.size() < needed) {
+            downmixed_.resize(needed);
+        }
+        const std::int32_t written = core::audio::downmix_5point1_to_stereo(
+            converted_.data(), converted.frames_written, downmixed_.data(),
+            static_cast<std::int32_t>(downmixed_.size() / core::audio::kStereoChannels));
+        if (written != converted.frames_written) {
+            stats_.error = "5.1 to stereo downmix wrote " + std::to_string(written) +
+                           " frames but expected " + std::to_string(converted.frames_written);
+            return;
+        }
+        for (std::size_t i = 0; i < static_cast<std::size_t>(written) * core::audio::kStereoChannels; ++i) {
+            if (!std::isfinite(downmixed_[i])) {
+                stats_.error = "5.1 to stereo downmix produced non-finite PCM";
+                return;
+            }
+            stats_.downmixed_peak = std::max(stats_.downmixed_peak, std::abs(downmixed_[i]));
+        }
+        stats_.downmixed_frames += written;
+        push_frames(downmixed_.data(), written);
+        got_data = true;
+        return;
+    }
+
     push_frames(converted_.data(), converted.frames_written);
     got_data = true;
 }

@@ -8,6 +8,7 @@ import android.os.storage.StorageManager
 import android.view.Surface
 import com.kivo.cinema.net.RangeFd
 import com.kivo.cinema.playback.NetworkPlaybackSession
+import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -158,9 +159,23 @@ class SmbPlaybackSeekInstrumentation : Instrumentation() {
             runCatching { session?.awaitClosed(5_000) }
             runCatching { surface?.release() }
             runCatching { texture?.release() }
+            // 252：同步证据默认写到 applicationContext 的 filesDir，而 instrumentation 的
+            // applicationContext 是**测试包**（com.kivo.cinema.test），跑完也读不到。
+            // 这里显式把它复制到 app 包的 filesDir，才能用 run-as 读到音频段的
+            // downmix / negotiated / feed 字段（人声过小的客观判据）。
+            runCatching {
+                val testSide = File(targetContext.applicationContext.filesDir, "evidence/network-native-sync.json")
+                val appSide = File(targetContext.filesDir, "evidence/network-native-sync.json")
+                if (testSide.isFile) {
+                    appSide.parentFile?.mkdirs()
+                    testSide.copyTo(appSide, overwrite = true)
+                    report += "SYNC ${appSide.absolutePath} ${appSide.length()} bytes"
+                } else {
+                    report += "SYNC missing ${testSide.absolutePath}"
+                }
+            }
         }
     }
-
     private fun case(name: String, body: () -> Unit) {
         total += 1
         body()

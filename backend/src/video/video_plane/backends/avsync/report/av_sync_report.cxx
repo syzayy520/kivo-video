@@ -1721,6 +1721,12 @@ std::string render_av_sync_json(const AvSyncStats& stats) {
         << ", \"channel_count\": " << audio.output_format.channel_count << ", \"encoding\": "
         << quoted(std::string(core::audio::pcm_encoding_name(audio.output_format.encoding)))
         << ", \"diverged\": " << (audio.output_format_diverged ? "true" : "false") << "},\n";
+    // 252 人声过小的判据。downmix_to_stereo=true 表示我们自己折的，
+    // 于是平台不再做 6→2 —— 输出端看到的是立体声，FC（中置/人声）被保住。
+    out << "    \"downmix\": {\"to_stereo\": " << (audio.downmix_to_stereo ? "true" : "false")
+        << ", \"output_channel_count\": " << audio.output_channel_count
+        << ", \"downmixed_frames\": " << audio.feed.downmixed_frames
+        << ", \"downmixed_peak\": " << audio.feed.downmixed_peak << "},\n";
     out << "    \"ring_capacity_frames\": " << audio.ring_capacity_frames << ",\n";
     out << "    \"prefill_reached\": " << (audio.prefill_reached ? "true" : "false") << ",\n";
     out << "    \"prefill_budget_millis\": " << audio.prefill_budget_millis << ",\n";

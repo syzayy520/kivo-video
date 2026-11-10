@@ -2211,6 +2211,8 @@ endif()
 set(KIVO_P12C_CORE_AUDIO_SOURCES
   src/video/video_plane/core/audio/spsc_audio_ring_buffer.cxx
   src/video/video_plane/core/audio/pcm_format_converter.cxx
+  # 252：5.1 → 立体声下混。人声几乎全在 FC，交给平台做 6→2 会把人声压掉。
+  src/video/video_plane/core/audio/pcm_channel_downmix.cxx
   src/video/video_plane/core/audio/clock/audio_clock_types.cxx
   src/video/video_plane/core/audio/clock/monotonic_clock_guard.cxx
   src/video/video_plane/core/audio/clock/frame_position_extrapolator.cxx
@@ -2257,6 +2259,20 @@ if(MSVC)
 endif()
 add_test(NAME kivo_p12c_pcm_tests COMMAND kivo_p12c_pcm_tests)
 set_tests_properties(kivo_p12c_pcm_tests PROPERTIES TIMEOUT 60)
+
+# ─── 252: 5.1 → 立体声下混矩阵 ───
+# 人声是否还在，全看这张矩阵：FC 必须以 0.7071 同时进左右。
+# 系数错了不会崩、不会报错，只会"听着人声小一点"，所以单独一组断言守住。
+add_executable(kivo_p12c_downmix_tests
+  tests/video/audio_plane/p12c_pcm_tests/pcm_channel_downmix_tests.cpp
+)
+target_link_libraries(kivo_p12c_downmix_tests PRIVATE kivo_p12c_core_audio)
+target_compile_features(kivo_p12c_downmix_tests PRIVATE cxx_std_23)
+if(MSVC)
+  target_compile_options(kivo_p12c_downmix_tests PRIVATE /utf-8)
+endif()
+add_test(NAME kivo_p12c_downmix_tests COMMAND kivo_p12c_downmix_tests)
+set_tests_properties(kivo_p12c_downmix_tests PROPERTIES TIMEOUT 60)
 
 # ─── P12-C4: 音频主时钟 ───
 # 三类异常（时间戳倒退 / 跳变 / 切换采样率）与回退三档全部落在纯逻辑层，

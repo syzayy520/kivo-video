@@ -41,6 +41,10 @@ struct AudioPlaybackStats {
     // ── 协商结果 ──
     std::int32_t negotiated_sample_rate = 0;
     std::int32_t negotiated_channel_count = 0;
+    /// 送进设备的声道数。5.1 源时为 2（我们自己折过），否则等于源声道数。
+    std::int32_t output_channel_count = 0;
+    /// 是否做了 5.1 → 立体声下混。true 说明平台不再需要做 6→2。
+    bool downmix_to_stereo = false;
     std::string negotiated_format;
     std::string sharing_mode;
     std::string performance_mode;
