@@ -54,6 +54,21 @@ Java_com_kivo_cinema_smb_Smb2Native_nativeDestroy(JNIEnv* /*env*/, jobject /*thi
     if (ctx != nullptr) smb2_destroy_context(ctx);
 }
 
+// 读阶段超时（250 D2）。连接与打开文件仍用 nativeCreate 里的 15 s ——
+// 慢网络上的认证 + 树连接真的要几秒；而单次 READ 真机最坏 300 ms 量级，
+// 3 s 已是 10 倍余量。两者混用一个值，就会出现"为了读快把连接也掐死"。
+//
+// 这个值决定"多久才知道读没回来"，是断网体验的直接上限：
+// 15 s 时用户看到的是卡住十几秒没反应，3 s 才谈得上"5 秒内提示"。
+JNIEXPORT jint JNICALL
+Java_com_kivo_cinema_smb_Smb2Native_nativeSetReadTimeout(JNIEnv* /*env*/, jobject /*thiz*/,
+                                                         jlong ctxPtr, jint seconds) {
+    auto* ctx = reinterpret_cast<struct smb2_context*>(ctxPtr);
+    if (ctx == nullptr || seconds <= 0) return -1;
+    smb2_set_timeout(ctx, static_cast<int>(seconds));
+    return 0;
+}
+
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_smb_Smb2Native_nativeConnect(JNIEnv* env, jobject /*thiz*/, jlong ctxPtr,
                                                   jstring host, jint port, jstring share,

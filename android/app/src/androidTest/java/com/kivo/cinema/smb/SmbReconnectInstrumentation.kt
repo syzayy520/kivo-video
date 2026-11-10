@@ -66,7 +66,12 @@ class SmbReconnectInstrumentation : Instrumentation() {
             texture = SurfaceTexture(0)
             val surf = Surface(texture)
             surface = surf
-            val range = RangeFd(source, targetContext.getSystemService(StorageManager::class.java))
+            // 按生产接线传链路探针（250 D3）：否则测的是"没有看门狗"的旧行为。
+            val range = RangeFd(
+                source,
+                targetContext.getSystemService(StorageManager::class.java),
+                online = { com.kivo.cinema.net.NetworkLinkMonitor.isOnline(targetContext) },
+            )
             session = NetworkPlaybackSession(targetContext, range)
 
             case("起播（准备 + 首帧会话就绪）") {
@@ -93,7 +98,12 @@ class SmbReconnectInstrumentation : Instrumentation() {
                     failedReason = session.lastError
                     break
                 }
-                if (session.buffering) sawBuffering = true
+                if (session.buffering && !sawBuffering) {
+                    sawBuffering = true
+                    // 记下"从位置停止到界面能提示"的间隔（250 G5 判据：≤5 s）。
+                    // 位置停止时刻 ≈ 断网时刻，所以这个数是 AC8 的直接度量。
+                    log("BUFFERING", "位置停止后 ${System.currentTimeMillis() - lastChangeAt} ms 首次上报重连中")
+                }
                 val now = System.currentTimeMillis()
                 val pos = session.positionUs
                 if (pos > last + 200_000L) {

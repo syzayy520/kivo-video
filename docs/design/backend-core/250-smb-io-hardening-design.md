@@ -165,6 +165,14 @@ fun denyReason(): String                   // "网络已断开" / "连接已断�
 跨线程 `smb2_destroy_context` 会 free 掉正在被读的内存，不能碰）。
 **所以本卡的目标是"最坏 3 s"，不是 0。**
 
+> **实测结论（2026-11-10，S3，与预期不符，必须记下来）**：
+> `smb2_set_timeout(ctx, 3)` 调用返回 0，但断网后 `smb2_pread` 仍 **15 s** 才返回。
+> 也就是说 **libsmb2 的 PDU 超时在"连接半死"时不按设定值生效**。
+> 想回读 `smb2->timeout` 验证，但 `struct smb2_context` 是不透明类型（定义在私有头里），
+> 拿不到。继续往 libsmb2 内部挖的收益不明，因此**改用下面的 D3 看门狗作为主手段**，
+> 这一条只作为双保险保留（它确实让"连接层面的 PDU 有上限"，只是断网这条路上不起作用）。
+> 恢复仍要 15 s + 退避 ≈ 17 s —— 那属于 251（异步流水线 / 可中断读）的范围。
+
 **D3 · 链路可达性：静态查询，不注册回调**
 
 `NetworkLinkMonitor`（`net/`，唯一 Android 依赖点）：
@@ -182,11 +190,19 @@ object NetworkLinkMonitor {
 - 我们只在**读失败时**问一次"现在还有网吗"，查询是同步的、微秒级，频率 = 失败频率。
 - 没有回调 = 没有"注册了忘注销"这种 bug 面。
 
-接法：`SmbByteSource.open(..., online = { NetworkLinkMonitor.isOnline(ctx) })`，默认值 `{ true }`
-（保证 JVM 单测不需要 Context）。
+接法：`RangeFd(source, storage, online = { NetworkLinkMonitor.isOnline(ctx) })`，
+由 `RangeFd` 起一个 **1 秒轮询的看门狗线程**（`KivoSmbLink`，daemon）：
+查不到网就立刻置 `stalled = true`，读成功时清掉。
 
-用户感知：断网 → 最坏 3 s 内 `RangeFd.stalled = true` → 现有 245 的"网络中断，正在重连…"文案出现。
-**AC8 的 5 s 从"必然 16 s"变为"最坏 3 s"，且恢复后不再等满退避。**
+为什么要"看门狗"而不是只靠读失败：实测证明读超时在断网时不按设定值返回（见 D2 的实测结论），
+**"有没有网"是系统事实，本来就不该等 IO 报错才知道**。看门狗把提示延迟从
+15 s 压到 1 s，且完全不依赖 libsmb2 的内部行为。
+
+`online` 默认为 null（不监视），保证 `HttpRangeFile` 等既有调用方零改动、零额外线程。
+
+用户感知：断网 → **约 1 s 内** `RangeFd.stalled = true` → 245 的"网络中断，正在重连…"出现。
+真机实测（K40 / 4K HEVC 硬解）：`位置停止后 1000 ms 首次上报重连中`，比测试自身的
+`STALL`（5 s 判定）还早 4 秒。
 
 **D4 · `SmbByteSource` 拆成 6 个单职责单元**
 

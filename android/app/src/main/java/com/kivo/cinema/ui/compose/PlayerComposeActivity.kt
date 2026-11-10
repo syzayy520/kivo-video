@@ -514,6 +514,9 @@ class PlayerComposeActivity : ComponentActivity() {
                     com.kivo.cinema.smb.SmbCredential(
                         username = record.username, password = record.password),
                     filePath,
+                    // 250 D3：断网时 socket 不会立刻报错，只能"读失败后问一句有没有网"。
+                    // 不注入这个，界面上要等满读超时才知道断了。
+                    online = { com.kivo.cinema.net.NetworkLinkMonitor.isOnline(applicationContext) },
                 )
                 source = opened
                 check(!cancelled.get())
@@ -521,6 +524,7 @@ class PlayerComposeActivity : ComponentActivity() {
                 val range = com.kivo.cinema.net.RangeFd(
                     opened,
                     getSystemService(android.os.storage.StorageManager::class.java),
+                    online = { com.kivo.cinema.net.NetworkLinkMonitor.isOnline(applicationContext) },
                 )
                 // 起播前判定链路：平台能解走硬解（历史行为零回归），
                 // 解不了（如 VC-1——设备没有该解码器）走 FFmpeg 软解。
@@ -712,13 +716,17 @@ class PlayerComposeActivity : ComponentActivity() {
         var audioRange: com.kivo.cinema.net.RangeFd? = null
         var fd: android.os.ParcelFileDescriptor? = null
         try {
-            src = com.kivo.cinema.smb.SmbByteSource.open(address, credential, filePath)
+            src = com.kivo.cinema.smb.SmbByteSource.open(
+                address, credential, filePath,
+                online = { com.kivo.cinema.net.NetworkLinkMonitor.isOnline(applicationContext) },
+            )
             // 音频轨读取同样是顺序流式（FFmpeg demux 一个读指针），必须开预读。
             // 关掉的话每 1 MiB 都要同步等一次网络往返（实测 fill_avg 213 ms），
             // 音频环随时可能被抽干，表现就是隔几秒断一下。
             src.setPrefetchEnabled(true)
             audioRange = com.kivo.cinema.net.RangeFd(
-                src, getSystemService(android.os.storage.StorageManager::class.java))
+                src, getSystemService(android.os.storage.StorageManager::class.java),
+                online = { com.kivo.cinema.net.NetworkLinkMonitor.isOnline(applicationContext) })
             fd = audioRange.openDescriptor()
             val audio = com.kivo.cinema.playback.SoftAudioSession(label, fd, audioRange.size)
             if (audio.start() != 0) {

@@ -34,10 +34,45 @@ class RangeFd(
      * 超过这个上限才判定为真故障 —— 这也是唯一会写 [failureReason] 的路径。
      */
     private val readPatienceMs: Long = DEFAULT_PATIENCE_MS,
+    /**
+     * 链路可达性探针（250 D3）。非 null 时起一个 1 秒轮询：**断网立刻置 [stalled]**，
+     * 不等 `onRead` 在 JNI 里超时。
+     *
+     * 为什么必须另起一条检测而不靠读超时：真机实测（K40，4K 硬解），
+     * 即便把 libsmb2 的 `smb2_set_timeout` 设成 3 s，断网后 `smb2_pread` 仍然
+     * 15 s 才返回 —— `stalled` 因此在断网 15 s 后才为真，界面一直显示"正在播放"。
+     * 而"有没有网"是系统事实，本来就不该等 IO 报错才知道。
+     */
+    private val online: (() -> Boolean)? = null,
 ) : RangeSource {
 
     private val cancelled = AtomicBoolean(false)
     private val readers = CopyOnWriteArrayList<Reader>()
+
+    /**
+     * 链路看门狗（250 D3）。只在传了 [online] 时启动；1 秒一次，掉线立刻点亮 [stalled]，
+     * 让界面在"读还没失败"的时候就知道该提示"网络已断开"。
+     */
+    private val linkWatchdog: Thread? = online?.let { probe ->
+        Thread({
+            while (!cancelled.get()) {
+                try {
+                    Thread.sleep(LINK_POLL_MS)
+                } catch (_: InterruptedException) {
+                    return@Thread
+                }
+                if (cancelled.get()) return@Thread
+                val reachable = runCatching { probe() }.getOrDefault(true)
+                if (!reachable && !stalled) {
+                    stalled = true
+                    android.util.Log.i("KivoRangeFd", "link lost (watchdog)")
+                }
+            }
+        }, "KivoSmbLink").apply {
+            isDaemon = true
+            start()
+        }
+    }
 
     override val size: Long = source.size()
 
@@ -99,7 +134,7 @@ class RangeFd(
                     if (read < 0) break          // ByteSource 契约：-1 = 文件尾
                     if (read == 0) break
                     filled += read
-                    if (stalledBy != null) {
+                    if (stalled || stalledBy != null) {
                         android.util.Log.i(
                             "KivoRangeFd",
                             "read recovered offset=${offset + filled} after ${waited}ms",
@@ -156,5 +191,8 @@ class RangeFd(
     companion object {
         /** 20 秒：覆盖 Wi-Fi 重连（通常 2–5 秒）与路由器/NAS 短时重启。 */
         private const val DEFAULT_PATIENCE_MS = 20_000L
+
+        /** 链路轮询间隔。1 秒 = 用户能忍受的"卡了一下才发现"，又不至于耗电。 */
+        private const val LINK_POLL_MS = 1_000L
     }
 }

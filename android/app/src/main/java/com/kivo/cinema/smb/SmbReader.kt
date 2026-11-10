@@ -51,6 +51,12 @@ class SmbReader(
             throw failure
         }
         size = length
+        // 打开完成之后才把超时收窄到读窗口：connect / open 用 15 s 的耐心（慢网络上的
+        // 认证与树连接真要几秒），READ 用 3 s —— 真机单次 1 MiB 最坏 300 ms 量级。
+        // 这个值直接决定断网后"多久才知道读没回来"，是 P0-1 的上限。
+        // 设不上就不能静默：那等于悄悄退回 15 秒，用户看到的是"卡住十几秒没反应"。
+        val timeoutRc = Smb2Native.nativeSetReadTimeout(created, READ_TIMEOUT_SECONDS)
+        require(timeoutRc == 0) { "无法设置 SMB 读超时（rc=$timeoutRc）" }
     }
 
     /**
@@ -79,4 +85,9 @@ class SmbReader(
         Smb2Native.nativeGetError(ctx),
         credential.anonymous,
     )
+
+    private companion object {
+        /** 读超时（秒）。见 [open] 里的说明。 */
+        const val READ_TIMEOUT_SECONDS = 3
+    }
 }

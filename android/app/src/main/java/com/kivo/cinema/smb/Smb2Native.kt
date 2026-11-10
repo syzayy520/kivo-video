@@ -18,6 +18,12 @@ object Smb2Native {
     external fun nativeCreate(): Long
     external fun nativeDestroy(ctx: Long)
 
+    /**
+     * 把读阶段超时改成 [seconds]（250 D2）。必须在 connect / open 成功之后调用 ——
+     * 那两个阶段需要更长的耐心（慢网络上的认证与树连接），只有 READ 该用短超时。
+     */
+    external fun nativeSetReadTimeout(ctx: Long, seconds: Int): Int
+
     /** 连到 [share]；返回 0 成功。share 用 "IPC$" 时是枚举共享的前置连接。 */
     external fun nativeConnect(ctx: Long, host: String, port: Int, share: String,
                                user: String, pass: String, domain: String): Int

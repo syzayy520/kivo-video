@@ -52,6 +52,19 @@ class SmbBrowserActivity : ComponentActivity() {
      */
     private val loadSeq = java.util.concurrent.atomic.AtomicInteger()
 
+    /**
+     * 断网优先（250 D3）。
+     *
+     * SMB 的失败文案分得很细（账号错 / 共享没授权 / 路径不存在），但"根本没网"
+     * 比这些都靠前 —— 这时候说"账号或密码不正确"，会把用户带到完全错误的方向。
+     */
+    private fun offlineOr(failure: Throwable, fallback: String): String =
+        if (!com.kivo.cinema.net.NetworkLinkMonitor.isOnline(this)) {
+            "网络已断开，请检查 Wi-Fi 后重试"
+        } else {
+            failure.message ?: fallback
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent { BrowserScreen() }
@@ -93,7 +106,7 @@ class SmbBrowserActivity : ComponentActivity() {
                 status = if (list.isEmpty()) "服务器没有列出共享，请编辑这个源并写明共享名" else "选择一个共享"
             }
         } catch (e: Exception) {
-            runOnUiThread { error = e.message ?: "无法读取共享列表"; loading = false }
+            runOnUiThread { error = offlineOr(e, "无法读取共享列表"); loading = false }
         }
     }
 
@@ -105,7 +118,7 @@ class SmbBrowserActivity : ComponentActivity() {
             session = opened
             load(address.path)
         } catch (e: Exception) {
-            runOnUiThread { error = e.message ?: "无法连接共享"; loading = false }
+            runOnUiThread { error = offlineOr(e, "无法连接共享"); loading = false }
         }
     }
 
@@ -146,7 +159,7 @@ class SmbBrowserActivity : ComponentActivity() {
             } catch (e: Exception) {
                 runOnUiThread {
                     if (isFinishing || isDestroyed || seq != loadSeq.get()) return@runOnUiThread
-                    error = e.message ?: "无法读取文件夹"
+                    error = offlineOr(e, "无法读取文件夹")
                     loading = false
                 }
             }
