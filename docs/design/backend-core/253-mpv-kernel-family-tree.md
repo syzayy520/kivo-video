@@ -52,28 +52,52 @@
 
 ```
 android/app/src/main/cpp/mpv/
-├── CMakeLists.txt                 # 只做一件事：登记本家族的源文件与依赖
-├── jni_mpv_bridge.cpp             # 只做一件事：JNI 导出表（薄壳，转发到下列各层）
-├── mpv_session.hpp                # 家族内唯一的会话接口（其余文件都依赖它）
-├── mpv_session.cpp                # 只做一件事：libmpv 句柄的创建/销毁/生命周期
-├── mpv_options.cpp                # 只做一件事：把播放参数映射成 mpv option
-├── mpv_commands.cpp               # 只做一件事：seek/pause/音量等**命令**下发
-├── mpv_event_loop.cpp             # 只做一件事：mpv 事件队列 → 回调给上层
-├── mpv_video_output.cpp           # 只做一件事：把视频帧交给 ANativeWindow
-├── mpv_audio_output.cpp           # 只做一件事：音频通路的配置与统计
-├── mpv_source_resolver.cpp        # 只做一件事：把"我们的源描述"翻译成 mpv 能开的 URL
-└── mpv_stats_bridge.cpp           # 只做一件事：把 mpv 状态翻译成我们的证据 JSON
+├── mpv/                            # mpv 官方头文件（client.h / render.h / render_gl.h）
+├── jni_mpv_bridge.cpp              # 只做一件事：JNI 导出表（薄壳，转发到下列各层）
+├── mpv_session.hpp                 # 家族内唯一的会话接口（其余文件都依赖它）
+├── mpv_session.cpp                 # 只做一件事：libmpv 句柄的创建/销毁/生命周期
+├── mpv_session_impl.hpp            # 家族内私有的共享状态（家族外不可见）
+├── mpv_commands.cpp                # 只做一件事：seek/pause/属性读取等**命令**下发
+├── mpv_event_loop.cpp              # 只做一件事：轮询 mpv 属性 → 回调给上层
+├── mpv_video_output.hpp            # 视频输出层的接口声明
+├── mpv_gl_render.cpp               # 只做一件事：EGL + mpv 渲染上下文 → Surface
+└── mpv_java_vm.{hpp,cpp}           # 只做一件事：把 JavaVM 注册给 FFmpeg
 ```
+
+**与初稿的差异（如实记录）**：
+
+| 初稿设想 | 实际落地 | 原因 |
+| --- | --- | --- |
+| `mpv_options.cpp` | 合并进 `mpv_session.cpp` | 选项只有七八个，单独一个文件反而是"为了凑文件而凑" |
+| `mpv_audio_output.cpp` | **不需要** | mpv 的 `ao=audiotrack` 自己输出，我们不碰音频通路 |
+| `mpv_video_output.cpp` | 改为 `mpv_gl_render.cpp` + `mpv_video_output.hpp` | 实现要 EGL 头文件，接口不该被拖进去 |
+| `mpv_source_resolver.cpp` | 改为 Kotlin 的 `LocalRangeServer` | URL 构造与 HTTP 服务是 Kotlin 侧的事，放 C++ 里反而多一层 |
+| `mpv_stats_bridge.cpp` | **不需要** | mpv 的日志直接落文件，比翻译成 JSON 更省事也更好读 |
+| （新增）`mpv_java_vm.{hpp,cpp}` | — | **初稿漏了**：mpv 的硬解与音频都要 JavaVM，宿主不注册就全废 |
 
 **边界规则**（写进每个文件的注释头）：
 
 | 规则 | 含义 |
 | --- | --- |
 | B1 | 本家族**不得**引用 `backend/src/video/video_plane/backends/` 的任何头文件 |
-| B2 | 本家族**不得**直接调用 FFmpeg API（那是 mpv 的事） |
+| B2 | 本家族**不得**直接调用 FFmpeg 的解码/解复用 API。**受控例外**：`mpv_java_vm.cpp` 调 FFmpeg 的 `av_jni_set_java_vm` / `av_jni_set_android_app_ctx` / `av_jni_get_java_vm` —— 它们是"环境注册"入口，不是解码 API；本文件不含任何播放逻辑。 |
 | B3 | 本家族**不得**碰 Android UI（上层用 Kotlin 订阅回调） |
 | B4 | 每个 .cpp 只暴露 `mpv_session.hpp` 里声明过的接口；跨文件调用一律走该头文件 |
 | B5 | 每个 .cpp 的行数控制在 **300 行以内**（与 `jni_player_bridge.cxx` 的 300 行线同一条规矩） |
+
+### 2.1 Kotlin 侧家族（`android/app/src/main/java/com/kivo/cinema/`）
+
+```
+mpv/
+├── MpvNative.kt                    # 只做一件事：native 句柄的 Kotlin 门面
+└── LocalRangeServer.kt             # 只做一件事：把 ByteSource 变成 mpv 能读的 HTTP URL
+playback/
+├── MpvPlaybackSession.kt           # libmpv 内核的播放会话（与 NetworkPlaybackSession 同名同义）
+└── PlaybackEngine.kt               # 只做一件事：内核选择（系统属性 mpv / legacy）
+```
+
+`LocalRangeServer` 放在 Kotlin 而不是 C++ 的理由：它要实现 `ByteSource`（Kotlin 接口），
+而且 HTTP 服务本身没有性能瓶颈（瓶颈在 SMB 读，而那在 `SmbByteSource` 里）。
 
 ---
 
