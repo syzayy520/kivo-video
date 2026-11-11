@@ -238,12 +238,29 @@ void VideoOutput::render_loop(void* display_ptr, void* surface_ptr, void* contex
             }
 
             // render 同样用参数数组：MPV_RENDER_PARAM_OPENGL_FBO 指定渲染目标。
+            //
+            // 【为什么必须传 FLIP_Y = 1】
+            // 我们的目标是 **Android Surface**（eglCreateWindowSurface），
+            // 它的缓冲按**图像约定**（左上原点、Y 向下）被系统读取；
+            // 而 OpenGL 渲染到 FBO 用的是 **GL 约定**（左下原点、Y 向上）。
+            // 不翻转 ⇒ 上下颠倒。
+            //
+            // mpv 的 render.h 写着 "MPV_RENDER_PARAM_FLIP_Y is currently ignored
+            // (unsupported)"，**但 mpv 0.39 的实现是支持的**：
+            // video/out/gpu/libmpv_gpu.c:184 读它，赋给 `struct ra_fbo.flip`，
+            // 而 video/out/gpu/video.c:2952/3172/3482 用它做 Y 翻转。
+            // 文档与实现不一致 ⇒ **以实现为准**。
+            //
+            // 【真机证据】不传时字幕跑到画面**顶部**、文字**左右镜像**
+            // （实测截图见 docs/evidence/p253/mpv-kernel/ 的翻转取证）。
+            int flip_y = 1;
             mpv_opengl_fbo fbo{};
             fbo.fbo = 0;
             fbo.w = target_w;
             fbo.h = target_h;
             mpv_render_param render_params[] = {
                 {MPV_RENDER_PARAM_OPENGL_FBO, &fbo},
+                {MPV_RENDER_PARAM_FLIP_Y, &flip_y},
                 {MPV_RENDER_PARAM_INVALID, nullptr},
             };
             mpv_render_context_render(render_context, render_params);

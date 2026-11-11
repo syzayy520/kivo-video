@@ -14,11 +14,82 @@
 
 | 问题 | 状态 |
 | --- | --- |
+| **整个 mpv 帧上下颠倒** | ✅ **已修**（`MPV_RENDER_PARAM_FLIP_Y`）—— 见 §零·二 |
 | 字幕轨道能枚举/能选中 | ✅ 已证明（5 条 PGS 中文轨，`sid` 写进去生效） |
 | **字幕渲染通路（OSD 合成 + 上屏）是否可用** | ✅ **已证明可用** —— 外挂 SRT 文本字幕清晰上屏（见 §三 的截图证据） |
 | 字体匹配 | ✅ 已证明可用（`fontselect: (Noto Sans CJK JP, 400, 0) -> NotoSansCJKjp-Regular`） |
 | **PGS 位图字幕为何不上屏** | ⚠️ 未闭环，但已缩小到 mpv 内部的**位图字幕缩放**环节（见 §五） |
 | 旧交接文档 §四.2 第 2 步（`--osd-dimensions=video`） | ❌ **错的，不要执行**（见 §二） |
+
+---
+
+## 零·二、另一个独立的 bug：整个 mpv 帧上下颠倒（已修）
+
+**这不是字幕的问题，是整帧渲染方向的问题**，2026-11-11 21:10 发现并修复。
+
+### 症状
+
+| 现象 | 修复前 | 修复后 |
+| --- | --- | --- |
+| 字幕位置 | 画面**顶部** | 画面**底部** ✅ |
+| 字幕文字 | `AAA-PBOBE-ETTITƎ-UBV-OIAK`（反读） | `KIVO-MPV-SUBTITLE-PROBE-AAAA` ✅ 正读 |
+| 画面内英文 | 反读 | `EXECUTIVE PRODUCERS / VICTOR HADIDA` ✅ 正读 |
+
+### 根因
+
+`mpv_gl_render.cpp` 调 `mpv_render_context_render` 时**只传了 `MPV_RENDER_PARAM_OPENGL_FBO`**，
+没传 `MPV_RENDER_PARAM_FLIP_Y`。
+
+**为什么必须传**：我们的渲染目标是 **Android Surface**（`eglCreateWindowSurface`），
+它的缓冲按**图像约定**（左上原点、Y 向下）被系统读取；
+而 OpenGL 渲染到 FBO 用的是 **GL 约定**（左下原点、Y 向上）。
+不翻转 ⇒ **上下颠倒**。
+
+### 为什么文档说的"不支持"是错的
+
+mpv 的 `libmpv/render.h:156` 写着：
+
+```
+* - MPV_RENDER_PARAM_FLIP_Y is currently ignored (unsupported)
+```
+
+**但 mpv 0.39 的实现是支持的**：
+
+- `video/out/gpu/libmpv_gpu.c:184`
+  ```c
+  bool flip = *(int *)get_mpv_render_param(params, MPV_RENDER_PARAM_FLIP_Y, &(int){0});
+  struct ra_fbo target = {.tex = tex, .flip = flip};
+  ```
+- `video/out/gpu/video.c:2952 / 3172 / 3482` 用 `fbo->flip` 做 Y 翻转。
+
+⇒ **文档与实现不一致时以实现为准**，而且必须实测。
+
+### 修法（一行）
+
+```cpp
+int flip_y = 1;
+mpv_render_param render_params[] = {
+    {MPV_RENDER_PARAM_OPENGL_FBO, &fbo},
+    {MPV_RENDER_PARAM_FLIP_Y, &flip_y},
+    {MPV_RENDER_PARAM_INVALID, nullptr},
+};
+```
+
+### 为什么会漏掉（三条原因叠加，缺一不可）
+
+1. 上一轮拿到的三张截图里，片头那几个镜头**恰好没有可读文字**，
+   "倒置"被误当成 Shelter 刻意的美术风格（并写进了 `status.md`）。
+2. 字幕本身就没显示（另一个 bug），**掩盖了**方向问题。
+3. mpv 的 render.h 文档明说 FLIP_Y "unsupported"，读代码的人自然会信。
+
+⇒ **教训**："文档说不支持"不等于"实现不支持"。
+   凡涉及"某个 API/参数能不能用"，**必须实测**，不能照文档下结论。
+
+### 为什么 mpv-android 不会遇到
+
+mpv-android **完全不用 render API**（`app/src/main/jni/render.cpp` 用 `wid`，
+mpv 自己建 EGL 与窗口，方向由 mpv 内部处理）。
+⇒ **这条路径是我们独有的**，翻转只会出现在自建 EGL + render API 的实现里。
 
 ---
 

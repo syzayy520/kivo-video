@@ -195,9 +195,29 @@ mpv 日志：Using hardware decoding (mediacodec-copy).
 
 - 渲染层诊断（写进 mpv 日志文件）：`RND render vp=2320x956 target=2320x956`
   —— Surface 尺寸正常、渲染循环在跑。
-- 画面方向**正确**：片头那段倒置的文字是 Shelter 刻意的"监控录像"风格，不是翻转 bug。
-  （mpv v0.39 的 `MPV_RENDER_PARAM_FLIP_Y` 官方注明 "currently ignored (unsupported)"，
-  所以翻转只能靠 vo 层选项，而我们这条路径不需要。）
+
+> ⚠️ **2026-11-11 21:10 更正：下面这条"画面方向正确"的结论是错的。**
+> 原文写"片头那段倒置的文字是 Shelter 刻意的『监控录像』风格，不是翻转 bug"，
+> 并给出理由"mpv v0.39 的 `MPV_RENDER_PARAM_FLIP_Y` 官方注明 currently ignored (unsupported)"。
+>
+> **那个理由是错的** —— mpv 0.39 **实现上是支持的**：
+> `video/out/gpu/libmpv_gpu.c:184` 读 `MPV_RENDER_PARAM_FLIP_Y` 并赋给 `struct ra_fbo.flip`，
+> `video/out/gpu/video.c:2952/3172/3482` 用它做 Y 翻转。
+> 文档与实现不一致 ⇒ **以实现为准**。
+>
+> **实测**：不传 `MPV_RENDER_PARAM_FLIP_Y` 时，整个 mpv 帧**上下颠倒**：
+> 字幕跑到画面**顶部**、英文正读变成反读
+> （`KIVO-MPV-SUBTITLE-PROBE-AAAA` 显示成 `AAA-PBOBE-ETTITƎ-UBV-OIAK`）。
+> 加上 `{MPV_RENDER_PARAM_FLIP_Y, &flip_y}`（flip_y = 1）后**方向完全正确**：
+> 字幕回到画面底部且正读，画面英文（`EXECUTIVE PRODUCERS / VICTOR HADIDA`）也正读。
+>
+> **为什么之前没人发现**：
+> ① 上一轮拿到的三张截图里，片头那几个镜头**恰好没有可读文字**，
+>    且"倒置"被误当成美术风格；
+> ② 字幕本身就没显示（另一个 bug），掩盖了方向问题；
+> ③ mpv 的 render.h 文档明说 FLIP_Y "unsupported"，读代码的人自然会信。
+>
+> ⇒ **教训**："文档说不支持"不等于"实现不支持"。这种地方必须**实测**，不能照文档下结论。
 
 ### 为验证 UI 路径做的准备
 
