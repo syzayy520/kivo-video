@@ -142,6 +142,31 @@ class PlayerComposeActivity : ComponentActivity() {
                 android.os.Handler(mainLooper).postDelayed(this, 200)
                 return
             }
+            val mpvSession = mpvNetSession
+            if (mpvSession != null) {
+                // 253-P3：libmpv 内核的状态回显。与旧内核同一套字段语义。
+                positionMs = (mpvSession.positionUs / 1000).coerceAtLeast(0)
+                    .let { if (durationMs > 0) it.coerceAtMost(durationMs) else it }
+                isPlaying = mpvSession.state == com.kivo.cinema.playback.MpvPlaybackSession.State.PLAYING
+                when (mpvSession.state) {
+                    com.kivo.cinema.playback.MpvPlaybackSession.State.FAILED -> {
+                        statusText = "网络播放失败：${mpvSession.lastError}"
+                        controlsVisible = true
+                        return
+                    }
+                    com.kivo.cinema.playback.MpvPlaybackSession.State.ENDED -> {
+                        statusText = "播放结束"
+                        controlsVisible = true
+                        return
+                    }
+                    else -> {
+                        if (statusText.startsWith("网络中断")) {
+                            statusText = "正在播放"
+                        }
+                    }
+                }
+                return
+            }
             val netSession = smbNetSession
             if (netSession != null) {
                 durationMs = netSession.durationUs / 1000
@@ -263,6 +288,7 @@ class PlayerComposeActivity : ComponentActivity() {
                                         smbSoftAudio?.seekTo(ms * 1000)
                                         positionMs = ms
                                     }
+                                    mpvNetSession != null -> mpvNetSession?.seekTo(ms * 1000)
                                     smbNetSession != null -> smbNetSession?.seekTo(ms * 1000)
                                     else -> playbackSession?.seekTo(ms * 1000)
                                 }
@@ -324,6 +350,7 @@ class PlayerComposeActivity : ComponentActivity() {
         // surface 回调本身就是"面可用"的证明——不再依赖 Listener 的 surfaceReady 标志
         surfaceReady = true
         if (playbackStarted) {
+            mpvNetSession?.rebind(holder.surface)
             smbNetSession?.rebind(holder.surface)
             playbackSession?.rebind(holder.surface)
             return
@@ -432,6 +459,14 @@ class PlayerComposeActivity : ComponentActivity() {
     // ---- 243：SMB 片源播放（libsmb2 → SmbByteSource → RangeFd → 解码器 fd）----
     // 传输层由 RangeFd + SmbByteSource 持有，Activity 只持有会话；不在这里再存读句柄。
     private var smbNetSession: com.kivo.cinema.playback.NetworkPlaybackSession? = null
+    /**
+     * 253-P3：libmpv 内核会话。
+     *
+     * 与 [smbNetSession] **互斥**：同一次播放只有一条视频链路。
+     * 引擎选择由 [com.kivo.cinema.playback.PlaybackEngine] 决定
+     * （系统属性 `debug.kivo.engine` = `mpv` / `legacy`）。
+     */
+    private var mpvNetSession: com.kivo.cinema.playback.MpvPlaybackSession? = null
     /**
      * 软解会话（VC-1 / 平台无解码器时走这条）。
      *
@@ -556,6 +591,15 @@ class PlayerComposeActivity : ComponentActivity() {
                         return@runOnUiThread
                     }
                     networkPreparationCancelled = null
+                    // 253-P3：内核选择。mpv 内核直接吃 ByteSource（SmbByteSource），
+                    // 不经过 RangeFd —— mpv 通过 HTTP 代理按 offset 读，与 fd 无关。
+                    // 两条链路互斥，共享同一个 opened（SMB 源）。
+                    val engine = com.kivo.cinema.playback.PlaybackEngine.select()
+                    if (engine == com.kivo.cinema.playback.PlaybackEngine.Engine.MPV) {
+                        smbTrace("engine=mpv")
+                        startMpvPlayback(holder, opened)
+                        return@runOnUiThread
+                    }
                     if (routing.useFfmpeg) {
                         // 软解是顺序流式读（FFmpeg 一个读指针往前走），预读命中率实测 100%，
                         // 开了才能跑到 24 fps。
@@ -637,6 +681,40 @@ class PlayerComposeActivity : ComponentActivity() {
                 }
             }
         }, "KivoSmbPrepare").start()
+    }
+
+    /**
+     * 253-P3：libmpv 内核起播。
+     *
+     * 与 [startNetworkPlayback] 的分工：旧内核用 fd + MediaExtractor；mpv 内核用
+     * HTTP 代理 + FFmpeg 的 demux。两条链路**互斥**。
+     *
+     * 传输层复用同一个 [com.kivo.cinema.smb.SmbByteSource] —— 块窗口/预读/断网恢复
+     * 都在它里面，代理只是把 readAt 翻译成 HTTP Range。
+     */
+    private fun startMpvPlayback(
+        holder: SurfaceHolder,
+        source: com.kivo.cinema.smb.SmbByteSource,
+    ) {
+        if (finishRequested || isDestroyed) return
+        playbackStarted = true
+        smbPlayback = true
+        statusText = "正在准备内核播放…"
+        val session = com.kivo.cinema.playback.MpvPlaybackSession(this, source)
+        mpvNetSession = session
+        session.start(holder.surface) { result ->
+            if (finishRequested || isDestroyed || mpvNetSession !== session) return@start
+            if (result == 0) {
+                statusText = "正在播放"
+                isPlaying = true
+                lastTouchMs = System.currentTimeMillis()
+                android.os.Handler(mainLooper).post(positionPoll)
+            } else {
+                statusText = "网络视频无法播放：${session.lastError}"
+                isPlaying = false
+                controlsVisible = true
+            }
+        }
     }
 
     /** Emby and SMB share the same native A/V pipeline. Preparation never blocks main. */
@@ -850,6 +928,12 @@ class PlayerComposeActivity : ComponentActivity() {
             network.stop {
                 android.os.Handler(mainLooper).post { closingNetworks -= network }
             }
+        }
+        // 253-P3：libmpv 内核会话。与旧内核互斥，但收尾路径要一并处理。
+        val mpv = mpvNetSession
+        mpvNetSession = null
+        if (mpv != null) {
+            mpv.stop()
         }
         // 软解的 close() 会 join 解码线程（内部还可能有阻塞读），不能放主线程。
         // 顺序固定：先停会话（它借用的 fd 还活着），再关 RangeFd（fd 的所有者）。

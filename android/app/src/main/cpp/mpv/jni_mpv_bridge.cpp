@@ -222,6 +222,17 @@ Java_com_kivo_cinema_mpv_MpvNative_nativePositionSeconds(JNIEnv*, jclass, jlong 
     return it->second->position_seconds();
 }
 
+JNIEXPORT jdouble JNICALL
+Java_com_kivo_cinema_mpv_MpvNative_nativeDurationSeconds(JNIEnv*, jclass, jlong handle) {
+    std::lock_guard lock(kivo::video::mpv::table_lock());
+    auto& table = kivo::video::mpv::session_table();
+    auto it = table.find(handle);
+    if (it == table.end()) {
+        return -1.0;
+    }
+    return it->second->duration_seconds();
+}
+
 JNIEXPORT void JNICALL
 Java_com_kivo_cinema_mpv_MpvNative_nativeRelease(JNIEnv*, jclass, jlong handle) {
     std::lock_guard lock(kivo::video::mpv::table_lock());

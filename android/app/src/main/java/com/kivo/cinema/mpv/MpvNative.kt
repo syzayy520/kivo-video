@@ -32,6 +32,7 @@ object MpvNative {
     @JvmStatic external fun nativeSeek(handle: Long, position: Double, exact: Boolean): Int
     @JvmStatic external fun nativeCommand(handle: Long, name: String, args: String): Int
     @JvmStatic external fun nativePositionSeconds(handle: Long): Double
+    @JvmStatic external fun nativeDurationSeconds(handle: Long): Double
     @JvmStatic external fun nativeRelease(handle: Long)
 }
 
@@ -89,6 +90,9 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
 
     /** 当前播放位置（秒）；读不到返回 -1。 */
     fun positionSeconds(): Double = MpvNative.nativePositionSeconds(handle)
+
+    /** 总时长（秒）；读不到返回 -1。 */
+    fun durationSeconds(): Double = MpvNative.nativeDurationSeconds(handle)
 
     override fun close() {
         MpvNative.nativeRelease(handle)

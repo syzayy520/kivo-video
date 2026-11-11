@@ -98,6 +98,9 @@ public:
     /// 当前播放位置（秒）。读不到返回 -1。
     [[nodiscard]] double position_seconds();
 
+    /// 总时长（秒）。读不到（媒体还没加载完）返回 -1。
+    [[nodiscard]] double duration_seconds();
+
     /// 最后一帧错误信息。
     [[nodiscard]] std::string error() const;
 

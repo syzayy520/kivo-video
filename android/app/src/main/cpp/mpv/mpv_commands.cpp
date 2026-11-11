@@ -114,4 +114,14 @@ double Session::position_seconds() {
     return rc < 0 ? -1.0 : position;
 }
 
+double Session::duration_seconds() {
+    if (!impl_ || !impl_ || impl_->handle == nullptr) {
+        return -1.0;
+    }
+    // `duration` 只有在媒体加载完成后才有值；未加载时 mpv 返回错误 → -1。
+    double duration = 0.0;
+    const int rc = mpv_get_property(impl_->handle, "duration", MPV_FORMAT_DOUBLE, &duration);
+    return rc < 0 ? -1.0 : duration;
+}
+
 }  // namespace kivo::video::mpv
