@@ -1,3 +1,25 @@
+> 2026-11-11 21:15 **✅ 方向 bug 已修：整个 mpv 帧原本是上下颠倒的**（字幕与画面一起反了）。
+> **症状**：字幕跑到画面**顶部**；英文正读变成反读
+> （`KIVO-MPV-SUBTITLE-PROBE-AAAA` 显示成 `AAA-PBOBE-ETTITƎ-UBV-OIAK`）；
+> 画面里的英文（片头字幕、演职员表 `EXECUTIVE PRODUCERS / VICTOR HADIDA`）同样反读。
+> **根因**：`mpv_gl_render.cpp` 调 `mpv_render_context_render` 时只传了
+> `MPV_RENDER_PARAM_OPENGL_FBO`，**没传 `MPV_RENDER_PARAM_FLIP_Y`**。
+> 我们的目标是 Android Surface（`eglCreateWindowSurface`），缓冲按**图像约定**
+> （左上原点、Y 向下）被系统读取；OpenGL 渲染到 FBO 用 **GL 约定**（左下原点、Y 向上）。
+> 不翻转 ⇒ 上下颠倒。**修法**：传 `{MPV_RENDER_PARAM_FLIP_Y, &flip_y}`（flip_y=1）。
+> **⚠️ 记一笔**：mpv 的 `libmpv/render.h:156` 写着 "MPV_RENDER_PARAM_FLIP_Y is
+> currently ignored (unsupported)"，**但 mpv 0.39 的实现是支持的**
+> （`video/out/gpu/libmpv_gpu.c:184` 读它 → `ra_fbo.flip` →
+> `video/out/gpu/video.c:2952/3172/3482` 做 Y 翻转）。
+> **文档与实现不一致时以实现为准，而且必须实测。**
+> **为什么之前漏掉**（三条叠加，缺一不可）：① 上一轮那三张截图里片头镜头**恰好没有可读文字**，
+> "倒置"被误当成 Shelter 刻意的美术风格，**还写进了证据文档**；② 字幕本身就没显示（另一个 bug），
+> **掩盖了**方向问题；③ mpv 文档明说 unsupported，读代码的人自然会信。
+> ⇒ 上一轮 `docs/evidence/p253/mpv-kernel/status.md` 里"画面方向正确"那条断言**已标注为错误**。
+> **对照**：REX 在 iPhone 上的播放页截图（`docs/reference/rex-teardown/`）方向正常。
+> **遗留**：PGS 位图字幕仍未上屏（**与方向无关，是独立的第二个问题**），
+> 入口见 [p6-2-subtitle-diagnosis.md](../evidence/p253/mpv-kernel/p6-2-subtitle-diagnosis.md) §五。
+
 > 2026-11-11 20:10 **⚠️ 下一张卡：253-P6-2 字幕上屏（当前唯一硬缺口）——但别照旧交接文档做**。
 > **指针**：交接文档 [253-mpv-kernel-p6-control-plane.md](../design/backend-core/253-mpv-kernel-p6-control-plane.md)；
 > 家族树 [253-mpv-kernel-family-tree.md](../design/backend-core/253-mpv-kernel-family-tree.md)；

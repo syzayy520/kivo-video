@@ -12,6 +12,20 @@
 
 # 交接快照 · Kivo Video Android 后端核心
 
+> 2026-11-11 21:15 **✅ 方向 bug 已修：整个 mpv 帧原本上下颠倒**（字幕与画面一起反了）。
+> 症状：字幕跑到画面**顶部**、英文正读变反读（`KIVO-MPV-SUBTITLE-PROBE-AAAA`
+> 显示成 `AAA-PBOBE-ETTITƎ-UBV-OIAK`）；画面里的英文（`EXECUTIVE PRODUCERS`）
+> 同样反读。根因：`mpv_gl_render.cpp` 调 `mpv_render_context_render` 时
+> **没传 `MPV_RENDER_PARAM_FLIP_Y`** —— Surface 缓冲按图像约定（Y 向下）读，
+> OpenGL 按 GL 约定（Y 向上）写，不翻转就是上下颠倒。
+> **修法**：传 `{MPV_RENDER_PARAM_FLIP_Y, &flip_y}`（flip_y=1）。
+> **注意**：mpv 的 `render.h` 写着该参数 "currently ignored (unsupported)"，
+> **但 mpv 0.39 的实现是支持的**（`libmpv_gpu.c:184` → `ra_fbo.flip` →
+> `video.c:2952/3172/3482`）。**文档与实现不一致时以实现为准，且必须实测。**
+> 上一轮"画面方向正确、是 Shelter 刻意美术风格"那条断言**是错的**，已更正。
+> **遗留**：PGS 位图字幕仍未上屏（与方向无关，独立问题），入口见
+> [p6-2-subtitle-diagnosis.md](../evidence/p253/mpv-kernel/p6-2-subtitle-diagnosis.md) §五。
+
 > 2026-11-11 20:10 **⚠️ 当前指针：253-P6-2 字幕上屏（libmpv 内核，唯一硬缺口）**。
 > 交接文档 [253-mpv-kernel-p6-control-plane.md](../design/backend-core/253-mpv-kernel-p6-control-plane.md)，
 > 家族树 [253-mpv-kernel-family-tree.md](../design/backend-core/253-mpv-kernel-family-tree.md)，
