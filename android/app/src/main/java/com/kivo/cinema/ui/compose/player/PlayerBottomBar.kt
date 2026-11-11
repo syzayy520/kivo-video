@@ -16,6 +16,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -56,6 +60,10 @@ internal fun PlayerBottomBar(
     onTextAction: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // 拖动目标时刻（REX：拖动中左端实时显示"会跳到哪"）。
+    // 非空 ⇒ 左端时间显示目标；为空 ⇒ 显示当前位置。
+    var dragTargetMs by remember { mutableStateOf<Long?>(null) }
+
     // 渐变层与内容层**平级**：内容不设高度 ⇒ 命中测试在它自己的范围内，
     // 固定高度的容器会把超出的按钮裁掉（第一版实机：底部文字只剩上半、点不到）。
     Box(modifier = modifier.fillMaxWidth()) {
@@ -87,8 +95,12 @@ internal fun PlayerBottomBar(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = formatPlayerTime(positionMs),
-                    color = PlayerTokens.textPrimary,
+                    text = formatPlayerTime(dragTargetMs ?: positionMs),
+                    color = if (dragTargetMs != null) {
+                        PlayerTokens.activeAccent
+                    } else {
+                        PlayerTokens.textPrimary
+                    },
                     fontSize = PlayerTokens.timeSize.sp,
                     lineHeight = PlayerTokens.timeSize.sp,
                     fontFamily = FontFamily.Monospace,
@@ -100,6 +112,7 @@ internal fun PlayerBottomBar(
                     durationMs = durationMs,
                     thumbnailBitmap = thumbnailBitmap,
                     previewMs = previewMs,
+                    onDragTarget = { dragTargetMs = it },
                     onScrub = onScrub,
                     onSeek = onSeek,
                     modifier = Modifier.weight(1f),

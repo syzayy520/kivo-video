@@ -60,6 +60,8 @@ internal fun PlayerOverlay(
     panelOpen: Boolean,
     flashZone: DoubleTapZone?,
     toastText: String,
+    hudKind: PlayerHudKind?,
+    hudFraction: Float,
     onClose: () -> Unit,
     onDismissPanel: () -> Unit,
     onAction: (String) -> Unit,
@@ -71,6 +73,9 @@ internal fun PlayerOverlay(
     onPanelSelect: (PlayerOptionItem) -> Unit,
     onTap: () -> Unit,
     onDoubleTap: (DoubleTapZone) -> Unit,
+    onVerticalDragStart: (Float) -> Unit,
+    onVerticalDrag: (Float) -> Unit,
+    onVerticalDragEnd: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -81,6 +86,9 @@ internal fun PlayerOverlay(
         PlayerGestureLayer(
             onTap = { if (panelOpen) onDismissPanel() else onTap() },
             onDoubleTap = onDoubleTap,
+            onVerticalDragStart = onVerticalDragStart,
+            onVerticalDrag = onVerticalDrag,
+            onVerticalDragEnd = onVerticalDragEnd,
         )
 
         // ---- 字幕层（在底栏**之上**，两者不相交）----
@@ -165,6 +173,23 @@ internal fun PlayerOverlay(
                 },
                 onSelect = onPanelSelect,
                 onDismiss = onDismissPanel,
+            )
+        }
+
+        // ---- 亮度/音量 HUD（参考 M03-S03）----
+        if (hudKind != null) {
+            PlayerGestureHud(
+                kind = hudKind,
+                fraction = hudFraction,
+                modifier = Modifier
+                    .align(
+                        if (hudKind == PlayerHudKind.BRIGHTNESS) {
+                            Alignment.CenterStart
+                        } else {
+                            Alignment.CenterEnd
+                        },
+                    )
+                    .padding(horizontal = 36.dp),
             )
         }
 

@@ -58,6 +58,31 @@ internal fun DrawScope.drawCoreGlyph(kind: String, color: Color, stroke: Stroke)
             drawLine(color, Offset(9.5f, 17.5f), Offset(19.5f, 6.5f), stroke.width, StrokeCap.Round)
         }
 
+        // ---- 亮度（太阳）----
+        // 亮度 HUD 的图标：中心圆 + 8 道光芒
+        "sun" -> {
+            drawCircle(
+                color = color,
+                radius = 4.6f,
+                center = Offset(12f, 12f),
+                style = stroke,
+            )
+            var i = 0
+            while (i < 8) {
+                val angle = i * Math.PI / 4.0
+                val cos = kotlin.math.cos(angle).toFloat()
+                val sin = kotlin.math.sin(angle).toFloat()
+                drawLine(
+                    color = color,
+                    start = Offset(12f + cos * 7.2f, 12f + sin * 7.2f),
+                    end = Offset(12f + cos * 10.2f, 12f + sin * 10.2f),
+                    strokeWidth = stroke.width,
+                    cap = StrokeCap.Round,
+                )
+                i++
+            }
+        }
+
         // ---- 音量（喇叭 + 声波）----
         "volume" -> {
             val spk = Path().apply {

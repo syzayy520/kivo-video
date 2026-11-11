@@ -2,6 +2,7 @@ package com.kivo.cinema.ui.compose.player
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -36,6 +37,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 internal fun PlayerGestureLayer(
     onTap: () -> Unit,
     onDoubleTap: (DoubleTapZone) -> Unit,
+    onVerticalDragStart: (Float) -> Unit = {},
+    onVerticalDrag: (Float) -> Unit = {},
+    onVerticalDragEnd: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     // 【为什么必须用 rememberUpdatedState】
@@ -46,10 +50,29 @@ internal fun PlayerGestureLayer(
     // 用 rememberUpdatedState 把最新回调带进长生命周期的手势协程。
     val currentOnTap by rememberUpdatedState(onTap)
     val currentOnDoubleTap by rememberUpdatedState(onDoubleTap)
+    val currentDragStart by rememberUpdatedState(onVerticalDragStart)
+    val currentDrag by rememberUpdatedState(onVerticalDrag)
+    val currentDragEnd by rememberUpdatedState(onVerticalDragEnd)
 
     Box(
         modifier = modifier
             .fillMaxSize()
+            // 【竖向拖动：亮度/音量】参考 M03-S03。
+            // 这个 pointerInput **排在 tap 之前**：
+            // 拖动一旦发生就把事件消费掉，tap 检测器随之取消（不会误触发"点一下收起控制条"）。
+            // 横向拖动（进度条 seek）不在这里处理 —— 进度条在**上层**，
+            // 它会先拿到事件并消费，我们的竖向检测因此不会误触发。
+            .pointerInput(Unit) {
+                detectVerticalDragGestures(
+                    onDragStart = { offset -> currentDragStart(offset.x) },
+                    onDragEnd = { currentDragEnd() },
+                    onDragCancel = { currentDragEnd() },
+                    onVerticalDrag = { change, dragAmount ->
+                        change.consume()
+                        currentDrag(dragAmount)
+                    },
+                )
+            }
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { currentOnTap() },

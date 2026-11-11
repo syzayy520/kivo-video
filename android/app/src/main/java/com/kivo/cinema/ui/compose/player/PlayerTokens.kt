@@ -31,6 +31,9 @@ object PlayerTokens {
     /** 进度条未播放段。 */
     val trackRemaining = Color(0x4DFFFFFF)   // 白 30%
 
+    /** 进度条未播放段（**拖动中**变亮：白 55%）。 */
+    val trackDragging = Color(0x8CFFFFFF)     // 白 55%
+
     /** 顶栏渐变（自上而下）。比 REX 多这一层：我们的片源黑场多，纯透明图标会看不见。 */
     val topScrimTop = Color(0x00000000)
     val topScrimBottom = Color(0x47000000)   // 黑 28%
@@ -43,8 +46,8 @@ object PlayerTokens {
     val panelSurface = Color(0xF2101012)
 
     /** 玻璃面板的渐变底（上略亮 → 下更深）：平色块贴画面上会显廉价。 */
-    val glassTop = Color(0xF72A2A30)
-    val glassBottom = Color(0xF2101013)
+    val glassTop = Color(0xFA2A2A30)
+    val glassBottom = Color(0xFA101013)
 
     /** 面板描边（深色场景里靠描边把面板边界说清楚）。 */
     val panelBorder = Color(0x26FFFFFF)

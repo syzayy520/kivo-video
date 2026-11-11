@@ -105,10 +105,12 @@ object PlayerPanelData {
         listOf(
             PlayerOptionItem(
                 title = "自动",
-                // 【为什么还要比 "Original"】mpv 的默认值打印出来就是 "Original"
-                // （command.c:3006，`aspect_ratio == -1`）。只判空会导致
-                // "自动"这一项**永远没有勾** —— 看着像没生效。
-                selected = current.isBlank() || current.equals("Original", ignoreCase = true),
+                // 【为什么还要比 "Original"/"-1"】mpv 的默认值是 -1（= 原始比例），
+                // 读回来可能是 "Original" 也可能是 "-1"/"-1.000"（取决于读取方式）。
+                // 只判空会导致"自动"这一项**永远没有勾** —— 看着像没生效。
+                selected = current.isBlank() ||
+                    current.equals("Original", ignoreCase = true) ||
+                    current.trim().startsWith("-"),
                 tag = "Original",
             ),
         ) +

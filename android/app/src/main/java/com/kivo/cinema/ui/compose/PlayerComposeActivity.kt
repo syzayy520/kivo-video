@@ -82,6 +82,10 @@ class PlayerComposeActivity : ComponentActivity() {
     /** 轻提示文案（REX M08-03：淡入→停留→淡出）。空 = 不显示。 */
     private var toastText by mutableStateOf("")
 
+    /** 亮度/音量 HUD 的种类与当前值（null = 不显示）。参考 M03-S03。 */
+    private var hudKind by mutableStateOf<com.kivo.cinema.ui.compose.player.PlayerHudKind?>(null)
+    private var hudFraction by mutableStateOf(0f)
+
     /**
      * 顶栏右侧的实时网速（REX 有这个位置，我们放在动作图标左侧）。
      *
@@ -398,6 +402,8 @@ class PlayerComposeActivity : ComponentActivity() {
                         panelOpen = activePanel.isNotBlank(),
                         flashZone = flashZone,
                         toastText = toastText,
+                        hudKind = hudKind,
+                        hudFraction = hudFraction,
                         onClose = { finish() },
                         onDismissPanel = { activePanel = "" },
                         onAction = { kind -> onTopAction(kind) },
@@ -415,6 +421,9 @@ class PlayerComposeActivity : ComponentActivity() {
                             controlsVisible = !controlsVisible
                         },
                         onDoubleTap = { zone -> onDoubleTap(zone) },
+                        onVerticalDragStart = { x -> onVerticalDragStart(x) },
+                        onVerticalDrag = { dy -> onVerticalDrag(dy) },
+                        onVerticalDragEnd = { onVerticalDragEnd() },
                         onRetry = { onRetry() },
                     )
 
@@ -1456,6 +1465,95 @@ class PlayerComposeActivity : ComponentActivity() {
         toastText = message
         android.os.Handler(mainLooper).postDelayed({ toastText = "" }, 1_800)
     }
+
+    /**
+     * 上下滑手势的**起点**：决定这次调的是亮度还是音量。
+     *
+     * 【分区规则】参考 M03-S03：左半屏亮度、右半屏音量。
+     */
+    private fun onVerticalDragStart(x: Float) {
+        val w = resources.displayMetrics.widthPixels.toFloat().coerceAtLeast(1f)
+        val kind = if (x < w / 2f) {
+            com.kivo.cinema.ui.compose.player.PlayerHudKind.BRIGHTNESS
+        } else {
+            com.kivo.cinema.ui.compose.player.PlayerHudKind.VOLUME
+        }
+        hudKind = kind
+        hudFraction = currentHudFraction(kind)
+    }
+
+    /** 上下滑手势的**过程**：向上滑 = 增大。 */
+    private fun onVerticalDrag(dragAmount: Float) {
+        val kind = hudKind ?: return
+        val h = resources.displayMetrics.heightPixels.toFloat().coerceAtLeast(1f)
+        val delta = -dragAmount / (h * 0.55f)
+        val next = (hudFraction + delta).coerceIn(0f, 1f)
+        hudFraction = next
+        applyHudValue(kind, next)
+    }
+
+    /** 手势结束：HUD 停留 1 秒后淡出（参考 M03-S03："停止 1s→淡出"）。 */
+    private fun onVerticalDragEnd() {
+        android.os.Handler(mainLooper).postDelayed({ hudKind = null }, 1_000)
+    }
+
+    /** 读当前的亮度/音量（0..1）。 */
+    private fun currentHudFraction(kind: com.kivo.cinema.ui.compose.player.PlayerHudKind): Float =
+        when (kind) {
+            com.kivo.cinema.ui.compose.player.PlayerHudKind.BRIGHTNESS -> currentWindowBrightness()
+            com.kivo.cinema.ui.compose.player.PlayerHudKind.VOLUME -> currentMediaVolume()
+        }
+
+    /** 写亮度/音量（0..1）。 */
+    private fun applyHudValue(
+        kind: com.kivo.cinema.ui.compose.player.PlayerHudKind,
+        value: Float,
+    ) {
+        when (kind) {
+            com.kivo.cinema.ui.compose.player.PlayerHudKind.BRIGHTNESS -> {
+                // 【为什么用窗口级亮度】改系统全局亮度会让**整台设备**变暗，
+                // 退出播放器后还得手动调回来 —— 参考明确要求"退出需恢复系统亮度"。
+                // 窗口级亮度只影响本播放器，退出即失效，天然满足要求。
+                val params = window.attributes
+                params.screenBrightness = value
+                window.attributes = params
+            }
+            com.kivo.cinema.ui.compose.player.PlayerHudKind.VOLUME -> {
+                val am = audioManager()
+                val max = am.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
+                if (max > 0) {
+                    am.setStreamVolume(
+                        android.media.AudioManager.STREAM_MUSIC,
+                        (value * max).toInt(),
+                        0,
+                    )
+                }
+            }
+        }
+    }
+
+    /** 当前窗口亮度（窗口级为 -1 时取系统亮度）。 */
+    private fun currentWindowBrightness(): Float {
+        val windowBrightness = window.attributes.screenBrightness
+        if (windowBrightness >= 0f) return windowBrightness
+        return runCatching {
+            android.provider.Settings.System.getInt(
+                contentResolver,
+                android.provider.Settings.System.SCREEN_BRIGHTNESS,
+            ) / 255f
+        }.getOrDefault(0.5f)
+    }
+
+    /** 当前媒体音量（0..1）。 */
+    private fun currentMediaVolume(): Float {
+        val am = audioManager()
+        val max = am.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
+        if (max <= 0) return 0f
+        return am.getStreamVolume(android.media.AudioManager.STREAM_MUSIC).toFloat() / max
+    }
+
+    private fun audioManager(): android.media.AudioManager =
+        getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
 
     /** 顶栏动作的短暂高亮（切换成功的零成本确认，见 player-ui-v2.md §五.4）。 */
     private fun flashAction(kind: String) {

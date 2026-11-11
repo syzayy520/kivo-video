@@ -48,12 +48,17 @@ internal fun PlayerSeekTrack(
     durationMs: Long,
     thumbnailBitmap: Bitmap?,
     previewMs: Long,
+    onDragTarget: (Long?) -> Unit,
     onScrub: (Long) -> Unit,
     onSeek: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var dragging by remember { mutableStateOf(false) }
     var dragFraction by remember { mutableFloatStateOf(0f) }
+
+    // 拖动目标时刻（REX：拖动中左端实时显示目标时间）。
+    // 用回调把目标**抛给父级**显示 —— 父级才知道该显示在哪（左端时间位）。
+    var lastTarget by remember { mutableLongStateOf(0L) }
 
     // 采样时刻：位置**每次变化**时记一次（比帧循环晚 ~1 帧，误差可忽略）。
     // 有了它就能按帧插值，而不是"跟着 100ms 的采样一跳一跳"。
@@ -101,23 +106,33 @@ internal fun PlayerSeekTrack(
                         if (durationMs > 0) {
                             val f = (offset.x / size.width).coerceIn(0f, 1f)
                             dragFraction = f
-                            onScrub((f * durationMs).roundToInt().toLong())
+                            val ms = (f * durationMs).roundToInt().toLong()
+                            lastTarget = ms
+                            onDragTarget(ms)
+                            onScrub(ms)
                         }
                     },
                     onHorizontalDrag = { change, _ ->
                         if (durationMs > 0) {
                             val f = (change.position.x / size.width).coerceIn(0f, 1f)
                             dragFraction = f
-                            onScrub((f * durationMs).roundToInt().toLong())
+                            val ms = (f * durationMs).roundToInt().toLong()
+                            lastTarget = ms
+                            onDragTarget(ms)
+                            onScrub(ms)
                         }
                     },
                     onDragEnd = {
                         dragging = false
+                        onDragTarget(null)
                         if (durationMs > 0) {
-                            onSeek((dragFraction * durationMs).roundToInt().toLong())
+                            onSeek(lastTarget)
                         }
                     },
-                    onDragCancel = { dragging = false },
+                    onDragCancel = {
+                        dragging = false
+                        onDragTarget(null)
+                    },
                 )
             },
     ) {
@@ -142,9 +157,10 @@ internal fun PlayerSeekTrack(
             val trackHeight = with(density) { PlayerTokens.trackHeight.dp.toPx() }
             val trackY = (size.height - trackHeight) / 2f
             val radius = CornerRadius(trackHeight / 2f)
-            // 未播放段
+            // 未播放段（**拖动中整体变亮** —— 参考：拖动中轨道变白，
+            // 让用户看清"松手后会落到哪一段"）
             drawRoundRect(
-                color = PlayerTokens.trackRemaining,
+                color = if (dragging) PlayerTokens.trackDragging else PlayerTokens.trackRemaining,
                 topLeft = Offset(0f, trackY),
                 size = Size(size.width, trackHeight),
                 cornerRadius = radius,
