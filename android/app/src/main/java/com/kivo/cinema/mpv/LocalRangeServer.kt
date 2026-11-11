@@ -79,8 +79,31 @@ class LocalRangeServer private constructor(
         return id
     }
 
-    /** 拼出 mpv 可以直接用的 URL。 */
-    fun urlFor(id: String): String = "$baseUrl/$id"
+    /**
+     * 拼出 mpv 可以直接用的 URL。
+     *
+     * 【为什么带这一串 query】
+     * FFmpeg 的 http 协议把 URL 的 query 参数直接喂给 `av_opt_set_dict`，
+     * 所以这里可以就地打开它的重连能力：
+     *  · `reconnect=1` —— 连接在 EOF 前断开时自动重连；
+     *  · `reconnect_at_eof=1` —— 读到一半流断掉时也重连（断网最常见的情形）；
+     *  · `reconnect_streamed=1` —— 允许对流式源重连；
+     *  · `reconnect_on_network_error=1` —— TCP 层错误（不是 HTTP 状态码）也重连；
+     *  · `reconnect_on_http_error=503` —— 收到 503 时重连。
+     *    代理在 SMB 读失败时返回的就是 503（见 respondGet 的说明）；
+     *  · `reconnect_delay_max=5` —— 退避最多 5 秒；
+     *  · `rw_timeout=150` —— 单次读超时 150 秒。
+     *    【为什么这么大】代理在断网时会**挂着等**（见 readWithRetry），
+     *    这段时间内核这边一个字节都收不到 —— 超时太短内核就放弃了。
+     *    150 秒与代理的 READ_RETRY_WINDOW_MS(120s) 对齐并留了余量。
+     *
+     * 没有这些，mpv 在断网后**不会自己接上**（真机实测：网络 29 秒恢复，
+     * 位置一直停在 34.66 秒不动）。
+     */
+    fun urlFor(id: String): String =
+        "$baseUrl/$id?reconnect=1&reconnect_at_eof=1&reconnect_streamed=1" +
+            "&reconnect_on_network_error=1&reconnect_on_http_error=503" +
+            "&reconnect_delay_max=5&rw_timeout=150"
 
     /** 注销并关闭一个源。 */
     fun release(id: String) {
@@ -184,6 +207,26 @@ class LocalRangeServer private constructor(
         }
 
         val length = end - start + 1
+
+        // 【为什么先读第一块再发响应头】
+        // 断网时 SMB 读会失败。如果先发 `200 OK` + Content-Length 再去读，
+        // 中途失败就只能**直接断连** —— FFmpeg 看到的是"网络错误"，
+        // 而它的 http 协议默认**不会**在网络错误后重连（reconnect_on_network_error=0）。
+        //
+        // 先读第一块再发头：读失败 ⇒ 返回 **503 Service Unavailable**，
+        // FFmpeg 收到明确的 HTTP 状态码，只要 URL 上带
+        // `reconnect_on_http_error=503` 就会按退避重试。
+        // 这条路径比"断连重连"可靠得多（断连在 TCP 层，FFmpeg 分不清是
+        // "服务端挂了"还是"网络抖了"）。
+        val chunk = ByteArray(256 * 1024)
+        val firstWant = minOf(chunk.size.toLong(), length).toInt()
+        val firstGot = readWithRetry(source, start, chunk, 0, firstWant)
+        if (firstGot <= 0) {
+            // 读不出来且已过重试窗口：按"暂时不可用"处理，让内核按退避重试整个请求。
+            writeSimple(out, 503, "Service Unavailable")
+            return
+        }
+
         val header = StringBuilder()
         header.append("HTTP/1.1 ").append(if (partial) "206 Partial Content" else "200 OK").append("\r\n")
         header.append("Accept-Ranges: bytes\r\n")
@@ -197,15 +240,66 @@ class LocalRangeServer private constructor(
         out.flush()
 
         // 分块读，边读边写 —— 一次不把整个区间塞进内存。
-        val chunk = ByteArray(256 * 1024)
-        var offset = start
+        out.write(chunk, 0, firstGot)
+        out.flush()
+        var offset = start + firstGot
         while (offset <= end) {
             val want = minOf(chunk.size.toLong(), end - offset + 1).toInt()
-            val got = synchronized(source) { source.readAt(offset, chunk, 0, want) }
+            val got = readWithRetry(source, offset, chunk, 0, want)
             if (got <= 0) break
             out.write(chunk, 0, got)
             out.flush()
             offset += got
+        }
+    }
+
+    /**
+     * 读一段，失败时**持续重试**直到成功或超过重试窗口。
+     *
+     * 【为什么必须在这里重试，而不是把失败直接告诉内核】
+     * `SmbByteSource.readAt` 在离线时**抛异常**（一次性的）——
+     * 它的退避与"等网络回来"的逻辑在 [com.kivo.cinema.smb.SmbRetryGate] 里，
+     * 由**调用方循环调用**才能生效。旧内核正是这么做的（fd 回调线程持续重试），
+     * 所以它的断网恢复只要 3.4 秒。
+     *
+     * 如果代理试一次就返回 503，FFmpeg 那边看到的是"这个文件读完了"或
+     * "服务端不可用"，demuxer 会直接判定 EOF 并放弃 —— 真机实测：
+     *   `[30.572] HTTP error 503` → `[30.572] mkv: EOF reached.` → 位置永远停住。
+     *
+     * 这里循环重试 = 复刻旧内核的语义：连接一直挂着，等网络回来后接着供数，
+     * 播放位置**不停**。只有超过窗口（默认 120 秒）才放弃并返回 503，
+     * 让内核有机会走它自己的重连逻辑。
+     *
+     * @return 读到的字节数；0 表示"到文件尾"或"重试窗口内没成功"。
+     */
+    private fun readWithRetry(
+        source: ByteSource,
+        offset: Long,
+        buf: ByteArray,
+        off: Int,
+        len: Int,
+    ): Int {
+        val deadline = System.currentTimeMillis() + READ_RETRY_WINDOW_MS
+        var attempt = 0
+        while (true) {
+            try {
+                val got = synchronized(source) { source.readAt(offset, buf, off, len) }
+                if (got > 0) return got
+                // 读到文件尾（0 或 -1）是**正常结束**，不该重试。
+                return 0
+            } catch (e: Exception) {
+                attempt += 1
+                if (System.currentTimeMillis() >= deadline || closed.get() != 0L) {
+                    return 0
+                }
+                // 退避由 SMB 层自己管（gate 的指数退避），这里只做短睡眠避免空转。
+                try {
+                    Thread.sleep(200)
+                } catch (interrupted: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    return 0
+                }
+            }
         }
     }
 
@@ -240,6 +334,16 @@ class LocalRangeServer private constructor(
     }
 
     companion object {
+        /**
+         * 读失败后的重试窗口（毫秒）。
+         *
+         * 为什么是 120 秒：断网时内核必须**等**网络回来才能继续。
+         * 窗口太短 → 代理放弃并回 503 → 内核判定 EOF → 位置永久停住；
+         * 窗口够长 → 网络一恢复就接着供数，播放位置**全程不停**。
+         * 旧内核的断网恢复是 3.4 秒（fd 线程持续重试），本窗口是它的兜底上限。
+         */
+        const val READ_RETRY_WINDOW_MS = 120_000L
+
         /**
          * 起一个代理。
          *
