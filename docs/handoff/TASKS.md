@@ -1,3 +1,47 @@
+> 2026-11-11 22:50 **✅ 播放页 UI v2 已实施并真机验证（K40 `b6e950ee`）。**
+> **范围**：只做播放页（首页不动）。参照 REX 1.0.2 真机横屏播放页**逐像素实测**建规格，
+> **结构照搬 REX、形态按 Android 重画**（线框图标、细轨无滑块、面板一个实现）。
+> **规格**：[`docs/design/ui/replica/playback/player-ui-v2.md`](../design/ui/replica/playback/player-ui-v2.md)
+> **证据**：[`docs/evidence/p240/player-ui/device/README.md`](../evidence/p240/player-ui/device/README.md)
+> **落地**：新增家族 `android/.../ui/compose/player/`（12 个文件，每个 ≤ 264 行），
+> 旧的 `PlayerControls.kt` 已删除（无引用）。**`PlayerComposeActivity` 只做接线。**
+> **已验证**：① 沉浸式全屏（状态栏+导航条都隐藏，下滑临时唤出）；
+> ② 顶栏动作图标间距实测 **135/139/136 px ≈ 50pt**，与 REX 的 50pt 一致；
+> ③ 底栏文字**完整渲染**（17sp 汉字 42px 高，不再被裁）；
+> ④ 倍速面板可开可关、当前项打勾、**选中真的写进内核**
+> （mpv 日志 `Set property: speed="1.5" -> 1` + `adding scaletempo2`）；
+> ⑤ 音轨面板显示**内核真实轨道**（en✓ / truehd / en / truehd / MANDARIN… / dts）；
+> ⑥ 顶栏网速取 mpv `cache-speed`（真实 bytes/s，不是估的）。
+> **本轮修掉的 5 个结构性 bug**（根因记录在证据 README §三，**别再踩**）：
+> ① `Modifier.align()` 作为参数传给子组件会**静默失效**（BoxScope 专属）
+>    ⇒ 底栏没贴底、被裁、点不到；面板跑到左上角。
+> ② `Row` 固定高度 < 17sp 文字行盒 ⇒ 文字被裁，**命中区一起被裁** ⇒ 按钮永远点不到。
+> ③ `Column` 固定高度 ⇒ 溢出裁切。
+> ④ 拖动预览浮窗只 `offset(x)` ⇒ 向下溢出 90dp 盖住按钮行。
+> ⑤ 轮询里调会抛的 `native()` ⇒ **Activity 起来又退回桌面**（看着像启动崩溃）。
+>    现已加 `nativeOrNull()` / `tracksOrNull()` / `currentSpeedOrNull()` 三个安全访问器。
+> **还欠着**：PGS 位图字幕的严格取证（见下一条）；字幕样式面板（字号/边距/背景）未接内核；
+> 画质比例只改 UI 记录、**没写回内核**；选集入口未接资源库（面板显示"暂无可选项"）。
+
+> 2026-11-11 21:20 **📌 记账：PGS 位图字幕不上屏 —— 独立欠账，已挂起，UI 做完再回来挖。**
+> **结论**：这不是方向问题（方向已在 21:15 修掉），是**另一个独立的 bug**。
+> **已排除**：① 字幕轨能枚举/能选中（`sid=2` 生效）；② PGS 包确实被解码
+> （`stream 5: resize index to 128`）；③ 位图确实进了 OSD 纹理
+> （`Reallocating OSD texture to 2048x512`）；④ 解码**无任何错误**
+> （没有 `unsupported subtitle type from libavcodec` / `Unable to pack subtitle bitmaps`）；
+> ⑤ **字幕渲染通路本身是好的** —— 外挂 SRT 文本字幕真机截图清晰上屏（§三）。
+> ⇒ 问题**只在 mpv 内部的位图字幕合成环节**。
+> **最值得先解的矛盾**：FFmpeg 的 PGS 解码器设 `sub->end_display_time = UINT32_MAX`
+> （`pgssubdec.c:513`），mpv 据此算 `endpts = pts + end_display_time/1000` ≈ **49.7 天**
+> （`sd_lavc.c:363`）⇒ 字幕**应当一直显示**；
+> 但实测 `sub-start`/`sub-end` 只有 **41 ms** 宽（`[14.014..14.056]`），
+> 连续播放扫描也稳定得到 41 ms 宽、间隔 208 ms 的包序列。
+> **这个矛盾是下一步的第一个入口** —— 重点看 `sd_lavc.c:371 prev->endpts = pts`
+> 是否用下一个包的 pts 覆盖了上一个包的 endpts。
+> **完整诊断与复算命令**：[p6-2-subtitle-diagnosis.md](../evidence/p253/mpv-kernel/p6-2-subtitle-diagnosis.md)
+> （含 §五 的两条未排除项与 §五.4 的下一步顺序）。
+> **判据**：真机播放页截图里**能看到中文字幕**（不是 SRT，是内挂 PGS 轨）。
+
 > 2026-11-11 21:15 **✅ 方向 bug 已修：整个 mpv 帧原本是上下颠倒的**（字幕与画面一起反了）。
 > **症状**：字幕跑到画面**顶部**；英文正读变成反读
 > （`KIVO-MPV-SUBTITLE-PROBE-AAAA` 显示成 `AAA-PBOBE-ETTITƎ-UBV-OIAK`）；

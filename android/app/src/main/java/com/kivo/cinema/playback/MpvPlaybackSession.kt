@@ -94,6 +94,26 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
      */
     fun native(): MpvSession = requireSession()
 
+    /**
+     * 原生会话的**安全**版本：会话还没起时返回 null 而不是抛异常。
+     *
+     * 【为什么需要】UI 的**轮询**会在会话建立之前就开始跑
+     * （比如顶栏网速每 1 秒读一次 `cache-speed`）。
+     * 用 [native]（会抛）会让轮询任务崩掉、整个 Activity 挂掉 ——
+     * 这正是第一版播放页 UI 实机测试时"Activity 起来又退回桌面"的原因。
+     */
+    fun nativeOrNull(): MpvSession? = session
+
+    /**
+     * 轨道目录的**安全**版本：会话还没起时返回 null 而不是抛异常。
+     *
+     * 【为什么需要】UI 的面板是**随时可能被打开**的 ——
+     * 用户在起播完成前点"音轨"就会走到这里。
+     * 用 [tracks]（会抛）会让面板直接崩掉；用这个则只是"暂时没有可选项"。
+     */
+    fun tracksOrNull(): MpvTrackCatalog? =
+        if (session != null) MpvTrackCatalog(requireSession()) else null
+
     /** 253-P6-2：字幕是否已启用（mpv 的 `sid` 有值即为启用）。 */
     val subtitlesEnabled: Boolean
         get() = tracks.currentTrackId("sub") >= 0
@@ -341,6 +361,17 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
 
     /** 当前倍速。 */
     fun currentSpeed(): Double = speed.speed()
+
+    /**
+     * 当前倍速的**安全**版本：会话还没起时返回 null。
+     *
+     * 【为什么需要】UI 的面板在会话建立前就可能被打开，
+     * 用 [currentSpeed]（会抛）会让界面崩掉。
+     */
+    fun currentSpeedOrNull(): Double? {
+        val native = session ?: return null
+        return runCatching { native.property("speed")?.toDoubleOrNull() }.getOrNull()
+    }
 
     /** 内核状态摘要，供诊断用。 */
     fun currentSummary(): String = session?.positionSeconds()?.toString().orEmpty()

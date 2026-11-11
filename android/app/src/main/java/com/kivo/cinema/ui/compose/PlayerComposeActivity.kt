@@ -15,6 +15,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.padding
@@ -38,6 +41,15 @@ class PlayerComposeActivity : ComponentActivity() {
     private var surfaceReady = false
     private var playbackStarted = false
 
+    /**
+     * 最近一次拿到的 SurfaceHolder。
+     *
+     * 【为什么留着】状态层的"重试"要能**重新起播当前源**，
+     * 而重新起播需要 Surface —— 但 `onSurfaceAvailable` 只在面变化时回调，
+     * 重试那一刻不会再回调一次。
+     */
+    private var lastSurfaceHolder: android.view.SurfaceHolder? = null
+
     private var mediaOverridePath = ""
     private var evidenceName = ""
     private var thumbnailReader: com.kivo.cinema.thumbnail.ThumbnailReader? = null
@@ -53,6 +65,63 @@ class PlayerComposeActivity : ComponentActivity() {
     private var previewMs by mutableStateOf(-1L)
     private var danmakuOn by mutableStateOf(false)
     private var danmakuItems by mutableStateOf(listOf<com.kivo.cinema.danmaku.DanmakuItem>())
+
+    // ---- 253 播放页 v2（player-ui-v2.md）----
+    //
+    // 【为什么这些状态在 Activity 而不是 Composable 里】
+    // 面板的**数据源**来自会话（mpv 的 speed / aid / subtitle 属性），
+    // 而会话的生命周期归 Activity 管。状态放 Activity ⇒ 重建不丢面板选择。
+    /** 当前打开的面板（空 = 都没开）。 */
+    private var activePanel by mutableStateOf("")
+    /** 刚执行过的动作（用于顶栏图标 1.5s 高亮反馈）。 */
+    private var activeAction by mutableStateOf("")
+    /** 面板里被选中的项（记住上次选择，见 player-ui-v2.md §五.3）。 */
+    private var selectedSpeed by mutableStateOf("1x")
+    private var selectedQuality by mutableStateOf("")
+    private var selectedAudioTrack by mutableStateOf("")
+    private var selectedSubtitle by mutableStateOf("")
+
+    /**
+     * 顶栏右侧的实时网速（REX 有这个位置，我们放在动作图标左侧）。
+     *
+     * 【数据来源】mpv 的 `cache-speed` 属性 —— "Current I/O read speed between
+     * the cache and the lower layer (like network)"，单位 bytes/s、1 秒窗口。
+     * 这就是 REX 那个 "6.5 MB/s" 的同一个量，不是我们自己估的。
+     */
+    private var speedText by mutableStateOf("")
+
+    /** 网速的采样节流（1 秒一次足够，人眼分辨不出更快的变化）。 */
+    private var lastSpeedSampleMs = 0L
+
+    /**
+     * 采样网速并写入 [speedText]。
+     *
+     * 【为什么节流】属性读取要走 JNI + mpv 内部锁，每 100ms 读一次没有意义，
+     * 反而会让 mpv 的属性树被高频访问。1 秒一次正好匹配 `cache-speed` 自己的窗口。
+     */
+    private fun sampleSpeed() {
+        val now = System.currentTimeMillis()
+        if (now - lastSpeedSampleMs < 1_000) return
+        lastSpeedSampleMs = now
+        val mpv = mpvNetSession ?: run {
+            speedText = ""
+            return
+        }
+        // 【为什么用 nativeOrNull 而不是 native】轮询会在会话建立前就跑，
+        // 用 native（会抛）会让轮询任务崩掉、整个 Activity 挂掉。
+        val native = mpv.nativeOrNull() ?: run {
+            speedText = ""
+            return
+        }
+        val bytesPerSec = runCatching {
+            native.property("cache-speed")?.toLongOrNull()
+        }.getOrNull() ?: 0L
+        speedText = when {
+            bytesPerSec <= 0L -> ""
+            bytesPerSec >= 1_000_000L -> "%.1f MB/s".format(bytesPerSec / 1_000_000.0)
+            else -> "%.0f KB/s".format(bytesPerSec / 1_000.0)
+        }
+    }
 
     private val positionPoll = object : Runnable {
         override fun run() {
@@ -182,6 +251,8 @@ class PlayerComposeActivity : ComponentActivity() {
                 if (System.currentTimeMillis() - lastTouchMs > 3000) {
                     controlsVisible = false
                 }
+                // 顶栏网速（253 播放页 v2）：1 秒一次，与 mpv 的 cache-speed 窗口对齐。
+                sampleSpeed()
                 android.os.Handler(mainLooper).postDelayed(this, 100)
                 return
             }
@@ -260,74 +331,80 @@ class PlayerComposeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // 253 播放页 v2：**沉浸式全屏**。
+        // 视频播放器里状态栏与导航条都是"切画面"，黑底电影尤其刺眼（底部白条）。
+        // 用户下滑可临时唤出系统栏（BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE）。
+        com.kivo.cinema.ui.compose.player.applyImmersivePlayerWindow(this)
         readProbeExtras()
         android.os.Handler(mainLooper).post(watchPoll)   // 237-A：观看数据域轮询
 
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black),
+                ) {
                     PlayerScreen(
                         onSurfaceReady = { holder -> maybeStartPlayback(holder) },
                         onSurfaceLost = { onSurfaceLost() },
+                    )
+
+                    // ---- 覆盖层（253 播放页 v2）----
+                    //
+                    // 【为什么整个覆盖层是一个组件】player-ui-v2.md §二 的四层架构里，
+                    // 顶栏/底栏/状态层必须**共用同一个 Box**才能保证叠放顺序
+                    // 与"字幕不被底栏遮住"这两个结构约束。
+                    com.kivo.cinema.ui.compose.player.PlayerOverlay(
+                        visible = controlsVisible,
+                        title = currentTitle(),
+                        speedText = speedText,
+                        isPlaying = isPlaying,
+                        positionMs = positionMs,
+                        durationMs = durationMs,
+                        subtitleText = "",
+                        thumbnailBitmap = thumbnailBitmap,
+                        previewMs = previewMs,
+                        resolutionLabel = resolutionLabel(),
+                        buffering = statusText.contains("缓冲") || statusText.contains("连接中"),
+                        errorText = if (statusText.contains("失败") || statusText.contains("中断")) statusText else "",
+                        activeAction = activeAction,
+                        panelTitle = panelTitle(),
+                        panelItems = panelItems(),
+                        panelOpen = activePanel.isNotBlank(),
+                        onClose = { finish() },
+                        onDismissPanel = { activePanel = "" },
+                        onAction = { kind -> onTopAction(kind) },
+                        onPlayPause = { togglePlayPause() },
+                        onNext = { /* 下一集：资源库未接入，明确不假装 */ },
+                        onScrub = { ms ->
+                            lastTouchMs = System.currentTimeMillis()
+                            thumbnailReader?.seekTo(ms * 1000)
+                        },
+                        onSeek = { ms -> seekTo(ms) },
+                        onTextAction = { kind -> onBottomTextAction(kind) },
+                        onPanelSelect = { item -> onPanelSelect(item) },
                         onTap = {
                             lastTouchMs = System.currentTimeMillis()
                             controlsVisible = !controlsVisible
+                            // 点画面收起面板：面板开着时点画面应该先关面板，
+                            // 否则用户要点两次（先关面板、再收起控制条）。
+                            if (activePanel.isNotBlank()) activePanel = ""
                         },
                         onDoubleTap = {
                             lastTouchMs = System.currentTimeMillis()
                             togglePlayPause()
                         },
+                        onRetry = { onRetry() },
                     )
-                    // 诊断状态（M1 临时：K40 logcat 不可用的实时替代）
-                    androidx.compose.material3.Text(
-                        text = statusText,
-                        color = Color.White,
-                        fontSize = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp),
-                        modifier = Modifier.align(androidx.compose.ui.Alignment.TopStart)
-                            .background(Color.Black.copy(alpha = 0.7f))
-                            .padding(4.dp)
-                    )
-                    if (controlsVisible) {
-                        PlayerControls(
-                            isPlaying = isPlaying,
-                            positionMs = positionMs,
-                            durationMs = durationMs,
-                            onPlayPause = { togglePlayPause() },
-                            danmakuVisible = danmakuOn && danmakuItems.isNotEmpty(),
-                            onDanmakuToggle = { danmakuOn = !danmakuOn },
-                            casting = castDevice != null,
-                            onCastClick = { openCastSheet() },
-                            onSeek = { ms ->
-                                val soft = smbSoftSession
-                                when {
-                                    soft != null -> {
-                                        soft.seekTo(ms * 1000)
-                                        // 声音是独立链路，必须一起定位，否则画面对了声音还是旧的。
-                                        smbSoftAudio?.seekTo(ms * 1000)
-                                        positionMs = ms
-                                    }
-                                    mpvNetSession != null -> mpvNetSession?.seekTo(ms * 1000)
-                                    smbNetSession != null -> smbNetSession?.seekTo(ms * 1000)
-                                    else -> playbackSession?.seekTo(ms * 1000)
-                                }
-                            },
-                            onScrub = { ms ->
-                                lastTouchMs = System.currentTimeMillis()
-                                thumbnailReader?.seekTo(ms * 1000)
-                            },
-                            thumbnailBitmap = thumbnailBitmap,
-                            previewMs = previewMs,
-                            modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter),
-                        )
-                    }
-                    // 弹幕层（223）：Canvas overlay 在最顶层（Box 最后一个子元素）
+
+                    // ---- 弹幕层（223）：Canvas overlay 在最顶层（Box 最后一个子元素）
                     com.kivo.cinema.danmaku.DanmakuOverlay(
                         items = danmakuItems,
                         positionMs = positionMs,
                         visible = danmakuOn,
                         modifier = Modifier.fillMaxSize()
-                    )
-                    // 投屏设备 sheet（230）：置于弹幕之上（Box 最后一个子元素）
+                    )                    // ---- 投屏设备 sheet（230）：置于弹幕之上（Box 最后一个子元素）
                     com.kivo.cinema.dlna.CastSheet(
                         visible = castSheetVisible,
                         scanning = castScanning,
@@ -337,8 +414,7 @@ class PlayerComposeActivity : ComponentActivity() {
                         onRescan = { openCastSheet() },
                         onDismiss = { castSheetVisible = false },
                     )
-                }
-            }
+                }            }
         }
     }
 
@@ -346,6 +422,7 @@ class PlayerComposeActivity : ComponentActivity() {
     fun onSurfaceAvailable(holder: SurfaceHolder) {
         if (finishRequested || isDestroyed) return
         surfaceReady = true
+        lastSurfaceHolder = holder
         maybeStartPlayback(holder)
     }
 
@@ -1208,6 +1285,180 @@ class PlayerComposeActivity : ComponentActivity() {
         val result = if (isPlaying) session.pause() else session.resume()
         if (result == 0) isPlaying = !isPlaying
         else { statusText = "播放控制失败：${session.lastError}"; controlsVisible = true }
+    }
+
+    // ================= 253 播放页 v2 · 接线 =================
+    //
+    // 【这一段只做"点哪儿调哪儿"】
+    // 面板的**数据**在 [PlayerPanelData] 里从内核取，这里只负责把用户的选择
+    // 写回内核，并给顶栏一个短反馈。
+
+    /** 顶栏片名：优先用传入的标题，否则用文件名。 */
+    private fun currentTitle(): String {
+        val label = intent.getStringExtra("kivo.label")
+        if (!label.isNullOrBlank()) return label
+        val path = intent.getStringExtra("kivo.smbPath")
+        if (!path.isNullOrBlank()) return path.substringAfterLast('/')
+        val url = intent.getStringExtra("kivo.playurl")
+        if (!url.isNullOrBlank()) return url.substringAfterLast('/')
+        return "正在播放"
+    }
+
+    /** 底栏左侧的画质标签（REX 的 "4K" 位置）。 */
+    private fun resolutionLabel(): String {
+        // 【为什么用 nativeOrNull】这个函数在 **Compose 重组**时被调用 ——
+        // 会话还没起时也会走到，用 native（会抛）会直接崩掉整个界面。
+        val native = mpvNetSession?.nativeOrNull() ?: return ""
+        val width = runCatching { native.property("video-params/w")?.toIntOrNull() }.getOrNull() ?: return ""
+        val height = runCatching { native.property("video-params/h")?.toIntOrNull() }.getOrNull() ?: return ""
+        if (width <= 0 || height <= 0) return ""
+        // 只在够得上的时候标 4K/1080P/720P —— 标错了比不标更糟。
+        return when {
+            width >= 3800 -> "4K"
+            width >= 1900 -> "1080P"
+            width >= 1200 -> "720P"
+            else -> ""
+        }
+    }
+
+    /** 统一的 seek 入口（旧的三条链路都在这里）。 */
+    private fun seekTo(ms: Long) {
+        val soft = smbSoftSession
+        when {
+            soft != null -> {
+                soft.seekTo(ms * 1000)
+                // 声音是独立链路，必须一起定位，否则画面对了声音还是旧的。
+                smbSoftAudio?.seekTo(ms * 1000)
+                positionMs = ms
+            }
+            mpvNetSession != null -> mpvNetSession?.seekTo(ms * 1000)
+            smbNetSession != null -> smbNetSession?.seekTo(ms * 1000)
+            else -> playbackSession?.seekTo(ms * 1000)
+        }
+    }
+
+    /** 顶栏动作图标点击。 */
+    private fun onTopAction(kind: String) {
+        lastTouchMs = System.currentTimeMillis()
+        when (kind) {
+            "aspect" -> activePanel = if (activePanel == "quality") "" else "quality"
+            "audio" -> activePanel = if (activePanel == "audio") "" else "audio"
+            "subtitle" -> activePanel = if (activePanel == "subtitle") "" else "subtitle"
+            "cast" -> openCastSheet()
+        }
+    }
+
+    /** 底栏右侧文字按钮点击。 */
+    private fun onBottomTextAction(kind: String) {
+        lastTouchMs = System.currentTimeMillis()
+        activePanel = if (activePanel == kind) "" else kind
+    }
+
+    /** 状态层的"重试"。 */
+    private fun onRetry() {
+        lastTouchMs = System.currentTimeMillis()
+        statusText = "正在重连…"
+        controlsVisible = true
+        // 重试 = 重新起播当前源。三条链路各自重启自己那条。
+        val holder = lastSurfaceHolder ?: return
+        playbackStarted = false
+        maybeStartPlayback(holder)
+    }
+
+    /** 顶栏动作的短暂高亮（切换成功的零成本确认，见 player-ui-v2.md §五.4）。 */
+    private fun flashAction(kind: String) {
+        activeAction = kind
+        android.os.Handler(mainLooper).postDelayed({ activeAction = "" }, 1_500)
+    }
+
+    /** 当前面板的标题。 */
+    private fun panelTitle(): String = when (activePanel) {
+        "speed" -> "倍速"
+        "quality" -> "画质比例"
+        "audio" -> "音轨"
+        "subtitle" -> "字幕"
+        "episodes" -> "选集"
+        else -> ""
+    }
+
+    /**
+     * 当前面板的条目。
+     *
+     * 【数据全部来自内核】面板显示的必须是**真实状态**，
+     * 不能是 UI 自己记的 —— 否则会出现"面板说 1.5x、实际在 1x"这种骗人的界面。
+     */
+    private fun panelItems(): List<com.kivo.cinema.ui.compose.player.PlayerOptionItem> {
+        // 【为什么倍速/画质不依赖会话】这两个面板的**条目是静态的**
+        // （档位列表是常量），只有"当前选中哪个"才需要问内核。
+        // 如果整张表都等内核，播放器还没起播时面板就是空的 ——
+        // 用户点"倍速"看到空白面板，比看不到更糟。
+        when (activePanel) {
+            "speed" -> return com.kivo.cinema.ui.compose.player.PlayerPanelData.speed(
+                com.kivo.cinema.ui.compose.player.PlayerPanelData.currentSpeedLabel(mpvNetSession),
+            )
+            "quality" -> return com.kivo.cinema.ui.compose.player.PlayerPanelData.qualities(selectedQuality)
+        }
+        val mpv = mpvNetSession ?: return emptyList()
+        val catalog = mpv.tracksOrNull() ?: return emptyList()
+        return when (activePanel) {
+            "audio" -> com.kivo.cinema.ui.compose.player.PlayerPanelData.audioTracks(
+                catalog.audioTracks(),
+                catalog.currentTrackId("audio"),
+            )
+            "subtitle" -> com.kivo.cinema.ui.compose.player.PlayerPanelData.subtitleTracks(
+                catalog.subtitleTracks(),
+                catalog.currentTrackId("sub"),
+            )
+            else -> emptyList()
+        }
+    }
+
+    /** 面板里选中一项 ⇒ 写回内核。 */
+    private fun onPanelSelect(item: com.kivo.cinema.ui.compose.player.PlayerOptionItem) {
+        val mpv = mpvNetSession ?: return
+        when (activePanel) {
+            "speed" -> {
+                val value = com.kivo.cinema.ui.compose.player.PlayerPanelData.speedValue(item.title)
+                if (value == null) {
+                    // 档位不合法就**不动**，不猜、不糊弄。
+                    statusText = "倍速设置失败：${item.title}"
+                    return
+                }
+                if (mpv.setSpeed(value)) {
+                    selectedSpeed = item.title
+                    flashAction("speed")
+                    activePanel = ""
+                } else {
+                    statusText = "倍速设置失败：${mpv.lastError}"
+                }
+            }
+            "quality" -> {
+                selectedQuality = item.tag
+                activePanel = ""
+            }
+            "audio" -> {
+                val id = item.tag.toIntOrNull() ?: return
+                val catalog = mpv.tracksOrNull() ?: return
+                if (catalog.selectTrack("audio", id)) {
+                    selectedAudioTrack = item.tag
+                    flashAction("audio")
+                    activePanel = ""
+                } else {
+                    statusText = "音轨切换失败：${mpv.lastError}"
+                }
+            }
+            "subtitle" -> {
+                val id = item.tag.toIntOrNull() ?: return
+                if (mpv.selectSubtitle(id)) {
+                    selectedSubtitle = item.tag
+                    flashAction("subtitle")
+                    activePanel = ""
+                } else {
+                    statusText = "字幕切换失败：${mpv.lastError}"
+                }
+            }
+            else -> activePanel = ""
+        }
     }
 
     // ---- 237-A：观看数据域（进度 + 统计时长）----
