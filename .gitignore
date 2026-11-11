@@ -40,3 +40,7 @@ tmp_*.py
 kivo_ev_test_*.json
 third_party/libsmb2-src/
 tools/__pycache__/
+
+# 253：libmpv 运行期 .so 不入库（由 buildscripts/mpv/stage-libmpv.sh 生成）
+android/app/src/main/jniLibs/arm64-v8a/libmpv.so
+android/app/src/main/jniLibs/arm64-v8a/libav*.so

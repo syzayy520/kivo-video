@@ -1,4 +1,3 @@
 # 253：libmpv 预编译产物不入库（55 MB），由 buildscripts/mpv/stage-libmpv.sh 生成
-android/app/src/main/cpp/mpv/prebuilt/arm64-v8a/*.so
-android/app/src/main/jniLibs/arm64-v8a/libmpv.so
-android/app/src/main/jniLibs/arm64-v8a/libav*.so
+# 【注意】.gitignore 的规则相对**本文件所在目录**，不是仓库根。
+prebuilt/**/*.so
