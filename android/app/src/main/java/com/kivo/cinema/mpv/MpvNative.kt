@@ -71,9 +71,21 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
      * @param logFile mpv 日志落盘路径。留空 = 不落盘。
      *   **崩溃定位的关键**：这台设备上 adb logcat 读不到 app 进程的日志，
      *   而 native 崩溃没有异常可捕获 —— 只能让 mpv 自己写日志出来。
+     *
+     * @throws IllegalStateException 初始化失败，**消息里带 mpv 给的原始原因**
+     *   （例如 "mpv option rejected: vo=xxx (error setting option)"）。
+     *
+     *   【为什么不吞掉这个异常】旧实现用 runCatching 把它变成 false，
+     *   于是上层只看到"起播失败"，看不到"哪个选项被拒" ——
+     *   而 mpv 自己**不打印**被拒选项的任何消息。
+     *   抛出带原因的异常，是让失败可诊断的唯一办法。
      */
     fun initialize(vo: String = "libmpv", ao: String = "", logFile: String = "") {
-        MpvNative.nativeInitialize(handle, vo, ao, logFile)
+        try {
+            MpvNative.nativeInitialize(handle, vo, ao, logFile)
+        } catch (e: IllegalStateException) {
+            throw IllegalStateException("mpv initialize failed: ${e.message}", e)
+        }
     }
 
     /** 把 Surface 接到视频输出上。 */

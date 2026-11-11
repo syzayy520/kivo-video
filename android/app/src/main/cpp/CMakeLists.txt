@@ -489,6 +489,7 @@ if(EXISTS "${KIVO_MPV_PREBUILT}/libmpv.so")
         "mpv/mpv_commands.cpp"
         "mpv/mpv_gl_render.cpp"
         "mpv/mpv_java_vm.cpp"
+        "mpv/mpv_options.cpp"
         "mpv/mpv_session_table.cpp"
         "mpv/jni_mpv_bridge.cpp"
         "mpv/jni_mpv_command_bridge.cpp"

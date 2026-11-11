@@ -33,6 +33,7 @@ backend/tools/governance/redline_gate/artifacts/*
 
 # Agent workspace metadata (per-machine, not project source).
 .workbuddy/
+.workbuddy-ai/
 .codebuddy/
 
 # Scratch scripts kept out of history.
@@ -40,7 +41,16 @@ tmp_*.py
 kivo_ev_test_*.json
 third_party/libsmb2-src/
 tools/__pycache__/
+tools/reference/**/__pycache__/
+
+# 253：本地取证临时目录（截图/抽帧/中间产物），不入库。
+# 【为什么要有这条】上面的 `tmp/` 只匹配名为 tmp 的目录，不匹配 `.tmp/`；
+# P6 字幕取证时在 `.tmp/p253-sub/` 下堆了 14 张 PNG，一次 `git add -A` 就会全部进库。
+.tmp/
 
 # 253：libmpv 运行期 .so 不入库（由 buildscripts/mpv/stage-libmpv.sh 生成）
-android/app/src/main/jniLibs/arm64-v8a/libmpv.so
-android/app/src/main/jniLibs/arm64-v8a/libav*.so
+# 【为什么用目录级规则而不是逐个文件名】
+# 逐个列文件名会漏：libswscale.so / libswresample.so 一旦漏掉，
+# `git add -A` 就会把 850 KB 二进制提交进版本库（实测 `git add -n` 会命中）。
+# 整个目录都是产物目录，用目录级规则一次覆盖，新增 .so 自动生效。
+android/app/src/main/jniLibs/

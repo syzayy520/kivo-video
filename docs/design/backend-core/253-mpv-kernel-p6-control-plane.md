@@ -1,5 +1,15 @@
 # 253-P6：内核控制面与字幕平面 —— 交接文档
 
+> ⚠️ **2026-11-11 20:15 复盘修订：本文的 §四.2 第 2 步是错的，不要执行。**
+> 接手者若照做，会白跑一整个工作日。详见下方「§零·二 复盘发现」。
+> 其余部分（P1~P6-1/P6-3 的结论、命令清单、踩坑记录）经复核**属实**，可放心使用。
+>
+> 📄 **字幕诊断的完整结论在** [p6-2-subtitle-diagnosis.md](../../evidence/p253/mpv-kernel/p6-2-subtitle-diagnosis.md)
+> —— 那一节已经把"字幕到底通到哪一步"逐层拆开：
+> **文本字幕通路已证明可用（真机截图上屏）**，
+> 问题**只在 PGS 位图字幕**这一条路上，且已缩小到 mpv 内部的位图缩放环节。
+> **别再查 OSD 合成、别再查字体、别再加 `--osd-dimensions`。**
+
 状态：**P6-1 / P6-3 已闭环验收；P6-2 部分闭环（字幕轨道通了，画面显示差最后一步）**
 日期：2026-11-11
 设备：K40 `b6e950ee`（Android 13，MIUI）
@@ -13,6 +23,117 @@
 本轮把 mpv 内核从"能播"推进到"内核能力可用"，剩下的唯一硬缺口是
 **字幕画到画面上**。下面按"先看结论 → 再看证据 → 最后看怎么做"组织，
 省下重复踩坑的时间。
+
+---
+
+## 零·二 复盘发现（2026-11-11 20:15，接手者先读这里）
+
+本节由下一位接手者补写，**目的是让你不要重复本轮已经踩过的坑**。
+所有结论都在 mpv v0.39.0 的源码树（`C:/re-tools/mpv-build/mpv`，**就是编出 `libmpv.so` 的那份**）
+与 K40 真机上逐条核实过。
+
+### ⚠️ 1. §四.2 第 2 步的 `--osd-dimensions=video` 不存在，执行它会**静默失败**
+
+原文写：
+
+> **验证办法（成本极低）**：给 mpv 加一条 `--osd-dimensions=video`（让 OSD 按视频尺寸算坐标），
+> 重编重装再截一张图。如果字幕立刻出现在视频底部 ⇒ 根因确认。
+
+核实结果：
+
+| 断言 | 实测 |
+| --- | --- |
+| `osd-dimensions` 是 mpv 的**选项** | ❌ 不是。全源码树只有 `player/command.c:4119` 一处，是**只读属性** `mp_property_osd_dim` |
+| 它可以写 | ❌ 该属性只有 `m_property_read_sub` 分支，**没有 SET** |
+| 它默认是 `window` | ❌ `DOCS/man/options.rst` 里 **0 处**提到它（只有 `input.rst` 的属性文档有 8 处） |
+
+**为什么"静默"**：mpv 的 `mpv_set_option_string`（`player/client.c`）对未知选项返回
+`MPV_ERROR_OPTION_NOT_FOUND`，**但不打印任何日志**。而本轮代码里 13 处
+`mpv_set_option_string` **全部丢弃了返回值**。
+
+⇒ **你加上那条选项、重编、重装、截图，会看到字幕依然不出现**，
+然后很可能得出"OSD 定位不是根因"——**这是一个假阴性，会把你引向 §四.2 第 3 步那条更贵的死路**。
+
+mpv 0.39 里与"字幕纵向位置"对应的**真实选项**是：
+
+- `--sub-margin-y=<size>`（`options.rst` L2961）
+- `--sub-pos=<0-150>`（L2452，默认 100）
+- `--osd-align-y=<top|center|bottom>`（L4571）
+
+### ⚠️ 2. §四.2 第 2 步的"OSD 画进窗口底部黑边"假设，已被真机数据证伪
+
+原文写：
+
+> 我们的"窗口"是**竖屏 Surface**（真机 1080×452），而视频是 **1920×804 宽银幕**，
+> 只占窗口中间一条，上下留黑边 ⇒ 字幕被画到**窗口最底部那条窄黑边**里。
+
+真机 mpv 日志（`files/mpv-kernel.log`，mpv 自己打的）：
+
+```
+Window size: 2320x956 (Borders: l=0 t=0 r=0 b=0)
+Video display: (0, 0) 1280x720 -> (310, 0) 1699x956
+OSD borders: l=310 t=0 r=311 b=0      ← OSD 边框
+Video borders: l=310 t=0 r=311 b=0    ← 视频边框：与上一行完全相同
+```
+
+（mpv 的 `video/out/aspect.c:212/214` 打的正是同一组 `osd.ml/mt/mr/mb`。）
+
+⇒ **OSD 的边框与视频的边框逐项相等**：mpv 的字幕 OSD **跟着视频矩形走**，
+`mt=0 mb=0` 说明**上下根本没有黑边**。
+
+再逐像素扫本目录的三张证据截图（自己解 PNG）：
+
+| 截图 | 视频画面区（x） | 全黑行带 |
+| --- | --- | --- |
+| `subtitle/pgs-6s-controls-hidden.png` | 99..2380 | 仅 0..21（顶部状态栏） |
+| `subtitle/pgs-600s-controls-covering.png` | 99..2380 | 仅 0..21 |
+
+**画面从第 99 列一直铺到 2380 列，上下没有黑带。**
+若字幕真被画进"底部窄黑边"，截图里必然有底部黑带——**没有**。
+
+⇒ **§四.2 第 2 步的根因假设不成立**，请跳过它。
+
+### ✅ 3. 本轮已经做掉的事（你不用重做）
+
+| # | 改动 | 在哪 |
+| --- | --- | --- |
+| 1 | **选项设置独立成 `mpv_options.{hpp,cpp}`，逐项检查 mpv 回执** | 新增文件；`mpv_session.cpp` 的选项代码已搬走 |
+| 2 | optional 选项（字体类）失败会记进 `Session::error()` 暴露给上层，**不再静默降级** | `SessionImpl::degraded_options` |
+| 3 | `Session::error()` 原本**恒返回空串**，现在返回真实降级原因 | `mpv_session.cpp` |
+| 4 | `.gitignore` 补漏：`jniLibs/` 改目录级忽略、`.tmp/`、`tools/reference/**/__pycache__/`、`.workbuddy-ai/` | 根 `.gitignore` |
+| 5 | TASKS.md / CURRENT.md 补上 253 的指针（此前**两处都没有**，接手者会不知道这条线存在） | `docs/handoff/` |
+
+**第 1 条的由来**：本轮之所以把"字幕没显示"误判成"OSD 定位问题"，
+根源就是**选项设错了没人知道**。mpv 对不存在的选项只回错误码、不打日志，
+而当时 13 处调用全部丢弃返回值。现在选项**要么生效、要么报错**，
+下一次跑起来，日志里若出现 `mpv option rejected: ...` 就直接知道是哪一项。
+
+### ▶ 4. 建议的下一步（按此顺序）
+
+1. **重编 + 装机 + 跑 `MpvControlPlaneInstrumentation`**，然后看 mpv 日志：
+   - 出现 `mpv option rejected: <name>=<value>` ⇒ 按名字改，**不要再猜**
+   - 没出现 ⇒ 选项名都对，往字体/解码通路查（下一条）
+2. **读 mpv 的 `osd-dimensions` 属性**（`ml`/`mr`/`mt`/`mb` 四个边距 + `w`/`h`/`aspect`）：
+   这是 mpv 0.39 里**唯一**能告诉你"OSD 与视频差多少"的读数。它是**只读属性**，
+   用 `nativeGetProperty(handle, "osd-dimensions/mt")` 读（属性路径语法已在 `MpvNative` 支持）。
+3. **字幕位置用真实存在的选项调**：`--sub-margin-y` / `--sub-pos` / `--osd-align-y`。
+4. **字体**：mpv 另有一条本轮没走到的路径 —— `sub/osd.c:88` 会找**配置文件目录里的 `subfont.ttf`**
+   （`mp_find_config_file(tmp, global, "subfont.ttf")`），它走 libass 的 `path_default` 分支，
+   **不依赖族名匹配**。本轮只试了 `sub-fonts-dir` + 族名，**没试这条**。
+5. `MpvSubtitleEvidenceInstrumentation` 建议删掉（原文 §四.4 的结论是对的，但**归因写错了**）：
+   它失败的真因不是"空 PNG 6231 字节"，而是**我们在 `vo=libmpv` render API 下没有 window 概念**
+   （只传 FBO，不传 `MPV_RENDER_PARAM_ADVANCED_CONTROL`），
+   所以 `screenshot-to-file ... window` 拿不到合成后的窗口帧。
+   改用播放页 + `adb screencap`（§四.2 第 1 步的做法）。
+
+### ⚠️ 5. 顺带更正本文其它几处
+
+| 位置 | 原文 | 实际 |
+| --- | --- | --- |
+| §六「家族边界」 | "每个 `.cpp` ≤ 300 行（当前最大 `jni_mpv_bridge.cpp` ≈ 220 行）" | 实测最大是 **`mpv_gl_render.cpp` 255 行**；`jni_mpv_bridge.cpp` 只有 **146 行**。这段数字是凭印象写的、没核 |
+| §二「代码清单」 | 未列 `mpv_options.{hpp,cpp}` | 本轮新增（家族树 §二的差异表已同步更新） |
+| §四.2 第 4 步 | "`ass_add_font` 对 TrueType Collection 只取 0 号 face" | 方向对，但**结论落在族名上**是绕远了 —— `subfont.ttf` 那条路更直接 |
+| §八 第 4 条 | "倍速/多轨的 UI 接线（用户已安排别的助手做 UI）" | **该任务现由本接手者承担**；REX 播放页 UI 规格见 `docs/reference/rex-teardown/05-ui-spec-from-recording.md` §六，录屏素材在 `C:\Users\Administrator\Pictures\REX 播放UI\` |
 
 ---
 

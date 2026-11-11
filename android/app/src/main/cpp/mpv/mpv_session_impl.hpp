@@ -42,6 +42,12 @@ struct SessionImpl {
     /// 硬解驱动名。在 initialize **之后**才真正 set_property 给 mpv
     /// （见 mpv_session.cpp 里关于"set_option 会被默认值覆盖"的说明）。
     std::string hwdec_;
+    /// **降级**的选项（optional 项失败时记下）。不是致命错误，但必须让上层看见。
+    ///
+    /// 【为什么单独存一份】initialize() 的 error 出参在"成功"路径上通常不用，
+    /// 而降级恰恰发生在成功路径上 —— 塞进 error 会让调用方以为失败。
+    /// 所以单独一个字段，由 Session::error() 暴露。
+    std::string degraded_options;
 
     /// mpv 的唤醒机制：mpv 侧有事件时调用它，唤醒我们的事件线程。
     std::mutex wake_mutex;

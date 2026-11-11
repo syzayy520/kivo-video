@@ -1,3 +1,36 @@
+> 2026-11-11 20:10 **⚠️ 下一张卡：253-P6-2 字幕上屏（当前唯一硬缺口）——但别照旧交接文档做**。
+> **指针**：交接文档 [253-mpv-kernel-p6-control-plane.md](../design/backend-core/253-mpv-kernel-p6-control-plane.md)；
+> 家族树 [253-mpv-kernel-family-tree.md](../design/backend-core/253-mpv-kernel-family-tree.md)；
+> 证据 [p253/mpv-kernel/status.md](../evidence/p253/mpv-kernel/status.md)。
+> **P1~P5 已闭环**（libmpv 冒烟 / SMB 经本地 HTTP range 代理 / 接进播放页 / 断网恢复 2.0~2.2 s / 播放页真实 UI 双设备）；
+> **P6-1 属性通道、P6-3 倍速与多轨切换已闭环**（真机 1/1 PASS：12 轨 / 3 音轨 / 5 字幕轨，`speed=2.0` 后推进速率实测 2.03×）。
+> **P6-2 字幕：轨道通了、画面上没有**。
+>
+> **⚠️ 旧交接文档的 §四.2 第 2 步是错的，别执行**：它让你加 `--osd-dimensions=video` 并称"一次重编就能判定根因"。
+> 核实（mpv v0.39.0 源码树 `C:/re-tools/mpv-build/mpv`，即编出 `libmpv.so` 的那份）：
+> `osd-dimensions` 在 mpv 里**只是只读属性**（`player/command.c` 的 `mp_property_osd_dim`，无 SET 分支），
+> **不是选项** ⇒ `mpv_set_option_string` 会返回 `MPV_ERROR_OPTION_NOT_FOUND` 而**不打印任何日志** ⇒ 静默失败。
+> 旧文档的"OSD 被画到窗口底部黑边"假设也被**设备实测证伪**：真机 mpv 日志自己打的
+> `OSD borders: l=310 t=0 r=311 b=0` 与 `Video borders:` **完全相同**（mpv 的 OSD 跟着视频矩形走，不存在"底部黑边"），
+> 且逐像素扫 `docs/evidence/p253/mpv-kernel/subtitle/*.png` 证实视频画面区是 x=99..2380、**上下没有黑带**。
+>
+> **本轮已做的三件事（都已落地）**：
+> ① **选项设置独立成 `mpv_options.{hpp,cpp}` 并逐项检查回执** —— 旧代码 `mpv_session.cpp` 丢弃了全部
+> `mpv_set_option_string` 返回值，这正是"字幕没显示"被误判的根源。现在：选项要么生效、要么报错；
+> optional 项（字体类）失败会记进 `Session::error()` 暴露给上层，**不再静默降级**。
+> ② **`.gitignore` 补漏**：`jniLibs/` 改为目录级忽略（原先漏掉 `libswscale.so`/`libswresample.so`，
+> `git add -A` 会把 850 KB 二进制提交进库）、新增 `.tmp/`、`tools/reference/**/__pycache__/`、`.workbuddy-ai/`。
+> ③ **仓库指针链补上 253**（本条与 CURRENT.md §一）—— 此前 TASKS/CURRENT 里**没有任何一处提到 253**，
+> 下一个助手按 AGENTS.md §一接手会完全不知道这条线存在。
+>
+> **下一步（按此顺序）**：先重编装机，用 `MpvControlPlaneInstrumentation` 复算一遍，
+> 看 mpv 日志里是否出现 `mpv option rejected` —— 有就按名字改，没有就说明选项名没问题、
+> 往字体/解码通路查；然后读 mpv 的 `osd-dimensions` **属性**（`ml/mr/mt/mb` 四个边距）取真实几何，
+> 再决定字幕位置怎么调（真实可用选项是 `--sub-margin-y` / `--sub-pos` / `--osd-align-y`）。
+>
+> **另一条线（用户指定）**：播放页 UI 参照 REX 重做，素材已就位（`C:\Users\Administrator\Pictures\REX 播放UI\` 录屏
+> + `docs/reference/rex-teardown/05-ui-spec-from-recording.md` §六 的横屏控制条规格）。
+
 > 2026-11-11 01:40 **远距离 seek 修好：落点与位置都对**。最后那处矛盾的真相：`audemux=[... rc=0 target=594469000 landed=0 avio=962533]` —— seek 报成功、目标正确，但 **avio 只走到 962 KB（文件开头）**，落点算成 0 ⇒ `clock->rebase(0)` 把音频钟拉回开头 ⇒ 画面从头开始且无任何错误。两个原因：① `select_stream` 的"探测后倒回开头"**按本轨（音轨）定位**，而 MKV 的 cues 挂在视频轨（视频 653 条 / TrueHD 27 条），matroska 退化成回退定位；② `seek_to` 用 `stream_index=-1`（默认流），多音轨文件里默认流可能正是没索引的音轨。**修法**：新增 `index_seek_stream()`（定位流=视频轨），远距(>2 s)按它定位；**落点改为 seek 后第一个包的 pts**（= 关键帧，正是 mpv 的做法：一次 seek 同时定位两条轨），音轨包没时间戳就不会算出 0；远距落点塌回开头则**明确失败**（-1）而不是把 0 交给上层 rebase。真机：600 s→落点 594 469 ms/实际 597 001 ms PASS；56.6 min→落点 3 393 140 ms PASS；local-seek 4/4 PASS。落点总在目标之前（BACKWARD 语义，偏差 1.9–9.8 s），**精确落位要靠 mpv 的 hr-seek**（下一张卡）。[证据](../evidence/p252/seek-long-distance/status.md §九–十)
 
 > 2026-11-11 01:30 **测量环境会漂移，别再被它骗**：同一个已提交版本、同��台机，00:23 测得起播丢 **0** 帧/25.90 fps，01:20 测得 **78** 帧/17.45 fps；用 `git stash` 把本轮 seek 改动整个撤掉重测照样 80–130 帧 ⇒ 与改动无关。**跨时间的 A/B 不可信**，必须同环境内对照；因此"音频环 300→600 ms 消除杂音"目前只是**强相关不是因果**，需把环大小做成运行时可切换后同环境复验。seek 的结论不受影响（落点确定性，与 ffprobe 逐位一致）。[证据](../evidence/p252/seek-long-distance/status.md §十)

@@ -80,6 +80,20 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
     val speed: MpvSpeedController
         get() = MpvSpeedController(requireSession())
 
+    /**
+     * 253-P6-2 诊断：**直接读 mpv 的原生属性**。
+     *
+     * 【为什么需要这一层】轨道目录与倍速控制器都是**面向 UI 的结构化视图**，
+     * 但排查内核问题需要 mpv 的**原始属性**（`sub-start` / `sub-end` / `osd-dimensions` 的子属性）。
+     * 没有这一层，就只能靠截图猜"字幕有没有内容"——
+     * 而"该时刻本来就没有字幕"和"字幕没渲染出来"在截图上长得一模一样。
+     *
+     * 【典型用法】`native().property("sub-start")` 读字幕包的覆盖区间。
+     *
+     * @throws IllegalStateException 会话尚未启动或已释放。
+     */
+    fun native(): MpvSession = requireSession()
+
     /** 253-P6-2：字幕是否已启用（mpv 的 `sid` 有值即为启用）。 */
     val subtitlesEnabled: Boolean
         get() = tracks.currentTrackId("sub") >= 0
@@ -160,7 +174,10 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
                 worker.scheduleWithFixedDelay({ poll() }, 0, 200, TimeUnit.MILLISECONDS)
             } catch (e: Exception) {
                 if (!closing.get()) {
-                    fail("内核播放准备失败（${e.javaClass.simpleName}）")
+                    // 【为什么要带 e.message】只报异常类名等于什么都没说。
+                    // mpv 侧的关键原因（例如"哪个选项被拒"）都在 message 里，
+                    // 而 mpv 自己不会打印被拒选项的消息 —— 丢了就再也查不到。
+                    fail("内核播放准备失败（${e.javaClass.simpleName}: ${e.message}）")
                 }
                 releaseNative()
                 main.post { if (!closing.get()) onReady(-1) }

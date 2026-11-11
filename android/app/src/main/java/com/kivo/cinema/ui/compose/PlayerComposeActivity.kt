@@ -767,29 +767,128 @@ class PlayerComposeActivity : ComponentActivity() {
     private fun applyProbeSubtitle(session: com.kivo.cinema.playback.MpvPlaybackSession) {
         val subtitleId = intent.getIntExtra("kivo.subtitleId", -1)
         val seekSec = intent.getIntExtra("kivo.seekSec", -1)
+        // 【为什么需要毫秒精度】PGS 是位图字幕，**一个包只覆盖几十毫秒**
+        // （实测 Shelter 的中文轨：sub-start=14.014 / sub-end=14.056，只有 42 ms）。
+        // 整秒 seek 会落在包外 ⇒ 取证必然拍到"没有字幕"的画面，
+        // 于是看起来像"字幕不渲染"，其实是**根本没取到有字幕的那一帧**。
+        val seekMs = intent.getIntExtra("kivo.seekMs", -1)
         val freeze = intent.getBooleanExtra("kivo.freeze", false)
-        if (seekSec > 0) {
+
+        // 【为什么选轨必须排在 seek 前面】
+        // mpv 在切换字幕轨时会做一次轨道刷新（真机日志：`refresh seek to 3.000000`），
+        // 把播放位置打回**该字幕轨自己的起点**。
+        // 旧顺序是「先 seek(14s)、后选轨」，于是选轨把位置从 14 秒打回 3 秒，
+        // 而 Shelter 的字幕从 13.639 秒才开始 —— 3 秒处本来就没有字幕，
+        // 于是"字幕不上屏"看起来像是渲染问题，其实是**取证落在了没有字幕的时刻**。
+        //
+        // 【本轮实测日志（K40，2026-11-11）】
+        //   2.354  Run command: seek, target="14.000000"     ← seek 成功
+        //   2.853  refresh seek to 3.000000                   ← 选轨把位置打回去
+        //   2.913  execute seek (to 3.000000)                 ← 位置被重置
+        //
+        // 所以顺序改成：**先选轨 → 等它落定 → 再 seek → 最后暂停**。
+        val selectDelayMs = 1_500L
+        val seekDelayMs = selectDelayMs + 1_200L
+
+        if (subtitleId >= 0) {
             android.os.Handler(mainLooper).postDelayed({
-                session.seekTo(seekSec * 1_000_000L)
+                val ok = session.selectSubtitle(subtitleId)
+                smbTrace("probe subtitle id=$subtitleId ok=$ok")
+                statusText = if (ok) {
+                    "字幕轨 #$subtitleId 已选中"
+                } else {
+                    "字幕轨 #$subtitleId 选中失败：${session.lastError}"
+                }
+                // ---- 可选：外挂一条字幕文件（走 libass 文本通路）----
+                //
+                // 【为什么需要这条】PGS 是**位图**字幕（不走 libass），
+                // 外挂 SRT 是**文本**字幕（走 libass）—— 两条完全不同的通路。
+                // 挂一条 SRT 就能一刀切开：
+                //   · SRT 能显示 ⇒ libass + OSD 合成通路正常 ⇒ 问题在 PGS 位图解码；
+                //   · SRT 也不显示 ⇒ 整个字幕渲染层（OSD 合成）有问题。
+                val subFile = intent.getStringExtra("kivo.subFile")
+                if (!subFile.isNullOrBlank()) {
+                    val file = java.io.File(filesDir, subFile)
+                    if (file.isFile) {
+                        val added = session.loadExternalSubtitle(file)
+                        smbTrace("probe sub-add $subFile added=$added")
+                        // 挂上后必须选中，否则 mpv 不会显示（mpv 不会自动选外挂轨）。
+                        if (added) {
+                            val ids = session.tracks.externalSubtitleIds()
+                            val pick = ids.firstOrNull()
+                            if (pick != null) {
+                                val sel = session.selectSubtitle(pick)
+                                smbTrace("probe sub-select id=$pick ok=$sel")
+                                statusText = "外挂字幕 #$pick 已选中"
+                            }
+                        }
+                    } else {
+                        smbTrace("probe sub-add $subFile NOT FOUND")
+                    }
+                }
+            }, selectDelayMs)
+        }
+
+        val targetMs = if (seekMs >= 0) seekMs.toLong() else if (seekSec > 0) seekSec * 1000L else -1L
+        if (targetMs >= 0) {
+            android.os.Handler(mainLooper).postDelayed({
+                session.seekTo(targetMs * 1000L)
                 if (freeze) {
                     // 等落位完成再停 —— 立刻 pause 可能停在跳转途中。
                     android.os.Handler(mainLooper).postDelayed({
                         session.setPaused(true)
-                        smbTrace("probe freeze at ${seekSec}s")
+                        smbTrace("probe freeze at ${targetMs}ms")
+                        // ---- 让 mpv 自己截一张"合成后的画面" ----
+                        //
+                        // 【为什么必须在这里、而不是在 instrumentation 里】
+                        // `screenshot-to-file ... window` 走 mpv 的 MODE_FULL_WINDOW 分支
+                        // （player/screenshot.c:330），它**独立地把字幕画进图片**，
+                        // 尺寸取自 `osd_get_vo_res(vo->osd)`。
+                        // 而 instrumentation 用的是 SurfaceTexture(0) 虚拟纹理 ——
+                        // 没有消费者 ⇒ VO 尺寸退化成 **1×1** ⇒ 截出来是 166 字节的空图。
+                        // **只有真实 Surface（播放页）才能得到有意义的图**。
+                        //
+                        // 【这张图回答什么】图里有字幕 ⇒ mpv 内部渲染正常，
+                        // 问题在"送到 Surface"这一步；图里没字幕 ⇒ mpv 内部就没生成字幕。
+                        val shot = intent.getStringExtra("kivo.shot")
+                        if (!shot.isNullOrBlank()) {
+                            // 可选：运行时改字幕位置（诊断用）。
+                            // 【为什么需要】位图字幕"解出来了但画在哪"可以用 sub-pos 验证：
+                            // 把字幕往上顶，若出现 ⇒ 位置问题；若仍不出现 ⇒ 位图没进合成。
+                            val subPos = intent.getStringExtra("kivo.subPos")
+                            if (!subPos.isNullOrBlank()) {
+                                val ok = session.native().setProperty("sub-pos", subPos)
+                                smbTrace("probe sub-pos=$subPos ok=$ok")
+                            }
+                            val out = java.io.File(filesDir, "p253-shots").apply { mkdirs() }
+                            val file = java.io.File(out, shot)
+                            file.delete()
+                            // 两种模式各截一张：
+                            //   window   —— 合成后的完整画面（视频 + 字幕）
+                            //   subtitles—— **只有字幕层**（无视频）
+                            // 两张一起看，能分清"字幕没生成"与"字幕生成了但没合成"。
+                            val windowShot = java.io.File(out, shot)
+                            val subOnly = java.io.File(out, shot.replace(".png", "-subs.png"))
+                            val okWindow = session.command(
+                                "screenshot-to-file",
+                                "${windowShot.absolutePath} window",
+                            )
+                            val okSubs = session.command(
+                                "screenshot-to-file",
+                                "${subOnly.absolutePath} subtitles",
+                            )
+                            Thread.sleep(1_200)
+                            smbTrace(
+                                "probe shot $shot window=$okWindow(${if (windowShot.isFile) windowShot.length() else -1}) " +
+                                    "subs=$okSubs(${if (subOnly.isFile) subOnly.length() else -1})",
+                            )
+                            statusText = "截图：window ${if (windowShot.isFile) windowShot.length() else -1}B" +
+                                " / subs ${if (subOnly.isFile) subOnly.length() else -1}B"
+                        }
                     }, 2_500)
                 }
-            }, 1_500)
+            }, seekDelayMs)
         }
-        if (subtitleId < 0) return
-        android.os.Handler(mainLooper).postDelayed({
-            val ok = session.selectSubtitle(subtitleId)
-            smbTrace("probe subtitle id=$subtitleId ok=$ok")
-            statusText = if (ok) {
-                "字幕轨 #$subtitleId 已选中"
-            } else {
-                "字幕轨 #$subtitleId 选中失败：${session.lastError}"
-            }
-        }, 2_000)
     }
 
     /** Emby and SMB share the same native A/V pipeline. Preparation never blocks main. */

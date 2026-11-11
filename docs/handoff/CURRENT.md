@@ -12,6 +12,25 @@
 
 # 交接快照 · Kivo Video Android 后端核心
 
+> 2026-11-11 20:10 **⚠️ 当前指针：253-P6-2 字幕上屏（libmpv 内核，唯一硬缺口）**。
+> 交接文档 [253-mpv-kernel-p6-control-plane.md](../design/backend-core/253-mpv-kernel-p6-control-plane.md)，
+> 家族树 [253-mpv-kernel-family-tree.md](../design/backend-core/253-mpv-kernel-family-tree.md)，
+> 证据 [p253/mpv-kernel/status.md](../evidence/p253/mpv-kernel/status.md)，
+> 台账 [TASKS.md](TASKS.md) 顶部同条。
+> **253 这条线（P1~P6）此前没有在本文件与 TASKS.md 里留过指针** —— 按 AGENTS.md §一接手的人
+> 只会读到 P12~P15 的旧账，**完全不知道内核已换成 libmpv**。现在补上了。
+> **P1~P5 与 P6-1/P6-3 已闭环**（真机：12 轨 / 3 音轨 / 5 字幕轨；`speed=2.0` 后推进速率实测 2.03×；
+> 断网恢复 2.0~2.2 s；seek 落点 0.14~0.73 s，比旧内核准 4 个数量级）。
+> **P6-2 未闭环**：字幕轨道能枚举/能选中/OSD 纹理确实被分配，但**画面上看不到字幕**。
+> **⚠️ 旧交接文档 §四.2 第 2 步（加 `--osd-dimensions=video`）是错的，别执行** ——
+> `osd-dimensions` 在 mpv 0.39 只是**只读属性**不是选项，且"OSD 画进窗口底部黑边"的假设
+> 已被真机日志（`OSD borders` 与 `Video borders` 完全相同）与逐像素截图扫描双重证伪。
+> 详见 TASKS.md 顶部那条的完整拆解。
+> **本轮已落地**：选项设置独立成 `mpv_options.{hpp,cpp}` 并**逐项检查 mpv 回执**（旧代码丢弃全部返回值，
+> 是误判的根源）；`.gitignore` 补 4 处漏项；本指针链补齐。
+> **另一条线（用户指定）**：播放页 UI 参照 REX 重做，素材在 `C:\Users\Administrator\Pictures\REX 播放UI\`，
+> 规格见 [rex-teardown/05](../reference/rex-teardown/05-ui-spec-from-recording.md) §六。
+
 > 2026-11-09 播放优先：用户已确认K40旧核心测试片有声音。正式Compose本地页漏接音轨已修，平板实际宿主验证音频输出及audio_timestamp主时钟；[证据与限制](../evidence/p240/playback-audio/status.md)。修复版已覆盖安装手机，但自动测试宿主启动超时，不能称手机已验。K40字号最终读回1.0。Emby/SMB仍仅视频，网络音频、暂停/seek/生命周期及持续流畅未闭环；[手机表单测试](../evidence/p240/source-management/compact-form/status.md)也未过布局断言。优先手机适配→流畅影音→视觉精修，L2仍DOING。
 
 > 2026-11-09 连接与粘贴补测：平板隔离模型5组、生产组件UI点击5项通过，覆盖取消后迟到结果、新草稿隔离、重复提交、脱敏预览/多地址/冲突及退出确认。[证据与复现](../evidence/p240/source-management/connection-races/status.md)。生产仅增加测试注入点，未发现新行为缺陷；系统剪贴板完整链、真实HTTP即时取消、保存期间退出及手机矩阵仍未验，L2继续DOING。

@@ -59,6 +59,7 @@ android/app/src/main/cpp/mpv/
 ├── mpv_session.cpp                 # 只做一件事：libmpv 句柄的创建/销毁/生命周期
 ├── mpv_session_impl.hpp            # 家族内私有的共享状态（家族外不可见）
 ├── mpv_session_table.{hpp,cpp}     # 只做一件事：句柄表与它的锁（JNI 层共用）
+├── mpv_options.{hpp,cpp}           # 只做一件事：设 mpv 选项，并**逐项检查回执**
 ├── mpv_commands.cpp                # 只做一件事：seek/pause/属性读取等**命令**下发
 ├── mpv_event_loop.cpp              # 只做一件事：轮询 mpv 属性 → 回调给上层
 ├── mpv_video_output.hpp            # 视频输出层的接口声明
@@ -71,6 +72,7 @@ android/app/src/main/cpp/mpv/
 | 初稿设想 | 实际落地 | 原因 |
 | --- | --- | --- |
 | `mpv_options.cpp` | 合并进 `mpv_session.cpp` | 选项只有七八个，单独一个文件反而是"为了凑文件而凑" |
+| **（P6 复盘）`mpv_options.cpp`** | **独立成文件（推翻上一行的决定）** | **理由变了**：不是选项多，而是**选项设错了没人知道**。mpv_set_option_string 对不存在的选项只返回 `MPV_ERROR_OPTION_NOT_FOUND`、**不打印任何日志**，而当时丢弃了返回值 ⇒ 拼错的选项完全静默。P6 因此把"字幕没显示"误判成"OSD 定位问题"，绕了一整天。选项设置有独立的失败模式与判据，是**一件独立的事** |
 | `mpv_audio_output.cpp` | **不需要** | mpv 的 `ao=audiotrack` 自己输出，我们不碰音频通路 |
 | `mpv_video_output.cpp` | 改为 `mpv_gl_render.cpp` + `mpv_video_output.hpp` | 实现要 EGL 头文件，接口不该被拖进去 |
 | `mpv_source_resolver.cpp` | 改为 Kotlin 的 `LocalRangeServer` | URL 构造与 HTTP 服务是 Kotlin 侧的事，放 C++ 里反而多一层 |
