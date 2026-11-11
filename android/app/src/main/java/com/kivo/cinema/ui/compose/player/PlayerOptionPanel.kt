@@ -47,13 +47,11 @@ internal fun PlayerOptionPanel(
     Box(
         modifier = modifier
             .width(PlayerTokens.panelWidth.dp)
-            // 【为什么限高】面板贴在右侧，上下要让开顶栏与底栏。
+            // 【为什么限高】面板贴在右侧、位于底栏**上方**，上下要让开顶栏与底栏。
             // 选项多的时候（如 7 档倍速）内容会超出屏幕 ⇒ 必须能滚动，
             // 否则下面两档永远点不到（实测：1.5x/1.75x/2x 被屏幕边缘切掉）。
             .heightIn(max = PlayerTokens.panelMaxHeight.dp)
-            .clip(RoundedCornerShape(PlayerTokens.panelRadius.dp))
-            .background(PlayerTokens.panelSurface)
-            .border(1.dp, PlayerTokens.panelBorder, RoundedCornerShape(PlayerTokens.panelRadius.dp))
+            .playerGlassSurface()
             .clickable(onClick = onDismiss),
     ) {
         Column(

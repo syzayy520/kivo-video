@@ -23,16 +23,25 @@ import androidx.compose.ui.unit.sp
 /**
  * 播放页顶栏（player-ui-v2.md §3.1）。
  *
- * **结构照搬 REX，形态按 Android 重画**：
- * · REX 的顶栏完全透明 —— 我们的片源有大量黑场片头，纯透明图标会看不见，
- *   所以加一层 44pt 的淡渐变（黑 0%→28%）。**只加顶栏高度，不遮画面。**
- * · REX 的图标是线框 —— 用本家族的 [PlayerGlyph] 统一画（见 P2）。
+ * ## 结构照搬 REX，形态按 Android 重画
+ * · REX 的顶栏**完全透明** —— 我们的片源有大量黑场片头，纯透明图标会整个消失，
+ *   所以加一层 44dp 的淡渐变（黑 0%→28%）。**只加顶栏高度，不遮画面。**
+ * · REX 的图标是**线框** —— 用本家族的 [PlayerGlyph] 统一画（见 P2）。
  * · REX 顶栏有"主页"入口 —— 我们是单页播放器，**不做**（不是漏做，是场景不同）。
  *
- * @param title 片名。
- * @param speedText 实时网速（空串则不显示）。
- * @param activeAction 当前处于激活态的动作（切换成功后会高亮 1.5s，见 §五.4）。
- * @param onAction 动作点击回调。
+ * ## 图标组：与参考**逐个对应**
+ * | 我们 | REX | 含义 |
+ * | --- | --- | --- |
+ * | `airplay` | AirPlay | 投屏 |
+ * | `danmaku` | 圈内"弹" | 弹幕开关 |
+ * | `pip` | 画中画 | 画中画 |
+ * | `clapper` | 场记板 | 选集（剧集） |
+ * | `expand` | 圈内双向箭头 | 画质比例 |
+ * | `equalizer` | 圈内波形条 | 均衡器 |
+ * | `captions` | 对话气泡 | 字幕 |
+ * | `headphones` | 耳机 | 音轨 |
+ *
+ * 间距实测 50pt（中心距）—— 见 [PlayerTokens.actionGap]。
  */
 @Composable
 internal fun PlayerTopBar(
@@ -47,15 +56,9 @@ internal fun PlayerTopBar(
         modifier = modifier
             .fillMaxWidth()
             .height(PlayerTokens.topBarHeight.dp),
-    ) {        // ---- 背景渐变（只盖顶栏高度，不遮画面）----
-        //
-        // 【为什么要这一层而 REX 没有】REX 顶栏完全透明，靠图标自身对比度。
-        // 我们的片源有大量黑场片头（实测 Shelter 片头就是全黑），
-        // 纯透明图标会**整个消失**。所以加一层极淡的渐变（黑 0%→28%）。
-        //
-        // 【为什么用 Box 而不是 Column】渐变要画在**整个顶栏**上；
-        // 如果把 background 挂在内容 Row 上，渐变只覆盖内容高度，
-        // 会出现"贴了条黑带"的硬边（第一版实机就是这个毛病）。
+    ) {
+        // ---- 背景渐变（只盖顶栏高度，不遮画面）----
+        // 用独立的一层：挂在内容 Row 上会只覆盖内容高度，出现"贴了条黑带"的硬边。
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -123,18 +126,20 @@ internal fun PlayerTopBar(
                     )
                 }
                 listOf(
-                    "aspect" to "画质",
-                    "audio" to "音轨",
-                    "subtitle" to "字幕",
-                    "cast" to "投屏",
+                    "airplay" to "投屏",
+                    "danmaku" to "弹幕",
+                    "pip" to "画中画",
+                    "clapper" to "选集",
+                    "expand" to "画质比例",
+                    "equalizer" to "均衡器",
+                    "captions" to "字幕",
+                    "headphones" to "音轨",
                 ).forEach { (kind, label) ->
                     val active = activeAction == kind
                     // 【为什么不用 44dp 的 Box 套住】
-                    // 第一版每个图标套了个 44dp 触控 Box，而 Row 的 spacedBy 算的是
+                    // 每个图标套 44dp 触控 Box 时，Row 的 spacedBy 算的是
                     // **Box 之间的**间距 ⇒ 实际图标间距变成 50+44 = 94pt，
-                    // 实测散得不成一排（REX 是 50pt）。
-                    // 现在：Box 尺寸 = 图标尺寸，触控区靠
-                    // minimumInteractiveComponentSize 撑开（不参与布局宽度计算）。
+                    // 实测散得不成一排（参考是 50pt）。
                     Box(
                         modifier = Modifier
                             .size(PlayerTokens.actionIconSize.dp)

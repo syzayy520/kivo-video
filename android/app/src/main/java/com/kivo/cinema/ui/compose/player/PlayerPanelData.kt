@@ -24,6 +24,20 @@ object PlayerPanelData {
     val QUALITIES = listOf("16:9", "4:3", "2.35:1", "1.85:1", "2.39:1")
 
     /**
+     * 均衡器预设：显示名 → mpv 的 `af` 滤镜串。
+     *
+     * 【为什么用 lavfi】mpv 本身没有均衡器滤镜，但它的 `af` 支持 `lavfi` 桥，
+     * 而 FFmpeg 的 `equalizer` 滤镜正好够用（f 中心频率 / t 类型 / w 带宽 / g 增益）。
+     * 空串 = 不加滤镜（恢复原声）。
+     */
+    val EQUALIZER_PRESETS = listOf(
+        "关闭" to "",
+        "低音增强" to "lavfi=[equalizer=f=120:t=q:w=1:g=6]",
+        "人声增强" to "lavfi=[equalizer=f=1000:t=q:w=1:g=6]",
+        "高音增强" to "lavfi=[equalizer=f=6000:t=q:w=1:g=6]",
+    )
+
+    /**
      * 倍速面板。
      *
      * @param current 当前倍速（读回内核的真实值，不是 UI 记的）。
@@ -79,10 +93,25 @@ object PlayerPanelData {
     /**
      * 画质比例面板。
      *
-     * @param current 当前比例（空 = 自动）。
+     * 【tag 里放的是能直接写进内核的值】
+     * mpv 的 `video-aspect-override` 打印出来就是 "16:9"/"4:3"/"2.35:1"/"Original"
+     * 这种字符串（`player/command.c:2998`），所以 tag 直接用这些串，
+     * 选中时 `setProperty("video-aspect-override", tag)` 即可 —— **真写进内核**，
+     * 不是 UI 自己记一份。
+     *
+     * @param current 当前比例（内核读回的值；空 = 自动）。
      */
     fun qualities(current: String): List<PlayerOptionItem> =
-        listOf(PlayerOptionItem(title = "自动", selected = current.isBlank(), tag = "")) +
+        listOf(
+            PlayerOptionItem(
+                title = "自动",
+                // 【为什么还要比 "Original"】mpv 的默认值打印出来就是 "Original"
+                // （command.c:3006，`aspect_ratio == -1`）。只判空会导致
+                // "自动"这一项**永远没有勾** —— 看着像没生效。
+                selected = current.isBlank() || current.equals("Original", ignoreCase = true),
+                tag = "Original",
+            ),
+        ) +
             QUALITIES.map { q ->
                 PlayerOptionItem(
                     title = q,
@@ -90,6 +119,24 @@ object PlayerPanelData {
                     tag = q,
                 )
             }
+
+    /**
+     * 均衡器面板（REX 顶栏的"圈内波形条"图标）。
+     *
+     * 【tag 里放的是 mpv 的 `af` 滤镜串】
+     * mpv 没有内置均衡器，但有 `lavfi` 桥：`af=lavfi=[equalizer=f=…:t=q:w=1:g=…]`。
+     * 所以每个预设就是一条 `af` 串，写进内核即刻生效。
+     *
+     * @param current 内核当前的 `af` 值（空 = 未启用）。
+     */
+    fun equalizer(current: String): List<PlayerOptionItem> =
+        EQUALIZER_PRESETS.map { (label, filter) ->
+            PlayerOptionItem(
+                title = label,
+                selected = filter == current,
+                tag = filter,
+            )
+        }
 
     /**
      * 把倍速档位字符串转成 mpv 要的数值。

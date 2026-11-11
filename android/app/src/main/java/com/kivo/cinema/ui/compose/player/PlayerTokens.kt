@@ -42,6 +42,10 @@ object PlayerTokens {
     /** 面板背板（毛玻璃降级态）。 */
     val panelSurface = Color(0xF2101012)
 
+    /** 玻璃面板的渐变底（上略亮 → 下更深）：平色块贴画面上会显廉价。 */
+    val glassTop = Color(0xF72A2A30)
+    val glassBottom = Color(0xF2101013)
+
     /** 面板描边（深色场景里靠描边把面板边界说清楚）。 */
     val panelBorder = Color(0x26FFFFFF)
 
@@ -50,6 +54,9 @@ object PlayerTokens {
 
     /** 动作图标的高亮态（切换成功后的 1.5s 反馈）。 */
     val activeAccent = Color(0xFF34C759)
+
+    /** 轻提示的底色。 */
+    val toastSurface = Color(0xE618181B)
 
     // ---------- 尺寸（单位 dp，横屏 844pt 基准）----------
     /** 顶栏高度。 */
@@ -69,6 +76,12 @@ object PlayerTokens {
 
     /** 底部按钮行高度。 */
     const val buttonRowHeight = 24f
+
+    /** 时间行与按钮行之间的间距。 */
+    const val buttonRowGap = 14f
+
+    /** 时间文字与进度条之间的间距。 */
+    const val trackSideGap = 10f
 
     /** 左侧按钮之间的间距。 */
     const val buttonGap = 48f
@@ -101,7 +114,7 @@ object PlayerTokens {
     const val panelRadius = 13f
 
     /** 面板行高（与设置页同规格）。 */
-    const val panelRowHeight = 46f
+    const val panelRowHeight = 42f
 
     /** 面板宽度（右侧贴边时）。 */
     const val panelWidth = 300f
@@ -115,7 +128,7 @@ object PlayerTokens {
      * 后面的档位**永远点不到**（实机实测：1.5x/1.75x/2x 被切掉）。
      * 限高 + 滚动 是正解。
      */
-    const val panelMaxHeight = 253f
+    const val panelMaxHeight = 330f
 
     /** 最小触控区（无障碍）。 */
     const val minTouchTarget = 44f

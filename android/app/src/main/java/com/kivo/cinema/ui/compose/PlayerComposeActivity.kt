@@ -75,11 +75,12 @@ class PlayerComposeActivity : ComponentActivity() {
     private var activePanel by mutableStateOf("")
     /** 刚执行过的动作（用于顶栏图标 1.5s 高亮反馈）。 */
     private var activeAction by mutableStateOf("")
-    /** 面板里被选中的项（记住上次选择，见 player-ui-v2.md §五.3）。 */
-    private var selectedSpeed by mutableStateOf("1x")
-    private var selectedQuality by mutableStateOf("")
-    private var selectedAudioTrack by mutableStateOf("")
-    private var selectedSubtitle by mutableStateOf("")
+
+    /** 双击手势的闪示图标（REX M03-S01：图标闪现 0.5s）。 */
+    private var flashZone by mutableStateOf<com.kivo.cinema.ui.compose.player.DoubleTapZone?>(null)
+
+    /** 轻提示文案（REX M08-03：淡入→停留→淡出）。空 = 不显示。 */
+    private var toastText by mutableStateOf("")
 
     /**
      * 顶栏右侧的实时网速（REX 有这个位置，我们放在动作图标左侧）。
@@ -89,6 +90,26 @@ class PlayerComposeActivity : ComponentActivity() {
      * 这就是 REX 那个 "6.5 MB/s" 的同一个量，不是我们自己估的。
      */
     private var speedText by mutableStateOf("")
+
+    /**
+     * 读一个 mpv 原生属性（字符串）。
+     *
+     * 【为什么需要这一层】面板的每一项都必须反映**内核真实状态**；
+     * UI 自己记一份会出现"面板说 1.5x、实际在 1x"这种骗人的界面。
+     *
+     * 【为什么用 nativeOrNull】轮询与重组都可能在会话建立之前触发，
+     * 用会抛异常的 `native()` 会让整个界面崩掉。
+     */
+    private fun readMpvString(name: String): String? {
+        val native = mpvNetSession?.nativeOrNull() ?: return null
+        return runCatching { native.property(name) }.getOrNull()
+    }
+
+    /** 写一个 mpv 原生属性（字符串）。返回 false = 没写成功（原因在 `lastError`）。 */
+    private fun writeMpvString(name: String, value: String): Boolean {
+        val native = mpvNetSession?.nativeOrNull() ?: return false
+        return runCatching { native.setProperty(name, value) }.getOrDefault(false)
+    }
 
     /** 网速的采样节流（1 秒一次足够，人眼分辨不出更快的变化）。 */
     private var lastSpeedSampleMs = 0L
@@ -326,6 +347,9 @@ class PlayerComposeActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "KivoCompose"
+
+        /** 双击快进/快退的步长（REX M03-S01 的双击热区行为）。 */
+        private const val DOUBLE_TAP_SEEK_MS = 10_000L
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -372,11 +396,13 @@ class PlayerComposeActivity : ComponentActivity() {
                         panelTitle = panelTitle(),
                         panelItems = panelItems(),
                         panelOpen = activePanel.isNotBlank(),
+                        flashZone = flashZone,
+                        toastText = toastText,
                         onClose = { finish() },
                         onDismissPanel = { activePanel = "" },
                         onAction = { kind -> onTopAction(kind) },
                         onPlayPause = { togglePlayPause() },
-                        onNext = { /* 下一集：资源库未接入，明确不假装 */ },
+                        onNext = { onNextEpisode() },
                         onScrub = { ms ->
                             lastTouchMs = System.currentTimeMillis()
                             thumbnailReader?.seekTo(ms * 1000)
@@ -387,14 +413,8 @@ class PlayerComposeActivity : ComponentActivity() {
                         onTap = {
                             lastTouchMs = System.currentTimeMillis()
                             controlsVisible = !controlsVisible
-                            // 点画面收起面板：面板开着时点画面应该先关面板，
-                            // 否则用户要点两次（先关面板、再收起控制条）。
-                            if (activePanel.isNotBlank()) activePanel = ""
                         },
-                        onDoubleTap = {
-                            lastTouchMs = System.currentTimeMillis()
-                            togglePlayPause()
-                        },
+                        onDoubleTap = { zone -> onDoubleTap(zone) },
                         onRetry = { onRetry() },
                     )
 
@@ -1337,15 +1357,50 @@ class PlayerComposeActivity : ComponentActivity() {
         }
     }
 
-    /** 顶栏动作图标点击。 */
+    /** 顶栏动作图标点击（REX 的 8 个入口，逐个对应）。 */
     private fun onTopAction(kind: String) {
         lastTouchMs = System.currentTimeMillis()
         when (kind) {
-            "aspect" -> activePanel = if (activePanel == "quality") "" else "quality"
-            "audio" -> activePanel = if (activePanel == "audio") "" else "audio"
-            "subtitle" -> activePanel = if (activePanel == "subtitle") "" else "subtitle"
-            "cast" -> openCastSheet()
+            // 投屏（AirPlay）
+            "airplay" -> openCastSheet()
+            // 弹幕开关（圈内"弹"）
+            "danmaku" -> {
+                danmakuOn = !danmakuOn
+                flashAction("danmaku")
+                showToast(if (danmakuOn) "弹幕已开启" else "弹幕已关闭")
+            }
+            // 画中画
+            "pip" -> enterPictureInPicture()
+            // 选集（场记板）
+            "clapper" -> activePanel = if (activePanel == "episodes") "" else "episodes"
+            // 画质比例（圈内双向箭头）
+            "expand" -> activePanel = if (activePanel == "quality") "" else "quality"
+            // 均衡器（圈内波形条）
+            "equalizer" -> activePanel = if (activePanel == "equalizer") "" else "equalizer"
+            // 字幕（对话气泡）
+            "captions" -> activePanel = if (activePanel == "subtitle") "" else "subtitle"
+            // 音轨（耳机）
+            "headphones" -> activePanel = if (activePanel == "audio") "" else "audio"
         }
+    }
+
+    /**
+     * 进入画中画（REX 顶栏的 PiP 图标）。
+     *
+     * 【为什么可能失败要告诉用户】系统可能拒绝（任务未在最近任务、或设备不支持）。
+     * 静默失败 = 用户以为图标坏了 ⇒ 必须给反馈。
+     */
+    private fun enterPictureInPicture() {
+        val ok = runCatching {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                enterPictureInPictureMode(
+                    android.app.PictureInPictureParams.Builder().build(),
+                )
+            } else {
+                false
+            }
+        }.getOrDefault(false)
+        if (!ok) showToast("当前设备不支持画中画")
     }
 
     /** 底栏右侧文字按钮点击。 */
@@ -1365,6 +1420,43 @@ class PlayerComposeActivity : ComponentActivity() {
         maybeStartPlayback(holder)
     }
 
+    /**
+     * 双击手势（REX M03-S01：左=快退 / 中=播放暂停 / 右=快进）。
+     *
+     * 【为什么要闪示图标】双击时画面在动，用户看不出这次点击干了什么。
+     * 居中图标闪 0.5 秒是零成本的确认（REX 同款）。
+     */
+    private fun onDoubleTap(zone: com.kivo.cinema.ui.compose.player.DoubleTapZone) {
+        lastTouchMs = System.currentTimeMillis()
+        flashZone = zone
+        android.os.Handler(mainLooper).postDelayed({ flashZone = null }, 600)
+        when (zone) {
+            com.kivo.cinema.ui.compose.player.DoubleTapZone.FORWARD ->
+                seekTo(positionMs + DOUBLE_TAP_SEEK_MS)
+            com.kivo.cinema.ui.compose.player.DoubleTapZone.BACKWARD ->
+                seekTo((positionMs - DOUBLE_TAP_SEEK_MS).coerceAtLeast(0L))
+            com.kivo.cinema.ui.compose.player.DoubleTapZone.TOGGLE_PLAY -> togglePlayPause()
+        }
+    }
+
+    /**
+     * "下一集"。
+     *
+     * 【为什么不静默失败】铁律：不许静默降级。
+     * 资源库/剧集列表还没接进来，所以这里**明确告诉用户**，
+     * 而不是点了没反应（用户会以为播放器坏了）。
+     */
+    private fun onNextEpisode() {
+        lastTouchMs = System.currentTimeMillis()
+        showToast("剧集列表尚未接入资源库，暂不能切换下一集")
+    }
+
+    /** 轻提示：显示 1.8 秒后自动消失（REX M08-03：停留 1.0–2.0s）。 */
+    private fun showToast(message: String) {
+        toastText = message
+        android.os.Handler(mainLooper).postDelayed({ toastText = "" }, 1_800)
+    }
+
     /** 顶栏动作的短暂高亮（切换成功的零成本确认，见 player-ui-v2.md §五.4）。 */
     private fun flashAction(kind: String) {
         activeAction = kind
@@ -1378,6 +1470,7 @@ class PlayerComposeActivity : ComponentActivity() {
         "audio" -> "音轨"
         "subtitle" -> "字幕"
         "episodes" -> "选集"
+        "equalizer" -> "均衡器"
         else -> ""
     }
 
@@ -1396,7 +1489,15 @@ class PlayerComposeActivity : ComponentActivity() {
             "speed" -> return com.kivo.cinema.ui.compose.player.PlayerPanelData.speed(
                 com.kivo.cinema.ui.compose.player.PlayerPanelData.currentSpeedLabel(mpvNetSession),
             )
-            "quality" -> return com.kivo.cinema.ui.compose.player.PlayerPanelData.qualities(selectedQuality)
+            // 画质比例：当前值从**内核**读（mpv 的 video-aspect-override），
+            // 不是 UI 自己记的 —— 否则面板显示的比例和实际画面对不上。
+            "quality" -> return com.kivo.cinema.ui.compose.player.PlayerPanelData.qualities(
+                readMpvString("video-aspect-override").orEmpty(),
+            )
+            // 均衡器：当前值是内核的 `af` 滤镜串。
+            "equalizer" -> return com.kivo.cinema.ui.compose.player.PlayerPanelData.equalizer(
+                readMpvString("af").orEmpty(),
+            )
         }
         val mpv = mpvNetSession ?: return emptyList()
         val catalog = mpv.tracksOrNull() ?: return emptyList()
@@ -1415,7 +1516,12 @@ class PlayerComposeActivity : ComponentActivity() {
 
     /** 面板里选中一项 ⇒ 写回内核。 */
     private fun onPanelSelect(item: com.kivo.cinema.ui.compose.player.PlayerOptionItem) {
-        val mpv = mpvNetSession ?: return
+        val mpv = mpvNetSession
+        if (mpv == null) {
+            // 会话还没起 ⇒ 明确告诉用户，不要静默失败。
+            showToast("内核尚未就绪，暂时无法切换")
+            return
+        }
         when (activePanel) {
             "speed" -> {
                 val value = com.kivo.cinema.ui.compose.player.PlayerPanelData.speedValue(item.title)
@@ -1425,7 +1531,6 @@ class PlayerComposeActivity : ComponentActivity() {
                     return
                 }
                 if (mpv.setSpeed(value)) {
-                    selectedSpeed = item.title
                     flashAction("speed")
                     activePanel = ""
                 } else {
@@ -1433,15 +1538,30 @@ class PlayerComposeActivity : ComponentActivity() {
                 }
             }
             "quality" -> {
-                selectedQuality = item.tag
-                activePanel = ""
+                // 【真写进内核】mpv 的 video-aspect-override 接受
+                // "16:9"/"4:3"/"2.35:1"/"Original" 这种串（command.c:2998 的输出格式）。
+                if (writeMpvString("video-aspect-override", item.tag)) {
+                    flashAction("expand")
+                    activePanel = ""
+                } else {
+                    showToast("画质比例设置失败：${mpv.lastError}")
+                }
+            }
+            "equalizer" -> {
+                // mpv 没有内置均衡器，但 `af` 支持 lavfi 桥：
+                // af=lavfi=[equalizer=f=1000:t=q:w=1:g=6]
+                if (writeMpvString("af", item.tag)) {
+                    flashAction("equalizer")
+                    activePanel = ""
+                } else {
+                    showToast("均衡器设置失败：${mpv.lastError}")
+                }
             }
             "audio" -> {
                 val id = item.tag.toIntOrNull() ?: return
                 val catalog = mpv.tracksOrNull() ?: return
                 if (catalog.selectTrack("audio", id)) {
-                    selectedAudioTrack = item.tag
-                    flashAction("audio")
+                    flashAction("headphones")
                     activePanel = ""
                 } else {
                     statusText = "音轨切换失败：${mpv.lastError}"
@@ -1450,8 +1570,7 @@ class PlayerComposeActivity : ComponentActivity() {
             "subtitle" -> {
                 val id = item.tag.toIntOrNull() ?: return
                 if (mpv.selectSubtitle(id)) {
-                    selectedSubtitle = item.tag
-                    flashAction("subtitle")
+                    flashAction("captions")
                     activePanel = ""
                 } else {
                     statusText = "字幕切换失败：${mpv.lastError}"
