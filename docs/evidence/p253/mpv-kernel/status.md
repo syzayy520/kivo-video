@@ -209,12 +209,35 @@ mpv 日志：Using hardware decoding (mediacodec-copy).
 
 ---
 
+### 功能对照：换内核后哪些不变、哪些变、哪些缺
+
+| 功能 | 旧内核 | libmpv 内核 | 说明 |
+|---|---|---|---|
+| SMB 传输 | ✅ | ✅ | 同一套 `SmbByteSource`（块窗口/预读/断网恢复），经本地 HTTP 代理接给 mpv |
+| 硬解 | ✅ MediaExtractor | ✅ mediacodec-copy | mpv 走 FFmpeg 的 mediacodec 硬解 |
+| 5.1 音频 | ✅ 自己下混成 2ch | ✅ 原样 6ch 交系统下混 | mpv 这条是 SenPlayer/Rex 的做法 |
+| seek 落点 | ⚠️ 7757 ms（整个 GOP） | ✅ **0.14~0.73 s** | mpv 用索引定位 + 帧级回退 |
+| 断网恢复 | ✅ 3400 ms | ✅ **2015~2220 ms** | 更快，且断网 62 秒位置不跳回 |
+| 时长/进度 | ✅ | ✅ | mpv 的 duration 属性 |
+| **弹幕** | ✅ | ✅ **不受影响** | 本地 XML + Compose 渲染，与内核无关 |
+| **字幕** | ✅ native 字幕句柄 + 自己同步位置 | ❌ **未接** | `SubtitleOverlayController` 依赖 `NativePlayer.nativeSubtitleRender`，是旧内核专属。mpv 侧 libass 已链入但没接 UI —— 属 UI 范畴（用户要求 UI 之后做） |
+| 倍速 | ✅ | ❌ 未接 | mpv 有 `speed` 属性，未在会话暴露 |
+| 投屏 | ✅ | ❌ 未接 | mpv 内核的投屏路径未做 |
+| 多轨切换 | ✅ | ⚠️ mpv 能识别（实测两条 TrueHD），UI 未接 | |
+| DRM | ❌ | ❌ | 两者都没有 |
+
+---
+
 ## 尚未覆盖（诚实标注）
 
 - **DRM**（Widevine 等）：未测，mpv 原生不带。
-- **字幕/弹幕**：本次只做内核接入，字幕平面还没接 mpv（libass 已链入，但未接 UI）。
-- **投屏**：mpv 内核的投屏路径未做。
-- **多轨选择**：mpv 能识别多音轨（实测两条 TrueHD），但 UI 切轨未接。
+- **字幕**：**换内核后字幕不显示** —— `SubtitleOverlayController` 走 native 字幕句柄
+  （`NativePlayer.nativeSubtitleRender`）并自己用 `PlaybackSession.positionUs` 同步位置，
+  是旧内核专属的实现。mpv 侧 libass 已链入，接上字幕属于 UI 范畴。
+  ⇒ **这是换内核的已知代价，用户需要知道。**
+- **弹幕**：不受影响（本地 XML + Compose 渲染，与内核无关）—— 实测 `engine=mpv`
+  的记录里弹幕加载照常发生。
+- **倍速 / 投屏 / 多轨切换 UI**：mpv 内核下未接（旧内核有）。
 - **播放页 UI 改造**：按用户要求，UI 之后做。本次只做内核接入（新增字段 + 分派 + 状态回显），
   播放页的引擎切换 UI、字幕/弹幕面板、轨道选择面板都没做。
 - **长时间稳定性**：单次会话最长观测约 2.5 分钟，没有做数小时 soak。
