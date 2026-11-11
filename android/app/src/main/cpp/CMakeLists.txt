@@ -489,7 +489,9 @@ if(EXISTS "${KIVO_MPV_PREBUILT}/libmpv.so")
         "mpv/mpv_commands.cpp"
         "mpv/mpv_gl_render.cpp"
         "mpv/mpv_java_vm.cpp"
+        "mpv/mpv_session_table.cpp"
         "mpv/jni_mpv_bridge.cpp"
+        "mpv/jni_mpv_command_bridge.cpp"
     )
 
     target_include_directories(kivo_mpv PRIVATE "${CMAKE_CURRENT_LIST_DIR}/mpv")

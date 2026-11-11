@@ -146,6 +146,68 @@ bool Session::initialize(const std::string& vo, const std::string& ao,
     mpv_set_option_string(handle, "demuxer-max-bytes", "64MiB");
     mpv_set_option_string(handle, "demuxer-max-back-bytes", "64MiB");
 
+    // ---- 字幕（253-P6-2）----
+    //
+    // 【为什么 mpv 自己就能渲染字幕】
+    // vo=libmpv 的渲染后端（video/out/gpu/libmpv_gpu.c）会调
+    // `gl_video_set_osd_source(vo->osd)`，而 osd_render 内部走 libass ——
+    // 也就是说**字幕是被 mpv 画进视频帧的**，不需要我们再叠一层 Compose View。
+    // 这正是 SenPlayer / Rex 的做法（它们也是 mpv 内核）。
+    //
+    // 【为什么必须显式指字体目录】
+    // 我们编的 libass 是 `CONFIG_FONTCONFIG` 未定义的版本（见
+    // libass-android/build/libass-0.16.0/config.h），也就是**没有 fontconfig
+    // 字体提供器**。libass 在这种情况下只会用两种字体来源：
+    //   · 内嵌在字幕文件里的字体；
+    //   · `ass_set_fonts_dir(dir)` 指定目录里的字体文件（ass_add_font 逐个装入）。
+    // 不给目录 ⇒ 中文字幕全是空白或豆腐块。
+    // Android 的系统字体在 /system/fonts，所以把 sub-fonts-dir 指过去。
+    //
+    // 【为什么不用 fontconfig】
+    // Android 上没有 fontconfig 库；为它交叉编译一份并维护其字体缓存
+    // 是纯粹的额外成本，而系统字体目录直读已经够用。
+    mpv_set_option_string(handle, "sub-fonts-dir", "/system/fonts");
+    // 默认字体族名。
+    //
+    // 【为什么必须显式给族名，而不是留空或 "sans-serif"】
+    // 无 fontconfig 的 libass 匹配链只有三步：
+    //   1. 指定的族名（family_default）—— 唯一能用的一步；
+    //   2. 字体提供器的 fallback —— 我们没有提供器（"can't find selected font provider"）；
+    //   3. 配置文件里的默认字体文件（subfont.ttf）—— 我们没放。
+    // 留空 ⇒ 第 1 步匹配空串、失败；"sans-serif" ⇒ 无 fontconfig 时
+    // 没有任何族叫这个名字，同样失败（实测日志：
+    // "fontselect: failed to find any fallback with glyph 0x0"）。
+    // "Noto Sans CJK JP" 是 Android 系统字体里确定存在的族名，
+    // 且它带完整 CJK 字形（NotoSansCJK-Regular.ttc）。
+    //
+    // 【为什么是 JP 而不是 SC】
+    // libass 加载字体目录时逐个文件调 ass_add_font，而 ass_add_font 对
+    // **TrueType Collection 只取 0 号 face**。Android 的
+    // NotoSansCJK-Regular.ttc 里 0 号 face 是 JP（SC/TC/HK/KR 排在后面）。
+    // 所以只有 JP 这个族名能被匹配上 —— 设 SC 会静默失败
+    // （实测：设 SC 时日志里没有 "Using default font family"，
+    //  只有 "failed to find any fallback"）。
+    // 字形层面无损失：CJK 全字集每个 face 都带，中文照样显示。
+    //
+    // 【为什么 osd-font 与 sub-font 都要设】
+    // mpv 把字幕转成 ASS 事件后，**由 OSD 层统一渲染**（osd_render），
+    // 而 osd_render 取的是 **osd_style** 的字体设置 —— 不是 sub_style。
+    // 只设 sub-font 的实测结果是日志仍然打印 (sans-serif, 400, 0)，即完全没生效。
+    // 两个都设，才能覆盖"OSD 文本"与"字幕文本"两条路径。
+    mpv_set_option_string(handle, "osd-font", "Noto Sans CJK JP");
+    mpv_set_option_string(handle, "sub-font", "Noto Sans CJK JP");
+    // 自动加载同名字幕文件（外挂 .srt/.ass 放在媒体旁边）。
+    mpv_set_option_string(handle, "sub-auto", "fuzzy");
+    // 字幕字号：mpv 默认按视频高度的比例算字号。
+    // 【为什么用 sub-font-size 而不是 sub-scale】
+    // `sub-scale` 是 0~100 的**百分比因子**，且官方明确警告它会破坏 ASS 字幕
+    // （会连同脚本里的 \fs 一起缩放）。`sub-font-size` 是绝对字号，
+    // 只对纯文本字幕的默认字号生效 —— 对 ASS 是"没有指定 \fs 时用多大"的兜底。
+    // 52 px 在 1080 高的画面上约等于 5%，与主流播放器接近。
+    mpv_set_option_string(handle, "sub-font-size", "52");
+    // 硬字幕（位图字幕，如 PGS/VobSub）在 mpv 里也走同一条 osd 通路，
+    // 不需要额外开关。
+
     mark_step(log_file.c_str(), "before-mpv_initialize");
     int rc = mpv_initialize(handle);
     mark_step(log_file.c_str(), "after-mpv_initialize");

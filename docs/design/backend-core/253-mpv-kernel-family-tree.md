@@ -53,10 +53,12 @@
 ```
 android/app/src/main/cpp/mpv/
 ├── mpv/                            # mpv 官方头文件（client.h / render.h / render_gl.h）
-├── jni_mpv_bridge.cpp              # 只做一件事：JNI 导出表（薄壳，转发到下列各层）
+├── jni_mpv_bridge.cpp              # 只做一件事：JNI 导出表 —— **会话生命周期**
+├── jni_mpv_command_bridge.cpp      # 只做一件事：JNI 导出表 —— **命令与状态**
 ├── mpv_session.hpp                 # 家族内唯一的会话接口（其余文件都依赖它）
 ├── mpv_session.cpp                 # 只做一件事：libmpv 句柄的创建/销毁/生命周期
 ├── mpv_session_impl.hpp            # 家族内私有的共享状态（家族外不可见）
+├── mpv_session_table.{hpp,cpp}     # 只做一件事：句柄表与它的锁（JNI 层共用）
 ├── mpv_commands.cpp                # 只做一件事：seek/pause/属性读取等**命令**下发
 ├── mpv_event_loop.cpp              # 只做一件事：轮询 mpv 属性 → 回调给上层
 ├── mpv_video_output.hpp            # 视频输出层的接口声明
@@ -74,6 +76,8 @@ android/app/src/main/cpp/mpv/
 | `mpv_source_resolver.cpp` | 改为 Kotlin 的 `LocalRangeServer` | URL 构造与 HTTP 服务是 Kotlin 侧的事，放 C++ 里反而多一层 |
 | `mpv_stats_bridge.cpp` | **不需要** | mpv 的日志直接落文件，比翻译成 JSON 更省事也更好读 |
 | （新增）`mpv_java_vm.{hpp,cpp}` | — | **初稿漏了**：mpv 的硬解与音频都要 JavaVM，宿主不注册就全废 |
+| （P6 新增）`mpv_session_table.{hpp,cpp}` | — | JNI 层拆成多个文件后，会话表必须**只有一份**，锁也只能有一把 |
+| （P6 新增）`jni_mpv_command_bridge.cpp` | — | JNI 层按**关注点**拆：生命周期失败 / 命令失败 / 属性失败是三类问题，排查手段不同 |
 
 **边界规则**（写进每个文件的注释头）：
 
@@ -90,7 +94,9 @@ android/app/src/main/cpp/mpv/
 ```
 mpv/
 ├── MpvNative.kt                    # 只做一件事：native 句柄的 Kotlin 门面
-└── LocalRangeServer.kt             # 只做一件事：把 ByteSource 变成 mpv 能读的 HTTP URL
+├── LocalRangeServer.kt             # 只做一件事：把 ByteSource 变成 mpv 能读的 HTTP URL
+├── MpvTrackCatalog.kt              # 只做一件事：把 mpv 的轨道列表变成 Kotlin 结构
+└── MpvSpeedController.kt           # 只做一件事：读与写 mpv 的 speed 属性
 playback/
 ├── MpvPlaybackSession.kt           # libmpv 内核的播放会话（与 NetworkPlaybackSession 同名同义）
 └── PlaybackEngine.kt               # 只做一件事：内核选择（系统属性 mpv / legacy）

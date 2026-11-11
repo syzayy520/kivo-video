@@ -1,4 +1,4 @@
-// 253 家族：JNI 导出层 —— **只做一件事**：把 Kotlin 的调用翻译成家族内接口的调用。
+// 253 家族：JNI 导出层（会话生命周期）—— **只做一件事**：把 Kotlin 的调用翻译成家族内接口的调用。
 //
 // 【它是薄壳，这是纪律】
 // 本文件**不含**任何 mpv API 调用、任何事件处理、任何渲染逻辑。
@@ -6,6 +6,12 @@
 //   1. 把 Kotlin 传来的字符串/对象转成 C++ 类型；
 //   2. 调用 mpv_session.hpp 里的接口；
 //   3. 把结果与错误码交回 Kotlin。
+//
+// 【本文件只管"会话生命周期"】
+// 创建 / 初始化 / 绑定 Surface / 加载媒体 / 释放。
+// 命令与属性各有自己的文件（jni_mpv_command_bridge.cpp / jni_mpv_property_bridge.cpp）——
+// 拆开的理由不是行数，而是**关注点**：这三类失败的排查手段完全不同
+// （创建失败 = 内核起不来；命令失败 = 意图没生效；属性失败 = 状态读不到）。
 //
 // 【为什么句柄用 long 而不是对象】
 // Kotlin 侧需要跨多次调用持有同一个会话。用裸指针当 handle 有风险，
@@ -16,39 +22,35 @@
 #include <android/native_window_jni.h>
 
 #include <memory>
-#include <mutex>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 #include "mpv_session.hpp"
+#include "mpv_session_table.hpp"
 #include "mpv_java_vm.hpp"
 
 namespace kivo::video::mpv {
 namespace {
 
-/// 会话表。所有 JNI 调用都要经过它，所以**必须加锁**。
-///
-/// 【为什么用表而不是直接传指针】
-/// Kotlin 侧只拿得到一个 long。裸指针会在 use-after-free 时变成野指针崩溃，
-/// 而表 + 序号能让"句柄已释放"变成一个明确的错误码。
-std::mutex& table_lock() {
-    static std::mutex lock;
-    return lock;
+/// 把 Kotlin 的字符串转成 C++ 字符串（空指针 → 空串）。
+std::string to_string(JNIEnv* env, jstring value) {
+    if (value == nullptr) {
+        return std::string();
+    }
+    const char* chars = env->GetStringUTFChars(value, nullptr);
+    if (chars == nullptr) {
+        return std::string();
+    }
+    std::string result(chars);
+    env->ReleaseStringUTFChars(value, chars);
+    return result;
 }
 
-std::unordered_map<jlong, std::unique_ptr<Session>>& session_table() {
-    static std::unordered_map<jlong, std::unique_ptr<Session>> table;
-    return table;
-}
-
-jlong next_handle() {
-    static jlong counter = 1;
-    return counter++;
+/// 抛一个 Java 异常，把 native 的失败原因交回 Kotlin。
+void throw_error(JNIEnv* env, const std::string& message) {
+    env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), message.c_str());
 }
 
 }  // namespace
-
 }  // namespace kivo::video::mpv
 
 using kivo::video::mpv::Session;
@@ -65,54 +67,40 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeCreate(JNIEnv* env, jclass, jobject app
     // mpv-android 的做法见其 app/src/main/jni/main.cpp:44。
     std::string vm_error;
     if (!kivo::video::mpv::register_java_vm(env, app_context, vm_error)) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"),
-                      ("register java vm failed: " + vm_error).c_str());
+        kivo::video::mpv::throw_error(env, "register java vm failed: " + vm_error);
         return 0;
     }
 
     std::string error;
     auto session = Session::create(error);
     if (!session) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), error.c_str());
+        kivo::video::mpv::throw_error(env, error);
         return 0;
     }
-    const jlong handle = kivo::video::mpv::next_handle();
-    std::lock_guard lock(kivo::video::mpv::table_lock());
-    kivo::video::mpv::session_table()[handle] = std::move(session);
-    return handle;
+    return kivo::video::mpv::register_session(std::move(session));
 }
 
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_mpv_MpvNative_nativeInitialize(JNIEnv* env, jclass, jlong handle,
                                                    jstring vo, jstring ao,
                                                    jstring log_file) {
-    std::lock_guard lock(kivo::video::mpv::table_lock());
-    auto& table = kivo::video::mpv::session_table();
-    auto it = table.find(handle);
-    if (it == table.end()) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "handle is invalid");
+    // 【整段持锁】查表 → 调用 → 可能改表 必须是一个原子区间，
+    // 否则中途表被别的线程清掉就会拿到野指针（use-after-free）。
+    kivo::video::mpv::SessionTableLock lock;
+    Session* session = kivo::video::mpv::find_session_locked(handle);
+    if (session == nullptr) {
+        kivo::video::mpv::throw_error(env, "handle is invalid");
         return -1;
     }
-    const char* vo_chars = vo != nullptr ? env->GetStringUTFChars(vo, nullptr) : "libmpv";
-    const char* ao_chars = ao != nullptr ? env->GetStringUTFChars(ao, nullptr) : nullptr;
-    const char* log_chars = log_file != nullptr ? env->GetStringUTFChars(log_file, nullptr) : nullptr;
+    const std::string vo_name = kivo::video::mpv::to_string(env, vo);
     std::string error;
-    const bool ok = it->second->initialize(
-        vo_chars != nullptr ? vo_chars : "libmpv",
-        ao_chars != nullptr ? ao_chars : "",
-        log_chars != nullptr ? log_chars : "",
+    const bool ok = session->initialize(
+        vo_name.empty() ? "libmpv" : vo_name,
+        kivo::video::mpv::to_string(env, ao),
+        kivo::video::mpv::to_string(env, log_file),
         error);
-    if (vo_chars != nullptr) {
-        env->ReleaseStringUTFChars(vo, vo_chars);
-    }
-    if (ao_chars != nullptr) {
-        env->ReleaseStringUTFChars(ao, ao_chars);
-    }
-    if (log_chars != nullptr) {
-        env->ReleaseStringUTFChars(log_file, log_chars);
-    }
     if (!ok) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), error.c_str());
+        kivo::video::mpv::throw_error(env, error);
         return -1;
     }
     return 0;
@@ -121,25 +109,24 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeInitialize(JNIEnv* env, jclass, jlong h
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_mpv_MpvNative_nativeAttachSurface(JNIEnv* env, jclass, jlong handle,
                                                       jobject surface) {
-    std::lock_guard lock(kivo::video::mpv::table_lock());
-    auto& table = kivo::video::mpv::session_table();
-    auto it = table.find(handle);
-    if (it == table.end()) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "handle is invalid");
+    kivo::video::mpv::SessionTableLock lock;
+    Session* session = kivo::video::mpv::find_session_locked(handle);
+    if (session == nullptr) {
+        kivo::video::mpv::throw_error(env, "handle is invalid");
         return -1;
     }
     ANativeWindow* window = ANativeWindow_fromSurface(env, surface);
     if (window == nullptr) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "surface is null");
+        kivo::video::mpv::throw_error(env, "surface is null");
         return -1;
     }
     std::string error;
-    const bool ok = it->second->attach_surface(window, error);
+    const bool ok = session->attach_surface(window, error);
     // ANativeWindow_fromSurface 返回的引用由我们持有 —— mpv 会 retain 一次，
     // 这里必须 release 掉我们这一份，否则 Surface 永远解不开。
     ANativeWindow_release(window);
     if (!ok) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), error.c_str());
+        kivo::video::mpv::throw_error(env, error);
         return -1;
     }
     return 0;
@@ -148,99 +135,28 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeAttachSurface(JNIEnv* env, jclass, jlon
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_mpv_MpvNative_nativeLoadFile(JNIEnv* env, jclass, jlong handle,
                                                   jstring url) {
-    std::lock_guard lock(kivo::video::mpv::table_lock());
-    auto& table = kivo::video::mpv::session_table();
-    auto it = table.find(handle);
-    if (it == table.end()) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "handle is invalid");
-        return -1;
-    }
-    const char* chars = env->GetStringUTFChars(url, nullptr);
-    std::string error;
-    const bool ok = it->second->load_file(chars != nullptr ? chars : "", error);
-    env->ReleaseStringUTFChars(url, chars);
-    if (!ok) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), error.c_str());
-        return -1;
-    }
-    return 0;
-}
-
-JNIEXPORT jint JNICALL
-Java_com_kivo_cinema_mpv_MpvNative_nativeSeek(JNIEnv* env, jclass, jlong handle, jdouble position,
-                                              jboolean exact) {
-    std::lock_guard lock(kivo::video::mpv::table_lock());
-    auto& table = kivo::video::mpv::session_table();
-    auto it = table.find(handle);
-    if (it == table.end()) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "handle is invalid");
+    kivo::video::mpv::SessionTableLock lock;
+    Session* session = kivo::video::mpv::find_session_locked(handle);
+    if (session == nullptr) {
+        kivo::video::mpv::throw_error(env, "handle is invalid");
         return -1;
     }
     std::string error;
-    const bool ok = it->second->seek(position, exact == JNI_TRUE, error);
+    const bool ok = session->load_file(kivo::video::mpv::to_string(env, url), error);
     if (!ok) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), error.c_str());
+        kivo::video::mpv::throw_error(env, error);
         return -1;
     }
     return 0;
-}
-
-JNIEXPORT jint JNICALL
-Java_com_kivo_cinema_mpv_MpvNative_nativeCommand(JNIEnv* env, jclass, jlong handle, jstring name,
-                                                 jstring args) {
-    std::lock_guard lock(kivo::video::mpv::table_lock());
-    auto& table = kivo::video::mpv::session_table();
-    auto it = table.find(handle);
-    if (it == table.end()) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "handle is invalid");
-        return -1;
-    }
-    const char* name_chars = env->GetStringUTFChars(name, nullptr);
-    const char* args_chars = args != nullptr ? env->GetStringUTFChars(args, nullptr) : nullptr;
-    std::string error;
-    const bool ok = it->second->command(name_chars != nullptr ? name_chars : "",
-                                        args_chars != nullptr ? args_chars : "", error);
-    env->ReleaseStringUTFChars(name, name_chars);
-    if (args_chars != nullptr) {
-        env->ReleaseStringUTFChars(args, args_chars);
-    }
-    if (!ok) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), error.c_str());
-        return -1;
-    }
-    return 0;
-}
-
-JNIEXPORT jdouble JNICALL
-Java_com_kivo_cinema_mpv_MpvNative_nativePositionSeconds(JNIEnv*, jclass, jlong handle) {
-    std::lock_guard lock(kivo::video::mpv::table_lock());
-    auto& table = kivo::video::mpv::session_table();
-    auto it = table.find(handle);
-    if (it == table.end()) {
-        return -1.0;
-    }
-    return it->second->position_seconds();
-}
-
-JNIEXPORT jdouble JNICALL
-Java_com_kivo_cinema_mpv_MpvNative_nativeDurationSeconds(JNIEnv*, jclass, jlong handle) {
-    std::lock_guard lock(kivo::video::mpv::table_lock());
-    auto& table = kivo::video::mpv::session_table();
-    auto it = table.find(handle);
-    if (it == table.end()) {
-        return -1.0;
-    }
-    return it->second->duration_seconds();
 }
 
 JNIEXPORT void JNICALL
 Java_com_kivo_cinema_mpv_MpvNative_nativeRelease(JNIEnv*, jclass, jlong handle) {
-    std::lock_guard lock(kivo::video::mpv::table_lock());
-    auto& table = kivo::video::mpv::session_table();
-    auto it = table.find(handle);
-    if (it != table.end()) {
-        table.erase(it);
-    }
+    // 【注意】这里不持 SessionTableLock —— erase_session 内部会销毁 Session，
+    // 而 Session 的析构要 join 事件线程、释放渲染上下文。
+    // 持锁销毁会把其它线程的 JNI 调用一起堵住（那几秒里所有调用都排队）。
+    // erase_session 自己加了锁，所以这里不重复加。
+    kivo::video::mpv::erase_session(handle);
 }
 
 }  // extern "C"

@@ -6,6 +6,8 @@ import android.os.Looper
 import android.view.Surface
 import com.kivo.cinema.mpv.LocalRangeServer
 import com.kivo.cinema.mpv.MpvSession
+import com.kivo.cinema.mpv.MpvSpeedController
+import com.kivo.cinema.mpv.MpvTrackCatalog
 import com.kivo.cinema.net.ByteSource
 import java.io.File
 import java.util.concurrent.CountDownLatch
@@ -63,6 +65,24 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
     private var session: MpvSession? = null
     private var server: LocalRangeServer? = null
     private var registeredId: String? = null
+
+    /**
+     * 253-P6-3：轨道目录（音轨/字幕轨枚举与选轨）。
+     *
+     * 【为什么是惰性的】
+     * 它需要一个活着的 [MpvSession] 才能读属性，而会话在 [start] 之后才存在。
+     * 所以每次访问时现取现用，不缓存 —— 轨道列表本身也会随外挂字幕变化。
+     */
+    val tracks: MpvTrackCatalog
+        get() = MpvTrackCatalog(requireSession())
+
+    /** 253-P6-3：倍速控制。 */
+    val speed: MpvSpeedController
+        get() = MpvSpeedController(requireSession())
+
+    /** 253-P6-2：字幕是否已启用（mpv 的 `sid` 有值即为启用）。 */
+    val subtitlesEnabled: Boolean
+        get() = tracks.currentTrackId("sub") >= 0
 
     /** 上一次 seek 的落点，供上层显示"实际跳到哪"。 */
     @Volatile var lastSeekLandingUs = -1L; private set
@@ -214,6 +234,97 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
         runCatching { native.attachSurface(surface) }
     }
 
+    // ---- 253-P6-2：字幕 ----
+
+    /**
+     * 挂载一条外挂字幕文件。
+     *
+     * 【为什么交给 mpv 而不是自己画】
+     * mpv 的 `vo=libmpv` 会把字幕**画进视频帧**（渲染后端调
+     * `gl_video_set_osd_source(vo->osd)`，osd 内部走 libass）。
+     * 我们若再解析一遍再叠一层，等于两套字幕同时显示、两个位置。
+     * 所以外挂字幕的正确接法就是把文件交给 mpv（`sub-add`）。
+     *
+     * @param file 本地字幕文件（.srt / .ass / .ssa）。
+     * @return true = 挂载成功。
+     */
+    fun loadExternalSubtitle(file: File): Boolean {
+        if (!file.isFile) {
+            lastError = "字幕文件不存在：${file.name}"
+            return false
+        }
+        val ok = tracks.addExternalSubtitle(file.absolutePath)
+        if (!ok) {
+            lastError = "字幕挂载失败：${file.name}"
+        }
+        return ok
+    }
+
+    /**
+     * 选中一条字幕轨。
+     *
+     * @param trackId 轨道 id（来自 [MpvTrackCatalog.tracks]）。
+     */
+    fun selectSubtitle(trackId: Int): Boolean {
+        val ok = tracks.selectTrack("sub", trackId)
+        if (!ok) lastError = "字幕轨切换失败（id=$trackId）"
+        return ok
+    }
+
+    /** 关闭字幕。 */
+    fun disableSubtitles(): Boolean {
+        val ok = tracks.disableTrack("sub")
+        if (!ok) lastError = "关闭字幕失败"
+        return ok
+    }
+
+    /**
+     * 当前字幕轨是否在**显示**。
+     *
+     * 【为什么不能只看"选了没有"】
+     * mpv 有三种状态：没挂载字幕轨、挂了但没选、选了且可见。
+     * 中间那一种（挂了但没选）在界面上和"完全没字幕"是一样的 ——
+     * 都看不见，但前者可以一键打开，后者要先挂文件。
+     */
+    fun isSubtitleVisible(): Boolean {
+        val id = tracks.currentTrackId("sub")
+        if (id < 0) return false
+        // mpv 的 `sub-visibility` 默认是 yes；显式问一次比假设更可靠。
+        return session?.property("sub-visibility") != "no"
+    }
+
+    // ---- 253-P6-3：倍速 ----
+
+    /**
+     * 下发一条内核命令。
+     *
+     * @param name 命令名（如 `screenshot-to-file`）。
+     * @param args 参数（已按 mpv 命令行格式序列化）。
+     * @return true = 命令被内核接受。
+     *
+     * 【为什么会话要透出命令】
+     * 上层偶尔需要做"没有对应属性"的动作：截图、加载外挂字幕、
+     * 切到下一条字幕轨。这些都是 mpv 的命令而不是属性。
+     * 把它们藏在会话里，各调用点就不必自己去摸内核句柄。
+     */
+    fun command(name: String, args: String = ""): Boolean =
+        runCatching { requireSession().command(name, args) }.getOrDefault(false)
+
+    /**
+     * 设置倍速。
+     *
+     * @param ratio 倍速（会被夹到 0.25~4.0）。
+     * @return true = 设置成功。
+     */
+    fun setSpeed(ratio: Double): Boolean {
+        val ok = speed.setSpeed(ratio)
+        if (!ok) lastError = "倍速设置失败（$ratio）"
+        return ok
+    }
+
+    /** 当前倍速。 */
+    fun currentSpeed(): Double = speed.speed()
+
     /** 内核状态摘要，供诊断用。 */
     fun currentSummary(): String = session?.positionSeconds()?.toString().orEmpty()
 
@@ -251,4 +362,17 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
         lastError = reason
         state = State.FAILED
     }
+
+    /**
+     * 取活着的内核会话。
+     *
+     * @throws IllegalStateException 会话还没起或已经释放。
+     *
+     * 【为什么用异常而不是返回 null】
+     * 调用方（轨道目录、倍速控制器）拿到 null 后仍要继续用，
+     * 那就得到一串 null 传播；而"会话不存在"是一个**编程错误**
+     * （在 start 之前就用轨道目录），早失败比晚失败好查。
+     */
+    private fun requireSession(): MpvSession =
+        session ?: throw IllegalStateException("内核会话尚未启动或已释放")
 }

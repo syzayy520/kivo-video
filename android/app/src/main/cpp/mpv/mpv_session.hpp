@@ -90,7 +90,20 @@ public:
     [[nodiscard]] bool seek(double position_seconds, bool exact, std::string& error);
 
     /// 读一个属性（字符串形式）。
+    ///
+    /// 支持 mpv 的**属性路径**语法：`track-list/count`、`track-list/0/title`。
+    /// 字幕选轨、轨道列表、倍速全部走这一个接口 —— mpv 的属性树是唯一入口，
+    /// 不必为每种能力各开一个 API。
     [[nodiscard]] bool property(const std::string& name, std::string& out, std::string& error);
+
+    /// 写一个属性（字符串形式）。
+    ///
+    /// 典型用途：`speed`（倍速）、`aid`/`sid`/`vid`（选轨）、`pause`。
+    /// 【为什么用属性而不是命令】命令是"一次性动作"（seek、loadfile），
+    /// 属性是"当前状态"（倍速是 1.5、当前音轨是 2 号）。
+    /// 状态必须可读回来才能在 UI 上显示 —— 所以这一对接口必须成对提供。
+    [[nodiscard]] bool set_property(const std::string& name, const std::string& value,
+                                    std::string& error);
 
     /// 渲染一帧到已绑定的 Surface。`mpv_render_context_render` 的薄封装。
     [[nodiscard]] bool render(std::string& error);

@@ -1,7 +1,6 @@
-# 253-P1~P4：libmpv 内核实测证据
+# 253-P1~P6：libmpv 内核实测证据
 
-状态：**已验收**（K40 真机，Android 13，MIUI）
-
+状态：**P1~P5 已验收**；**P6-1/P6-3 已验收**；P6-2 字幕画面显示未闭环（详见 §P6）
 设备：`b6e950ee`（K40，骁龙 870 / SM8250）
 片源：NAS 上 `Shelter 2026 USA BluRay 1080p TrueHD5.1 x265 10bit-CHD.mkv`
 （12.19 GB / 6435 s / 15.15 Mbps / HEVC 1920×804 23.976 fps + TrueHD 5.1 两条音轨）
@@ -244,3 +243,78 @@ mpv 日志：Using hardware decoding (mediacodec-copy).
 - **多协议聚合**（Emby/WebDAV）：mpv 内核目前只接了 SMB；其它协议仍走旧内核。
 - **平板的软解路径**：平板验证的是硬解（HEVC）；VC-1 等平台无解码器的格式在 mpv 下
   是 FFmpeg 软解，未在平板上单独验证。
+
+---
+
+## P6 内核控制面与字幕平面（2026-11-11）
+
+完整交接见 [253-mpv-kernel-p6-control-plane.md](../../../design/backend-core/253-mpv-kernel-p6-control-plane.md)。
+本节只给结论与硬数字。
+
+### P6-1 属性读写通道 ✅
+
+**背景**：P1~P5 期间**没有任何办法问内核要状态** ——
+C++ 的 `Session::property` 实现了，但 JNI 层没导出，Kotlin 调不到。
+字幕选轨、倍速、多轨切换全都卡在这里。
+
+**做法**：JNI 层按关注点拆成「生命周期」与「命令与状态」两个文件，
+会话表独立成 `mpv_session_table.{hpp,cpp}`（锁只有一把）；
+新增 `nativeGetProperty` / `nativeSetProperty`。
+
+**关键设计**：用 mpv 的**属性路径**语法（`track-list/count`、`track-list/0/title`）
+逐项读字符串，**不在 native 侧解析 JSON** ——
+属性路径是 mpv 自己定义并保证的语法，自己写序列化就多一处会漂移的地方。
+
+### P6-3 倍速与多轨切换 ✅
+
+`MpvControlPlaneInstrumentation` **1/1 PASS**：
+
+```
+ START ok TRACKS count=12 AUDIO=3 SUB=5 aid1=1 codec=truehd
+ AID 1 -> 2 (target=2)
+ RATE normal=1.02x SPEED readback=2.0 RATE fast=2.03x
+ SUB subsBefore=5 subsAfter=6 external=[6] SUB selected=6 visible=true
+```
+
+| 判据 | 结果 |
+|---|---|
+| 属性通道（`track-list/count`） | ✅ 读到 12 条轨 |
+| 轨道分类 | ✅ **3 条音轨 + 5 条字幕轨**（此前只知 2 条音轨 —— 因为当时没有属性通道） |
+| 切音轨 | ✅ `aid` 1 → 2，读回一致 |
+| **倍速真的生效** | ✅ 正常 1.02×；设 2.0× 后推进速率 **2.03×**（不是"属性写进去了"，是**媒体时间真的走得更快**） |
+| 外挂字幕挂载 | ✅ 字幕轨 5 → 6，新轨 `external=yes`，可选中 |
+
+**倍速判据为什么量推进速率**：只验证 `speed` 属性读回来是 2.0，
+证明不了内核在快放。唯一能证伪的判据是"同样的墙钟时间内媒体时间走得更快"。
+
+### P6-2 字幕 ⚠️ 半闭环
+
+**已闭环**：轨道枚举（5 条 PGS 中文简/繁字幕）、外挂 SRT 挂载、选轨、
+mpv 侧 OSD 纹理确实被渲染（`Reallocating OSD texture to 2048x512`）。
+
+**未闭环**：**字幕没有出现在最终画面上**。
+
+已排除的原因（都做过实验，不是推测）：
+
+| 排除项 | 怎么排除的 |
+|---|---|
+| 字幕轨没选中 | 日志 `refresh track 5 (sub)` + `● Subs --sid=2` |
+| 外挂字幕挂不上 | 轨数 5 → 6，`external=yes` |
+| PGS 解码器缺失 | `config_components.h`：`CONFIG_PGSSUB_DECODER 1` |
+| 那个时刻没字幕 | PC 端 `ffprobe` 扫 `s:2`：字幕包自 **13.639 s** 起，size 42 KB~90 KB |
+| 控制条遮住字幕 | mpv 分支补上 3 秒自动隐藏后重测，**仍然没有** |
+| mpv 没渲染字幕 | OSD 纹理 2048×512 被分配 ⇒ **渲染了** |
+
+**⇒ 剩下唯一的解释：OSD 被画到了画面看不见的位置**。
+最可能的具体机制：mpv 的 `--osd-dimensions` 默认 `window`，
+而我们的"窗口"是竖屏 Surface（1080×452），视频 1920×804 宽银幕只占中间一条
+⇒ 字幕落在窗口最底部的窄黑边里。
+
+**下一步**：加 `--osd-dimensions=video` 重编重截（一次实验即可判定）。
+
+### 顺带修掉的两个真问题
+
+| # | 问题 | 影响 | 修法 |
+|---|---|---|---|
+| 1 | 播放页 mpv 分支漏了"3 秒无操作隐藏控制条" | 控制条永远显示 ⇒ **即使字幕渲染了也看不见** | `PlayerComposeActivity.positionPoll` 的 mpv 分支补上隐藏逻辑 |
+| 2 | 字幕字体族名全部不匹配 | 文本字幕渲染不出来 | 设 `osd-font`/`sub-font`（**注意：字幕由 OSD 层渲染，只设 `sub-font` 完全不生效**）；无 fontconfig 的 libass 只能靠族名或字体文件匹配，仍未解决 |

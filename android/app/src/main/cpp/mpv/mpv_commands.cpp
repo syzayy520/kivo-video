@@ -54,6 +54,23 @@ bool property_impl(mpv_handle* handle, const std::string& name, std::string& out
     return true;
 }
 
+/// 写一个属性（字符串形式）。
+///
+/// 【为什么属性路径也要支持】
+/// 读属性支持 `track-list/0/title` 这种路径，写属性同理 ——
+/// 否则"选中第 2 条字幕轨"就只能靠命令 `set sid 2`，而读回来得用路径。
+/// 读写两套语法会让上层很容易写出"写得进去读不出来"的代码。
+bool set_property_impl(mpv_handle* handle, const std::string& name,
+                       const std::string& value, std::string& error) {
+    const int rc = mpv_set_property_string(handle, name.c_str(), value.c_str());
+    if (rc < 0) {
+        error = "set property failed: " + name + " = " + value + " (" +
+                std::string(mpv_error_string(rc)) + ")";
+        return false;
+    }
+    return true;
+}
+
 /// 跳到 `position_seconds`。
 ///
 /// 精确模式用 mpv 的 `seek <pos> absolute exact` —— 第三个参数 `exact` 让 mpv
@@ -95,6 +112,15 @@ bool Session::property(const std::string& name, std::string& out, std::string& e
         return false;
     }
     return property_impl(impl_->handle, name, out, error);
+}
+
+bool Session::set_property(const std::string& name, const std::string& value,
+                            std::string& error) {
+    if (!impl_ || !impl_ || impl_->handle == nullptr) {
+        error = "session not created";
+        return false;
+    }
+    return set_property_impl(impl_->handle, name, value, error);
 }
 
 bool Session::seek(double position_seconds, bool exact, std::string& error) {

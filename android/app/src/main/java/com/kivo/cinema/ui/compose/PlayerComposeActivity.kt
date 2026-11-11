@@ -172,6 +172,16 @@ class PlayerComposeActivity : ComponentActivity() {
                 // 这一支是独立的轮询回路 —— 下面的 `postDelayed` 在网络分支里，
                 // 提前 return 会跳过它，位置就永远停在 0（真机实测：画面在动、
                 // 时长也对，但进度一直是 0:00:00）。
+                //
+                // 【控制条自动隐藏 —— mpv 分支原先漏了】
+                // 软解分支与旧网络分支都有"3 秒无操作自动隐藏控制条"，
+                // mpv 分支没有 ⇒ 控制条**永远显示**。
+                // 后果不是"不好看"而是**遮住字幕**：控制条横在画面底部，
+                // 而字幕正好在底部（真机取证：字幕已被渲染进 OSD 纹理，
+                // 截图里却被控制条完全盖住，一度被误判成"字幕没渲染"）。
+                if (System.currentTimeMillis() - lastTouchMs > 3000) {
+                    controlsVisible = false
+                }
                 android.os.Handler(mainLooper).postDelayed(this, 100)
                 return
             }
@@ -722,12 +732,64 @@ class PlayerComposeActivity : ComponentActivity() {
                 isPlaying = true
                 lastTouchMs = System.currentTimeMillis()
                 android.os.Handler(mainLooper).post(positionPoll)
+                applyProbeSubtitle(session)
             } else {
                 statusText = "网络视频无法播放：${session.lastError}"
                 isPlaying = false
                 controlsVisible = true
             }
         }
+    }
+
+    /**
+     * 253-P6-2 取证钩子：按 intent 指定的轨道 id 选字幕，并可 seek + 冻结。
+     *
+     * 【为什么这是一个取证钩子而不是功能】
+     * 字幕的**完整交互**（字幕列表、开关、样式）属于播放页 UI，按用户要求之后做。
+     * 但"mpv 内核能不能把字幕画到画面上"这件事必须**现在**有证据 ——
+     * 它是换内核的已知代价（字幕不显示）。
+     * 而内核渲染只差一个"选哪条轨"的动作，用 intent extra 驱动就够了，
+     * 不必为此先做一整套 UI。
+     *
+     * 【为什么需要"冻结"】
+     * 字幕只在有对白的时刻出现。截图必须落在那个时刻内，
+     * 而播放是持续的 —— 宿主机无法精确掐准截图时机。
+     * 所以这里 seek 之后**暂停**：画面停住，字幕停在屏幕上，
+     * 宿主什么时候截都能截到同一帧。
+     *
+     * 用法：
+     * ```
+     * am start -n com.kivo.cinema/.ui.compose.PlayerComposeActivity \
+     *   --es kivo.sourceId <id> --es kivo.smbPath <path> \
+     *   --ei kivo.subtitleId 2 --ei kivo.seekSec 14 --ez kivo.freeze true
+     * ```
+     */
+    private fun applyProbeSubtitle(session: com.kivo.cinema.playback.MpvPlaybackSession) {
+        val subtitleId = intent.getIntExtra("kivo.subtitleId", -1)
+        val seekSec = intent.getIntExtra("kivo.seekSec", -1)
+        val freeze = intent.getBooleanExtra("kivo.freeze", false)
+        if (seekSec > 0) {
+            android.os.Handler(mainLooper).postDelayed({
+                session.seekTo(seekSec * 1_000_000L)
+                if (freeze) {
+                    // 等落位完成再停 —— 立刻 pause 可能停在跳转途中。
+                    android.os.Handler(mainLooper).postDelayed({
+                        session.setPaused(true)
+                        smbTrace("probe freeze at ${seekSec}s")
+                    }, 2_500)
+                }
+            }, 1_500)
+        }
+        if (subtitleId < 0) return
+        android.os.Handler(mainLooper).postDelayed({
+            val ok = session.selectSubtitle(subtitleId)
+            smbTrace("probe subtitle id=$subtitleId ok=$ok")
+            statusText = if (ok) {
+                "字幕轨 #$subtitleId 已选中"
+            } else {
+                "字幕轨 #$subtitleId 选中失败：${session.lastError}"
+            }
+        }, 2_000)
     }
 
     /** Emby and SMB share the same native A/V pipeline. Preparation never blocks main. */

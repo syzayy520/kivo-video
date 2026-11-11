@@ -33,6 +33,19 @@ object MpvNative {
     @JvmStatic external fun nativeCommand(handle: Long, name: String, args: String): Int
     @JvmStatic external fun nativePositionSeconds(handle: Long): Double
     @JvmStatic external fun nativeDurationSeconds(handle: Long): Double
+
+    /**
+     * 读一个内核属性（字符串形式）。
+     *
+     * 支持 mpv 的**属性路径**语法：`track-list/count`、`track-list/0/title`。
+     * 读不到时返回 null —— 属性在某些状态下本来就不存在
+     * （媒体没加载时读 duration），这不是错误。
+     */
+    @JvmStatic external fun nativeGetProperty(handle: Long, name: String): String?
+
+    /** 写一个内核属性（字符串形式）。典型用途：speed / aid / sid / vid。 */
+    @JvmStatic external fun nativeSetProperty(handle: Long, name: String, value: String): Int
+
     @JvmStatic external fun nativeRelease(handle: Long)
 }
 
@@ -83,16 +96,40 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
         MpvNative.nativeSeek(handle, positionSeconds, exact)
     }
 
-    /** 下发一条 mpv 命令（如 `set pause yes`）。 */
-    fun command(name: String, args: String = "") {
-        MpvNative.nativeCommand(handle, name, args)
-    }
+    /**
+     * 下发一条 mpv 命令（如 `set pause yes`）。
+     *
+     * @return true = 命令被内核接受。
+     */
+    fun command(name: String, args: String = ""): Boolean =
+        runCatching { MpvNative.nativeCommand(handle, name, args) == 0 }.getOrDefault(false)
 
     /** 当前播放位置（秒）；读不到返回 -1。 */
     fun positionSeconds(): Double = MpvNative.nativePositionSeconds(handle)
 
     /** 总时长（秒）；读不到返回 -1。 */
     fun durationSeconds(): Double = MpvNative.nativeDurationSeconds(handle)
+
+    /**
+     * 读一个内核属性（字符串形式）。
+     *
+     * 支持 mpv 的属性路径语法：`track-list/count`、`track-list/0/title`。
+     *
+     * @return 属性值；读不到返回 null。**读不到不是错误** ——
+     *   有些属性在某些状态下本来就不存在（媒体没加载时读 duration）。
+     */
+    fun property(name: String): String? =
+        runCatching { MpvNative.nativeGetProperty(handle, name) }.getOrNull()
+
+    /**
+     * 写一个内核属性（字符串形式）。
+     *
+     * 典型用途：`speed`（倍速）、`aid`/`sid`/`vid`（选轨）。
+     *
+     * @return true = 写入成功。
+     */
+    fun setProperty(name: String, value: String): Boolean =
+        runCatching { MpvNative.nativeSetProperty(handle, name, value) == 0 }.getOrDefault(false)
 
     override fun close() {
         MpvNative.nativeRelease(handle)
