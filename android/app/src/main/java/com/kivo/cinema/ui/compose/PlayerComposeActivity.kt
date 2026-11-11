@@ -145,6 +145,9 @@ class PlayerComposeActivity : ComponentActivity() {
             val mpvSession = mpvNetSession
             if (mpvSession != null) {
                 // 253-P3：libmpv 内核的状态回显。与旧内核同一套字段语义。
+                if (mpvSession.durationUs > 0) {
+                    durationMs = mpvSession.durationUs / 1000
+                }
                 positionMs = (mpvSession.positionUs / 1000).coerceAtLeast(0)
                     .let { if (durationMs > 0) it.coerceAtMost(durationMs) else it }
                 isPlaying = mpvSession.state == com.kivo.cinema.playback.MpvPlaybackSession.State.PLAYING
@@ -165,6 +168,11 @@ class PlayerComposeActivity : ComponentActivity() {
                         }
                     }
                 }
+                // 【必须重新排期】
+                // 这一支是独立的轮询回路 —— 下面的 `postDelayed` 在网络分支里，
+                // 提前 return 会跳过它，位置就永远停在 0（真机实测：画面在动、
+                // 时长也对，但进度一直是 0:00:00）。
+                android.os.Handler(mainLooper).postDelayed(this, 100)
                 return
             }
             val netSession = smbNetSession
@@ -705,6 +713,11 @@ class PlayerComposeActivity : ComponentActivity() {
         session.start(holder.surface) { result ->
             if (finishRequested || isDestroyed || mpvNetSession !== session) return@start
             if (result == 0) {
+                // 时长：mpv 的 duration 属性在媒体加载完成后才有值。
+                // 不回填的话进度条会一直显示 0:00:00 / 0:00:00（用户没法拖进度）。
+                if (session.durationUs > 0) {
+                    durationMs = session.durationUs / 1000
+                }
                 statusText = "正在播放"
                 isPlaying = true
                 lastTouchMs = System.currentTimeMillis()

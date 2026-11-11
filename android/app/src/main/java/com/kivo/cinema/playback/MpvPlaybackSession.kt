@@ -127,6 +127,13 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
 
                 state = State.PLAYING
                 positionUs = (position * 1_000_000).toLong()
+                // 时长：mpv 的 `duration` 属性在媒体加载完成后才有值。
+                // 不回填的话进度条会一直显示 0:00:00 / 0:00:00（用户没法拖进度）。
+                val duration = native.durationSeconds()
+                if (duration > 0.0) {
+                    durationUs = (duration * 1_000_000).toLong()
+                    hasAudio = true
+                }
                 main.post { if (!closing.get()) onReady(0) }
 
                 // 4) 轮询进度。

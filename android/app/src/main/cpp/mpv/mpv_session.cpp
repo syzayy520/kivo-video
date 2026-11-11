@@ -49,7 +49,7 @@ bool Session::attach_surface(ANativeWindow* window, std::string& error) {
     // "为什么不能是全局"的说明：mpv_render_context_free() 必须早于
     // mpv_terminate_destroy()，否则 mpv 会 abort（真机实测：
     // "Broken API use: mpv_render_context_free() not called."）。
-    impl_->video_output = create_video_output(impl_->handle);
+    impl_->video_output = create_video_output(impl_->handle, impl_->log_path);
     if (!impl_->video_output) {
         error = "cannot create video output";
         return false;

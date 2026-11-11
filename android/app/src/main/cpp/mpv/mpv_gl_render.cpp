@@ -13,6 +13,10 @@
 // 【线程】
 // 渲染跑在**独立 GL 线程**上：EGL 上下文与 Surface 都绑定在那个线程。
 
+#include <cstdio>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES2/gl2.h>
@@ -50,7 +54,30 @@ void* get_proc_address(void* ctx, const char* name) {
 
 }  // namespace
 
-VideoOutput::VideoOutput(mpv_handle* handle) : handle_(handle) {}
+namespace {
+
+/// 步骤标记：渲染层的诊断。mpv 自己的日志在 native 崩溃时会跟着断，
+/// 而且这台设备读不到 app 的 logcat —— 所以渲染层自己往文件里写。
+const char kNewline = 10;
+
+void mark_step(const char* path, const char* step) {
+    if (path == nullptr || path[0] == 0) {
+        return;
+    }
+    const int fd = ::open(path, O_WRONLY | O_CREAT | O_APPEND, 0600);
+    if (fd < 0) {
+        return;
+    }
+    const std::string line = std::string("RND ") + step;
+    (void)write(fd, line.data(), line.size());
+    (void)write(fd, &kNewline, 1);
+    ::close(fd);
+}
+
+}  // namespace
+
+VideoOutput::VideoOutput(mpv_handle* handle, std::string log_path)
+    : handle_(handle), log_path_(std::move(log_path)) {}
 
 VideoOutput::~VideoOutput() {
     stop();
@@ -192,17 +219,47 @@ void VideoOutput::render_loop(void* display_ptr, void* surface_ptr, void* contex
             width_.store(viewport[2], std::memory_order_relaxed);
             height_.store(viewport[3], std::memory_order_relaxed);
 
+            // 【为什么要有 Surface 尺寸兜底】
+            // Android 的 Surface 在 layout 完成前尺寸是 0，此时 GL_VIEWPORT 也是 0。
+            // 而 mpv 的 mpv_opengl_fbo 用 w/h 描述输出目标 —— w/h 为 0 时
+            // mpv 不知道该渲染到多大的画面，结果就是**解码在跑、GPU 纹理在更新，
+            // 但屏幕上什么都没有**（真机实测：播放页显示"正在播放"，画面全黑）。
+            // ANativeWindow_getWidth/Height 直接问窗口，不依赖 GL 状态，更可靠。
+            int target_w = viewport[2];
+            int target_h = viewport[3];
+            if (target_w <= 0 || target_h <= 0) {
+                target_w = ANativeWindow_getWidth(window_);
+                target_h = ANativeWindow_getHeight(window_);
+            }
+            if (target_w <= 0 || target_h <= 0) {
+                // 尺寸还没确定：这一帧跳过，等 Surface layout 完再画。
+                std::this_thread::sleep_for(std::chrono::milliseconds(16));
+                continue;
+            }
+
             // render 同样用参数数组：MPV_RENDER_PARAM_OPENGL_FBO 指定渲染目标。
             mpv_opengl_fbo fbo{};
             fbo.fbo = 0;
-            fbo.w = viewport[2];
-            fbo.h = viewport[3];
+            fbo.w = target_w;
+            fbo.h = target_h;
             mpv_render_param render_params[] = {
                 {MPV_RENDER_PARAM_OPENGL_FBO, &fbo},
                 {MPV_RENDER_PARAM_INVALID, nullptr},
             };
             mpv_render_context_render(render_context, render_params);
             eglSwapBuffers(display, surface);
+
+            // 诊断：每 60 帧记一次实际用的目标尺寸。
+            // 【为什么需要】画面黑时，唯一能区分"Surface 尺寸为 0"与
+            // "mpv 没画"的办法就是把尺寸打出来（这台设备读不到 app 的 logcat，
+            // 所以只能写文件）。
+            if (++frame_count_ >= 60) {
+                frame_count_ = 0;
+                char line[96];
+                std::snprintf(line, sizeof(line), "RND render vp=%dx%d target=%dx%d",
+                              viewport[2], viewport[3], target_w, target_h);
+                mark_step(log_path_.c_str(), line);
+            }
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
@@ -220,8 +277,8 @@ void VideoOutput::fail(const std::string& reason) {
     failed_.store(true, std::memory_order_release);
 }
 
-std::unique_ptr<VideoOutput> create_video_output(mpv_handle* handle) {
-    return std::make_unique<VideoOutput>(handle);
+std::unique_ptr<VideoOutput> create_video_output(mpv_handle* handle, std::string log_path) {
+    return std::make_unique<VideoOutput>(handle, std::move(log_path));
 }
 
 }  // namespace kivo::video::mpv

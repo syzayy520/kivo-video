@@ -54,7 +54,7 @@ class MpvSessionPathInstrumentation : Instrumentation() {
                 checkNotNull(path) { "缺少 -e smbPath" }
 
                 val source = SmbByteSource.open(
-                    address = SmbAddress(host, SmbAddress.DEFAULT_PORT, share),
+                    address = parseAddress(host, share),
                     credential = SmbCredential(
                         username = args?.getString("smbUser") ?: "",
                         password = args?.getString("smbPass") ?: "",
@@ -120,5 +120,26 @@ class MpvSessionPathInstrumentation : Instrumentation() {
         body()
         passed += 1
         report += "PASS $name"
+    }
+
+    /**
+     * 解析 `host` 或 `host:port` 形式的地址。
+     *
+     * 【为什么要支持端口】
+     * 平板不在 NAS 那个网段（`10.0.0.x` vs `192.168.5.x`），要经 PC 的 TCP 转发
+     * 才能连上 NAS —— 转发器监听 `127.0.0.1:14450`，设备侧用
+     * `adb reverse tcp:14450 tcp:14450` 打通。此时端口**不是 445**，
+     * 写死 DEFAULT_PORT 就连不上（真机实测："无法连接服务器"）。
+     */
+    private fun parseAddress(host: String, share: String): SmbAddress {
+        val colon = host.lastIndexOf(':')
+        if (colon > 0 && host.indexOf(':') == colon) {
+            val h = host.substring(0, colon)
+            val p = host.substring(colon + 1).toIntOrNull()
+            if (p != null && p in 1..65535) {
+                return SmbAddress(h, p, share)
+            }
+        }
+        return SmbAddress(host, SmbAddress.DEFAULT_PORT, share)
     }
 }

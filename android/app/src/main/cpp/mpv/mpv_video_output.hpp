@@ -27,7 +27,8 @@ namespace kivo::video::mpv {
 /// 主线程只交出 ANativeWindow*（本对象自己 retain 一次，stop 时 release）。
 class VideoOutput {
 public:
-    explicit VideoOutput(mpv_handle* handle);
+    /// @param log_path mpv 日志落盘路径（可选）—— 渲染层用它写自己的诊断。
+    explicit VideoOutput(mpv_handle* handle, std::string log_path = std::string());
     ~VideoOutput();
 
     VideoOutput(const VideoOutput&) = delete;
@@ -53,6 +54,11 @@ private:
 
     mpv_handle* handle_ = nullptr;
     ANativeWindow* window_ = nullptr;
+    /// mpv 日志落盘路径（可选）。渲染层用它写自己的诊断 ——
+    /// 这台设备读不到 app 的 logcat，只能写文件。
+    std::string log_path_;
+    /// 已渲染帧计数（诊断用）。
+    std::atomic<int> frame_count_{0};
     std::thread thread_;
     std::atomic<bool> ready_{false};
     std::atomic<bool> failed_{false};
@@ -64,6 +70,7 @@ private:
 };
 
 /// 创建一个视频输出。返回 nullptr 表示创建失败。
-[[nodiscard]] std::unique_ptr<VideoOutput> create_video_output(mpv_handle* handle);
+[[nodiscard]] std::unique_ptr<VideoOutput> create_video_output(mpv_handle* handle,
+                                                         std::string log_path = std::string());
 
 }  // namespace kivo::video::mpv
