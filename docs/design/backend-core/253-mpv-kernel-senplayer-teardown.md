@@ -53,7 +53,7 @@
 
 ## 一之二、第二个样本：Rex（iOS）——**交叉验证 mpv 内核 + 各自实现 SMB**
 
-素材：`C:\Users\Administrator\Pictures\REX\rex\rex`（Rex UI 结构复刻说明书 +
+素材：`<用户 Pictures>/REX/rex/rex`（Rex UI 结构复刻说明书 +
 动效与交互全量拆解 + 参数表 + 落地包）。这是 iOS 版（SwiftUI + CoreAnimation），
 但**框架清单直接暴露了它的播放内核**：
 
