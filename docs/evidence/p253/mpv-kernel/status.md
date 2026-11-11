@@ -164,12 +164,60 @@ mpv 日志：
 
 ---
 
+## P5 播放页真实 UI 路径（提交 1a64c5a8）—— 双设备
+
+`MpvSessionPathInstrumentation` **PASS**（走 `MpvPlaybackSession`，不是直接调内核）：
+
+| 设备 | 型号/系统 | smbSize | 起播 | 位置 | seek 600 s 落点 |
+|---|---|---|---|---|---|
+| K40 `b6e950ee` | M2012K11AC / Android 13 | 12.19 GB | ✅ | 501 ms | **600.725 s**（误差 0.725 s） |
+| 平板 `CFE6R21B12000179` | MRR-W29 / Android 12 | 12.19 GB | ✅ | 584 ms | **600.141 s**（误差 0.141 s） |
+
+播放页截图确认：
+
+```
+topResumedActivity = com.kivo.cinema/.ui.compose.PlayerComposeActivity
+位置 0:00:11 / 1:47:15     ← 6435 s = 1:47:15 ✓，在推进
+画面正常显示且在动（两帧 md5 不同）
+mpv 日志：Using hardware decoding (mediacodec-copy).
+          AO: [audiotrack] 48000Hz 5.1 6ch s16
+```
+
+### 这一轮修的四个问题
+
+| # | 现象 | 根因 | 修法 |
+|---|---|---|---|
+| 1 | 时长一直 `0:00:00` | mpv 读到了 `duration: 6435.179s`，但会话没回填、播放页也没读 | `MpvPlaybackSession` 起播后取 `durationUs`；播放页两处都回填 |
+| 2 | 位置一直 `0:00:00`（画面在动但进度不动） | `positionPoll` 的 mpv 分支提前 `return`，**跳过了 `postDelayed(this, 100)`** ⇒ 轮询只跑一次 | mpv 分支补上重新排期 |
+| 3 | 平板连不上 | 新写的测试把端口写死 445，没走 `host:port` 解析（平板经 PC 转发要用 14450） | 加 `parseAddress()` |
+| 4 | SMB "路径不存在" | K40 的 `XiaoMi` 共享是**整盘**，路径要带 `视频/` 前缀；平板的 `视频` 共享不需要 | 各自枚举，不套用 |
+
+### 顺带确认
+
+- 渲染层诊断（写进 mpv 日志文件）：`RND render vp=2320x956 target=2320x956`
+  —— Surface 尺寸正常、渲染循环在跑。
+- 画面方向**正确**：片头那段倒置的文字是 Shelter 刻意的"监控录像"风格，不是翻转 bug。
+  （mpv v0.39 的 `MPV_RENDER_PARAM_FLIP_Y` 官方注明 "currently ignored (unsupported)"，
+  所以翻转只能靠 vo 层选项，而我们这条路径不需要。）
+
+### 为验证 UI 路径做的准备
+
+- NAS 上复制了一份无空格的 `视频/kivo-test/shelter.mkv` —— 原文件名带空格，
+  `am instrument -e smbPath` 的参数会被 shell 拆开。
+- 资源库里种了一条匿名只读 SMB 源（`SmbSourceSeedInstrumentation`，id=`seed-smb-xiaomi`）。
+- 平板经 PC 的 TCP 转发 + `adb reverse` 隧道访问 NAS（平板在 `10.0.0.x` 网段）。
+
+---
+
 ## 尚未覆盖（诚实标注）
 
 - **DRM**（Widevine 等）：未测，mpv 原生不带。
 - **字幕/弹幕**：本次只做内核接入，字幕平面还没接 mpv（libass 已链入，但未接 UI）。
 - **投屏**：mpv 内核的投屏路径未做。
-- **多轨选择**：mpv 能识别多音轨，但 UI 切轨未接。
-- **平板（MatePad）**：P1~P4 只在 K40 上验证过；平板在 `10.0.0.x` 网段，
-  与 NAS `192.168.5.x` 不互通，经 PC TCP 转发 + `adb reverse` 隧道可打通。
+- **多轨选择**：mpv 能识别多音轨（实测两条 TrueHD），但 UI 切轨未接。
+- **播放页 UI 改造**：按用户要求，UI 之后做。本次只做内核接入（新增字段 + 分派 + 状态回显），
+  播放页的引擎切换 UI、字幕/弹幕面板、轨道选择面板都没做。
 - **长时间稳定性**：单次会话最长观测约 2.5 分钟，没有做数小时 soak。
+- **多协议聚合**（Emby/WebDAV）：mpv 内核目前只接了 SMB；其它协议仍走旧内核。
+- **平板的软解路径**：平板验证的是硬解（HEVC）；VC-1 等平台无解码器的格式在 mpv 下
+  是 FFmpeg 软解，未在平板上单独验证。
