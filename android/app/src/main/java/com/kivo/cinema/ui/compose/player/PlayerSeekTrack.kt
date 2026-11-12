@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -98,10 +99,11 @@ internal fun PlayerSeekTrack(
 
     // 拖动中的统一处理：算 fraction + 抛目标时刻 + 要缩略图。
     fun updateDrag(x: Float, width: Int) {
-        if (durationMs <= 0 || width <= 0) return
+        val d = durState.value
+        if (d <= 0 || width <= 0) return
         val f = (x / width).coerceIn(0f, 1f)
         dragFraction = f
-        val ms = (f * durationMs).roundToInt().toLong()
+        val ms = (f * d).roundToInt().toLong()
         lastTarget = ms
         onDragTarget(ms)
         onScrub(ms)
@@ -111,7 +113,10 @@ internal fun PlayerSeekTrack(
         modifier = modifier
             .fillMaxWidth()
             .height(PlayerTokens.trackHitHeight.dp)
-            .pointerInput(durationMs) {
+            // key 用 Unit 而非 durationMs：SMB 大文件的时长会在拖中途被内核
+            // 修正，key 变化会重建 pointerInput ⇒ 进行中的拖动被 cancel
+            // （真机：浮窗消失、标签跳回拖前位置）。时长经 durState 读最新值。
+            .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
                         pressed = true
@@ -119,21 +124,22 @@ internal fun PlayerSeekTrack(
                         pressed = false
                     },
                     onTap = { offset ->
-                        if (durationMs > 0) {
+                        val d = durState.value
+                        if (d > 0) {
                             val f = (offset.x / size.width).coerceIn(0f, 1f)
-                            onSeek((f * durationMs).roundToInt().toLong())
+                            onSeek((f * d).roundToInt().toLong())
                         }
                     },
                 )
             }
-            .pointerInput(durationMs) {
+            .pointerInput(Unit) {
                 detectHorizontalDragGestures(
                     onDragStart = { offset -> dragging = true; updateDrag(offset.x, size.width) },
                     onHorizontalDrag = { change, _ -> updateDrag(change.position.x, size.width) },
                     onDragEnd = {
                         dragging = false
                         onDragTarget(null)
-                        if (durationMs > 0) onSeek(lastTarget)
+                        if (durState.value > 0) onSeek(lastTarget)
                     },
                     onDragCancel = {
                         dragging = false
@@ -175,6 +181,8 @@ internal fun PlayerSeekTrack(
             val y = (size.height - h) / 2f
             val radius = CornerRadius(h / 2f)
             val f = if (dragging) dragFraction else smoothFraction
+            // REX 质感＝半透明填充 + 1px 提亮描边（v3.2 实测），不是实色色块。
+            val rim = with(density) { 1.dp.toPx() }
 
             // 未播段（拖动中整体提亮，让用户看清"松手会落到哪一段"）
             drawRoundRect(
@@ -183,7 +191,14 @@ internal fun PlayerSeekTrack(
                 size = Size(size.width, h),
                 cornerRadius = radius,
             )
-            // 缓冲段（已缓冲未播放）：实色灰，画在未播之上、已播之下
+            drawRoundRect(
+                color = if (dragging) PlayerTokens.trackDraggingRim else PlayerTokens.trackRemainingRim,
+                topLeft = Offset(0f, y),
+                size = Size(size.width, h),
+                cornerRadius = radius,
+                style = Stroke(rim),
+            )
+            // 缓冲段（已缓冲未播放）：半透明白 + 更亮的边，画在未播之上、已播之下
             val bf = bufferedFraction.coerceIn(f, 1f)
             if (bf > f) {
                 drawRoundRect(
@@ -191,6 +206,13 @@ internal fun PlayerSeekTrack(
                     topLeft = Offset(size.width * f, y),
                     size = Size(size.width * (bf - f), h),
                     cornerRadius = radius,
+                )
+                drawRoundRect(
+                    color = PlayerTokens.trackBufferedRim,
+                    topLeft = Offset(size.width * f, y),
+                    size = Size(size.width * (bf - f), h),
+                    cornerRadius = radius,
+                    style = Stroke(rim),
                 )
             }
             // 已播段（在 draw 里读状态 ⇒ 只重绘 Canvas，不重组整棵树）

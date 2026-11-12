@@ -1,6 +1,8 @@
 package com.kivo.cinema.ui.compose.player
 
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.spring
 
 /**
  * 全页动效常量的**唯一来源**（v3.1 §五）。
@@ -11,7 +13,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
  * | 部件 | 进 | 出 |
  * | --- | --- | --- |
  * | 控制条 | 180 fade+位移 | 140 |
- * | 浮层面板 | 200 fade+0.94 缩放 | 150 |
+ * | 浮层面板 | spring(0.25,0.8) fade+0.94 缩放 | 150 easeOut |
  * | 面板钻入换内容 | 150 crossfade | 120 |
  * | 轻提示 | 200 fade | 250 |
  * | 轨道变粗 | 150 | 150 |
@@ -24,8 +26,11 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 internal object PlayerMotion {
     const val barEnterMs = 180
     const val barExitMs = 140
-    const val panelEnterMs = 200
+    // REX §三：面板弹入 spring(response 0.25s, damping 0.8)。
+    // Compose spring 用刚度：(2π/response)² ≈ 632。
+    val panelSpring = spring<Float>(dampingRatio = 0.8f, stiffness = 632f)
     const val panelExitMs = 150
+    val panelExitEasing = EaseOut
     const val panelSwapEnterMs = 150
     const val panelSwapExitMs = 120
     const val toastEnterMs = 200

@@ -10,7 +10,6 @@ import com.kivo.cinema.mpv.LocalRangeServer
 import com.kivo.cinema.mpv.MpvSession
 import com.kivo.cinema.net.ByteSource
 import java.io.File
-import java.nio.ByteBuffer
 
 /**
  * 网络/无索引源的预览帧读取器（v3.1b）：**mpv 内核第二实例**。
@@ -176,10 +175,13 @@ class MpvThumbnailReader(
         var bitmap: Bitmap? = null
         try {
             val target = positionUs / 1_000_000.0
-            val prevPos = native.positionSeconds()
-            val samePos = kotlin.math.abs(target - prevPos) < 0.5
-            // 排空旧帧（同位置重取除外：当前帧就是目标，排空反而读不到）。
-            if (!samePos) native.readCaptureFrame()
+            // 排空旧帧后记代数：只接受代数 > gen0 的帧（= 本次 seek 之后渲染的）。
+            // 不能用 pts 差对齐：关键帧 seek 常连续落在同一关键帧，pts 不变，
+            // 新帧会被误判成旧帧整 6s 超时（真机：首次拖动浮窗恒"准备中"）。
+            // readCaptureFrame 在 native 已闸掉 seek 挂起期的旧帧重绘
+            // （SMB 大文件上旧帧盖新代数被误收 → 浮窗冻帧的根因）。
+            native.readCaptureFrame()
+            val gen0 = native.captureFrameGen()
             native.seek(target, exact = false) // 关键帧口径：hr-seek=no 已禁前向解码。
             val frameDeadline = startMs + 6_000
             // 真黑场（片头黑底标题）整幅同色，hasContent 恒 false；2s 后接受同色帧兜底。
@@ -188,19 +190,12 @@ class MpvThumbnailReader(
             var lastUniform: ByteArray? = null
             while (System.currentTimeMillis() < frameDeadline) {
                 val candidate = native.readCaptureFrame()
-                if (candidate != null) {
-                    // 帧↔seek 对齐：连续快 seek 时 mpv 合并/滞后，仅序号去重会把上一次
-                    // seek 的帧当本次结果（真机 off-by-one 级联、浮窗画面≠手指位置）。
-                    // 只接受 time-pos 已离开旧位置的帧，斩断级联。
-                    val pts = native.captureFramePts()
-                    val isTarget = samePos || kotlin.math.abs(pts - prevPos) > 0.05
-                    if (isTarget) {
-                        if (hasContent(candidate)) {
-                            bytes = candidate
-                            break
-                        }
-                        lastUniform = candidate // 黑场帧只出现一次，留存供兜底而非再读。
+                if (candidate != null && native.captureFrameGen() > gen0) {
+                    if (rgbaHasContent(candidate, WIDTH, HEIGHT)) {
+                        bytes = candidate
+                        break
                     }
+                    lastUniform = candidate // 黑场帧只出现一次，留存供兜底而非再读。
                 }
                 if (lastUniform != null && System.currentTimeMillis() >= uniformFallbackMs) {
                     bytes = lastUniform
@@ -213,7 +208,7 @@ class MpvThumbnailReader(
                 result = "timeout"
             } else {
                 framesAcquired += 1
-                bitmap = bitmapFromRgba(bytes)
+                bitmap = rgbaToBitmap(bytes, WIDTH, HEIGHT)
                 if (bitmap != null && (framesAcquired == 1 || framesAcquired % 40 == 0)) runCatching { java.io.FileOutputStream(File(cacheDir, "thumb-dump-$framesAcquired.png")).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) } }
             }
         } catch (e: Exception) {
@@ -224,29 +219,6 @@ class MpvThumbnailReader(
         val landed = session?.captureFramePts() ?: -1.0
         grabLog.add("t=${positionUs / 1_000_000} land=${"%.1f".format(landed)} wait=${System.currentTimeMillis() - startMs}ms $result px0=${bitmap?.getPixel(0, 0)?.let { Integer.toHexString(it) } ?: "-"}")
         return bitmap
-    }
-
-    /** 清屏帧判定：清屏帧整幅同色；真实画面几乎不可能全幅同色。
-     *  只比 RGB，**不比 alpha**（不透明黑帧 alpha=255，比 alpha 会恒判"有内容"）。 */
-    private fun hasContent(bytes: ByteArray): Boolean {
-        val r0 = bytes[0]
-        val g0 = bytes[1]
-        val b0 = bytes[2]
-        var i = 0
-        val total = WIDTH * HEIGHT
-        while (i < total) {
-            val o = i * 4
-            if (bytes[o] != r0 || bytes[o + 1] != g0 || bytes[o + 2] != b0) return true
-            i += 337
-        }
-        return false
-    }
-
-    private fun bitmapFromRgba(bytes: ByteArray): Bitmap? {
-        if (bytes.size < WIDTH * HEIGHT * 4) return null
-        val bmp = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
-        bmp.copyPixelsFromBuffer(ByteBuffer.wrap(bytes))
-        return bmp
     }
 
     override fun evidenceJson(): String {

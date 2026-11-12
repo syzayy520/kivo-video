@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -91,6 +95,7 @@ internal fun PlayerTopBar(
                 text = title,
                 color = PlayerTokens.textPrimary,
                 fontSize = PlayerTokens.titleSize.sp,
+                fontWeight = rexTextWeight(title),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
@@ -158,13 +163,18 @@ private fun TopIconButton(
     dimmed: Boolean = false,
     onLongClick: (() -> Unit)? = null,
 ) {
+    var pressed by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .size(PlayerTokens.actionHitBox.dp)
             .alpha(if (dimmed) 0.45f else 1f)
             .semantics { contentDescription = label }
             .pointerInput(Unit) {
-                detectTapGestures(onTap = { onClick() }, onLongPress = { onLongClick?.invoke() })
+                detectTapGestures(
+                    onPress = { pressed = true; tryAwaitRelease(); pressed = false },
+                    onTap = { onClick() },
+                    onLongPress = { onLongClick?.invoke() },
+                )
             },
         contentAlignment = Alignment.Center,
     ) {
@@ -173,6 +183,7 @@ private fun TopIconButton(
         Box(
             modifier = Modifier
                 .size((if (inverted) glyphSize + 6f else glyphSize).dp)
+                .alpha(if (pressed) PlayerTokens.pressAlpha else 1f)
                 .then(
                     if (inverted) Modifier.background(PlayerTokens.textPrimary, CircleShape)
                     else Modifier,

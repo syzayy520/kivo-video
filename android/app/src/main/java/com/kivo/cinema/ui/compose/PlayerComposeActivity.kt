@@ -49,6 +49,8 @@ class PlayerComposeActivity : ComponentActivity() {
     /** 预览帧产不出时的可见原因（不许静默降级）；空 = 正常或尚未请求。 */
     internal var thumbnailUnavailableReason by mutableStateOf("")
     internal var previewMs by mutableStateOf(-1L)
+    /** 拖动进行中（onScrub 置真、onSeek 置假）：弹幕让位给预览浮窗。 */
+    internal var scrubbing by mutableStateOf(false)
     internal var danmakuOn by mutableStateOf(false)
     internal var danmakuItems by mutableStateOf(listOf<com.kivo.cinema.danmaku.DanmakuItem>())
 

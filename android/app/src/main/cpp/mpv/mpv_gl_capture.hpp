@@ -47,12 +47,21 @@ public:
     [[nodiscard]] bool running() const { return running_.load(std::memory_order_acquire); }
 
     /// 取最新一帧 RGBA（top-down，w*h*4）。仅当序号比上次读新才拷贝并返回 true。
+    /// seek 挂起期的重绘帧（seeking=true）不返回：那是旧画面，慢源上会被
+    /// 上层当成本次 seek 的新帧收下导致冻帧（真机 SMB 大文件复现）。
     [[nodiscard]] bool read_frame(std::vector<uint8_t>& out);
 
-    /// 最新一帧渲染时 mpv 的 time-pos（秒），无帧为 -1。
-    /// 用途：把读回的帧和"哪一次 seek"对齐 —— 快速连续 seek 时 mpv 会合并/滞后，
-    /// 仅靠序号去重会把上一次 seek 的帧当成本次结果（真机 off-by-one 级联）。
+    /// 最新一帧渲染时 mpv 的 time-pos（秒），无帧为 -1。仅取证日志用。
     double frame_pts();
+
+    /// 每次 seek 前调一次：代数 +1。渲染线程给每帧盖上当前代数。
+    /// 【为什么需要代数】关键帧 seek 会连续落在同一关键帧上，pts 不变；
+    /// 用 pts 差判"帧是否属于本次 seek"会把同关键帧的新帧误判成旧帧
+    /// （真机：首次拖动整 6s 超时）。代数只增不减，同关键帧也递增。
+    void note_seek() { seek_gen_.fetch_add(1, std::memory_order_release); }
+
+    /// 最新一帧的 seek 代数；无帧为 0。
+    uint64_t frame_generation();
 
 private:
     void run();
@@ -75,6 +84,9 @@ private:
     uint64_t seq_ = 0;        // guarded by frame_mutex_
     uint64_t last_read_ = 0;  // guarded by frame_mutex_
     double frame_pts_ = -1;   // guarded by frame_mutex_
+    uint64_t frame_gen_ = 0;  // guarded by frame_mutex_
+    bool frame_seeking_ = true;  // guarded by frame_mutex_
+    std::atomic<uint64_t> seek_gen_{0};
 };
 
 [[nodiscard]] std::unique_ptr<FrameCapture> create_frame_capture(mpv_handle* handle,

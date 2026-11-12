@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
@@ -232,18 +233,25 @@ private fun BarIconButton(
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
 ) {
+    var pressed by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .size(PlayerTokens.actionHitBox.dp)
             .pointerInput(Unit) {
-                detectTapGestures(onTap = { onClick() }, onLongPress = { onLongClick?.invoke() })
+                detectTapGestures(
+                    onPress = { pressed = true; tryAwaitRelease(); pressed = false },
+                    onTap = { onClick() },
+                    onLongPress = { onLongClick?.invoke() },
+                )
             },
         contentAlignment = Alignment.Center,
     ) {
         PlayerGlyph(
             kind = kind,
             color = PlayerTokens.textPrimary,
-            modifier = Modifier.size(glyphSize.dp),
+            modifier = Modifier
+                .size(glyphSize.dp)
+                .alpha(if (pressed) PlayerTokens.pressAlpha else 1f),
         )
     }
 }

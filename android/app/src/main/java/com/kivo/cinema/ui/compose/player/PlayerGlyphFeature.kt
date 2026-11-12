@@ -24,8 +24,8 @@ import androidx.compose.ui.graphics.drawscope.rotate
  * | 圈内波形条 | 音轨 | 圆 + 5 根高低不等的竖条 |
  * | 对话气泡 | 字幕 | 圆角气泡（左下小尾巴）+ 两行横线 |
  * | 耳机 | 听视频 | 圆弧头梁 + 两只耳罩 |
- * | 投屏（DLNA） | 投屏 | 屏幕圆角框 + 左下信号弧 + 圆点（v3.1 替代 AirPlay） |
- * | 画中画 | PiP | 屏幕框 + 左上斜箭头 + 右下实心小方块 |
+ * | 投屏 | 投屏 | 圆角屏幕框 + 底部实心三角（AirPlay 形，0160 掩码 1:1） |
+ * | 画中画 | PiP | 圆角外框 + 左上 ↖ 箭头 + 右下大实心块（0166 掩码 1:1） |
  * | 弹（圈内） | 弹幕 | 开口的圆 + 汉字"弹" |
  *
  * 【画法】全部是**线框 + 实心局部**的混搭，与 REX 一致；
@@ -170,72 +170,53 @@ internal fun DrawScope.drawFeatureGlyph(kind: String, color: Color, stroke: Stro
             )
         }
 
-        // ---- 投屏（DLNA，v3.1 替代 AirPlay）----
-        // 屏幕圆角框（左下留缺口）+ 左下两道信号弧 + 实心圆点。
-        // 不用 Apple 的实心三角符号：AirPlay 是专有协议，Android 不支持，整条已移除。
+        // ---- 投屏（REX 0160 掩码 1:1）----
+        // 用户严格要求"和 REX 一模一样"：REX 的符号是 AirPlay 形
+        // （圆角屏幕框 + 底部实心三角，三角底边露在屏幕外、底边线在三角两侧断开）。
+        // 协议层仍走 DLNA —— 符号跟参考，能力跟平台，两回事。
+        // 掩码实测 ink 22.7×18.3pt、线宽 1.7pt ⇒ 24 画布线宽 1.75（[PlayerGlyph] 分发）。
         "cast" -> {
             val screen = Path().apply {
-                moveTo(6.6f, 16.6f)
-                lineTo(19.4f, 16.6f)
-                quadraticTo(21.2f, 16.6f, 21.2f, 14.8f)
-                lineTo(21.2f, 6.4f)
-                quadraticTo(21.2f, 4.6f, 19.4f, 4.6f)
-                lineTo(4.6f, 4.6f)
-                quadraticTo(2.8f, 4.6f, 2.8f, 6.4f)
-                lineTo(2.8f, 10.4f)
+                moveTo(7.1f, 16.9f)
+                lineTo(2.3f, 16.9f)
+                quadraticTo(0.9f, 16.9f, 0.9f, 15.5f)
+                lineTo(0.9f, 4.6f)
+                quadraticTo(0.9f, 3.2f, 2.3f, 3.2f)
+                lineTo(21.7f, 3.2f)
+                quadraticTo(23.1f, 3.2f, 23.1f, 4.6f)
+                lineTo(23.1f, 15.5f)
+                quadraticTo(23.1f, 16.9f, 21.7f, 16.9f)
+                lineTo(16.6f, 16.9f)
             }
             drawPath(screen, color, style = stroke)
-            // 信号弧：以左下角为心的两段四分之一弧
-            drawArc(
-                color = color,
-                startAngle = -90f,
-                sweepAngle = 90f,
-                useCenter = false,
-                topLeft = Offset(4.6f - 3.4f, 19.4f - 3.4f),
-                size = Size(6.8f, 6.8f),
-                style = stroke,
-            )
-            drawArc(
-                color = color,
-                startAngle = -90f,
-                sweepAngle = 90f,
-                useCenter = false,
-                topLeft = Offset(4.6f - 6.4f, 19.4f - 6.4f),
-                size = Size(12.8f, 12.8f),
-                style = stroke,
-            )
-            drawCircle(color = color, radius = 1.3f, center = Offset(4.6f, 19.4f))
-        }
-
-        // ---- 画中画 PiP ----
-        // 大屏线框 + 左上一支朝右下的实心箭头 + 右下一个实心圆角方块
-        "pip" -> {
-            drawRoundRect(
-                color = color,
-                topLeft = Offset(2.8f, 4.4f),
-                size = Size(14.6f, 12.4f),
-                cornerRadius = CornerRadius(2.2f),
-                style = stroke,
-            )
-            // 左上箭头
-            val arrow = Path().apply {
-                moveTo(6.2f, 6.6f)
-                lineTo(10.6f, 11.0f)
-                lineTo(8.6f, 11.0f)
-                lineTo(8.6f, 13.0f)
-                lineTo(6.2f, 13.0f)
-                lineTo(6.2f, 10.6f)
-                lineTo(4.2f, 10.6f)
+            val triangle = Path().apply {
+                moveTo(12.0f, 13.6f)
+                lineTo(18.7f, 21.4f)
+                lineTo(5.3f, 21.4f)
                 close()
             }
-            drawPath(arrow, color)
-            // 右下实心小方块
+            drawPath(triangle, color)
+        }
+
+        // ---- 画中画 PiP（REX 0166 掩码 1:1）----
+        // 完整圆角外框 + 左上 ↘ 实心箭头（大屏→小屏，指向右下实心块）
+        // + 右下**大**实心圆角块（实测占外框 62%×60%，右/下缘与外框齐平）。
+        "pip" -> {
+            strokeRect(color, 0.9f, 3.2f, 23.1f, 20.8f, 1.4f, stroke)
             drawRoundRect(
                 color = color,
-                topLeft = Offset(13.6f, 13.4f),
-                size = Size(8.0f, 7.2f),
-                cornerRadius = CornerRadius(2.0f),
+                topLeft = Offset(9.2f, 10.0f),
+                size = Size(14.7f, 11.6f),
+                cornerRadius = CornerRadius(1.4f),
             )
+            val head = Path().apply {
+                moveTo(7.6f, 9.9f)
+                lineTo(7.0f, 6.2f)
+                lineTo(3.9f, 9.3f)
+                close()
+            }
+            drawPath(head, color)
+            drawLine(color, Offset(3.2f, 5.5f), Offset(5.4f, 7.7f), 1.6f, StrokeCap.Round)
         }
 
         // ---- 弹幕（开口的圆 + 汉字"弹"由调用方用 Text 叠加）----

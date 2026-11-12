@@ -47,7 +47,16 @@ internal fun PlayerGlyph(
 
         Canvas(Modifier.fillMaxSize()) {
             scale(size.width / 24f, size.height / 24f, pivot = Offset.Zero) {
-                val stroke = Stroke(strokeWidth, cap = StrokeCap.Round)
+                // 逐图标线宽（REX 掩码实测，24 画布）：默认 1.9；
+                // ✕ 2pt@20dp 盒 ⇒ 2.4；主页 1.3pt@22dp ⇒ 1.5；
+                // 投屏/PiP 1.7pt@23dp ⇒ 1.75。其余维持族默认。
+                val w = when (kind) {
+                    "close" -> 2.4f
+                    "home" -> 1.5f
+                    "cast", "pip" -> 1.75f
+                    else -> strokeWidth
+                }
+                val stroke = Stroke(w, cap = StrokeCap.Round)
                 when {
                     kind in PANEL_GLYPHS -> drawPanelGlyph(kind, color, stroke)
                     kind in CHROME_GLYPHS -> drawChromeGlyph(kind, color, stroke, fill)
@@ -77,7 +86,7 @@ private val FEATURE_GLYPHS = setOf(
     "audio",        // 音轨（圈内波形条，0162 锚定）
     "captions",     // 字幕（对话气泡）
     "audioMode",    // 听视频（耳机，0172 白圆亮）
-    "cast",         // 投屏（DLNA，通用屏幕+信号弧；v3.1 替代 AirPlay）
+    "cast",         // 投屏（AirPlay 形符号，REX 0160 掩码 1:1；协议层 DLNA）
     "pip",          // 画中画
     "danmaku",      // 弹幕（开口圆 + 弹）
 )

@@ -19,10 +19,11 @@ import androidx.compose.ui.graphics.drawscope.Stroke
  */
 internal fun DrawScope.drawCoreGlyph(kind: String, color: Color, stroke: Stroke) {
     when (kind) {
-        // ---- 关闭（X）----
+        // ---- 关闭（X，REX 0160 实测 ink 17pt / 线宽 2pt）----
+        // 杆 span 18 + 线宽 2.4 = ink 20.4/24；盒 20dp ⇒ ink 17dp、线 2dp。
         "close" -> {
-            drawLine(color, Offset(5f, 5f), Offset(19f, 19f), stroke.width, StrokeCap.Round)
-            drawLine(color, Offset(19f, 5f), Offset(5f, 19f), stroke.width, StrokeCap.Round)
+            drawLine(color, Offset(3f, 3f), Offset(21f, 21f), stroke.width, StrokeCap.Round)
+            drawLine(color, Offset(21f, 3f), Offset(3f, 21f), stroke.width, StrokeCap.Round)
         }
 
         // ---- 播放 / 暂停（实心，通用约定，不做线框）----

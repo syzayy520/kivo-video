@@ -1,6 +1,7 @@
 # 交接 · 播放页 UI v3.1 收口（2026-11-12）
 
-> 接手先读 `agents.md` → 本文件 → `docs/evidence/p240/player-ui/v3.1/v31f-status.md`。
+> 接手先读 `agents.md` → 本文件 → `docs/evidence/p240/player-ui/v3.1/v31f-status.md`
+> → `docs/evidence/p240/player-ui/v3.2/v32-status.md`（最新一轮）。
 > 分支：`codex/kivo-video-p0-ui-01-playback-overlay-v13`。工作目录＝仓库根 `C:\kivo video`。
 
 ## 一、现在在哪
@@ -77,3 +78,23 @@ cd "C:/kivo video/android" && JAVA_HOME="C:/Android/jdk-17.0.13+11" ANDROID_HOME
 3. 按文件记忆字幕选择（sid 不跨会话持久化，`sub-v31f-nopersist.png`）。
 4. 平板适配（等用户时间）。
 5. 后端指针仍以 `docs/handoff/TASKS.md` 为准（本卡只动播放页 UI）。
+6. SMB 预览抓帧 p95 283ms 优化（网络 bound，v3.2 §一已明示口径）。
+7. 弹簧/按压逐帧动效外部摄录对照（screenrecord 不录 Compose 层）。
+
+## 六、v3.2 轮收口（2026-11-12 晚，#12–#16）
+
+证据：`docs/evidence/p240/player-ui/v3.2/`（23 件 + `v32-status.md`）。
+
+| 项 | 状态 | 关键证据 |
+| --- | --- | --- |
+| 拖动预览帧跟随（含弹幕 scrub 隐去、落点精确） | ✅ | `drag-smb-follow-*` / `drag-*-land-*` / `drag-local-follow-*` |
+| 本地预览延迟 | ✅ warm p50 13ms | `thumb-local-latency.json`（120ms 帧预算 + 25Hz 墙钟节流） |
+| SMB 预览滞后口径 | ◐ 明示不藏 | `thumb-smb-shelter-latency.json` p95 283ms + `drag-smb-popup-lag-*` |
+| 白度 / cast / PiP↘ / 轨道半透明+描边 | ✅ | `visual-convergence.png` 对照 `../reference/` |
+| 按压本体变暗 α0.6 | ✅ 像素实证 0.636 | `press-dim-held/released.png` + `press-metrics.txt` |
+| 面板 spring(0.8,632) / 收起 150ms easeOut | ✅ 参数对齐 | `PlayerMotion.kt:31-32` + `panel-danmaku-settled.png` / `bars-fade-mid.png` |
+| 锁屏三态（顺带） | ✅ | `lock-locked-toast / lock-hint-summoned / lock-unlocked.png` |
+
+**本轮新增的坑（详见 v32-status §五）**：swipe 必须在控制条可见窗内起手；
+hold >0.5s 会触发长按动作（长按播放=锁屏、长按圈弹=面板）污染按压静帧；
+EOS 后连截字节级相同；命中区以 uiautomator bounds 为准（目视估坐标差过 30px）。

@@ -82,8 +82,13 @@ public:
     /// 读最新离屏帧（RGBA top-down，w*h*4）；没有比上次更新的帧返回 false。
     [[nodiscard]] bool read_capture_frame(std::vector<uint8_t>& out);
 
-    /// 最新离屏帧对应的 time-pos（秒），无帧 -1。用于帧↔seek 对齐。
+    /// 最新离屏帧对应的 time-pos（秒），无帧 -1。仅取证日志用。
     double capture_frame_pts();
+
+    /// 最新离屏帧的 seek 代数（见 FrameCapture::note_seek）。
+    /// 上层用它判"帧是否属于本次 seek"：代数 > 发 seek 前的代数即新帧，
+    /// 同关键帧落位也成立（pts 差判法在同关键帧时恒误判）。
+    uint64_t capture_frame_generation();
 
     /// 当前视频尺寸（像素）；还不知道时返回 0。
     [[nodiscard]] int video_width() const;

@@ -254,11 +254,11 @@ private fun BoxScope.FloatingPanel(
     AnimatedVisibility(
         visible = open,
         enter = if (reduceMotion) fadeIn(tween(PlayerMotion.reduceMotionMs))
-        else fadeIn(tween(PlayerMotion.panelEnterMs, easing = PlayerMotion.easing)) +
-            scaleIn(tween(PlayerMotion.panelEnterMs, easing = PlayerMotion.easing), initialScale = 0.94f),
+        else fadeIn(PlayerMotion.panelSpring) +
+            scaleIn(PlayerMotion.panelSpring, initialScale = 0.94f),
         exit = if (reduceMotion) fadeOut(tween(PlayerMotion.reduceMotionMs))
-        else fadeOut(tween(PlayerMotion.panelExitMs, easing = PlayerMotion.easing)) +
-            scaleOut(tween(PlayerMotion.panelExitMs, easing = PlayerMotion.easing), targetScale = 0.94f),
+        else fadeOut(tween(PlayerMotion.panelExitMs, easing = PlayerMotion.panelExitEasing)) +
+            scaleOut(tween(PlayerMotion.panelExitMs, easing = PlayerMotion.panelExitEasing), targetScale = 0.94f),
         modifier = Modifier
             .align(Alignment.TopEnd)
             .playerSafeArea(WindowInsetsSides.Horizontal)

@@ -22,23 +22,22 @@ import androidx.compose.ui.graphics.drawscope.Stroke
  */
 internal fun DrawScope.drawChromeGlyph(kind: String, color: Color, stroke: Stroke, fill: Float) {
     when (kind) {
-        // ---- 主页（REX 顶栏左二）----
+        // ---- 主页（REX 0160 实测 ink 21×18.3pt / 线宽 1.3pt / 门实心）----
         "home" -> {
             val roof = Path().apply {
-                moveTo(3.2f, 11.4f); lineTo(12f, 4.2f); lineTo(20.8f, 11.4f)
+                moveTo(1.2f, 11.8f); lineTo(12f, 2.8f); lineTo(22.8f, 11.8f)
             }
             drawPath(roof, color, style = stroke)
             val body = Path().apply {
-                moveTo(5.6f, 10.4f); lineTo(5.6f, 19.6f)
-                lineTo(18.4f, 19.6f); lineTo(18.4f, 10.4f)
+                moveTo(4.0f, 10.6f); lineTo(4.0f, 21.2f)
+                lineTo(20.0f, 21.2f); lineTo(20.0f, 10.6f)
             }
             drawPath(body, color, style = stroke)
             drawRoundRect(
                 color = color,
-                topLeft = Offset(10.2f, 13.6f),
-                size = Size(3.6f, 6.0f),
+                topLeft = Offset(10.0f, 15.2f),
+                size = Size(4.0f, 6.0f),
                 cornerRadius = CornerRadius(0.8f),
-                style = stroke,
             )
         }
 

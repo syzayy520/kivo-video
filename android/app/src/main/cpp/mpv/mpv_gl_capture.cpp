@@ -79,7 +79,7 @@ void FrameCapture::stop() {
 
 bool FrameCapture::read_frame(std::vector<uint8_t>& out) {
     std::lock_guard<std::mutex> lock(frame_mutex_);
-    if (seq_ == 0 || seq_ == last_read_) return false;
+    if (seq_ == 0 || seq_ == last_read_ || frame_seeking_) return false;
     last_read_ = seq_;
     out = frame_;
     return true;
@@ -88,6 +88,11 @@ bool FrameCapture::read_frame(std::vector<uint8_t>& out) {
 double FrameCapture::frame_pts() {
     std::lock_guard<std::mutex> lock(frame_mutex_);
     return frame_pts_;
+}
+
+uint64_t FrameCapture::frame_generation() {
+    std::lock_guard<std::mutex> lock(frame_mutex_);
+    return frame_gen_;
 }
 
 void FrameCapture::run() {
@@ -137,8 +142,9 @@ void FrameCapture::render_loop(EglWindowSurface& egl, mpv_render_context* ctx) {
         if (flags & MPV_RENDER_UPDATE_FRAME) {
             glBindFramebuffer(GL_FRAMEBUFFER, fbo);
             glViewport(0, 0, width_, height_);
-            // FLIP_Y=1：mpv 把图像顶行存到 GL y=0，glReadPixels  row0=顶 ⇒ top-down。
-            int flip_y = 1;
+            // FLIP_Y=0：真机实测 =1 时读回上下颠倒（彩虹条跑到顶、数字倒立）。
+            // mpv 默认 FBO 布局经 glReadPixels 恰为 top-down，再翻反而错。
+            int flip_y = 0;
             mpv_opengl_fbo target{};
             target.fbo = static_cast<int>(fbo);
             target.w = width_;
@@ -159,10 +165,16 @@ void FrameCapture::render_loop(EglWindowSurface& egl, mpv_render_context* ctx) {
                 pts = std::strtod(ps, nullptr);
                 mpv_free(ps);
             }
+            // seek 挂起期的重绘也触发 UPDATE_FRAME；不记 seeking，
+            // 上层会把挂起期重绘的旧帧当成本次 seek 的新帧（慢源冻帧根因）。
+            int64_t seeking = 1;
+            mpv_get_property(handle_, "seeking", MPV_FORMAT_FLAG, &seeking);
             {
                 std::lock_guard<std::mutex> lock(frame_mutex_);
                 frame_ = pixels;
                 frame_pts_ = pts;
+                frame_gen_ = seek_gen_.load(std::memory_order_acquire);
+                frame_seeking_ = seeking != 0;
                 ++seq_;
             }
             ++frame_count;

@@ -31,6 +31,7 @@ object MpvNative {
     @JvmStatic external fun nativeAttachCapture(handle: Long, width: Int, height: Int): Int
     @JvmStatic external fun nativeReadCaptureFrame(handle: Long): ByteArray?
     @JvmStatic external fun nativeCaptureFramePts(handle: Long): Double
+    @JvmStatic external fun nativeCaptureFrameGen(handle: Long): Long
     @JvmStatic external fun nativeLoadFile(handle: Long, url: String): Int
     @JvmStatic external fun nativeSeek(handle: Long, position: Double, exact: Boolean): Int
     @JvmStatic external fun nativeCommand(handle: Long, name: String, args: String): Int
@@ -104,8 +105,11 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
     /** 最新离屏帧 RGBA（top-down）；没有比上次更新的帧返回 null。 */
     fun readCaptureFrame(): ByteArray? = MpvNative.nativeReadCaptureFrame(handle)
 
-    /** 最新离屏帧对应的 time-pos（秒），无帧 -1。用于把帧和 seek 目标对齐。 */
+    /** 最新离屏帧对应的 time-pos（秒），无帧 -1。仅取证日志用。 */
     fun captureFramePts(): Double = MpvNative.nativeCaptureFramePts(handle)
+
+    /** 最新离屏帧的 seek 代数；> 发 seek 前读到的代数 = 本次 seek 的新帧。 */
+    fun captureFrameGen(): Long = MpvNative.nativeCaptureFrameGen(handle)
 
     /** 打开一个媒体（本地路径或 URL，例如 `smb://host/share/path`）。 */
     fun loadFile(url: String) {

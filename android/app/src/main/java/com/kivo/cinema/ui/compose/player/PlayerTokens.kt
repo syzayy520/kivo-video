@@ -19,13 +19,21 @@ object PlayerTokens {
     val textPrimary = Color(0xFFFFFFFF)
     val textSecondary = Color(0xFF8A8A8E)
 
-    /** 进度条三段（§1.2）：已播纯白 / 缓冲实色灰 / 未播＝黑 45% 罩视频。 */
+    /**
+     * 进度条三段（§1.2，2026-11-12 用户供帧复测推翻 v3 的"黑45%罩"）：
+     * REX 是**半透明白 + 1px 提亮描边**的玻璃质感，视频从轨下透出来；
+     * 实色深灰会显得"死"。实测：未播填充白12% / 边白35%；
+     * 缓冲填充白55% / 边白75%；已播纯白。复算见 v3.2 证据。
+     */
     val trackPlayed = Color(0xFFFFFFFF)
-    val trackBuffered = Color(0xFF9B9B9B)
-    val trackRemaining = Color(0x73000000)
+    val trackBuffered = Color(0x8CFFFFFF)
+    val trackBufferedRim = Color(0xBFFFFFFF)
+    val trackRemaining = Color(0x1FFFFFFF)
+    val trackRemainingRim = Color(0x59FFFFFF)
 
     /** 拖动中未播段提亮（§1.5）：让用户看清"松手会落到哪一段"。 */
-    val trackDragging = Color(0x99FFFFFF)
+    val trackDragging = Color(0x40FFFFFF)
+    val trackDraggingRim = Color(0x80FFFFFF)
 
     /**
      * 顶栏**无遮罩**（§1.1：白图标直压画面）。
@@ -99,8 +107,12 @@ object PlayerTokens {
     /** 图标命中盒（≥44pt 无障碍下限；pitch 靠 spacedBy 补齐）。 */
     const val actionHitBox = 44f
 
-    /** 图标 glyph 外接盒（实测 19–22pt，取 22）。 */
-    const val actionIconSize = 22f
+    /** 图标 glyph 外接盒。v3.2：22→23 —— REX 投屏/PiP 掩码 ink 22.7×18.3pt，
+     *  24 画布 ink ≈23.95 单位 ⇒ 盒 23dp 时 ink 22.95dp（Δ0.25pt）。 */
+    const val actionIconSize = 23f
+
+    /** 按压反馈：按下时图标/文字不透明度（REX 的反馈族＝本体变色，无涟漪）。 */
+    const val pressAlpha = 0.6f
 
     /**
      * 图标行的横向留白。
@@ -114,8 +126,10 @@ object PlayerTokens {
     /** ✕ 与主页的命中盒间隙（中心距实测 47.5pt − 44pt 盒）。 */
     const val leftIconGap = 1f
 
-    const val closeIconSize = 17f
-    const val homeIconSize = 20f
+    /** ✕ 盒 20dp：杆 span 18 + 线宽 2.4 = 20.4/24 ⇒ ink 17dp（REX 实测 17pt）。 */
+    const val closeIconSize = 20f
+    /** 主页盒 22dp：ink 23.1/24 ⇒ 21.2dp（REX 实测 21×18.3pt）。 */
+    const val homeIconSize = 22f
 
     /** 状态行右端：网速文本 + 电池。 */
     const val batteryWidth = 23f

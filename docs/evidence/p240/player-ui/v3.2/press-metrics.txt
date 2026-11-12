@@ -1,0 +1,5 @@
+u1 next_glyph: ink_px=418 mean_G=149.8 mean_B=149.8
+u1 pause_glyph: ink_px=33 mean_G=254.1 mean_B=254.1
+u2 next_glyph: ink_px=487 mean_G=235.5 mean_B=235.5
+u2 pause_glyph: ink_px=33 mean_G=254.1 mean_B=254.1
+bg_G=0.1 pressed_G=149.8 released_G=235.5 alpha_est=0.636 (target 0.6)

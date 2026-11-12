@@ -5,7 +5,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
@@ -58,10 +63,12 @@ internal fun BarTextButton(
     panelRect: State<Rect?>,
     onClick: () -> Unit,
 ) {
+    var pressed by remember { mutableStateOf(false) }
     Text(
         text = text,
         color = if (active) PlayerTokens.activeAccent else PlayerTokens.textPrimary,
         fontSize = PlayerTokens.textButtonSize.sp,
+        fontWeight = rexTextWeight(text),
         lineHeight = (PlayerTokens.textButtonSize * 1.25f).sp,
         style = TextStyle(
             lineHeightStyle = LineHeightStyle(
@@ -72,11 +79,25 @@ internal fun BarTextButton(
         maxLines = 1,
         overflow = TextOverflow.Visible,
         modifier = Modifier
-            .pointerInput(text) { detectTapGestures(onTap = { onClick() }) }
+            .pointerInput(text) {
+                detectTapGestures(
+                    onPress = { pressed = true; tryAwaitRelease(); pressed = false },
+                    onTap = { onClick() },
+                )
+            }
+            .alpha(if (pressed) PlayerTokens.pressAlpha else 1f)
             .padding(horizontal = PlayerTokens.textButtonPad.dp, vertical = 5.dp)
             .hideWhenCoveredByPanel(panelRect),
     )
 }
+
+/**
+ * CJK 用 Light 贴近 PingFang Regular 的笔画密度：REX 实测横笔 0.7–1.0pt @16pt、
+ * 字面填充 0.21；本机 Noto Sans CJK Regular 同字号填充 ≈0.30，偏粗发白
+ * （用户"字体太白刺眼"的根因之一）。拉丁/数字保持 Normal（≈SF Pro Regular）。
+ */
+internal fun rexTextWeight(text: String): FontWeight =
+    if (text.any { it.code in 0x4E00..0x9FFF }) FontWeight.Light else FontWeight.Normal
 
 /**
  * 时间格式化：`mm:ss`（不足 1 小时）或 `h:mm:ss`。

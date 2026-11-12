@@ -25,17 +25,29 @@ import com.kivo.cinema.ui.compose.player.rememberPanelItems
  * 分出来的理由：Activity 要守住 ≤300 行，而接线本身就有六十余条 ——
  * 混在一起时"改一个回调"要在状态字段堆里翻找。
  *
- * 叠放顺序由 [PlayerOverlay] 负责；弹幕层与投屏 sheet 依次叠在最上面。
+ * 叠放顺序：画面 → 弹幕 → 控制层（[PlayerOverlay]）→ 投屏 sheet。
+ * 弹幕只压画面，不压控制层；拖动时弹幕让位给预览浮窗。
  */
 @Composable
 internal fun PlayerComposeActivity.PlayerRoot() {
-    // 拖动预览的节流锚点（秒）：跨重组保留，Activity 级状态不必进字段堆。
-    var lastScrubSec by remember { mutableLongStateOf(-1L) }
+    // 拖动预览的节流锚点（毫秒）：跨重组保留，Activity 级状态不必进字段堆。
+    var lastScrubMs by remember { mutableLongStateOf(-1L) }
+    var lastScrubWallMs by remember { mutableLongStateOf(0L) }
     MaterialTheme(colorScheme = darkColorScheme()) {
         Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
             PlayerScreen(
                 onSurfaceReady = { holder -> maybeStartPlayback(holder) },
                 onSurfaceLost = { onSurfaceLost() },
+            )
+            // 弹幕在控制层**之下**：REX 的弹幕只压画面，不压栏/面板/预览浮窗；
+            // 拖动时整体让位（scrubbing），浮窗上不许飘字。
+            com.kivo.cinema.danmaku.DanmakuOverlay(
+                items = danmakuItems,
+                positionMs = positionMs,
+                isPlaying = isPlaying,
+                visible = danmakuOn && !pipActive && !scrubbing,
+                settings = danmakuSettings,
+                modifier = Modifier.fillMaxSize(),
             )
             PlayerOverlay(
                 visible = controlsVisible,
@@ -82,15 +94,20 @@ internal fun PlayerComposeActivity.PlayerRoot() {
                 onNext = { onNextEpisode() },
                 onScrub = { ms ->
                     lastTouchMs = System.currentTimeMillis()
-                    // 按秒节流：拖动每帧都回调，但解码一秒只要一张帧，
-                    // 逐帧塞请求只会让解码队列堆积、预览反而更慢。
-                    val sec = ms / 1000
-                    if (sec != lastScrubSec) {
-                        lastScrubSec = sec
+                    scrubbing = true
+                    // 120ms 媒体时间 + 40ms 墙钟双节流：短片源快拖时单靠媒体节流
+                    // 会到 66Hz seek（每 15ms 一次），堆解码队列；墙钟底封顶 25Hz。
+                    val now = android.os.SystemClock.elapsedRealtime()
+                    if (lastScrubMs < 0 || (ms - lastScrubMs >= 120 && now - lastScrubWallMs >= 40)) {
+                        lastScrubMs = ms
+                        lastScrubWallMs = now
                         thumbnailReader?.seekTo(ms * 1000)
                     }
                 },
-                onSeek = { ms -> seekTo(ms) },
+                onSeek = { ms ->
+                    scrubbing = false
+                    seekTo(ms)
+                },
                 onTextAction = { kind -> onBottomTextAction(kind) },
                 onPanelSelect = { item -> onPanelSelect(item) },
                 onPanelStep = { item, delta -> onPanelStep(item, delta) },
@@ -111,14 +128,6 @@ internal fun PlayerComposeActivity.PlayerRoot() {
                 onLongPressDrag = { x, y -> onLongPressDrag(x, y) },
                 onLongPressEnd = { onLongPressEnd() },
                 onRetry = { onRetry() },
-            )
-            com.kivo.cinema.danmaku.DanmakuOverlay(
-                items = danmakuItems,
-                positionMs = positionMs,
-                isPlaying = isPlaying,
-                visible = danmakuOn && !pipActive,
-                settings = danmakuSettings,
-                modifier = Modifier.fillMaxSize(),
             )
             com.kivo.cinema.dlna.CastSheet(
                 visible = castSheetVisible && !pipActive,

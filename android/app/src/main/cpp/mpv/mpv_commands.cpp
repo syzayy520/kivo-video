@@ -128,7 +128,14 @@ bool Session::seek(double position_seconds, bool exact, std::string& error) {
         error = "session not created";
         return false;
     }
+    // 先盖代数再发命令：seek 处理后渲染的帧必带新代数；
+    // 发命令前残留渲染的旧帧带旧代数，上层据此丢弃。
+    if (impl_->frame_capture) impl_->frame_capture->note_seek();
     return seek_impl(impl_->handle, position_seconds, exact, error);
+}
+
+uint64_t Session::capture_frame_generation() {
+    return impl_ && impl_->frame_capture ? impl_->frame_capture->frame_generation() : 0;
 }
 
 double Session::position_seconds() {

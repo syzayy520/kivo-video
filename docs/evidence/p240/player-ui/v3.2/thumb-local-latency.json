@@ -1,0 +1,18 @@
+{
+  "schema": "kivo.v31.thumbnail\/1",
+  "generated_at_unix_ms": 1794461189562,
+  "source": "\/sdcard\/Android\/data\/com.kivo.cinema\/files\/media\/mpv-test-3min.mkv",
+  "thumbnail": {
+    "requests": 100,
+    "cache_hits": 0,
+    "decode_failures": 1,
+    "evictions": 49,
+    "cache_size_final": 50,
+    "cache_max": 50,
+    "cold_first_latency_ms": 76,
+    "warm_count": 98,
+    "warm_p50_ms": 13,
+    "warm_p95_ms": 29,
+    "warm_max_ms": 46
+  }
+}

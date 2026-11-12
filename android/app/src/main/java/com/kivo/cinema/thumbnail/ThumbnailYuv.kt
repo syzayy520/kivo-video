@@ -47,3 +47,28 @@ internal fun yuvToBitmap(img: Image): Bitmap? {
 }
 
 private const val THUMB_TARGET_WIDTH = 320
+
+/** 清屏帧判定：清屏帧整幅同色；真实画面几乎不可能全幅同色。
+ *  只比 RGB，**不比 alpha**（不透明黑帧 alpha=255，比 alpha 会恒判"有内容"）。
+ *   stride 337 抽样：480×270 全比太慢，抽样足以区分同色与有内容。 */
+internal fun rgbaHasContent(bytes: ByteArray, width: Int, height: Int): Boolean {
+    val r0 = bytes[0]
+    val g0 = bytes[1]
+    val b0 = bytes[2]
+    var i = 0
+    val total = width * height
+    while (i < total) {
+        val o = i * 4
+        if (bytes[o] != r0 || bytes[o + 1] != g0 || bytes[o + 2] != b0) return true
+        i += 337
+    }
+    return false
+}
+
+/** 离屏读回的 RGBA（top-down）→ Bitmap；字节数不足返回 null。 */
+internal fun rgbaToBitmap(bytes: ByteArray, width: Int, height: Int): Bitmap? {
+    if (bytes.size < width * height * 4) return null
+    val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    bmp.copyPixelsFromBuffer(java.nio.ByteBuffer.wrap(bytes))
+    return bmp
+}

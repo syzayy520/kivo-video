@@ -1,0 +1,18 @@
+{
+  "schema": "kivo.v31.thumbnail\/1",
+  "generated_at_unix_ms": 1794453750980,
+  "source": "视频\/kivo-test\/shelter.mkv",
+  "thumbnail": {
+    "requests": 28,
+    "cache_hits": 13,
+    "decode_failures": 0,
+    "evictions": 0,
+    "cache_size_final": 15,
+    "cache_max": 50,
+    "cold_first_latency_ms": 229,
+    "warm_count": 27,
+    "warm_p50_ms": 30,
+    "warm_p95_ms": 283,
+    "warm_max_ms": 409
+  }
+}

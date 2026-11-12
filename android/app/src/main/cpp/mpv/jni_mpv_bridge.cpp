@@ -173,6 +173,14 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeCaptureFramePts(JNIEnv* env, jclass, jl
     return session->capture_frame_pts();
 }
 
+JNIEXPORT jlong JNICALL
+Java_com_kivo_cinema_mpv_MpvNative_nativeCaptureFrameGen(JNIEnv* env, jclass, jlong handle) {
+    kivo::video::mpv::SessionTableLock lock;
+    Session* session = kivo::video::mpv::find_session_locked(handle);
+    if (session == nullptr) return 0;
+    return static_cast<jlong>(session->capture_frame_generation());
+}
+
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_mpv_MpvNative_nativeLoadFile(JNIEnv* env, jclass, jlong handle,
                                                   jstring url) {

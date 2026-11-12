@@ -216,6 +216,9 @@ class ThumbnailReader private constructor(
 
         val info = MediaCodec.BufferInfo()
         var attempts = 0
+        // 追帧时间预算：大 GOP 上追到目标要解码整 GOP（真机 0.3–0.5s/请求），
+        // 浮窗因此落后手指半秒。预算用完就交已解出的最近帧（≤目标），滞后封顶。
+        val budgetDeadline = android.os.SystemClock.elapsedRealtime() + FRAME_BUDGET_MS
         // 240 ≈ 10s@24fps：大 GOP 片源从关键帧追到目标时刻的上限；
         // 无索引片源 seek 落点差几十秒时追不上 ⇒ 计 failure，不拿旧帧冒充。
         while (attempts < 240) {
@@ -237,7 +240,12 @@ class ThumbnailReader private constructor(
                 else -> {
                     val isEos = (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0
                     // 追到目标时刻才出帧：直接吐关键帧会让预览显示几秒前的场景。
-                    if (info.size > 0 && !isEos && info.presentationTimeUs >= positionUs - 500_000) {
+                    val reached = info.size > 0 && !isEos &&
+                        info.presentationTimeUs >= positionUs - 500_000
+                    val budgetOut = info.size > 0 && !isEos &&
+                        info.presentationTimeUs <= positionUs &&
+                        android.os.SystemClock.elapsedRealtime() >= budgetDeadline
+                    if (reached || budgetOut) {
                         val img = mc.getOutputImage(outIdx)
                         if (img != null) {
                             val bitmap = yuvToBitmap(img)
@@ -276,5 +284,6 @@ class ThumbnailReader private constructor(
     companion object {
         private const val DEFAULT_CACHE_SIZE = 50
         private const val RELEASE_DELAY_MS = 5000L
+        private const val FRAME_BUDGET_MS = 120L
     }
 }
