@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
  */
 internal fun DrawScope.drawCoreGlyph(kind: String, color: Color, stroke: Stroke) {
     when (kind) {
-        // ---- 关闭（X，REX 0160 实测 ink 17pt / 线宽 2pt）----
+        // ---- 关闭（X，实测 ink 17pt / 线宽 2pt）----
         // 杆 span 18 + 线宽 2.4 = ink 20.4/24；盒 20dp ⇒ ink 17dp、线 2dp。
         "close" -> {
             drawLine(color, Offset(3f, 3f), Offset(21f, 21f), stroke.width, StrokeCap.Round)
@@ -102,7 +102,7 @@ internal fun DrawScope.drawCoreGlyph(kind: String, color: Color, stroke: Stroke)
             )
         }
 
-        // ---- 开锁（锁定态的唯一控件，REX sk_16 实测）----
+        // ---- 开锁（锁定态的唯一控件，实测）----
         // 锁体在左下、锁梁从锁体右上角升起、右端悬空 = SF lock.open 形。
         // 实测 glyph 30×28.3pt、线宽 2.5pt ⇒ 24 画布下 stroke 2.0。
         "lock-open" -> {

@@ -8,7 +8,7 @@ package com.kivo.cinema.playback
  *  · **旧内核**（自研 FFmpeg demux + MediaCodec + AAudio）—— 已验证可用，但软解时钟
  *    会乱跳、两套 demux 争用同一条读路径。
  *  · **libmpv 内核**（253）—— 单一 demux 线程 + 自己的时钟 + 全 FFmpeg 解码覆盖，
- *    与 SenPlayer / Rex 同路。
+ *    单一读路径。
  *
  * 切换必须**可回退**：新内核在真实片源上还有长尾问题（DRM、字幕、弹幕、
  * 特殊音轨），不能一次切换就断掉用户能用的路径。

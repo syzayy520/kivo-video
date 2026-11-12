@@ -9,7 +9,7 @@ import java.net.Socket
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * 本地 HTTP/1.1 Range 代理（220 设计稿 D2）——SenPlayer 架构对位
+ * 本地 HTTP/1.1 Range 代理（220 设计稿 D2）
  * （实证：libMLibKit.so 内嵌 HTTP/1.1 + Content-Range + Accept-Ranges）。
  *
  * 职责：把 [ByteSource]（随机读字节源）暴露成 http://127.0.0.1:port/<token>

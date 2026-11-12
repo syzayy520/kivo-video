@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * 拖动进度时的**预览浮窗**（v3 §1.5，REX frames2/sk_8）。
+ * 拖动进度时的**预览浮窗**（v3 §1.5）。
  *
  * 实测：缩略图 167×90pt、白描边 2pt、圆角 8pt、中心跟随拖点；
  * 浮窗**左侧**一个 48pt 毛玻璃圆钮＝拖动中一键截取当前帧为剧照。

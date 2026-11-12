@@ -20,7 +20,7 @@ object DesignTokens {
     val accentGreen = Color(0xFF34C759)
     val dangerRed = Color(0xFFFF3B30)
 
-    // 语义色板（RexDesign Assets.car 硬参数，浅色态；深色态 v2）
+    // 语义色板（浅色态实测硬参数；深色态 v2）
     val canvasFill = Color(0xFFFFFFFF)      // 卡片/内容画布
     val groupedFill = Color(0xFFF2F2F7)     // 分组列表底
     val pageBackground = Color(0xFFF2F2F7)  // 页面底色

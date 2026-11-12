@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * 播放页的**轻提示**（REX 交互 M08-03）。
+ * 播放页的**轻提示**。
  *
  * 【为什么要它】铁律：不许静默降级。
  * 任何"点了但做不了"的功能（下一集没接资源库、画质比例暂时不支持…）

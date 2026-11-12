@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * 长按快进的 **HUD**（参考 M03-S02："倍速标签淡入"，标签 0.9→1，进入 0.2s / 退出 0.15s）。
+ * 长按快进的 **HUD**（"倍速标签淡入"，标签 0.9→1，进入 0.2s / 退出 0.15s）。
  *
  * ## 参考的行为链
  * `长按 → 标签淡入 →（左右滑调速）→（上滑锁定）→ 松手恢复`

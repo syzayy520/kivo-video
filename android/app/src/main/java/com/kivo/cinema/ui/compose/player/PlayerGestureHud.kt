@@ -33,14 +33,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * 上下滑手势的 **HUD**（参考 M03-S03）。
+ * 上下滑手势的 **HUD**。
  *
  * ## 形态：**中上部的横向药丸**
  * 一行显示 `[图标]  45%`，下面一条细进度线表示当前值。
  * 亮度/音量是**数值型**信息，用户要读的是"多少"，不是"占多高"；
  * 横向药丸不遮画面主体，数字可以直接读出来。
  *
- * ## 动效（M03-S03：淡入 0.15 / 停止 1s / 淡出 0.3）
+ * ## 动效（淡入 0.15 / 停止 1s / 淡出 0.3）
  * 进出由本组件自己的 [AnimatedVisibility] 负责（与 [PlayerLongPressHud] 同构）：
  * 淡入 [PlayerMotion.hudEnterMs]、淡出 [PlayerMotion.hudExitMs]，纯 alpha ⇒ 天然满足 G1。
  * 停留 1s 的计时在 `PlayerGestureRouter.onVerticalDragEnd`（[PlayerMotion.hudHoldMs]）。

@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 /**
  * 暂停态左中浮相机钮（v3 §1.5，iPhone 现屏实测：48pt 毛玻璃圆、中心 ≈(88,195)pt）。
  *
- * 只在**暂停且控制条显形**时出现（0162/0172 播放态无此钮）；点＝截当前帧。
+ * 只在**暂停且控制条显形**时出现（播放态无此钮）；点＝截当前帧。
  * 与拖动预览里的相机钮共用 [PlayerActionRouter.onCapture]，不另写截图逻辑。
  */
 @Composable

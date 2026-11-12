@@ -103,7 +103,7 @@ internal fun DetailPage(
         if (listState.firstVisibleItemIndex == 0)
             listState.firstVisibleItemScrollOffset / density.density else 700f
     }
-    // Fit to the captured Rex scroll sequence: lighten from the first consumed pixel.
+    // Fit to the captured scroll sequence: lighten from the first consumed pixel.
     val sheetColor: State<Color> = remember(fieldColor) {
         derivedStateOf {
             lerp(fieldColor, DesignTokens.pageBackground,

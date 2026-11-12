@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
  */
 internal fun DrawScope.drawChromeGlyph(kind: String, color: Color, stroke: Stroke, fill: Float) {
     when (kind) {
-        // ---- 主页（REX 0160 实测 ink 21×18.3pt / 线宽 1.3pt / 门实心）----
+        // ---- 主页（实测 ink 21×18.3pt / 线宽 1.3pt / 门实心）----
         "home" -> {
             val roof = Path().apply {
                 moveTo(1.2f, 11.8f); lineTo(12f, 2.8f); lineTo(22.8f, 11.8f)
@@ -103,7 +103,7 @@ internal fun DrawScope.drawChromeGlyph(kind: String, color: Color, stroke: Strok
             drawCircle(color, radius = 3.8f, center = Offset(12f, 13.2f), style = stroke)
         }
 
-        // ---- 资源卡的两枚 meta 图标（0169：胶片盒 / 码率菱形叠）----
+        // ---- 资源卡的两枚 meta 图标（胶片盒 / 码率菱形叠）----
         "film" -> {
             drawRoundRect(
                 color = color,

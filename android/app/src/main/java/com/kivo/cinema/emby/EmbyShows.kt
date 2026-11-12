@@ -4,7 +4,7 @@ import org.json.JSONObject
 
 /**
  * 255：剧集的季与集（/Shows/{id}/Seasons、/Shows/{id}/Episodes?SeasonId=）。
- * REX 剧详情"第 N 季 ⌄ + 集缩略图横排"的数据源；字段集经服务器 4.8 实测钉死。
+ * 剧详情"第 N 季 ⌄ + 集缩略图横排"的数据源；字段集经服务器 4.8 实测钉死。
  * 单一职责：季集 HTTP+JSON；连接/鉴权复用 [EmbyClient] 的 internal 出网口。
  */
 class EmbyShows(private val c: EmbyClient) {

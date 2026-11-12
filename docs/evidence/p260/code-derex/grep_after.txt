@@ -1,0 +1,18 @@
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarsHost.kt:63: [whitelist] exit = barExit(reduceMotion, fromTop = true),
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarsHost.kt:80: [whitelist] exit = barExit(reduceMotion, fromTop = false),
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarsHost.kt:117: [whitelist] private fun barExit(reduceMotion: Boolean, fromTop: Boolean): ExitTransition =
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarsHost.kt:119: [whitelist] else fadeOut(tween(PlayerMotion.barExitMs, easing = PlayerMotion.easing)) +
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarsHost.kt:120: [whitelist] slideOutVertically(tween(PlayerMotion.barExitMs, easing = PlayerMotion.easing)) { if (fromTop) -it / 6 else it / 6 }
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerMotion.kt:28: [whitelist] const val barExitMs = 140
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:11: [whitelist] * 原文 `artifacts/rex-measurements.txt`。**禁止凭印象改动这里的数字。**
+backend/tests/video_plane/p5h_color_hdr_protected_tests.cpp:83: [whitelist] // H4: ShaderExecutionOrder tests
+backend/tests/video_plane/p5h_color_hdr_protected_tests.cpp:86: [whitelist] FakeShaderExecutionPlanner planner;
+backend/tests/video_plane/p5h_color_hdr_protected_tests.cpp:98: [whitelist] std::printf("[H4] ShaderExecutionOrder PASS\n");
+backend/tools/governance/redline_gate/artifacts/redline_gate_result.json:39: [whitelist] "file": "C:\\kivo video\\docs\\design\\backend-core\\236-ui-align-rex-design.md",
+include/kivo/video_plane/color_closure/shader_execution_order.hpp:19: [whitelist] struct ShaderExecutionStep {
+include/kivo/video_plane/color_closure/shader_execution_order.hpp:25: [whitelist] class FakeShaderExecutionPlanner {
+include/kivo/video_plane/color_closure/shader_execution_order.hpp:28: [whitelist] std::vector<ShaderExecutionStep> plan_sdr_pipeline() {
+include/kivo/video_plane/color_closure/shader_execution_order.hpp:39: [whitelist] std::vector<ShaderExecutionStep> plan_hdr_pipeline() {
+include/kivo/video_plane/color_closure/shader_execution_order.hpp:52: [whitelist] bool verify_order(std::vector<ShaderExecutionStep> const& steps) const {
+include/kivo/video_plane/color_closure/shader_execution_order.hpp:60: [whitelist] bool verify_hdr_order(std::vector<ShaderExecutionStep> const& steps) const {
+tools/dump_home_spec.py:6: [whitelist] BASE = r'docs/reference/rex-teardown/rex-package/strings/'

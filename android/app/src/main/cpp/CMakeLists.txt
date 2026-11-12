@@ -557,7 +557,7 @@ add_library(kivo_player SHARED
     "jni/jni_smb2_list.cxx"
 )
 
-# 220：libsmb2 静态库（third_party/libsmb2-android/build.sh 产物；SenPlayer 同款库）
+# 220：libsmb2 静态库（third_party/libsmb2-android/build.sh 产物）
 add_library(smb2_ext STATIC IMPORTED)
 set_target_properties(smb2_ext PROPERTIES IMPORTED_LOCATION
     "${KIVO_ROOT}/build/libsmb2-android/arm64/lib/libsmb2.a")

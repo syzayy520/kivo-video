@@ -96,7 +96,7 @@ class EmbySessionModel : ViewModel() {
 
     fun cancel() { ++generation; work?.cancel(true); connecting = false }
 
-    /** 255：服务器自有分类（REX 首页横排）。失败静默为空——首页仍可钻取/搜索，不假装有分类。 */
+    /** 255：服务器自有分类（首页横排）。失败静默为空——首页仍可钻取/搜索，不假装有分类。 */
     private fun loadViews(c: EmbyClient, a: EmbyClient.Auth) {
         val ticket = generation
         pool.submit {

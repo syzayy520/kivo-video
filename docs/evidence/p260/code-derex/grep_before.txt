@@ -1,0 +1,145 @@
+android/app/src/main/cpp/CMakeLists.txt:560: [product] # 220：libsmb2 静态库（third_party/libsmb2-android/build.sh 产物；SenPlayer 同款库）
+android/app/src/main/cpp/jni/jni_smb2_bridge.cxx:1: [product] // libsmb2 的通道原语 JNI 桥（220 定案：与 SenPlayer 同款库同形态；250 做健壮性收口）。
+android/app/src/main/cpp/mpv/mpv_commands.cpp:10: [product] // 上层按用户选择切（与 Rex 的 `seek.accurate` 开关同一思路）。
+android/app/src/main/java/com/kivo/cinema/download/DownloadService.kt:21: [product] * SenPlayer 同款 DownloadService 对位：前台服务 + 进度通知 + 完成跳转。
+android/app/src/main/java/com/kivo/cinema/emby/EmbyCatalog.kt:6: [product] * 255：服务器自有分类（/Users/{uid}/Views）。REX 首页把每个 View 渲染成一条横排
+android/app/src/main/java/com/kivo/cinema/emby/EmbySessionModel.kt:99: [product] /** 255：服务器自有分类（REX 首页横排）。失败静默为空——首页仍可钻取/搜索，不假装有分类。 */
+android/app/src/main/java/com/kivo/cinema/emby/EmbyShows.kt:7: [product] * REX 剧详情"第 N 季 ⌄ + 集缩略图横排"的数据源；字段集经服务器 4.8 实测钉死。
+android/app/src/main/java/com/kivo/cinema/emby/ui/EmbyBrowseScreen.kt:21: [product] * 255：REX 首页一比一——服务器自有分类（/Views）各渲染一条横排海报（名称 + › 钻取）。
+android/app/src/main/java/com/kivo/cinema/mpv/LocalRangeServer.kt:17: [product] * mpv（也就是 SenPlayer / Rex 用的那颗内核）通过 FFmpeg 的 `http` 协议读网络资源。
+android/app/src/main/java/com/kivo/cinema/net/LocalRangeProxy.kt:12: [product] * 本地 HTTP/1.1 Range 代理（220 设计稿 D2）——SenPlayer 架构对位
+android/app/src/main/java/com/kivo/cinema/playback/MpvPlaybackSession.kt:28: [product] * mpv（SenPlayer / Rex 用的那颗）把这三件事一次解决：单一 demux 线程 +
+android/app/src/main/java/com/kivo/cinema/playback/PlaybackEngine.kt:11: [product] *    与 SenPlayer / Rex 同路。
+android/app/src/main/java/com/kivo/cinema/smb/discovery/SmbDiscovery.kt:14: [product] * 手工地址永远保留。Rex 的"可用地址"里也只有 N1，行为一致。
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerActionRouter.kt:22: [product] * 底栏画质标签（REX 的 "4K" 位置）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerActionRouter.kt:34: [product] // 听视频态 vid=no 读不到 video-params ⇒ 沿用最后一次真值（REX 0172 保留 4K 标）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerActionRouter.kt:109: [product] // 圈波形＝音轨列表（形态4，REX 0162 锚点；不是均衡器）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerActionRouter.kt:112: [product] // 耳机＝听视频态（形态13，REX 0172）：短按切 vid=no/auto，控制条保留。
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerActionRouter.kt:168: [product] * 屏幕锁定（§1.5 / §二）。入口 ◐：长按播放键（REX 入口未录到，见设计稿 §六）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerActionRouter.kt:247: [product] /** 轻提示：1.8s 后自动消失（REX M08-03 停留 1.0–2.0s）。 */
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerComposeRoot.kt:42: [product] // 弹幕在控制层**之下**：REX 的弹幕只压画面，不压栏/面板/预览浮窗；
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerSubtitleImport.kt:13: [product] * 【为什么 select】导入即启用（REX 行为）；要换回内嵌轨，字幕面板里切。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerAudioOnly.kt:18: [product] * **听视频态**（v3 §1.4 形态 13，REX 0172 复测）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarText.kt:71: [product] fontWeight = rexTextWeight(text),
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarText.kt:95: [product] * CJK 用 Light 贴近 PingFang Regular 的笔画密度：REX 实测横笔 0.7–1.0pt @16pt、
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarText.kt:99: [product] internal fun rexTextWeight(text: String): FontWeight =
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarsHost.kt:61: [whitelist] exit = barExit(reduceMotion, fromTop = true),
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarsHost.kt:78: [whitelist] exit = barExit(reduceMotion, fromTop = false),
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarsHost.kt:113: [whitelist] private fun barExit(reduceMotion: Boolean, fromTop: Boolean): ExitTransition =
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarsHost.kt:115: [whitelist] else fadeOut(tween(PlayerMotion.barExitMs, easing = PlayerMotion.easing)) +
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBarsHost.kt:116: [whitelist] slideOutVertically(tween(PlayerMotion.barExitMs, easing = PlayerMotion.easing)) { if (fromTop) -it / 6 else it / 6 }
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBottomBar.kt:178: [product] // （真机实测 287dp vs REX 304.8pt）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBottomBar.kt:193: [product] // 长按播放键 = 屏幕锁定（◐ 入口，REX 未录到；见设计稿 §六）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureFlash.kt:23: [product] * 双击手势的**闪示图标**（REX M03-S01："图标闪现 0.5"，0→1→0）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureFlash.kt:26: [product] * REX 用一个居中的图标闪 0.5 秒来确认 —— 这是"零成本的确认"，不打断观看。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureFlash.kt:29: [product] * 出现/消失用透明度+缩放过渡（REX 的 easeOut 族）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:17: [product] * 播放页的**手势层**（REX 交互 M03-S01 / M03-S02）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:25: [product] * ## 交互链（对齐 REX）
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:28: [product] > | 单击画面 | 控制条显隐 / 面板打开时=关掉面板 | REX"点屏唤出/再点收起" |
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:29: [product] * | 双击左 1/3 | 快退 | REX M03-S01 双击热区 |
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:30: [product] * | 双击右 1/3 | 快进 | REX M03-S01 双击热区 |
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:31: [product] * | 双击中 1/3 | 播放/暂停 | REX M03-S01 双击热区 |
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:35: [product] * 这正是 REX 文档里"识别窗 0.3s"那一条。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:123: [product] /** 双击热区（REX M03-S01：左 / 中 / 右）。 */
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyph.kt:27: [product] * ## 形状语言（与 REX 一致）
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyph.kt:50: [product] // 逐图标线宽（REX 掩码实测，24 画布）：默认 1.9；
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyph.kt:89: [product] "cast",         // 投屏（AirPlay 形符号，REX 0160 掩码 1:1；协议层 DLNA）
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphChrome.kt:25: [product] // ---- 主页（REX 0160 实测 ink 21×18.3pt / 线宽 1.3pt / 门实心）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphCore.kt:22: [product] // ---- 关闭（X，REX 0160 实测 ink 17pt / 线宽 2pt）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphCore.kt:105: [product] // ---- 开锁（锁定态的唯一控件，REX sk_16 实测）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:14: [product] * 播放页的**功能入口图标**（对应 REX 顶栏那一排）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:16: [product] * ## 为什么按 REX 的形状重画，而不是自己发挥
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:17: [product] * 用户明确要求："图标你要对比下 REX 的图标，就知道问题出在哪里了"。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:19: [product] * 而 REX 用的是一套**成体系的符号语言**：
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:20: [product] * | REX 图标 | 含义 | 形状 |
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:31: [product] * 【画法】全部是**线框 + 实心局部**的混搭，与 REX 一致；
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:32: [product] * 坐标系 24×24，与 REX 的符号比例接近。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:97: [product] // ---- 圈内波形条（音轨，REX 0162）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:148: [product] // ---- 耳机（听视频，REX 0172）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:173: [product] // ---- 投屏（REX 0160 掩码 1:1）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:174: [product] // 用户严格要求"和 REX 一模一样"：REX 的符号是 AirPlay 形
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:201: [product] // ---- 画中画 PiP（REX 0166 掩码 1:1）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerLockLayer.kt:18: [product] * **锁定态层**（v3 §1.5 / §二，REX sk_16 实测）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerLockLayer.kt:27: [product] * 【入口是 ◐ 推断】REX 的加锁入口没被录到（ strings 里只有
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerMotion.kt:28: [whitelist] const val barExitMs = 140
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerMotion.kt:29: [product] // REX §三：面板弹入 spring(response 0.25s, damping 0.8)。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerMotion.kt:39: [product] // 预览浮窗（REX M03-S06：缩略图 α 拖动 0→1 / 松手 1→0，d=0.15s）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerMotion.kt:42: [product] // 亮度/音量 HUD（REX M03-S03：淡入 0.15 / 停止 1s / 淡出 0.3）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerOverlay.kt:47: [product] * 听视频（形态13）**不替换控制条**（REX 0172）：只把视频区换成黑底居中块，
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerOverlay.kt:121: [product] // 听视频态控制条保留（REX 0172）⇒ 这里不再排除 audioOnly。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerPanelData.kt:8: [product] * 【为什么 13 种形态共用一个行模型】REX 的 13 个面板拆开看只有四种壳，
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerPanelHost.kt:22: [product] * 底栏文字钮（倍速）右缘＝内容右缘 ⇒ trailing 16（REX 0171 面板右缘≈倍速右缘）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerPanelHost.kt:33: [product] // 字幕钻入页（内嵌/外挂）沿用字幕面板的锚点：REX 是原地换内容。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerPanelOcclusion.kt:17: [product] * 面板遮挡 ⇒ 底栏文字只画面板外的部分（v3 §1.4，对照 REX IMG_0161）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerPanelOcclusion.kt:20: [product] * 只能模糊自己这一层，见 [playerGlassSurface]）。REX 的磨砂把盖住的字遮死、
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerPanelOcclusion.kt:25: [product] * 面板缘。整块 alpha 会把"只被盖住一两个像素"的倍速也整块隐掉，与 REX 相反。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerPanelOcclusion.kt:26: [product] * REX 的真实行为是**只遮矩形内的那部分**，所以这里用 clipRect(Difference)
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerSeekPreview.kt:32: [product] * 拖动进度时的**预览浮窗**（v3 §1.5，REX frames2/sk_8）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerSeekTrack.kt:184: [product] // REX 质感＝半透明填充 + 1px 提亮描边（v3.2 实测），不是实色色块。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerSourceOrigin.kt:9: [product] * 源卡的"来自哪里"（v3.1f；REX 0169 源卡显示的是 nyamedia 服务器名，不是文件名）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerStatusLayer.kt:100: [product] * 中央三点波纹（REX 的加载指示）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerStatusRow.kt:35: [product] * 但用户仍然需要看时间与电量（REX 的录屏里它们一直在）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerStepperRow.kt:89: [product] // 按下即步进（iOS UIStepper 语义，REX 同源）：不等 tap 识别窗，
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerToast.kt:20: [product] * 播放页的**轻提示**（REX 交互 M08-03）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:6: [product] * 播放页视觉 token（player-ui-v3-rex-replication.md §一，唯一常量源）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:8: [product] * **数值来源**：REX 1.0.2 真机横屏播放页逐像素测量
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:10: [product] * 复算：`python tools/measure_rex_playback.py {icons|bottom|panel|text} <png>`，
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:11: [whitelist] * 原文 `artifacts/rex-measurements.txt`。**禁止凭印象改动这里的数字。**
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:24: [product] * REX 是**半透明白 + 1px 提亮描边**的玻璃质感，视频从轨下透出来；
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:45: [product] /** 底部渐变：REX 底栏有黑渐变，选集整替态也靠它压住画面。 */
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:87: [product] * 状态行→图标行的间隙。K40 实测图标行心 51.5dp vs REX 55pt（Δ3.5）：
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:110: [product] /** 图标 glyph 外接盒。v3.2：22→23 —— REX 投屏/PiP 掩码 ink 22.7×18.3pt，
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:114: [product] /** 按压反馈：按下时图标/文字不透明度（REX 的反馈族＝本体变色，无涟漪）。 */
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:129: [product] /** ✕ 盒 20dp：杆 span 18 + 线宽 2.4 = 20.4/24 ⇒ ink 17dp（REX 实测 17pt）。 */
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:131: [product] /** 主页盒 22dp：ink 23.1/24 ⇒ 21.2dp（REX 实测 21×18.3pt）。 */
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:143: [product] * 按下/拖动中的轨道厚度（v3.1 用户指定的选中增强，**非 REX 实测**）：
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTopBar.kt:47: [product] * 【为什么没有渐变】实测 REX 顶栏白图标直压画面。v2 加的黑 28% 渐变是自创，
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTopBar.kt:98: [product] fontWeight = rexTextWeight(title),
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTopBar.kt:113: [product] // 听视频态没有画面 ⇒ PiP 无意义，REX 0172 也隐掉它。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTopBar.kt:181: [product] // 听视频激活＝白圆底黑耳机（REX 0172 的反白圆），不是通用绿色高亮。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerWindow.kt:27: [product] * REX 播放时**也是全屏** —— 给我们的录屏里能看到状态栏，
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerWindow.kt:28: [product] * 是因为录屏为了展示功能才把系统栏显出来，不是 REX 的播放态。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerWindow.kt:70: [product] * REX（iOS）的 chrome 全部按 **safe area** 内缩 66pt ——
+android/app/src/main/java/com/kivo/cinema/ui/design/DesignTokens.kt:23: [product] // 语义色板（RexDesign Assets.car 硬参数，浅色态；深色态 v2）
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailCalendarGrid.kt:36: [product] * 255 #31 追剧日历月视图（REX 帧复刻）：周日起始；连续播日画棕色刷痕连播带，
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailCalendarSheet.kt:57: [product] * 255 #31 追剧日历浮层（REX 帧复刻）：底部升起的大毛玻璃卡（真背景模糊，复用导航捕获桥）。
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailPage.kt:106: [product] // Fit to the captured Rex scroll sequence: lighten from the first consumed pixel.
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSeasonMenu.kt:107: [product] * 255 选季控件（REX-EMBY 0178/0179 帧实测）。
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSeasonMenu.kt:152: [product] * 选季浮层：透明点击兜底（REX 不压暗背景）+ 锚在触发器下方的玻璃卡。
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSeasonPicker.kt:51: [product] * 255 剧集节（REX-EMBY 0178/0179）：节标题即选季触发器（「第 N 季 ⌄」左对齐），
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSeasonPicker.kt:127: [product] /** 播出日历条（REX）：左日历图标+「播出日历」，右进度标签+chevron；点击开日历浮层。 */
+android/app/src/main/java/com/kivo/cinema/ui/detail/actions/DetailMorePopup.kt:52: [product] * 255 #31「更多」毛玻璃弹出菜单（REX 帧复刻，**不是** TMDB/重新加载）：
+backend/include_private/video/video_plane/backends/mediacodec/session/audio_decode_feeder.hpp:68: [product] ///   "人声太小、听不清楚"。别的播放器（mpv/libmpv/SenPlayer）都是
+backend/include_private/video/video_plane/core/audio/pcm_channel_downmix.hpp:33: [product] ///   参考实现（mpv / libmpv / SenPlayer）都是自己折，不指望平台。
+backend/src/video/video_plane/backends/avsync/session/audio_playback.cxx:134: [product] //   · 横向对照：mpv / libmpv / SenPlayer 都是自己用 swresample 折成 2ch
+backend/tests/video_plane/p5h_color_hdr_protected_tests.cpp:83: [whitelist] // H4: ShaderExecutionOrder tests
+backend/tests/video_plane/p5h_color_hdr_protected_tests.cpp:86: [whitelist] FakeShaderExecutionPlanner planner;
+backend/tests/video_plane/p5h_color_hdr_protected_tests.cpp:98: [whitelist] std::printf("[H4] ShaderExecutionOrder PASS\n");
+backend/tools/governance/redline_gate/artifacts/redline_gate_result.json:39: [whitelist] "file": "C:\\kivo video\\docs\\design\\backend-core\\236-ui-align-rex-design.md",
+include/kivo/video_plane/color_closure/shader_execution_order.hpp:19: [whitelist] struct ShaderExecutionStep {
+include/kivo/video_plane/color_closure/shader_execution_order.hpp:25: [whitelist] class FakeShaderExecutionPlanner {
+include/kivo/video_plane/color_closure/shader_execution_order.hpp:28: [whitelist] std::vector<ShaderExecutionStep> plan_sdr_pipeline() {
+include/kivo/video_plane/color_closure/shader_execution_order.hpp:39: [whitelist] std::vector<ShaderExecutionStep> plan_hdr_pipeline() {
+include/kivo/video_plane/color_closure/shader_execution_order.hpp:52: [whitelist] bool verify_order(std::vector<ShaderExecutionStep> const& steps) const {
+include/kivo/video_plane/color_closure/shader_execution_order.hpp:60: [whitelist] bool verify_hdr_order(std::vector<ShaderExecutionStep> const& steps) const {
+tools/dump_home_spec.py:6: [whitelist] BASE = r'docs/reference/rex-teardown/rex-package/strings/'
+tools/measure_kivo_playback.py:2: [product] """Kivo 播放页真机截图测量（dp = px / density，与 REX 的 pt 同纲）。
+tools/measure_kivo_playback.py:10: [product] y0/y1 缺省按 REX 基线帧(1170 高)的比例换算到当前帧高；x 探针按帧宽比例取。
+tools/measure_kivo_playback.py:11: [product] 聚类/最长_run 复用 measure_rex_playback，保证两边算法逐位一致。
+tools/measure_kivo_playback.py:16: [product] import measure_rex_playback as rex
+tools/measure_kivo_playback.py:33: [product] for s, e in rex.clusters(white > 2, gap=int(14 * D / 3)):
+tools/measure_kivo_playback.py:37: [product] ys = [y for y in rex.clusters(band > 0, gap=4) if y[1] - y[0] > 6]
+tools/measure_kivo_playback.py:49: [product] n, s, e = rex.longest_run(lum[y] > 45)
+tools/measure_kivo_playback.py:58: [product] for s, e in rex.clusters(row > 45, gap=2):
+tools/measure_kivo_playback.py:65: [product] for s, e in rex.clusters(white > 2, gap=int(14 * D / 3)):
+tools/measure_kivo_playback.py:69: [product] ys = [y for y in rex.clusters(band > 0, gap=4) if y[1] - y[0] > 6]
+tools/measure_kivo_playback.py:78: [product] cols = [c for c in rex.clusters(lum.mean(axis=0) > 70, gap=30) if c[1] - c[0] > 150]
+tools/measure_kivo_playback.py:82: [product] ys = [y for y in rex.clusters(rows > 70, gap=20) if y[1] - y[0] > 100]
+tools/measure_kivo_playback.py:88: [product] bands = [bd for bd in rex.clusters(inner.std(axis=1) > 18, gap=6) if bd[1] - bd[0] > 8]
+tools/measure_kivo_playback.py:119: [product] rex.P = D
+tools/measure_rex_playback.py:2: [product] """REX 播放页像素基线测量（2532x1170 @3x -> pt = px/3）。
+tools/measure_rex_playback.py:5: [product] python tools/measure_rex_playback.py icons <img> [--y0 90 --y1 180]
+tools/measure_rex_playback.py:7: [product] python tools/measure_rex_playback.py bottom <img>
+tools/measure_rex_playback.py:9: [product] python tools/measure_rex_playback.py panel <img> [--y0 200 --y1 950]
+tools/measure_rex_playback.py:11: [product] python tools/measure_rex_playback.py text <img> --x0 A --x1 B --y0 C --y1 D
+tools/rewrite_discover.py:13: [product] * 发现首页（grid_01/grid_02/rex_browse_a 帧实测 + 用户指定 IA）：

@@ -18,7 +18,7 @@ import java.net.URL
 /**
  * 下载前台服务（225 设计稿 D2）：OkHttp 下载 + 进度通知。
  *
- * SenPlayer 同款 DownloadService 对位：前台服务 + 进度通知 + 完成跳转。
+ * 下载服务对位：前台服务 + 进度通知 + 完成跳转。
  * 下载到 getExternalFilesDir("downloads")/ → 媒体库自动可见（同目录扫描）。
  */
 class DownloadService : Service() {

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""REX 播放页像素基线测量（2532x1170 @3x -> pt = px/3）。
+"""播放页像素基线测量（2532x1170 @3x -> pt = px/3）。
 
 用法:
-  python tools/measure_rex_playback.py icons <img> [--y0 90 --y1 180]
+  python tools/measure_baseline_playback.py icons <img> [--y0 90 --y1 180]
       顶栏白色图标列聚类 -> 每个图标的 x 范围/中心/宽度 + 行范围
-  python tools/measure_rex_playback.py bottom <img>
+  python tools/measure_baseline_playback.py bottom <img>
       底栏: 进度条 y/厚度/左右边界/已播分段 + 时间文字 bbox + 按钮行 bbox
-  python tools/measure_rex_playback.py panel <img> [--y0 200 --y1 950]
+  python tools/measure_baseline_playback.py panel <img> [--y0 200 --y1 950]
       毛玻璃面板矩形(列/行亮度聚类) + 面板内文字行带(行高 pitch)
-  python tools/measure_rex_playback.py text <img> --x0 A --x1 B --y0 C --y1 D
+  python tools/measure_baseline_playback.py text <img> --x0 A --x1 B --y0 C --y1 D
       指定窗口内非背景像素 bbox(量字高/字宽)
 
 所有输出 px 与 pt 双列。背景为暗画面时阈值法有效; 亮画面需换帧。

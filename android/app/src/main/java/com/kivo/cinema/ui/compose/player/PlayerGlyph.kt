@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
  * · 界面零件类（主页、电池、chevron、−/+、相机、重置）→ [drawChromeGlyph]
  * · 本文件只做**分发**与"弹幕"那种"图形 + 文字"的组合。
  *
- * ## 形状语言（与 REX 一致）
+ * ## 形状语言
  * 线框为主 + 少量实心局部；线宽 1.9/24（相对坐标）。
  * 自己另创符号（比如把画质画成"方框+竖线"）会让一排图标看起来不成体系 ——
  * 用户已经明确指出这一点。
@@ -47,7 +47,7 @@ internal fun PlayerGlyph(
 
         Canvas(Modifier.fillMaxSize()) {
             scale(size.width / 24f, size.height / 24f, pivot = Offset.Zero) {
-                // 逐图标线宽（REX 掩码实测，24 画布）：默认 1.9；
+                // 逐图标线宽（掩码实测，24 画布）：默认 1.9；
                 // ✕ 2pt@20dp 盒 ⇒ 2.4；主页 1.3pt@22dp ⇒ 1.5；
                 // 投屏/PiP 1.7pt@23dp ⇒ 1.75。其余维持族默认。
                 val w = when (kind) {
@@ -83,10 +83,10 @@ internal fun PlayerGlyph(
 private val FEATURE_GLYPHS = setOf(
     "clapper",      // 跳过片段（场记板）
     "expand",       // 画面比例（圈内双向箭头）
-    "audio",        // 音轨（圈内波形条，0162 锚定）
+    "audio",        // 音轨（圈内波形条）
     "captions",     // 字幕（对话气泡）
-    "audioMode",    // 听视频（耳机，0172 白圆亮）
-    "cast",         // 投屏（AirPlay 形符号，REX 0160 掩码 1:1；协议层 DLNA）
+    "audioMode",    // 听视频（耳机，白圆亮）
+    "cast",         // 投屏（AirPlay 形符号，掩码 1:1；协议层 DLNA）
     "pip",          // 画中画
     "danmaku",      // 弹幕（开口圆 + 弹）
 )

@@ -26,7 +26,7 @@ import androidx.compose.animation.core.spring
 internal object PlayerMotion {
     const val barEnterMs = 180
     const val barExitMs = 140
-    // REX §三：面板弹入 spring(response 0.25s, damping 0.8)。
+    // 面板弹入 spring(response 0.25s, damping 0.8)。
     // Compose spring 用刚度：(2π/response)² ≈ 632。
     val panelSpring = spring<Float>(dampingRatio = 0.8f, stiffness = 632f)
     const val panelExitMs = 150
@@ -36,10 +36,10 @@ internal object PlayerMotion {
     const val toastEnterMs = 200
     const val toastExitMs = 250
     const val trackMs = 150
-    // 预览浮窗（REX M03-S06：缩略图 α 拖动 0→1 / 松手 1→0，d=0.15s）。
+    // 预览浮窗（缩略图 α 拖动 0→1 / 松手 1→0，d=0.15s）。
     const val previewEnterMs = 150
     const val previewExitMs = 150
-    // 亮度/音量 HUD（REX M03-S03：淡入 0.15 / 停止 1s / 淡出 0.3）。
+    // 亮度/音量 HUD（淡入 0.15 / 停止 1s / 淡出 0.3）。
     const val hudEnterMs = 150
     const val hudExitMs = 300
     const val hudHoldMs = 1000

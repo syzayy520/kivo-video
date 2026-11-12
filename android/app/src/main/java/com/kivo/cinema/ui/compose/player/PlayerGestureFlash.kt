@@ -20,13 +20,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
- * 双击手势的**闪示图标**（REX M03-S01："图标闪现 0.5"，0→1→0）。
+ * 双击手势的**闪示图标**（"图标闪现 0.5"，0→1→0）。
  *
  * 【为什么要它】双击快进/快退时画面在动，用户**看不出这次点击干了什么**。
- * REX 用一个居中的图标闪 0.5 秒来确认 —— 这是"零成本的确认"，不打断观看。
+ * 交互反馈用一个居中的图标闪 0.5 秒来确认 —— 这是"零成本的确认"，不打断观看。
  *
  * 【实现】用 [LaunchedEffect] 计时 500ms 后自动隐藏；
- * 出现/消失用透明度+缩放过渡（REX 的 easeOut 族）。
+ * 出现/消失用透明度+缩放过渡（easeOut 族）。
  */
 @Composable
 internal fun PlayerGestureFlash(

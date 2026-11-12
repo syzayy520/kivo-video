@@ -1,0 +1,16 @@
+{
+  "rule_count": 144,
+  "soft_rules_relaxed": [
+    "android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerActionRouter.kt: /** 轻提示：1.8s 后自动消失（REX M08-03 停留 1.0–2.0s）。 */"
+  ],
+  "rule_problems": [],
+  "hit_lines": 18,
+  "counts": {
+    "product": 0,
+    "whitelist": 18,
+    "unknown": 0
+  },
+  "violations": [],
+  "frame_id_lines": [],
+  "verdict": "PASS"
+}

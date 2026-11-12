@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong
  * mpv 能读的 HTTP URL。
  *
  * ## 为什么需要它
- * mpv（也就是 SenPlayer / Rex 用的那颗内核）通过 FFmpeg 的 `http` 协议读网络资源。
+ * mpv 内核通过 FFmpeg 的 `http` 协议读网络资源。
  * 我们自己的 SMB 读层（块窗口 / 预读 / 断网恢复 / 读画像）比 FFmpeg 的 libsmbclient
  * 强得多，但**协议层没法直接塞进 mpv** —— FFmpeg 的协议表是编译期静态的。
  *

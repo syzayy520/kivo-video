@@ -11,25 +11,25 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 
 /**
- * 播放页的**功能入口图标**（对应 REX 顶栏那一排）。
+ * 播放页的**功能入口图标**（顶栏那一排）。
  *
- * ## 为什么按 REX 的形状重画，而不是自己发挥
- * 用户明确要求："图标你要对比下 REX 的图标，就知道问题出在哪里了"。
+ * ## 为什么按这套形状重画，而不是自己发挥
+ * 用户明确要求图标按实测形状对照重画。
  * 第一版画的是"方框+竖线""喇叭+声波"这类**自创**符号，
- * 而 REX 用的是一套**成体系的符号语言**：
- * | REX 图标 | 含义 | 形状 |
+ * 而目标用的是一套**成体系的符号语言**：
+ * | 图标 | 含义 | 形状 |
  * | --- | --- | --- |
  * | 场记板 | 画质比例 | 斜顶板 + 斜条纹 + 矩形机身 |
  * | 圈内双向箭头 | 画面缩放 | 圆 + 左上/右下两支箭头 |
  * | 圈内波形条 | 音轨 | 圆 + 5 根高低不等的竖条 |
  * | 对话气泡 | 字幕 | 圆角气泡（左下小尾巴）+ 两行横线 |
  * | 耳机 | 听视频 | 圆弧头梁 + 两只耳罩 |
- * | 投屏 | 投屏 | 圆角屏幕框 + 底部实心三角（AirPlay 形，0160 掩码 1:1） |
- * | 画中画 | PiP | 圆角外框 + 左上 ↖ 箭头 + 右下大实心块（0166 掩码 1:1） |
+ * | 投屏 | 投屏 | 圆角屏幕框 + 底部实心三角（AirPlay 形，掩码 1:1） |
+ * | 画中画 | PiP | 圆角外框 + 左上 ↖ 箭头 + 右下大实心块（掩码 1:1） |
  * | 弹（圈内） | 弹幕 | 开口的圆 + 汉字"弹" |
  *
- * 【画法】全部是**线框 + 实心局部**的混搭，与 REX 一致；
- * 坐标系 24×24，与 REX 的符号比例接近。
+ * 【画法】全部是**线框 + 实心局部**的混搭；
+ * 坐标系 24×24，与实测符号比例接近。
  */
 internal fun DrawScope.drawFeatureGlyph(kind: String, color: Color, stroke: Stroke) {
     when (kind) {
@@ -94,7 +94,7 @@ internal fun DrawScope.drawFeatureGlyph(kind: String, color: Color, stroke: Stro
             drawLine(color, Offset(15.9f, 18.5f), Offset(16.2f, 16.0f), stroke.width, StrokeCap.Round)
         }
 
-        // ---- 圈内波形条（音轨，REX 0162）----
+        // ---- 圈内波形条（音轨）----
         // 圆 + 5 根高低不等的竖条。条宽必须小于条距，否则糊成一团实心。
         "audio" -> {
             drawCircle(
@@ -145,7 +145,7 @@ internal fun DrawScope.drawFeatureGlyph(kind: String, color: Color, stroke: Stro
             drawLine(color, Offset(5.6f, 14.0f), Offset(10.4f, 14.0f), stroke.width, StrokeCap.Round)
         }
 
-        // ---- 耳机（听视频，REX 0172）----
+        // ---- 耳机（听视频）----
         // 圆弧头梁 + 两只实心耳罩
         "audioMode" -> {
             // 头梁：上半圆弧
@@ -170,10 +170,10 @@ internal fun DrawScope.drawFeatureGlyph(kind: String, color: Color, stroke: Stro
             )
         }
 
-        // ---- 投屏（REX 0160 掩码 1:1）----
-        // 用户严格要求"和 REX 一模一样"：REX 的符号是 AirPlay 形
+        // ---- 投屏（掩码 1:1）----
+        // 用户严格要求形状完全一致：这里的符号是 AirPlay 形
         // （圆角屏幕框 + 底部实心三角，三角底边露在屏幕外、底边线在三角两侧断开）。
-        // 协议层仍走 DLNA —— 符号跟参考，能力跟平台，两回事。
+        // 协议层仍走 DLNA —— 符号按形状规范，能力跟平台，两回事。
         // 掩码实测 ink 22.7×18.3pt、线宽 1.7pt ⇒ 24 画布线宽 1.75（[PlayerGlyph] 分发）。
         "cast" -> {
             val screen = Path().apply {
@@ -198,7 +198,7 @@ internal fun DrawScope.drawFeatureGlyph(kind: String, color: Color, stroke: Stro
             drawPath(triangle, color)
         }
 
-        // ---- 画中画 PiP（REX 0166 掩码 1:1）----
+        // ---- 画中画 PiP（掩码 1:1）----
         // 完整圆角外框 + 左上 ↘ 实心箭头（大屏→小屏，指向右下实心块）
         // + 右下**大**实心圆角块（实测占外框 62%×60%，右/下缘与外框齐平）。
         "pip" -> {

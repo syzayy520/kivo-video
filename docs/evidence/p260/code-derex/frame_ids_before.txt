@@ -1,0 +1,61 @@
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerActionRouter.kt:34: // 听视频态 vid=no 读不到 video-params ⇒ 沿用最后一次真值（REX 0172 保留 4K 标）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerActionRouter.kt:109: // 圈波形＝音轨列表（形态4，REX 0162 锚点；不是均衡器）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerActionRouter.kt:112: // 耳机＝听视频态（形态13，REX 0172）：短按切 vid=no/auto，控制条保留。
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerActionRouter.kt:169: * 加锁后 chrome 全收、只留挂锁；双击/长按通道保留（M03-S07）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerGestureRouter.kt:14: /** 竖滑起点：左半屏亮度、右半屏音量（M03-S03）。 */
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerGestureRouter.kt:33: * 手势结束：HUD 停留 [PlayerMotion.hudHoldMs] 后淡出（M03-S03"停止 1s→淡出"）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerGestureRouter.kt:53: * 长按快进开始（M03-S02：longPress≥0.5s → 标签淡入）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerGestureRouter.kt:75: // 屏幕锁定态：长按快进保留，但调速/上滑锁定 ❌（M03-S07）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerAudioOnly.kt:18: * **听视频态**（v3 §1.4 形态 13，REX 0172 复测）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerAudioOnly.kt:20: * 0172 推翻旧稿"全屏黑替换控制条"：顶栏（隐 PiP、耳机反白圆）与底栏**都保留**，
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBottomBar.kt:37: * · 资源态（点 4K）：轨道行上移、插入 chips+源卡、**按钮行消失**（0169 实测）；
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBottomBar.kt:38: * · 选集态（点选集）：整条换成横滑选集带（0170 实测）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerCaptureButton.kt:21: * 只在**暂停且控制条显形**时出现（0162/0172 播放态无此钮）；点＝截当前帧。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureFlash.kt:23: * 双击手势的**闪示图标**（REX M03-S01："图标闪现 0.5"，0→1→0）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureHud.kt:36: * 上下滑手势的 **HUD**（参考 M03-S03）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureHud.kt:43: * ## 动效（M03-S03：淡入 0.15 / 停止 1s / 淡出 0.3）
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:17: * 播放页的**手势层**（REX 交互 M03-S01 / M03-S02）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:29: * | 双击左 1/3 | 快退 | REX M03-S01 双击热区 |
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:30: * | 双击右 1/3 | 快进 | REX M03-S01 双击热区 |
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:31: * | 双击中 1/3 | 播放/暂停 | REX M03-S01 双击热区 |
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:69: // 【竖向拖动：亮度/音量】参考 M03-S03。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:76: // 锁定态竖滑 = ❌（§二 M03-S07）：不消费、不上报，
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:102: // 【长按快进】参考 M03-S02：longPress≥0.5s → 标签淡入 → 左右滑调速
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt:123: /** 双击热区（REX M03-S01：左 / 中 / 右）。 */
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyph.kt:86: "audio",        // 音轨（圈内波形条，0162 锚定）
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyph.kt:88: "audioMode",    // 听视频（耳机，0172 白圆亮）
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyph.kt:89: "cast",         // 投屏（AirPlay 形符号，REX 0160 掩码 1:1；协议层 DLNA）
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphChrome.kt:25: // ---- 主页（REX 0160 实测 ink 21×18.3pt / 线宽 1.3pt / 门实心）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphChrome.kt:106: // ---- 资源卡的两枚 meta 图标（0169：胶片盒 / 码率菱形叠）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphCore.kt:22: // ---- 关闭（X，REX 0160 实测 ink 17pt / 线宽 2pt）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphCore.kt:105: // ---- 开锁（锁定态的唯一控件，REX sk_16 实测）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:27: * | 投屏 | 投屏 | 圆角屏幕框 + 底部实心三角（AirPlay 形，0160 掩码 1:1） |
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:28: * | 画中画 | PiP | 圆角外框 + 左上 ↖ 箭头 + 右下大实心块（0166 掩码 1:1） |
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:97: // ---- 圈内波形条（音轨，REX 0162）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:148: // ---- 耳机（听视频，REX 0172）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:173: // ---- 投屏（REX 0160 掩码 1:1）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt:201: // ---- 画中画 PiP（REX 0166 掩码 1:1）----
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerLockLayer.kt:18: * **锁定态层**（v3 §1.5 / §二，REX sk_16 实测）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerLongPressHud.kt:26: * 长按快进的 **HUD**（参考 M03-S02："倍速标签淡入"，标签 0.9→1，进入 0.2s / 退出 0.15s）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerMotion.kt:39: // 预览浮窗（REX M03-S06：缩略图 α 拖动 0→1 / 松手 1→0，d=0.15s）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerMotion.kt:42: // 亮度/音量 HUD（REX M03-S03：淡入 0.15 / 停止 1s / 淡出 0.3）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerOverlay.kt:47: * 听视频（形态13）**不替换控制条**（REX 0172）：只把视频区换成黑底居中块，
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerOverlay.kt:49: * （M03-S07：锁定不是全禁）。字幕由 libmpv/libass 合成进视频帧（§1.6），
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerOverlay.kt:121: // 听视频态控制条保留（REX 0172）⇒ 这里不再排除 audioOnly。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerOverlay.kt:211: // 常挂 + visible 驱动：退出时整棵子树淡出 300ms，而不是被 if 直接摘掉（M03-S03）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerPanelHost.kt:22: * 底栏文字钮（倍速）右缘＝内容右缘 ⇒ trailing 16（REX 0171 面板右缘≈倍速右缘）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerPanelOcclusion.kt:17: * 面板遮挡 ⇒ 底栏文字只画面板外的部分（v3 §1.4，对照 REX IMG_0161）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerResourcePanel.kt:32: * **资源内联展开**的内容（v3 §1.4 形态 11，点底栏 4K 徽章触发，帧 0169）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerResourcePanel.kt:34: * 实测（0169 逐像素）：轨道行上移到 ≈198pt；
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerResourcePanel.kt:40: * 【0169 推翻设计稿的一处】设计稿写"按钮行不动"，实测**按钮行在这一态消失**
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerSeekPreview.kt:32: * 拖动进度时的**预览浮窗**（v3 §1.5，REX frames2/sk_8）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerSourceOrigin.kt:9: * 源卡的"来自哪里"（v3.1f；REX 0169 源卡显示的是 nyamedia 服务器名，不是文件名）。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt:250: * 锁定态挂锁（sk_16 逐像素复测，推翻旧稿"16pt"）：
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTopBar.kt:113: // 听视频态没有画面 ⇒ PiP 无意义，REX 0172 也隐掉它。
+android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTopBar.kt:181: // 听视频激活＝白圆底黑耳机（REX 0172 的反白圆），不是通用绿色高亮。
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSeasonMenu.kt:107: * 255 选季控件（REX-EMBY 0178/0179 帧实测）。
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSeasonMenu.kt:109: * 触发器＝节标题式粗体「第 N 季」+ 自绘 ⌄（**无胶囊底**，0178）；
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSeasonMenu.kt:110: * 浮层＝白毛玻璃**真背景模糊**（0179 缩略图在玻璃后糊成色块）、圆角 20、宽 250、
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSeasonPicker.kt:51: * 255 剧集节（REX-EMBY 0178/0179）：节标题即选季触发器（「第 N 季 ⌄」左对齐），
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSeasonPicker.kt:52: * 下接集缩略图横排。集卡 meta 四行＝日期 / 第N集+时长 / 粗标题 / 两行简介（0179），
+android/app/src/main/java/com/kivo/cinema/ui/detail/DetailSeasonPicker.kt:53: * 播放按钮指向的下一集带白描边（0178 新状态 E01 带边）。

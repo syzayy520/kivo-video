@@ -14,16 +14,16 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 
 /**
- * 面板遮挡 ⇒ 底栏文字只画面板外的部分（v3 §1.4，对照 REX IMG_0161）。
+ * 面板遮挡 ⇒ 底栏文字只画面板外的部分（v3 §1.4）。
  *
  * 【为什么需要它】玻璃壳是黑 ≈75% 且**没有背景模糊**（Android 的 RenderEffect
- * 只能模糊自己这一层，见 [playerGlassSurface]）。REX 的磨砂把盖住的字遮死、
+ * 只能模糊自己这一层，见 [playerGlassSurface]）。目标效果是把盖住的字遮死、
  * 露在面板外的保持清晰；我们的半透玻璃做不到 —— 被盖的白字以 25% 透出来，
  * 看着就是"右下角文案显示不全"。
  *
  * 【为什么是裁剪不是整块 alpha】实测（K40 s10）倍速左缘紧贴面板右缘、时长横跨
- * 面板缘。整块 alpha 会把"只被盖住一两个像素"的倍速也整块隐掉，与 REX 相反。
- * REX 的真实行为是**只遮矩形内的那部分**，所以这里用 clipRect(Difference)
+ * 面板缘。整块 alpha 会把"只被盖住一两个像素"的倍速也整块隐掉，与目标行为相反。
+ * 真实行为是**只遮矩形内的那部分**，所以这里用 clipRect(Difference)
  * 把面板矩形从绘制区里挖掉：完全在面板内 ⇒ 不画；跨边 ⇒ 只画外面那截；
  * 完全在外 ⇒ 原样清晰。不靠加黑（那会把玻璃变成实心贴纸，v2 已推翻）。
  *

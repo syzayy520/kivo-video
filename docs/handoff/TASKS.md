@@ -1,3 +1,17 @@
+> 2026-11-13 **✅ D6 长期代码参考产品名清除 收口（DISPATCH D6；前助手执行，codex 接管复核+提交推送）。**
+> **证据**：[`docs/evidence/p260/code-derex/`](../evidence/p260/code-derex/README.md)（grep 前后 + 144 规则复算 + 两轮独立审计 + 真机 4 页对照 + codex 重编译日志 + §九收口补记）
+> **范围**：`backend/`、`include/`、`android/app/src/main/`、`tools/`（排除 `tools/reference/`）；只改注释/字符串 + 等价改名，**零逻辑改动**；`docs/`、`artifacts/` 冻结归档不清。
+> **成果**：54 文件；`rexTextWeight`→`barTextWeight`（1 定义+2 调用，全仓 `rexTextWeight`=0）；`tools/measure_rex_playback.py`→`measure_baseline_playback.py`（import/调用同步）。
+> **闸①语义零残留**：基线固定 `f97dd2ea`（145 命中/127 产品名/61 帧号行）→ 清理后 **18 命中 / 0 产品名 / 0 帧号**；18 全白名单（`barExit`/`ShaderExecution` 子串误报 15 + 冻结归档路径 3）。
+> **闸②编译**：codex 账户在线重跑 `assembleDebug`（缓存缺 compose 2.1.21，从项目真实仓库补齐、无代理）→ `compileDebugKotlin`+`buildCMakeDebug[arm64-v8a]` 实际执行、**BUILD SUCCESSFUL in 2m1s**；`packageDebug` UP-TO-DATE ⇒ 产物与既有 APK 字节一致（md5 `eabe20fcf5a5771dcf2099d1cd1b6ca2`），佐证零逻辑改动（`build-codex-reverify.log`）。
+> **闸③真机不回归**：执行者静态证据（设置/播放/首页/详情 4 页 before/after .png+.xml；设置语义树全等、播放 dump 逐字节全等）；A/B 非同一构建基线（已披露）。
+> **闸④不新增超闸文件**：新增 `.kt`=0、行数净 0。
+> **独立审计**：第一轮 FAIL→6 项 P0/P1/P2 全闭环；第二轮 `audit-round2.md` **PASS_WITH_DISCLOSURE**（P0/P1/P2=0，P3=6）；本会话修掉 P3-1（PlaybackEngine 重复措辞）→ 余 P3=5 均披露级。
+> **复算**：`derex_apply.py`（144 规则+1 soft，幂等）`verify`=PASS；codex 无 Python，残留判据改用 Grep 复核（android 侧 7 命中全白名单/0 产品名）。
+> **用户拍板（2026-11-13）**：全量提交 54 文件 + p260 证据并推送（`artifacts/p262*`/`p263*` 原始截图保留本地不提交）。
+> **披露**：`tools/dump_home_spec.py` 依赖 `docs/reference/rex-teardown/`（用户日后删 docs 会断，非 App 代码）；18 白名单为子串误报+冻结归档路径，非产品名残留；262/263 并发改动已在 HEAD，当前 54 文件 diff 为干净 D6 隔离集。
+> **下一卡**：等用户发设置页截图（延续 261→262→263 节奏）；D1/D2/D3/D5 仍待派发（D4 用户暂缓）。
+
 > 2026-11-13 **✅ 263 音画设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
 > **规格**：[`docs/design/ui/replica/av-settings.md`](../design/ui/replica/av-settings.md)（家族树先行）
 > **证据**：[`docs/evidence/p263/av-settings/`](../evidence/p263/av-settings/README.md)（A1–A6 + 7 帧 / 2 日志 + 复算 + 披露 D1–D6）

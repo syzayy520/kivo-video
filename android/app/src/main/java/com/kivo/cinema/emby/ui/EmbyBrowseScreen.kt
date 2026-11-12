@@ -18,7 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 255：REX 首页一比一——服务器自有分类（/Views）各渲染一条横排海报（名称 + › 钻取）。
+ * 255：首页按规格一比一——服务器自有分类（/Views）各渲染一条横排海报（名称 + › 钻取）。
  * 电视/电影/动漫/纪录片都由服务器 CollectionType 决定，不在客户端硬编码分类。
  * 横排首屏懒加载（进入视口才拉），避免一次打满十几个分类请求。
  */

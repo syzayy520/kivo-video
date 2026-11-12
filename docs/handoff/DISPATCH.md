@@ -60,7 +60,12 @@
 - **证据**：`docs/evidence/p260/preview-farseek/`。
 - **依赖**：复用 #40 受控注入源（`docs/evidence/p259/.../logs/p4-range-server.js`）。**适合度：中**。
 
-## D6 · 清除长期代码里的参考产品名痕迹（rex / senplayer）
+## D6 · 清除长期代码里的参考产品名痕迹（rex / senplayer）　✅ 已收口 2026-11-13
+
+> **✅ 已收口**（前助手执行，codex 接管复核+提交推送）。54 文件纯注释/字符串+等价改名、零逻辑改动；
+> 闸① 18 白名单/0 产品名、闸② codex 在线重编译 BUILD SUCCESSFUL（compose 2.1.21 从真实仓库补齐、无代理）、
+> 闸③ 真机 4 页静态对照、闸④ 净 0 行。证据 `docs/evidence/p260/code-derex/`（含 §九收口补记）；详见 `TASKS.md` 顶部 D6 条。
+> 下方为原始派发口径（保留存档）。
 
 - **背景**：本项目 UI 复刻过一款参考播放器，但用户明确要求**长期留下的代码**里不得出现参考产品名
   （rex / Rex / REX / SenPlayer）或"逐帧复刻 REX"这类出处署名——这不是开源项目，没有保留出处的义务。
@@ -95,4 +100,4 @@
   唯一真实开关复用 `HomePreviewSetting`（改 accentGreen 绿轨）；播放/字幕只读策略行（不放假开关）；
   缓存清理真实（磁盘图缓存 + 进程内 `TmdbImageCache.clearMemory` + 评分 json，du 119→0 文件复算）。
   **动效披露**：push/pop slide+fade 350ms 为候选值，screencap 延迟>过渡未拿到真 mid 帧，丝滑度运行时未测。
-  > 主助手自留卡已清空；D1–D6 仍待其他助手领取（D4 用户暂缓；D6=长期代码参考产品名清除）。
+  > 主助手自留卡已清空；**D6 已收口**（2026-11-13，codex 接管复核+提交推送，见 TASKS.md / `docs/evidence/p260/code-derex/`）；D1–D5 仍待其他助手领取（D4 用户暂缓）。

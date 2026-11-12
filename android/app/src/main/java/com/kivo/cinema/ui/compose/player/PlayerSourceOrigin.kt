@@ -6,7 +6,7 @@ import com.kivo.cinema.sources.storage.SourceStore
 import java.net.URI
 
 /**
- * 源卡的"来自哪里"（v3.1f；REX 0169 源卡显示的是 nyamedia 服务器名，不是文件名）。
+ * 源卡的"来自哪里"（v3.1f；源卡显示的是 nyamedia 服务器名，不是文件名）。
  *
  * 【为什么单独一个文件】来源名要跨三种协议（SMB 路由器/NAS、Emby、普通 URL），
  * 还要查源记录拿用户起的名字。混在面板装配里会让"取数"和"来源推导"缠在一起。

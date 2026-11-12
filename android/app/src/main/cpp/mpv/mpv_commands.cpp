@@ -7,7 +7,7 @@
 // 【seek 的两种模式】
 //   · 快速（默认）：落到关键帧，立刻起播。误差可能达到一整个 GOP。
 //   · 精确：mpv 的 `hr-seek=exact`，解到目标帧。代价是落位期要解码。
-// 上层按用户选择切（与 Rex 的 `seek.accurate` 开关同一思路）。
+// 上层按用户选择切（沿用 `seek.accurate` 开关思路）。
 
 #include <cstdio>
 #include <string>

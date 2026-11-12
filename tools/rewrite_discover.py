@@ -10,7 +10,7 @@ end = s.find('/** 资源库页')
 assert start > 0 and end > start, (start, end)
 
 new_discover = r'''/**
- * 发现首页（grid_01/grid_02/rex_browse_a 帧实测 + 用户指定 IA）：
+ * 发现首页（grid_01/grid_02/浏览页帧实测 + 用户指定 IA）：
  * hero 轮播（TMDB trending，标题叠印+类型·日期+简介+评分行+圆点，自动 5s per M04-S01）
  * → 继续观看（本地进度数据）→ 正在热映 → 正在播出 → 本周趋势（全部 TMDB）。
  * 无 key/无网 → TMDB 节整体隐藏（不显空壳）；本地节独立存在。

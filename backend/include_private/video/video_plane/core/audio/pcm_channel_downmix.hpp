@@ -30,7 +30,7 @@ namespace kivo::video::core::audio {
 ///   的处理并不等价于上面的标准矩阵；而 AOSP 自己的 downmix 折法
 ///   把 FC 按 −3 dB 计入（Downmix_foldFrom5Point1: centerPlusLfeContrib），
 ///   对"人声几乎全在 FC"的真高清音轨，人声会被明显压掉。
-///   参考实现（mpv / libmpv / SenPlayer）都是自己折，不指望平台。
+///   参考实现（mpv / libmpv）都是自己折，不指望平台。
 ///
 /// 归一化：**不做**。标准矩阵在正常素材下峰值 ≤ 1.0；
 /// 若素材本身过载，那是素材的事，削掉它比悄悄压低整条更糟。

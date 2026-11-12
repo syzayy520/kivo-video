@@ -131,7 +131,7 @@ bool AudioPlayback::open(int fd, std::int64_t length, const std::string& label,
     //     而输出线程是 Mixer channel Mask 0x3（front-left/front-right）。
     //     6→2 的下混因此由**平台**做，而平台那条路径把 FC 压到 −3 dB 计入
     //     —— 对人声主导的素材，人声被明显压掉。
-    //   · 横向对照：mpv / libmpv / SenPlayer 都是自己用 swresample 折成 2ch
+    //   · 横向对照：mpv / libmpv 都是自己用 swresample 折成 2ch
     //     再送设备，所以"别的播放器正常、我们不正常"。
     //
     // 折法用 AC3/Dolby 标准矩阵（FC 各 0.7071 进左右、丢弃 LFE），

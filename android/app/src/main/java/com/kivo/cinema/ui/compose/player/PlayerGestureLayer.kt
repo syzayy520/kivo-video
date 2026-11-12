@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 
 /**
- * 播放页的**手势层**（REX 交互 M03-S01 / M03-S02）。
+ * 播放页的**手势层**（单击 / 双击 / 上下滑）。
  *
  * ## 为什么它在覆盖层的**最下面**
  * 第一版手势层放在最上面 ⇒ 它把顶栏/底栏的点击**全部吃掉**（实机：按钮全部点不动）。
@@ -22,17 +22,17 @@ import androidx.compose.ui.input.pointer.pointerInput
  * · 点画面 → 手势层（它兜底）
  * · 点顶栏/底栏/面板 → 它们在**上层**，先拿到事件 ⇒ 按钮照常工作 ✓
  *
- * ## 交互链（对齐 REX）
+ * ## 交互链
  * | 手势 | 行为 | 依据 |
  * | --- | --- | --- |
-> | 单击画面 | 控制条显隐 / 面板打开时=关掉面板 | REX"点屏唤出/再点收起" |
- * | 双击左 1/3 | 快退 | REX M03-S01 双击热区 |
- * | 双击右 1/3 | 快进 | REX M03-S01 双击热区 |
- * | 双击中 1/3 | 播放/暂停 | REX M03-S01 双击热区 |
+> | 单击画面 | 控制条显隐 / 面板打开时=关掉面板 | "点屏唤出/再点收起" |
+ * | 双击左 1/3 | 快退 | 双击热区 |
+ * | 双击右 1/3 | 快进 | 双击热区 |
+ * | 双击中 1/3 | 播放/暂停 | 双击热区 |
  *
  * 【单击与双击怎么共存】`detectTapGestures` 自带**识别窗**：
  * 单击的回调会等到双击窗口（~300ms）结束才触发 ⇒ 不会"双击先关控制条又双击快进"。
- * 这正是 REX 文档里"识别窗 0.3s"那一条。
+ * 这正是"识别窗 0.3s"那一条。
  */
 @Composable
 internal fun PlayerGestureLayer(
@@ -66,14 +66,14 @@ internal fun PlayerGestureLayer(
     Box(
         modifier = modifier
             .fillMaxSize()
-            // 【竖向拖动：亮度/音量】参考 M03-S03。
+            // 【竖向拖动：亮度/音量】左半屏调亮度，右半屏调音量。
             // 这个 pointerInput **排在 tap 之前**：
             // 拖动一旦发生就把事件消费掉，tap 检测器随之取消（不会误触发"点一下收起控制条"）。
             // 横向拖动（进度条 seek）不在这里处理 —— 进度条在**上层**，
             // 它会先拿到事件并消费，我们的竖向检测因此不会误触发。
             .pointerInput(Unit) {
                 detectVerticalDragGestures(
-                    // 锁定态竖滑 = ❌（§二 M03-S07）：不消费、不上报，
+                    // 锁定态竖滑 = ❌（§二）：不消费、不上报，
                     // 但也不让它误变成 tap —— 滑动本来就不是 tap。
                     onDragStart = { offset -> if (!currentLocked) currentDragStart(offset.x) },
                     onDragEnd = { if (!currentLocked) currentDragEnd() },
@@ -99,7 +99,7 @@ internal fun PlayerGestureLayer(
                     },
                 )
             }
-            // 【长按快进】参考 M03-S02：longPress≥0.5s → 标签淡入 → 左右滑调速
+            // 【长按快进】longPress≥0.5s → 标签淡入 → 左右滑调速
             // → 上滑(Δy≈-60pt)锁定 → 松手恢复。
             // 放在**最后**：它与前两个检测器共享同一批事件，
             // 谁先消费谁生效 —— 竖向拖动与长按拖动都消费移动，
@@ -120,7 +120,7 @@ internal fun PlayerGestureLayer(
     )
 }
 
-/** 双击热区（REX M03-S01：左 / 中 / 右）。 */
+/** 双击热区（左 / 中 / 右）。 */
 internal enum class DoubleTapZone { BACKWARD, TOGGLE_PLAY, FORWARD }
 
 /** 手势闪示图标的底色（半透明黑圆底 + 白图标）。 */

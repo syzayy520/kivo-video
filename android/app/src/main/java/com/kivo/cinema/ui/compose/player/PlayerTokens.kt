@@ -3,11 +3,11 @@ package com.kivo.cinema.ui.compose.player
 import androidx.compose.ui.graphics.Color
 
 /**
- * 播放页视觉 token（player-ui-v3-rex-replication.md §一，唯一常量源）。
+ * 播放页视觉 token（唯一常量源，见播放页视觉规格）。
  *
- * **数值来源**：REX 1.0.2 真机横屏播放页逐像素测量
+ * **数值来源**：真机横屏播放页逐像素测量
  * （2532×1170 @3x = 844×390pt，**pt = px/3**，误差 ±2pt）。
- * 复算：`python tools/measure_rex_playback.py {icons|bottom|panel|text} <png>`，
+ * 复算：`python tools/measure_baseline_playback.py {icons|bottom|panel|text} <png>`，
  * 原文 `artifacts/rex-measurements.txt`。**禁止凭印象改动这里的数字。**
  *
  * v3 推翻了 v2 的四处：轨道 3.5→**6pt**、标题 17→**16pt**、
@@ -21,7 +21,7 @@ object PlayerTokens {
 
     /**
      * 进度条三段（§1.2，2026-11-12 用户供帧复测推翻 v3 的"黑45%罩"）：
-     * REX 是**半透明白 + 1px 提亮描边**的玻璃质感，视频从轨下透出来；
+     * 目标是**半透明白 + 1px 提亮描边**的玻璃质感，视频从轨下透出来；
      * 实色深灰会显得"死"。实测：未播填充白12% / 边白35%；
      * 缓冲填充白55% / 边白75%；已播纯白。复算见 v3.2 证据。
      */
@@ -42,7 +42,7 @@ object PlayerTokens {
     val topScrimTop = Color(0x00000000)
     val topScrimBottom = Color(0x00000000)
 
-    /** 底部渐变：REX 底栏有黑渐变，选集整替态也靠它压住画面。 */
+    /** 底部渐变：底栏有黑渐变，选集整替态也靠它压住画面。 */
     val bottomScrimTop = Color(0x00000000)
     val bottomScrimBottom = Color(0x8C000000)
 
@@ -84,7 +84,7 @@ object PlayerTokens {
     const val statusRowHeight = 30f
 
     /**
-     * 状态行→图标行的间隙。K40 实测图标行心 51.5dp vs REX 55pt（Δ3.5）：
+     * 状态行→图标行的间隙。K40 实测图标行心 51.5dp vs 基线 55pt（Δ3.5）：
      * 状态行 ink 只到 23pt，行高 30 已含余量，补 3dp 把图标行心推到 54.5。
      */
     const val statusIconGap = 3f
@@ -107,11 +107,11 @@ object PlayerTokens {
     /** 图标命中盒（≥44pt 无障碍下限；pitch 靠 spacedBy 补齐）。 */
     const val actionHitBox = 44f
 
-    /** 图标 glyph 外接盒。v3.2：22→23 —— REX 投屏/PiP 掩码 ink 22.7×18.3pt，
+    /** 图标 glyph 外接盒。v3.2：22→23 —— 实测投屏/PiP 掩码 ink 22.7×18.3pt，
      *  24 画布 ink ≈23.95 单位 ⇒ 盒 23dp 时 ink 22.95dp（Δ0.25pt）。 */
     const val actionIconSize = 23f
 
-    /** 按压反馈：按下时图标/文字不透明度（REX 的反馈族＝本体变色，无涟漪）。 */
+    /** 按压反馈：按下时图标/文字不透明度（反馈族＝本体变色，无涟漪）。 */
     const val pressAlpha = 0.6f
 
     /**
@@ -126,9 +126,9 @@ object PlayerTokens {
     /** ✕ 与主页的命中盒间隙（中心距实测 47.5pt − 44pt 盒）。 */
     const val leftIconGap = 1f
 
-    /** ✕ 盒 20dp：杆 span 18 + 线宽 2.4 = 20.4/24 ⇒ ink 17dp（REX 实测 17pt）。 */
+    /** ✕ 盒 20dp：杆 span 18 + 线宽 2.4 = 20.4/24 ⇒ ink 17dp（实测 17pt）。 */
     const val closeIconSize = 20f
-    /** 主页盒 22dp：ink 23.1/24 ⇒ 21.2dp（REX 实测 21×18.3pt）。 */
+    /** 主页盒 22dp：ink 23.1/24 ⇒ 21.2dp（实测 21×18.3pt）。 */
     const val homeIconSize = 22f
 
     /** 状态行右端：网速文本 + 电池。 */
@@ -140,7 +140,7 @@ object PlayerTokens {
     const val trackHeight = 6f
 
     /**
-     * 按下/拖动中的轨道厚度（v3.1 用户指定的选中增强，**非 REX 实测**）：
+     * 按下/拖动中的轨道厚度（v3.1 用户指定的选中增强，**非实测值**）：
      * 6→10pt，[PlayerMotion.trackMs] 过渡；松手回 6。参考没有滑块，不加。
      */
     const val trackActiveHeight = 10f
@@ -247,7 +247,7 @@ object PlayerTokens {
     const val previewCameraSize = 48f
 
     /**
-     * 锁定态挂锁（sk_16 逐像素复测，推翻旧稿"16pt"）：
+     * 锁定态挂锁（逐像素复测，推翻旧稿"16pt"）：
      * glyph 30×28.3pt、线宽 2.5pt；锁体中心 x≈65pt = 播放键槽位，
      * 整 glyph 中心 y≈344.8pt = 按钮行中心 ⇒ 与播放键同槽。
      */

@@ -86,7 +86,7 @@ private fun RowScope.StepperHalf(glyph: String, enabled: Boolean, onClick: () ->
             .weight(1f)
             .height(PlayerTokens.stepperHeight.dp)
             .pointerInput(enabled) {
-                // 按下即步进（iOS UIStepper 语义，REX 同源）：不等 tap 识别窗，
+                // 按下即步进（iOS UIStepper 语义）：不等 tap 识别窗，
                 // 真机实测偶发"点了没反应"集中在 tap 判定上，press 通道无此问题。
                 if (enabled) detectTapGestures(onPress = { onClick() })
             },

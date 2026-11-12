@@ -49,7 +49,7 @@ import com.kivo.cinema.ui.design.home.NavigationBackdropState
 import kotlin.math.roundToInt
 
 /**
- * 255 #31「更多」毛玻璃弹出菜单（REX 帧复刻，**不是** TMDB/重新加载）：
+ * 255 #31「更多」毛玻璃弹出菜单（**不是** TMDB/重新加载）：
  * 添加到日历 / 下载 / 追剧进度。锚在「…」钮下方、右对齐，空间不足上翻；
  * 真背景模糊复用导航捕获桥，API31 以下白底加厚兜底。进出场 scale+fade，原点右上。
  */

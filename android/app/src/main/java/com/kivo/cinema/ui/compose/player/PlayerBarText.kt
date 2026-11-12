@@ -68,7 +68,7 @@ internal fun BarTextButton(
         text = text,
         color = if (active) PlayerTokens.activeAccent else PlayerTokens.textPrimary,
         fontSize = PlayerTokens.textButtonSize.sp,
-        fontWeight = rexTextWeight(text),
+        fontWeight = barTextWeight(text),
         lineHeight = (PlayerTokens.textButtonSize * 1.25f).sp,
         style = TextStyle(
             lineHeightStyle = LineHeightStyle(
@@ -92,11 +92,11 @@ internal fun BarTextButton(
 }
 
 /**
- * CJK 用 Light 贴近 PingFang Regular 的笔画密度：REX 实测横笔 0.7–1.0pt @16pt、
+ * CJK 用 Light 贴近 PingFang Regular 的笔画密度：实测横笔 0.7–1.0pt @16pt、
  * 字面填充 0.21；本机 Noto Sans CJK Regular 同字号填充 ≈0.30，偏粗发白
  * （用户"字体太白刺眼"的根因之一）。拉丁/数字保持 Normal（≈SF Pro Regular）。
  */
-internal fun rexTextWeight(text: String): FontWeight =
+internal fun barTextWeight(text: String): FontWeight =
     if (text.any { it.code in 0x4E00..0x9FFF }) FontWeight.Light else FontWeight.Normal
 
 /**

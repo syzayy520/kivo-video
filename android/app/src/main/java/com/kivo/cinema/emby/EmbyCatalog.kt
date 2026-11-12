@@ -3,7 +3,7 @@ package com.kivo.cinema.emby
 import org.json.JSONObject
 
 /**
- * 255：服务器自有分类（/Users/{uid}/Views）。REX 首页把每个 View 渲染成一条横排
+ * 255：服务器自有分类（/Users/{uid}/Views）。首页把每个 View 渲染成一条横排
  * （电视-韩国 / 电影-华语 …），CollectionType 决定钻取网格是电影还是剧。
  * 单一职责：分类目录 HTTP+JSON；连接/鉴权复用 [EmbyClient] 的 internal 出网口。
  */

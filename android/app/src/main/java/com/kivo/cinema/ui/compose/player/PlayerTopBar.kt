@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.sp
  * 中心距仍是实测的 50pt，命中区却大了一倍。
  * v2 注释里"44pt 盒会把间距撑到 94pt"的说法是错的 —— 错的是它没减间距。
  *
- * 【为什么没有渐变】实测 REX 顶栏白图标直压画面。v2 加的黑 28% 渐变是自创，
+ * 【为什么没有渐变】实测顶栏白图标直压画面。v2 加的黑 28% 渐变是自创，
  * 会让画面顶部出现一条黑带。这里按参考去掉（[PlayerTokens.topScrimTop] 全透明）。
  */
 @Composable
@@ -95,7 +95,7 @@ internal fun PlayerTopBar(
                 text = title,
                 color = PlayerTokens.textPrimary,
                 fontSize = PlayerTokens.titleSize.sp,
-                fontWeight = rexTextWeight(title),
+                fontWeight = barTextWeight(title),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
@@ -110,7 +110,7 @@ internal fun PlayerTopBar(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 TOP_ACTIONS.forEach { (kind, label) ->
-                    // 听视频态没有画面 ⇒ PiP 无意义，REX 0172 也隐掉它。
+                    // 听视频态没有画面 ⇒ PiP 无意义，实测也隐掉它。
                     if (audioOnly && kind == "pip") return@forEach
                     TopIconButton(
                         kind = kind,
@@ -178,7 +178,7 @@ private fun TopIconButton(
             },
         contentAlignment = Alignment.Center,
     ) {
-        // 听视频激活＝白圆底黑耳机（REX 0172 的反白圆），不是通用绿色高亮。
+        // 听视频激活＝白圆底黑耳机（反白圆），不是通用绿色高亮。
         val inverted = kind == "audioMode" && active
         Box(
             modifier = Modifier

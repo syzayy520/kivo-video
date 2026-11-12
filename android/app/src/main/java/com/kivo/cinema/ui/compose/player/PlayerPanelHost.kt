@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
  * idx：captions=1→46、audio=2→96、expand=3→146、danmaku=6→296。
  * （v3.1：投屏改直达 DLNA sheet，不再有 cast 面板；首枚图标换 cast 但槽位不变。）
  * 听视频态隐 PiP ⇒ 它左边的 danmaku 右移 50，trailing 减 50。
- * 底栏文字钮（倍速）右缘＝内容右缘 ⇒ trailing 16（REX 0171 面板右缘≈倍速右缘）。
+ * 底栏文字钮（倍速）右缘＝内容右缘 ⇒ trailing 16（实测面板右缘≈倍速右缘）。
  * 微调卡统一 trailing 16 / top 16（§1.4）。
  */
 internal object PlayerPanelHost {
@@ -30,7 +30,7 @@ internal object PlayerPanelHost {
     fun isDetail(kind: String): Boolean = kind in DETAIL_KINDS
 
     fun trailingPad(kind: String, audioOnly: Boolean = false): Float = when (kind) {
-        // 字幕钻入页（内嵌/外挂）沿用字幕面板的锚点：REX 是原地换内容。
+        // 字幕钻入页（内嵌/外挂）沿用字幕面板的锚点：原地换内容。
         "subtitle", "subtitleTracks", "subtitleExternal" -> 46f
         "audio" -> 96f
         "quality" -> 146f

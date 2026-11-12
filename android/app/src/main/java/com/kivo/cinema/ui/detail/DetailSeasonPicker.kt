@@ -48,9 +48,9 @@ import com.kivo.cinema.ui.detail.actions.ActionGlyph
 import com.kivo.cinema.ui.detail.actions.DetailActionGlyph
 
 /**
- * 255 剧集节（REX-EMBY 0178/0179）：节标题即选季触发器（「第 N 季 ⌄」左对齐），
- * 下接集缩略图横排。集卡 meta 四行＝日期 / 第N集+时长 / 粗标题 / 两行简介（0179），
- * 播放按钮指向的下一集带白描边（0178 新状态 E01 带边）。
+ * 255 剧集节：节标题即选季触发器（「第 N 季 ⌄」左对齐），
+ * 下接集缩略图横排。集卡 meta 四行＝日期 / 第N集+时长 / 粗标题 / 两行简介，
+ * 播放按钮指向的下一集带白描边（新状态 E01 带边）。
  * 缩略图需 token，经 [loadImage] 注入；空/错一律诚实文案。浮层本体在 [SeasonMenuOverlay]。
  */
 @Composable
@@ -124,7 +124,7 @@ internal fun SeasonEpisodeSection(
     }
 }
 
-/** 播出日历条（REX）：左日历图标+「播出日历」，右进度标签+chevron；点击开日历浮层。 */
+/** 播出日历条：左日历图标+「播出日历」，右进度标签+chevron；点击开日历浮层。 */
 @Composable
 private fun CalendarBar(label: String, fg: Color, fgSub: Color, onClick: () -> Unit) {
     Row(Modifier.fillMaxWidth().padding(horizontal = DETAIL_PAD_DP.dp)

@@ -6,7 +6,8 @@
 > 素材：`C:/Users/Administrator/Pictures/REX 播放UI/`（15 张 2532×1170 截图 + 60fps 录屏）、
 > `C:/Users/Administrator/Pictures/REX/rex/rex/`（结构/动效拆解）、`docs/reference/rex-teardown/05-ui-spec-from-recording.md`。
 > 证据等级：✅＝像素实测或随包资源可复算；◐＝有依据推断；❌＝待真机/iPhone 补证。
-> 复算：`python tools/measure_rex_playback.py {icons|bottom|panel|text} <png> …`，
+> 复算：`python tools/measure_baseline_playback.py {icons|bottom|panel|text} <png> …`，
+> （测量脚本已由 `tools/measure_rex_playback.py` 更名，见 `docs/evidence/p260/code-derex/README.md`。）
 > 原文存 `artifacts/rex-measurements.txt`；网格读图 `artifacts/rex-grid-0160/0163/0169/0170/0171.png`。
 > 换算：2532×1170 = 844×390pt @3x，**pt = px/3**，误差 ±2pt。
 

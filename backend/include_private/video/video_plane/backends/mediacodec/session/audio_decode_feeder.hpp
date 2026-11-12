@@ -65,7 +65,7 @@ public:
     ///     输出线程 Mixer channel Mask 0x3 = front-left/front-right），
     ///   于是 6→2 的下混由**平台**做。平台那条路径把 FC 压到 −3 dB 计入，
     ///   对"人声几乎全在 FC"的素材，人声被明显压掉 —— 这正是用户听到的
-    ///   "人声太小、听不清楚"。别的播放器（mpv/libmpv/SenPlayer）都是
+    ///   "人声太小、听不清楚"。别的播放器（mpv/libmpv）都是
     ///   **自己**用 swresample 折成 2ch 再送设备，所以它们正常。
     ///
     /// 因此：**我们自己折**。用 AC3/Dolby 标准矩阵（FC 各 0.7071 进左右，
