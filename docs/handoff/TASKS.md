@@ -1,3 +1,7 @@
+> 2026-11-13 **📋 待派发任务清单已立：[`docs/handoff/DISPATCH.md`](DISPATCH.md)。** D1/D2=行数债(#37/#45)、
+> D3=播放页 REX 遗留、D4=慢链降码转码(**用户暂缓**)、D5=预览远_seek grab 窗。供其他助手领取；
+> 主助手自留**设置页 UI 设计+实现**（REX 1:1，`docs/design/ui/replica/settings-page.md`）。
+
 > 2026-11-13 **✅ 40 预览内核冷启动 / 重试不重建 / 首开瞬败 收口（K40 `b6e950ee` 真机 + 受控注入）。**
 > **规格**：[`docs/design/ui/replica/preview-cold-start-retry.md`](../design/ui/replica/preview-cold-start-retry.md)
 > **证据**：[`docs/evidence/p259/preview-cold-start/`](../evidence/p259/preview-cold-start/README.md)（P1–P5 + 帧/日志/注入源 + 复算 + 披露 D1–D8）
