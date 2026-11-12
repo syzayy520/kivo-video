@@ -29,11 +29,15 @@
 
 1. **Emby 真服务器往返未测**：K40 源列表"媒体服务器 0 个"。`kivo.sourceName` 显式名分支
    （`EmbyActivity.kt:84`）仅代码核对。**用户添加 Emby 源后**补一轮源卡取证。
-2. **ASS 特效/统一样式观感对照未测**：shelter.mkv 字幕是 PGS 位图轨，样式只作用文本字幕。
-   需带 ASS 轨片源补证（`sub-v31f-*` 已证全链路真接内核）。
+2. **ASS 统一样式观感对照未截帧**：内嵌轨是 PGS 位图轨，样式只作用文本字幕。
+   外挂 ASS 已补证**特效渲染链路**（`sub-v31f-ass-imported.png` / `sub-v31f-ass-effects.png` /
+   `sub-v31f-ass-clean.png`，fixture `kivo-fx-test.ass` 同目录）；
+   `sub-ass-override=yes` 对 ASS 的"剥特效"视觉对照仍待补。
 3. 字幕搜索、弹幕过滤关键词：无后端 ⇒ 置灰 + 非空 reason（设计如此，非缺陷）。
 4. 双指缩放/旋转、换集交叉溶解：❌ 明示不做（无对应功能/资源库）。
 5. 平板适配：用户 2026-11-09 明确"晚点再做"。
+6. **字幕选择不跨会话持久化**：重开播放页读回 内嵌=关闭/外挂=无
+   （`sub-v31f-nopersist.png`），代码无 sid 恢复逻辑，既有行为非本轮引入。
 
 ## 三、环境与命令（会咬人的坑）
 
@@ -50,6 +54,9 @@ cd "C:/kivo video/android" && JAVA_HOME="C:/Android/jdk-17.0.13+11" ANDROID_HOME
 - **坐标**：横屏 screencap 2400×1080、竖屏 1080×2400，显示图均 ×1.2 换算。
 - **控制条 ≈3s 自动隐藏**；起播会刷新 lastTouchMs ⇒ 取证用"中心唤出 + 目标点按"同一命令链。
   中心点是**开关**：控制条可见时点中心＝隐藏。
+  **隐藏态起的第一下 tap 只唤出控制条，不 seek、不进面板**——前几轮"进度条死钮"
+  误判即由此来（v31f-status §六.5）。面板不随自动隐藏收，但钻入/选轨不刷新
+  lastTouchMs、选轨成功后面板自动关闭；此刻 BACK 直落退出层级。
 - **screenrecord 不录 Compose 覆盖层** ⇒ UI 取证一律 `screencap`。
 - `adb am start` 带 NEW_TASK ⇒ BACK 落点与用户手动导航不同；取证尽量走真实 UI 路径。
 - 清晰度徽章横屏 (1932,960)；字幕图标 (2172,152)；中心 (1200,540)。
@@ -66,6 +73,7 @@ cd "C:/kivo video/android" && JAVA_HOME="C:/Android/jdk-17.0.13+11" ANDROID_HOME
 ## 五、下一卡候选
 
 1. 用户加 Emby 源 ⇒ 源卡显式名分支真机取证。
-2. ASS 片源 ⇒ 特效保留 / 统一样式对照取证。
-3. 平板适配（等用户时间）。
-4. 后端指针仍以 `docs/handoff/TASKS.md` 为准（本卡只动播放页 UI）。
+2. ASS `sub-ass-override=yes` 剥特效观感对照（渲染链路已证，见 `sub-v31f-ass-*`）。
+3. 按文件记忆字幕选择（sid 不跨会话持久化，`sub-v31f-nopersist.png`）。
+4. 平板适配（等用户时间）。
+5. 后端指针仍以 `docs/handoff/TASKS.md` 为准（本卡只动播放页 UI）。

@@ -78,7 +78,7 @@ launchMode=standard ⇒ 再开一个播放页时旧页继续播 ⇒ 两条 Audio
 | 清晰度分档统一 | `origin-v31f-seed-panel.png` / `origin-v31f-realpath-panel.png` | ✅ 本轮 |
 | 源卡来源名（REX 0169） | 同上 + `origin-v31f-sourcelist.png` | ✅ 本轮（Emby 见五） |
 | 进程内唯一播放页 | `single-player-log.txt` / `single-player-stack.txt` | ✅ 本轮 |
-| 字幕面板/轨道/渲染/设置 | `sub-v31f-*.png`（见五） | ✅ 本轮（PGS 源，ASS 对照受限） |
+| 字幕面板/轨道/渲染/设置 | `sub-v31f-*.png`（见五） | ✅ 本轮（PGS 全链路 + 外挂 ASS 特效渲染） |
 
 资源面板结构对照 0169：`播放资源:` 标签 + 圆角 chip + 左下源卡（SDR / 大小 / 码率 / 来源名 + 绿勾）✅ 结构一致。
 
@@ -96,10 +96,14 @@ launchMode=standard ⇒ 再开一个播放页时旧页继续播 ⇒ 两条 Audio
 | stepper 真写 | `sub-v31f-step.png` | 字号 52→53（`sub-font-size` 步长 1，写后读回） |
 | toggle 真写 | `sub-v31f-toggle.png` | 开＝`sub-ass-override=yes`（`PlayerPanelRouter.kt:190`） |
 | 重置真写 | `sub-v31f-reset.png` | 字号回 55、toggle 回 off（五属性一次写回，失败 toast 非空 reason） |
+| 外挂 ASS 导入（SAF） | `sub-v31f-ass-imported.png` | SAF 选 `kivo-fx-test.ass` → 拷缓存 → `sub-add select`；面板读回 外挂=kivo-fx-test.ass、内嵌=关闭 |
+| ASS 特效渲染 | `sub-v31f-ass-effects.png` / `sub-v31f-ass-clean.png` | seek 落 02:17 后四特效同屏：顶部固定白字／黄色 `\pos` 定位／`\frz20`+`\fscx120` 旋转缩放／卡拉OK；干净帧无控制条遮挡 |
 
-**诚实边界**：shelter.mkv 字幕为 **PGS 位图轨**，`sub-ass-override`/sub-* 样式只作用于文本字幕 ⇒
-ASS 特效保留与统一样式观感对照**本片源无法行使**，需带 ASS 轨片源补证；
-本轮证明的是：面板/轨道/渲染/设置全链路真接内核、无静默降级。
+**诚实边界**：shelter.mkv 内嵌轨为 **PGS 位图轨**，`sub-ass-override`/sub-* 样式只作用于文本字幕 ⇒
+统一样式对内嵌轨的观感对照本片源无法行使。外挂 ASS 已补证 libass **特效渲染链路**
+（导入→选轨→渲染，fixture 见本目录 `kivo-fx-test.ass`，events 0:00–10:00）；
+但 `sub-ass-override=yes` 对 ASS 的"剥特效"观感对照**仍未截帧**（toggle 真写已在 PGS 会话证明写内核，
+ASS 会话下的视觉对照留待下一轮）。本轮证明的是：面板/轨道/渲染/设置全链路真接内核、无静默降级。
 
 ## 六、诚实声明（不静默、不伪造）
 
@@ -109,6 +113,17 @@ ASS 特效保留与统一样式观感对照**本片源无法行使**，需带 AS
 3. 记录名/共享名分支隔离见二之诚实注记。
 4. 横屏 screencap 坐标换算 ×1.2（2400×1080 显示 2000×899）；控制条 ≈3s 自动隐藏，
    取证须"唤出 + 点 chip"同一命令链完成。
+5. **seek"死钮"是操作序列问题，不是代码缺陷**：前几轮"点进度条不 seek"的截图均为
+   控制条**隐藏态**起 tap——第一下落在手势层只唤出控制条，不落在轨道上；tap 后截图
+   看见"控制条可见 + 旧时间"，易误判为死钮。正确序列＝同一命令链
+   `中心 tap 唤出 → sleep 0.5 → tap 轨道(300,846)`，本轮一次落地 02:17 并取到 ASS 帧。
+   面板机制另有一条：面板**不随**自动隐藏收，但钻入/选轨**不刷新 lastTouchMs**，
+   控制条按自己的 3s 计时隐；选轨成功后面板自动关闭（`PlayerPanelRouter.kt:227`），
+   此刻 BACK 层级直落"退出播放页"（`handleBack`，面板空+栏隐 ⇒ return false）。
+   取证须整链单命令完成，或先截图确认面板状态再 tap。
+6. **字幕选择不跨会话持久化**：重开播放页后读回 内嵌=关闭、外挂=无
+   （`sub-v31f-nopersist.png`）；代码无 sid 恢复逻辑，属既有行为、非本轮引入。
+   候选下一卡：按文件记忆字幕选择（REX 有同类语义）。本轮收尾已手动选回 TX-CHS、关弹幕。
 
 ## 七、复算路径
 
@@ -119,6 +134,9 @@ adb -s b6e950ee shell am start -n com.kivo.cinema/.ui.compose.PlayerComposeActiv
 adb -s b6e950ee exec-out screencap -p > panel.png
 # 真实链路：资源库 tab → XiaoMi → 视频 → kivo-test → shelter.mkv，同法取证
 # 叠播复算：播放中再开一个播放页 ⇒ logcat 旧 AudioTrack stop 先于新 start；dumpsys activity activities 栈=1
+# ASS 特效复算：字幕面板 → 导入字幕 → SAF 选 kivo-fx-test.ass（本目录 fixture，events 0:00–10:00）
+#   同一命令链：input tap 1200 540; sleep 0.5; input tap 300 846  ⇒ 落点 ≈2min，四特效同屏
+#   注意：控制条隐藏态起 tap 只唤出控制条、不 seek（见六.5）
 ```
 
 家族树（铁律）：新增两个单职责小文件（`PlayerResolution.kt` 21 行 / `PlayerSourceOrigin.kt` 44 行），
