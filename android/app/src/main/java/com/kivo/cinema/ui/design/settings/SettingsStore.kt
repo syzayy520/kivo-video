@@ -38,6 +38,14 @@ internal class SettingsStore(context: Context) {
     private val imageDir get() = File(app.cacheDir, "tmdb-images-v2")
     private val ratingFile get() = File(app.filesDir, "tmdb_cache.json")
 
+    // AI 字幕语音识别模型约定目录（265）：空目录实测 0，不造假值。
+    private val asrDir get() = File(app.filesDir, "asr-models")
+
+    fun asrModelStats(): Pair<Int, Long> {
+        val files = asrDir.listFiles() ?: return 0 to 0L
+        return files.count { it.isFile } to files.sumOf { if (it.isFile) it.length() else 0L }
+    }
+
     fun imageCacheBytes(): Long = dirBytes(imageDir)
     fun ratingCacheBytes(): Long = if (ratingFile.isFile) ratingFile.length() else 0L
 

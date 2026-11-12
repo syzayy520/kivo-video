@@ -1,3 +1,16 @@
+> 2026-11-13 **✅ 265 AI 字幕设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
+> **规格**：[`docs/design/ui/replica/ai-subtitles-settings.md`](../design/ui/replica/ai-subtitles-settings.md)（家族树先行；审计 0 后端 ⇒ 全置灰带原因）
+> **证据**：[`docs/evidence/p265/ai-subtitles/`](../evidence/p265/ai-subtitles/README.md)（c07–c20 + prefs-restored.xml + 披露 D1–D7）
+> **新家族** `SettingsAiSub.kt`(81) + `SettingsAsrModels.kt`(48) + `SettingsSysLangs.kt`(43)；
+> `SettingsRows.kt` 增 LinkRow / SectionCard+beta / ChevronRow+value / ValueRow+dim；`SettingsStore`+asrModelStats；
+> 路由 `SettingsNav`+AI / 根页 `SettingsPage`+AI 入口。内部三级用 screen 枚举（不升级 nav 栈）。
+> **真实读回 3 项**：目标语言联动（zh→en→zh，c11→c18→c20，读 `subtitleLanguage`）；模型目录实测 0/0 B（目录不存在）；
+> 用量空态。**无新增持久化键**（灰开关不写 prefs，XML 仍 p264 键集）。
+> **置灰+原因**：总开关/使用 AI 翻译/13 语言下载/刷新模型/刷新语言（无 ASR/LLM/系统翻译后端，grep 0 命中）；ON 态条件行不实现（不留死 UI）。
+> **闸门**：§五.1–6 全 PASS（行数 81/48/43/229 ≤300；灰行非空原因；真机不回归）。
+> **设备已恢复默认**（subtitle_language=zh；p264 其余默认未动；测试锁竖屏后恢复 auto-rotate）。
+> **下一卡**：其余设置子页逐个（用户逐块发图）；#37+#45 行数债 / D3 / D5 待派发。
+
 > 2026-11-13 **✅ 264 操控设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
 > **规格**：[`docs/design/ui/replica/controls-settings.md`](../design/ui/replica/controls-settings.md)（家族树先行；4 组 20 行 = 14 真 + 6 灰）
 > **证据**：[`docs/evidence/p264/controls-settings/`](../evidence/p264/controls-settings/README.md)（c0–c43 + 2 XML + 3 日志 + 复算 + 披露 1–7）

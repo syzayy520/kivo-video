@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="double_tap_sides">seek</string>
+    <boolean name="show_next_button" value="true" />
+    <boolean name="vertical_swipe" value="true" />
+    <string name="audio_language">zh</string>
+    <boolean name="independent_brightness" value="true" />
+    <float name="default_speed" value="1.0" />
+    <int name="seek_forward_seconds" value="15" />
+    <boolean name="ignore_ass_style" value="true" />
+    <string name="subtitle_language">zh</string>
+    <boolean name="show_remaining" value="true" />
+</map>

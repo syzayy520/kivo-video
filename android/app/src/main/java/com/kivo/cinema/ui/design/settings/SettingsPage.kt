@@ -42,6 +42,10 @@ fun SettingsPage(
                     ChevronRow("音画", "内核 · 画面 · 音频 · 画质增强") { push(SettingsRoute.AV) }
                 }
                 Spacer(Modifier.height(14.dp))
+                SectionCard("AI 字幕") {
+                    ChevronRow("AI 字幕", "语音转字幕 · 翻译 · 用量") { push(SettingsRoute.AI) }
+                }
+                Spacer(Modifier.height(14.dp))
                 SectionCard("数据与资源") {
                     ChevronRow("媒体服务器与 TMDB", "Emby · SMB · 代理与 Key") { push(SettingsRoute.DATA) }
                 }
@@ -64,6 +68,7 @@ fun SettingsPage(
                 SettingsRoute.PLAYBACK -> SettingsPlaybackSub(back)
                 SettingsRoute.CONTROLS -> SettingsControlsSub(back)
                 SettingsRoute.AV -> SettingsAvSub(back)
+                SettingsRoute.AI -> SettingsAiSub(back)
                 SettingsRoute.DATA -> SettingsDataSub(store, onOpenSources, back)
                 SettingsRoute.CACHE -> SettingsCacheSub(store, back)
                 SettingsRoute.ABOUT -> SettingsAboutSub(store, onOpenPrivate, back)

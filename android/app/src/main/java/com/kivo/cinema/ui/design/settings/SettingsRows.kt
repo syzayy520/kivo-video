@@ -42,9 +42,12 @@ internal val settingsPad = DesignTokens.screenPad.dp
 
 /** 节头小字灰 + inset 分组卡（set_a 帧）。 */
 @Composable
-internal fun SectionCard(header: String, content: @Composable ColumnScope.() -> Unit) {
-    Text(header, fontSize = 13.sp, color = DesignTokens.textSub,
-        modifier = Modifier.padding(start = 4.dp, bottom = 6.dp))
+internal fun SectionCard(header: String, beta: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)) {
+        Text(header, fontSize = 13.sp, color = DesignTokens.textSub)
+        if (beta) BetaBadge()
+    }
     GlassSurface(Modifier.fillMaxWidth()) { Column { content() } }
 }
 
@@ -90,6 +93,8 @@ internal fun ChevronRow(
     subtitle: String? = null,
     beta: Boolean = false,
     enabled: Boolean = true,
+    value: String? = null,
+    valueColor: Color = DesignTokens.textSub,
     onClick: () -> Unit,
 ) {
     Row(
@@ -99,19 +104,39 @@ internal fun ChevronRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RowLabels(title, subtitle, beta, Modifier.alpha(if (enabled) 1f else 0.4f))
-        Text("›", fontSize = 24.sp, color = DesignTokens.textSub.copy(alpha = if (enabled) 1f else 0.5f))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (value != null) {
+                Text(value, fontSize = 15.sp, color = valueColor.copy(alpha = if (enabled) 1f else 0.5f))
+                Spacer(Modifier.width(4.dp))
+            }
+            Text("›", fontSize = 24.sp, color = DesignTokens.textSub.copy(alpha = if (enabled) 1f else 0.5f))
+        }
     }
 }
 
 /** 只读取值行：标题（+可选副标题）+ 右侧真实值。无开关、不可点。 */
 @Composable
-internal fun ValueRow(title: String, value: String, subtitle: String? = null) {
+internal fun ValueRow(title: String, value: String, subtitle: String? = null, dim: Boolean = false) {
     Row(
         Modifier.fillMaxWidth().heightIn(min = DesignTokens.rowHeight.dp).padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RowLabels(title, subtitle, false)
-        Text(value, fontSize = 15.sp, color = DesignTokens.textSub)
+        RowLabels(title, subtitle, false, Modifier.alpha(if (dim) 0.5f else 1f))
+        Text(value, fontSize = 15.sp, color = DesignTokens.textSub.copy(alpha = if (dim) 0.5f else 1f))
+    }
+}
+
+/** 蓝字动作行（刷新等）；enabled=false 置灰 + 非空原因副标题，不放假动作。 */
+@Composable
+internal fun LinkRow(title: String, subtitle: String? = null, enabled: Boolean = true, onClick: () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().clickable(role = Role.Button, enabled = enabled, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Text(title, fontSize = 15.sp,
+            color = if (enabled) Color(0xFF007AFF) else DesignTokens.textSub.copy(alpha = 0.5f))
+        if (subtitle != null)
+            Text(subtitle, fontSize = 11.sp, color = DesignTokens.textSub, lineHeight = 16.sp)
     }
 }
 
