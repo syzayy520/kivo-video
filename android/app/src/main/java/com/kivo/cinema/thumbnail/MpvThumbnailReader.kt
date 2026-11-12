@@ -59,6 +59,7 @@ class MpvThumbnailReader(
     private var session: MpvSession? = null
     private var initialized = false
     private var initFailed = false
+    private var initRetries = 0
     private var closing = false
     private var unavailableReason = "预览帧不可用"
 
@@ -102,6 +103,11 @@ class MpvThumbnailReader(
             recordLatency(requestAt)
             onThumbnailReady?.invoke(positionUs, cached)
             return@Runnable
+        }
+        // 冷失败一次自动重建：initFailed 不永久 latch，下一次拖动允许重 init 一次（有界防坏源堆 handler）。
+        if (initFailed && initRetries < MAX_INIT_RETRIES) {
+            initFailed = false
+            initRetries += 1
         }
         ensureInitialized()
         val bitmap = if (initialized) grabFrameAt(positionUs) else null
@@ -151,7 +157,7 @@ class MpvThumbnailReader(
             native.setProperty("gpu-dumb-mode", "yes")
             native.attachCapture(WIDTH, HEIGHT)
             native.loadFile(proxy.urlFor(id))
-            val deadline = System.currentTimeMillis() + 15_000
+            val deadline = System.currentTimeMillis() + LOAD_DEADLINE_MS
             while (System.currentTimeMillis() < deadline && native.durationSeconds() <= 0.0) {
                 Thread.sleep(100)
             }
@@ -244,6 +250,7 @@ class MpvThumbnailReader(
         json.put("cache_size_final", cache.size())
         json.put("cache_max", cacheSize)
         json.put("init_ms", initMs)
+        json.put("init_retries", initRetries)
         json.put("cold_first_latency_ms", coldFirstLatencyMs)
         json.put("warm_count", warm.size)
         json.put("warm_p50_ms", pct(0.50))
@@ -278,6 +285,9 @@ class MpvThumbnailReader(
     companion object {
         private const val DEFAULT_CACHE_SIZE = 50
         private const val PREWARM_DELAY_MS = 1200L
+        // 对齐主内核起播预算（MpvPlaybackSession 30s）：慢链路 mp4 moov 读取 15s 不够（257 R-3）。
+        private const val LOAD_DEADLINE_MS = 30_000L
+        private const val MAX_INIT_RETRIES = 1
         private const val WIDTH = 480
         private const val HEIGHT = 270
     }

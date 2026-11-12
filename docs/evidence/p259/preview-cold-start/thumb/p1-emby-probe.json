@@ -1,0 +1,26 @@
+{
+  "schema": "kivo.v31.thumbnail\/1",
+  "generated_at_unix_ms": 1794508851021,
+  "source": "\/storage\/emulated\/0\/Android\/data\/com.kivo.cinema\/files\/media\/mkv-audio.mkv",
+  "thumbnail": {
+    "requests": 1,
+    "cache_hits": 0,
+    "decode_failures": 0,
+    "evictions": 0,
+    "cache_size_final": 2,
+    "cache_max": 50,
+    "init_ms": 6044,
+    "init_retries": 0,
+    "cold_first_latency_ms": 12520,
+    "warm_count": 0,
+    "warm_p50_ms": -1,
+    "warm_p95_ms": -1,
+    "warm_max_ms": -1,
+    "frame_seq": 2,
+    "frames_acquired": 2,
+    "grabs": [
+      "t=0 land=0.0 wait=2658ms ok px0=ff000000",
+      "t=30 land=28.0 wait=5817ms ok px0=ff000000"
+    ]
+  }
+}

@@ -1,3 +1,18 @@
+> 2026-11-13 **✅ 40 预览内核冷启动 / 重试不重建 / 首开瞬败 收口（K40 `b6e950ee` 真机 + 受控注入）。**
+> **规格**：[`docs/design/ui/replica/preview-cold-start-retry.md`](../design/ui/replica/preview-cold-start-retry.md)
+> **证据**：[`docs/evidence/p259/preview-cold-start/`](../evidence/p259/preview-cold-start/README.md)（P1–P5 + 帧/日志/注入源 + 复算 + 披露 D1–D8）
+> **核销 257 披露 2/3**：① 预览加载预算 15s→30s 对齐主内核；② `initFailed` 不再永久 latch，下一次拖动
+> 有界重建一次（`MAX_INIT_RETRIES=1`）；②' `mountNetworkThumbnails` 先 `release()` 旧 reader 防泄漏；
+> ③ `HttpByteSource` 空 206（offset<size）有界重试 2 次，不再误报 EOF ⇒ 修首开瞬败。只改三既有文件（98/293/295 行）。
+> **真机/受控判定**：P1 真链 bangumi 9.7GB mkv 冷启 `cold_first_latency_ms=12520`(<30s)、`frames_acquired=2`、
+> 近_seek 出帧；P4 受控源 offset{0,1MB} 空 206×2 后第 3 次真实数据，主内核仍 `All headers are parsed!`，
+> 真链冷开无 `error reading header`；P5 token 离 URL grep=0。
+> **披露**：P2/P3 机制代码核验、真机未触发（30s 预算内冷启成功 ⇒ `init_retries=0`，钩子无法间隔 >30s 造冷失败）；
+> 远_seek 6s grab 超时为既有独立限制（走非空 reason，不静默）；真链 letterbox 使 px0 黑属预期；
+> 真链浮窗截图未得（probe 窗 5s < 冷启 ~12s），以受控浮窗截图 + 真链 grabs 共证。
+> **用户反馈跟进**：真链 10Mbps remux 在 ~292KB/s 测试链上必然缓冲卡成 PPT（带宽饥饿，非解码缺陷），已停播并说明。
+> **下一卡候选**：#37+#45（行数债）/ 播放页 REX 遗留 / 预览远_seek grab 窗与慢链矛盾（新候选）。
+
 > 2026-11-13 **✅ 39 私密区/隐藏源改应用内独立数字密码 收口（K40 `b6e950ee` 真机）。**
 > **规格**：[`docs/design/ui/replica/privacy-numeric-lock.md`](../design/ui/replica/privacy-numeric-lock.md)
 > **证据**：[`docs/evidence/p258/privacy-lock/`](../evidence/p258/privacy-lock/README.md)（G1–G8 + 23 帧/dump + 复算 + 披露）

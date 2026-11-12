@@ -39,6 +39,18 @@ class HttpByteSource(private val url: String, private val token: String? = null)
         val size = size()
         if (offset >= size) return -1
         val want = minOf(len.toLong(), size - offset).toInt()
+        // 空 206（offset<size 却读不到字节）不是真 EOF：冷启主+预览双实例并发读时偶发瞬态空响应，
+        // 直接报 -1 会让代理断连、FFmpeg 判 header EOF（257 首开瞬败）。有界重开连接重试。
+        var attempt = 0
+        while (true) {
+            val got = readOnce(offset, want, buf, off)
+            if (got != 0) return got
+            attempt += 1
+            if (attempt > MAX_EMPTY_RETRY) return -1
+        }
+    }
+
+    private fun readOnce(offset: Long, want: Int, buf: ByteArray, off: Int): Int {
         val c = open(offset, offset + want - 1)
         var ok = false
         try {
@@ -54,7 +66,7 @@ class HttpByteSource(private val url: String, private val token: String? = null)
             }
             stream.close()
             ok = true
-            return if (got == 0) -1 else got
+            return got
         } finally {
             if (!ok) c.disconnect()
         }
@@ -79,5 +91,9 @@ class HttpByteSource(private val url: String, private val token: String? = null)
         c.setRequestProperty("User-Agent", "kivo-video/1.0")
         token?.let { c.setRequestProperty("X-Emby-Token", it) }
         return c
+    }
+
+    companion object {
+        private const val MAX_EMPTY_RETRY = 2
     }
 }

@@ -163,6 +163,8 @@ internal fun PlayerComposeActivity.startMpvPlayback(holder: SurfaceHolder, sourc
  *  MediaExtractor 在无索引 MKV 上首请求即线性扫卡死（真机 handler busy 定论），
  *  网络源预览帧改走内核；本地索引源仍用 ThumbnailReader。 */
 internal fun PlayerComposeActivity.mountNetworkThumbnails(source: com.kivo.cinema.net.ByteSource) {
+    // 主重试真重建：旧 reader 的内核/线程/代理先收（release 会关它注册的旧源），避免泄漏与抢链路。
+    thumbnailReader?.release()
     netThumbSource = source
     val reader = com.kivo.cinema.thumbnail.MpvThumbnailReader(applicationContext, source, cacheDir)
     thumbnailReader = reader

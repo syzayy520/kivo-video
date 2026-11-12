@@ -1,0 +1,8 @@
+332:[   0.014][d][cplayer] Run command: loadfile, flags=64, args=[url="http://127.0.0.1:40831/1?reconnect=1&reconnect_at_eof=1&reconnect_streamed=1&reconnect_on_network_error=1&reconnect_on_http_error=503&reconnect_delay_max=5&rw_timeout=150", flags="replace", index="-1", options=""]
+360:[   1.583][d][mkv] | + duration: 7734.752s
+375:[   1.584][d][mkv] |  + Default duration: 41.708ms ( = 23.976 fps)
+384:[   1.584][d][mkv] |  + Default duration: 32.000ms ( = 31.250 fps)
+408:[   8.335][v][mkv] All headers are parsed!
+410:[   8.336][v][cplayer] Opening done: http://127.0.0.1:40831/1?reconnect=1&reconnect_at_eof=1&reconnect_streamed=1&reconnect_on_network_error=1&reconnect_on_http_error=503&reconnect_delay_max=5&rw_timeout=150
+501:[   8.415][v][cplayer] first video frame after restart shown
+505:[   8.417][v][cplayer] playback restart complete @ 0.000000, audio=ready, video=playing
