@@ -1,3 +1,13 @@
+> 2026-11-13 **✅ 256 聚合搜索 + 类型墙 收口（两轮，K40 `b6e950ee` 真机）。**
+> **规格**：[`docs/design/ui/replica/emby-aggregate-search.md`](../design/ui/replica/emby-aggregate-search.md)
+> **证据**：[`docs/evidence/p256/aggregate-search/`](../evidence/p256/aggregate-search/README.md)（闸门 R1-1…R2-12 + 23 帧 + 复算 + 披露）
+> **第一轮**：跨源并行合并去重 + 六排筛选 + 逐源分页 + 24 渐变类型墙（扇形真实海报）+ 墙→genre 预选。
+> **第二轮（用户三轮反馈）**：搜索钮入口归位；本地标题匹配分区（私密排除 + 未授权非空 reason）；
+> 手机单行左滑 chip；**固定玻璃搜索框**（播放器同款 GlassSurface）+ 折叠动态摘要「媒体库 · 最新更新 · 全部 ▼」；
+> 宽屏默认展开 FlowRow。修掉自引入的 LazyGrid 滚动锚定缺陷（展开须回顶）。
+> **披露**：宽屏 = density 200 override（无平板）；私密标记/权限/IME 测试后全恢复；
+> `MainActivity.kt` 350 行既有超标另立 follow-up（任务 #37），本卡不扩 scope。
+
 > 2026-11-12 **📌 播放页 v2 第二轮：交互过渡 + REX 图标/功能对齐 + 材质（已收口）。**
 > **规格与对照**：[`docs/design/ui/replica/playback/player-ui-v2-implementation.md`](../design/ui/replica/playback/player-ui-v2-implementation.md)
 > **证据**：[`docs/evidence/p240/player-ui/device/`](../evidence/p240/player-ui/device/README.md)（06~10 号为本次新增）

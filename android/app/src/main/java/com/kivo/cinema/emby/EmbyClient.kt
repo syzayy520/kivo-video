@@ -78,14 +78,19 @@ class EmbyClient(serverInput: String) {
     data class Page(val items: List<EmbyItem>, val total: Int?)
 
     fun items(auth: Auth, start: Int = 0, search: String = "", sort: Int = 0, limit: Int = 60,
-              parentId: String? = null, types: String = "Movie", genres: String? = null): Page {
-        require(start >= 0 && limit in 1..100 && sort in 0..2)
-        val order = listOf("DateCreated", "SortName", "ProductionYear")[sort]
+              parentId: String? = null, types: String = "Movie", genres: String? = null,
+              years: String? = null, maxPremiereDate: String? = null, rich: Boolean = false): Page {
+        require(start >= 0 && limit in 1..100 && sort in 0..4)
+        val order = listOf("DateCreated", "SortName", "ProductionYear", "CommunityRating", "PremiereDate")[sort]
         val parent = parentId?.let { "&ParentId=$it" } ?: ""
         val genre = genres?.let { "&Genres=${URLEncoder.encode(it, "UTF-8")}" } ?: ""
-        val q = "?IncludeItemTypes=$types&Recursive=true$parent$genre&SortBy=$order,Id" +
+        val year = years?.let { "&Years=${URLEncoder.encode(it, "UTF-8")}" } ?: ""
+        val maxDate = maxPremiereDate?.let { "&MaxPremiereDate=$it" } ?: ""
+        val fields = if (rich) "ProductionYear,Genres,ProductionLocations,CommunityRating,PremiereDate,ChildCount,DateCreated"
+            else "ProductionYear"
+        val q = "?IncludeItemTypes=$types&Recursive=true$parent$genre$year$maxDate&SortBy=$order,Id" +
             "&SortOrder=${if (sort == 1) "Ascending" else "Descending"}&StartIndex=$start" +
-            "&Limit=$limit&Fields=ProductionYear&ImageTypeLimit=1&EnableTotalRecordCount=true" +
+            "&Limit=$limit&Fields=$fields&ImageTypeLimit=1&EnableTotalRecordCount=true" +
             "&SearchTerm=${URLEncoder.encode(search.trim(), "UTF-8")}"
         val url = "$base$prefix/Users/${auth.userId}/Items$q"
         val c = conn(url, "GET")
@@ -163,8 +168,17 @@ class EmbyClient(serverInput: String) {
         val poster = if (tag.isNotBlank())
             "$base$prefix/Items/${o.getString("Id")}/Images/Primary" +
                 "?maxWidth=480&quality=85&tag=$tag" else ""
+        fun strings(key: String): List<String> {
+            val a = o.optJSONArray(key) ?: return emptyList()
+            return (0 until a.length()).map { a.getString(it) }
+        }
         return EmbyItem(o.getString("Id"), o.getString("Name"), year, poster,
-            o.optString("Type") == "Series")
+            o.optString("Type") == "Series",
+            rating = if (o.has("CommunityRating") && !o.isNull("CommunityRating")) o.getDouble("CommunityRating") else null,
+            genres = strings("Genres"), countries = strings("ProductionLocations"),
+            premiereDate = o.optString("PremiereDate").take(10),
+            childCount = if (o.has("ChildCount") && !o.isNull("ChildCount")) o.getInt("ChildCount") else null,
+            dateCreated = o.optString("DateCreated").take(10))
     }
 
     /** 254 D2：详情单请求。字段集经服务器 4.8 实测（设计稿 §二），UserData 随带。 */

@@ -31,6 +31,7 @@
                 <activity android:name=".library.MediaLibraryActivity" android:exported="true"/>
                 <activity android:name=".smb.ui.SmbBrowserActivity" android:exported="false"/>
                 <activity android:name=".emby.EmbyActivity" android:exported="true"/>
+                <activity android:name=".emby.aggregate.ui.AggregateActivity" android:exported="false"/>
                 <activity android:name=".privatezone.PrivateActivity" android:exported="true"/>
                 <activity android:name=".ui.detail.DetailActivity" android:exported="true"/>
                 <activity android:name=".ui.detail.MovieDetailActivity"/>

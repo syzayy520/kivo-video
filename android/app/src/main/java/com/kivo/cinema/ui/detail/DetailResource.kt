@@ -80,11 +80,13 @@ internal fun MediaCard(m: ResourceMedia) {
     ) {
         Text(m.resolution, fontSize = 17.sp, fontWeight = FontWeight.Bold,
             color = DesignTokens.textMain)
-        Spacer(Modifier.height(8.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(formatSize(m.sizeBytes), fontSize = 13.sp, color = DesignTokens.textSub)
-            Spacer(Modifier.width(14.dp))
-            Text(formatBitrate(m.bitrateBps), fontSize = 13.sp, color = DesignTokens.textSub)
+        if (m.sizeBytes > 0 || m.bitrateBps > 0) {
+            Spacer(Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(formatSize(m.sizeBytes), fontSize = 13.sp, color = DesignTokens.textSub)
+                Spacer(Modifier.width(14.dp))
+                Text(formatBitrate(m.bitrateBps), fontSize = 13.sp, color = DesignTokens.textSub)
+            }
         }
         Spacer(Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {

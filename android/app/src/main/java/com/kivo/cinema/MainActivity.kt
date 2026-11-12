@@ -247,8 +247,8 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         onSearch = {
-                            if (page == 0 && sourceNavigationGuard != null) sourceNavigationGuard?.invoke { openLibrary() }
-                            else openLibrary()
+                            startActivity(android.content.Intent(this,
+                                com.kivo.cinema.emby.aggregate.ui.AggregateActivity::class.java))
                         },
                         onDark = page == 1 && ambientDark,
                         backdrop = backdrop,
@@ -279,6 +279,9 @@ class MainActivity : ComponentActivity() {
                             onOpenPrivate = { startActivity(
                                 android.content.Intent(this@MainActivity,
                                     com.kivo.cinema.privatezone.PrivateActivity::class.java)) },
+                            onOpenAggregate = { startActivity(
+                                android.content.Intent(this@MainActivity,
+                                    com.kivo.cinema.emby.aggregate.ui.AggregateActivity::class.java)) },
                             videoCount = localVideoCount,
                         )
                         1 -> DiscoverPage(

@@ -73,10 +73,12 @@ internal class EmbyResource private constructor(
         val details = qualityFirst(filled, emby, c, a)
         if (series) return seriesContent(c, a, details)
         val media = emby.media?.let {
-            ResourceMedia("${it.width} × ${it.height}", it.sizeBytes, it.bitrate, serverName,
+            val res = if (it.width > 0 && it.height > 0) "${it.width} × ${it.height}" else "媒体信息未提供"
+            ResourceMedia(res, it.sizeBytes, it.bitrate, serverName,
                 ResourceStreams(it.container, it.video, it.audio, it.subtitles))
         }
-        val quality = emby.media?.let { resolutionTier(it.width, it.height).ifEmpty { "SD" } } ?: "SD"
+        val quality = emby.media?.takeIf { it.width > 0 }
+            ?.let { resolutionTier(it.width, it.height).ifEmpty { "SD" } } ?: "未知"
         return DetailContent(details, media, quality, playIntent(c, a), tmdbId, false,
             loadImage = ::loadImage, serverName = serverName)
     }
