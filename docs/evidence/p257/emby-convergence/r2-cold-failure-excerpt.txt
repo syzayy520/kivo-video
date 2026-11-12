@@ -1,0 +1,9 @@
+# R-2 冷启动首开失败摘录（第一次起播，重试后恢复；完整日志可复算：run-as com.kivo.cinema cat files/mpv-kernel.log 于当次会话）
+[   0.028][d][cplayer] Run command: loadfile, flags=64, args=[url="http://127.0.0.1:37881/1?reconnect=1&reconnect_at_eof=1&reconnect_streamed=1&reconnect_on_network_error=1&reconnect_on_http_error=503&reconnect_delay_max=5&rw_timeout=150", flags="replace", index="-1", options=""]
+[  16.322][w][ffmpeg/demuxer] mov,mp4,m4a,3gp,3g2,mj2: reached eof, corrupted CTTS atom
+[  16.322][e][ffmpeg/demuxer] mov,mp4,m4a,3gp,3g2,mj2: error reading header
+[  16.323][d][ffmpeg] AVIOContext: Statistics: 1048576 bytes read, 0 seeks
+[  30.219][w][ffmpeg/demuxer] mov,mp4,m4a,3gp,3g2,mj2: reached eof, corrupted CTTS atom
+[  30.219][e][ffmpeg/demuxer] mov,mp4,m4a,3gp,3g2,mj2: error reading header
+[  30.219][d][ffmpeg] AVIOContext: Statistics: 1572864 bytes read, 0 seeks
+[  30.220][v][cplayer] Opening failed or was aborted: http://127.0.0.1:37881/1?reconnect=1&reconnect_at_eof=1&reconnect_streamed=1&reconnect_on_network_error=1&reconnect_on_http_error=503&reconnect_delay_max=5&rw_timeout=150

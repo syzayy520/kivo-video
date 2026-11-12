@@ -46,6 +46,8 @@ class EmbyActivity : ComponentActivity() {
             return
         }
         val model = ViewModelProvider(this)[EmbySessionModel::class.java]
+        // 默认安全：读取结果出来前先挂 SECURE，隐藏源首帧不泄露；非隐藏源在读取后清除。
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
         setContent {
             var checked by remember { mutableStateOf(false) }
             var protected by remember { mutableStateOf(true) }
@@ -56,13 +58,11 @@ class EmbyActivity : ComponentActivity() {
                 val source = result.getOrNull()?.firstOrNull { it.id == sourceId }
                 protected = source?.hidden ?: true
                 checked = source != null
+                if (protected) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+                else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
                 gateError = if (source == null) "无法读取此资源库，请返回资源库列表重试" else null
                 if (source != null && (!protected || unlocked)) model.openSaved(this@EmbyActivity, sourceId)
                 else model.back()
-            }
-            SideEffect {
-                if (protected) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-                else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
             }
             MaterialTheme(colorScheme = lightColorScheme(
                 primary = Color(0xFF238A59), onPrimary = Color.White,

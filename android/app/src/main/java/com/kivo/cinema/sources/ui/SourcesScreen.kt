@@ -94,13 +94,6 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: ()
                         modifier = Modifier.padding(top = 10.dp, bottom = 2.dp))
                 }
                 item(key = "local") { StorageEntryCard("本地影片", videoCount?.let { "$it 个视频" } ?: "查看本机影片", SourceIconKind.LOCAL) { navigate(onOpenLibrary) } }
-                item(key = "smb") {
-                    // 243：SMB 不再是一个跳到调试页的入口，而是"添加一个 SMB 源"；
-                    // 已保存的源会出现在下面的源卡列表里（与 Emby 同层）。
-                    StorageEntryCard("SMB", "网络共享", SourceIconKind.SMB) {
-                        navigate { model.startNew(SourceRecord.PROTOCOL_SMB) }
-                    }
-                }
                 item(key = "private") { StorageEntryCard("私密区", "已锁定", SourceIconKind.LOCK) { navigate(onOpenPrivate) } }
                 // 243：已保存的 SMB 源属于"本地与存储"，与"媒体服务器"分开。
                 items(visible.filter { it.isSmb }, key = { it.id }) { source ->

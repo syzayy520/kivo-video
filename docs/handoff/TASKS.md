@@ -1,3 +1,15 @@
+> 2026-11-13 **✅ 257 Emby 链收敛 收口（K40 `b6e950ee` 真机）。**
+> **规格**：[`docs/design/ui/replica/emby-chain-convergence.md`](../design/ui/replica/emby-chain-convergence.md)
+> **证据**：[`docs/evidence/p257/emby-convergence/`](../evidence/p257/emby-convergence/README.md)（R-1…R-6 + 21 帧 + token 断言复算 + 披露）
+> **核销 #18–#25**：逐条对代码现状审计后关闭；审计自更正一处（Pages.kt 按符号复核全活，不删）。
+> **两处真改动**：① EmbyActivity FLAG_SECURE 改读取回调驱动（修非隐藏源截图被挡 + 隐藏源首帧防泄露）；
+> ② 删 SMB 入口卡（用户指令；已存 SMB 卡与添加入口保留）。
+> **回归**：defaultHome 往返 / 起播 mpv 代理 token 离 URL（日志仅 localhost）/ 钻取分页 60→207 /
+> 智能识别 / 拖动跟随 全 PASS。
+> **披露转卡**：Emby 预览内核冷超时 + 重试不重建 → **#40**；nyamedia 隐藏搁浅恢复并入 **#39**
+> （应用内独立数字密码，用户明确不要手机 PIN）；冷起播首开瞬败（重试恢复）根因待 #40 定论。
+> **下一卡候选**：#40（预览冷启动）或 #39（私密区数字密码）或播放页 REX 遗留（字幕菜单/锁定/缩放/长按倍速）。
+
 > 2026-11-13 **✅ 256 聚合搜索 + 类型墙 收口（两轮，K40 `b6e950ee` 真机）。**
 > **规格**：[`docs/design/ui/replica/emby-aggregate-search.md`](../design/ui/replica/emby-aggregate-search.md)
 > **证据**：[`docs/evidence/p256/aggregate-search/`](../evidence/p256/aggregate-search/README.md)（闸门 R1-1…R2-12 + 23 帧 + 复算 + 披露）

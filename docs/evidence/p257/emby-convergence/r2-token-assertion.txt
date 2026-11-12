@@ -1,0 +1,14 @@
+# R-2 token-off-URL assertion (recompute: adb -s b6e950ee shell run-as com.kivo.cinema cat files/mpv-kernel.log)
+## host/token scan count (must be 0):
+0
+## distinct URL hosts:
+http://127.0.0.1:39759/1
+## playback timeline:
+[ 711.278][d][cplayer] Run command: loadfile, flags=64, args=[url="http://127.0.0.1:39759/1?reconnect=1&reconnect_at_eof=1&reconnect_streamed=1&reconnect_on_network_error=1&reconnect_on_http_error=503&reconnect_delay_max=5&rw_timeout=150", flags="replace", index="-1", options=""]
+[ 712.276][d][ffmpeg] Stream opened successfully.
+[ 732.523][v][cplayer] Starting playback...
+[ 737.522][v][cplayer] End buffering (waited 2.586955 secs) [1.088000s].
+[ 745.311][v][cplayer] End buffering (waited 6.752777 secs) [1.024000s].
+[ 751.045][v][cplayer] End buffering (waited 4.550787 secs) [1.334667s].
+[ 760.052][v][cplayer] End buffering (waited 7.656595 secs) [1.167833s].
+[ 770.060][v][cplayer] End buffering (waited 8.887312 secs) [1.209542s].
