@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,12 +37,15 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.emby.EmbyShows
 import com.kivo.cinema.ui.design.DesignTokens
+import com.kivo.cinema.ui.detail.actions.ActionGlyph
+import com.kivo.cinema.ui.detail.actions.DetailActionGlyph
 
 /**
  * 255 剧集节（REX-EMBY 0178/0179）：节标题即选季触发器（「第 N 季 ⌄」左对齐），
@@ -59,6 +63,8 @@ internal fun SeasonEpisodeSection(
     fg: Color,
     fgSub: Color,
     loadImage: (suspend (String) -> Bitmap?)?,
+    calendarLabel: String,
+    onOpenCalendar: () -> Unit,
     menuOpen: Boolean,
     onOpenMenu: () -> Unit,
     onAnchor: (Rect) -> Unit,
@@ -80,6 +86,10 @@ internal fun SeasonEpisodeSection(
             )
         }
         Spacer(Modifier.height(14.dp))
+        if (calendarLabel.isNotEmpty()) {
+            CalendarBar(calendarLabel, fg, fgSub, onOpenCalendar)
+            Spacer(Modifier.height(14.dp))
+        }
         when {
             seasons.isEmpty() -> SectionNote("该服务器未返回剧集信息", fgSub)
             loading -> Box(Modifier.fillMaxWidth().height(120.dp),
@@ -101,6 +111,34 @@ internal fun SeasonEpisodeSection(
                 }
             }
         }
+        if (episodes.isNotEmpty()) {
+            Spacer(Modifier.height(16.dp))
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Box(Modifier.clip(RoundedCornerShape(50)).background(fg.copy(alpha = .08f))
+                    .padding(horizontal = 14.dp, vertical = 6.dp)) {
+                    Text("${episodes.first().index} · ${episodes.last().index}",
+                        fontSize = 13.sp, color = fgSub)
+                }
+            }
+        }
+    }
+}
+
+/** 播出日历条（REX）：左日历图标+「播出日历」，右进度标签+chevron；点击开日历浮层。 */
+@Composable
+private fun CalendarBar(label: String, fg: Color, fgSub: Color, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(horizontal = DETAIL_PAD_DP.dp)
+        .clip(RoundedCornerShape(14.dp)).background(fg.copy(alpha = .06f))
+        .clickable(role = Role.Button, onClick = onClick)
+        .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        DetailActionGlyph(ActionGlyph.Calendar, fg, Modifier.size(19.dp))
+        Spacer(Modifier.width(9.dp))
+        Text("播出日历", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = fg)
+        Spacer(Modifier.weight(1f))
+        Text(label, fontSize = 13.sp, color = fgSub, maxLines = 1)
+        Spacer(Modifier.width(6.dp))
+        DetailActionGlyph(ActionGlyph.Chevron, fgSub, Modifier.size(15.dp))
     }
 }
 

@@ -51,7 +51,7 @@ class EmbyShows(private val c: EmbyClient) {
                     o.getString("Id"), o.getString("Name"), o.optInt("IndexNumber"),
                     o.optInt("ParentIndexNumber"), o.optLong("RunTimeTicks") / 600_000_000L,
                     if (tag.isNotBlank()) "${c.base}${c.prefix}/Items/${o.getString("Id")}" +
-                        "/Images/Primary?maxWidth=320&quality=75&tag=$tag" else "",
+                        "/Images/Primary?maxWidth=780&quality=90&tag=$tag" else "",
                     ud?.optBoolean("Played") ?: false, ud?.optLong("PlaybackPositionTicks") ?: 0L,
                     o.optString("PremiereDate").take(10), o.optString("Overview"),
                 )

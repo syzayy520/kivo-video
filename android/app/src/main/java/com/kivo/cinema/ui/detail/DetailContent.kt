@@ -27,6 +27,7 @@ internal class DetailContent(
     val loadEpisodes: (suspend (EmbyShows.Season) -> List<EmbyShows.Episode>)? = null,
     val playEpisode: ((EmbyShows.Episode) -> Intent)? = null,
     val loadImage: (suspend (String) -> Bitmap?)? = null,  // Emby 图需 token，TmdbImageCache 不带
+    val serverName: String = "",   // 255 #31：日历底栏来源名（Emby 服务器名 / 本地）
 )
 
 internal const val DETAIL_NO_LOCAL_PLAY = "没有匹配的本地视频，请先在资源库添加资源"
@@ -45,5 +46,6 @@ internal fun localDetailContent(context: Context, tmdb: TmdbDetail, isTv: Boolea
                 .putExtra("kivo.durationMs", it.item.durationMs)
         },
         tmdbId = id, tmdbIsTv = isTv,
+        serverName = "本地",
     )
 }

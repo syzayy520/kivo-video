@@ -142,13 +142,27 @@ class EmbyClient(serverInput: String) {
         } finally { c.disconnect() }
     }
 
+    /** 255 #30：每类图的像素宽（Primary/Backdrop/Logo…），供库图 vs TMDB 清晰度择优。失败返回空表。 */
+    fun imageWidths(auth: Auth, itemId: String): Map<String, Int> {
+        val c = conn("$base$prefix/Items/$itemId/Images", "GET")
+        return try {
+            c.setRequestProperty("X-Emby-Token", auth.token)
+            if (c.responseCode !in 200..299) return emptyMap()
+            val arr = org.json.JSONArray(c.inputStream.bufferedReader().use { it.readText() })
+            (0 until arr.length()).associate {
+                val o = arr.getJSONObject(it)
+                o.optString("ImageType") to o.optInt("Width")
+            }
+        } catch (_: Exception) { emptyMap() } finally { c.disconnect() }
+    }
+
     internal fun parseItem(o: JSONObject): EmbyItem {
         val tag = o.optJSONObject("ImageTags")?.optString("Primary") ?: ""
         val year = if (o.has("ProductionYear") && !o.isNull("ProductionYear"))
             o.getInt("ProductionYear") else null
         val poster = if (tag.isNotBlank())
             "$base$prefix/Items/${o.getString("Id")}/Images/Primary" +
-                "?maxWidth=320&quality=75&tag=$tag" else ""
+                "?maxWidth=480&quality=85&tag=$tag" else ""
         return EmbyItem(o.getString("Id"), o.getString("Name"), year, poster,
             o.optString("Type") == "Series")
     }
@@ -164,7 +178,7 @@ class EmbyClient(serverInput: String) {
             if (code !in 200..299) throw HttpFailure(code)
             val o = JSONObject(c.inputStream.bufferedReader().use { it.readText() })
             fun image(type: String, tag: String, width: Int) = if (tag.isNotBlank())
-                "$base$prefix/Items/$itemId/Images/$type?maxWidth=$width&quality=80&tag=$tag" else ""
+                "$base$prefix/Items/$itemId/Images/$type?maxWidth=$width&quality=90&tag=$tag" else ""
             fun strings(key: String): List<String> {
                 val a = o.optJSONArray(key) ?: return emptyList()
                 return (0 until a.length()).map { a.getString(it) }
@@ -177,7 +191,7 @@ class EmbyClient(serverInput: String) {
                 val ptag = p.optString("PrimaryImageTag")
                 people += EmbyPerson(pid, p.optString("Name"), p.optString("Role"), p.optString("Type"),
                     if (pid.isNotBlank() && ptag.isNotBlank())
-                        "$base$prefix/Items/$pid/Images/Primary?maxWidth=160&quality=80&tag=$ptag" else "")
+                        "$base$prefix/Items/$pid/Images/Primary?maxWidth=300&quality=90&tag=$ptag" else "")
             }
             val ms = o.optJSONArray("MediaSources")?.optJSONObject(0)
             val streams = ms?.optJSONArray("MediaStreams")
@@ -208,9 +222,9 @@ class EmbyClient(serverInput: String) {
                 media = if (ms != null) EmbyMediaInfo(ms.optString("Container"), ms.optLong("Size"),
                     ms.optLong("Bitrate"), videoObj?.optInt("Width") ?: 0, videoObj?.optInt("Height") ?: 0,
                     titles("Video"), titles("Audio"), titles("Subtitle")) else null,
-                posterUrl = image("Primary", o.optJSONObject("ImageTags")?.optString("Primary").orEmpty(), 780),
-                backdropUrl = image("Backdrop", o.optJSONArray("BackdropImageTags")?.optString(0).orEmpty(), 1280),
-                logoUrl = image("Logo", o.optJSONObject("ImageTags")?.optString("Logo").orEmpty(), 800),
+                posterUrl = image("Primary", o.optJSONObject("ImageTags")?.optString("Primary").orEmpty(), 1080),
+                backdropUrl = image("Backdrop", o.optJSONArray("BackdropImageTags")?.optString(0).orEmpty(), 1920),
+                logoUrl = image("Logo", o.optJSONObject("ImageTags")?.optString("Logo").orEmpty(), 1080),
                 isFavorite = ud?.optBoolean("IsFavorite") ?: false,
                 played = ud?.optBoolean("Played") ?: false,
             )

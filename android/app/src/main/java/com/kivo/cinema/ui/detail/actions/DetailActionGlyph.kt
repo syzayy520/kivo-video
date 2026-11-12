@@ -12,7 +12,10 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 
-internal enum class ActionGlyph { Bookmark, Watched, External, Reload, Close, Tick, Plus, Chevron }
+internal enum class ActionGlyph {
+    Bookmark, Watched, External, Reload, Close, Tick, Plus, Chevron,
+    Calendar, Download, Progress, Share, Trash,
+}
 
 /** Consistent 24-unit strokes; decorative glyphs use the row's accessibility label. */
 @Composable
@@ -56,6 +59,50 @@ internal fun DetailActionGlyph(glyph: ActionGlyph, color: Color, modifier: Modif
                 }
                 ActionGlyph.Chevron -> path {
                     moveTo(9f, 5f); lineTo(16f, 12f); lineTo(9f, 19f)
+                }
+                ActionGlyph.Calendar -> {
+                    path {
+                        moveTo(5f, 6f); lineTo(19f, 6f); quadraticTo(20f, 6f, 20f, 7f)
+                        lineTo(20f, 19f); quadraticTo(20f, 20f, 19f, 20f)
+                        lineTo(5f, 20f); quadraticTo(4f, 20f, 4f, 19f)
+                        lineTo(4f, 7f); quadraticTo(4f, 6f, 5f, 6f); close()
+                    }
+                    path { moveTo(4f, 10f); lineTo(20f, 10f) }
+                    path { moveTo(8f, 3.5f); lineTo(8f, 7f) }
+                    path { moveTo(16f, 3.5f); lineTo(16f, 7f) }
+                    drawCircle(color, 1.3f, Offset(12f, 15f))
+                }
+                ActionGlyph.Download -> {
+                    path { moveTo(12f, 4f); lineTo(12f, 15f) }
+                    path { moveTo(7.5f, 10.5f); lineTo(12f, 15f); lineTo(16.5f, 10.5f) }
+                    path { moveTo(5f, 19f); lineTo(19f, 19f) }
+                }
+                ActionGlyph.Progress -> {
+                    path { moveTo(8f, 6f); lineTo(20f, 6f) }
+                    path { moveTo(8f, 12f); lineTo(20f, 12f) }
+                    path { moveTo(8f, 18f); lineTo(20f, 18f) }
+                    drawCircle(color, 1.4f, Offset(4f, 6f))
+                    drawCircle(color, 1.4f, Offset(4f, 12f))
+                    drawCircle(color, 1.4f, Offset(4f, 18f))
+                }
+                ActionGlyph.Share -> {
+                    path { moveTo(12f, 15f); lineTo(12f, 4f) }
+                    path { moveTo(8f, 7.5f); lineTo(12f, 3.5f); lineTo(16f, 7.5f) }
+                    path {
+                        moveTo(8f, 10f); lineTo(6f, 10f); quadraticTo(5f, 10f, 5f, 11f)
+                        lineTo(5f, 19f); quadraticTo(5f, 20f, 6f, 20f)
+                        lineTo(18f, 20f); quadraticTo(19f, 20f, 19f, 19f)
+                        lineTo(19f, 11f); quadraticTo(19f, 10f, 18f, 10f); lineTo(16f, 10f)
+                    }
+                }
+                ActionGlyph.Trash -> {
+                    path { moveTo(5f, 7f); lineTo(19f, 7f) }
+                    path { moveTo(9f, 7f); lineTo(9f, 5f); quadraticTo(9f, 4f, 10f, 4f)
+                        lineTo(14f, 4f); quadraticTo(15f, 4f, 15f, 5f); lineTo(15f, 7f) }
+                    path { moveTo(7f, 7f); lineTo(8f, 20f); quadraticTo(8f, 20.5f, 8.5f, 20.5f)
+                        lineTo(15.5f, 20.5f); quadraticTo(16f, 20.5f, 16f, 20f); lineTo(17f, 7f) }
+                    path { moveTo(10.5f, 11f); lineTo(10.5f, 17f) }
+                    path { moveTo(13.5f, 11f); lineTo(13.5f, 17f) }
                 }
             }
         }

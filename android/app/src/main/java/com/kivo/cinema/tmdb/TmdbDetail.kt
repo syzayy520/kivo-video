@@ -19,7 +19,7 @@ class TmdbDetail(private val client: TmdbClient) {
         val overview: String,
         val rating: Float,
         val posterUrl: String,     // w780 竖版海报（**含烧死片名**，仅作无剧照时的兜底）
-        val backdropUrl: String?,  // w780 横版剧照（幕布主图：不含片名，片名由 logo 图层承担）
+        val backdropUrl: String?,  // w1280 横版剧照（幕布主图：不含片名，片名由 logo 图层承担）
         val heroArtworkUrl: String, // Prefer language-neutral portrait artwork for the detail backdrop.
         val logoUrl: String?,      // 片名 logo（images.logos，zh 优先）
         val isTv: Boolean,
@@ -34,6 +34,10 @@ class TmdbDetail(private val client: TmdbClient) {
         val contentNotes: List<String>,                 // 内容提示（release_dates.descriptors 中文化）
         val similar: List<SimilarItem>,
         val ratingSource: String = "TMDB", // 徽章来源：兜底路径是 Emby CommunityRating，不得标 TMDB
+        val originalLanguage: String = "", // 原产语言（zh/en/ko…）；logo 中文规则据此分流
+        val zhLogoUrl: String? = null,     // 仅中文 logo（w500），无中文则 null
+        val posterWidth: Int = 0,          // 选中海报有效像素宽（封顶 w780），供库图/TMDB 择优
+        val backdropWidth: Int = 0,        // 选中幕布有效像素宽（封顶 w1280）
     )
 
     data class CastMember(val name: String, val role: String, val profileUrl: String?)
@@ -68,7 +72,7 @@ class TmdbDetail(private val client: TmdbClient) {
                         val n = o.optString("name")
                         if (n.isNotEmpty()) {
                             val p = o.optString("profile_path").takeIf { it.isNotEmpty() }
-                            cast.add(CastMember(n, "导演", p?.let { "${TmdbHome.IMG}/w185$it" }))
+                            cast.add(CastMember(n, "导演", p?.let { "${TmdbHome.IMG}/w300$it" }))
                         }
                         break
                     }
@@ -84,7 +88,7 @@ class TmdbDetail(private val client: TmdbClient) {
                 if (name.isEmpty() || cast.any { it.name == name }) continue
                 val profile = o.optString("profile_path").takeIf { it.isNotEmpty() }
                 cast.add(CastMember(name, o.optString("character", ""),
-                    profile?.let { "${TmdbHome.IMG}/w185$it" }))
+                    profile?.let { "${TmdbHome.IMG}/w300$it" }))
                 added++
             }
         }
@@ -109,8 +113,11 @@ class TmdbDetail(private val client: TmdbClient) {
                 if (p.isNotEmpty()) stills.add("${TmdbHome.IMG}/w780$p")
             }
         }
-        val posterPath = json.optString("poster_path").takeIf { it.isNotEmpty() }
-        val backdropPath = json.optString("backdrop_path").takeIf { it.isNotEmpty() }
+        val images = json.optJSONObject("images")
+        val posterPick = bestImage(images?.optJSONArray("posters"), neutralFirst = false)
+        val backdropPick = bestImage(images?.optJSONArray("backdrops"), neutralFirst = true)
+        val posterPath = posterPick?.first ?: json.optString("poster_path").takeIf { it.isNotEmpty() }
+        val backdropPath = backdropPick?.first ?: json.optString("backdrop_path").takeIf { it.isNotEmpty() }
         return Details(
             id = id,
             title = title,
@@ -119,13 +126,14 @@ class TmdbDetail(private val client: TmdbClient) {
             overview = json.optString("overview", ""),
             rating = json.optDouble("vote_average", 0.0).toFloat(),
             // 幕布优先竖版海报（240 §5.4：海报自带标题烙印），无海报才退横版剧照
+            // 255 #30：语言+分辨率择优；original 在真机线路要数分钟，封顶实用档（海报 w780/幕布 w1280）
             posterUrl = posterPath?.let { "${TmdbHome.IMG}/w780$it" }
-                ?: backdropPath?.let { "${TmdbHome.IMG}/w780$it" } ?: "",
-            backdropUrl = backdropPath?.let { "${TmdbHome.IMG}/w780$it" },
+                ?: backdropPath?.let { "${TmdbHome.IMG}/w1280$it" } ?: "",
+            backdropUrl = backdropPath?.let { "${TmdbHome.IMG}/w1280$it" },
             heroArtworkUrl = artworkOf(json, posterPath, backdropPath),
             logoUrl = logoOf(json),
             isTv = isTv,
-            region = regionOf(json),
+            region = TmdbDetailLocale.regionOf(json),
             episodes = if (isTv) json.optInt("number_of_episodes").takeIf { it > 0 } else null,
             runtimeMin = if (isTv) null else json.optInt("runtime").takeIf { it > 0 },
             trailerKey = trailerOf(json),
@@ -135,28 +143,11 @@ class TmdbDetail(private val client: TmdbClient) {
             certifications = certificationsOf(json),
             contentNotes = contentNotesOf(json),
             similar = similar,
+            originalLanguage = json.optString("original_language"),
+            zhLogoUrl = zhLogoOf(json),
+            posterWidth = posterPick?.second?.coerceAtMost(780) ?: 0,
+            backdropWidth = backdropPick?.second?.coerceAtMost(1280) ?: 0,
         )
-    }
-
-    /** 地区：production_countries 的 ISO 码译中文，最多两国以「/」连接。 */
-    private fun regionOf(json: JSONObject): String? {
-        val codes = mutableListOf<String>()
-        json.optJSONArray("production_countries")?.let { arr ->
-            for (i in 0 until arr.length().coerceAtMost(3)) {
-                val c = arr.getJSONObject(i).optString("iso_3166_1")
-                if (c.isNotEmpty()) codes.add(c)
-            }
-        }
-        if (codes.isEmpty()) {
-            json.optJSONArray("origin_country")?.let { arr ->
-                for (i in 0 until arr.length().coerceAtMost(3)) {
-                    val c = arr.optString(i)
-                    if (c.isNotEmpty()) codes.add(c)
-                }
-            }
-        }
-        if (codes.isEmpty()) return null
-        return codes.joinToString("/") { REGION_ZH[it] ?: it }
     }
 
     /** 片源 logo：production_companies 里第一个带 logo 的公司（w300）。 */
@@ -172,7 +163,36 @@ class TmdbDetail(private val client: TmdbClient) {
     /** Neutral portrait first; no title-specific IDs or image paths. */
     private fun artworkOf(json: JSONObject, poster: String?, backdrop: String?): String {
         val neutral = ArtworkSelection.portrait(json.optJSONObject("images"))
-        return (neutral ?: backdrop ?: poster)?.let { "${TmdbHome.IMG}/w780$it" }.orEmpty()
+        return when {
+            neutral != null -> "${TmdbHome.IMG}/w780$neutral"
+            backdrop != null -> "${TmdbHome.IMG}/w1280$backdrop"
+            poster != null -> "${TmdbHome.IMG}/w780$poster"
+            else -> ""
+        }
+    }
+
+    /** 255 #30：语言优先 + 同级像素宽最大。neutralFirst=true 用于幕布（避烧字），false 用于海报（中文优先）。 */
+    private fun bestImage(arr: org.json.JSONArray?, neutralFirst: Boolean): Pair<String, Int>? {
+        if (arr == null || arr.length() == 0) return null
+        val items = (0 until arr.length()).map { arr.getJSONObject(it) }
+            .filter { it.optString("file_path").isNotEmpty() }
+        if (items.isEmpty()) return null
+        val picked = items.sortedWith(compareBy<JSONObject> {
+            val l = it.optString("iso_639_1")
+            if (neutralFirst) when (l) { "null", "" -> 0; "zh" -> 1; "en" -> 2; else -> 3 }
+            else when (l) { "zh" -> 0; "null", "" -> 1; "en" -> 2; else -> 3 }
+        }.thenByDescending { it.optInt("width") }).first()
+        return picked.optString("file_path") to picked.optInt("width")
+    }
+
+    /** 仅中文 logo（w500）；无中文 logo 返回 null，由调用方决定退路。 */
+    private fun zhLogoOf(json: JSONObject): String? {
+        val arr = json.optJSONObject("images")?.optJSONArray("logos") ?: return null
+        val picked = (0 until arr.length()).map { arr.getJSONObject(it) }
+            .filter { it.optString("iso_639_1") == "zh" &&
+                it.optString("file_path").endsWith(".png", ignoreCase = true) }
+            .maxByOrNull { it.optInt("width") } ?: return null
+        return "${TmdbHome.IMG}/w500${picked.optString("file_path")}"
     }
 
     /** Transparent PNG logos, Chinese first, then neutral and English; votes break ties. */
@@ -205,7 +225,7 @@ class TmdbDetail(private val client: TmdbClient) {
         val order = listOf("US", "GB", "CN", "HK", "TW", "JP", "DE", "FR", "KR")
         val picked = order.filter { byIso.containsKey(it) }.map { it to byIso[it]!! }
             .ifEmpty { byIso.entries.take(3).map { it.key to it.value } }
-        return picked.take(2).map { (REGION_ZH[it.first] ?: it.first) to it.second }
+        return picked.take(2).map { (TmdbDetailLocale.REGION_ZH[it.first] ?: it.first) to it.second }
     }
 
     /** 内容提示：release_dates.descriptors 去重中文化（TMDB 仅少量条目有）。 */
@@ -218,25 +238,11 @@ class TmdbDetail(private val client: TmdbClient) {
                 val d = rd.getJSONObject(j).optJSONArray("descriptors") ?: continue
                 for (k in 0 until d.length()) {
                     val raw = d.optString(k).trim()
-                    if (raw.isNotEmpty()) out.add(descriptorZh(raw))
+                    if (raw.isNotEmpty()) out.add(TmdbDetailLocale.descriptorZh(raw))
                 }
             }
         }
         return out.toList()
-    }
-
-    /** 描述符中文化：先精确匹配，再按关键词包含匹配，最后保留原文。 */
-    private fun descriptorZh(raw: String): String {
-        val k = raw.lowercase()
-        DESCRIPTOR_ZH[k]?.let { return it }
-        val rules = listOf(
-            "language" to "不当用语", "violence" to "暴力", "injur" to "受伤",
-            "blood" to "血腥", "gore" to "血腥", "nudit" to "裸露", "sex" to "性",
-            "drug" to "毒品", "alcohol" to "酒精", "smok" to "吸烟",
-            "horror" to "恐怖", "fear" to "惊吓", "threat" to "威胁",
-        )
-        for ((key, zh) in rules) if (k.contains(key)) return zh
-        return raw
     }
 
     /** 预告：YouTube 官方 Trailer > Trailer > Teaser。 */
@@ -277,32 +283,5 @@ class TmdbDetail(private val client: TmdbClient) {
         } catch (e: Exception) {
             null to "lost"
         }
-    }
-
-    private companion object {
-        /** ISO 3166-1 → 中文地区名（地区标注规范：港澳台带中国前缀）。 */
-        val REGION_ZH = mapOf(
-            "CN" to "中国大陆", "HK" to "中国香港", "TW" to "中国台湾", "MO" to "中国澳门",
-            "US" to "美国", "GB" to "英国", "JP" to "日本", "KR" to "韩国",
-            "FR" to "法国", "DE" to "德国", "IT" to "意大利", "ES" to "西班牙",
-            "CA" to "加拿大", "AU" to "澳大利亚", "NZ" to "新西兰", "RU" to "俄罗斯",
-            "IN" to "印度", "TH" to "泰国", "SG" to "新加坡", "MY" to "马来西亚",
-            "ID" to "印度尼西亚", "PH" to "菲律宾", "VN" to "越南", "TR" to "土耳其",
-            "BR" to "巴西", "MX" to "墨西哥", "AR" to "阿根廷", "CL" to "智利",
-            "CO" to "哥伦比亚", "SE" to "瑞典", "NO" to "挪威", "DK" to "丹麦",
-            "FI" to "芬兰", "NL" to "荷兰", "BE" to "比利时", "PL" to "波兰",
-            "CZ" to "捷克", "HU" to "匈牙利", "GR" to "希腊", "IE" to "爱尔兰",
-            "AT" to "奥地利", "CH" to "瑞士", "PT" to "葡萄牙", "UA" to "乌克兰",
-            "RO" to "罗马尼亚", "IL" to "以色列", "ZA" to "南非", "EG" to "埃及",
-            "IR" to "伊朗", "IS" to "冰岛", "LT" to "立陶宛", "EE" to "爱沙尼亚",
-        )
-
-        /** 分级描述符 → 中文（TMDB 仅德/英等少量条目提供）。 */
-        val DESCRIPTOR_ZH = mapOf(
-            "violence" to "暴力", "injury" to "受伤", "blood" to "血腥",
-            "language" to "粗口", "nudity" to "裸露", "sex" to "性",
-            "drugs" to "毒品", "alcohol" to "酒精", "horror" to "恐怖",
-            "fear" to "惊吓", "smoking" to "吸烟", "gore" to "血腥",
-        )
     }
 }

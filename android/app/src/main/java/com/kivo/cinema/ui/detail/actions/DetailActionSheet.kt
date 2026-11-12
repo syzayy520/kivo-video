@@ -26,21 +26,16 @@ import androidx.compose.ui.unit.sp
 import com.kivo.cinema.media.marks.FilmMark
 import kotlinx.coroutines.launch
 
-internal enum class DetailSheet { Marks, More }
-
 private val SheetInk = Color(0xFF292A30)
 private val SheetMuted = Color(0xFF77777F)
 private val SheetAccent = Color(0xFF655978)
 
-/** Detail-owned action surface; persistence remains in DetailActions. */
+/** 影片标记底部卡（待看/已观看）；持久化仍在 DetailActions。「更多」走 DetailMorePopup。 */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DetailActionSheet(
-    kind: DetailSheet,
     actions: DetailActions,
     onDismiss: () -> Unit,
-    onTmdb: () -> Unit,
-    onReload: () -> Unit,
 ) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
@@ -71,8 +66,7 @@ internal fun DetailActionSheet(
             .padding(horizontal = 24.dp).padding(bottom = 24.dp)) {
             Row(Modifier.fillMaxWidth().padding(bottom = 18.dp),
                 verticalAlignment = Alignment.CenterVertically) {
-                Text(if (kind == DetailSheet.Marks) "影片标记" else "更多操作",
-                    fontSize = 20.sp, fontWeight = FontWeight.SemiBold,
+                Text("影片标记", fontSize = 20.sp, fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f))
                 Box(Modifier.size(48.dp).clip(CircleShape)
                     .semantics { contentDescription = "关闭操作卡片" }
@@ -84,24 +78,16 @@ internal fun DetailActionSheet(
                     }
                 }
             }
-            if (kind == DetailSheet.Marks) {
-                SheetAction("待看", "留到下次观看", ActionGlyph.Bookmark,
-                    selected = actions.marks.watchlist, enabled = actions.enabled && !closing) {
-                    actions.toggle(FilmMark.WATCHLIST)
-                    close()
-                }
-                Spacer(Modifier.height(10.dp))
-                SheetAction("已观看", "记录看过的影片", ActionGlyph.Watched,
-                    selected = actions.marks.watched, enabled = actions.enabled && !closing) {
-                    actions.toggle(FilmMark.WATCHED)
-                    close()
-                }
-            } else {
-                SheetAction("在 TMDB 查看", "打开影片资料", ActionGlyph.External,
-                    enabled = !closing) { close(onTmdb) }
-                Spacer(Modifier.height(10.dp))
-                SheetAction("重新加载详情", "更新当前影片信息", ActionGlyph.Reload,
-                    enabled = !closing) { close(onReload) }
+            SheetAction("待看", "留到下次观看", ActionGlyph.Bookmark,
+                selected = actions.marks.watchlist, enabled = actions.enabled && !closing) {
+                actions.toggle(FilmMark.WATCHLIST)
+                close()
+            }
+            Spacer(Modifier.height(10.dp))
+            SheetAction("已观看", "记录看过的影片", ActionGlyph.Watched,
+                selected = actions.marks.watched, enabled = actions.enabled && !closing) {
+                actions.toggle(FilmMark.WATCHED)
+                close()
             }
         }
     }

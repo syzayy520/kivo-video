@@ -118,7 +118,6 @@ internal fun DetailPage(
     val media = content?.media
     val quality = content?.quality ?: ""
     val playIntent = content?.playIntent
-    val tmdbId = content?.tmdbId ?: 0
     val tmdbIsTv = content?.tmdbIsTv ?: false
     val noPlayReason = content?.noPlayReason ?: DETAIL_NO_LOCAL_PLAY
     val seasons = content?.seasons ?: emptyList()
@@ -126,7 +125,17 @@ internal fun DetailPage(
     val ss = rememberSeasonState(content)
     var menuOpen by remember { mutableStateOf(false) }
     var menuAnchor by remember { mutableStateOf(Rect.Zero) }
+    val overlay = remember { DetailOverlayState() }
     val glassSources = remember { NavigationBackdropState() }
+    val today = remember { java.time.LocalDate.now() }
+    val curSeason = ss.season
+    val nextEp = ss.episodes.firstOrNull { !it.played && it.positionTicks > 0 }
+        ?: ss.episodes.firstOrNull { !it.played } ?: ss.episodes.firstOrNull()
+    val playSubtitle = if (loadEpisodes != null && curSeason != null && nextEp != null)
+        "第${curSeason.index}季·${nextEp.index}集" else null
+    val calendarLabel = remember(ss.episodes, today) {
+        DetailCalendarData.barLabel(ss.episodes, today)
+    }
 
     Box(Modifier.fillMaxSize()) {
         Box(Modifier.navigationSource(glassSources)) {
@@ -147,17 +156,13 @@ internal fun DetailPage(
                         TitleLayer(d, fg)
                         MetaLine(d, fg)
                         DetailActionRow(playIntent != null, fg, actions,
+                            playSubtitle = playSubtitle,
                             onPlay = {
                                 if (playIntent == null) Toast.makeText(context,
                                     noPlayReason, Toast.LENGTH_LONG).show()
                                 else openPage(playIntent)
                             },
-                            onTmdb = {
-                                if (tmdbId > 0) openPage(Intent(Intent.ACTION_VIEW,
-                                    Uri.parse("https://www.themoviedb.org/${if (tmdbIsTv) "tv" else "movie"}/$tmdbId")))
-                                else Toast.makeText(context, "未匹配到 TMDB 条目", Toast.LENGTH_LONG).show()
-                            },
-                            onReload = { if (!loading) reload++ })
+                            onOpenMore = { overlay.openMore(it) })
                         if (d.overview.isNotBlank()) Overview(d.overview, fg)
                         if (d.rating > 0f) {
                             Box(Modifier.fillMaxWidth().padding(top = 14.dp)) {
@@ -178,6 +183,8 @@ internal fun DetailPage(
                                 Spacer(Modifier.height(40.dp))
                                 SeasonEpisodeSection(seasons, ss.season, ss.episodes,
                                     ss.loading, ss.error, fg, fgSub, content?.loadImage,
+                                    calendarLabel = calendarLabel,
+                                    onOpenCalendar = { overlay.calendarOpen = true },
                                     menuOpen = menuOpen,
                                     onOpenMenu = { menuOpen = true },
                                     onAnchor = { menuAnchor = it },
@@ -272,6 +279,7 @@ internal fun DetailPage(
         SeasonMenuOverlay(menuOpen, menuAnchor, seasons, ss.season, glassSources,
             onDismiss = { menuOpen = false },
             onPick = { menuOpen = false; ss.season = it })
+        DetailOverlayHost(overlay, content, ss.season, ss.episodes, actions, glassSources, openPage)
         BackCircle(onBack)
     }
 }

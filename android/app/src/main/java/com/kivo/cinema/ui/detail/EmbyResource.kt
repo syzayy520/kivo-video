@@ -3,7 +3,6 @@ package com.kivo.cinema.ui.detail
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,6 +22,7 @@ import com.kivo.cinema.tmdb.TmdbDetail
 import com.kivo.cinema.ui.compose.PlayerComposeActivity
 import com.kivo.cinema.ui.compose.player.resolutionTier
 import com.kivo.cinema.ui.design.TmdbImageCache
+import com.kivo.cinema.ui.design.decodeImageCapped
 import com.kivo.cinema.ui.detail.actions.DetailActions
 import com.kivo.cinema.ui.detail.actions.rememberDetailActions
 import kotlinx.coroutines.CoroutineScope
@@ -70,7 +70,7 @@ internal class EmbyResource private constructor(
             tmdbId = 0
             EmbyFallback.map(emby, series)
         }
-        val details = libraryFirst(filled, emby)
+        val details = qualityFirst(filled, emby, c, a)
         if (series) return seriesContent(c, a, details)
         val media = emby.media?.let {
             ResourceMedia("${it.width} × ${it.height}", it.sizeBytes, it.bitrate, serverName,
@@ -78,16 +78,34 @@ internal class EmbyResource private constructor(
         }
         val quality = emby.media?.let { resolutionTier(it.width, it.height).ifEmpty { "SD" } } ?: "SD"
         return DetailContent(details, media, quality, playIntent(c, a), tmdbId, false,
-            loadImage = ::loadImage)
+            loadImage = ::loadImage, serverName = serverName)
     }
 
-    /** 图优先级：库封面优先（资源自身封面、与海报墙同源），服务器缺图才 TMDB 兜底。 */
-    private fun libraryFirst(d: TmdbDetail.Details, e: EmbyDetails): TmdbDetail.Details = d.copy(
-        posterUrl = e.posterUrl.ifBlank { d.posterUrl },
-        backdropUrl = e.backdropUrl.ifBlank { d.backdropUrl },
-        heroArtworkUrl = e.backdropUrl.ifBlank { e.posterUrl }.ifBlank { d.heroArtworkUrl },
-        logoUrl = e.logoUrl.ifBlank { d.logoUrl.orEmpty() }.ifBlank { null },
-    )
+    /** 255 #30 图择优：海报/幕布按像素宽选更清者（同级库优先，与海报墙同源）；logo 走中文规则。 */
+    private fun qualityFirst(d: TmdbDetail.Details, e: EmbyDetails,
+                             c: EmbyClient, a: EmbyClient.Auth): TmdbDetail.Details {
+        val w = runCatching { c.imageWidths(a, itemId) }.getOrDefault(emptyMap())
+        val poster = pickHigher(e.posterUrl, w["Primary"] ?: 0, d.posterUrl, d.posterWidth)
+        val backdrop = pickHigher(e.backdropUrl, w["Backdrop"] ?: 0, d.backdropUrl.orEmpty(), d.backdropWidth)
+        val libLogo = e.logoUrl.takeIf { it.isNotBlank() }
+        // 中文原产剧优先库 logo（服务器 curated，如谷雨书法字）；否则 TMDB 中文 logo > 最佳 logo > 库 logo。
+        val logo = if (d.originalLanguage == "zh" && libLogo != null) libLogo
+            else d.zhLogoUrl ?: d.logoUrl ?: libLogo
+        return d.copy(
+            posterUrl = poster,
+            backdropUrl = backdrop.ifBlank { null },
+            heroArtworkUrl = backdrop.ifBlank { poster }.ifBlank { d.heroArtworkUrl },
+            logoUrl = logo,
+        )
+    }
+
+    /** 像素宽更大者胜；相等或一方缺图时库优先。 */
+    private fun pickHigher(libUrl: String, libW: Int, tmdbUrl: String, tmdbW: Int): String = when {
+        libUrl.isBlank() -> tmdbUrl
+        tmdbUrl.isBlank() -> libUrl
+        tmdbW > libW -> tmdbUrl
+        else -> libUrl
+    }
 
     /** 剧集（255）：季 + 首季集预载；播放钮 = 首集；图走 token 加载。
      *  季/集拉取失败直接抛出 → 页面错误态 + 重试（不静默兜底）。 */
@@ -105,6 +123,7 @@ internal class EmbyResource private constructor(
             loadEpisodes = { s -> stillsFirst(shows.episodes(a, itemId, s.id), s.index) },
             playEpisode = { ep -> episodeIntent(c, a, ep) },
             loadImage = ::loadImage,
+            serverName = serverName,
         )
     }
 
@@ -135,7 +154,7 @@ internal class EmbyResource private constructor(
         runCatching {
             if (url.startsWith(c.base)) {
                 val bytes = c.fetchBytes(url, token)
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                decodeImageCapped(bytes)
             } else {
                 TmdbImageCache.load(url)
             }

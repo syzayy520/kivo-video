@@ -15,8 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -25,17 +28,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.toSize
 import com.kivo.cinema.media.marks.FilmMark
 import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.ui.detail.DETAIL_PAD_DP
 
-/** Independent actions; the shared capsule has two separate accessible touch targets. */
+/** 独立操作行；共享胶囊含两个独立可达触区。「更多」上报锚点，由 DetailPage 开毛玻璃菜单。 */
 @Composable
 internal fun DetailActionRow(
     playable: Boolean, fg: Color, actions: DetailActions,
-    onPlay: () -> Unit, onTmdb: () -> Unit, onReload: () -> Unit,
+    playSubtitle: String?,
+    onPlay: () -> Unit, onOpenMore: (Rect) -> Unit,
 ) {
-    var sheet by remember { mutableStateOf<DetailSheet?>(null) }
+    var marksOpen by remember { mutableStateOf(false) }
+    var moreAnchor by remember { mutableStateOf(Rect.Zero) }
     val hair = Color.White.copy(alpha = .10f)
     val glyph = fg.copy(alpha = .95f)
     Column {
@@ -48,9 +54,15 @@ internal fun DetailActionRow(
                 .border(1.dp, hair, RoundedCornerShape(50))
                 .clickable(role = Role.Button, onClick = onPlay),
                 contentAlignment = Alignment.Center) {
-                Text(if (playable) "▶  播放" else "未加载到相关资源",
-                    fontSize = 15.sp, fontWeight = FontWeight.Medium,
-                    color = DesignTokens.textMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(if (playable) "▶  播放" else "未加载到相关资源",
+                        fontSize = 15.sp, fontWeight = FontWeight.Medium,
+                        color = DesignTokens.textMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (playable && playSubtitle != null) {
+                        Text(playSubtitle, fontSize = 11.sp,
+                            color = DesignTokens.textMain.copy(alpha = .55f), maxLines = 1)
+                    }
+                }
             }
             Row(Modifier.width(101.dp).height(45.dp).clip(RoundedCornerShape(50))
                 .background(Color.White.copy(alpha = .147f))
@@ -62,7 +74,7 @@ internal fun DetailActionRow(
                             "待看".takeIf { actions.marks.watchlist },
                             "已观看".takeIf { actions.marks.watched }).joinToString("、")
                             .ifEmpty { "未标记" }
-                    }.clickable(enabled = actions.enabled, role = Role.Button) { sheet = DetailSheet.Marks },
+                    }.clickable(enabled = actions.enabled, role = Role.Button) { marksOpen = true },
                     contentAlignment = Alignment.Center) {
                     CollectionPlusIcon(glyph, Modifier.size(22.dp))
                     if (actions.marks.watchlist || actions.marks.watched)
@@ -82,17 +94,16 @@ internal fun DetailActionRow(
                         filled = actions.marks.favorite)
                 }
             }
-            Box {
-                Box(Modifier.size(45.dp).clip(CircleShape)
-                    .background(Color.White.copy(alpha = .147f)).border(1.dp, hair, CircleShape)
-                    .semantics { contentDescription = "更多操作" }
-                    .clickable(role = Role.Button) { sheet = DetailSheet.More },
-                    contentAlignment = Alignment.Center) {
-                    Canvas(Modifier.size(20.dp, 4.dp)) {
-                        val r = 2.dp.toPx()
-                        val gap = (size.width - r * 2) / 2f
-                        for (i in 0..2) drawCircle(glyph, r, Offset(r + gap * i, size.height / 2f))
-                    }
+            Box(Modifier.size(45.dp).clip(CircleShape)
+                .background(Color.White.copy(alpha = .147f)).border(1.dp, hair, CircleShape)
+                .onGloballyPositioned { moreAnchor = Rect(it.positionInRoot(), it.size.toSize()) }
+                .semantics { contentDescription = "更多操作" }
+                .clickable(role = Role.Button) { onOpenMore(moreAnchor) },
+                contentAlignment = Alignment.Center) {
+                Canvas(Modifier.size(20.dp, 4.dp)) {
+                    val r = 2.dp.toPx()
+                    val gap = (size.width - r * 2) / 2f
+                    for (i in 0..2) drawCircle(glyph, r, Offset(r + gap * i, size.height / 2f))
                 }
             }
         }
@@ -104,8 +115,5 @@ internal fun DetailActionRow(
                     .clickable(role = Role.Button, onClick = actions.retry).padding(vertical = 12.dp))
         }
     }
-    sheet?.let { kind ->
-        DetailActionSheet(kind, actions, onDismiss = { sheet = null },
-            onTmdb = onTmdb, onReload = onReload)
-    }
+    if (marksOpen) DetailActionSheet(actions, onDismiss = { marksOpen = false })
 }

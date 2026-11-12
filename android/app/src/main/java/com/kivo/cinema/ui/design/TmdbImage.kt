@@ -39,7 +39,7 @@ object TmdbImageCache {
         get(url)?.let { return it }
         val disk = diskFile(url)
         if (disk?.isFile == true) {
-            BitmapFactory.decodeFile(disk.absolutePath)?.let { put(url, it); return it }
+            decodeImageFileCapped(disk.absolutePath)?.let { put(url, it); return it }
         }
         // A transient socket reset must not leave a visible poster empty for the whole visit.
         // Retry transport failures once; a missing image or invalid bytes are not transport failures.
@@ -51,8 +51,7 @@ object TmdbImageCache {
                 conn.readTimeout = 20000
                 if (conn.responseCode !in 200..299) return null
                 val bytes = conn.inputStream.use { it.readBytes() }
-                val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                    ?: return null
+                val bitmap = decodeImageCapped(bytes) ?: return null
                 put(url, bitmap)
                 if (disk != null) runCatching {
                     val temporary = File.createTempFile("image-", ".tmp", disk.parentFile)
@@ -70,6 +69,33 @@ object TmdbImageCache {
 }
 
 val TmdbPlaceholder = Color(0xFFE9E4EE)
+
+/** 255 #30：解码上限——original 海报可达 2000×3000+，按最长边 ≤1600 采样，防 48 格缓存撑爆内存。 */
+internal fun decodeImageCapped(bytes: ByteArray, maxDim: Int = 1600): Bitmap? {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+    val opts = BitmapFactory.Options().apply {
+        inSampleSize = cappedSample(bounds.outWidth, bounds.outHeight, maxDim)
+    }
+    return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+}
+
+internal fun decodeImageFileCapped(path: String, maxDim: Int = 1600): Bitmap? {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeFile(path, bounds)
+    val opts = BitmapFactory.Options().apply {
+        inSampleSize = cappedSample(bounds.outWidth, bounds.outHeight, maxDim)
+    }
+    return BitmapFactory.decodeFile(path, opts)
+}
+
+private fun cappedSample(w: Int, h: Int, maxDim: Int): Int {
+    if (w <= 0 || h <= 0) return 1
+    var sample = 1
+    val max = maxOf(w, h)
+    while (max / sample > maxDim) sample *= 2
+    return sample
+}
 
 @Composable
 fun TmdbImage(
