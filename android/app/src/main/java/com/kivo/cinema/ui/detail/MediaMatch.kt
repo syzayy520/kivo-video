@@ -2,6 +2,7 @@ package com.kivo.cinema.ui.detail
 
 import com.kivo.cinema.library.MediaItem
 import com.kivo.cinema.library.TitleMatch
+import com.kivo.cinema.ui.compose.player.resolutionTier
 import java.io.File
 
 /**
@@ -31,15 +32,8 @@ object MediaMatch {
             item = hit,
             sizeBytes = size,
             bitrateBps = size * 8L / sec,
-            quality = qualityOf(hit.height),
+            quality = resolutionTier(hit.width, hit.height).ifEmpty { "SD" },
             resolution = "${hit.width} × ${hit.height}",
         )
-    }
-
-    private fun qualityOf(height: Int): String = when {
-        height >= 2000 -> "4K"
-        height >= 1000 -> "1080P"
-        height >= 700 -> "720P"
-        else -> "SD"
     }
 }

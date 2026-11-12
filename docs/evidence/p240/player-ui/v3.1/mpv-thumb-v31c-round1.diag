@@ -1,0 +1,19 @@
+STEP enter-initialize
+STEP before-options
+STEP after-options
+STEP before-mpv_initialize
+STEP after-mpv_initialize
+STEP attach-surface enter
+RND render-loop enter
+STEP attach-surface ok
+RND first-frame swapped
+RND render-loop exit
+STEP +1193ms enter-initialize
+STEP +1194ms before-options
+STEP +1194ms after-options
+STEP +1194ms before-mpv_initialize
+STEP +1197ms after-mpv_initialize
+STEP +1199ms attach-surface enter
+RND render-loop enter
+STEP +1209ms attach-surface ok
+RND first-frame swapped

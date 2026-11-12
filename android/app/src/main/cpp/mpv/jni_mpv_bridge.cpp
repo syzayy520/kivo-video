@@ -21,8 +21,10 @@
 #include <jni.h>
 #include <android/native_window_jni.h>
 
+#include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "mpv_session.hpp"
 #include "mpv_session_table.hpp"
@@ -130,6 +132,45 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeAttachSurface(JNIEnv* env, jclass, jlon
         return -1;
     }
     return 0;
+}
+
+JNIEXPORT jint JNICALL
+Java_com_kivo_cinema_mpv_MpvNative_nativeAttachCapture(JNIEnv* env, jclass, jlong handle,
+                                                       jint width, jint height) {
+    kivo::video::mpv::SessionTableLock lock;
+    Session* session = kivo::video::mpv::find_session_locked(handle);
+    if (session == nullptr) {
+        kivo::video::mpv::throw_error(env, "handle is invalid");
+        return -1;
+    }
+    std::string error;
+    if (!session->attach_capture(width, height, error)) {
+        kivo::video::mpv::throw_error(env, error);
+        return -1;
+    }
+    return 0;
+}
+
+JNIEXPORT jbyteArray JNICALL
+Java_com_kivo_cinema_mpv_MpvNative_nativeReadCaptureFrame(JNIEnv* env, jclass, jlong handle) {
+    kivo::video::mpv::SessionTableLock lock;
+    Session* session = kivo::video::mpv::find_session_locked(handle);
+    if (session == nullptr) return nullptr;
+    std::vector<uint8_t> buf;
+    if (!session->read_capture_frame(buf)) return nullptr;
+    jbyteArray arr = env->NewByteArray(static_cast<jsize>(buf.size()));
+    if (arr == nullptr) return nullptr;
+    env->SetByteArrayRegion(arr, 0, static_cast<jsize>(buf.size()),
+                            reinterpret_cast<const jbyte*>(buf.data()));
+    return arr;
+}
+
+JNIEXPORT jdouble JNICALL
+Java_com_kivo_cinema_mpv_MpvNative_nativeCaptureFramePts(JNIEnv* env, jclass, jlong handle) {
+    kivo::video::mpv::SessionTableLock lock;
+    Session* session = kivo::video::mpv::find_session_locked(handle);
+    if (session == nullptr) return -1.0;
+    return session->capture_frame_pts();
 }
 
 JNIEXPORT jint JNICALL

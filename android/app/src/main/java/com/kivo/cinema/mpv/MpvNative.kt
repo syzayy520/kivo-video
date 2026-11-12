@@ -28,6 +28,9 @@ object MpvNative {
     @JvmStatic external fun nativeCreate(appContext: Any): Long
     @JvmStatic external fun nativeInitialize(handle: Long, vo: String, ao: String, logFile: String): Int
     @JvmStatic external fun nativeAttachSurface(handle: Long, surface: Any): Int
+    @JvmStatic external fun nativeAttachCapture(handle: Long, width: Int, height: Int): Int
+    @JvmStatic external fun nativeReadCaptureFrame(handle: Long): ByteArray?
+    @JvmStatic external fun nativeCaptureFramePts(handle: Long): Double
     @JvmStatic external fun nativeLoadFile(handle: Long, url: String): Int
     @JvmStatic external fun nativeSeek(handle: Long, position: Double, exact: Boolean): Int
     @JvmStatic external fun nativeCommand(handle: Long, name: String, args: String): Int
@@ -92,6 +95,17 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
     fun attachSurface(surface: Any) {
         MpvNative.nativeAttachSurface(handle, surface)
     }
+
+    /** 离屏取帧目标（预览）：渲染进纹理 FBO 读回 CPU，不走 Surface/ImageReader。 */
+    fun attachCapture(width: Int, height: Int) {
+        MpvNative.nativeAttachCapture(handle, width, height)
+    }
+
+    /** 最新离屏帧 RGBA（top-down）；没有比上次更新的帧返回 null。 */
+    fun readCaptureFrame(): ByteArray? = MpvNative.nativeReadCaptureFrame(handle)
+
+    /** 最新离屏帧对应的 time-pos（秒），无帧 -1。用于把帧和 seek 目标对齐。 */
+    fun captureFramePts(): Double = MpvNative.nativeCaptureFramePts(handle)
 
     /** 打开一个媒体（本地路径或 URL，例如 `smb://host/share/path`）。 */
     fun loadFile(url: String) {

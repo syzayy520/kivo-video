@@ -3,161 +3,185 @@ package com.kivo.cinema.ui.compose.player
 import com.kivo.cinema.playback.MpvPlaybackSession
 
 /**
- * 播放页 v2 的**数据装配**（player-ui-v2.md）。
+ * 面板的**行模型 + 内核真值装配**（v3 §1.4，纯装配，不取数）。
  *
- * ## 为什么单独一个文件
- * `PlayerComposeActivity` 已经 1300+ 行（会话生命周期 / Surface / 弹幕 / 投屏 / 取证钩子
- * 全在里面）。再往里塞"面板数据从哪来"会让它继续膨胀。
- * 把**面板数据装配**抽出来，Activity 只剩"点哪儿调哪儿"的接线。
+ * 【为什么 13 种形态共用一个行模型】REX 的 13 个面板拆开看只有四种壳，
+ * 而四种壳里的"一行"长得都一样：图标 / 题 / 副题 / 值 / 选中态 / 控件。
+ * 每加一个面板就写一个面板文件，正是"为了凑文件而凑"的反面 ——
+ * **十三个长得一样的东西，应该是同一个东西的十三份数据。**
  *
- * ## 为什么不是 UI 层自己算
- * 面板里的每一项都必须**来自内核的真实状态**（mpv 的 speed / aid / sid 属性），
- * 不能由 UI 猜 —— 否则面板显示的和实际播放的对不上（这正是 P6 那一类 bug 的温床）。
- * 所以取数在**有会话**的地方做（这里），UI 只负责把数据画出来。
+ * 【为什么取数不在这里】读 mpv 属性要抢核心锁（11 条轨道 = 99 次 JNI），
+ * 必须在 IO 线程做 ⇒ 取数时机归 [rememberPanelItems]，这里只把值装成行。
  */
-object PlayerPanelData {
+internal object PlayerPanelData {
 
-    /** 倍速档位（mpv 支持 0.1~10，这里给播放器常用的几档）。 */
     val SPEEDS = listOf("0.5x", "0.75x", "1x", "1.25x", "1.5x", "1.75x", "2x")
 
-    /** 画质比例档位（对应 mpv 的 `video-params` / `panscan` 的显示比例）。 */
     val QUALITIES = listOf("16:9", "4:3", "2.35:1", "1.85:1", "2.39:1")
 
-    /**
-     * 均衡器预设：显示名 → mpv 的 `af` 滤镜串。
-     *
-     * 【为什么用 lavfi】mpv 本身没有均衡器滤镜，但它的 `af` 支持 `lavfi` 桥，
-     * 而 FFmpeg 的 `equalizer` 滤镜正好够用（f 中心频率 / t 类型 / w 带宽 / g 增益）。
-     * 空串 = 不加滤镜（恢复原声）。
-     */
-    val EQUALIZER_PRESETS = listOf(
-        "关闭" to "",
-        "低音增强" to "lavfi=[equalizer=f=120:t=q:w=1:g=6]",
-        "人声增强" to "lavfi=[equalizer=f=1000:t=q:w=1:g=6]",
-        "高音增强" to "lavfi=[equalizer=f=6000:t=q:w=1:g=6]",
-    )
+    /** 倍速列表。current=null（读不到）⇒ **不预选中任何档**，不撒谎。 */
+    fun speed(current: String?): List<PlayerOptionItem> = SPEEDS.map {
+        PlayerOptionItem(
+            title = it,
+            selected = it == current,
+            tag = it,
+            control = PlayerRowControl.CHECK,
+        )
+    }
 
     /**
-     * 倍速面板。
+     * 画质比例列表。tag 直接是能写进 `video-aspect-override` 的串。
      *
-     * @param current 当前倍速（读回内核的真实值，不是 UI 记的）。
-     *               null = 还不知道 ⇒ **不预置任何选中项**（不撒谎）。
+     * 【为什么还要比 "Original"/"-1"】mpv 默认 -1（原始比例），读回来可能是
+     * "Original" 也可能是 "-1.000"。只判空会让"自动"永远没有勾。
      */
-    fun speed(current: String?): List<PlayerOptionItem> =
-        SPEEDS.map { speed ->
+    fun qualities(current: String): List<PlayerOptionItem> {
+        val auto = current.isBlank() ||
+            current.equals("Original", ignoreCase = true) ||
+            current.trim().startsWith("-")
+        return listOf(
             PlayerOptionItem(
-                title = speed,
-                selected = speed == current,
-                tag = speed,
+                title = "自动",
+                selected = auto,
+                tag = "Original",
+                section = "比例",
+                control = PlayerRowControl.CHECK,
+            ),
+        ) + QUALITIES.map {
+            PlayerOptionItem(
+                title = it,
+                selected = it == current,
+                tag = it,
+                section = "比例",
+                control = PlayerRowControl.CHECK,
             )
         }
+    }
 
-    /**
-     * 音轨面板。
-     *
-     * @param tracks 内核的音轨列表。
-     * @param currentId 当前选中的音轨 id。
-     */
+    /** 音轨列表（形态 4：单音轨时就是一行 ✓aac + 一行钻入延迟）。 */
     fun audioTracks(
         tracks: List<com.kivo.cinema.mpv.MpvTrackCatalog.Track>,
         currentId: Int,
-    ): List<PlayerOptionItem> =
-        tracks.map { track ->
-            PlayerOptionItem(
-                title = track.displayName(track.id),
-                subtitle = track.codec,
-                selected = track.id == currentId,
-                tag = track.id.toString(),
-            )
-        }
+    ): List<PlayerOptionItem> = tracks.map {
+        PlayerOptionItem(
+            title = it.displayName(it.id),
+            subtitle = it.codec,
+            selected = it.id == currentId,
+            tag = it.id.toString(),
+            control = PlayerRowControl.CHECK,
+        )
+    }
 
-    /**
-     * 字幕轨面板。
-     *
-     * @param tracks 内核的字幕轨列表。
-     * @param currentId 当前选中的字幕轨 id（-1 = 未选）。
-     */
+    /** 内封字幕列表（形态 1 的"切换"组，带 icon、双行 60pt）。 */
     fun subtitleTracks(
         tracks: List<com.kivo.cinema.mpv.MpvTrackCatalog.Track>,
         currentId: Int,
-    ): List<PlayerOptionItem> =
-        tracks.map { track ->
-            PlayerOptionItem(
-                title = track.displayName(track.id),
-                subtitle = track.codec,
-                selected = track.id == currentId,
-                tag = track.id.toString(),
-            )
-        }
+    ): List<PlayerOptionItem> = tracks.map {
+        PlayerOptionItem(
+            title = it.displayName(it.id),
+            subtitle = it.codec,
+            selected = it.id == currentId,
+            tag = it.id.toString(),
+            icon = "captions",
+            section = "切换",
+            control = PlayerRowControl.CHECK,
+        )
+    }
+
+    /** 音频延迟微调卡（形态 5）。 */
+    fun audioDelay(seconds: Double): List<PlayerOptionItem> = listOf(
+        stepper("音频延迟", "audio-delay", seconds, " s", 1),
+    )
 
     /**
-     * 画质比例面板。
-     *
-     * 【tag 里放的是能直接写进内核的值】
-     * mpv 的 `video-aspect-override` 打印出来就是 "16:9"/"4:3"/"2.35:1"/"Original"
-     * 这种字符串（`player/command.c:2998`），所以 tag 直接用这些串，
-     * 选中时 `setProperty("video-aspect-override", tag)` 即可 —— **真写进内核**，
-     * 不是 UI 自己记一份。
-     *
-     * @param current 当前比例（内核读回的值；空 = 自动）。
+     * 字幕显示设置微调卡（§1.6：形态 9 同壳）。
+     * toggle＝标准统一样式（sub-ass-override=yes）；关＝保留 ASS 源特效（no）。
+     * 四个 stepper 全是 mpv sub-* 真值，写后 revision++ 重读。
      */
-    fun qualities(current: String): List<PlayerOptionItem> =
-        listOf(
-            PlayerOptionItem(
-                title = "自动",
-                // 【为什么还要比 "Original"/"-1"】mpv 的默认值是 -1（= 原始比例），
-                // 读回来可能是 "Original" 也可能是 "-1"/"-1.000"（取决于读取方式）。
-                // 只判空会导致"自动"这一项**永远没有勾** —— 看着像没生效。
-                selected = current.isBlank() ||
-                    current.equals("Original", ignoreCase = true) ||
-                    current.trim().startsWith("-"),
-                tag = "Original",
-            ),
-        ) +
-            QUALITIES.map { q ->
-                PlayerOptionItem(
-                    title = q,
-                    selected = q == current,
-                    tag = q,
-                )
-            }
+    fun subtitleDisplay(
+        fontSize: Double,
+        pos: Double,
+        delay: Double,
+        border: Double,
+        standardOn: Boolean,
+    ): List<PlayerOptionItem> = listOf(
+        PlayerOptionItem(
+            title = "标准统一样式",
+            subtitle = "关闭后保留 ASS 源特效",
+            tag = "sub-ass-override",
+            control = PlayerRowControl.TOGGLE,
+            on = standardOn,
+        ),
+        stepper("字号", "sub-font-size", fontSize, "", 0),
+        stepper("垂直位置", "sub-pos", pos, "%", 0),
+        stepper("字幕延迟", "sub-delay", delay, " s", 1),
+        stepper("描边", "sub-border-size", border, "", 1),
+    )
 
     /**
-     * 均衡器面板（REX 顶栏的"圈内波形条"图标）。
-     *
-     * 【tag 里放的是 mpv 的 `af` 滤镜串】
-     * mpv 没有内置均衡器，但有 `lavfi` 桥：`af=lavfi=[equalizer=f=…:t=q:w=1:g=…]`。
-     * 所以每个预设就是一条 `af` 串，写进内核即刻生效。
-     *
-     * @param current 内核当前的 `af` 值（空 = 未启用）。
+     * 弹幕显示设置微调卡（形态 9，v3.1）。
+     * 三个 stepper 写本地态（弹幕是 Compose 自绘层，mpv 没有这些属性）；
+     * 区域三行是单选。只有渲染器真支持的项才给控件。
      */
-    fun equalizer(current: String): List<PlayerOptionItem> =
-        EQUALIZER_PRESETS.map { (label, filter) ->
-            PlayerOptionItem(
-                title = label,
-                selected = filter == current,
-                tag = filter,
-            )
-        }
+    fun danmakuSettings(settings: com.kivo.cinema.danmaku.DanmakuSettings): List<PlayerOptionItem> = listOf(
+        stepper("滚动时长", "danmaku-speed", settings.speedSec.toDouble(), " s", 1),
+        stepper("字号", "danmaku-font", settings.fontScale.toDouble(), "×", 1),
+        stepper("不透明度", "danmaku-opacity", (settings.opacity * 100).toDouble(), "%", 0),
+        areaRow("全屏", "danmaku-area-full", settings.area == com.kivo.cinema.danmaku.DanmakuArea.FULL),
+        areaRow("上半屏", "danmaku-area-top", settings.area == com.kivo.cinema.danmaku.DanmakuArea.TOP_HALF),
+        areaRow("下半屏", "danmaku-area-bottom", settings.area == com.kivo.cinema.danmaku.DanmakuArea.BOTTOM_HALF),
+    )
+
+    private fun areaRow(title: String, tag: String, selected: Boolean) = PlayerOptionItem(
+        title = title,
+        selected = selected,
+        tag = tag,
+        section = "显示区域",
+        control = PlayerRowControl.CHECK,
+    )
 
     /**
-     * 把倍速档位字符串转成 mpv 要的数值。
+     * 资源内联展开（形态 11）：chips 组 + 源卡组。
      *
-     * @return null 表示这个档位不合法（**不猜**，宁可不设）。
+     * 【为什么 chips 只有一项】chips 是"同一部片的不同版本"，
+     * 我们的资源库还没有多版本 ⇒ 只列**内核真报的那一个**（SDR / HDR10）。
+     * 编出"1080P/4K"两个 chip 让用户点了没反应，比少一个 chip 更糟。
      */
+    fun resource(badge: String, meta: String, source: String, chip: String): List<PlayerOptionItem> = listOf(
+        PlayerOptionItem(title = chip, selected = true, tag = chip, section = "chips"),
+        PlayerOptionItem(
+            title = badge,
+            subtitle = meta,
+            value = source,
+            tag = source,
+            section = "source",
+        ),
+    )
+
+    /** 一行微调（−/+ pill）。tag＝mpv 属性名，step＝当前值 ⇒ 路由直接写回。 */
+    fun stepper(
+        title: String,
+        tag: String,
+        value: Double,
+        unit: String,
+        digits: Int,
+    ): PlayerOptionItem = PlayerOptionItem(
+        title = title,
+        value = String.format("%.${digits}f%s", value, unit),
+        tag = tag,
+        step = value,
+        control = PlayerRowControl.STEPPER,
+    )
+
+    /** 档位串 → mpv 数值；不合法返回 null（**不猜**）。 */
     fun speedValue(label: String): Double? {
         val value = label.removeSuffix("x").toDoubleOrNull() ?: return null
         return if (value in 0.1..10.0) value else null
     }
 
     /**
-     * 从内核读当前倍速（显示用）。
-     *
-     * @return 例如 "1.5x"；**读不到返回 null**（而不是编一个 "1x"）。
-     *
-     * 【为什么读不到就返回 null】面板是在**会话建立之前**就可能被打开的，
-     * 此时报"1x"等于**撒谎** —— 用户会以为当前就是 1 倍速。
-     * 返回 null ⇒ 面板不显示倍速行，或者由调用方决定怎么表达"未知"。
+     * 从内核读当前倍速。读不到返回 **null** 而不是编一个 "1x" ——
+     * 面板可能在起播前被打开，报"1x"等于撒谎。
      */
     fun currentSpeedLabel(session: MpvPlaybackSession?): String? {
         val speed = session?.currentSpeedOrNull() ?: return null
@@ -165,3 +189,35 @@ object PlayerPanelData {
         return "${text}x"
     }
 }
+
+/** 行尾控件（四种壳共用）。 */
+internal enum class PlayerRowControl { NONE, CHECK, CHEVRON, STEPPER, TOGGLE }
+
+/**
+ * 面板的一行。
+ *
+ * @param title 行标题（资源卡里＝SDR/HDR 徽章）。
+ * @param value 右侧的值（微调行＝当前数值；资源卡＝源名）。
+ * @param subtitle 标题下的补充说明。
+ * @param selected 是否选中（列表＝白勾，chips＝白描边）。
+ * @param tag 回调带回去的标识：mpv 属性名 / 轨道 id / 目标面板 kind。
+ * @param icon 行首图标（[PlayerGlyph] 的 kind）；null＝无图标，选中勾落在行首。
+ * @param section 分组头；同组连续行只画一次头。
+ * @param control 行尾控件。
+ * @param enabled false＝**能力缺失**，必须同时给非空 subtitle 说明原因（铁律）。
+ * @param step 微调行的当前数值。
+ * @param on 开关行的当前状态。
+ */
+internal data class PlayerOptionItem(
+    val title: String,
+    val value: String = "",
+    val subtitle: String = "",
+    val selected: Boolean = false,
+    val tag: String = "",
+    val icon: String? = null,
+    val section: String = "",
+    val control: PlayerRowControl = PlayerRowControl.NONE,
+    val enabled: Boolean = true,
+    val step: Double = 0.0,
+    val on: Boolean = false,
+)

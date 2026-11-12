@@ -33,8 +33,8 @@ internal fun PlayerToast(
 ) {
     AnimatedVisibility(
         visible = text.isNotBlank(),
-        enter = fadeIn(tween(200)),
-        exit = fadeOut(tween(250)),
+        enter = fadeIn(tween(PlayerMotion.toastEnterMs, easing = PlayerMotion.easing)),
+        exit = fadeOut(tween(PlayerMotion.toastExitMs, easing = PlayerMotion.easing)),
         modifier = modifier,
     ) {
         Box(

@@ -1,0 +1,32 @@
+{
+  "schema": "kivo.v31.thumbnail\/1",
+  "generated_at_unix_ms": 1794446370838,
+  "source": "视频\/kivo-test\/shelter.mkv",
+  "scan_points": 60,
+  "thumbnail": {
+    "requests": 31,
+    "cache_hits": 0,
+    "decode_failures": 0,
+    "evictions": 0,
+    "cache_size_final": 32,
+    "cache_max": 50,
+    "init_ms": 1559,
+    "cold_first_latency_ms": 1574,
+    "warm_count": 30,
+    "warm_p50_ms": 648,
+    "warm_p95_ms": 664,
+    "warm_max_ms": 877,
+    "frame_seq": 32,
+    "frames_acquired": 32,
+    "grabs": [
+      "t=5094 land=5094.5 wait=494ms ok px0=ff000000",
+      "t=5309 land=5309.0 wait=507ms ok px0=ff000000",
+      "t=5523 land=5523.5 wait=491ms ok px0=ff000000",
+      "t=5738 land=5738.0 wait=506ms ok px0=ff000000",
+      "t=5952 land=5952.5 wait=492ms ok px0=ff000000",
+      "t=6167 land=6167.0 wait=507ms ok px0=ff000000",
+      "t=6381 land=6381.6 wait=507ms ok px0=ff000000",
+      "t=3217 land=3217.6 wait=493ms ok px0=ff000000"
+    ]
+  }
+}

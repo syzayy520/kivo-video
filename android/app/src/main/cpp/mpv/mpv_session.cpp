@@ -6,11 +6,9 @@
 
 #include "mpv_session.hpp"
 
-#include <fcntl.h>
-#include <unistd.h>
-
 #include <android/native_window.h>
 
+#include "mpv_diag.hpp"
 #include "mpv_options.hpp"
 #include "mpv_session_impl.hpp"
 #include "mpv_video_output.hpp"
@@ -18,21 +16,10 @@
 namespace kivo::video::mpv {
 namespace {
 
-/// 步骤标记：native 崩溃时 mpv 自己的日志会**跟着一起断**（日志由 mpv 写），
-/// 所以定位崩溃点不能靠它。这里用最原始的办法：每做完一步，往文件里追加一行。
-///
-/// 用 open/write 原始系统调用（不用 ofstream）—— 崩溃时 C++ 流的状态不确定。
+/// 步骤标记：落盘机制与共钟纪元见 mpv_diag.hpp（native 崩溃时 mpv 自己的日志
+/// 会跟着断，定位崩溃点只能靠这份原始 write 的诊断）。
 void mark_step(const char* log_file, const char* step) {
-    if (log_file == nullptr || log_file[0] == 0) {
-        return;
-    }
-    const int fd = ::open(log_file, O_WRONLY | O_CREAT | O_APPEND, 0600);
-    if (fd < 0) {
-        return;
-    }
-    const std::string line = std::string("STEP ") + step + "\n";
-    (void)write(fd, line.data(), line.size());
-    ::close(fd);
+    kivo::video::mpv::mark_step(log_file, step, "STEP");
 }
 
 }  // namespace
@@ -50,12 +37,50 @@ bool Session::attach_surface(ANativeWindow* window, std::string& error) {
     // "为什么不能是全局"的说明：mpv_render_context_free() 必须早于
     // mpv_terminate_destroy()，否则 mpv 会 abort（真机实测：
     // "Broken API use: mpv_render_context_free() not called."）。
+    //
+    // 已在跑 ⇒ 只换 EGL window surface。重建渲染上下文会让 mpv 停止推帧
+    // （真机黑屏实测），所以 rebind 绝不走 create+start。
+    if (impl_->video_output && impl_->video_output->running()) {
+        mark_step(impl_->log_path.c_str(), "attach-surface rebind (swap window)");
+        return impl_->video_output->set_window(window, error);
+    }
     impl_->video_output = create_video_output(impl_->handle, impl_->log_path);
     if (!impl_->video_output) {
         error = "cannot create video output";
         return false;
     }
-    return impl_->video_output->start(window, error);
+    mark_step(impl_->log_path.c_str(), "attach-surface enter");
+    const bool ok = impl_->video_output->start(window, error);
+    mark_step(impl_->log_path.c_str(), ok ? "attach-surface ok" : ("attach-surface failed: " + error).c_str());
+    return ok;
+}
+
+bool Session::attach_capture(int width, int height, std::string& error) {
+    if (!impl_ || impl_->handle == nullptr) {
+        error = "session not created";
+        return false;
+    }
+    if (impl_->frame_capture && impl_->frame_capture->running()) {
+        error = "capture already running";
+        return false;
+    }
+    impl_->frame_capture = create_frame_capture(impl_->handle, impl_->log_path);
+    if (!impl_->frame_capture) {
+        error = "cannot create frame capture";
+        return false;
+    }
+    mark_step(impl_->log_path.c_str(), "attach-capture enter");
+    const bool ok = impl_->frame_capture->start(width, height, error);
+    mark_step(impl_->log_path.c_str(), ok ? "attach-capture ok" : ("attach-capture failed: " + error).c_str());
+    return ok;
+}
+
+bool Session::read_capture_frame(std::vector<uint8_t>& out) {
+    return impl_ && impl_->frame_capture && impl_->frame_capture->read_frame(out);
+}
+
+double Session::capture_frame_pts() {
+    return impl_ && impl_->frame_capture ? impl_->frame_capture->frame_pts() : -1.0;
 }
 
 int Session::video_width() const {
@@ -178,6 +203,10 @@ void Session::shutdown() {
     if (state->video_output) {
         state->video_output->stop();
         state->video_output.reset();
+    }
+    if (state->frame_capture) {
+        state->frame_capture->stop();
+        state->frame_capture.reset();
     }
     if (state->handle != nullptr) {
         mpv_terminate_destroy(state->handle);

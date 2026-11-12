@@ -101,6 +101,25 @@ internal fun DrawScope.drawCoreGlyph(kind: String, color: Color, stroke: Stroke)
             )
         }
 
+        // ---- 开锁（锁定态的唯一控件，REX sk_16 实测）----
+        // 锁体在左下、锁梁从锁体右上角升起、右端悬空 = SF lock.open 形。
+        // 实测 glyph 30×28.3pt、线宽 2.5pt ⇒ 24 画布下 stroke 2.0。
+        "lock-open" -> {
+            drawRoundRect(
+                color = color,
+                topLeft = Offset(0.5f, 9.5f),
+                size = Size(16f, 13f),
+                cornerRadius = CornerRadius(2.5f),
+                style = stroke,
+            )
+            val shackle = Path().apply {
+                moveTo(12.5f, 9.5f); lineTo(12.5f, 5.5f)
+                arcTo(androidx.compose.ui.geometry.Rect(12.5f, 0.5f, 22.5f, 10.5f), 180f, 180f, false)
+                lineTo(22.5f, 9.5f)
+            }
+            drawPath(shackle, color, style = stroke)
+        }
+
         // ---- 锁定（锁形）----
         "lock" -> {
             drawRoundRect(

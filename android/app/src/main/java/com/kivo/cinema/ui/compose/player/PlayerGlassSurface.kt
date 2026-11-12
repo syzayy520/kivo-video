@@ -1,7 +1,6 @@
 package com.kivo.cinema.ui.compose.player
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,20 +16,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * 播放页的**玻璃面板材质**（一个实现，面板/提示共用）。
+ * 播放页的**玻璃材质**（v3 §1.3，一个实现，四种壳共用）。
  *
- * ## 为什么单独一个文件
- * "面板看起来廉价"不是配色问题，是**材质缺层次**：
- * 纯色块贴在画面上像一张贴纸。参考（REX）的弹层是**毛玻璃**：
- * 半透明底 + 顶部高光边 + 背景模糊。
- * Android 12+ 的 `RenderEffect` 只能模糊**自己这一层**，做不出"背景模糊"，
- * 所以这里用**三层叠加**把质感做出来：
- * 1. **投影** —— 面板从画面上"浮"起来，而不是贴着；
- * 2. **垂直渐变底**（上略亮 → 下更深）—— 平色块立刻变"有厚度"；
- * 3. **顶部高光边**（上白下淡的描边渐变）—— iOS 玻璃的标志性细节。
+ * 实测：黑 ≈75% + 背景模糊、圆角 ≈16pt、描边/分隔线白 8%。
  *
- * 另外把不透明度提到 97%：背景漏出来会让面板显脏（参考是 75% + 模糊，
- * 我们没有模糊就不能再透）。
+ * 【为什么不是纯色块】Android 12+ 的 `RenderEffect` 只能模糊**自己这一层**，
+ * 做不出"模糊背后的视频"。所以用三层把质感补出来：
+ * ① 投影（面板从画面上浮起来）② 黑 75% 底（实测值，不再用 v2 的 97% 灰渐变）
+ * ③ 顶部高光 + 白 8% 描边（iOS 玻璃的标志性细节）。
+ *
+ * 【为什么 v2 的 97% 被推翻】v2 怕"背景漏出来显脏"把不透明度拉到 97%，
+ * 结果面板成了一块实心黑贴纸 —— 与参考的通透感正好相反。
+ * 75% 是实测值，脏不脏由**描边和高光**解决，不是靠加黑。
  */
 @Composable
 internal fun Modifier.playerGlassSurface(
@@ -46,25 +43,25 @@ internal fun Modifier.playerGlassSurface(
             spotColor = Color.Black,
             clip = false,
         )
-        .background(
-            brush = Brush.verticalGradient(
-                listOf(PlayerTokens.glassTop, PlayerTokens.glassBottom),
-            ),
-            shape = shape,
-        )
+        .background(PlayerTokens.panelSurface, shape)
         .drawWithContent {
             drawContent()
-            // 顶部高光边：一条"上白下淡"的渐变描边，只画上半段。
+            val corner = CornerRadius(radius.toPx())
+            // 顶部高光：上白下淡，只画上半段。
             drawRoundRect(
                 brush = Brush.verticalGradient(
-                    0f to Color.White.copy(alpha = 0.20f),
-                    0.45f to Color.White.copy(alpha = 0.05f),
-                    1f to Color.White.copy(alpha = 0f),
+                    0f to PlayerTokens.glassSheen,
+                    1f to Color.Transparent,
                     startY = 0f,
-                    endY = size.height * 0.55f,
+                    endY = size.height * 0.5f,
                 ),
                 size = size,
-                cornerRadius = CornerRadius(radius.toPx()),
+                cornerRadius = corner,
+            )
+            drawRoundRect(
+                color = PlayerTokens.panelBorder,
+                size = size,
+                cornerRadius = corner,
                 style = Stroke(width = 1.dp.toPx()),
             )
         }

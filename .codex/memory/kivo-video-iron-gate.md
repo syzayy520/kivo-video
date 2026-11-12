@@ -39,7 +39,14 @@
 
 ## 参考实现的对照纪律
 
-以 REX 1.0.2 真机录屏为基准：
+以 REX 1.0.2 真机录屏为基准（**用户 2026-11-12 拍板：播放页 UI 复刻 REX，前助手版本不满意**）：
+
+- **素材三处**：`C:/Users/Administrator/Pictures/REX 播放UI/`（15 张横屏截图 + 60fps 录屏）、
+  `C:/Users/Administrator/Pictures/REX/rex/rex/`（结构说明书 / 动效全量拆解 / 动效参数表 / 落地包）、
+  仓库蒸馏版 `docs/reference/rex-teardown/`。
+- **iPhone 连着电脑、停在 REX 播放页，用户允许随时看**：
+  `pymobiledevice3 developer dvt screenshot <png>`（约 8s/张）。**不能注入触摸**：
+  手势瞬间请用户操作、助手负责截图。静态拆解里 ❌/◐ 的运行时参数一律以此转 ✅。
 
 - **结构照搬、形态按 Android 重画**（线框图标 vs Material 实心图标）。
 - **数值以像素实测为准**（`tools/measure_rex_player.py`），不靠印象；

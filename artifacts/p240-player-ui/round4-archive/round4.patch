@@ -1,0 +1,900 @@
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerComposeActivity.kt b/android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerComposeActivity.kt
+index 17b9fe25..5d1eb59f 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerComposeActivity.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerComposeActivity.kt
+@@ -86,6 +86,19 @@ class PlayerComposeActivity : ComponentActivity() {
+     private var hudKind by mutableStateOf<com.kivo.cinema.ui.compose.player.PlayerHudKind?>(null)
+     private var hudFraction by mutableStateOf(0f)
+ 
++    // ---- 长按快进（参考 M03-S02）----
++    /** 长按快进是否进行中。 */
++    private var longPressActive by mutableStateOf(false)
++    /** 长按快进的当前速度（标签上显示的就是它）。 */
++    private var longPressSpeed by mutableStateOf(2.0)
++    /** 是否已"上滑锁定"（锁定后松手不恢复速度）。 */
++    private var longPressLocked by mutableStateOf(false)
++    /** 长按前的速度（松手未锁定时恢复成它）。 */
++    private var speedBeforeLongPress by mutableStateOf(1.0)
++    /** 长按起点（用来算拖动位移）。 */
++    private var longPressStartX by mutableStateOf(0f)
++    private var longPressStartY by mutableStateOf(0f)
++
+     /**
+      * 顶栏右侧的实时网速（REX 有这个位置，我们放在动作图标左侧）。
+      *
+@@ -354,6 +367,12 @@ class PlayerComposeActivity : ComponentActivity() {
+ 
+         /** 双击快进/快退的步长（REX M03-S01 的双击热区行为）。 */
+         private const val DOUBLE_TAP_SEEK_MS = 10_000L
++
++        /** 长按快进的起步速度（参考 M03-S02：长按进入快进）。 */
++        private const val LONG_PRESS_BASE_SPEED = 2.0
++
++        /** 上滑锁定的阈值（dp）。参考：Δy ≈ -60pt。 */
++        private const val LOCK_UP_THRESHOLD_DP = 60f
+     }
+ 
+     override fun onCreate(savedInstanceState: Bundle?) {
+@@ -398,12 +417,14 @@ class PlayerComposeActivity : ComponentActivity() {
+                         errorText = if (statusText.contains("失败") || statusText.contains("中断")) statusText else "",
+                         activeAction = activeAction,
+                         panelTitle = panelTitle(),
+-                        panelItems = panelItems(),
++                        panelItems = panelItemsCache,
+                         panelOpen = activePanel.isNotBlank(),
+                         flashZone = flashZone,
+                         toastText = toastText,
+                         hudKind = hudKind,
+                         hudFraction = hudFraction,
++                        longPressSpeedLabel = if (longPressActive) formatSpeed(longPressSpeed) else "",
++                        longPressLocked = longPressLocked,
+                         onClose = { finish() },
+                         onDismissPanel = { activePanel = "" },
+                         onAction = { kind -> onTopAction(kind) },
+@@ -418,12 +439,20 @@ class PlayerComposeActivity : ComponentActivity() {
+                         onPanelSelect = { item -> onPanelSelect(item) },
+                         onTap = {
+                             lastTouchMs = System.currentTimeMillis()
+-                            controlsVisible = !controlsVisible
++                            // 已锁定的快进：点画面 = 解除锁定并恢复原速。
++                            if (longPressLocked) {
++                                unlockLongPress()
++                            } else {
++                                controlsVisible = !controlsVisible
++                            }
+                         },
+                         onDoubleTap = { zone -> onDoubleTap(zone) },
+                         onVerticalDragStart = { x -> onVerticalDragStart(x) },
+                         onVerticalDrag = { dy -> onVerticalDrag(dy) },
+                         onVerticalDragEnd = { onVerticalDragEnd() },
++                        onLongPressStart = { x, y -> onLongPressStart(x, y) },
++                        onLongPressDrag = { x, y -> onLongPressDrag(x, y) },
++                        onLongPressEnd = { onLongPressEnd() },
+                         onRetry = { onRetry() },
+                     )
+ 
+@@ -1497,6 +1526,88 @@ class PlayerComposeActivity : ComponentActivity() {
+         android.os.Handler(mainLooper).postDelayed({ hudKind = null }, 1_000)
+     }
+ 
++    /**
++     * 长按快进**开始**（参考 M03-S02：longPress≥0.5s → 标签淡入）。
++     *
++     * 【为什么进度条区域不响应】底栏的进度条在**手势层之上**，
++     * 长按会抢走它的拖拽 —— 在进度条上长按是"想 seek"，不是"想快进"。
++     * 所以起点落在底部条内就**直接忽略**。
++     */
++    private fun onLongPressStart(x: Float, y: Float) {
++        val h = resources.displayMetrics.heightPixels.toFloat()
++        val bottomBarPx = resources.displayMetrics.density * 96f
++        if (y > h - bottomBarPx) return
++        val mpv = mpvNetSession ?: return
++        speedBeforeLongPress = mpv.currentSpeedOrNull() ?: 1.0
++        longPressStartX = x
++        longPressStartY = y
++        longPressSpeed = LONG_PRESS_BASE_SPEED
++        longPressLocked = false
++        longPressActive = true
++        applySpeed(LONG_PRESS_BASE_SPEED)
++        // 参考：2 次触觉（开始 / 锁定）
++        haptic(android.view.HapticFeedbackConstants.LONG_PRESS)
++    }
++
++    /**
++     * 长按快进**拖动**：
++     * · 左右滑 ⇒ 调速（0.5x…3x）
++     * · 上滑超过阈值 ⇒ **锁定**（松手不恢复速度）
++     */
++    private fun onLongPressDrag(x: Float, y: Float) {
++        if (!longPressActive) return
++        // 上滑锁定（参考：Δy ≈ -60pt）
++        if (!longPressLocked && (longPressStartY - y) >= LOCK_UP_THRESHOLD_DP * resources.displayMetrics.density) {
++            longPressLocked = true
++            haptic(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
++            showToast("已锁定快进 ${formatSpeed(longPressSpeed)}，点按画面解除")
++        }
++        if (longPressLocked) return
++        // 左右滑调速：每 320px 一倍速
++        val delta = (x - longPressStartX) / 320f
++        val next = (LONG_PRESS_BASE_SPEED + delta).coerceIn(0.5, 3.0)
++        if (next != longPressSpeed) {
++            longPressSpeed = next
++            applySpeed(next)
++        }
++    }
++
++    /** 长按快进**结束**：未锁定则恢复原速度；锁定则保持。 */
++    private fun onLongPressEnd() {
++        if (!longPressActive) return
++        longPressActive = false
++        if (!longPressLocked) {
++            applySpeed(speedBeforeLongPress)
++        }
++    }
++
++    /** 解除快进锁定（点按画面时调用）。 */
++    private fun unlockLongPress() {
++        if (!longPressLocked) return
++        longPressLocked = false
++        applySpeed(speedBeforeLongPress)
++        showToast("已解除快进锁定")
++    }
++
++    /** 写速度到内核（失败要有反馈）。 */
++    private fun applySpeed(value: Double) {
++        val mpv = mpvNetSession ?: return
++        if (!mpv.setSpeed(value)) {
++            showToast("快进失败：${mpv.lastError}")
++        }
++    }
++
++    /** 速度标签文本（1.5 / 2 / 2.5 这种干净写法）。 */
++    private fun formatSpeed(value: Double): String {
++        val text = if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
++        return "${text}x"
++    }
++
++    /** 触觉反馈。 */
++    private fun haptic(constant: Int) {
++        runCatching { window.decorView.performHapticFeedback(constant) }
++    }
++
+     /** 读当前的亮度/音量（0..1）。 */
+     private fun currentHudFraction(kind: com.kivo.cinema.ui.compose.player.PlayerHudKind): Float =
+         when (kind) {
+@@ -1573,41 +1684,64 @@ class PlayerComposeActivity : ComponentActivity() {
+     }
+ 
+     /**
+-     * 当前面板的条目。
++     * 当前面板的条目 —— **读缓存**，不在重组时枚举内核。
+      *
+-     * 【数据全部来自内核】面板显示的必须是**真实状态**，
+-     * 不能是 UI 自己记的 —— 否则会出现"面板说 1.5x、实际在 1x"这种骗人的界面。
++     * 【为什么必须缓存】`MpvTrackCatalog.tracks()` **每条轨道要读 9 个 mpv 属性**
++     * （id/type/title/lang/selected/default/codec/external），
++     * 11 条轨道就是 **99 次 JNI 属性读取**，而每次都要拿 mpv 核心锁。
++     * 若在重组里调用（位置轮询 10Hz ⇒ 重组 10Hz），
++     * 就是**每秒近千次内核读取** —— 实测表现：点开音轨/字幕面板**卡好几秒**，
++     * 面板内容也来不及显示（看起来"没有音轨选项"）。
+      */
+-    private fun panelItems(): List<com.kivo.cinema.ui.compose.player.PlayerOptionItem> {
+-        // 【为什么倍速/画质不依赖会话】这两个面板的**条目是静态的**
+-        // （档位列表是常量），只有"当前选中哪个"才需要问内核。
+-        // 如果整张表都等内核，播放器还没起播时面板就是空的 ——
+-        // 用户点"倍速"看到空白面板，比看不到更糟。
+-        when (activePanel) {
+-            "speed" -> return com.kivo.cinema.ui.compose.player.PlayerPanelData.speed(
+-                com.kivo.cinema.ui.compose.player.PlayerPanelData.currentSpeedLabel(mpvNetSession),
+-            )
+-            // 画质比例：当前值从**内核**读（mpv 的 video-aspect-override），
+-            // 不是 UI 自己记的 —— 否则面板显示的比例和实际画面对不上。
+-            "quality" -> return com.kivo.cinema.ui.compose.player.PlayerPanelData.qualities(
+-                readMpvString("video-aspect-override").orEmpty(),
+-            )
+-            // 均衡器：当前值是内核的 `af` 滤镜串。
+-            "equalizer" -> return com.kivo.cinema.ui.compose.player.PlayerPanelData.equalizer(
+-                readMpvString("af").orEmpty(),
+-            )
++    private var panelItemsCache by mutableStateOf<List<com.kivo.cinema.ui.compose.player.PlayerOptionItem>>(emptyList())
++
++    /** 面板条目的最小刷新间隔（ms）。 */
++    private var panelRefreshAt = 0L
++
++    /**
++     * 在**后台线程**重算面板条目。
++     *
++     * 【为什么不放主线程】枚举要读上百个 mpv 属性，而 mpv 属性读取要抢核心锁；
++     * 在主线程做 ⇒ UI 直接卡住。
++     */
++    private fun refreshPanelItems() {
++        val panel = activePanel
++        if (panel.isBlank()) {
++            panelItemsCache = emptyList()
++            return
+         }
+-        val mpv = mpvNetSession ?: return emptyList()
+-        val catalog = mpv.tracksOrNull() ?: return emptyList()
+-        return when (activePanel) {
+-            "audio" -> com.kivo.cinema.ui.compose.player.PlayerPanelData.audioTracks(
+-                catalog.audioTracks(),
+-                catalog.currentTrackId("audio"),
+-            )
+-            "subtitle" -> com.kivo.cinema.ui.compose.player.PlayerPanelData.subtitleTracks(
+-                catalog.subtitleTracks(),
+-                catalog.currentTrackId("sub"),
+-            )
++        val now = System.currentTimeMillis()
++        if (now - panelRefreshAt < 1_500) return
++        panelRefreshAt = now
++        Thread {
++            val items = computePanelItems(panel)
++            runOnUiThread {
++                if (activePanel == panel) panelItemsCache = items
++            }
++        }.start()
++    }
++
++    /** 真正的枚举逻辑 —— **只能在后台线程跑**。 */
++    private fun computePanelItems(
++        panel: String,
++    ): List<com.kivo.cinema.ui.compose.player.PlayerOptionItem> {
++        val data = com.kivo.cinema.ui.compose.player.PlayerPanelData
++        val mpv = mpvNetSession
++        return when (panel) {
++            // 倍速：条目是常量，只要读一次当前速度
++            "speed" -> data.speed(data.currentSpeedLabel(mpv))
++            // 画质比例：当前值从**内核**读（mpv 的 video-aspect-override）
++            "quality" -> data.qualities(readMpvString("video-aspect-override").orEmpty())
++            // 均衡器：当前值是内核的 `af` 滤镜串
++            "equalizer" -> data.equalizer(readMpvString("af").orEmpty())
++            "audio", "subtitle" -> {
++                val catalog = mpv?.tracksOrNull() ?: return emptyList()
++                if (panel == "audio") {
++                    data.audioTracks(catalog.audioTracks(), catalog.currentTrackId("audio"))
++                } else {
++                    data.subtitleTracks(catalog.subtitleTracks(), catalog.currentTrackId("sub"))
++                }
++            }
+             else -> emptyList()
+         }
+     }
+@@ -1620,61 +1754,75 @@ class PlayerComposeActivity : ComponentActivity() {
+             showToast("内核尚未就绪，暂时无法切换")
+             return
+         }
+-        when (activePanel) {
+-            "speed" -> {
+-                val value = com.kivo.cinema.ui.compose.player.PlayerPanelData.speedValue(item.title)
+-                if (value == null) {
+-                    // 档位不合法就**不动**，不猜、不糊弄。
+-                    statusText = "倍速设置失败：${item.title}"
+-                    return
+-                }
+-                if (mpv.setSpeed(value)) {
+-                    flashAction("speed")
++        val panel = activePanel
++        // 【为什么放到后台线程】`mpv_set_property` 是**同步**的：它要拿 mpv 核心锁。
++        // 切字幕轨时内核要**重开字幕流**，这期间核心锁被占着 ——
++        // 在主线程调它，UI 会**卡住好几秒**（用户实测："选择字幕卡了好几秒"）。
++        // 放到后台 ⇒ 主线程不阻塞，面板也不会"假死"。
++        Thread {
++            val error = applyPanelSelection(panel, item, mpv)
++            runOnUiThread {
++                if (error == null) {
+                     activePanel = ""
++                    flashAction(panel)
+                 } else {
+-                    statusText = "倍速设置失败：${mpv.lastError}"
++                    showToast(error)
+                 }
++                refreshPanelItems()
++            }
++        }.start()
++    }
++
++    /**
++     * 把面板里选中的一项写回内核。
++     *
++     * @return null = 成功；否则是给用户看的失败原因。
++     */
++    private fun applyPanelSelection(
++        panel: String,
++        item: com.kivo.cinema.ui.compose.player.PlayerOptionItem,
++        mpv: com.kivo.cinema.playback.MpvPlaybackSession,
++    ): String? {
++        when (panel) {
++            "speed" -> {
++                val value = com.kivo.cinema.ui.compose.player.PlayerPanelData.speedValue(item.title)
++                if (value == null) return "倍速档位不合法：${item.title}"
++                return if (mpv.setSpeed(value)) null else "倍速设置失败：${mpv.lastError}"
+             }
+             "quality" -> {
+-                // 【真写进内核】mpv 的 video-aspect-override 接受
+-                // "16:9"/"4:3"/"2.35:1"/"Original" 这种串（command.c:2998 的输出格式）。
+-                if (writeMpvString("video-aspect-override", item.tag)) {
+-                    flashAction("expand")
+-                    activePanel = ""
++                // mpv 的 video-aspect-override 接受 "16:9"/"4:3"/"2.35:1"/"Original"
++                return if (writeMpvString("video-aspect-override", item.tag)) {
++                    null
+                 } else {
+-                    showToast("画质比例设置失败：${mpv.lastError}")
++                    "画质比例设置失败：${mpv.lastError}"
+                 }
+             }
+             "equalizer" -> {
+-                // mpv 没有内置均衡器，但 `af` 支持 lavfi 桥：
+-                // af=lavfi=[equalizer=f=1000:t=q:w=1:g=6]
+-                if (writeMpvString("af", item.tag)) {
+-                    flashAction("equalizer")
+-                    activePanel = ""
++                // mpv 没有内置均衡器，但 `af` 支持 lavfi 桥
++                return if (writeMpvString("af", item.tag)) {
++                    null
+                 } else {
+-                    showToast("均衡器设置失败：${mpv.lastError}")
++                    "均衡器设置失败：${mpv.lastError}"
+                 }
+             }
+             "audio" -> {
+-                val id = item.tag.toIntOrNull() ?: return
+-                val catalog = mpv.tracksOrNull() ?: return
+-                if (catalog.selectTrack("audio", id)) {
+-                    flashAction("headphones")
+-                    activePanel = ""
++                val id = item.tag.toIntOrNull() ?: return "音轨参数无效"
++                val catalog = mpv.tracksOrNull() ?: return "内核尚未就绪"
++                return if (catalog.selectTrack("audio", id)) {
++                    null
+                 } else {
+-                    statusText = "音轨切换失败：${mpv.lastError}"
++                    "音轨切换失败：${mpv.lastError}"
+                 }
+             }
+             "subtitle" -> {
+-                val id = item.tag.toIntOrNull() ?: return
+-                if (mpv.selectSubtitle(id)) {
+-                    flashAction("captions")
+-                    activePanel = ""
++                val id = item.tag.toIntOrNull() ?: return "字幕参数无效"
++                return if (mpv.selectSubtitle(id)) {
++                    null
+                 } else {
+-                    statusText = "字幕切换失败：${mpv.lastError}"
++                    "字幕切换失败：${mpv.lastError}"
+                 }
+             }
+-            else -> activePanel = ""
++            else -> return null
+         }
+     }
+ 
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBottomBar.kt b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBottomBar.kt
+index 3abb4fa8..09d8251d 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBottomBar.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerBottomBar.kt
+@@ -83,6 +83,9 @@ internal fun PlayerBottomBar(
+             modifier = Modifier
+                 .fillMaxWidth()
+                 .align(Alignment.BottomCenter)
++                // 横向安全区（挖孔/侧边手势区）+ 基础留白：
++                // 参考的底栏也是左右各 66pt，不贴边。
++                .playerSafeArea(androidx.compose.foundation.layout.WindowInsetsSides.Horizontal)
+                 .padding(
+                     start = PlayerTokens.bottomSidePad.dp,
+                     end = PlayerTokens.bottomSidePad.dp,
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureHud.kt b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureHud.kt
+index 7c07acf8..c8dd4725 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureHud.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureHud.kt
+@@ -4,13 +4,17 @@ import androidx.compose.animation.core.animateFloatAsState
+ import androidx.compose.animation.core.tween
+ import androidx.compose.foundation.Canvas
+ import androidx.compose.foundation.background
++import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.layout.Box
+-import androidx.compose.foundation.layout.fillMaxHeight
++import androidx.compose.foundation.layout.Column
++import androidx.compose.foundation.layout.Row
++import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.height
+ import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.layout.size
+ import androidx.compose.foundation.layout.width
+ import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
+ import androidx.compose.runtime.getValue
+ import androidx.compose.ui.Alignment
+@@ -21,19 +25,24 @@ import androidx.compose.ui.geometry.Offset
+ import androidx.compose.ui.geometry.Size
+ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
+ 
+ /**
+  * 上下滑手势的 **HUD**（参考 M03-S03）。
+  *
++ * ## 形态：**中上部的横向药丸**
++ * 第一版做成了"贴边的一条竖杆 + 图标压在中间"，实测很怪 ——
++ * ① 图标压在进度条正中，看起来像装饰而不是数值；
++ * ② 竖杆占了一整条屏幕高度，抢画面。
++ *
++ * 改成 SenPlayer 那种形态：**浮在画面中上部**，一行显示
++ * `[图标]  45%`，下面一条细进度线表示当前值。
++ * 理由：亮度/音量是**数值型**信息，用户要读的是"多少"，不是"占多高"；
++ * 横向药丸不遮画面主体，数字可以直接读出来。
++ *
+  * ## 参考的行为
+  * "滑动→HUD→停止 1s→淡出"，淡入 0.15s / 淡出 0.3s；
+- * **左右分区**：左半屏亮度、右半屏音量；退出要**恢复系统亮度**。
+- *
+- * ## 我们的实现
+- * · HUD 是一条**竖向**的圆角条 + 图标，贴在触发那一侧；
+- * · 停止滑动 1 秒后自动淡出；
+- * · 亮度用**窗口级** `screenBrightness`（不改系统全局亮度，
+- *   免得退出播放器后整台设备都暗着 —— 参考明确要求"退出需恢复系统亮度"）。
++ * 左右分区：左半屏亮度、右半屏音量；退出需恢复系统亮度。
+  */
+ @Composable
+ internal fun PlayerGestureHud(
+@@ -46,47 +55,57 @@ internal fun PlayerGestureHud(
+         animationSpec = tween(150),
+         label = "hudAlpha",
+     )
+-    Box(
++    val percent = (fraction.coerceIn(0f, 1f) * 100).toInt()
++
++    Column(
+         modifier = modifier
+-            .width(92.dp)
+-            .height(200.dp)
+-            .clip(RoundedCornerShape(46.dp))
+-            .background(Color(0x99000000).copy(alpha = Color(0x99000000).alpha * alpha)),
+-        contentAlignment = Alignment.Center,
++            .width(208.dp)
++            .clip(RoundedCornerShape(20.dp))
++            .background(Color(0xB3000000).copy(alpha = Color(0xB3000000).alpha * alpha))
++            .padding(horizontal = 18.dp, vertical = 12.dp),
++        horizontalAlignment = Alignment.CenterHorizontally,
+     ) {
+-        // 竖向进度条
++        Row(
++            verticalAlignment = Alignment.CenterVertically,
++            horizontalArrangement = Arrangement.spacedBy(10.dp),
++        ) {
++            PlayerGlyph(
++                kind = when (kind) {
++                    PlayerHudKind.BRIGHTNESS -> "sun"
++                    PlayerHudKind.VOLUME -> "volume"
++                },
++                color = Color.White.copy(alpha = alpha),
++                modifier = Modifier.size(22.dp),
++            )
++            Text(
++                text = "$percent%",
++                color = Color.White.copy(alpha = alpha),
++                fontSize = 22.sp,
++                maxLines = 1,
++            )
++        }
++        // 细进度线：数值的位置感
+         Canvas(
+             modifier = Modifier
+-                .width(8.dp)
+-                .fillMaxHeight()
+-                .padding(vertical = 18.dp),
++                .fillMaxWidth()
++                .height(3.dp)
++                .padding(top = 8.dp),
+         ) {
+-            val radius = CornerRadius(size.width / 2f)
+-            // 底槽
++            val radius = CornerRadius(size.height / 2f)
+             drawRoundRect(
+                 color = Color.White.copy(alpha = 0.22f * alpha),
+                 topLeft = Offset(0f, 0f),
+                 size = Size(size.width, size.height),
+                 cornerRadius = radius,
+             )
+-            // 已调到的部分（从下往上）
+-            val h = size.height * fraction.coerceIn(0f, 1f)
++            val w = size.width * fraction.coerceIn(0f, 1f)
+             drawRoundRect(
+                 color = Color.White.copy(alpha = 0.92f * alpha),
+-                topLeft = Offset(0f, size.height - h),
+-                size = Size(size.width, h),
++                topLeft = Offset(0f, 0f),
++                size = Size(w, size.height),
+                 cornerRadius = radius,
+             )
+         }
+-        // 图标
+-        PlayerGlyph(
+-            kind = when (kind) {
+-                PlayerHudKind.BRIGHTNESS -> "sun"
+-                PlayerHudKind.VOLUME -> "volume"
+-            },
+-            color = Color.White.copy(alpha = alpha),
+-            modifier = Modifier.size(28.dp),
+-        )
+     }
+ }
+ 
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt
+index 6c707fd8..71d578df 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGestureLayer.kt
+@@ -3,6 +3,7 @@ package com.kivo.cinema.ui.compose.player
+ import androidx.compose.foundation.background
+ import androidx.compose.foundation.gestures.detectTapGestures
+ import androidx.compose.foundation.gestures.detectVerticalDragGestures
++import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+ import androidx.compose.foundation.layout.Box
+ import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.runtime.Composable
+@@ -40,6 +41,9 @@ internal fun PlayerGestureLayer(
+     onVerticalDragStart: (Float) -> Unit = {},
+     onVerticalDrag: (Float) -> Unit = {},
+     onVerticalDragEnd: () -> Unit = {},
++    onLongPressStart: (Float, Float) -> Unit = { _, _ -> },
++    onLongPressDrag: (Float, Float) -> Unit = { _, _ -> },
++    onLongPressEnd: () -> Unit = {},
+     modifier: Modifier = Modifier,
+ ) {
+     // 【为什么必须用 rememberUpdatedState】
+@@ -53,6 +57,9 @@ internal fun PlayerGestureLayer(
+     val currentDragStart by rememberUpdatedState(onVerticalDragStart)
+     val currentDrag by rememberUpdatedState(onVerticalDrag)
+     val currentDragEnd by rememberUpdatedState(onVerticalDragEnd)
++    val currentLongPressStart by rememberUpdatedState(onLongPressStart)
++    val currentLongPressDrag by rememberUpdatedState(onLongPressDrag)
++    val currentLongPressEnd by rememberUpdatedState(onLongPressEnd)
+ 
+     Box(
+         modifier = modifier
+@@ -86,6 +93,24 @@ internal fun PlayerGestureLayer(
+                         currentOnDoubleTap(zone)
+                     },
+                 )
++            }
++            // 【长按快进】参考 M03-S02：longPress≥0.5s → 标签淡入 → 左右滑调速
++            // → 上滑(Δy≈-60pt)锁定 → 松手恢复。
++            // 放在**最后**：它与前两个检测器共享同一批事件，
++            // 谁先消费谁生效 —— 竖向拖动与长按拖动都消费移动，
++            // 彼此互斥；单击/双击不消费移动，所以长按不会打断它们。
++            .pointerInput(Unit) {
++                detectDragGesturesAfterLongPress(
++                    onDragStart = { offset ->
++                        currentLongPressStart(offset.x, offset.y)
++                    },
++                    onDragEnd = { currentLongPressEnd() },
++                    onDragCancel = { currentLongPressEnd() },
++                    onDrag = { change, dragAmount ->
++                        change.consume()
++                        currentLongPressDrag(change.position.x, change.position.y)
++                    },
++                )
+             },
+     )
+ }
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt
+index 82327b6a..869379e6 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerGlyphFeature.kt
+@@ -35,77 +35,85 @@ import androidx.compose.ui.graphics.drawscope.rotate
+ internal fun DrawScope.drawFeatureGlyph(kind: String, color: Color, stroke: Stroke) {
+     when (kind) {
+         // ---- 场记板（画质比例）----
+-        // 顶板斜着上翘 + 4 道斜条纹 + 下方圆角机身
++        // 斜顶板 + 4 道斜条纹 + 下方圆角机身（带一道"铰链"横线）
+         "clapper" -> {
+-            rotate(degrees = -11f, pivot = Offset(12f, 9f)) {
++            rotate(degrees = -13f, pivot = Offset(12f, 10.5f)) {
+                 drawRoundRect(
+                     color = color,
+-                    topLeft = Offset(3.2f, 4.6f),
+-                    size = Size(17.6f, 5.2f),
+-                    cornerRadius = CornerRadius(1.2f),
++                    topLeft = Offset(3.0f, 5.0f),
++                    size = Size(18.0f, 5.4f),
++                    cornerRadius = CornerRadius(1.0f),
+                     style = stroke,
+                 )
+-                // 条纹：4 道斜杠
+-                var x = 6.2f
+-                while (x < 19f) {
++                // 条纹：4 道斜杠（与参考一致的方向）
++                var x = 6.6f
++                while (x < 19.6f) {
+                     drawLine(
+                         color = color,
+-                        start = Offset(x, 5.1f),
+-                        end = Offset(x - 2.2f, 9.3f),
++                        start = Offset(x, 5.6f),
++                        end = Offset(x - 2.4f, 9.8f),
+                         strokeWidth = stroke.width,
+                         cap = StrokeCap.Round,
+                     )
+-                    x += 3.6f
++                    x += 3.8f
+                 }
+             }
+             // 机身
+             drawRoundRect(
+                 color = color,
+-                topLeft = Offset(3.2f, 10.4f),
+-                size = Size(17.6f, 10.2f),
++                topLeft = Offset(3.0f, 11.4f),
++                size = Size(18.0f, 9.8f),
+                 cornerRadius = CornerRadius(1.8f),
+                 style = stroke,
+             )
++            // 铰链横线
++            drawLine(
++                color = color,
++                start = Offset(3.4f, 14.6f),
++                end = Offset(20.6f, 14.6f),
++                strokeWidth = stroke.width,
++                cap = StrokeCap.Round,
++            )
+         }
+ 
+         // ---- 圈内双向箭头（画面缩放）----
+-        // 圆 + 左上一支朝左上的箭头 + 右下一支朝右下的箭头（带杆，不是小三角）
++        // 圆 + 两支**长**箭头（左上 / 右下），带完整箭杆与箭头
+         "expand" -> {
+             drawCircle(
+                 color = color,
+-                radius = 9.4f,
++                radius = 9.6f,
+                 center = Offset(12f, 12f),
+                 style = stroke,
+             )
+             // 左上箭头
+-            drawLine(color, Offset(10.5f, 9.6f), Offset(7.5f, 6.6f), stroke.width, StrokeCap.Round)
+-            drawLine(color, Offset(7.5f, 6.6f), Offset(9.8f, 7.0f), stroke.width, StrokeCap.Round)
+-            drawLine(color, Offset(7.5f, 6.6f), Offset(7.1f, 8.9f), stroke.width, StrokeCap.Round)
++            drawLine(color, Offset(13.3f, 10.7f), Offset(8.1f, 5.5f), stroke.width, StrokeCap.Round)
++            drawLine(color, Offset(8.1f, 5.5f), Offset(10.6f, 5.8f), stroke.width, StrokeCap.Round)
++            drawLine(color, Offset(8.1f, 5.5f), Offset(7.8f, 8.0f), stroke.width, StrokeCap.Round)
+             // 右下箭头
+-            drawLine(color, Offset(13.5f, 14.4f), Offset(16.5f, 17.4f), stroke.width, StrokeCap.Round)
+-            drawLine(color, Offset(16.5f, 17.4f), Offset(14.2f, 17.0f), stroke.width, StrokeCap.Round)
+-            drawLine(color, Offset(16.5f, 17.4f), Offset(16.9f, 15.1f), stroke.width, StrokeCap.Round)
++            drawLine(color, Offset(10.7f, 13.3f), Offset(15.9f, 18.5f), stroke.width, StrokeCap.Round)
++            drawLine(color, Offset(15.9f, 18.5f), Offset(13.4f, 18.2f), stroke.width, StrokeCap.Round)
++            drawLine(color, Offset(15.9f, 18.5f), Offset(16.2f, 16.0f), stroke.width, StrokeCap.Round)
+         }
+ 
+         // ---- 圈内波形条（均衡器）----
+-        // 圆 + 5 根高低不等的竖条（中间最高）
++        // 圆 + 5 根高低不等的竖条（中间最高，参考的排布）
+         "equalizer" -> {
+             drawCircle(
+                 color = color,
+-                radius = 9.4f,
++                radius = 9.6f,
+                 center = Offset(12f, 12f),
+                 style = stroke,
+             )
+-            val heights = listOf(4.2f, 7.4f, 10.2f, 7.0f, 4.0f)
++            val heights = listOf(3.8f, 6.8f, 9.6f, 7.4f, 4.2f)
+             var i = 0
+             while (i < heights.size) {
+-                val x = 7.6f + i * 2.2f
++                val x = 7.8f + i * 2.1f
+                 val h = heights[i]
+                 drawLine(
+                     color = color,
+                     start = Offset(x, 12f - h / 2f),
+                     end = Offset(x, 12f + h / 2f),
+-                    strokeWidth = stroke.width * 1.15f,
++                    strokeWidth = stroke.width * 1.2f,
+                     cap = StrokeCap.Round,
+                 )
+                 i++
+@@ -113,28 +121,29 @@ internal fun DrawScope.drawFeatureGlyph(kind: String, color: Color, stroke: Stro
+         }
+ 
+         // ---- 对话气泡（字幕）----
+-        // 圆角矩形 + 左下小尾巴 + 两行横线（上行长、下行两段短）
++        // 宽圆角气泡 + 左下小尾巴 + 三行文字（一长两短，像一段字幕）
+         "captions" -> {
+             val bubble = Path().apply {
+-                moveTo(4.4f, 5.2f)
+-                lineTo(19.6f, 5.2f)
+-                quadraticTo(21.2f, 5.2f, 21.2f, 6.8f)
+-                lineTo(21.2f, 15.4f)
+-                quadraticTo(21.2f, 17.0f, 19.6f, 17.0f)
+-                lineTo(10.2f, 17.0f)
+-                lineTo(7.4f, 20.2f)   // 尾巴
+-                lineTo(7.4f, 17.0f)
+-                lineTo(4.4f, 17.0f)
+-                quadraticTo(2.8f, 17.0f, 2.8f, 15.4f)
+-                lineTo(2.8f, 6.8f)
+-                quadraticTo(2.8f, 5.2f, 4.4f, 5.2f)
++                moveTo(4.2f, 5.4f)
++                lineTo(19.8f, 5.4f)
++                quadraticTo(21.4f, 5.4f, 21.4f, 7.0f)
++                lineTo(21.4f, 14.8f)
++                quadraticTo(21.4f, 16.4f, 19.8f, 16.4f)
++                lineTo(9.6f, 16.4f)
++                lineTo(6.8f, 19.6f)   // 尾巴
++                lineTo(6.8f, 16.4f)
++                lineTo(4.2f, 16.4f)
++                quadraticTo(2.6f, 16.4f, 2.6f, 14.8f)
++                lineTo(2.6f, 7.0f)
++                quadraticTo(2.6f, 5.4f, 4.2f, 5.4f)
+                 close()
+             }
+             drawPath(bubble, color, style = stroke)
+-            // 两行横线
+-            drawLine(color, Offset(6.4f, 9.4f), Offset(17.6f, 9.4f), stroke.width, StrokeCap.Round)
+-            drawLine(color, Offset(6.4f, 12.6f), Offset(12.6f, 12.6f), stroke.width, StrokeCap.Round)
+-            drawLine(color, Offset(14.6f, 12.6f), Offset(17.6f, 12.6f), stroke.width, StrokeCap.Round)
++            // 三行"文字"
++            drawLine(color, Offset(5.6f, 8.8f), Offset(18.4f, 8.8f), stroke.width, StrokeCap.Round)
++            drawLine(color, Offset(5.6f, 11.4f), Offset(12.4f, 11.4f), stroke.width, StrokeCap.Round)
++            drawLine(color, Offset(14.4f, 11.4f), Offset(18.4f, 11.4f), stroke.width, StrokeCap.Round)
++            drawLine(color, Offset(5.6f, 14.0f), Offset(10.4f, 14.0f), stroke.width, StrokeCap.Round)
+         }
+ 
+         // ---- 耳机（音轨）----
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerOverlay.kt b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerOverlay.kt
+index e416abbd..59a2183e 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerOverlay.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerOverlay.kt
+@@ -62,6 +62,8 @@ internal fun PlayerOverlay(
+     toastText: String,
+     hudKind: PlayerHudKind?,
+     hudFraction: Float,
++    longPressSpeedLabel: String,
++    longPressLocked: Boolean,
+     onClose: () -> Unit,
+     onDismissPanel: () -> Unit,
+     onAction: (String) -> Unit,
+@@ -76,6 +78,9 @@ internal fun PlayerOverlay(
+     onVerticalDragStart: (Float) -> Unit,
+     onVerticalDrag: (Float) -> Unit,
+     onVerticalDragEnd: () -> Unit,
++    onLongPressStart: (Float, Float) -> Unit,
++    onLongPressDrag: (Float, Float) -> Unit,
++    onLongPressEnd: () -> Unit,
+     onRetry: () -> Unit,
+     modifier: Modifier = Modifier,
+ ) {
+@@ -89,6 +94,9 @@ internal fun PlayerOverlay(
+             onVerticalDragStart = onVerticalDragStart,
+             onVerticalDrag = onVerticalDrag,
+             onVerticalDragEnd = onVerticalDragEnd,
++            onLongPressStart = onLongPressStart,
++            onLongPressDrag = onLongPressDrag,
++            onLongPressEnd = onLongPressEnd,
+         )
+ 
+         // ---- 字幕层（在底栏**之上**，两者不相交）----
+@@ -176,20 +184,25 @@ internal fun PlayerOverlay(
+             )
+         }
+ 
++        // ---- 长按快进的速度标签（参考 M03-S02）----
++        PlayerLongPressHud(
++            speedLabel = longPressSpeedLabel,
++            locked = longPressLocked,
++            modifier = Modifier.align(Alignment.Center),
++        )
++
+         // ---- 亮度/音量 HUD（参考 M03-S03）----
++        // 【为什么在"中上部"而不是贴边】第一版做成贴右边的竖杆，
++        // 实机很怪：图标压在杆子正中像装饰、竖杆又抢了半条画面。
++        // 改成中上部的横向药丸（图标 + 数字百分比 + 细进度线）——
++        // 亮度/音量是**数值型**信息，用户要读的是"多少"，不是"占多高"。
+         if (hudKind != null) {
+             PlayerGestureHud(
+                 kind = hudKind,
+                 fraction = hudFraction,
+                 modifier = Modifier
+-                    .align(
+-                        if (hudKind == PlayerHudKind.BRIGHTNESS) {
+-                            Alignment.CenterStart
+-                        } else {
+-                            Alignment.CenterEnd
+-                        },
+-                    )
+-                    .padding(horizontal = 36.dp),
++                    .align(Alignment.TopCenter)
++                    .padding(top = PlayerTokens.topBarHeight.dp + 14.dp),
+             )
+         }
+ 
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt
+index a494ab18..3692a080 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTokens.kt
+@@ -65,8 +65,18 @@ object PlayerTokens {
+     /** 顶栏高度。 */
+     const val topBarHeight = 44f
+ 
+-    /** 底栏左右留白。 */
+-    const val bottomSidePad = 19f
++    /**
++     * 底栏左右留白（dp）。
++     *
++     * 【为什么是 24 而不是更小】参考的 chrome 全部按安全区内缩
++     * **66pt**（实测：顶栏 ✕ 左边缘 65.7pt、最右图标右边缘 778pt），
++     * **一条都不贴边**。我们把安全区（挖孔 + 侧边手势区）交给
++     * [playerSafeArea]，这里再加**基础留白**，保证在任何设备上都不贴边。
++     */
++    const val bottomSidePad = 24f
++
++    /** 顶栏左右留白（dp）。同 [bottomSidePad] 的理由。 */
++    const val topSidePad = 24f
+ 
+     /** 进度条厚度。 */
+     const val trackHeight = 3.5f
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTopBar.kt b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTopBar.kt
+index 9fb0c5dd..b11d76b4 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTopBar.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerTopBar.kt
+@@ -74,9 +74,11 @@ internal fun PlayerTopBar(
+             modifier = Modifier
+                 .fillMaxWidth()
+                 .align(Alignment.CenterStart)
+-                // 挖孔安全区（刘海/摄像头在左上角，返回按钮不能压在下面）
++                // 安全区（挖孔 + 侧边手势区）+ 基础留白
++                // 【为什么不再贴边】参考的 chrome 全部按安全区内缩 66pt，
++                // 实测最右图标右边缘在 778pt（屏宽 844pt）—— 一条都不贴边。
+                 .playerSafeArea()
+-                .padding(horizontal = 12.dp),
++                .padding(horizontal = PlayerTokens.topSidePad.dp),
+             verticalAlignment = Alignment.CenterVertically,
+         ) {
+             // ---- 返回 ----
+diff --git a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerWindow.kt b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerWindow.kt
+index 2fc9f8ab..3e1eae57 100644
+--- a/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerWindow.kt
++++ b/android/app/src/main/java/com/kivo/cinema/ui/compose/player/PlayerWindow.kt
+@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.asPaddingValues
+ import androidx.compose.foundation.layout.displayCutout
+ import androidx.compose.foundation.layout.only
+ import androidx.compose.foundation.layout.padding
++import androidx.compose.foundation.layout.safeDrawing
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.composed
+@@ -63,20 +64,26 @@ fun applyImmersivePlayerWindow(activity: Activity) {
+ }
+ 
+ /**
+- * 给控件加上**挖孔安全区**的内边距。
++ * 给控件加上**安全区**的内边距（系统栏手势区 + 刘海/挖孔）。
+  *
+- * 【为什么只避让挖孔，不避让系统栏】
+- * 系统栏已经隐藏了（见 [applyImmersivePlayerWindow]）；
+- * 而 `safeDrawing` 在系统栏**唤出瞬间**会变 ⇒ 控件会跳。
+- * 挖孔位置是**固定的** ⇒ 只用它，布局稳定。
++ * 【为什么参考是 66pt，我们不是】
++ * REX（iOS）的 chrome 全部按 **safe area** 内缩 66pt ——
++ * 实测：顶栏 ✕ 左边缘 65.7pt、最右图标右边缘 778pt（844-778=66pt），
++ * 底栏同样左右各 66pt（66.7 / 779.7）。
++ * 换算到 Android：等价物就是 **刘海/挖孔 + 侧边手势区**，
++ * 所以这里用 [WindowInsets.safeDrawing]。
+  *
+- * @param sides 要避让哪几边（默认左右 + 上；底部由 [PlayerTokens.bottomSidePad] 负责）。
++ * 【只用 safeDrawing 的横向 + 顶部】
++ * 横向（侧边手势区/挖孔）与顶部（挖孔）在横屏下**位置固定**；
++ * 而底部的系统栏 inset 在系统栏**唤出的瞬间**会变 —— 用它会让控件跳一下。
++ *
++ * @param sides 要避让哪几边。
+  */
+ fun Modifier.playerSafeArea(
+     sides: WindowInsetsSides = WindowInsetsSides.Horizontal + WindowInsetsSides.Top,
+ ): Modifier = composed {
+     val direction = LocalLayoutDirection.current
+-    val padding = WindowInsets.displayCutout.only(sides).asPaddingValues()
++    val padding = WindowInsets.safeDrawing.only(sides).asPaddingValues()
+     val start = if (direction == LayoutDirection.Ltr) {
+         padding.calculateLeftPadding(direction)
+     } else {

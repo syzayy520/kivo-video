@@ -37,6 +37,7 @@
 <activity
             android:name=".ui.compose.PlayerComposeActivity"
             android:screenOrientation="landscape"
+            android:supportsPictureInPicture="true"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation"
             android:exported="true" />
         <activity

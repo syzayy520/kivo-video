@@ -2,14 +2,129 @@
   "schema_version": "p2-redline-gate-result-v1",
   "task_id": "P2-REDLINE-GATE-FOUNDATION",
   "scan_mode": "delivery",
-  "classification": "PASS",
-  "files_scanned": 2315,
-  "violations_count": 0,
-  "violations_by_rule": {},
-  "violations": [],
+  "classification": "FAIL",
+  "files_scanned": 2717,
+  "violations_count": 14,
+  "violations_by_rule": {
+    "R4": 14
+  },
+  "violations": [
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\.workbuddy-ai\\memory\\2026-11-08.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\.workbuddy-ai\\memory\\2026-11-10.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\backend-core\\224-emby-design.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\backend-core\\236-ui-align-rex-design.md",
+      "field_path": "content",
+      "message": "credential matched: /home/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\backend-core\\239-home-rewrite.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\backend-core\\243-smb-rebuild-design.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\backend-core\\home\\2026-11-08-layered-scroll.md",
+      "field_path": "content",
+      "message": "credential matched: /home/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\backend-core\\home\\2026-11-08-takeover.md",
+      "field_path": "content",
+      "message": "credential matched: /home/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\ui\\replica\\detail-media-motion.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\ui\\replica\\hero-transition.md",
+      "field_path": "content",
+      "message": "credential matched: /home/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\ui\\replica\\roadmap.md",
+      "field_path": "content",
+      "message": "credential matched: /home/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\handoff\\HANDOFF-P3-detail.md",
+      "field_path": "content",
+      "message": "credential matched: /home/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\handoff\\TASKS.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\handoff\\prompt-claude-hero-ambient.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    }
+  ],
   "schema_failures": [],
   "legacy_inventory": "backend/tools/governance/redline_gate/artifacts/legacy_evidence_violations.json",
   "allowed_claims": [],
   "forbidden_claims": [],
-  "timestamp_utc": "2026-11-01T11:45:50Z"
+  "timestamp_utc": "2026-11-11T11:05:26Z"
 }

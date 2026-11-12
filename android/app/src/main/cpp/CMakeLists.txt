@@ -488,6 +488,8 @@ if(EXISTS "${KIVO_MPV_PREBUILT}/libmpv.so")
         "mpv/mpv_event_loop.cpp"
         "mpv/mpv_commands.cpp"
         "mpv/mpv_gl_render.cpp"
+        "mpv/mpv_gl_capture.cpp"
+        "mpv/mpv_egl_surface.cpp"
         "mpv/mpv_java_vm.cpp"
         "mpv/mpv_options.cpp"
         "mpv/mpv_session_table.cpp"

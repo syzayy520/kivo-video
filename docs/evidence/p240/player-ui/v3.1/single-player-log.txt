@@ -1,0 +1,14 @@
+11-12 10:21:57.473 24811 25103 D AudioTrack: set(sessionId=0), mcallback is 1
+11-12 10:21:57.473 24811 25103 D AudioTrack: set(): streamType -1, sampleRate 48000, format 0x1, channelMask 0x3f, frameCount 7200, flags #0, notificationFrames 0, sessionId 0, transferType 3, uid -1, pid -1
+11-12 10:21:57.473 24811 25103 D AudioTrack: set(): Force direct flag , flags(0x8) channelMask(0x3f)
+11-12 10:21:57.536 24811 25103 D AudioTrack: start(732): prior state:STATE_STOPPED
+11-12 10:22:01.366 24811 25101 D AudioTrack: stop(sessionID=2993)
+11-12 10:22:01.366 24811 25101 D AudioTrack: stop(732): prior state:STATE_FLUSHED
+11-12 10:22:01.367 24811 25101 D AudioTrack: stop(sessionID=2993)
+11-12 10:22:01.367 24811 25101 D AudioTrack: stop(732): prior state:STATE_FLUSHED
+11-12 10:22:01.369 24811 25101 D AudioTrack: stop(sessionID=2993)
+11-12 10:22:01.369 24811 25101 D AudioTrack: stop(732): prior state:STATE_FLUSHED
+11-12 10:22:04.130 24811 25187 D AudioTrack: set(sessionId=0), mcallback is 1
+11-12 10:22:04.130 24811 25187 D AudioTrack: set(): streamType -1, sampleRate 48000, format 0x1, channelMask 0x3f, frameCount 7200, flags #0, notificationFrames 0, sessionId 0, transferType 3, uid -1, pid -1
+11-12 10:22:04.130 24811 25187 D AudioTrack: set(): Force direct flag , flags(0x8) channelMask(0x3f)
+11-12 10:22:04.193 24811 25187 D AudioTrack: start(735): prior state:STATE_STOPPED

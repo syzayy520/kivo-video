@@ -2,7 +2,6 @@ package com.kivo.cinema.ui.compose.player
 
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -22,10 +21,10 @@ import androidx.compose.ui.graphics.drawscope.rotate
  * | --- | --- | --- |
  * | 场记板 | 画质比例 | 斜顶板 + 斜条纹 + 矩形机身 |
  * | 圈内双向箭头 | 画面缩放 | 圆 + 左上/右下两支箭头 |
- * | 圈内波形条 | 均衡器 | 圆 + 5 根高低不等的竖条 |
+ * | 圈内波形条 | 音轨 | 圆 + 5 根高低不等的竖条 |
  * | 对话气泡 | 字幕 | 圆角气泡（左下小尾巴）+ 两行横线 |
- * | 耳机 | 音轨 | 圆弧头梁 + 两只耳罩 |
- * | AirPlay | 投屏 | 屏幕圆角框 + 实心三角 |
+ * | 耳机 | 听视频 | 圆弧头梁 + 两只耳罩 |
+ * | 投屏（DLNA） | 投屏 | 屏幕圆角框 + 左下信号弧 + 圆点（v3.1 替代 AirPlay） |
  * | 画中画 | PiP | 屏幕框 + 左上斜箭头 + 右下实心小方块 |
  * | 弹（圈内） | 弹幕 | 开口的圆 + 汉字"弹" |
  *
@@ -35,77 +34,85 @@ import androidx.compose.ui.graphics.drawscope.rotate
 internal fun DrawScope.drawFeatureGlyph(kind: String, color: Color, stroke: Stroke) {
     when (kind) {
         // ---- 场记板（画质比例）----
-        // 顶板斜着上翘 + 4 道斜条纹 + 下方圆角机身
+        // 斜顶板 + 4 道斜条纹 + 下方圆角机身（带一道"铰链"横线）
         "clapper" -> {
-            rotate(degrees = -11f, pivot = Offset(12f, 9f)) {
+            rotate(degrees = -13f, pivot = Offset(12f, 10.5f)) {
                 drawRoundRect(
                     color = color,
-                    topLeft = Offset(3.2f, 4.6f),
-                    size = Size(17.6f, 5.2f),
-                    cornerRadius = CornerRadius(1.2f),
+                    topLeft = Offset(3.0f, 5.0f),
+                    size = Size(18.0f, 5.4f),
+                    cornerRadius = CornerRadius(1.0f),
                     style = stroke,
                 )
-                // 条纹：4 道斜杠
-                var x = 6.2f
-                while (x < 19f) {
+                // 条纹：4 道斜杠（与参考一致的方向）
+                var x = 6.6f
+                while (x < 19.6f) {
                     drawLine(
                         color = color,
-                        start = Offset(x, 5.1f),
-                        end = Offset(x - 2.2f, 9.3f),
+                        start = Offset(x, 5.6f),
+                        end = Offset(x - 2.4f, 9.8f),
                         strokeWidth = stroke.width,
                         cap = StrokeCap.Round,
                     )
-                    x += 3.6f
+                    x += 3.8f
                 }
             }
             // 机身
             drawRoundRect(
                 color = color,
-                topLeft = Offset(3.2f, 10.4f),
-                size = Size(17.6f, 10.2f),
+                topLeft = Offset(3.0f, 11.4f),
+                size = Size(18.0f, 9.8f),
                 cornerRadius = CornerRadius(1.8f),
                 style = stroke,
+            )
+            // 铰链横线
+            drawLine(
+                color = color,
+                start = Offset(3.4f, 14.6f),
+                end = Offset(20.6f, 14.6f),
+                strokeWidth = stroke.width,
+                cap = StrokeCap.Round,
             )
         }
 
         // ---- 圈内双向箭头（画面缩放）----
-        // 圆 + 左上一支朝左上的箭头 + 右下一支朝右下的箭头（带杆，不是小三角）
+        // 圆 + 两支**长**箭头（左上 / 右下），带完整箭杆与箭头
         "expand" -> {
             drawCircle(
                 color = color,
-                radius = 9.4f,
+                radius = 9.6f,
                 center = Offset(12f, 12f),
                 style = stroke,
             )
             // 左上箭头
-            drawLine(color, Offset(10.5f, 9.6f), Offset(7.5f, 6.6f), stroke.width, StrokeCap.Round)
-            drawLine(color, Offset(7.5f, 6.6f), Offset(9.8f, 7.0f), stroke.width, StrokeCap.Round)
-            drawLine(color, Offset(7.5f, 6.6f), Offset(7.1f, 8.9f), stroke.width, StrokeCap.Round)
+            drawLine(color, Offset(13.3f, 10.7f), Offset(8.1f, 5.5f), stroke.width, StrokeCap.Round)
+            drawLine(color, Offset(8.1f, 5.5f), Offset(10.6f, 5.8f), stroke.width, StrokeCap.Round)
+            drawLine(color, Offset(8.1f, 5.5f), Offset(7.8f, 8.0f), stroke.width, StrokeCap.Round)
             // 右下箭头
-            drawLine(color, Offset(13.5f, 14.4f), Offset(16.5f, 17.4f), stroke.width, StrokeCap.Round)
-            drawLine(color, Offset(16.5f, 17.4f), Offset(14.2f, 17.0f), stroke.width, StrokeCap.Round)
-            drawLine(color, Offset(16.5f, 17.4f), Offset(16.9f, 15.1f), stroke.width, StrokeCap.Round)
+            drawLine(color, Offset(10.7f, 13.3f), Offset(15.9f, 18.5f), stroke.width, StrokeCap.Round)
+            drawLine(color, Offset(15.9f, 18.5f), Offset(13.4f, 18.2f), stroke.width, StrokeCap.Round)
+            drawLine(color, Offset(15.9f, 18.5f), Offset(16.2f, 16.0f), stroke.width, StrokeCap.Round)
         }
 
-        // ---- 圈内波形条（均衡器）----
-        // 圆 + 5 根高低不等的竖条（中间最高）
-        "equalizer" -> {
+        // ---- 圈内波形条（音轨，REX 0162）----
+        // 圆 + 5 根高低不等的竖条。条宽必须小于条距，否则糊成一团实心。
+        "audio" -> {
             drawCircle(
                 color = color,
-                radius = 9.4f,
+                radius = 9.6f,
                 center = Offset(12f, 12f),
                 style = stroke,
             )
-            val heights = listOf(4.2f, 7.4f, 10.2f, 7.0f, 4.0f)
+            val heights = listOf(3.8f, 6.8f, 9.6f, 7.4f, 4.2f)
             var i = 0
             while (i < heights.size) {
-                val x = 7.6f + i * 2.2f
+                val x = 7.8f + i * 2.1f
                 val h = heights[i]
                 drawLine(
                     color = color,
                     start = Offset(x, 12f - h / 2f),
                     end = Offset(x, 12f + h / 2f),
-                    strokeWidth = stroke.width * 1.15f,
+                    strokeWidth = stroke.width * 0.75f,
                     cap = StrokeCap.Round,
                 )
                 i++
@@ -113,33 +120,34 @@ internal fun DrawScope.drawFeatureGlyph(kind: String, color: Color, stroke: Stro
         }
 
         // ---- 对话气泡（字幕）----
-        // 圆角矩形 + 左下小尾巴 + 两行横线（上行长、下行两段短）
+        // 宽圆角气泡 + 左下小尾巴 + 三行文字（一长两短，像一段字幕）
         "captions" -> {
             val bubble = Path().apply {
-                moveTo(4.4f, 5.2f)
-                lineTo(19.6f, 5.2f)
-                quadraticTo(21.2f, 5.2f, 21.2f, 6.8f)
-                lineTo(21.2f, 15.4f)
-                quadraticTo(21.2f, 17.0f, 19.6f, 17.0f)
-                lineTo(10.2f, 17.0f)
-                lineTo(7.4f, 20.2f)   // 尾巴
-                lineTo(7.4f, 17.0f)
-                lineTo(4.4f, 17.0f)
-                quadraticTo(2.8f, 17.0f, 2.8f, 15.4f)
-                lineTo(2.8f, 6.8f)
-                quadraticTo(2.8f, 5.2f, 4.4f, 5.2f)
+                moveTo(4.2f, 5.4f)
+                lineTo(19.8f, 5.4f)
+                quadraticTo(21.4f, 5.4f, 21.4f, 7.0f)
+                lineTo(21.4f, 14.8f)
+                quadraticTo(21.4f, 16.4f, 19.8f, 16.4f)
+                lineTo(9.6f, 16.4f)
+                lineTo(6.8f, 19.6f)   // 尾巴
+                lineTo(6.8f, 16.4f)
+                lineTo(4.2f, 16.4f)
+                quadraticTo(2.6f, 16.4f, 2.6f, 14.8f)
+                lineTo(2.6f, 7.0f)
+                quadraticTo(2.6f, 5.4f, 4.2f, 5.4f)
                 close()
             }
             drawPath(bubble, color, style = stroke)
-            // 两行横线
-            drawLine(color, Offset(6.4f, 9.4f), Offset(17.6f, 9.4f), stroke.width, StrokeCap.Round)
-            drawLine(color, Offset(6.4f, 12.6f), Offset(12.6f, 12.6f), stroke.width, StrokeCap.Round)
-            drawLine(color, Offset(14.6f, 12.6f), Offset(17.6f, 12.6f), stroke.width, StrokeCap.Round)
+            // 三行"文字"
+            drawLine(color, Offset(5.6f, 8.8f), Offset(18.4f, 8.8f), stroke.width, StrokeCap.Round)
+            drawLine(color, Offset(5.6f, 11.4f), Offset(12.4f, 11.4f), stroke.width, StrokeCap.Round)
+            drawLine(color, Offset(14.4f, 11.4f), Offset(18.4f, 11.4f), stroke.width, StrokeCap.Round)
+            drawLine(color, Offset(5.6f, 14.0f), Offset(10.4f, 14.0f), stroke.width, StrokeCap.Round)
         }
 
-        // ---- 耳机（音轨）----
+        // ---- 耳机（听视频，REX 0172）----
         // 圆弧头梁 + 两只实心耳罩
-        "headphones" -> {
+        "audioMode" -> {
             // 头梁：上半圆弧
             val band = Path().apply {
                 moveTo(4.2f, 13.6f)
@@ -162,28 +170,41 @@ internal fun DrawScope.drawFeatureGlyph(kind: String, color: Color, stroke: Stro
             )
         }
 
-        // ---- AirPlay（投屏）----
-        // 屏幕圆角框（缺口在底部）+ 实心三角
-        "airplay" -> {
+        // ---- 投屏（DLNA，v3.1 替代 AirPlay）----
+        // 屏幕圆角框（左下留缺口）+ 左下两道信号弧 + 实心圆点。
+        // 不用 Apple 的实心三角符号：AirPlay 是专有协议，Android 不支持，整条已移除。
+        "cast" -> {
             val screen = Path().apply {
-                moveTo(3.2f, 4.6f)
-                lineTo(20.8f, 4.6f)
-                lineTo(20.8f, 15.0f)
-                lineTo(15.6f, 15.0f)
-                lineTo(12f, 18.2f)
-                lineTo(8.4f, 15.0f)
-                lineTo(3.2f, 15.0f)
-                close()
+                moveTo(6.6f, 16.6f)
+                lineTo(19.4f, 16.6f)
+                quadraticTo(21.2f, 16.6f, 21.2f, 14.8f)
+                lineTo(21.2f, 6.4f)
+                quadraticTo(21.2f, 4.6f, 19.4f, 4.6f)
+                lineTo(4.6f, 4.6f)
+                quadraticTo(2.8f, 4.6f, 2.8f, 6.4f)
+                lineTo(2.8f, 10.4f)
             }
             drawPath(screen, color, style = stroke)
-            // 实心三角（投屏符号）
-            val tri = Path().apply {
-                moveTo(12f, 8.0f)
-                lineTo(16.4f, 13.0f)
-                lineTo(7.6f, 13.0f)
-                close()
-            }
-            drawPath(tri, color)
+            // 信号弧：以左下角为心的两段四分之一弧
+            drawArc(
+                color = color,
+                startAngle = -90f,
+                sweepAngle = 90f,
+                useCenter = false,
+                topLeft = Offset(4.6f - 3.4f, 19.4f - 3.4f),
+                size = Size(6.8f, 6.8f),
+                style = stroke,
+            )
+            drawArc(
+                color = color,
+                startAngle = -90f,
+                sweepAngle = 90f,
+                useCenter = false,
+                topLeft = Offset(4.6f - 6.4f, 19.4f - 6.4f),
+                size = Size(12.8f, 12.8f),
+                style = stroke,
+            )
+            drawCircle(color = color, radius = 1.3f, center = Offset(4.6f, 19.4f))
         }
 
         // ---- 画中画 PiP ----
@@ -258,6 +279,3 @@ internal fun DrawScope.strokeRect(
         style = stroke,
     )
 }
-
-/** 未使用的占位，保持 Rect 导入被使用（避免 IDE 警告）。 */
-internal val glyphUnitRect = Rect(0f, 0f, 24f, 24f)

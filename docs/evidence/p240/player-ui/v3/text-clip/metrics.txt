@@ -1,0 +1,24 @@
+底栏三文案（1080P/选集/倍速）字形下缘被裁 · 真机量化口径
+设备：Redmi K40 b6e950ee，2400×1080 横屏，density 440（dp=px/2.75）
+片源：SMB seed-smb-xiaomi / 视频/kivo-test/shelter.mkv
+
+复算命令（Git Bash，仓库根）：
+  python -c "
+  from PIL import Image; import numpy as np
+  im = np.array(Image.open('<png>').convert('L'))
+  reg = im[900:1040, 2260:2360]; mx = reg.max(axis=1)
+  ink = [900+i for i,v in enumerate(mx) if v>140]
+  print(ink[0], ink[-1])"
+
+实测 ink 行区间（倍速列 x2260-2360）：
+  01-before-bottom-cut.png   944..974  h31  口部底横缺失（968-974 只有竖）
+  03-mid-regression-half-cut 951..974  h24  只移除 lineHeight 的反例：ink 下移 7px 被切更多
+  04-after-full.png          944..979  h36  口部底横在 975-977 行，字形完整
+  对照 pause 列 x140-190：935..976 h42 三轮不变（证明裁切只作用于 Text）
+
+根因：material3 Text 默认 overflow=Clip 按行盒裁；本机 CJK 字体 ink 超出
+ascent+descent 行盒（行盒实测恒 38px=14sp），下缘被切。lineHeight 加大无效
+（行盒不随参数长高，uiautomator _bounds 恒 [937,975]）。
+修复：BarTextButton/TimeText 设 overflow=TextOverflow.Visible（PlayerBottomBar.kt）。
+安装协议：install -r 后必须 am force-stop 再 am start；HyperOS「USB文件传输提示」
+每次 install 弹窗，已勾「不再提示」（测试机开关，可逆）。

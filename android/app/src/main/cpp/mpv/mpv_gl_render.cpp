@@ -12,39 +12,32 @@
 //
 // 【线程】
 // 渲染跑在**独立 GL 线程**上：EGL 上下文与 Surface 都绑定在那个线程。
+//
+// 【Surface 重绑 = 换面，不重建上下文】
+// 真机实测：free 旧渲染上下文再 create 新的，mpv 不再向新上下文推帧 ⇒ 黑屏
+// （SAF 竖屏往返复现，证据 s6-post-saf.png）。所以 rebind 只往队列里放一个新
+// ANativeWindow，GL 线程在循环里换 EGL window surface（见 mpv_egl_surface）。
 
 #include <cstdio>
-#include <fcntl.h>
-#include <unistd.h>
 
 #include <EGL/egl.h>
-#include <EGL/eglext.h>
 #include <GLES2/gl2.h>
 #include <android/native_window.h>
 
 #include <chrono>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 
 #include "mpv/client.h"
+#include "mpv_diag.hpp"
+#include "mpv_egl_surface.hpp"
 #include "mpv_video_output.hpp"
 #include "mpv/render_gl.h"
 
 namespace kivo::video::mpv {
 namespace {
-
-/// EGL 配置：RGBA8888 + ES2 + 可录制到 Surface（Android 必需 EGL_RECORDABLE_ANDROID）。
-constexpr EGLint kEglConfigAttribs[] = {
-    EGL_RED_SIZE, 8,
-    EGL_GREEN_SIZE, 8,
-    EGL_BLUE_SIZE, 8,
-    EGL_ALPHA_SIZE, 8,
-    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-    EGL_RECORDABLE_ANDROID, 1,
-    EGL_NONE,
-};
 
 /// mpv 通过这个回调拿 GL 函数指针。签名由 mpv 定死。
 void* get_proc_address(void* ctx, const char* name) {
@@ -52,26 +45,10 @@ void* get_proc_address(void* ctx, const char* name) {
     return reinterpret_cast<void*>(eglGetProcAddress(name));
 }
 
-}  // namespace
-
-namespace {
-
-/// 步骤标记：渲染层的诊断。mpv 自己的日志在 native 崩溃时会跟着断，
-/// 而且这台设备读不到 app 的 logcat —— 所以渲染层自己往文件里写。
-const char kNewline = 10;
-
+/// 步骤标记：渲染层诊断。落盘机制与共钟纪元见 mpv_diag.hpp
+/// （mpv 自己的日志在 native 崩溃时会跟着断，且这台设备读不到 app 的 logcat）。
 void mark_step(const char* path, const char* step) {
-    if (path == nullptr || path[0] == 0) {
-        return;
-    }
-    const int fd = ::open(path, O_WRONLY | O_CREAT | O_APPEND, 0600);
-    if (fd < 0) {
-        return;
-    }
-    const std::string line = std::string("RND ") + step;
-    (void)write(fd, line.data(), line.size());
-    (void)write(fd, &kNewline, 1);
-    ::close(fd);
+    kivo::video::mpv::mark_step(path, step, "RND");
 }
 
 }  // namespace
@@ -120,100 +97,104 @@ bool VideoOutput::start(ANativeWindow* window, std::string& error) {
     return true;
 }
 
+bool VideoOutput::set_window(ANativeWindow* window, std::string& error) {
+    if (!running_.load(std::memory_order_acquire)) {
+        error = "video output not running";
+        return false;
+    }
+    if (window == nullptr) {
+        error = "surface is null";
+        return false;
+    }
+    ANativeWindow_acquire(window);
+    std::lock_guard<std::mutex> lock(swap_mutex_);
+    if (pending_window_ != nullptr) {
+        ANativeWindow_release(pending_window_);
+    }
+    pending_window_ = window;
+    return true;
+}
+
 void VideoOutput::stop() {
     stopping_.store(true, std::memory_order_release);
     if (thread_.joinable()) {
         thread_.join();
     }
     running_.store(false, std::memory_order_release);
-    if (window_ != nullptr) {
-        ANativeWindow_release(window_);
-        window_ = nullptr;
+    std::lock_guard<std::mutex> lock(swap_mutex_);
+    if (pending_window_ != nullptr) {
+        ANativeWindow_release(pending_window_);
+        pending_window_ = nullptr;
     }
 }
 
 void VideoOutput::run() {
-    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (display == EGL_NO_DISPLAY) {
-        fail("eglGetDisplay failed");
+    EglWindowSurface egl;
+    std::string error;
+    if (!egl.init(window_, error)) {
+        ANativeWindow_release(window_);
+        window_ = nullptr;
+        fail(error);
         return;
     }
-    if (!eglInitialize(display, nullptr, nullptr)) {
-        fail("eglInitialize failed");
-        return;
-    }
-    EGLConfig config = nullptr;
-    EGLint config_count = 0;
-    if (!eglChooseConfig(display, kEglConfigAttribs, &config, 1, &config_count) || config_count <= 0) {
-        fail("eglChooseConfig failed");
-        return;
-    }
-    EGLContext context = EGL_NO_CONTEXT;
-    // 【必须显式指定 GLES 版本】
-    // 不指定时 EGL 默认给 **GLES 1.1**，而 mpv 的 render API 要求 **ES 2.0+** ——
-    // 真机日志：`GL_VERSION='OpenGL ES-CM 1.1'` + `OpenGL not initialized.`
-    // ⇒ mpv_render_context_create 直接失败。
-    const EGLint kContextAttribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
-    context = eglCreateContext(display, config, EGL_NO_CONTEXT, kContextAttribs);
-    if (context == EGL_NO_CONTEXT) {
-        fail("eglCreateContext failed");
-        return;
-    }
-    EGLSurface surface = eglCreateWindowSurface(display, config, window_, nullptr);
-    if (surface == EGL_NO_SURFACE) {
-        fail("eglCreateWindowSurface failed");
-        return;
-    }
-    if (!eglMakeCurrent(display, surface, surface, context)) {
-        fail("eglMakeCurrent failed");
-        return;
-    }
+    // EGL 已 retain 一份，start() 那份交还，所有权归 egl。
+    ANativeWindow_release(window_);
+    window_ = nullptr;
 
-        mpv_render_context* render_context = nullptr;
-        // mpv v0.39 的新签名：第三个参数是 **参数数组**，不是字符串。
-        //   MPV_RENDER_PARAM_API_TYPE          → 用哪种渲染 API（"opengl"）
-        //   MPV_RENDER_PARAM_OPENGL_INIT_PARAMS → OpenGL 初始化参数（含 get_proc_address）
-        // mpv_opengl_init_params 只有两个字段：get_proc_address 与它的 ctx。
-        mpv_opengl_init_params gl_init{get_proc_address, nullptr};
-        mpv_render_param params[] = {
-            {MPV_RENDER_PARAM_API_TYPE, (void*)MPV_RENDER_API_TYPE_OPENGL},
-            {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init},
-            {MPV_RENDER_PARAM_INVALID, nullptr},
-        };
-        if (mpv_render_context_create(&render_context, handle_, params) < 0) {
-            // 【为什么失败也要 free】
-            // mpv_render_context_create 内部可能已经建好了部分状态，
-            // 只是渲染后端（vo）加载失败才返回错误 —— 此时 mpv 仍然要求
-            // 对这个上下文调用 mpv_render_context_free()，
-            // 否则 mpv 在 terminate 时报 "Broken API use" 并 abort。
-            if (render_context != nullptr) {
-                mpv_render_context_free(render_context);
-                render_context = nullptr;
-            }
-            fail("mpv_render_context_create failed");
-            eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-            eglDestroySurface(display, surface);
-            eglDestroyContext(display, context);
-            eglTerminate(display);
-            return;
+    mpv_render_context* render_context = nullptr;
+    // mpv v0.39 的新签名：第三个参数是 **参数数组**，不是字符串。
+    mpv_opengl_init_params gl_init{get_proc_address, nullptr};
+    mpv_render_param params[] = {
+        {MPV_RENDER_PARAM_API_TYPE, (void*)MPV_RENDER_API_TYPE_OPENGL},
+        {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init},
+        {MPV_RENDER_PARAM_INVALID, nullptr},
+    };
+    if (mpv_render_context_create(&render_context, handle_, params) < 0) {
+        // 【为什么失败也要 free】
+        // mpv_render_context_create 内部可能已经建好了部分状态，
+        // 只是渲染后端（vo）加载失败才返回错误 —— 此时 mpv 仍然要求
+        // 对这个上下文调用 mpv_render_context_free()，
+        // 否则 mpv 在 terminate 时报 "Broken API use" 并 abort。
+        if (render_context != nullptr) {
+            mpv_render_context_free(render_context);
         }
+        fail("mpv_render_context_create failed");
+        egl.shutdown();
+        return;
+    }
 
     ready_.store(true, std::memory_order_release);
-    render_loop(display, surface, context, render_context);
+    render_loop(egl, render_context);
 }
 
-void VideoOutput::render_loop(void* display_ptr, void* surface_ptr, void* context_ptr,
-                              void* render_context_ptr) {
-    EGLDisplay display = static_cast<EGLDisplay>(display_ptr);
-    EGLSurface surface = static_cast<EGLSurface>(surface_ptr);
-    EGLContext context = static_cast<EGLContext>(context_ptr);
-    auto* render_context = static_cast<mpv_render_context*>(render_context_ptr);
+void VideoOutput::apply_pending_swap(EglWindowSurface& egl) {
+    ANativeWindow* next = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(swap_mutex_);
+        next = pending_window_;
+        pending_window_ = nullptr;
+    }
+    if (next == nullptr) {
+        return;
+    }
+    std::string error;
+    if (egl.swap(next, error)) {
+        mark_step(log_path_.c_str(), "window swapped");
+    } else {
+        mark_step(log_path_.c_str(), ("window swap failed: " + error).c_str());
+    }
+    ANativeWindow_release(next);
+}
 
+void VideoOutput::render_loop(EglWindowSurface& egl, mpv_render_context* render_context) {
+    mark_step(log_path_.c_str(), "render-loop enter");
+    int swap_count = 0;
+    int zero_size_logged = 0;
     while (!stopping_.load(std::memory_order_acquire)) {
+        apply_pending_swap(egl);
         // mpv v0.39：update 不再接收 flags 指针，直接返回 flags。
         const uint64_t flags = mpv_render_context_update(render_context);
         if (flags & MPV_RENDER_UPDATE_FRAME) {
-            // 目标尺寸取当前视口（Surface 的尺寸由 Android 决定）。
             GLint viewport[4] = {0, 0, 0, 0};
             glGetIntegerv(GL_VIEWPORT, viewport);
             width_.store(viewport[2], std::memory_order_relaxed);
@@ -221,38 +202,28 @@ void VideoOutput::render_loop(void* display_ptr, void* surface_ptr, void* contex
 
             // 【为什么要有 Surface 尺寸兜底】
             // Android 的 Surface 在 layout 完成前尺寸是 0，此时 GL_VIEWPORT 也是 0。
-            // 而 mpv 的 mpv_opengl_fbo 用 w/h 描述输出目标 —— w/h 为 0 时
-            // mpv 不知道该渲染到多大的画面，结果就是**解码在跑、GPU 纹理在更新，
-            // 但屏幕上什么都没有**（真机实测：播放页显示"正在播放"，画面全黑）。
-            // ANativeWindow_getWidth/Height 直接问窗口，不依赖 GL 状态，更可靠。
+            // w/h 为 0 时 mpv 不知道该渲染到多大的画面 ⇒ 解码在跑但屏幕全黑。
+            // ANativeWindow_getWidth/Height 直接问窗口，不依赖 GL 状态。
             int target_w = viewport[2];
             int target_h = viewport[3];
             if (target_w <= 0 || target_h <= 0) {
-                target_w = ANativeWindow_getWidth(window_);
-                target_h = ANativeWindow_getHeight(window_);
+                target_w = ANativeWindow_getWidth(egl.window());
+                target_h = ANativeWindow_getHeight(egl.window());
             }
             if (target_w <= 0 || target_h <= 0) {
-                // 尺寸还没确定：这一帧跳过，等 Surface layout 完再画。
+                if (zero_size_logged < 3) {
+                    ++zero_size_logged;
+                    mark_step(log_path_.c_str(), "frame skipped: zero target size");
+                }
                 std::this_thread::sleep_for(std::chrono::milliseconds(16));
                 continue;
             }
 
-            // render 同样用参数数组：MPV_RENDER_PARAM_OPENGL_FBO 指定渲染目标。
-            //
             // 【为什么必须传 FLIP_Y = 1】
-            // 我们的目标是 **Android Surface**（eglCreateWindowSurface），
-            // 它的缓冲按**图像约定**（左上原点、Y 向下）被系统读取；
-            // 而 OpenGL 渲染到 FBO 用的是 **GL 约定**（左下原点、Y 向上）。
-            // 不翻转 ⇒ 上下颠倒。
-            //
-            // mpv 的 render.h 写着 "MPV_RENDER_PARAM_FLIP_Y is currently ignored
-            // (unsupported)"，**但 mpv 0.39 的实现是支持的**：
-            // video/out/gpu/libmpv_gpu.c:184 读它，赋给 `struct ra_fbo.flip`，
-            // 而 video/out/gpu/video.c:2952/3172/3482 用它做 Y 翻转。
-            // 文档与实现不一致 ⇒ **以实现为准**。
-            //
-            // 【真机证据】不传时字幕跑到画面**顶部**、文字**左右镜像**
-            // （实测截图见 docs/evidence/p253/mpv-kernel/ 的翻转取证）。
+            // Android Surface 的缓冲按图像约定（左上原点）被系统读取，而 GL
+            // 渲染到 FBO 用 GL 约定（左下原点）。不翻转 ⇒ 上下颠倒。
+            // render.h 写着 FLIP_Y "currently ignored"，但 mpv 0.39 的实现支持
+            // （video/out/gpu/libmpv_gpu.c 读它）—— 文档与实现不一致，以实现为准。
             int flip_y = 1;
             mpv_opengl_fbo fbo{};
             fbo.fbo = 0;
@@ -264,34 +235,37 @@ void VideoOutput::render_loop(void* display_ptr, void* surface_ptr, void* contex
                 {MPV_RENDER_PARAM_INVALID, nullptr},
             };
             mpv_render_context_render(render_context, render_params);
-            eglSwapBuffers(display, surface);
-
-            // 诊断：每 60 帧记一次实际用的目标尺寸。
-            // 【为什么需要】画面黑时，唯一能区分"Surface 尺寸为 0"与
-            // "mpv 没画"的办法就是把尺寸打出来（这台设备读不到 app 的 logcat，
-            // 所以只能写文件）。
-            if (++frame_count_ >= 60) {
-                frame_count_ = 0;
-                char line[96];
-                std::snprintf(line, sizeof(line), "RND render vp=%dx%d target=%dx%d",
-                              viewport[2], viewport[3], target_w, target_h);
-                mark_step(log_path_.c_str(), line);
+            // 取证：render 后的 GL 错误码与真实 FBO 绑定，主/预览两内核同口径对照。
+            if (swap_count < 6 || swap_count % 40 == 0) {
+                GLint bound_fbo = -1;
+                glGetIntegerv(GL_FRAMEBUFFER_BINDING, &bound_fbo);
+                char rl[96];
+                std::snprintf(rl, sizeof(rl), "post #%d err=0x%x fbo=%d vp=%dx%d",
+                              swap_count, glGetError(), bound_fbo, target_w, target_h);
+                mark_step(log_path_.c_str(), rl);
             }
+            // 每帧都记 swap 结果：暂停态每次 seek 只出一帧，60 帧一记永远看不到。
+            const EGLBoolean swapped = eglSwapBuffers(egl.display(), egl.surface());
+            const EGLint swap_err = eglGetError();
+            ++swap_count;
+            char line[96];
+            std::snprintf(line, sizeof(line), "swap #%d ok=%d err=0x%x target=%dx%d",
+                          swap_count, static_cast<int>(swapped), swap_err, target_w, target_h);
+            mark_step(log_path_.c_str(), line);
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
     }
 
+    mark_step(log_path_.c_str(), "render-loop exit");
     mpv_render_context_free(render_context);
-    eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    eglDestroySurface(display, surface);
-    eglDestroyContext(display, context);
-    eglTerminate(display);
+    egl.shutdown();
 }
 
 void VideoOutput::fail(const std::string& reason) {
     failure_ = reason;
     failed_.store(true, std::memory_order_release);
+    mark_step(log_path_.c_str(), reason.c_str());
 }
 
 std::unique_ptr<VideoOutput> create_video_output(mpv_handle* handle, std::string log_path) {

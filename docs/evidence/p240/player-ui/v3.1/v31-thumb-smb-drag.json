@@ -1,0 +1,8 @@
+{
+  "schema": "kivo.v31.thumbnail\/1",
+  "generated_at_unix_ms": 1794436803382,
+  "source": "视频\/kivo-test\/shelter.mkv",
+  "thumbnail": {
+    "error": "evidence snapshot timeout: handler busy"
+  }
+}

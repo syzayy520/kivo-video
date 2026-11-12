@@ -1,6 +1,13 @@
 package com.kivo.cinema.ui.compose.player
 
 import android.graphics.Bitmap
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -21,51 +28,55 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 
 /**
- * 进度条轨道（player-ui-v2.md §3.2）。
+ * 进度条轨道（v3 §1.2）。
  *
- * ## 形态：细轨 + **默认不显示滑块**
- * 参考用的是 3.5pt 细轨、**完全没有滑块**。
- * 我们比参考多一步：**拖动时才出现一个 8pt 小圆点** ——
- * 参考的用户不知道往哪按；圆点只在拖动期间出现，不干扰观看。
+ * 实测：x[110,740]、**厚 6pt**、圆角端、**完全没有滑块**；
+ * 三段＝已播 #FFFFFF / 缓冲 ≈#9B9B9B 实色 / 未播＝黑 45% 罩视频。
+ * v2 的 3.5pt 细轨 + 拖动时 8pt 圆点都被推翻 —— 参考没有圆点，
+ * 6pt 已经足够看清，加圆点反而多一个参考里不存在的零件。
  *
- * ## 平滑度：进度条按**帧**走，不是按轮询走
- * 内核位置每 100ms 采样一次（轮询是省电的常规做法），
- * 若进度条直接用采样值，它就是 **10fps 的跳变** —— 看起来"一格一格"。
- * 这里用 [withFrameNanos] 按帧把位置**插值**出来 ⇒ 进度条 **60fps 平滑移动**，
- * 而轮询频率不变（省电不受影响）。
- * 时间文字仍用采样值 —— 它只显示整秒，一秒才变一次，视觉上无跳变。
+ * 【平滑度：按帧插值，不按轮询】内核位置 100ms 采样一次（省电的常规做法），
+ * 直接用采样值 ⇒ 进度条是 10fps 的跳变。这里用 [withFrameNanos] 按帧插值
+ * ⇒ **60fps 平滑移动**，轮询频率不变。时间文字仍用采样值（只显示整秒）。
+ *
+ * 【缓冲段从哪来】mpv `demuxer-cache-time`＝已缓冲但尚未播放的秒数，
+ * 由 1Hz 的采样换算成 fraction 传进来 —— 不是 UI 自己估的进度。
  */
 @Composable
 internal fun PlayerSeekTrack(
     positionMs: Long,
     durationMs: Long,
+    bufferedFraction: Float,
     thumbnailBitmap: Bitmap?,
+    thumbUnavailable: String,
     previewMs: Long,
     onDragTarget: (Long?) -> Unit,
     onScrub: (Long) -> Unit,
     onSeek: (Long) -> Unit,
+    onCapture: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var dragging by remember { mutableStateOf(false) }
     var dragFraction by remember { mutableFloatStateOf(0f) }
-
-    // 拖动目标时刻（REX：拖动中左端实时显示目标时间）。
-    // 用回调把目标**抛给父级**显示 —— 父级才知道该显示在哪（左端时间位）。
     var lastTarget by remember { mutableLongStateOf(0L) }
 
-    // 采样时刻：位置**每次变化**时记一次（比帧循环晚 ~1 帧，误差可忽略）。
-    // 有了它就能按帧插值，而不是"跟着 100ms 的采样一跳一跳"。
+    // 选中态（v3.1）：按下或拖动 ⇒ 轨道 6→10pt；松手回 6。
+    var pressed by remember { mutableStateOf(false) }
+    val thickness by animateFloatAsState(
+        targetValue = if (pressed || dragging) PlayerTokens.trackActiveHeight else PlayerTokens.trackHeight,
+        animationSpec = tween(PlayerMotion.trackMs, easing = PlayerMotion.easing),
+        label = "trackThickness",
+    )
+
     var anchorMs by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(positionMs) { anchorMs = System.currentTimeMillis() }
 
-    // 帧循环里读最新值：用 rememberUpdatedState 避免每 100ms 重建协程。
     val posState = rememberUpdatedState(positionMs)
     val anchorState = rememberUpdatedState(anchorMs)
     val durState = rememberUpdatedState(durationMs)
@@ -77,20 +88,36 @@ internal fun PlayerSeekTrack(
                 val d = durState.value
                 if (d > 0 && !dragging) {
                     val elapsed = (System.currentTimeMillis() - anchorState.value).coerceAtLeast(0L)
-                    val ms = posState.value + elapsed
-                    smoothFraction = (ms.toFloat() / d).coerceIn(0f, 1f)
+                    smoothFraction = ((posState.value + elapsed).toFloat() / d).coerceIn(0f, 1f)
                 }
             }
         }
     }
 
     val density = LocalDensity.current
+
+    // 拖动中的统一处理：算 fraction + 抛目标时刻 + 要缩略图。
+    fun updateDrag(x: Float, width: Int) {
+        if (durationMs <= 0 || width <= 0) return
+        val f = (x / width).coerceIn(0f, 1f)
+        dragFraction = f
+        val ms = (f * durationMs).roundToInt().toLong()
+        lastTarget = ms
+        onDragTarget(ms)
+        onScrub(ms)
+    }
+
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
-            .height(24.dp)
+            .height(PlayerTokens.trackHitHeight.dp)
             .pointerInput(durationMs) {
                 detectTapGestures(
+                    onPress = {
+                        pressed = true
+                        tryAwaitRelease()
+                        pressed = false
+                    },
                     onTap = { offset ->
                         if (durationMs > 0) {
                             val f = (offset.x / size.width).coerceIn(0f, 1f)
@@ -101,33 +128,12 @@ internal fun PlayerSeekTrack(
             }
             .pointerInput(durationMs) {
                 detectHorizontalDragGestures(
-                    onDragStart = { offset ->
-                        dragging = true
-                        if (durationMs > 0) {
-                            val f = (offset.x / size.width).coerceIn(0f, 1f)
-                            dragFraction = f
-                            val ms = (f * durationMs).roundToInt().toLong()
-                            lastTarget = ms
-                            onDragTarget(ms)
-                            onScrub(ms)
-                        }
-                    },
-                    onHorizontalDrag = { change, _ ->
-                        if (durationMs > 0) {
-                            val f = (change.position.x / size.width).coerceIn(0f, 1f)
-                            dragFraction = f
-                            val ms = (f * durationMs).roundToInt().toLong()
-                            lastTarget = ms
-                            onDragTarget(ms)
-                            onScrub(ms)
-                        }
-                    },
+                    onDragStart = { offset -> dragging = true; updateDrag(offset.x, size.width) },
+                    onHorizontalDrag = { change, _ -> updateDrag(change.position.x, size.width) },
                     onDragEnd = {
                         dragging = false
                         onDragTarget(null)
-                        if (durationMs > 0) {
-                            onSeek(lastTarget)
-                        }
+                        if (durationMs > 0) onSeek(lastTarget)
                     },
                     onDragCancel = {
                         dragging = false
@@ -136,49 +142,64 @@ internal fun PlayerSeekTrack(
                 )
             },
     ) {
-        // 预览浮窗（拖动中）：向上挂在进度条上方，不占布局高度
-        val previewing = previewMs >= 0
-        if (dragging || previewing) {
-            val shownFraction = if (dragging) dragFraction else {
-                if (durationMs > 0) (previewMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
+        AnimatedVisibility(
+            visible = dragging || previewMs >= 0,
+            enter = fadeIn(tween(PlayerMotion.previewEnterMs, easing = PlayerMotion.easing)) +
+                scaleIn(tween(PlayerMotion.previewEnterMs, easing = PlayerMotion.easing), initialScale = 0.92f),
+            exit = fadeOut(tween(PlayerMotion.previewExitMs)) +
+                scaleOut(tween(PlayerMotion.previewExitMs), targetScale = 0.92f),
+        ) {
+            val shown = if (dragging) {
+                dragFraction
+            } else if (durationMs > 0) {
+                (previewMs.toFloat() / durationMs).coerceIn(0f, 1f)
+            } else {
+                0f
             }
             PlayerSeekPreview(
                 bitmap = thumbnailBitmap,
-                fraction = shownFraction,
+                unavailableReason = thumbUnavailable,
+                fraction = shown,
+                targetMs = if (dragging) lastTarget else previewMs,
                 containerWidth = maxWidth,
+                onCapture = onCapture,
             )
         }
 
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(24.dp),
+                .height(PlayerTokens.trackHitHeight.dp),
         ) {
-            val trackHeight = with(density) { PlayerTokens.trackHeight.dp.toPx() }
-            val trackY = (size.height - trackHeight) / 2f
-            val radius = CornerRadius(trackHeight / 2f)
-            // 未播放段（**拖动中整体变亮** —— 参考：拖动中轨道变白，
-            // 让用户看清"松手后会落到哪一段"）
+            val h = with(density) { thickness.dp.toPx() }
+            val y = (size.height - h) / 2f
+            val radius = CornerRadius(h / 2f)
+            val f = if (dragging) dragFraction else smoothFraction
+
+            // 未播段（拖动中整体提亮，让用户看清"松手会落到哪一段"）
             drawRoundRect(
                 color = if (dragging) PlayerTokens.trackDragging else PlayerTokens.trackRemaining,
-                topLeft = Offset(0f, trackY),
-                size = Size(size.width, trackHeight),
+                topLeft = Offset(0f, y),
+                size = Size(size.width, h),
                 cornerRadius = radius,
             )
-            // 已播放段（在 draw 里读状态 ⇒ 只重绘 Canvas，不重组整棵树）
-            val f = if (dragging) dragFraction else smoothFraction
-            drawRoundRect(
-                color = PlayerTokens.trackPlayed,
-                topLeft = Offset(0f, trackY),
-                size = Size(size.width * f, trackHeight),
-                cornerRadius = radius,
-            )
-            // 拖动中的滑块（默认不可见）
-            if (dragging) {
-                drawCircle(
+            // 缓冲段（已缓冲未播放）：实色灰，画在未播之上、已播之下
+            val bf = bufferedFraction.coerceIn(f, 1f)
+            if (bf > f) {
+                drawRoundRect(
+                    color = PlayerTokens.trackBuffered,
+                    topLeft = Offset(size.width * f, y),
+                    size = Size(size.width * (bf - f), h),
+                    cornerRadius = radius,
+                )
+            }
+            // 已播段（在 draw 里读状态 ⇒ 只重绘 Canvas，不重组整棵树）
+            if (f > 0f) {
+                drawRoundRect(
                     color = PlayerTokens.trackPlayed,
-                    radius = with(density) { PlayerTokens.thumbSize.dp.toPx() } / 2f,
-                    center = Offset(size.width * f, trackY + trackHeight / 2f),
+                    topLeft = Offset(0f, y),
+                    size = Size(size.width * f, h),
+                    cornerRadius = radius,
                 )
             }
         }

@@ -14,12 +14,16 @@
 #include <android/native_window.h>
 
 #include <atomic>
+#include <mutex>
 #include <string>
 #include <thread>
 
 struct mpv_handle;
+struct mpv_render_context;
 
 namespace kivo::video::mpv {
+
+class EglWindowSurface;
 
 /// 把 mpv 渲染到 Android Surface。
 ///
@@ -43,22 +47,31 @@ public:
     /// 停线程并销毁 EGL 与 mpv 渲染上下文。可重复调用。
     void stop();
 
+    /// Surface 重绑：只换 EGL window surface，**不重建 mpv 渲染上下文**
+    /// （重建后 mpv 不再推帧 ⇒ 黑屏，真机实测）。异步：GL 线程下一轮循环换面。
+    [[nodiscard]] bool set_window(ANativeWindow* window, std::string& error);
+
+    [[nodiscard]] bool running() const { return running_.load(std::memory_order_acquire); }
+
     /// 当前视频尺寸（像素）；还不知道时返回 0。
     [[nodiscard]] int width() const { return width_.load(std::memory_order_relaxed); }
     [[nodiscard]] int height() const { return height_.load(std::memory_order_relaxed); }
 
 private:
     void run();
-    void render_loop(void* display, void* surface, void* context, void* render_context);
+    void render_loop(EglWindowSurface& egl, mpv_render_context* render_context);
+    void apply_pending_swap(EglWindowSurface& egl);
     void fail(const std::string& reason);
 
     mpv_handle* handle_ = nullptr;
+    /// 仅 start() 到 GL 线程 egl.init 之间的临时持有；之后所有权归 EglWindowSurface。
     ANativeWindow* window_ = nullptr;
+    /// 换面请求队列（主线程放、GL 线程取）。
+    std::mutex swap_mutex_;
+    ANativeWindow* pending_window_ = nullptr;
     /// mpv 日志落盘路径（可选）。渲染层用它写自己的诊断 ——
     /// 这台设备读不到 app 的 logcat，只能写文件。
     std::string log_path_;
-    /// 已渲染帧计数（诊断用）。
-    std::atomic<int> frame_count_{0};
     std::thread thread_;
     std::atomic<bool> ready_{false};
     std::atomic<bool> failed_{false};

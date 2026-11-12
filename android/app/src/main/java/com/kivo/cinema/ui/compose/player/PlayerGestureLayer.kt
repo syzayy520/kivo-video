@@ -3,6 +3,7 @@ package com.kivo.cinema.ui.compose.player
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -37,9 +38,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 internal fun PlayerGestureLayer(
     onTap: () -> Unit,
     onDoubleTap: (DoubleTapZone) -> Unit,
+    locked: Boolean = false,
     onVerticalDragStart: (Float) -> Unit = {},
     onVerticalDrag: (Float) -> Unit = {},
     onVerticalDragEnd: () -> Unit = {},
+    onLongPressStart: (Float, Float) -> Unit = { _, _ -> },
+    onLongPressDrag: (Float, Float) -> Unit = { _, _ -> },
+    onLongPressEnd: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     // 【为什么必须用 rememberUpdatedState】
@@ -50,9 +55,13 @@ internal fun PlayerGestureLayer(
     // 用 rememberUpdatedState 把最新回调带进长生命周期的手势协程。
     val currentOnTap by rememberUpdatedState(onTap)
     val currentOnDoubleTap by rememberUpdatedState(onDoubleTap)
+    val currentLocked by rememberUpdatedState(locked)
     val currentDragStart by rememberUpdatedState(onVerticalDragStart)
     val currentDrag by rememberUpdatedState(onVerticalDrag)
     val currentDragEnd by rememberUpdatedState(onVerticalDragEnd)
+    val currentLongPressStart by rememberUpdatedState(onLongPressStart)
+    val currentLongPressDrag by rememberUpdatedState(onLongPressDrag)
+    val currentLongPressEnd by rememberUpdatedState(onLongPressEnd)
 
     Box(
         modifier = modifier
@@ -64,10 +73,13 @@ internal fun PlayerGestureLayer(
             // 它会先拿到事件并消费，我们的竖向检测因此不会误触发。
             .pointerInput(Unit) {
                 detectVerticalDragGestures(
-                    onDragStart = { offset -> currentDragStart(offset.x) },
-                    onDragEnd = { currentDragEnd() },
-                    onDragCancel = { currentDragEnd() },
+                    // 锁定态竖滑 = ❌（§二 M03-S07）：不消费、不上报，
+                    // 但也不让它误变成 tap —— 滑动本来就不是 tap。
+                    onDragStart = { offset -> if (!currentLocked) currentDragStart(offset.x) },
+                    onDragEnd = { if (!currentLocked) currentDragEnd() },
+                    onDragCancel = { if (!currentLocked) currentDragEnd() },
                     onVerticalDrag = { change, dragAmount ->
+                        if (currentLocked) return@detectVerticalDragGestures
                         change.consume()
                         currentDrag(dragAmount)
                     },
@@ -84,6 +96,24 @@ internal fun PlayerGestureLayer(
                             else -> DoubleTapZone.TOGGLE_PLAY
                         }
                         currentOnDoubleTap(zone)
+                    },
+                )
+            }
+            // 【长按快进】参考 M03-S02：longPress≥0.5s → 标签淡入 → 左右滑调速
+            // → 上滑(Δy≈-60pt)锁定 → 松手恢复。
+            // 放在**最后**：它与前两个检测器共享同一批事件，
+            // 谁先消费谁生效 —— 竖向拖动与长按拖动都消费移动，
+            // 彼此互斥；单击/双击不消费移动，所以长按不会打断它们。
+            .pointerInput(Unit) {
+                detectDragGesturesAfterLongPress(
+                    onDragStart = { offset ->
+                        currentLongPressStart(offset.x, offset.y)
+                    },
+                    onDragEnd = { currentLongPressEnd() },
+                    onDragCancel = { currentLongPressEnd() },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        currentLongPressDrag(change.position.x, change.position.y)
                     },
                 )
             },

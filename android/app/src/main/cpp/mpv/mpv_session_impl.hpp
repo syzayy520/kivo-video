@@ -20,6 +20,7 @@
 #include <thread>
 
 #include "mpv/client.h"
+#include "mpv_gl_capture.hpp"
 #include "mpv_video_output.hpp"
 
 namespace kivo::video::mpv {
@@ -71,6 +72,10 @@ struct SessionImpl {
     /// 若渲染层是全局静态，它的析构时机就与 mpv 句柄的销毁顺序脱钩 —— 真机上正是这样崩的。
     /// 所以：会话持有它，shutdown() 里先销毁它，再销毁 mpv 句柄。
     std::unique_ptr<VideoOutput> video_output;
+
+    /// 离屏取帧层（预览缩略图）。与 video_output 互斥；同样必须由会话持有，
+    /// 保证 mpv_render_context_free 早于 mpv_terminate_destroy。
+    std::unique_ptr<FrameCapture> frame_capture;
 
     /// 事件线程主体。**只在事件层跑**（见 mpv_event_loop.cpp）。
     void run_event_loop();

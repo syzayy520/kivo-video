@@ -1,0 +1,27 @@
+2026-11-12 06:23:26 data_app_crash (text, 1479 bytes)
+Process: com.kivo.cinema
+PID: 32273
+UID: 10904
+Frozen: false
+Flags: 0x28e83e46
+Package: com.kivo.cinema v1 (0.1.0-p12a)
+Foreground: Yes
+Process-Runtime: 52406
+Build: Redmi/alioth/alioth:13/TKQ1.221114.001/V816.0.10.0.TKHCNXM:user/release-keys
+Loading-Progress: 1.0
+Dropped-Count: 0
+
+java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:571)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:954)
+Caused by: java.lang.reflect.InvocationTargetException
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:561)
+	... 1 more
+Caused by: org.json.JSONException: End of input at character 0 of 
+	at org.json.JSONTokener.syntaxError(JSONTokener.java:460)
+	at org.json.JSONTokener.nextValue(JSONTokener.java:101)
+	at org.json.JSONObject.<init>(JSONObject.java:168)
+	at org.json.JSONObject.<init>(JSONObject.java:185)
+	at com.kivo.cinema.ui.compose.PlayerProbeHooksKt.scheduleThumbDump$lambda$6(PlayerProbeHooks.kt:128)
+	at com.kivo.cinema.ui.compose.PlayerProbeHooksKt$$ExternalSyntheticLambda1.run(D8$$SyntheticClass:0)

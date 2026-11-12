@@ -163,6 +163,9 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
                     ao = "audiotrack",
                     logFile = File(app.filesDir, "mpv-kernel.log").absolutePath,
                 )
+                // §1.6：默认保留 ASS 源特效（libass 原样渲染）；
+                // 面板"标准统一样式"开关再写 yes/no，真值以 mpv 为准。
+                native.setProperty("sub-ass-override", "no")
                 native.attachSurface(surface)
                 native.loadFile(url)
 
@@ -268,7 +271,14 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
     fun rebind(surface: Surface?) {
         val native = session ?: return
         if (surface == null) return
-        runCatching { native.attachSurface(surface) }
+        // 不许静默吞：Surface 重建失败就是黑屏，必须留下原因（铁律：禁止静默降级）。
+        try {
+            native.attachSurface(surface)
+            lastError = ""
+        } catch (e: Exception) {
+            lastError = "重建画面失败：${e.message}"
+            android.util.Log.e("MpvPlaybackSession", "rebind failed", e)
+        }
     }
 
     // ---- 253-P6-2：字幕 ----

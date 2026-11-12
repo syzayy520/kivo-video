@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -63,20 +64,26 @@ fun applyImmersivePlayerWindow(activity: Activity) {
 }
 
 /**
- * 给控件加上**挖孔安全区**的内边距。
+ * 给控件加上**安全区**的内边距（系统栏手势区 + 刘海/挖孔）。
  *
- * 【为什么只避让挖孔，不避让系统栏】
- * 系统栏已经隐藏了（见 [applyImmersivePlayerWindow]）；
- * 而 `safeDrawing` 在系统栏**唤出瞬间**会变 ⇒ 控件会跳。
- * 挖孔位置是**固定的** ⇒ 只用它，布局稳定。
+ * 【为什么参考是 66pt，我们不是】
+ * REX（iOS）的 chrome 全部按 **safe area** 内缩 66pt ——
+ * 实测：顶栏 ✕ 左边缘 65.7pt、最右图标右边缘 778pt（844-778=66pt），
+ * 底栏同样左右各 66pt（66.7 / 779.7）。
+ * 换算到 Android：等价物就是 **刘海/挖孔 + 侧边手势区**，
+ * 所以这里用 [WindowInsets.safeDrawing]。
  *
- * @param sides 要避让哪几边（默认左右 + 上；底部由 [PlayerTokens.bottomSidePad] 负责）。
+ * 【只用 safeDrawing 的横向 + 顶部】
+ * 横向（侧边手势区/挖孔）与顶部（挖孔）在横屏下**位置固定**；
+ * 而底部的系统栏 inset 在系统栏**唤出的瞬间**会变 —— 用它会让控件跳一下。
+ *
+ * @param sides 要避让哪几边。
  */
 fun Modifier.playerSafeArea(
     sides: WindowInsetsSides = WindowInsetsSides.Horizontal + WindowInsetsSides.Top,
 ): Modifier = composed {
     val direction = LocalLayoutDirection.current
-    val padding = WindowInsets.displayCutout.only(sides).asPaddingValues()
+    val padding = WindowInsets.safeDrawing.only(sides).asPaddingValues()
     val start = if (direction == LayoutDirection.Ltr) {
         padding.calculateLeftPadding(direction)
     } else {

@@ -75,6 +75,16 @@ public:
     /// 上层不需要（也不能）自己碰 GL。
     [[nodiscard]] bool attach_surface(ANativeWindow* window, std::string& error);
 
+    /// 离屏取帧目标（预览缩略图）：渲染进纹理 FBO 并读回 CPU，**不走 Surface**。
+    /// 与 attach_surface 互斥：一个会话要么上屏、要么离屏取帧。
+    [[nodiscard]] bool attach_capture(int width, int height, std::string& error);
+
+    /// 读最新离屏帧（RGBA top-down，w*h*4）；没有比上次更新的帧返回 false。
+    [[nodiscard]] bool read_capture_frame(std::vector<uint8_t>& out);
+
+    /// 最新离屏帧对应的 time-pos（秒），无帧 -1。用于帧↔seek 对齐。
+    double capture_frame_pts();
+
     /// 当前视频尺寸（像素）；还不知道时返回 0。
     [[nodiscard]] int video_width() const;
     [[nodiscard]] int video_height() const;

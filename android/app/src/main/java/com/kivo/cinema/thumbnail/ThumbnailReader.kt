@@ -9,22 +9,31 @@ import android.os.HandlerThread
 import android.util.LruCache
 
 /**
- * 独立缩略图读取器（215）：低分辨率 MediaCodec 实例 + LRU 缓存。
+ * 独立缩略图读取器（215 / v3.1）：低分辨率 MediaCodec 实例 + LRU 缓存。
  *
  * 与主播放会话**完全解耦**（设计稿 D1）：独立 MediaExtractor + MediaCodec
  * 打开同一文件，seek 独立——主链路零干扰。
+ * v3.1：输入源双形态（本地路径 / [android.media.MediaDataSource] 网络字节源），
+ * SMB/mpv 链路的拖动预览帧由此供给（[ThumbInput] / [ByteSourceMediaDataSource]）。
  *
  * 懒初始化（D3）：首次 [seekTo] 才开解码器；5 秒无请求释放。
  *
  * 线程模型：全部操作在 [HandlerThread] 上串行执行（MediaCodec 非线程安全）。
- * 公开 API 线程安全（post 到 handler）。
+ * 公开 API 线程安全（post 到 handler）。**latest-wins**：快速拖动时新请求
+ * 顶掉排队中的旧请求（只留最新一个），防解码队列堆积成"拖完还在补帧"。
  *
  * LRU 缓存（D2）：键 = 秒级位置（同秒复用），容量 50 张。
  */
-class ThumbnailReader(
-    private val mediaPath: String,
-    private val cacheSize: Int = DEFAULT_CACHE_SIZE
-) {
+class ThumbnailReader private constructor(
+    private val input: ThumbInput,
+    private val cacheSize: Int,
+) : PreviewFrameReader {
+
+    constructor(mediaPath: String, cacheSize: Int = DEFAULT_CACHE_SIZE) :
+        this(ThumbInput.Path(mediaPath), cacheSize)
+
+    constructor(dataSource: android.media.MediaDataSource, cacheSize: Int = DEFAULT_CACHE_SIZE) :
+        this(ThumbInput.Source(dataSource), cacheSize)
 
     /// LRU 缓存（键 = 秒，值 = 缩略图位图）。
     /// 不手动 recycle：UI 可能仍持有最新一张，recycle 会炸渲染；容量 50 张由 LRU 兜内存。
@@ -45,7 +54,8 @@ class ThumbnailReader(
     private val handler = Handler(thread.looper)
 
     /// 回调：缩略图就绪（在 handler 线程调）
-    var onThumbnailReady: ((positionUs: Long, bitmap: Bitmap) -> Unit)? = null
+    override var onThumbnailReady: ((positionUs: Long, bitmap: Bitmap) -> Unit)? = null
+    override var onUnavailable: ((reason: String) -> Unit)? = null
 
     // ---- 取证计数（AC1 / AC3）：全部在 handler 线程读写 ----
     private var requests = 0
@@ -57,30 +67,43 @@ class ThumbnailReader(
 
     /**
      * seek 到指定位置并解码缩略图。
-     * 线程安全（post 到 handler）；回调在 handler 线程。
+     * 线程安全；回调在 handler 线程。latest-wins：排队中的旧请求被最新请求顶掉。
      */
-    fun seekTo(positionUs: Long) {
-        val requestAt = android.os.SystemClock.elapsedRealtime()
-        handler.post {
-            requests += 1
-            val key = (positionUs / 1_000_000).toInt()
-            cache.get(key)?.let { cached ->
-                cacheHits += 1
-                recordLatency(requestAt)
-                onThumbnailReady?.invoke(positionUs, cached)
-                return@post
-            }
-            ensureInitialized()
-            val bitmap = if (initialized) decodeFrameAt(positionUs) else null
-            if (bitmap != null) {
-                cache.put(key, bitmap)
-                recordLatency(requestAt)
-                onThumbnailReady?.invoke(positionUs, bitmap)
-            } else {
-                decodeFailures += 1
-            }
-            scheduleRelease()
+    override fun seekTo(positionUs: Long) {
+        latestRequestAtMs = android.os.SystemClock.elapsedRealtime()
+        latestUs = positionUs
+        handler.removeCallbacks(decodeWorker)
+        handler.post(decodeWorker)
+    }
+
+    @Volatile private var latestUs = -1L
+    @Volatile private var latestRequestAtMs = 0L
+
+    private val decodeWorker = Runnable {
+        val positionUs = latestUs
+        val requestAt = latestRequestAtMs
+        requests += 1
+        val key = (positionUs / 1_000_000).toInt()
+        cache.get(key)?.let { cached ->
+            cacheHits += 1
+            recordLatency(requestAt)
+            onThumbnailReady?.invoke(positionUs, cached)
+            return@Runnable
         }
+        ensureInitialized()
+        val bitmap = if (initialized) decodeFrameAt(positionUs) else null
+        if (bitmap != null) {
+            cache.put(key, bitmap)
+            recordLatency(requestAt)
+            onThumbnailReady?.invoke(positionUs, bitmap)
+        } else {
+            decodeFailures += 1
+            onUnavailable?.invoke(
+                if (initFailed) "本地解码不可用（无视频轨或容器不支持）"
+                else "本地解码失败（关键帧追不到目标时刻）",
+            )
+        }
+        scheduleRelease()
     }
 
     private fun recordLatency(requestAtMs: Long) {
@@ -90,7 +113,7 @@ class ThumbnailReader(
     }
 
     /** 取证快照（AC1/AC3 判据数据）。 */
-    fun evidenceJson(): String {
+    override fun evidenceJson(): String {
         val latch = java.util.concurrent.CountDownLatch(1)
         var snapshot = ""
         handler.post {
@@ -98,7 +121,9 @@ class ThumbnailReader(
             latch.countDown()
         }
         latch.await(2, java.util.concurrent.TimeUnit.SECONDS)
-        return snapshot
+        // 解码线程被 SMB 慢读占住时 latch 会超时：空串会让调用方
+        // JSONObject("") 抛 JSONException 直接闪退（真机实证 2026-11-12）。
+        return snapshot.ifBlank { """{"error":"evidence snapshot timeout: handler busy"}""" }
     }
 
     private fun buildEvidenceSnapshot(): String {
@@ -121,7 +146,7 @@ class ThumbnailReader(
     }
 
     /// 释放全部资源（handler 线程上安全调）。
-    fun release() {
+    override fun release() {
         handler.post {
             releaseCodecInternal()
             cache.evictAll()
@@ -132,7 +157,7 @@ class ThumbnailReader(
         if (initialized || initFailed) return
         extractor = MediaExtractor()
         try {
-            extractor?.setDataSource(mediaPath)
+            extractor?.let { input.applyTo(it) }
         } catch (e: Exception) {
             initFailed = true
             extractor?.release(); extractor = null
@@ -191,7 +216,9 @@ class ThumbnailReader(
 
         val info = MediaCodec.BufferInfo()
         var attempts = 0
-        while (attempts < 60) {
+        // 240 ≈ 10s@24fps：大 GOP 片源从关键帧追到目标时刻的上限；
+        // 无索引片源 seek 落点差几十秒时追不上 ⇒ 计 failure，不拿旧帧冒充。
+        while (attempts < 240) {
             ++attempts
             val inIdx = mc.dequeueInputBuffer(10_000L)
             if (inIdx >= 0) {
@@ -209,7 +236,8 @@ class ThumbnailReader(
                 MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {}
                 else -> {
                     val isEos = (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0
-                    if (info.size > 0 && !isEos) {
+                    // 追到目标时刻才出帧：直接吐关键帧会让预览显示几秒前的场景。
+                    if (info.size > 0 && !isEos && info.presentationTimeUs >= positionUs - 500_000) {
                         val img = mc.getOutputImage(outIdx)
                         if (img != null) {
                             val bitmap = yuvToBitmap(img)
@@ -224,45 +252,6 @@ class ThumbnailReader(
             }
         }
         return null
-    }
-
-    private fun yuvToBitmap(img: android.media.Image): Bitmap? {
-        // YUV_420_888 → RGBA → Bitmap。
-        // 2×2 半采样（缩略图用不到全分辨率）：4× 转换提速；4:2:0 下 UV 平面可直接按输出坐标索引。
-        val width = img.width
-        val height = img.height
-        val yPlane = img.planes[0]
-        val uPlane = img.planes[1]
-        val vPlane = img.planes[2]
-        val outW = width / 2
-        val outH = height / 2
-        if (outW <= 0 || outH <= 0) return null
-        val pixels = IntArray(outW * outH)
-        val yBuf = yPlane.buffer
-        val uBuf = uPlane.buffer
-        val vBuf = vPlane.buffer
-        var outIdx = 0
-        for (oy in 0 until outH) {
-            val yRow = oy * 2 * yPlane.rowStride
-            val uvRow = oy * uPlane.rowStride
-            for (ox in 0 until outW) {
-                val yVal = yBuf.get(yRow + ox * 2).toInt() and 0xFF
-                val uvIdx = uvRow + ox * uPlane.pixelStride
-                val uVal = uBuf.get(uvIdx).toInt() - 128
-                val vVal = vBuf.get(uvIdx).toInt() - 128
-                val r = (yVal + 1.402f * vVal).toInt().coerceIn(0, 255)
-                val g = (yVal - 0.344f * uVal - 0.714f * vVal).toInt().coerceIn(0, 255)
-                val b = (yVal + 1.772f * uVal).toInt().coerceIn(0, 255)
-                pixels[outIdx++] = (255 shl 24) or (r shl 16) or (g shl 8) or b
-            }
-        }
-        val half = Bitmap.createBitmap(pixels, outW, outH, Bitmap.Config.ARGB_8888)
-        // 缓存缩到 320px 宽（D1：低分辨率缓存；50 张 × ~230KB ≈ 11MB）
-        val targetW = THUMB_TARGET_WIDTH
-        val targetH = (targetW.toFloat() * height / width).toInt().coerceAtLeast(1)
-        val scaled = Bitmap.createScaledBitmap(half, targetW, targetH, true)
-        if (scaled != half) half.recycle()
-        return scaled
     }
 
     private fun releaseCodecInternal() {
@@ -287,6 +276,5 @@ class ThumbnailReader(
     companion object {
         private const val DEFAULT_CACHE_SIZE = 50
         private const val RELEASE_DELAY_MS = 5000L
-        private const val THUMB_TARGET_WIDTH = 320
     }
 }

@@ -1,0 +1,166 @@
+package com.kivo.cinema.ui.compose
+
+import com.kivo.cinema.ui.compose.player.PlayerHudKind
+import com.kivo.cinema.ui.compose.player.PlayerMotion
+
+/**
+ * 手势数学：竖滑亮度/音量、长按快进（调速 + 上滑锁定）。
+ *
+ * 【为什么与动作路由分开】这里是**连续量**的计算（位移→比例→系统值），
+ * 动作路由是**离散事件**的分发。两者的测试方式完全不同：
+ * 前者要核对手势阈值与还原行为，后者要核对每个按钮是否有响应。
+ */
+
+/** 竖滑起点：左半屏亮度、右半屏音量（M03-S03）。 */
+internal fun PlayerComposeActivity.onVerticalDragStart(x: Float) {
+    cancelHudHide()
+    val w = resources.displayMetrics.widthPixels.toFloat().coerceAtLeast(1f)
+    val kind = if (x < w / 2f) PlayerHudKind.BRIGHTNESS else PlayerHudKind.VOLUME
+    hudKind = kind
+    hudFraction = currentHudFraction(kind)
+}
+
+/** 竖滑过程：向上滑 = 增大。半屏高 55% 走完全量程。 */
+internal fun PlayerComposeActivity.onVerticalDrag(dragAmount: Float) {
+    val kind = hudKind ?: return
+    val h = resources.displayMetrics.heightPixels.toFloat().coerceAtLeast(1f)
+    val next = (hudFraction - dragAmount / (h * 0.55f)).coerceIn(0f, 1f)
+    hudFraction = next
+    applyHudValue(kind, next)
+}
+
+/**
+ * 手势结束：HUD 停留 [PlayerMotion.hudHoldMs] 后淡出（M03-S03"停止 1s→淡出"）。
+ *
+ * 【为什么用可撤销令牌】旧版每次结束都 new 一个 Handler.postDelayed 且从不撤销：
+ * 连续两次竖滑时，第一次的计时器会在第二次还在滑的时候把 HUD 收掉（提前消失）。
+ * 现在复用 decorView 的队列，结束/重新开始时都先 removeCallbacks 上一个令牌。
+ */
+internal fun PlayerComposeActivity.onVerticalDragEnd() {
+    cancelHudHide()
+    val token = Runnable { hudKind = null; hudHideToken = null }
+    hudHideToken = token
+    window.decorView.postDelayed(token, PlayerMotion.hudHoldMs.toLong())
+}
+
+/** 撤销待执行的 HUD 淡出（重新开始滑动或再次结束时调用）。 */
+private fun PlayerComposeActivity.cancelHudHide() {
+    hudHideToken?.let { window.decorView.removeCallbacks(it) }
+    hudHideToken = null
+}
+
+/**
+ * 长按快进开始（M03-S02：longPress≥0.5s → 标签淡入）。
+ *
+ * 【为什么底栏区域不响应】进度条在手势层之上，长按会抢走它的拖拽 ——
+ * 在进度条上长按是"想 seek"，不是"想快进"。起点落在底部条内直接忽略。
+ */
+internal fun PlayerComposeActivity.onLongPressStart(x: Float, y: Float) {
+    val h = resources.displayMetrics.heightPixels.toFloat()
+    if (y > h - resources.displayMetrics.density * 96f) return
+    val mpv = mpvNetSession ?: return
+    speedBeforeLongPress = mpv.currentSpeedOrNull() ?: 1.0
+    longPressStartX = x
+    longPressStartY = y
+    longPressSpeed = PlayerComposeActivity.LONG_PRESS_BASE_SPEED
+    longPressLocked = false
+    longPressActive = true
+    applySpeed(PlayerComposeActivity.LONG_PRESS_BASE_SPEED)
+    haptic(android.view.HapticFeedbackConstants.LONG_PRESS)
+}
+
+/** 长按拖动：左右滑调速（0.5x…3x）；上滑超阈值 ⇒ 锁定（松手不恢复）。 */
+internal fun PlayerComposeActivity.onLongPressDrag(x: Float, y: Float) {
+    if (!longPressActive) return
+    // 屏幕锁定态：长按快进保留，但调速/上滑锁定 ❌（M03-S07）。
+    if (screenLocked) return
+    val lockPx = PlayerComposeActivity.LOCK_UP_THRESHOLD_DP * resources.displayMetrics.density
+    if (!longPressLocked && (longPressStartY - y) >= lockPx) {
+        longPressLocked = true
+        haptic(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+        showToast("已锁定快进 ${formatSpeed(longPressSpeed)}，点按画面解除")
+    }
+    if (longPressLocked) return
+    // 每 320px 一倍速。
+    val next = (PlayerComposeActivity.LONG_PRESS_BASE_SPEED + (x - longPressStartX) / 320f)
+        .coerceIn(0.5, 3.0)
+    if (next != longPressSpeed) {
+        longPressSpeed = next
+        applySpeed(next)
+    }
+}
+
+/** 长按结束：未锁定则恢复原速度。 */
+internal fun PlayerComposeActivity.onLongPressEnd() {
+    if (!longPressActive) return
+    longPressActive = false
+    if (!longPressLocked) applySpeed(speedBeforeLongPress)
+}
+
+/** 解除快进锁定（点按画面时调用）。 */
+internal fun PlayerComposeActivity.unlockLongPress() {
+    if (!longPressLocked) return
+    longPressLocked = false
+    applySpeed(speedBeforeLongPress)
+    showToast("已解除快进锁定")
+}
+
+internal fun PlayerComposeActivity.applySpeed(value: Double) {
+    val mpv = mpvNetSession ?: return
+    if (!mpv.setSpeed(value)) showToast("快进失败：${mpv.lastError}")
+}
+
+/** 速度标签（1.5 / 2 / 2.5 这种干净写法）。 */
+internal fun PlayerComposeActivity.formatSpeed(value: Double): String {
+    val text = if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
+    return "${text}x"
+}
+
+internal fun PlayerComposeActivity.haptic(constant: Int) {
+    runCatching { window.decorView.performHapticFeedback(constant) }
+}
+
+internal fun PlayerComposeActivity.currentHudFraction(kind: PlayerHudKind): Float = when (kind) {
+    PlayerHudKind.BRIGHTNESS -> currentWindowBrightness()
+    PlayerHudKind.VOLUME -> currentMediaVolume()
+}
+
+internal fun PlayerComposeActivity.applyHudValue(kind: PlayerHudKind, value: Float) {
+    when (kind) {
+        PlayerHudKind.BRIGHTNESS -> {
+            // 窗口级亮度：改系统全局会让整台设备变暗，退出还得手动调回来。
+            // 窗口级只影响本播放器，退出即失效，天然满足"退出还原系统亮度"。
+            val params = window.attributes
+            params.screenBrightness = value
+            window.attributes = params
+        }
+        PlayerHudKind.VOLUME -> {
+            val am = audioManager()
+            val max = am.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
+            if (max > 0) {
+                am.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, (value * max).toInt(), 0)
+            }
+        }
+    }
+}
+
+/** 窗口级亮度为 -1（跟随系统）时取系统亮度。 */
+internal fun PlayerComposeActivity.currentWindowBrightness(): Float {
+    val windowBrightness = window.attributes.screenBrightness
+    if (windowBrightness >= 0f) return windowBrightness
+    return runCatching {
+        android.provider.Settings.System.getInt(
+            contentResolver, android.provider.Settings.System.SCREEN_BRIGHTNESS,
+        ) / 255f
+    }.getOrDefault(0.5f)
+}
+
+internal fun PlayerComposeActivity.currentMediaVolume(): Float {
+    val am = audioManager()
+    val max = am.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
+    if (max <= 0) return 0f
+    return am.getStreamVolume(android.media.AudioManager.STREAM_MUSIC).toFloat() / max
+}
+
+internal fun PlayerComposeActivity.audioManager(): android.media.AudioManager =
+    getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager

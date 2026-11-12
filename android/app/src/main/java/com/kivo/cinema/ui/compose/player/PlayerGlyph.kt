@@ -19,8 +19,9 @@ import androidx.compose.ui.unit.sp
  * 播放页的**统一图标族**（player-ui-v2.md 边界规则 P2）。
  *
  * ## 分工
- * · 基础/传输类（关闭、播放、暂停、下一集、快进快退、勾选）→ [PlayerGlyphCore]
- * · 功能入口类（画质、均衡器、字幕、音轨、投屏、画中画、弹幕）→ [PlayerGlyphFeature]
+ * · 基础/传输类（关闭、播放、暂停、下一集、快进快退、勾选）→ [drawCoreGlyph]
+ * · 功能入口类（画质、均衡器、字幕、音轨、投屏、画中画、弹幕）→ [drawFeatureGlyph]
+ * · 界面零件类（主页、电池、chevron、−/+、相机、重置）→ [drawChromeGlyph]
  * · 本文件只做**分发**与"弹幕"那种"图形 + 文字"的组合。
  *
  * ## 形状语言（与 REX 一致）
@@ -36,6 +37,7 @@ internal fun PlayerGlyph(
     color: Color,
     modifier: Modifier = Modifier,
     strokeWidth: Float = 1.9f,
+    fill: Float = 1f,
 ) {
     BoxWithConstraints(modifier) {
         // 弹幕图标是"开口圆 + 汉字"，汉字要用文字排版 ⇒ 需要知道图标的实际像素尺寸。
@@ -46,10 +48,11 @@ internal fun PlayerGlyph(
         Canvas(Modifier.fillMaxSize()) {
             scale(size.width / 24f, size.height / 24f, pivot = Offset.Zero) {
                 val stroke = Stroke(strokeWidth, cap = StrokeCap.Round)
-                if (kind in FEATURE_GLYPHS) {
-                    drawFeatureGlyph(kind, color, stroke)
-                } else {
-                    drawCoreGlyph(kind, color, stroke)
+                when {
+                    kind in PANEL_GLYPHS -> drawPanelGlyph(kind, color, stroke)
+                    kind in CHROME_GLYPHS -> drawChromeGlyph(kind, color, stroke, fill)
+                    kind in FEATURE_GLYPHS -> drawFeatureGlyph(kind, color, stroke)
+                    else -> drawCoreGlyph(kind, color, stroke)
                 }
             }
         }
@@ -69,12 +72,12 @@ internal fun PlayerGlyph(
 
 /** 属于"功能入口"一族的图标 key（走 [drawFeatureGlyph]）。 */
 private val FEATURE_GLYPHS = setOf(
-    "clapper",      // 画质比例（场记板）
-    "expand",       // 画面缩放（圈内双向箭头）
-    "equalizer",    // 均衡器（圈内波形条）
+    "clapper",      // 跳过片段（场记板）
+    "expand",       // 画面比例（圈内双向箭头）
+    "audio",        // 音轨（圈内波形条，0162 锚定）
     "captions",     // 字幕（对话气泡）
-    "headphones",   // 音轨（耳机）
-    "airplay",      // 投屏
+    "audioMode",    // 听视频（耳机，0172 白圆亮）
+    "cast",         // 投屏（DLNA，通用屏幕+信号弧；v3.1 替代 AirPlay）
     "pip",          // 画中画
     "danmaku",      // 弹幕（开口圆 + 弹）
 )

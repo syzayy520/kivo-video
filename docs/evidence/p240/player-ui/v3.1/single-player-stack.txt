@@ -1,0 +1,2 @@
+    * Hist  #1: ActivityRecord{98c6ae1 u0 com.kivo.cinema/.ui.compose.PlayerComposeActivity} t10947}
+    * Hist  #0: ActivityRecord{d0a9c56 u0 com.kivo.cinema/.MainActivity} t10947}

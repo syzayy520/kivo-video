@@ -80,6 +80,8 @@ class EmbyActivity : ComponentActivity() {
                         model.streamUrl(item)?.let { url ->
                             startActivity(Intent(this@EmbyActivity, PlayerComposeActivity::class.java)
                                 .putExtra("kivo.playurl", url).putExtra("kivo.label", item.name)
+                                // 源卡要显示"来自哪个 Emby"（REX 0169），不是文件名。
+                                .putExtra("kivo.sourceName", model.serverName)
                                 .putExtra("kivo.routing", "emby-direct"))
                         }
                     } else if (sourceId != null) Column(Modifier.fillMaxSize().padding(28.dp),
