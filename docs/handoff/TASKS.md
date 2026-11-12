@@ -1,3 +1,19 @@
+> 2026-11-13 **✅ 264 操控设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
+> **规格**：[`docs/design/ui/replica/controls-settings.md`](../design/ui/replica/controls-settings.md)（家族树先行；4 组 20 行 = 14 真 + 6 灰）
+> **证据**：[`docs/evidence/p264/controls-settings/`](../evidence/p264/controls-settings/README.md)（c0–c43 + 2 XML + 3 日志 + 复算 + 披露 1–7）
+> **新家族** `ui/design/settings/SettingsControlsSub.kt`（132 行）+ `SettingsRows.kt` ChevronRow 增 enabled；
+> 路由 `SettingsNav`+CONTROLS / 根页 `SettingsPage`+操控入口。
+> **真实接线** `playback/PlaybackPrefs.kt` +14 操控键（265 行）→ 播放器消费：
+> PlayerActionRouter（双击动作/步长/锁定门）/ PlayerGestureRouter（竖滑/长按/调速/上滑锁定/松手恢复）/
+> PlayerSmbStart（起播 defaultSpeed 非默认才下发）/ BottomBar·Overlay·BarsHost·ComposeRoot（下一集/截图钮显隐）。
+> **复算 7 项**：defaultSpeed 1.5→ratio 1.4976；seek 步长 30→+29.56≈30；长按 HUD 2x；松手恢复 ratio 1.490≈1.5；
+> 下一集钮显隐两态；双击两侧=none 无跳变；竖滑=false 无 HUD。面板选择侧证 ratio 2.0005。
+> **闸门**：§五.1–6 全 PASS（行数 132/265 ≤300；6 灰行非空原因；真机不回归）。
+> **披露**：本地文件恒走 legacy 内核，倍速/长按消费在 SMB mpv 路径验证，本地面板诚实占位（既有范围非回归）；
+> c20 2.0005 为操作者面板选择；c24 EOS 作废以 c33 重测；下一集动作仍 stub toast。
+> **设备已恢复默认**（prefs-restored.xml：15秒/seek/竖滑 true/1.0x；262/263 既有五项保留）。
+> **下一卡**：其余设置子页逐个（用户逐块发图）；#37+#45 行数债 / D3 / D5 待派发。
+
 > 2026-11-13 **✅ D6 长期代码参考产品名清除 收口（DISPATCH D6；前助手执行，codex 接管复核+提交推送）。**
 > **证据**：[`docs/evidence/p260/code-derex/`](../evidence/p260/code-derex/README.md)（grep 前后 + 144 规则复算 + 两轮独立审计 + 真机 4 页对照 + codex 重编译日志 + §九收口补记）
 > **范围**：`backend/`、`include/`、`android/app/src/main/`、`tools/`（排除 `tools/reference/`）；只改注释/字符串 + 等价改名，**零逻辑改动**；`docs/`、`artifacts/` 冻结归档不清。

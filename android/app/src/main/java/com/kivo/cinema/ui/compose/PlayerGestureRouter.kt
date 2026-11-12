@@ -13,6 +13,8 @@ import com.kivo.cinema.ui.compose.player.PlayerMotion
 
 /** 竖滑起点：左半屏亮度、右半屏音量。 */
 internal fun PlayerComposeActivity.onVerticalDragStart(x: Float) {
+    // 全屏上下滑动调整音量和亮度（264）关闭时，竖滑不接管（不弹 HUD、不改系统值）。
+    if (!playbackPrefs.verticalSwipeEnabled) return
     cancelHudHide()
     val w = resources.displayMetrics.widthPixels.toFloat().coerceAtLeast(1f)
     val kind = if (x < w / 2f) PlayerHudKind.BRIGHTNESS else PlayerHudKind.VOLUME
@@ -58,33 +60,41 @@ private fun PlayerComposeActivity.cancelHudHide() {
  * 在进度条上长按是"想 seek"，不是"想快进"。起点落在底部条内直接忽略。
  */
 internal fun PlayerComposeActivity.onLongPressStart(x: Float, y: Float) {
+    // 长按快进总开关（264）；锁定态是否允许由 lockAllowGestures 门控。
+    if (!playbackPrefs.longPressEnabled) return
+    if (screenLocked && !playbackPrefs.lockAllowGestures) return
     val h = resources.displayMetrics.heightPixels.toFloat()
     if (y > h - resources.displayMetrics.density * 96f) return
     val mpv = mpvNetSession ?: return
+    val base = playbackPrefs.longPressBaseSpeed
     speedBeforeLongPress = mpv.currentSpeedOrNull() ?: 1.0
     longPressStartX = x
     longPressStartY = y
-    longPressSpeed = PlayerComposeActivity.LONG_PRESS_BASE_SPEED
+    longPressSpeed = base
     longPressLocked = false
     longPressActive = true
-    applySpeed(PlayerComposeActivity.LONG_PRESS_BASE_SPEED)
+    applySpeed(base)
     haptic(android.view.HapticFeedbackConstants.LONG_PRESS)
 }
 
-/** 长按拖动：左右滑调速（0.5x…3x）；上滑超阈值 ⇒ 锁定（松手不恢复）。 */
+/** 长按拖动：左右滑调速（0.5x…3x）；上滑超阈值 ⇒ 锁定（松手不恢复）。两能力各由 264 开关门控。 */
 internal fun PlayerComposeActivity.onLongPressDrag(x: Float, y: Float) {
     if (!longPressActive) return
     // 屏幕锁定态：长按快进保留，但调速/上滑锁定 ❌。
     if (screenLocked) return
-    val lockPx = PlayerComposeActivity.LOCK_UP_THRESHOLD_DP * resources.displayMetrics.density
-    if (!longPressLocked && (longPressStartY - y) >= lockPx) {
-        longPressLocked = true
-        haptic(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
-        showToast("已锁定快进 ${formatSpeed(longPressSpeed)}，点按画面解除")
+    // 快进时向上滑动锁定（264）：关闭时不进入锁定态。
+    if (playbackPrefs.longPressSwipeLock) {
+        val lockPx = PlayerComposeActivity.LOCK_UP_THRESHOLD_DP * resources.displayMetrics.density
+        if (!longPressLocked && (longPressStartY - y) >= lockPx) {
+            longPressLocked = true
+            haptic(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+            showToast("已锁定快进 ${formatSpeed(longPressSpeed)}，点按画面解除")
+        }
     }
     if (longPressLocked) return
-    // 每 320px 一倍速。
-    val next = (PlayerComposeActivity.LONG_PRESS_BASE_SPEED + (x - longPressStartX) / 320f)
+    // 快进时左右滑动调整速度（264）：关闭时保持起步倍速。每 320px 一倍速。
+    if (!playbackPrefs.longPressSwipeSpeed) return
+    val next = (playbackPrefs.longPressBaseSpeed + (x - longPressStartX) / 320f)
         .coerceIn(0.5, 3.0)
     if (next != longPressSpeed) {
         longPressSpeed = next
@@ -92,11 +102,11 @@ internal fun PlayerComposeActivity.onLongPressDrag(x: Float, y: Float) {
     }
 }
 
-/** 长按结束：未锁定则恢复原速度。 */
+/** 长按结束：未锁定且恢复策略为「长按前速度」时还原（264 长按松手时恢复至）。 */
 internal fun PlayerComposeActivity.onLongPressEnd() {
     if (!longPressActive) return
     longPressActive = false
-    if (!longPressLocked) applySpeed(speedBeforeLongPress)
+    if (!longPressLocked && playbackPrefs.longPressRestore == "previous") applySpeed(speedBeforeLongPress)
 }
 
 /** 解除快进锁定（点按画面时调用）。 */

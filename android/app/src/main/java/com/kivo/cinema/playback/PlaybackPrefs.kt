@@ -92,6 +92,78 @@ class PlaybackPrefs(context: Context) {
         get() = sp.getInt("cell_buffer_mb", 1024)
         set(v) { sp.edit().putInt("cell_buffer_mb", v).apply() }
 
+    // ---- 操控（264 操控设置卡）：按钮显隐 / 双击 / 竖滑 / 长按快进。播放器消费，UI 只编辑。 ----
+
+    /** 底栏「下一集」按钮显隐（动作仍为剧集未接入的明示 toast）。 */
+    var showNextButton: Boolean
+        get() = sp.getBoolean("show_next_button", true)
+        set(v) { sp.edit().putBoolean("show_next_button", v).apply() }
+
+    /** 暂停态浮相机「截图」按钮显隐。 */
+    var showCaptureButton: Boolean
+        get() = sp.getBoolean("show_capture_button", true)
+        set(v) { sp.edit().putBoolean("show_capture_button", v).apply() }
+
+    /** 双击右侧快进步长（秒）。 */
+    var seekForwardSeconds: Int
+        get() = sp.getInt("seek_forward_seconds", 15)
+        set(v) { sp.edit().putInt("seek_forward_seconds", v).apply() }
+
+    /** 双击左侧快退步长（秒）。 */
+    var seekBackwardSeconds: Int
+        get() = sp.getInt("seek_backward_seconds", 15)
+        set(v) { sp.edit().putInt("seek_backward_seconds", v).apply() }
+
+    /** 双击中间动作："playpause" = 播放/暂停；"none" = 无。 */
+    var doubleTapCenterAction: String
+        get() = sp.getString("double_tap_center", "playpause") ?: "playpause"
+        set(v) { sp.edit().putString("double_tap_center", v).apply() }
+
+    /** 双击两侧动作："seek" = 快进/快退；"none" = 无。 */
+    var doubleTapSidesAction: String
+        get() = sp.getString("double_tap_sides", "seek") ?: "seek"
+        set(v) { sp.edit().putString("double_tap_sides", v).apply() }
+
+    /** 全屏上下滑动调整音量和亮度。 */
+    var verticalSwipeEnabled: Boolean
+        get() = sp.getBoolean("vertical_swipe", true)
+        set(v) { sp.edit().putBoolean("vertical_swipe", v).apply() }
+
+    /** 锁定态是否仍允许长按和双击（false = 锁定后手势全禁）。 */
+    var lockAllowGestures: Boolean
+        get() = sp.getBoolean("lock_allow_gestures", true)
+        set(v) { sp.edit().putBoolean("lock_allow_gestures", v).apply() }
+
+    /** 起播默认播放速度（mpv speed）。 */
+    var defaultSpeed: Double
+        get() = sp.getFloat("default_speed", 1.0f).toDouble()
+        set(v) { sp.edit().putFloat("default_speed", v.toFloat()).apply() }
+
+    /** 长按快进总开关。 */
+    var longPressEnabled: Boolean
+        get() = sp.getBoolean("long_press_enabled", true)
+        set(v) { sp.edit().putBoolean("long_press_enabled", v).apply() }
+
+    /** 长按快进起步倍速。 */
+    var longPressBaseSpeed: Double
+        get() = sp.getFloat("long_press_base_speed", 2.0f).toDouble()
+        set(v) { sp.edit().putFloat("long_press_base_speed", v.toFloat()).apply() }
+
+    /** 长按快进时左右滑动调整速度。 */
+    var longPressSwipeSpeed: Boolean
+        get() = sp.getBoolean("long_press_swipe_speed", true)
+        set(v) { sp.edit().putBoolean("long_press_swipe_speed", v).apply() }
+
+    /** 长按快进时向上滑动锁定（松手不恢复）。 */
+    var longPressSwipeLock: Boolean
+        get() = sp.getBoolean("long_press_swipe_lock", true)
+        set(v) { sp.edit().putBoolean("long_press_swipe_lock", v).apply() }
+
+    /** 长按松手恢复："previous" = 长按前速度；"keep" = 保持快进速度。 */
+    var longPressRestore: String
+        get() = sp.getString("long_press_restore", "previous") ?: "previous"
+        set(v) { sp.edit().putString("long_press_restore", v).apply() }
+
     /**
      * 当前网络应使用的 demuxer 缓冲上限（mpv `demuxer-max-bytes` 值，如 "2048MiB"）。
      * 读不到网络类型时按 Wi-Fi 上限（内网片源多在 Wi-Fi，取大值更稳）。
@@ -168,5 +240,27 @@ class PlaybackPrefs(context: Context) {
         fun bufferLabel(mb: Int): String = if (mb >= 1024) "${mb / 1024}GB" else "${mb}MB"
 
         fun specLabel(seconds: Int): String = if (seconds <= 0) "关闭" else "${seconds}秒"
+
+        /** 双击快进/快退步长候选（秒）。 */
+        val SEEK_SECONDS: List<Int> = listOf(5, 10, 15, 20, 30, 60)
+
+        /** 默认播放速度候选（mpv speed）。 */
+        val DEFAULT_SPEEDS: List<Double> = listOf(0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0)
+
+        /** 长按起步倍速候选。 */
+        val LONG_PRESS_SPEEDS: List<Double> = listOf(1.5, 2.0, 2.5, 3.0)
+
+        fun seekLabel(seconds: Int): String = "${seconds}秒"
+
+        fun speedLabel(value: Double): String = "${value}x"
+
+        fun doubleTapCenterLabel(code: String): String =
+            if (code == "none") "无" else "播放 / 暂停"
+
+        fun doubleTapSidesLabel(code: String): String =
+            if (code == "none") "无" else "快进 / 快退"
+
+        fun longPressRestoreLabel(code: String): String =
+            if (code == "keep") "保持快进速度" else "长按前速度"
     }
 }

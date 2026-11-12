@@ -221,16 +221,23 @@ internal fun PlayerComposeActivity.onRetry() {
 }
 
 /**
- * 双击（左=快退 / 中=播放暂停 / 右=快进）。
+ * 双击（左=快退 / 中=播放暂停 / 右=快进），步长与动作由操控设置（264）决定。
  * 双击时画面在动，用户看不出这次点击干了什么 ⇒ 居中图标闪 0.6s 是零成本确认。
+ * 锁定态是否响应由 lockAllowGestures 门控；动作设为「无」时不闪不响应。
  */
 internal fun PlayerComposeActivity.onDoubleTap(zone: DoubleTapZone) {
+    if (screenLocked && !playbackPrefs.lockAllowGestures) return
+    val action = when (zone) {
+        DoubleTapZone.FORWARD, DoubleTapZone.BACKWARD -> playbackPrefs.doubleTapSidesAction
+        DoubleTapZone.TOGGLE_PLAY -> playbackPrefs.doubleTapCenterAction
+    }
+    if (action == "none") return
     lastTouchMs = System.currentTimeMillis()
     flashZone = zone
     android.os.Handler(mainLooper).postDelayed({ flashZone = null }, 600)
     when (zone) {
-        DoubleTapZone.FORWARD -> seekTo(positionMs + PlayerComposeActivity.DOUBLE_TAP_SEEK_MS)
-        DoubleTapZone.BACKWARD -> seekTo((positionMs - PlayerComposeActivity.DOUBLE_TAP_SEEK_MS).coerceAtLeast(0L))
+        DoubleTapZone.FORWARD -> seekTo(positionMs + playbackPrefs.seekForwardSeconds * 1000L)
+        DoubleTapZone.BACKWARD -> seekTo((positionMs - playbackPrefs.seekBackwardSeconds * 1000L).coerceAtLeast(0L))
         DoubleTapZone.TOGGLE_PLAY -> togglePlayPause()
     }
 }

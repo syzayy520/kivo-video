@@ -100,4 +100,7 @@
   唯一真实开关复用 `HomePreviewSetting`（改 accentGreen 绿轨）；播放/字幕只读策略行（不放假开关）；
   缓存清理真实（磁盘图缓存 + 进程内 `TmdbImageCache.clearMemory` + 评分 json，du 119→0 文件复算）。
   **动效披露**：push/pop slide+fade 350ms 为候选值，screencap 延迟>过渡未拿到真 mid 帧，丝滑度运行时未测。
-  > 主助手自留卡已清空；**D6 已收口**（2026-11-13，codex 接管复核+提交推送，见 TASKS.md / `docs/evidence/p260/code-derex/`）；D1–D5 仍待其他助手领取（D4 用户暂缓）。
+  > 262 播放 / 263 音画 / 264 操控 子页均已收口（2026-11-13，K40 真机，见 TASKS.md 顶部）；
+  > 264 = `SettingsControlsSub.kt` 132 行 + PlaybackPrefs 14 操控键，7 项消费复算 + 设备恢复默认，
+  > 证据 `docs/evidence/p264/controls-settings/README.md`。其余设置子页等用户逐块发图。
+  > **D6 已收口**（2026-11-13，codex 接管复核+提交推送，见 TASKS.md / `docs/evidence/p260/code-derex/`）；D1–D5 仍待其他助手领取（D4 用户暂缓）。

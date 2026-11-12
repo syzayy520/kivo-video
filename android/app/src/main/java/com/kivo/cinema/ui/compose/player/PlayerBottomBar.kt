@@ -50,6 +50,7 @@ internal fun PlayerBottomBar(
     durationMs: Long,
     showRemaining: Boolean,
     scrubPreview: Boolean,
+    showNextButton: Boolean,
     bufferedFraction: Float,
     thumbnailBitmap: Bitmap?,
     thumbUnavailable: String,
@@ -154,6 +155,7 @@ internal fun PlayerBottomBar(
                     resolutionLabel = resolutionLabel,
                     activeAction = activeAction,
                     panelRect = panelRect,
+                    showNextButton = showNextButton,
                     onPlayPause = onPlayPause,
                     onLongPressPlay = onLongPressPlay,
                     onNext = onNext,
@@ -170,6 +172,7 @@ private fun ButtonRow(
     resolutionLabel: String,
     activeAction: String,
     panelRect: State<Rect?>,
+    showNextButton: Boolean,
     onPlayPause: () -> Unit,
     onLongPressPlay: () -> Unit,
     onNext: () -> Unit,
@@ -198,7 +201,7 @@ private fun ButtonRow(
                 // 长按播放键 = 屏幕锁定（◐ 入口，未录到；见设计稿 §六）。
                 onLongClick = onLongPressPlay,
             )
-            BarIconButton(kind = "next", glyphSize = 18f, onClick = onNext)
+            if (showNextButton) BarIconButton(kind = "next", glyphSize = 18f, onClick = onNext)
         }
 
         Spacer(Modifier.weight(1f))

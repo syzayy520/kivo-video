@@ -152,6 +152,8 @@ internal fun PlayerComposeActivity.startMpvPlayback(holder: SurfaceHolder, sourc
             // 起播后才有 video-params：此时更新 PiP 宽高比才是真值。
             updatePipParams()
             applyResumePosition()
+            // 起播默认倍速（264 默认播放速度）：mpv 出厂 1.0，仅非默认值才下发。
+            if (playbackPrefs.defaultSpeed != 1.0) applySpeed(playbackPrefs.defaultSpeed)
             showStartupSpec()
         } else {
             statusText = "网络视频无法播放：${session.lastError}"

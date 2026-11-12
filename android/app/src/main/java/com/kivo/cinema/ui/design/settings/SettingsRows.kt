@@ -83,16 +83,23 @@ private fun RowScope.RowLabels(title: String, subtitle: String?, beta: Boolean, 
     }
 }
 
-/** chevron 行：标题 + 可选副标题 + 右 ›，按压进子页/外部导航。 */
+/** chevron 行：标题 + 可选副标题 + 右 ›，按压进子页/外部导航。enabled=false 置灰（无后端钻入）。 */
 @Composable
-internal fun ChevronRow(title: String, subtitle: String? = null, beta: Boolean = false, onClick: () -> Unit) {
+internal fun ChevronRow(
+    title: String,
+    subtitle: String? = null,
+    beta: Boolean = false,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
     Row(
         Modifier.fillMaxWidth().heightIn(min = DesignTokens.rowHeight.dp)
-            .clickable(role = Role.Button, onClick = onClick).padding(horizontal = 16.dp, vertical = 12.dp),
+            .clickable(role = Role.Button, enabled = enabled, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RowLabels(title, subtitle, beta)
-        Text("›", fontSize = 24.sp, color = DesignTokens.textSub)
+        RowLabels(title, subtitle, beta, Modifier.alpha(if (enabled) 1f else 0.4f))
+        Text("›", fontSize = 24.sp, color = DesignTokens.textSub.copy(alpha = if (enabled) 1f else 0.5f))
     }
 }
 

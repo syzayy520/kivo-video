@@ -58,6 +58,8 @@ internal fun PlayerComposeActivity.PlayerRoot() {
                 durationMs = durationMs,
                 showRemaining = playbackPrefs.showRemaining,
                 scrubPreview = playbackPrefs.scrubPreview,
+                showNextButton = playbackPrefs.showNextButton,
+                showCaptureButton = playbackPrefs.showCaptureButton,
                 bufferedFraction = bufferedFraction,
                 thumbnailBitmap = thumbnailBitmap,
                 thumbUnavailable = thumbnailUnavailableReason,

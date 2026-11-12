@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="show_next_button" value="false" />
+    <string name="audio_language">zh</string>
+    <boolean name="independent_brightness" value="true" />
+    <int name="seek_forward_seconds" value="30" />
+    <boolean name="ignore_ass_style" value="true" />
+    <string name="subtitle_language">zh</string>
+    <boolean name="show_remaining" value="true" />
+</map>

@@ -34,6 +34,10 @@ fun SettingsPage(
                     ChevronRow("播放", "缓冲 · 播放习惯 · 后台 · 字幕") { push(SettingsRoute.PLAYBACK) }
                 }
                 Spacer(Modifier.height(14.dp))
+                SectionCard("操控") {
+                    ChevronRow("操控", "按钮 · 手势 · 双击 · 长按快进") { push(SettingsRoute.CONTROLS) }
+                }
+                Spacer(Modifier.height(14.dp))
                 SectionCard("音画") {
                     ChevronRow("音画", "内核 · 画面 · 音频 · 画质增强") { push(SettingsRoute.AV) }
                 }
@@ -58,6 +62,7 @@ fun SettingsPage(
         sub = { route, back ->
             when (route) {
                 SettingsRoute.PLAYBACK -> SettingsPlaybackSub(back)
+                SettingsRoute.CONTROLS -> SettingsControlsSub(back)
                 SettingsRoute.AV -> SettingsAvSub(back)
                 SettingsRoute.DATA -> SettingsDataSub(store, onOpenSources, back)
                 SettingsRoute.CACHE -> SettingsCacheSub(store, back)

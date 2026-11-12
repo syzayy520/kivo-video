@@ -67,6 +67,8 @@ internal fun PlayerOverlay(
     durationMs: Long,
     showRemaining: Boolean,
     scrubPreview: Boolean,
+    showNextButton: Boolean,
+    showCaptureButton: Boolean,
     bufferedFraction: Float,
     thumbnailBitmap: Bitmap?,
     thumbUnavailable: String,
@@ -162,6 +164,7 @@ internal fun PlayerOverlay(
             durationMs = durationMs,
             showRemaining = showRemaining,
             scrubPreview = scrubPreview,
+            showNextButton = showNextButton,
             bufferedFraction = bufferedFraction,
             thumbnailBitmap = thumbnailBitmap,
             thumbUnavailable = thumbUnavailable,
@@ -183,7 +186,7 @@ internal fun PlayerOverlay(
             onCapture = onCapture,
             onEpisodeOrder = onEpisodeOrder,
         )
-        if (barsVisible && !isPlaying && !audioOnly) {
+        if (barsVisible && !isPlaying && !audioOnly && showCaptureButton) {
             PlayerCaptureButton(
                 onCapture = onCapture,
                 modifier = Modifier.align(Alignment.CenterStart),

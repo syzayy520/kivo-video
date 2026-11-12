@@ -167,10 +167,6 @@ class PlayerComposeActivity : ComponentActivity() {
 
     internal companion object {
         internal const val TAG = "KivoCompose"
-        /** 双击快进/快退步长。 */
-        internal const val DOUBLE_TAP_SEEK_MS = 10_000L
-        /** 长按快进起步速度。 */
-        internal const val LONG_PRESS_BASE_SPEED = 2.0
         /** 上滑锁定阈值（dp）。 */
         internal const val LOCK_UP_THRESHOLD_DP = 60f
 
