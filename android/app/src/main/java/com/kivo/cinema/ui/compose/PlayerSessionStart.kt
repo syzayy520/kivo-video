@@ -24,8 +24,7 @@ internal fun PlayerComposeActivity.maybeStartPlayback(holder: SurfaceHolder) {
     }
     val playUrl = intent.getStringExtra("kivo.playurl")
     if (playUrl != null) {
-        startUrlPlayback(holder, playUrl, intent.getStringExtra("kivo.label") ?: playUrl,
-            intent.getStringExtra("kivo.routing") ?: "file")
+        startUrlPlayback(holder, playUrl, intent.getStringExtra("kivo.label") ?: playUrl)
         return
     }
     val media = mediaOverridePath.takeIf { it.isNotBlank() }
@@ -88,10 +87,6 @@ internal fun PlayerComposeActivity.maybeStartPlayback(holder: SurfaceHolder) {
     Log.i(PlayerComposeActivity.TAG, "playback started: ${media.absolutePath} (service adopted)")
 }
 
-internal fun PlayerComposeActivity.startUrlPlayback(holder: SurfaceHolder, url: String, label: String, routing: String) {
-    startNetworkPlayback(holder, com.kivo.cinema.playback.NetworkPlaybackSession(this, url), routing)
-}
-
 internal fun PlayerComposeActivity.startNetworkPlayback(
     holder: SurfaceHolder,
     netSession: com.kivo.cinema.playback.NetworkPlaybackSession,
@@ -100,7 +95,7 @@ internal fun PlayerComposeActivity.startNetworkPlayback(
 ) {
     if (finishRequested || isDestroyed) return
     playbackStarted = true
-    smbPlayback = routing == "smb"
+    smbPlayback = routing == "smb" || routing == "emby"
     statusText = "正在准备网络播放…"
     smbNetSession = netSession
     netSession.start(holder.surface) { result ->

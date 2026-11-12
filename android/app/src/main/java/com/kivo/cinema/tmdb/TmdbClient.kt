@@ -90,16 +90,15 @@ class TmdbClient(context: Context) {
 
     private fun cacheKey(title: String, year: Int?) = "$title#$year"
 
-    /** 同步阻塞；调用方备线程。失败返回 null（徽章行隐藏）。 */
-    @Synchronized
-    fun ratingFor(title: String, year: Int?): Rating? {
+    /** search/movie 或 search/tv 首条命中：评分与详情智能填充共用同一次请求逻辑。无 key/无网/无匹配 → null。 */
+    private fun searchFirst(title: String, year: Int?, series: Boolean = false): JSONObject? {
         if (apiKey().isEmpty()) return null
-        loadCache()
-        cache[cacheKey(title, year)]?.let { return it }
         return try {
             val q = URLEncoder.encode(title, "UTF-8")
-            val yq = year?.let { "&year=$it" } ?: ""
-            val url = "$API_BASE/search/movie?api_key=${apiKey()}" +
+            val yq = year?.let {
+                if (series) "&first_air_date_year=$it" else "&year=$it"
+            } ?: ""
+            val url = "$API_BASE/search/${if (series) "tv" else "movie"}?api_key=${apiKey()}" +
                 "&language=zh-CN&query=$q$yq"
             val conn = openConnection(url)
             conn.connectTimeout = 8000
@@ -109,16 +108,50 @@ class TmdbClient(context: Context) {
                 ?.bufferedReader()?.readText() ?: ""
             if (code !in 200..299) return null
             val results = JSONObject(body).getJSONArray("results")
-            if (results.length() == 0) return null
-            val first = results.getJSONObject(0)
-            val score = first.getDouble("vote_average").toFloat()
-            if (score <= 0f) return null   // 无评分条目不显示
-            val r = Rating("TMDB", score)
-            cache[cacheKey(title, year)] = r
-            saveCache()
-            r
+            if (results.length() == 0) null else results.getJSONObject(0)
         } catch (e: Exception) {
             null
         }
+    }
+
+    /** 254 D2：片名+年份 → TMDB id（详情智能填充入口）。无匹配 → null（调用方走 Emby 文本兜底）。 */
+    fun searchId(title: String, year: Int?, series: Boolean = false): Int? =
+        searchFirst(title, year, series)?.optInt("id")?.takeIf { it > 0 }
+
+    /** 255：集剧照兜底（库缩略图优先）。episode_number → still URL；无 key/无网/无图 → 空 map。 */
+    fun seasonStills(tvId: Int, season: Int): Map<Int, String> {
+        if (apiKey().isEmpty()) return emptyMap()
+        return try {
+            val conn = openConnection(
+                "$API_BASE/tv/$tvId/season/$season?api_key=${apiKey()}&language=zh-CN")
+            conn.connectTimeout = 8000
+            conn.readTimeout = 15000
+            if (conn.responseCode !in 200..299) return emptyMap()
+            val arr = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
+                .getJSONArray("episodes")
+            (0 until arr.length()).mapNotNull {
+                val o = arr.getJSONObject(it)
+                val still = o.optString("still_path")
+                if (still.isBlank()) null
+                else o.optInt("episode_number") to "${TmdbHome.IMG}/w300$still"
+            }.toMap()
+        } catch (e: Exception) {
+            emptyMap()
+        }
+    }
+
+    /** 同步阻塞；调用方备线程。失败返回 null（徽章行隐藏）。 */
+    @Synchronized
+    fun ratingFor(title: String, year: Int?): Rating? {
+        if (apiKey().isEmpty()) return null
+        loadCache()
+        cache[cacheKey(title, year)]?.let { return it }
+        val first = searchFirst(title, year) ?: return null
+        val score = first.optDouble("vote_average", 0.0).toFloat()
+        if (score <= 0f) return null   // 无评分条目不显示
+        val r = Rating("TMDB", score)
+        cache[cacheKey(title, year)] = r
+        saveCache()
+        return r
     }
 }

@@ -26,6 +26,7 @@ internal fun DetailBackdrop(
     field: State<Color>,
     scrollDp: () -> Float,
     pullDp: Float = 0f,
+    loader: (suspend (String) -> android.graphics.Bitmap?)? = null,
 ) {
     val art = details?.heroArtworkUrl.orEmpty()
     var failed by remember(art) { mutableStateOf(false) }
@@ -42,7 +43,7 @@ internal fun DetailBackdrop(
                 val stretch = upward * (1f + pullDp / 585f)
                 scaleX = stretch; scaleY = stretch
                 transformOrigin = TransformOrigin(.5f, if (pullDp > 0f) 0f else .5f)
-            }, onLoaded = { failed = !it })
+            }, onLoaded = { failed = !it }, loader = loader)
         if (details != null && missing) Text(
             if (failed) "封面暂不可用" else "暂无封面",
             color = (if (field.value.luminance() > .45f) Color.Black else Color.White).copy(alpha = .6f),

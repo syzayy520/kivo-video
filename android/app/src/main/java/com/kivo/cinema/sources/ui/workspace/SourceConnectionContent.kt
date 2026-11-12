@@ -65,7 +65,7 @@ internal fun SourceConnectionContent(model: SourceManagerModel, onCancel: () -> 
                 keyboard?.hide()
                 preview = SourceShareParser.parse(clipboard.getText()?.text.orEmpty())
                 selected = preview?.addresses?.singleOrNull()
-            }, enabled = !model.busy, modifier = Modifier.fillMaxWidth()) { Text("粘贴识别") }
+            }, enabled = !model.busy, modifier = Modifier.fillMaxWidth()) { Text("智能识别") }
             Surface(shape = MaterialTheme.shapes.medium) {
                 Column {
                     SourceInput(model.name, { model.name = it }, "名称",
@@ -93,6 +93,7 @@ internal fun SourceConnectionContent(model: SourceManagerModel, onCancel: () -> 
                         } }, colors = sourceInputColors(), modifier = Modifier.fillMaxWidth())
                 }
             }
+            SourceOptionalFields(model)
             model.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             Spacer(Modifier.height(4.dp))
         }
@@ -161,7 +162,7 @@ private fun SourceInput(value: String, onChange: (String) -> Unit, label: String
 }
 
 @Composable
-private fun sourceInputColors() = TextFieldDefaults.colors(
+internal fun sourceInputColors() = TextFieldDefaults.colors(
     focusedContainerColor = MaterialTheme.colorScheme.surface,
     unfocusedContainerColor = MaterialTheme.colorScheme.surface,
     disabledContainerColor = MaterialTheme.colorScheme.surface,

@@ -21,6 +21,9 @@ class EmbyLibraryModel(private val errorText: (Throwable) -> String) {
     var hasMore by mutableStateOf(false); private set
     private var client: EmbyClient? = null
     private var auth: EmbyClient.Auth? = null
+    private var parentId: String? = null
+    private var types: String = "Movie"
+    private var genres: String? = null
     private var offset = 0
     private var generation = 0
     private val main = Handler(Looper.getMainLooper())
@@ -28,8 +31,14 @@ class EmbyLibraryModel(private val errorText: (Throwable) -> String) {
     private var work: Future<*>? = null
     private var pending: Runnable? = null
 
-    fun attach(c: EmbyClient, a: EmbyClient.Auth, page: EmbyClient.Page) {
-        clear(); client = c; auth = a; accept(page)
+    fun attach(c: EmbyClient, a: EmbyClient.Auth, page: EmbyClient.Page,
+               parentId: String? = null, types: String = "Movie") {
+        clear(); client = c; auth = a; this.parentId = parentId; this.types = types; accept(page)
+    }
+
+    /** 255：钻取某个服务器分类——清空后按 ParentId+类型重新拉首页（loading/error 走同一套）。 */
+    fun open(c: EmbyClient, a: EmbyClient.Auth, parentId: String?, types: String, genres: String? = null) {
+        clear(); client = c; auth = a; this.parentId = parentId; this.types = types; this.genres = genres; reset(0)
     }
 
     fun search(value: String) {
@@ -62,7 +71,7 @@ class EmbyLibraryModel(private val errorText: (Throwable) -> String) {
         val ordering = sort
         loading = true; error = null
         work = pool.submit {
-            val result = runCatching { c.items(a, start, term, ordering) }
+            val result = runCatching { c.items(a, start, term, ordering, parentId = parentId, types = types, genres = genres) }
             main.post {
                 if (ticket != generation) return@post
                 loading = false
@@ -85,6 +94,7 @@ class EmbyLibraryModel(private val errorText: (Throwable) -> String) {
 
     fun clear() {
         invalidate(); client = null; auth = null; items = emptyList()
+        parentId = null; types = "Movie"; genres = null
         total = null; offset = 0; query = ""; sort = 0
         loading = false; error = null; hasMore = false
     }

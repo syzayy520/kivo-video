@@ -125,12 +125,12 @@ class PlayerComposeActivity : ComponentActivity() {
      */
     internal var smbSoftAudioSource: com.kivo.cinema.smb.SmbByteSource? = null
     internal var smbSoftAudioRange: com.kivo.cinema.net.RangeFd? = null
-    /** v3.1：SMB 缩略图独立读路径（拖动预览帧）。与主链路零共用，收尾时关闭。 */
-    internal var smbThumbSource: com.kivo.cinema.smb.SmbByteSource? = null
+    /** v3.1：网络缩略图独立读路径（拖动预览帧，SMB/HTTP 同构）。与主链路零共用，收尾时关闭。 */
+    internal var netThumbSource: com.kivo.cinema.net.ByteSource? = null
     internal var softRateMarkMs = 0L
     internal var softRateMarkPosUs = -1L
     internal var softAudioMarkUs = -1L
-    /** 本次播放是不是 SMB 片源（投屏分支按它判断；243 之后没有本地 SmbSource 字段可看）。 */
+    /** 本次播放是不是网络片源（SMB/Emby；投屏分支按它判断）。 */
     internal var smbPlayback = false
     internal val closingNetworks = mutableSetOf<com.kivo.cinema.playback.NetworkPlaybackSession>()
     internal var finishRequested = false

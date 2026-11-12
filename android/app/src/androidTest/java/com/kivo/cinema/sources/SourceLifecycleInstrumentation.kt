@@ -7,7 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
 import com.kivo.cinema.MainActivity
-import com.kivo.cinema.emby.EmbyActivity
+import com.kivo.cinema.library.MediaLibraryActivity
 import com.kivo.cinema.sources.access.SourceAccessSession
 import com.kivo.cinema.sources.storage.SourceStore
 
@@ -54,10 +54,12 @@ class SourceLifecycleInstrumentation : Instrumentation() {
             await { resumed is MainActivity }
             runOnMainSync { SourceAccessSession.unlock() }
             val main = resumed!!
-            runOnMainSync { main.startActivity(Intent(main, EmbyActivity::class.java)) }
-            await { resumed is EmbyActivity }
+            // 254 D15：EmbyActivity 无 sourceId 已退役（重定向到资源库添加流），不再驻留前台。
+            // 改用本地资源库页作"内部第二页"载体，验证的仍是导航往返保留前台授权这一原意。
+            runOnMainSync { main.startActivity(Intent(main, MediaLibraryActivity::class.java)) }
+            await { resumed is MediaLibraryActivity }
             unlocked()
-            report += "PASS internal MainActivity -> EmbyActivity retains foreground authorization"
+            report += "PASS internal MainActivity -> MediaLibraryActivity retains foreground authorization"
             runOnMainSync { resumed!!.finish() }
             await { resumed is MainActivity }
             unlocked()

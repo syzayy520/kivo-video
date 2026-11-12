@@ -27,9 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.media.marks.FilmMark
 import com.kivo.cinema.ui.design.DesignTokens
-import com.kivo.cinema.ui.detail.CollectionPlusIcon
 import com.kivo.cinema.ui.detail.DETAIL_PAD_DP
-import com.kivo.cinema.ui.detail.HeartIcon
 
 /** Independent actions; the shared capsule has two separate accessible touch targets. */
 @Composable

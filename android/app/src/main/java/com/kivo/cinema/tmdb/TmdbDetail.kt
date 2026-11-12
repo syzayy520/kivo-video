@@ -33,6 +33,7 @@ class TmdbDetail(private val client: TmdbClient) {
         val certifications: List<Pair<String, String>>, // 分级（地区中文名, 级别），最多 3
         val contentNotes: List<String>,                 // 内容提示（release_dates.descriptors 中文化）
         val similar: List<SimilarItem>,
+        val ratingSource: String = "TMDB", // 徽章来源：兜底路径是 Emby CommunityRating，不得标 TMDB
     )
 
     data class CastMember(val name: String, val role: String, val profileUrl: String?)

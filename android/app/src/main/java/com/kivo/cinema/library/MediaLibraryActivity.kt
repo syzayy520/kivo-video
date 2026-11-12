@@ -154,10 +154,6 @@ class MediaLibraryActivity : ComponentActivity() {
         startActivity(intent)
     }
 
-    private fun openEmby() {
-        startActivity(Intent(this, com.kivo.cinema.emby.EmbyActivity::class.java))
-    }
-
     // ---- 231 私密区 ----
 
     private fun openPrivateZone() {

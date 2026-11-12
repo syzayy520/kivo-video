@@ -46,4 +46,38 @@ object SourceAddress {
         }
         return address.toUri()
     }
+
+    // 表单展开组（254 D13）：协议/端口从**唯一地址态**派生显示，编辑后写回同一串，不另立地址状态。
+    private fun ensureScheme(address: String): String {
+        val t = address.trim()
+        return if (t.contains("://")) t else "https://$t"
+    }
+
+    /** 派生 http/https（缺省 https）；解析不出合法 scheme 时退 https，不抛。 */
+    fun schemeOf(address: String): String =
+        ensureScheme(address).substringBefore("://").lowercase(Locale.ROOT)
+            .takeIf { it == "http" || it == "https" } ?: "https"
+
+    /** 派生显式端口（无端口/默认端口留空，由 normalize 剥离）。 */
+    fun portOf(address: String): String =
+        runCatching { URI(ensureScheme(address)).port }.getOrNull()
+            ?.takeIf { it in 1..65535 }?.toString() ?: ""
+
+    /** 写回协议：只换 scheme，host/port/path 原样保留。 */
+    fun withScheme(address: String, scheme: String): String {
+        val t = address.trim()
+        val rest = if (t.contains("://")) t.substringAfter("://") else t
+        return "$scheme://$rest"
+    }
+
+    /** 写回端口：空串=去掉端口；非法端口忽略。host/path 原样保留。 */
+    fun withPort(address: String, port: String): String {
+        val t = ensureScheme(address)
+        val scheme = t.substringBefore("://")
+        val rest = t.substringAfter("://")
+        val host = rest.substringBefore('/').substringBefore(':')
+        val path = if (rest.contains('/')) "/" + rest.substringAfter('/') else ""
+        val p = port.trim().toIntOrNull()?.takeIf { it in 1..65535 }
+        return "$scheme://$host${p?.let { ":$it" }.orEmpty()}$path"
+    }
 }

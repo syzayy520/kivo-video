@@ -223,8 +223,7 @@ class MainActivity : ComponentActivity() {
                 defaultHomeHandled = true
                 sources.records.firstOrNull { it.defaultHome }?.let { source ->
                     page = 0
-                    startActivity(android.content.Intent(this@MainActivity,
-                        com.kivo.cinema.emby.EmbyActivity::class.java).putExtra("kivo.sourceId", source.id))
+                    startActivity(com.kivo.cinema.sources.SourceOpen.intentFor(this@MainActivity, source))
                 }
             }
         }
@@ -274,17 +273,7 @@ class MainActivity : ComponentActivity() {
                             onNavigationGuard = { sourceNavigationGuard = it },
                             onUnlock = { action -> sourceUnlock.authenticate(sources::reportError, action) },
                             onOpenSource = { source ->
-                                // 243：SMB 与 Emby 都是"源"，按协议决定打开哪个浏览页。
-                                val target = if (source.protocol == com.kivo.cinema.sources.SourceRecord.PROTOCOL_SMB) {
-                                    android.content.Intent(this@MainActivity,
-                                        com.kivo.cinema.smb.ui.SmbBrowserActivity::class.java)
-                                        .putExtra("kivo.sourceId", source.id)
-                                } else {
-                                    android.content.Intent(this@MainActivity,
-                                        com.kivo.cinema.emby.EmbyActivity::class.java)
-                                        .putExtra("kivo.sourceId", source.id)
-                                }
-                                startActivity(target)
+                                startActivity(com.kivo.cinema.sources.SourceOpen.intentFor(this@MainActivity, source))
                             },
                             onOpenLibrary = { openLibrary() },
                             onOpenPrivate = { startActivity(

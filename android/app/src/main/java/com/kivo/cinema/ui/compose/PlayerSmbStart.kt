@@ -68,7 +68,7 @@ internal fun PlayerComposeActivity.startSmbPlayback(
                 networkPreparationCancelled = null
                 // 缩略图与弹幕和内核引擎无关，必须在引擎分支**之前**挂：
                 // mpv 分支会 return，放在分支后等于日常路径永远不挂（真机实测）。
-                if (thumbSource != null) mountSmbThumbnails(thumbSource)
+                if (thumbSource != null) mountNetworkThumbnails(thumbSource)
                 loadDanmaku(filePath)
                 val engine = com.kivo.cinema.playback.PlaybackEngine.select()
                 if (engine == com.kivo.cinema.playback.PlaybackEngine.Engine.MPV) {
@@ -132,8 +132,8 @@ internal fun PlayerComposeActivity.startSmbPlayback(
     }, "KivoSmbPrepare").start()
 }
 
-/** mpv 内核起播：吃 SmbByteSource（HTTP 代理按 offset 读），与 fd 链路互斥。 */
-internal fun PlayerComposeActivity.startMpvPlayback(holder: SurfaceHolder, source: SmbByteSource) {
+/** mpv 内核起播：吃 ByteSource（SMB/HTTP，代理按 offset 读），与 fd 链路互斥。 */
+internal fun PlayerComposeActivity.startMpvPlayback(holder: SurfaceHolder, source: com.kivo.cinema.net.ByteSource) {
     if (finishRequested || isDestroyed) return
     playbackStarted = true
     smbPlayback = true
@@ -159,11 +159,11 @@ internal fun PlayerComposeActivity.startMpvPlayback(holder: SurfaceHolder, sourc
     }
 }
 
-/** v3.1b：挂 SMB 缩略图读取器（mpv 第二实例）。
+/** v3.1b：挂网络缩略图读取器（mpv 第二实例，SMB/HTTP 同构）。
  *  MediaExtractor 在无索引 MKV 上首请求即线性扫卡死（真机 handler busy 定论），
  *  网络源预览帧改走内核；本地索引源仍用 ThumbnailReader。 */
-internal fun PlayerComposeActivity.mountSmbThumbnails(source: SmbByteSource) {
-    smbThumbSource = source
+internal fun PlayerComposeActivity.mountNetworkThumbnails(source: com.kivo.cinema.net.ByteSource) {
+    netThumbSource = source
     val reader = com.kivo.cinema.thumbnail.MpvThumbnailReader(applicationContext, source, cacheDir)
     thumbnailReader = reader
     // 预热期空框也要有字：内核起好前拖动，用户看到的是"准备中"而不是黑框猜谜。

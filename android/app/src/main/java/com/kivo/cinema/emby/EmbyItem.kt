@@ -6,4 +6,5 @@ data class EmbyItem(
     val name: String,
     val year: Int?,        // ProductionYear，旧条目可能没有
     val posterUrl: String, // /Items/{id}/Images/Primary?maxWidth=320（tag 已拼）
+    val series: Boolean = false, // 255：Type==Series，钻取网格/详情据此分电影/剧
 )

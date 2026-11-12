@@ -49,7 +49,8 @@ class SourceStore(private val file: File, private val cipher: SourceCipher = Sou
             SourceRecord(item.getString("id"), item.getLong("revision"), item.getString("name"),
                 item.getString("address"), item.getString("username"), item.getString("password"),
                 protocol, flag(item, "hidden", false), flag(item, "defaultHome", false),
-                flag(item, "aggregateEnabled", true), flag(item, "aggregateSearchEnabled", true))
+                flag(item, "aggregateEnabled", true), flag(item, "aggregateSearchEnabled", true),
+                item.optString("note", ""))
         }
         require(result.map { it.id }.distinct().size == result.size)
         require(result.map { Triple(it.protocol, it.address, it.username) }.distinct().size == result.size)
@@ -64,7 +65,8 @@ class SourceStore(private val file: File, private val cipher: SourceCipher = Sou
             .put("name", record.name)
             .put("address", record.address).put("username", record.username).put("password", record.password)
             .put("hidden", record.hidden).put("defaultHome", record.defaultHome)
-            .put("aggregateEnabled", record.aggregateEnabled).put("aggregateSearchEnabled", record.aggregateSearchEnabled)) }
+            .put("aggregateEnabled", record.aggregateEnabled).put("aggregateSearchEnabled", record.aggregateSearchEnabled)
+            .put("note", record.note)) }
         return JSONObject().put("schema", SCHEMA).put("sources", array).toString().toByteArray(Charsets.UTF_8)
     }
 

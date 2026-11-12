@@ -79,11 +79,15 @@ fun TmdbImage(
     bg: Color = TmdbPlaceholder,
     fit: Boolean = false,
     onLoaded: ((Boolean) -> Unit)? = null,
+    loader: (suspend (String) -> Bitmap?)? = null,
 ) {
     var bmp by remember(url) { mutableStateOf(TmdbImageCache.get(url)) }
     val report by rememberUpdatedState(onLoaded)
+    val fetch by rememberUpdatedState(loader)
     LaunchedEffect(url) {
-        val loaded = bmp ?: withContext(Dispatchers.IO) { TmdbImageCache.load(url) }
+        val loaded = bmp ?: withContext(Dispatchers.IO) {
+            fetch?.invoke(url)?.also { TmdbImageCache.put(url, it) } ?: TmdbImageCache.load(url)
+        }
         bmp = loaded
         report?.invoke(loaded != null)
     }

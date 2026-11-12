@@ -39,7 +39,7 @@ internal fun PlayerComposeActivity.onCastSelect(device: DlnaDevice) {
             currentMediaPath().ifBlank { playUrlOverride },
         ).name.ifBlank { "kivo" }
         val rc = when {
-            // SMB 片源投屏需要第二条 SmbByteSource 给渲染器取流，尚未开放。
+            // 网络片源（SMB/Emby）投屏需要第二条读路径给渲染器取流，尚未开放。
             smbPlayback -> -2
             playUrlOverride.isNotBlank() -> castController.castUrl(device, playUrlOverride, title)
             else -> castController.castSource(
@@ -53,7 +53,7 @@ internal fun PlayerComposeActivity.onCastSelect(device: DlnaDevice) {
                 runCatching { playbackSession?.pause() }
                 statusText = "投屏中：${device.friendlyName}"
             } else {
-                castMessage = if (rc == -2) "SMB 片源投屏暂未开放" else "投屏失败（rc=$rc）"
+                castMessage = if (rc == -2) "网络片源投屏暂未开放" else "投屏失败（rc=$rc）"
             }
         }
     }.start()

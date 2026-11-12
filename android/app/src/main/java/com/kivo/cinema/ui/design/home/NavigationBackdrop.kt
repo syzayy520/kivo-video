@@ -43,10 +43,14 @@ internal fun Modifier.navigationSource(state: NavigationBackdropState?, enabled:
 
 /** Native WebView/video render nodes are never registered or replayed. */
 @Composable
-internal fun NavigationBackdrop(state: NavigationBackdropState, modifier: Modifier = Modifier) {
+internal fun NavigationBackdrop(
+    state: NavigationBackdropState,
+    modifier: Modifier = Modifier,
+    blurRadius: Float = 24f,
+) {
     var origin by remember { mutableStateOf(Offset.Zero) }
     Box(modifier.onGloballyPositioned { origin = it.positionInRoot() }
-        .graphicsLayer { renderEffect = BlurEffect(24f, 24f, TileMode.Clamp) }
+        .graphicsLayer { renderEffect = BlurEffect(blurRadius, blurRadius, TileMode.Clamp) }
         .drawWithContent {
             clipRect {
                 state.sources.forEach { source ->

@@ -39,8 +39,8 @@ internal fun PlayerComposeActivity.closeNetworkPlayback() {
     smbSoftAudioRange = null
     val softAudioSource = smbSoftAudioSource
     smbSoftAudioSource = null
-    val thumbSource = smbThumbSource
-    smbThumbSource = null
+    val thumbSource = netThumbSource
+    netThumbSource = null
     softRateMarkMs = 0L
     softRateMarkPosUs = -1L
     softAudioMarkUs = -1L

@@ -1,7 +1,6 @@
 package com.kivo.cinema.ui.design
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,64 +21,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kivo.cinema.library.MediaItem
 
 /**
- * 静态占位页（236 设计稿 §三）：资源库入口 / 设置骨架 / 我的占位。
- * 发现页在 DiscoverPage.kt（239 重写）；在看页在 WatchingPage.kt。
+ * 设置骨架 / 我的占位 / 共用时间格式化（236 设计稿 §三）。
+ * 资源库页在 SourcesScreen；发现页在 DiscoverPage.kt（239 重写）；在看页在 WatchingPage.kt。
  * 数值全部帧实测；内容图给色、chrome 退后。
  */
 private val pad = DesignTokens.screenPad.dp
-
-/** 资源库页（云服务矩阵语义 + 我们的源集合；玻璃卡矩阵）。 */
-@Composable
-fun SourcesPage(
-    onOpenSmb: () -> Unit,
-    onOpenEmby: () -> Unit,
-    onOpenLibrary: () -> Unit,
-    onOpenPrivate: () -> Unit,
-    videoCount: Int,
-) {
-    Column(Modifier.fillMaxSize().padding(horizontal = pad)) {
-        Spacer(Modifier.height(8.dp))
-        Text("资源库", fontSize = 28.sp, fontWeight = FontWeight.Bold,
-            color = DesignTokens.textMain)
-        Spacer(Modifier.height(4.dp))
-        Text("本地 ${videoCount} 个视频 · 云端与网络源", fontSize = 12.sp,
-            color = DesignTokens.textSub)
-        Spacer(Modifier.height(14.dp))
-        SourceCard("本地影片", "MediaStore 扫描 · 海报墙 · 点播", "📁") { onOpenLibrary() }
-        Spacer(Modifier.height(DesignTokens.gap.dp))
-        SourceCard("SMB / 网络共享", "libsmb2 直连 · 硬解过本地代理 · 断点下载", "🗄") { onOpenSmb() }
-        Spacer(Modifier.height(DesignTokens.gap.dp))
-        SourceCard("Emby / Jellyfin", "连接服务器，浏览你的电影收藏", "☁") { onOpenEmby() }
-        Spacer(Modifier.height(DesignTokens.gap.dp))
-        SourceCard("私密区", "生物特征门 · 受保护观看空间", "🔒") { onOpenPrivate() }
-    }
-}
-
-@Composable
-private fun SourceCard(title: String, desc: String, icon: String, onClick: () -> Unit) {
-    GlassSurface(Modifier.fillMaxWidth().clickable { onClick() }) {
-        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFEFE9F2)),
-                contentAlignment = Alignment.Center
-            ) { Text(icon, fontSize = 20.sp) }
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text(title, fontSize = DesignTokens.fontRowTitle.sp, fontWeight = FontWeight.Bold,
-                    color = DesignTokens.textMain)
-                Text(desc, fontSize = 11.sp, color = DesignTokens.textSub)
-            }
-            Spacer(Modifier.weight(1f))
-            Text("›", fontSize = 22.sp, color = DesignTokens.textSub)
-        }
-    }
-}
 
 /** 设置页（set_a 帧：inset 分组卡 59pt 行 + 节头 + 多行脚注"敢解释"）。 */
 @Composable

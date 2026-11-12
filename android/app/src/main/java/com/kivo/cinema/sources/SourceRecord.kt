@@ -21,6 +21,7 @@ class SourceRecord(
     val defaultHome: Boolean = false,
     val aggregateEnabled: Boolean = true,
     val aggregateSearchEnabled: Boolean = true,
+    val note: String = "",
 ) {
     val address: String = SourceAddress.normalize(address, protocol)
 
@@ -40,7 +41,7 @@ class SourceRecord(
         aggregateEnabled: Boolean = this.aggregateEnabled,
         aggregateSearchEnabled: Boolean = this.aggregateSearchEnabled, revision: Long = this.revision) =
         SourceRecord(id, revision, name, address, username, password, protocol, hidden, defaultHome,
-            aggregateEnabled, aggregateSearchEnabled)
+            aggregateEnabled, aggregateSearchEnabled, note)
 
     override fun toString() = "SourceRecord($protocol, redacted)"
 

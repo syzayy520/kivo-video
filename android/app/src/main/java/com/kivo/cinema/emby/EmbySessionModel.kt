@@ -19,13 +19,16 @@ import java.util.concurrent.Future
 
 /** Memory-only session; never persist passwords or tokens. UI writes run on main. */
 class EmbySessionModel : ViewModel() {
-    var server by mutableStateOf("")
-    var username by mutableStateOf("")
-    var password by mutableStateOf("")
+    private var server by mutableStateOf("")
+    private var username by mutableStateOf("")
+    private var password by mutableStateOf("")
     var error by mutableStateOf<String?>(null); private set
     var connecting by mutableStateOf(false); private set
     var inLibrary by mutableStateOf(false); private set
     val library = com.kivo.cinema.emby.library.EmbyLibraryModel(::friendlyError)
+    var views by mutableStateOf<List<EmbyCatalog.View>>(emptyList()); private set
+    var viewsLoaded by mutableStateOf(false); private set
+    var drilled by mutableStateOf<EmbyCatalog.View?>(null); private set
     private var client: EmbyClient? = null
     private var auth: EmbyClient.Auth? = null
     private val main = Handler(Looper.getMainLooper())
@@ -69,7 +72,7 @@ class EmbySessionModel : ViewModel() {
         URI(if (server.contains("://")) server.trim() else "https://${server.trim()}").host
     }.getOrNull() ?: "Emby"
 
-    fun connect() {
+    private fun connect() {
         if (connecting || server.isBlank() || username.isBlank()) return
         error = null
         connecting = true
@@ -89,28 +92,68 @@ class EmbySessionModel : ViewModel() {
                 result.fold(onSuccess = { (c, a, list) ->
                     client = c; auth = a; library.attach(c, a, list)
                     inLibrary = true
+                    loadViews(c, a)
                 }, onFailure = { error = friendlyError(it) })
             }
         }
     }
 
     fun cancel() { ++generation; work?.cancel(true); connecting = false }
+
+    /** 255：服务器自有分类（REX 首页横排）。失败静默为空——首页仍可钻取/搜索，不假装有分类。 */
+    private fun loadViews(c: EmbyClient, a: EmbyClient.Auth) {
+        val ticket = generation
+        pool.submit {
+            val r = runCatching {
+                val cat = EmbyCatalog(c)
+                cat.views(a) + listOfNotNull(cat.varietyView(a))
+            }
+            main.post { if (ticket == generation) { viewsLoaded = true; r.onSuccess { views = it } } }
+        }
+    }
+
+    /** 255：首页某分类横排的首屏（IO 调用方自备线程）。 */
+    fun rowPage(view: EmbyCatalog.View): List<EmbyItem> {
+        val c = client ?: return emptyList(); val a = auth ?: return emptyList()
+        return runCatching {
+            c.items(a, limit = 12, parentId = view.parentId, types = viewTypes(view), genres = view.genres).items
+        }.getOrDefault(emptyList())
+    }
+
+    fun openView(view: EmbyCatalog.View) {
+        val c = client ?: return; val a = auth ?: return
+        drilled = view
+        library.open(c, a, view.parentId, viewTypes(view), view.genres)
+    }
+
+    fun closeView() { drilled = null }
+
+    private fun viewTypes(view: EmbyCatalog.View) =
+        if (view.collectionType == "tvshows") "Series" else "Movie"
+
     fun back() {
         cancel()
         inLibrary = false
         // Switching servers must not keep authenticated playback or old artwork alive.
         client = null; auth = null; library.clear(); posters.evictAll()
+        views = emptyList(); viewsLoaded = false; drilled = null
         server = ""; username = ""; password = ""; savedStarted = false
     }
-    fun streamUrl(item: EmbyItem): String? = auth?.let { client?.streamUrl(it, item.id) }
+    /** 254：token 只经 intent 交给播放页的 HttpByteSource 头，不进 URL。 */
+    val accessToken: String? get() = auth?.token
+
+    /** 254 D14：详情页收藏/已看走 /Users/{uid}/…，需 userId（播放只需 token）。 */
+    val accessUserId: String? get() = auth?.userId
 
     /** Called on an IO dispatcher; cache keys include host, path and image tag. */
-    fun poster(item: EmbyItem): Bitmap? {
-        if (item.posterUrl.isBlank()) return null
-        posters.get(item.posterUrl)?.let { return it }
+    fun poster(item: EmbyItem): Bitmap? = image(item.posterUrl)
+
+    fun image(url: String): Bitmap? {
+        if (url.isBlank()) return null
+        posters.get(url)?.let { return it }
         return runCatching {
-            val bytes = client?.fetchBytes(item.posterUrl) ?: return null
-            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.also { posters.put(item.posterUrl, it) }
+            val bytes = client?.fetchBytes(url, auth?.token) ?: return null
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.also { posters.put(url, it) }
         }.getOrNull()
     }
 

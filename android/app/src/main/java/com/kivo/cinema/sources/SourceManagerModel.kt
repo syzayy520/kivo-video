@@ -37,6 +37,7 @@ class SourceManagerModel internal constructor(app: Application,
     var address by mutableStateOf("")
     var username by mutableStateOf("")
     var password by mutableStateOf("")
+    var note by mutableStateOf("")
     /** 当前草稿的协议；编辑已有源时由记录带入，新建时由"添加"入口选定。 */
     var protocol by mutableStateOf(SourceRecord.PROTOCOL_EMBY); private set
     private var original: SourceRecord? = null
@@ -47,7 +48,7 @@ class SourceManagerModel internal constructor(app: Application,
     val editingId get() = original?.id
     val draftDirty get() = editing && (name != original?.name.orEmpty() ||
         address != original?.address.orEmpty() || username != original?.username.orEmpty() ||
-        password != original?.password.orEmpty())
+        password != original?.password.orEmpty() || note != original?.note.orEmpty())
     val draftVisible get() = original?.hidden != true || com.kivo.cinema.sources.access.SourceAccessSession.unlocked
 
     init { refresh() }
@@ -69,6 +70,7 @@ class SourceManagerModel internal constructor(app: Application,
         protocol = record?.protocol ?: SourceRecord.PROTOCOL_EMBY
         name = record?.name.orEmpty(); address = record?.address.orEmpty()
         username = record?.username.orEmpty(); password = record?.password.orEmpty()
+        note = record?.note.orEmpty()
         error = null; editing = true
     }
 
@@ -77,7 +79,7 @@ class SourceManagerModel internal constructor(app: Application,
         if (busy || !ready) return
         original = null
         protocol = if (kind in SourceRecord.PROTOCOLS) kind else SourceRecord.PROTOCOL_EMBY
-        name = ""; address = ""; username = ""; password = ""
+        name = ""; address = ""; username = ""; password = ""; note = ""
         error = null; editing = true
     }
 
@@ -106,7 +108,7 @@ class SourceManagerModel internal constructor(app: Application,
         val draft = SourceRecord(id = previous?.id ?: java.util.UUID.randomUUID().toString(),
             revision = (previous?.revision ?: 0) + 1,
             name = name.trim().ifEmpty { defaultName(normalized) }, address = normalized,
-            username = username.trim(), password = password, protocol = protocol)
+            username = username.trim(), password = password, protocol = protocol, note = note.trim())
         if (records.any { it.id != draft.id && it.sameAccount(draft) }) {
             error = "此服务器的该账号已添加"; return
         }
@@ -170,7 +172,7 @@ class SourceManagerModel internal constructor(app: Application,
     }.getOrNull()?.takeIf { it.isNotBlank() } ?: "未命名"
 
     private fun clearDraft() {
-        name = ""; address = ""; username = ""; password = ""; original = null; error = null
+        name = ""; address = ""; username = ""; password = ""; note = ""; original = null; error = null
         protocol = SourceRecord.PROTOCOL_EMBY
     }
     private fun safeError(e: Throwable): String = when (e) {
