@@ -1,6 +1,6 @@
 # 待派发任务清单（供其他助手领取）
 
-> 用途：主助手专注 **设置页 UI 设计**（REX 1:1，见 `docs/design/ui/replica/settings-page.md`）。
+> 用途：主助手自留的 **设置页 UI 设计+实现**（REX 1:1）已于 261 收口（见文末「主助手自留」）。
 > 本清单是**可独立领取**的剩余工作卡。领取前先读 `agents.md` + `.codex/memory/kivo-video-iron-gate.md`
 > + `docs/handoff/CURRENT.md`；状态以 `docs/handoff/TASKS.md` 为准，收口后回写 TASKS.md 并推送。
 > 每张卡自包含：目标 / 范围 / 闸门 / 证据 / 红线 / 依赖。**未完成家族树设计不得进入实现。**
@@ -60,8 +60,39 @@
 - **证据**：`docs/evidence/p260/preview-farseek/`。
 - **依赖**：复用 #40 受控注入源（`docs/evidence/p259/.../logs/p4-range-server.js`）。**适合度：中**。
 
+## D6 · 清除长期代码里的参考产品名痕迹（rex / senplayer）
+
+- **背景**：本项目 UI 复刻过一款参考播放器，但用户明确要求**长期留下的代码**里不得出现参考产品名
+  （rex / Rex / REX / SenPlayer）或"逐帧复刻 REX"这类出处署名——这不是开源项目，没有保留出处的义务。
+  此前助手把参考产品名写进了大量注释/字符串/标识符，需彻底清除。
+- **范围（只清长期代码）**：`backend/`（.cxx/.hpp）、`include/`、`android/app/src/main/`（.kt/.cpp）、
+  `tools/*.py`（活跃脚本）。**不清理** `docs/`、`artifacts/`、`docs/reference/rex-teardown/`、`tools/reference/rex/`
+  ——这些是文档/参考素材/冻结归档，用户明确**之后要删除**，不必清理。
+- **清什么**：① 注释/字符串里的 rex/Rex/REX/SenPlayer 及绑定参考录屏的帧号/动效编号出处
+  （REX 0160、REX-EMBY 0178/0179、M03-S01、sk_16、IMG_0161、0172 等）——去掉出处，保留技术事实（尺寸/线宽/时长数值）。
+  ② 标识符：`rexTextWeight` 已由主助手改名 `barTextWeight`（PlayerBarText/PlayerTopBar，已完成，勿重复）。
+  ③ rex 命名的代码文件：`tools/measure_rex_playback.py` → 重命名中性名（如 `measure_baseline_playback.py`），
+  同步更新 `tools/measure_kivo_playback.py` 的 `import measure_rex_playback as rex` 及所有 `rex.` 调用、docstring。
+- **保留**：`mpv`/`libmpv`/`FFmpeg`/`swresample`/`MediaCodec`/`TMDB`/`Emby`/`SMB`/`PingFang`/`SF Pro`/`Noto`/`AirPlay`/`DLNA`
+  等开源内核/技术/字体/协议名（事实依赖，非竞品）。**勿动**含 `Execution`/`ShaderExecution` 的词（子串误报，与参考产品无关）。
+- **改写要求**：自然通顺、保留工程含义，不留空括号/残句；只改注释/字符串/上述标识符与文件名，**不改任何代码逻辑**；单文件 ≤300 行。
+  例："REX 0160 实测 ink 21×18.3pt"→"实测 ink 21×18.3pt"；"SenPlayer / Rex 用的那颗内核"→"mpv 内核"；
+  "RexDesign Assets.car 硬参数"→"浅色态语义色板硬参数"；"与 REX 一致"→去掉出处从句。
+- **已完成（主助手，勿重复）**：`ui/design/settings/` 5 文件已清（含 About 页用户可见 REX 文案已删）；
+  `rexTextWeight`→`barTextWeight` 已改。另有少量 player/compose/detail/emby 文件可能被部分清理过——以 grep 现状为准补全。
+- **闸门**：① 长期代码 grep `rex|senplayer`（忽略大小写）零残留（Execution 误报与保留的参考目录除外）；
+  ② `assembleDebug` 编译过；③ 真机回归播放/设置/详情不回归（纯文字清理，行为应零变化）；④ 不新增超闸文件。
+- **证据**：`docs/evidence/p260/code-derex/`（清理前后 grep 计数 + 编译日志 + 回归帧 + 复算命令）。
+- **依赖**：无。**适合度：高**（机械清理，边界清晰；需细心改写避免残句、避免误改 Execution/mpv）。
+
 ---
 
 ## 主助手自留（不派发）
 
-- **设置页 UI 设计 + 实现**（REX 1:1）：`docs/design/ui/replica/settings-page.md`。用户指定主助手负责。
+- **设置页 UI 设计 + 实现**（REX 1:1）：**✅ 261 已收口**（K40 `b6e950ee` 真机，S1–S6 全 PASS）。
+  规格 `docs/design/ui/replica/settings-page.md`；证据 `docs/evidence/p261/settings-page/README.md`。
+  新家族 `ui/design/settings/` 8 文件（最大 126 行）；退役 `Pages.kt` 骨架；MainActivity 净 0（357 行既有 #37 债未增）。
+  唯一真实开关复用 `HomePreviewSetting`（改 accentGreen 绿轨）；播放/字幕只读策略行（不放假开关）；
+  缓存清理真实（磁盘图缓存 + 进程内 `TmdbImageCache.clearMemory` + 评分 json，du 119→0 文件复算）。
+  **动效披露**：push/pop slide+fade 350ms 为候选值，screencap 延迟>过渡未拿到真 mid 帧，丝滑度运行时未测。
+  > 主助手自留卡已清空；D1–D6 仍待其他助手领取（D4 用户暂缓；D6=长期代码参考产品名清除）。

@@ -23,67 +23,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * 设置骨架 / 我的占位 / 共用时间格式化（236 设计稿 §三）。
- * 资源库页在 SourcesScreen；发现页在 DiscoverPage.kt（239 重写）；在看页在 WatchingPage.kt。
+ * 我的占位 / 共用时间格式化（236 设计稿 §三）。
+ * 设置页已迁出到 ui/design/settings/（261 卡）；资源库页在 SourcesScreen；
+ * 发现页在 DiscoverPage.kt（239 重写）；在看页在 WatchingPage.kt。
  * 数值全部帧实测；内容图给色、chrome 退后。
  */
 private val pad = DesignTokens.screenPad.dp
-
-/** 设置页（set_a 帧：inset 分组卡 59pt 行 + 节头 + 多行脚注"敢解释"）。 */
-@Composable
-fun SettingsPage(clearTextOk: Boolean, buildLabel: String,
-                 previewEnabled: Boolean = false, onPreviewChanged: (Boolean) -> Unit = {}) {
-    Column(Modifier.fillMaxSize().padding(horizontal = pad)) {
-        Spacer(Modifier.height(8.dp))
-        Text("设置", fontSize = 28.sp, fontWeight = FontWeight.Bold,
-            color = DesignTokens.textMain)
-        Spacer(Modifier.height(14.dp))
-        GroupSection("首页") {
-            com.kivo.cinema.ui.design.home.HomePreviewSetting(previewEnabled, onPreviewChanged)
-        }
-        Spacer(Modifier.height(14.dp))
-        GroupSection("播放") {
-            GroupRow("网络明文传输", if (clearTextOk) "已开启" else "已关闭")
-            GroupRow("解码", "硬解优先 · 失败报 reason")
-        }
-        Spacer(Modifier.height(8.dp))
-        Text("本卡为设置页骨架：播放/字幕/解码各组随功能卡逐项接入（236 §六）。",
-            fontSize = DesignTokens.fontFootnote.sp, color = DesignTokens.textSub,
-            lineHeight = 15.sp)
-        Spacer(Modifier.height(14.dp))
-        GroupSection("关于") {
-            GroupRow("构建", buildLabel)
-            GroupRow("UI 对齐", "设计稿 1.1 录屏规格（236 卡）")
-        }
-        Spacer(Modifier.height(8.dp))
-        Text("kivo video 的界面规格来自 设计稿 真机录屏逐帧拆解；所有数值为实测。",
-            fontSize = DesignTokens.fontFootnote.sp, color = DesignTokens.textSub,
-            lineHeight = 15.sp)
-    }
-}
-
-@Composable
-private fun GroupSection(header: String, content: @Composable () -> Unit) {
-    Text(header, fontSize = 13.sp, color = DesignTokens.textSub,
-        modifier = Modifier.padding(start = 4.dp))
-    Spacer(Modifier.height(6.dp))
-    GlassSurface(Modifier.fillMaxWidth()) { Column { content() } }
-}
-
-@Composable
-private fun GroupRow(title: String, value: String) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(DesignTokens.rowHeight.dp)
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(title, fontSize = DesignTokens.fontRowTitle.sp, color = DesignTokens.textMain)
-        Spacer(Modifier.weight(1f))
-        Text(value, fontSize = 15.sp, color = DesignTokens.textSub)
-    }
-}
 
 /** 我的页（有观看统计/Pro——数据未建，v1 极简档案位，明示占位）。 */
 @Composable

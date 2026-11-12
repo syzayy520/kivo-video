@@ -1,3 +1,21 @@
+> 2026-11-13 **✅ 261 设置页 REX 1:1 复刻 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
+> **规格**：[`docs/design/ui/replica/settings-page.md`](../design/ui/replica/settings-page.md)（家族树先行）
+> **证据**：[`docs/evidence/p261/settings-page/`](../evidence/p261/settings-page/README.md)（S1–S6 + 11 帧 / 6 日志 + 复算 + 披露 D1–D10）
+> **新家族 `ui/design/settings/` 8 文件**：Store（读模型门面，委派 HomePreferences，不新建重复 prefs）/
+> Rows（SectionCard/ChevronRow/ValueRow/InfoRow/Scaffold）/ Page（根页 6 组）/ Nav（可空路由 + BackHandler + AnimatedContent）/
+> PlaybackSub / DataSub / CacheSub / AboutSub；最大 126 行。退役 `Pages.kt` 骨架（138→82，GroupSection/GroupRow 仅存注释）。
+> **只放真实能力，禁假行/假开关**：唯一真实开关=首页预览自动播放（复用 `HomePreviewSetting`，重启保持已复算）；
+> 播放/字幕/解码=只读策略行 + 脚注指明真实控制在播放页面板（主设置不可达且不持久化全局默认）；
+> 真实值：API Key 已配置 / 代理 直连 / 版本 `0.1.0-p12a (1)`（PackageManager）/ 图片缓存 9.1 MB（实测 du）。
+> **缓存清理真实**：磁盘图缓存 + 进程内 `TmdbImageCache.clearMemory`（本卡新增）+ 评分 json；du 119→0 文件复算，不碰资源库/记录/密码。
+> **导航**：系统返回回根页（dump）/ 媒体服务器 chevron 跨 tab 落资源库页（dump）/ 私密入口→PrivateActivity→back（dumpsys，含密码态不截图）。
+> **真机修掉两处**：① 根页行标题与节头重复的廉价感→改目的地描述；② 开关 Material 默认紫轨→`SwitchDefaults.colors` accentGreen 绿轨白 thumb（对齐 DesignTokens/REX）。
+> **闸门**：S1 视觉 / S2 无假状态 / S3 导航 / S4 行数（新包≤126，MainActivity 357 净 0 未增，既有 #37 债）/ S5 动效（功能 PASS）/ S6 红线 全 PASS。
+> **披露**：D6 push/pop slide+fade 350ms EaseOut = REX 候选 M05-S01/M04-S01，screencap 延迟>过渡**未拿到真 mid 帧**，丝滑度运行时未测（候选值非实测常量）；
+> D1 沿用全应用渐变壳（非 REX 扁平 #F2F2F7，与其余 tab 统一，刻意适配）；D9 设备留默认（autoplay 复原 false，缓存清理为真实副作用已明示）。
+> **APK md5**：`31a8f8f63ff2b747da0be2a0a329e85d`。**主助手自留卡已清空**；D1–D5 仍待派发（D4 用户暂缓）。
+> **下一卡候选**：#37+#45（行数债，DISPATCH D1/D2）/ 播放页 REX 遗留（D3）/ 预览远_seek grab 窗（D5）。
+
 > 2026-11-13 **📋 待派发任务清单已立：[`docs/handoff/DISPATCH.md`](DISPATCH.md)。** D1/D2=行数债(#37/#45)、
 > D3=播放页 REX 遗留、D4=慢链降码转码(**用户暂缓**)、D5=预览远_seek grab 窗。供其他助手领取；
 > 主助手自留**设置页 UI 设计+实现**（REX 1:1，`docs/design/ui/replica/settings-page.md`）。

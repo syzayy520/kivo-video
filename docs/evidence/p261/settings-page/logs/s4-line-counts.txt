@@ -1,0 +1,13 @@
+   26 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsAboutSub.kt
+   81 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsCacheSub.kt
+   27 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsDataSub.kt
+   50 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsNav.kt
+   62 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsPage.kt
+   28 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsPlaybackSub.kt
+  126 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsRows.kt
+   61 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsStore.kt
+   82 android/app/src/main/java/com/kivo/cinema/ui/design/Pages.kt
+   35 android/app/src/main/java/com/kivo/cinema/ui/design/home/HomePreviewSetting.kt
+  128 android/app/src/main/java/com/kivo/cinema/ui/design/TmdbImage.kt
+  357 android/app/src/main/java/com/kivo/cinema/MainActivity.kt
+ 1063 total

@@ -26,6 +26,7 @@ object TmdbImageCache {
 
     @Synchronized fun get(url: String): Bitmap? = mem[url]
     @Synchronized fun put(url: String, bmp: Bitmap) { mem[url] = bmp }
+    @Synchronized fun clearMemory() { mem.clear() }
 
     private fun diskFile(url: String): File? = diskDir?.let {
         val dir = File(it, "tmdb-images-v2").apply { mkdirs() }

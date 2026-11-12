@@ -38,7 +38,6 @@ import com.kivo.cinema.ui.design.AnimatedGradientBg
 import com.kivo.cinema.ui.design.CapsuleNavBar
 import com.kivo.cinema.ui.design.DiscoverPage
 import com.kivo.cinema.ui.design.ProfilePage
-import com.kivo.cinema.ui.design.SettingsPage
 import com.kivo.cinema.sources.ui.SourcesScreen
 
 /**
@@ -313,12 +312,13 @@ class MainActivity : ComponentActivity() {
                             onOpenItem = { openPlayer(it) },
                         )
                         3 -> ProfilePage(items.size)
-                        else -> SettingsPage(
+                        else -> com.kivo.cinema.ui.design.settings.SettingsPage(
                             previewEnabled = previewEnabled,
                             onPreviewChanged = { previewEnabled = it; homePreferences.autoplay = it },
-                            clearTextOk = applicationInfo.flags and
-                                android.content.pm.ApplicationInfo.FLAG_USES_CLEARTEXT_TRAFFIC != 0,
-                            buildLabel = "0.1.0 (237-ui)",
+                            onOpenSources = { page = 0 },
+                            onOpenPrivate = { startActivity(
+                                android.content.Intent(this@MainActivity,
+                                    com.kivo.cinema.privatezone.PrivateActivity::class.java)) },
                         )
                     }
                 }
