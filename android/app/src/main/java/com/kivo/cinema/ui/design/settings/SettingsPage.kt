@@ -34,6 +34,10 @@ fun SettingsPage(
                     ChevronRow("播放", "缓冲 · 播放习惯 · 后台 · 字幕") { push(SettingsRoute.PLAYBACK) }
                 }
                 Spacer(Modifier.height(14.dp))
+                SectionCard("音画") {
+                    ChevronRow("音画", "内核 · 画面 · 音频 · 画质增强") { push(SettingsRoute.AV) }
+                }
+                Spacer(Modifier.height(14.dp))
                 SectionCard("数据与资源") {
                     ChevronRow("媒体服务器与 TMDB", "Emby · SMB · 代理与 Key") { push(SettingsRoute.DATA) }
                 }
@@ -54,6 +58,7 @@ fun SettingsPage(
         sub = { route, back ->
             when (route) {
                 SettingsRoute.PLAYBACK -> SettingsPlaybackSub(back)
+                SettingsRoute.AV -> SettingsAvSub(back)
                 SettingsRoute.DATA -> SettingsDataSub(store, onOpenSources, back)
                 SettingsRoute.CACHE -> SettingsCacheSub(store, back)
                 SettingsRoute.ABOUT -> SettingsAboutSub(store, onOpenPrivate, back)

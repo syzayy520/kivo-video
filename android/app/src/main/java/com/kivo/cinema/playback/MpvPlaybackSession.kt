@@ -170,6 +170,9 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
                 // 字幕首选语言：须在 loadFile 前设，自动选轨才匹配。
                 val slang = prefs.subtitleSlang()
                 if (slang.isNotEmpty()) native.setProperty("slang", slang)
+                // 音频首选语言（263）：同样在 loadFile 前设，自动选音轨才匹配。
+                val alang = prefs.audioAlang()
+                if (alang.isNotEmpty()) native.setProperty("alang", alang)
                 // 缓冲上限：按当前网络（Wi-Fi/蜂窝）取用户设的 demuxer 上限。
                 native.setProperty("demuxer-max-bytes", prefs.demuxerMaxBytes())
                 native.attachSurface(surface)

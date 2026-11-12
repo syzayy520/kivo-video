@@ -1,3 +1,16 @@
+> 2026-11-13 **✅ 263 音画设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
+> **规格**：[`docs/design/ui/replica/av-settings.md`](../design/ui/replica/av-settings.md)（家族树先行）
+> **证据**：[`docs/evidence/p263/av-settings/`](../evidence/p263/av-settings/README.md)（A1–A6 + 7 帧 / 2 日志 + 复算 + 披露 D1–D6）
+> **新家族** `ui/design/settings/SettingsAvSub.kt`（102 行）+ `SettingsRows.kt` 增 RadioRow（内核 radio 形态）；
+> 路由 `SettingsNav`+AV / 根页 `SettingsPage`+音画入口。
+> **真实接线 2 项**：音频首选语言（`PlaybackPrefs.audioLanguage/audioAlang()`→mpv 起播 `alang`，真机写回 zh）；
+> 单独调整播放亮度（`independentBrightness` 门控 `PlayerGestureRouter` 左半屏竖滑，两态持久化复算）。
+> **置灰+原因**：内核切换（未产品化）/起播方向（固定横屏）/画面适配（keepaspect/捏合无）/HDR 映射/增强（P12-E4 未实现）/
+> 音频引擎（随内核）/SDR↔HDR（三路径实测不可行）。不放假开关。
+> **闸门**：A1 视觉 / A2 分组 / A3 无假状态 / A4 语言弹层写回 / A5 亮度两态 / A6 行数 全 PASS。
+> **披露**：D3 独立亮度默认 true（保持现有手势，与参考 OFF 不同，刻意适配）；D5 MpvPlaybackSession 445 既有超闸债（同 #37）。
+> **下一卡**：其余设置子页逐个（用户逐块发图）；#37+#45 行数债 / D3 / D5 待派发。
+
 > 2026-11-13 **✅ 262 播放设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
 > **证据**：[`docs/evidence/p262/playback-settings/`](../evidence/p262/playback-settings/README.md)（P1–P7 + 12 帧 / 2 日志 + 复算 + 披露 D1–D4）
 > **行原语升级** `ui/design/settings/SettingsRows.kt`：RowScope.RowLabels（修 weight）+ SwitchRow/StepperRow/ChevronRow/ValueRow/InfoRow + BetaBadge；

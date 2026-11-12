@@ -11,11 +11,13 @@ import com.kivo.cinema.ui.compose.player.PlayerMotion
  * 前者要核对手势阈值与还原行为，后者要核对每个按钮是否有响应。
  */
 
-/** 竖滑起点：左半屏亮度、右半屏音量（M03-S03）。 */
+/** 竖滑起点：左半屏亮度、右半屏音量。 */
 internal fun PlayerComposeActivity.onVerticalDragStart(x: Float) {
     cancelHudHide()
     val w = resources.displayMetrics.widthPixels.toFloat().coerceAtLeast(1f)
     val kind = if (x < w / 2f) PlayerHudKind.BRIGHTNESS else PlayerHudKind.VOLUME
+    // 单独调整播放亮度（263）关闭时，左半屏竖滑不接管亮度（保持系统亮度）。
+    if (kind == PlayerHudKind.BRIGHTNESS && !playbackPrefs.independentBrightness) return
     hudKind = kind
     hudFraction = currentHudFraction(kind)
 }
@@ -30,7 +32,7 @@ internal fun PlayerComposeActivity.onVerticalDrag(dragAmount: Float) {
 }
 
 /**
- * 手势结束：HUD 停留 [PlayerMotion.hudHoldMs] 后淡出（M03-S03"停止 1s→淡出"）。
+ * 手势结束：HUD 停留 [PlayerMotion.hudHoldMs] 后淡出（"停止 1s→淡出"）。
  *
  * 【为什么用可撤销令牌】旧版每次结束都 new 一个 Handler.postDelayed 且从不撤销：
  * 连续两次竖滑时，第一次的计时器会在第二次还在滑的时候把 HUD 收掉（提前消失）。
@@ -50,7 +52,7 @@ private fun PlayerComposeActivity.cancelHudHide() {
 }
 
 /**
- * 长按快进开始（M03-S02：longPress≥0.5s → 标签淡入）。
+ * 长按快进开始（longPress≥0.5s → 标签淡入）。
  *
  * 【为什么底栏区域不响应】进度条在手势层之上，长按会抢走它的拖拽 ——
  * 在进度条上长按是"想 seek"，不是"想快进"。起点落在底部条内直接忽略。
@@ -72,7 +74,7 @@ internal fun PlayerComposeActivity.onLongPressStart(x: Float, y: Float) {
 /** 长按拖动：左右滑调速（0.5x…3x）；上滑超阈值 ⇒ 锁定（松手不恢复）。 */
 internal fun PlayerComposeActivity.onLongPressDrag(x: Float, y: Float) {
     if (!longPressActive) return
-    // 屏幕锁定态：长按快进保留，但调速/上滑锁定 ❌（M03-S07）。
+    // 屏幕锁定态：长按快进保留，但调速/上滑锁定 ❌。
     if (screenLocked) return
     val lockPx = PlayerComposeActivity.LOCK_UP_THRESHOLD_DP * resources.displayMetrics.density
     if (!longPressLocked && (longPressStartY - y) >= lockPx) {

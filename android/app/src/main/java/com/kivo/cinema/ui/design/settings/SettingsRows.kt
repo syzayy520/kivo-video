@@ -150,6 +150,27 @@ internal fun SwitchRow(
     }
 }
 
+/** 单选行：标题区 + 右蓝✓（当前项），内核选择等 radio 组形态。 */
+@Composable
+internal fun RadioRow(
+    title: String,
+    checked: Boolean,
+    subtitle: String? = null,
+    beta: Boolean = false,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = DesignTokens.rowHeight.dp)
+            .clickable(role = Role.RadioButton, enabled = enabled, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RowLabels(title, subtitle, beta, Modifier.alpha(if (enabled) 1f else 0.4f))
+        if (checked) Text("✓", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF007AFF))
+    }
+}
+
 /** 步进行：右值 + ⇕，点击弹出 SettingsPicker 菜单。副标题可多行。 */
 @Composable
 internal fun StepperRow(

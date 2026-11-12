@@ -1,0 +1,7 @@
+  102 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsAvSub.kt
+  197 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsRows.kt
+  171 android/app/src/main/java/com/kivo/cinema/playback/PlaybackPrefs.kt
+   67 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsPage.kt
+   50 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsNav.kt
+  167 android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerGestureRouter.kt
+  754 total

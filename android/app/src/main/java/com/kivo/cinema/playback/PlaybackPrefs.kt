@@ -72,6 +72,16 @@ class PlaybackPrefs(context: Context) {
         get() = sp.getBoolean("ignore_ass_style", false)
         set(v) { sp.edit().putBoolean("ignore_ass_style", v).apply() }
 
+    /** 单独调整播放亮度：true = 竖滑调窗口级亮度（退出还原）；false = 手势不调亮度。 */
+    var independentBrightness: Boolean
+        get() = sp.getBoolean("independent_brightness", true)
+        set(v) { sp.edit().putBoolean("independent_brightness", v).apply() }
+
+    /** 音频首选语言（[Language] code 或 "media"）；"media" = 媒体默认（不限制 alang）。 */
+    var audioLanguage: String
+        get() = sp.getString("audio_language", "media") ?: "media"
+        set(v) { sp.edit().putString("audio_language", v).apply() }
+
     /** Wi-Fi 缓冲上限（MB）。 */
     var wifiBufferMb: Int
         get() = sp.getInt("wifi_buffer_mb", 2048)
@@ -110,6 +120,20 @@ class PlaybackPrefs(context: Context) {
         return languageByCode(code)?.slang ?: ""
     }
 
+    /**
+     * 音频首选语言对应的 mpv `alang`。"media" = 不限制（媒体默认，返回空串）；
+     * "system" 取设备语言；其余按 [Language.slang]。与字幕 slang 同一份语言数据。
+     */
+    fun audioAlang(): String {
+        val code = audioLanguage
+        if (code == "media") return ""
+        if (code == "system") {
+            val lang = Locale.getDefault().language
+            return languageByCode(lang)?.slang ?: lang
+        }
+        return languageByCode(code)?.slang ?: ""
+    }
+
     /** 字幕语言候选（设置页 stepper 与内核 slang 共用同一份数据）。 */
     data class Language(val code: String, val label: String, val slang: String)
 
@@ -130,6 +154,10 @@ class PlaybackPrefs(context: Context) {
         fun languageByCode(code: String): Language? = LANGUAGES.firstOrNull { it.code == code }
 
         fun languageLabel(code: String): String = languageByCode(code)?.label ?: "跟随系统"
+
+        /** 音频首选语言标签："media" = 媒体默认，其余复用字幕语言标签。 */
+        fun audioLanguageLabel(code: String): String =
+            if (code == "media") "媒体默认" else languageLabel(code)
 
         /** 起播规格停留秒数候选。 */
         val SPEC_SECONDS: List<Int> = listOf(0, 3, 5, 10)

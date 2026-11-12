@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="audio_language">zh</string>
+    <boolean name="independent_brightness" value="true" />
+    <boolean name="ignore_ass_style" value="true" />
+    <string name="subtitle_language">zh</string>
+    <boolean name="show_remaining" value="true" />
+</map>
