@@ -1,3 +1,18 @@
+> 2026-11-13 **✅ 39 私密区/隐藏源改应用内独立数字密码 收口（K40 `b6e950ee` 真机）。**
+> **规格**：[`docs/design/ui/replica/privacy-numeric-lock.md`](../design/ui/replica/privacy-numeric-lock.md)
+> **证据**：[`docs/evidence/p258/privacy-lock/`](../evidence/p258/privacy-lock/README.md)（G1–G8 + 23 帧/dump + 复算 + 披露）
+> **用户拍板**：「私密区那个最好是做数字密码」「独立的，不是手机 pin 密码」。一个应用内 4–6 位数字密码
+> 统一取代两套设备门禁（BiometricPrompt 指纹 / KeyguardManager 锁屏 PIN），K40 无锁屏无指纹也能进。
+> **新家族 `privacy/`**：PrivacyPassword（PBKDF2-SHA256 120k 轮盐化哈希，AtomicFile 落 noBackup）/
+> PrivacyKeypad（纯输入件）/ PrivacyLockFlow（设置/解锁/改密三态）/ PrivacyUnlockDialog（门弹窗）。
+> **复用 `SourceAccessSession`** 升格为全应用唯一隐私会话（退后台自动重锁），一次解锁放行私密区+隐藏源。
+> **退役删除**：PrivateGate.kt、SourceUnlockController.kt；manifest 删 USE_BIOMETRIC。G6 静态零匹配。
+> **真机抓到并修掉两个自引入缺陷**：① 首设 onDone 漏 unlock()；② 错密码圆点「假满」（error 全染实色但已清空）。
+> **披露**：FLAG_SECURE 使 screencap 为空→断言改 uiautomator dump（0 字节 png 已删）；
+> MainActivity 357 挂 #37、MediaLibraryActivity 334 挂 #45（既有超闸，本卡只减不增）；
+> 测试密码仅运行时、收口已清 lock.bin 回首设态；nyamedia 隐藏态保留（G3 证明可恢复访问）。
+> **下一卡候选**：#40（预览冷启动）/ #37+#45（行数债）/ 播放页 REX 遗留。
+
 > 2026-11-13 **✅ 257 Emby 链收敛 收口（K40 `b6e950ee` 真机）。**
 > **规格**：[`docs/design/ui/replica/emby-chain-convergence.md`](../design/ui/replica/emby-chain-convergence.md)
 > **证据**：[`docs/evidence/p257/emby-convergence/`](../evidence/p257/emby-convergence/README.md)（R-1…R-6 + 21 帧 + token 断言复算 + 披露）

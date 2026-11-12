@@ -52,7 +52,6 @@ class MainActivity : ComponentActivity() {
     private var localVideoCount by mutableStateOf<Int?>(null)
     private val thumbCache = HashMap<Long, android.graphics.Bitmap?>()
     private val sources by lazy { androidx.lifecycle.ViewModelProvider(this)[com.kivo.cinema.sources.SourceManagerModel::class.java] }
-    private lateinit var sourceUnlock: com.kivo.cinema.sources.access.SourceUnlockController
     private var defaultHomeHandled = false
 
     // 237-A：观看数据域 + 评分源 + 首页 TMDB 节
@@ -77,7 +76,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         com.kivo.cinema.sources.access.SourceAccessSession.install(application)
-        sourceUnlock = com.kivo.cinema.sources.access.SourceUnlockController(this)
         defaultHomeHandled = savedInstanceState?.getBoolean("source.defaultHandled") ?: false
         // edge-to-edge（239：hero 顶入状态栏下——windowFullscreen 已从主题移除）
         enableEdgeToEdge()
@@ -218,6 +216,8 @@ class MainActivity : ComponentActivity() {
     private fun Shell() {
         var page by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(1) }
         var sourceNavigationGuard by remember { mutableStateOf<((() -> Unit) -> Unit)?>(null) }
+        var showUnlock by remember { mutableStateOf(false) }
+        var unlockAction by remember { mutableStateOf<(() -> Unit)?>(null) }
         androidx.compose.runtime.LaunchedEffect(sources.ready) {
             if (sources.ready && !defaultHomeHandled) {
                 defaultHomeHandled = true
@@ -271,7 +271,7 @@ class MainActivity : ComponentActivity() {
                             navigation = shellNavigation,
                             overviewModifier = Modifier.navigationSource(backdrop),
                             onNavigationGuard = { sourceNavigationGuard = it },
-                            onUnlock = { action -> sourceUnlock.authenticate(sources::reportError, action) },
+                            onUnlock = { action -> unlockAction = action; showUnlock = true },
                             onOpenSource = { source ->
                                 startActivity(com.kivo.cinema.sources.SourceOpen.intentFor(this@MainActivity, source))
                             },
@@ -331,6 +331,10 @@ class MainActivity : ComponentActivity() {
         selectedTitle?.let { title ->
             com.kivo.cinema.ui.design.home.HomeTitleSheet(title) { selectedTitle = null }
         }
+        if (showUnlock) com.kivo.cinema.privacy.PrivacyUnlockDialog(
+            onDismiss = { showUnlock = false; unlockAction = null },
+            onUnlocked = { showUnlock = false; val a = unlockAction; unlockAction = null; a?.invoke() },
+        )
         // 状态栏图标随环境明暗（E11：暗底 → 白图标）
         val view = findViewById<android.view.View>(android.R.id.content)
         androidx.core.view.WindowCompat.getInsetsController(window, view).apply {

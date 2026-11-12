@@ -16,8 +16,8 @@ import androidx.compose.runtime.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.kivo.cinema.MainActivity
+import com.kivo.cinema.privacy.PrivacyUnlockDialog
 import com.kivo.cinema.sources.access.SourceAccessSession
-import com.kivo.cinema.sources.access.SourceUnlockController
 import com.kivo.cinema.sources.storage.SourceStore
 import com.kivo.cinema.emby.ui.EmbyBrowseScreen
 import com.kivo.cinema.emby.ui.EmbyLibraryScreen
@@ -28,7 +28,6 @@ class EmbyActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         SourceAccessSession.install(application)
-        val unlock = SourceUnlockController(this)
         @Suppress("DEPRECATION")
         window.statusBarColor = android.graphics.Color.rgb(245, 244, 248)
         @Suppress("DEPRECATION")
@@ -52,6 +51,7 @@ class EmbyActivity : ComponentActivity() {
             var checked by remember { mutableStateOf(false) }
             var protected by remember { mutableStateOf(true) }
             var gateError by remember { mutableStateOf<String?>(null) }
+            var showUnlock by remember { mutableStateOf(false) }
             val unlocked = SourceAccessSession.unlocked
             LaunchedEffect(sourceId, unlocked) {
                 val result = withContext(Dispatchers.IO) { SourceStore(this@EmbyActivity).read() }
@@ -78,7 +78,7 @@ class EmbyActivity : ComponentActivity() {
                         Column(Modifier.fillMaxSize().padding(28.dp), verticalArrangement = Arrangement.Center,
                             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
                             Text(gateError ?: if (checked) "资源库已锁定" else "正在读取资源库")
-                            if (checked) Button(onClick = { unlock.authenticate({ gateError = it }, {}) }) { Text("验证身份并解锁") }
+                            if (checked) Button(onClick = { showUnlock = true }) { Text("验证身份并解锁") }
                             TextButton(onClick = { model.back(); finish() }) { Text("返回资源库") }
                         }
                     } else if (model.inLibrary) {
@@ -103,6 +103,10 @@ class EmbyActivity : ComponentActivity() {
                         TextButton(onClick = { model.cancel(); finish() }) { Text("返回资源库") }
                     }
                 }
+                if (showUnlock) PrivacyUnlockDialog(
+                    onDismiss = { showUnlock = false },
+                    onUnlocked = { showUnlock = false },
+                )
             }
         }
     }

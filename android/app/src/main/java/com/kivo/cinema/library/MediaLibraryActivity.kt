@@ -66,7 +66,6 @@ class MediaLibraryActivity : ComponentActivity() {
 
     // 231 私密区：标记存储 + 重组计数（增删后 ++ 触发主网格过滤重算）
     private val privStore by lazy { com.kivo.cinema.privatezone.PrivateStore(this) }
-    private val privGate = com.kivo.cinema.privatezone.PrivateGate()
     private var privEpoch by mutableStateOf(0)
     private var menuFor by mutableStateOf<MediaItem?>(null)
     private var sortDesc by mutableStateOf(true)
@@ -157,22 +156,7 @@ class MediaLibraryActivity : ComponentActivity() {
     // ---- 231 私密区 ----
 
     private fun openPrivateZone() {
-        // G9：按钮常开，点进去再探测——reason 用状态栏明示（禁用态按钮会静默吞点击）
-        if (!privGate.available(this)) {
-            val bm = getSystemService(android.hardware.biometrics.BiometricManager::class.java)
-            val code = bm?.canAuthenticate(
-                android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK)
-                ?: -999
-            status = "私密区不可用：canAuthenticate=$code（" + when (code) {
-                0 -> "SUCCESS"
-                1 -> "硬件不支持"
-                11 -> "NONE_ENROLLED 未录入"
-                12 -> "NO_HARDWARE"
-                14 -> "HARDWARE_MISSING"
-                else -> "见 AOSP BiometricManager 常量"
-            } + "）"
-            return
-        }
+        // 39：门改为应用内独立数字密码（在 PrivateActivity 内），不再依赖设备生物特征，直达即可。
         startActivity(Intent(this, com.kivo.cinema.privatezone.PrivateActivity::class.java))
     }
 
