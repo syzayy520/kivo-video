@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong
  *  · 视频与音频是**两套** demux，各自 seek、争用同一条读路径；
  *  · VC-1 / TrueHD / DoP 这些平台没有的解码器要自己软解 + 自己管时钟。
  *
- * mpv（SenPlayer / Rex 用的那颗）把这三件事一次解决：单一 demux 线程 +
+ * mpv把这三件事一次解决：单一 demux 线程 +
  * 自己的时钟管理 + 全 FFmpeg 解码覆盖。
  *
  * ## 与旧内核的关系
@@ -50,6 +50,7 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
     enum class State { IDLE, PREPARING, PLAYING, PAUSED, ENDED, FAILED, CLOSED }
 
     private val app = context.applicationContext
+    private val prefs by lazy { PlaybackPrefs(app) }
     private val main = Handler(Looper.getMainLooper())
     private val worker = ScheduledThreadPoolExecutor(1) { r -> Thread(r, "KivoMpvSession") }
     private val closing = AtomicBoolean(false)
@@ -163,9 +164,14 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
                     ao = "audiotrack",
                     logFile = File(app.filesDir, "mpv-kernel.log").absolutePath,
                 )
-                // §1.6：默认保留 ASS 源特效（libass 原样渲染）；
-                // 面板"标准统一样式"开关再写 yes/no，真值以 mpv 为准。
-                native.setProperty("sub-ass-override", "no")
+                // 播放策略（262）：从 PlaybackPrefs 读用户设置，起播即生效。
+                // ASS 特效：忽略=剥成统一样式，否则保留源特效（面板仍可临时改写）。
+                native.setProperty("sub-ass-override", if (prefs.ignoreAssStyle) "yes" else "no")
+                // 字幕首选语言：须在 loadFile 前设，自动选轨才匹配。
+                val slang = prefs.subtitleSlang()
+                if (slang.isNotEmpty()) native.setProperty("slang", slang)
+                // 缓冲上限：按当前网络（Wi-Fi/蜂窝）取用户设的 demuxer 上限。
+                native.setProperty("demuxer-max-bytes", prefs.demuxerMaxBytes())
                 native.attachSurface(surface)
                 native.loadFile(url)
 
@@ -233,8 +239,8 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
         }
     }
 
-    /** 跳到指定位置（微秒）。返回请求 id；实际落点看 [lastSeekLandingUs]。 */
-    fun seekTo(targetUs: Long): Long {
+    /** 跳到指定位置（微秒）。exact=精确到帧；返回请求 id，实际落点看 [lastSeekLandingUs]。 */
+    fun seekTo(targetUs: Long, exact: Boolean = false): Long {
         val requestId = seekIds.incrementAndGet()
         val native = session
         if (native == null || state !in setOf(State.PLAYING, State.PAUSED)) {
@@ -243,7 +249,7 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
             return requestId
         }
         return try {
-            native.seek(targetUs / 1_000_000.0, exact = false)
+            native.seek(targetUs / 1_000_000.0, exact = exact)
             // mpv 的 seek 是异步的：落点要等内核真的跳过去才能读到。
             // 这里给一小段等待，拿到实际落点供上层显示。
             val deadline = System.currentTimeMillis() + 1_500

@@ -39,7 +39,8 @@ internal fun PlayerComposeActivity.buildPipParams(): PictureInPictureParams {
         .setAspectRatio(pipAspectRatio())
         .setSourceRectHint(Rect(0, 0, decor.width, decor.height))
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        builder.setAutoEnterEnabled(true)
+        // 自动进小窗由设置页"自动开启画中画"决定（262）：关掉则按 Home 不自动进。
+        builder.setAutoEnterEnabled(playbackPrefs.autoPip)
     }
     return builder.build()
 }

@@ -151,6 +151,8 @@ internal fun PlayerComposeActivity.startMpvPlayback(holder: SurfaceHolder, sourc
             applyProbeSubtitle(session)
             // 起播后才有 video-params：此时更新 PiP 宽高比才是真值。
             updatePipParams()
+            applyResumePosition()
+            showStartupSpec()
         } else {
             statusText = "网络视频无法播放：${session.lastError}"
             isPlaying = false

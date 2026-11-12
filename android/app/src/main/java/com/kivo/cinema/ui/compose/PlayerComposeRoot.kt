@@ -39,7 +39,7 @@ internal fun PlayerComposeActivity.PlayerRoot() {
                 onSurfaceReady = { holder -> maybeStartPlayback(holder) },
                 onSurfaceLost = { onSurfaceLost() },
             )
-            // 弹幕在控制层**之下**：REX 的弹幕只压画面，不压栏/面板/预览浮窗；
+            // 弹幕在控制层**之下**：弹幕只压画面，不压栏/面板/预览浮窗；
             // 拖动时整体让位（scrubbing），浮窗上不许飘字。
             com.kivo.cinema.danmaku.DanmakuOverlay(
                 items = danmakuItems,
@@ -56,6 +56,8 @@ internal fun PlayerComposeActivity.PlayerRoot() {
                 isPlaying = isPlaying,
                 positionMs = positionMs,
                 durationMs = durationMs,
+                showRemaining = playbackPrefs.showRemaining,
+                scrubPreview = playbackPrefs.scrubPreview,
                 bufferedFraction = bufferedFraction,
                 thumbnailBitmap = thumbnailBitmap,
                 thumbUnavailable = thumbnailUnavailableReason,
@@ -101,7 +103,8 @@ internal fun PlayerComposeActivity.PlayerRoot() {
                     if (lastScrubMs < 0 || (ms - lastScrubMs >= 120 && now - lastScrubWallMs >= 40)) {
                         lastScrubMs = ms
                         lastScrubWallMs = now
-                        thumbnailReader?.seekTo(ms * 1000)
+                        // 关闭拖动预览时不向预览内核发 seek：省一条链路的解码与读盘。
+                        if (playbackPrefs.scrubPreview) thumbnailReader?.seekTo(ms * 1000)
                     }
                 },
                 onSeek = { ms ->

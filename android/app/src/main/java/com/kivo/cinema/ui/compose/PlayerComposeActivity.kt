@@ -70,6 +70,8 @@ class PlayerComposeActivity : ComponentActivity() {
     internal var pipActive by mutableStateOf(false)
     /** 本次进入请求是否真的收到 mode-changed（看门狗判静默拒绝用）。 */
     internal var pipEnterConfirmed = false
+    /** 后台自动暂停标记（262）：onStop 置真，onResume 据此决定是否自动恢复。 */
+    internal var pausedByBackground = false
 
     // ---- 外挂字幕导入（§1.6：SAF 选文件 → 拷缓存 → sub-add select）----
     internal val subtitleImportLauncher = registerForActivityResult(
@@ -139,6 +141,8 @@ class PlayerComposeActivity : ComponentActivity() {
 
     // ---- 观看数据域（237-A）----
     internal val watchStore by lazy { com.kivo.cinema.stats.WatchStore(this) }
+    /** 播放策略（262）：设置页编辑、播放器消费，全页唯一入口。 */
+    internal val playbackPrefs by lazy { com.kivo.cinema.playback.PlaybackPrefs(this) }
     internal var watchLastPosMs = 0L
     internal var watchAccumMs = 0L
 
@@ -230,6 +234,16 @@ class PlayerComposeActivity : ComponentActivity() {
     ) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         onPipModeChanged(isInPictureInPictureMode)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        onPlayerStop()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        onPlayerResume()
     }
 
     override fun finish() {

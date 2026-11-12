@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
  *
  * 三种形态共用一个文件，因为它们是**同一条底栏的三种内容**：
  * · 常态：`[时间] ─轨道─ [总长]` 一行 + 按钮行一行（实测轨道心 304.8 / 按钮心 345）；
- * · 资源态（点 4K）：轨道行上移、插入 chips+源卡、**按钮行消失**（0169 实测）；
+ * · 资源态（点 4K）：轨道行上移、插入 chips+源卡、**按钮行消失**（实测）；
  * · 选集态（点选集）：整条换成横滑选集带（0170 实测）。
  *
  * 文字件（TimeText / BarTextButton / formatPlayerTime）在 [PlayerBarText]。
@@ -48,6 +48,8 @@ internal fun PlayerBottomBar(
     isPlaying: Boolean,
     positionMs: Long,
     durationMs: Long,
+    showRemaining: Boolean,
+    scrubPreview: Boolean,
     bufferedFraction: Float,
     thumbnailBitmap: Bitmap?,
     thumbUnavailable: String,
@@ -127,6 +129,7 @@ internal fun PlayerBottomBar(
                     thumbnailBitmap = thumbnailBitmap,
                     thumbUnavailable = thumbUnavailable,
                     previewMs = previewMs,
+                    scrubPreview = scrubPreview,
                     onDragTarget = { dragTargetMs = it },
                     onScrub = onScrub,
                     onSeek = onSeek,
@@ -135,7 +138,9 @@ internal fun PlayerBottomBar(
                 )
                 Spacer(Modifier.width(PlayerTokens.trackEndGap.dp))
                 TimeText(
-                    text = formatPlayerTime(durationMs),
+                    text = if (showRemaining && durationMs > 0)
+                        "-" + formatPlayerTime((durationMs - (dragTargetMs ?: positionMs)).coerceAtLeast(0L))
+                    else formatPlayerTime(durationMs),
                     modifier = Modifier.hideWhenCoveredByPanel(panelRect),
                 )
             }
@@ -175,7 +180,7 @@ private fun ButtonRow(
             .fillMaxWidth()
             // 行高**封顶** 24pt：44pt 命中盒与文字 padding 都允许纵向溢出
             // （Row 不裁切），否则命中盒会把行撑到 44pt、轨道被顶高 20pt
-            // （真机实测 287dp vs REX 304.8pt）。
+            // （真机实测 287dp vs 基线 304.8pt）。
             .height(PlayerTokens.buttonRowHeight.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -190,7 +195,7 @@ private fun ButtonRow(
                 kind = if (isPlaying) "pause" else "play",
                 glyphSize = 24f,
                 onClick = onPlayPause,
-                // 长按播放键 = 屏幕锁定（◐ 入口，REX 未录到；见设计稿 §六）。
+                // 长按播放键 = 屏幕锁定（◐ 入口，未录到；见设计稿 §六）。
                 onLongClick = onLongPressPlay,
             )
             BarIconButton(kind = "next", glyphSize = 18f, onClick = onNext)

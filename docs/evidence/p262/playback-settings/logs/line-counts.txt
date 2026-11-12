@@ -1,0 +1,9 @@
+  143 android/app/src/main/java/com/kivo/cinema/playback/PlaybackPrefs.kt
+   54 android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerLifecycle.kt
+   48 android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerStartPolicy.kt
+  101 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsPicker.kt
+   83 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsScaffold.kt
+  152 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsPlaybackSub.kt
+  176 android/app/src/main/java/com/kivo/cinema/ui/design/settings/SettingsRows.kt
+  290 android/app/src/main/java/com/kivo/cinema/ui/compose/PlayerComposeActivity.kt
+ 1047 total

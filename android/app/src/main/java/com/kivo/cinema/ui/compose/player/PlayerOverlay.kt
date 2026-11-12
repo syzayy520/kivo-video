@@ -44,9 +44,9 @@ import androidx.compose.ui.unit.dp
  * （v1 实机：按钮全部点不动）。
  *
  * ## 整屏态
- * 听视频（形态13）**不替换控制条**（REX 0172）：只把视频区换成黑底居中块，
+ * 听视频（形态13）**不替换控制条**：只把视频区换成黑底居中块，
  * 顶栏隐 PiP、耳机白圆亮。锁定态只画挂锁，但手势层的双击/长按通道保留
- * （M03-S07：锁定不是全禁）。字幕由 libmpv/libass 合成进视频帧（§1.6），
+ * （锁定不是全禁）。字幕由 libmpv/libass 合成进视频帧（§1.6），
  * Compose 不再自绘字幕层。
  *
  * ## PiP 态（v3.1）
@@ -65,6 +65,8 @@ internal fun PlayerOverlay(
     isPlaying: Boolean,
     positionMs: Long,
     durationMs: Long,
+    showRemaining: Boolean,
+    scrubPreview: Boolean,
     bufferedFraction: Float,
     thumbnailBitmap: Bitmap?,
     thumbUnavailable: String,
@@ -118,7 +120,7 @@ internal fun PlayerOverlay(
     val inline = PlayerPanelHost.isInline(activePanel)
     val panelOpen = activePanel.isNotBlank() && !inline
     // 内联形态（资源/选集）的内容住在底栏里 ⇒ 底栏必须跟着显形。
-    // 听视频态控制条保留（REX 0172）⇒ 这里不再排除 audioOnly。
+    // 听视频态控制条保留 ⇒ 这里不再排除 audioOnly。
     val barsVisible = (visible || inline) && !screenLocked
     // 面板真实矩形（根坐标系）：FloatingPanel 实测发布，底栏据此隐去被盖住的文字。
     val panelRect = remember { mutableStateOf<Rect?>(null) }
@@ -158,6 +160,8 @@ internal fun PlayerOverlay(
             isPlaying = isPlaying,
             positionMs = positionMs,
             durationMs = durationMs,
+            showRemaining = showRemaining,
+            scrubPreview = scrubPreview,
             bufferedFraction = bufferedFraction,
             thumbnailBitmap = thumbnailBitmap,
             thumbUnavailable = thumbUnavailable,
@@ -208,7 +212,7 @@ internal fun PlayerOverlay(
             locked = longPressLocked,
             modifier = Modifier.align(Alignment.Center),
         )
-        // 常挂 + visible 驱动：退出时整棵子树淡出 300ms，而不是被 if 直接摘掉（M03-S03）。
+        // 常挂 + visible 驱动：退出时整棵子树淡出 300ms，而不是被 if 直接摘掉。
         PlayerGestureHud(
             visible = hudKind != null && !screenLocked,
             kind = hudKind,

@@ -31,7 +31,7 @@ fun SettingsPage(
                 }
                 Spacer(Modifier.height(14.dp))
                 SectionCard("播放") {
-                    ChevronRow("播放与字幕", "解码策略 · 网络明文 · 字幕渲染") { push(SettingsRoute.PLAYBACK) }
+                    ChevronRow("播放", "缓冲 · 播放习惯 · 后台 · 字幕") { push(SettingsRoute.PLAYBACK) }
                 }
                 Spacer(Modifier.height(14.dp))
                 SectionCard("数据与资源") {
@@ -53,7 +53,7 @@ fun SettingsPage(
         },
         sub = { route, back ->
             when (route) {
-                SettingsRoute.PLAYBACK -> SettingsPlaybackSub(store, back)
+                SettingsRoute.PLAYBACK -> SettingsPlaybackSub(back)
                 SettingsRoute.DATA -> SettingsDataSub(store, onOpenSources, back)
                 SettingsRoute.CACHE -> SettingsCacheSub(store, back)
                 SettingsRoute.ABOUT -> SettingsAboutSub(store, onOpenPrivate, back)

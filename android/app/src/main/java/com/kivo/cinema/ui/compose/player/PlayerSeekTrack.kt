@@ -57,6 +57,7 @@ internal fun PlayerSeekTrack(
     thumbnailBitmap: Bitmap?,
     thumbUnavailable: String,
     previewMs: Long,
+    scrubPreview: Boolean,
     onDragTarget: (Long?) -> Unit,
     onScrub: (Long) -> Unit,
     onSeek: (Long) -> Unit,
@@ -149,7 +150,7 @@ internal fun PlayerSeekTrack(
             },
     ) {
         AnimatedVisibility(
-            visible = dragging || previewMs >= 0,
+            visible = (dragging || previewMs >= 0) && scrubPreview,
             enter = fadeIn(tween(PlayerMotion.previewEnterMs, easing = PlayerMotion.easing)) +
                 scaleIn(tween(PlayerMotion.previewEnterMs, easing = PlayerMotion.easing), initialScale = 0.92f),
             exit = fadeOut(tween(PlayerMotion.previewExitMs)) +
@@ -181,7 +182,7 @@ internal fun PlayerSeekTrack(
             val y = (size.height - h) / 2f
             val radius = CornerRadius(h / 2f)
             val f = if (dragging) dragFraction else smoothFraction
-            // REX 质感＝半透明填充 + 1px 提亮描边（v3.2 实测），不是实色色块。
+            // 玻璃质感＝半透明填充 + 1px 提亮描边（v3.2 实测），不是实色色块。
             val rim = with(density) { 1.dp.toPx() }
 
             // 未播段（拖动中整体提亮，让用户看清"松手会落到哪一段"）

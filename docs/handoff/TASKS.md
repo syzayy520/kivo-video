@@ -1,3 +1,17 @@
+> 2026-11-13 **✅ 262 播放设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
+> **证据**：[`docs/evidence/p262/playback-settings/`](../evidence/p262/playback-settings/README.md)（P1–P7 + 12 帧 / 2 日志 + 复算 + 披露 D1–D4）
+> **行原语升级** `ui/design/settings/SettingsRows.kt`：RowScope.RowLabels（修 weight）+ SwitchRow/StepperRow/ChevronRow/ValueRow/InfoRow + BetaBadge；
+> 新 `SettingsPicker.kt`（白圆角弹层+蓝✓+可滚动）/ `SettingsScaffold.kt`（固定居中页头+圆返回）。
+> **真实接线** `playback/PlaybackPrefs.kt`（SharedPreferences 唯一入口）→ mpv 起播读 sub-ass-override/slang/demuxer-max-bytes、seek exact；
+> 播放器消费 showRemaining（底栏右 `-remaining`，真机 s9→s12 复算）/scrubPreview（预览 AND 门+不发 seek）/autoPip（setAutoEnterEnabled）/
+> 续播+起播规格（`PlayerStartPolicy.kt`）/后台音频+自动恢复（`PlayerLifecycle.kt` onStop/onResume）。
+> **只放真实能力**：未接入（服务器预处理/来源/片段跳过）置灰+非空原因，不假开关。
+> **闸门**：P1 视觉 / P2 行原语 / P3 无假状态 / P4 语言弹层写回 / P5 开关持久化 / P6 剩余时长消费 / P7 行数（最大 290）全 PASS。
+> **披露**：D1 mpv-only 旋钮已接线编译过、本地硬解片不触发，网络源 exercising 待后续；D2 拖动预览门代码核验（#2/#12 已证出帧）；
+> D3 后台/PiP 生命周期代码核验；D4 截图无个人画面/密码态、prefs 无凭据。
+> **D6 边界**：`barTextWeight` 改名（PlayerBarText/PlayerTopBar）留 D6，本卡不带走；本卡文件不引用该符号，提交自洽。
+> **下一卡**：其余设置子页逐个（用户逐块发图）；#37+#45 行数债 / D3 / D5 待派发。
+
 > 2026-11-13 **✅ 261 设置页 REX 1:1 复刻 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
 > **规格**：[`docs/design/ui/replica/settings-page.md`](../design/ui/replica/settings-page.md)（家族树先行）
 > **证据**：[`docs/evidence/p261/settings-page/`](../evidence/p261/settings-page/README.md)（S1–S6 + 11 帧 / 6 日志 + 复算 + 披露 D1–D10）

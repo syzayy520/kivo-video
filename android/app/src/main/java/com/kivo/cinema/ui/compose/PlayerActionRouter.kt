@@ -19,7 +19,7 @@ internal fun PlayerComposeActivity.currentTitle(): String {
 }
 
 /**
- * 底栏画质标签（REX 的 "4K" 位置）。
+ * 底栏画质标签（"4K" 位置）。
  *
  * 用 nativeOrNull：本函数在 Compose 重组时调用，会话未起时也会走到，
  * 会抛的 native() 直接崩掉整个界面。标错比不标更糟，所以够不上就不标。
@@ -31,7 +31,7 @@ internal fun PlayerComposeActivity.resolutionLabel(): String {
     if (width == null || height == null || width <= 0 || height <= 0) return lastResolutionLabel
     // 分档唯一规则在 PlayerResolution：宽银幕（1920×870）也报 1080P，与资源面板一致。
     val label = resolutionTier(width, height)
-    // 听视频态 vid=no 读不到 video-params ⇒ 沿用最后一次真值（REX 0172 保留 4K 标）。
+    // 听视频态 vid=no 读不到 video-params ⇒ 沿用最后一次真值（实测保留 4K 标）。
     if (label.isNotEmpty()) lastResolutionLabel = label
     return label.ifEmpty { lastResolutionLabel }
 }
@@ -46,7 +46,7 @@ internal fun PlayerComposeActivity.seekTo(ms: Long) {
             smbSoftAudio?.seekTo(ms * 1000)
             positionMs = ms
         }
-        mpvNetSession != null -> mpvNetSession?.seekTo(ms * 1000)
+        mpvNetSession != null -> mpvNetSession?.seekTo(ms * 1000, exact = playbackPrefs.seekExact)
         smbNetSession != null -> smbNetSession?.seekTo(ms * 1000)
         else -> playbackSession?.seekTo(ms * 1000)
     }
@@ -106,10 +106,10 @@ internal fun PlayerComposeActivity.onTopAction(kind: String) {
         "pip" -> enterPictureInPicture()
         "clapper" -> togglePanel("skip")
         "expand" -> togglePanel("quality")
-        // 圈波形＝音轨列表（形态4，REX 0162 锚点；不是均衡器）。
+        // 圈波形＝音轨列表（形态4；不是均衡器）。
         "audio" -> togglePanel("audio")
         "captions" -> togglePanel("subtitle")
-        // 耳机＝听视频态（形态13，REX 0172）：短按切 vid=no/auto，控制条保留。
+        // 耳机＝听视频态（形态13）：短按切 vid=no/auto，控制条保留。
         "audioMode" -> setAudioOnly(!audioOnly)
     }
 }
@@ -165,8 +165,8 @@ internal fun PlayerComposeActivity.onCapture() {
 }
 
 /**
- * 屏幕锁定（§1.5 / §二）。入口 ◐：长按播放键（REX 入口未录到，见设计稿 §六）。
- * 加锁后 chrome 全收、只留挂锁；双击/长按通道保留（M03-S07）。
+ * 屏幕锁定（§1.5 / §二）。入口 ◐：长按播放键（入口未录到，见设计稿 §六）。
+ * 加锁后 chrome 全收、只留挂锁；双击/长按通道保留。
  */
 internal fun PlayerComposeActivity.onToggleLock() {
     lastTouchMs = System.currentTimeMillis()
@@ -244,10 +244,10 @@ internal fun PlayerComposeActivity.onNextEpisode() {
     showToast("剧集列表尚未接入资源库，暂不能切换下一集")
 }
 
-/** 轻提示：1.8s 后自动消失（REX M08-03 停留 1.0–2.0s）。 */
-internal fun PlayerComposeActivity.showToast(message: String) {
+/** 轻提示：默认 1.8s 后自动消失（落在 1.0–2.0s 停留区间）；起播规格等可指定停留时长。 */
+internal fun PlayerComposeActivity.showToast(message: String, durationMs: Long = 1_800) {
     toastText = message
-    android.os.Handler(mainLooper).postDelayed({ toastText = "" }, 1_800)
+    android.os.Handler(mainLooper).postDelayed({ toastText = "" }, durationMs)
 }
 
 /** 顶栏动作的短暂高亮（切换成功的零成本确认）。 */
