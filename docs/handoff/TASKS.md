@@ -1,3 +1,17 @@
+> 2026-11-13 **✅ 267 外观与交互设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
+> **规格**：[`docs/design/ui/replica/appearance-interaction-settings.md`](../design/ui/replica/appearance-interaction-settings.md)（家族树先行；根页 18 行 = 5 真 + 11 灰 + 2 真钻入）
+> **证据**：[`docs/evidence/p267/appearance-interaction/`](../evidence/p267/appearance-interaction/README.md)（c00–c17 + 20 XML + 触感三态日志/帧 + 复算链 + 披露 D-A–D-H）
+> **新家族** `AppearancePrefs.kt`(73) + `SettingsAppearanceSub.kt`(82) + `SettingsAppearanceFeedback.kt`(71) + `SettingsAppearanceNav.kt`(39) + `SettingsAppearanceBadge.kt`(23)；
+> `SettingsRows.kt` 增 PlainCard（无头卡，5 消费点）；路由 `SettingsNav`+APPEARANCE / 根页 `SettingsPage`+入口。
+> **真实接线 6**：autoplay（与根页首页卡同键，c12→c13 同步帧）/ 播放时开启声音（preview_sound→HeroTrailer 挂载门，写回 true→false）/
+> 显示剧照 / 显示内容提示（DetailPage 两门两态帧 c07→c08/c09）/ 触感反馈三态（haptic() 门控，三态运行时日志+同手势锁屏帧）/ 隐藏标题（CapsuleNavBar，c10/c14/c15）。
+> **真 bug 修复**：manifest 缺 VIBRATE 致 performHapticFeedback SecurityException 被吞=静默降级 ⇒ 加权限+移除 runCatching。
+> **闸门**：§五.1–6 全 PASS（行数 73/82/71/39/23 ≤300；修改净增 ≤10/文件、MainActivity 净 0；c15/c16 不回归）。
+> **披露**：MIUI 不记 performHapticFeedback 历史 ⇒ 触感复算走测量构建文件日志（最终包验证无测量代码）；auto 低电量分支未真机实测；
+> 前台劫持 ×3（微信×2/闲鱼×1）；SettingsRows 为第 8 个修改文件（设计估 7）。
+> **设备已恢复默认**（prefs-restored.xml 全默认；auto-rotate 恢复；未 uninstall）。
+> **下一卡**：其余设置子页逐个（用户逐块发图）；#37+#45 行数债 / D3 / D5 待派发。
+
 > 2026-11-13 **✅ 266 数据与资源设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
 > **规格**：[`docs/design/ui/replica/data-resources-settings.md`](../design/ui/replica/data-resources-settings.md)（家族树先行；根页 5 卡 + 8 来源钻入页）
 > **证据**：[`docs/evidence/p266/data-resources/`](../evidence/p266/data-resources/README.md)（c00–c20 + 2 XML bounds + 复算链 + 披露 D1–D7）

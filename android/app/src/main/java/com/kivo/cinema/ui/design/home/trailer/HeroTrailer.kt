@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.kivo.cinema.BuildConfig
 import com.kivo.cinema.tmdb.TmdbHome
 import com.kivo.cinema.tmdb.trailer.TrailerResult
+import com.kivo.cinema.ui.design.home.HomePreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -54,7 +55,7 @@ internal fun HeroTrailer(
     var playing by remember { mutableStateOf(false) }
     var ended by remember { mutableStateOf(false) }
     var reason by remember { mutableStateOf<String?>(null) }
-    var muted by remember { mutableStateOf(true) }
+    var muted by remember { mutableStateOf(!HomePreferences(context).previewSound) }
     var player by remember { mutableStateOf<YoutubeTrailerView?>(null) }
     val eligible = enabled && resumed && posterReady
     val provider by rememberUpdatedState(trailerFor)
@@ -69,7 +70,8 @@ internal fun HeroTrailer(
         }
     }
     LaunchedEffect(eligible, attempt) {
-        due = false; playing = false; ended = false; reason = null; muted = true
+        due = false; playing = false; ended = false; reason = null
+        muted = !HomePreferences(context).previewSound
         if (eligible) {
             event("poster_visible")
             delay(2_000)

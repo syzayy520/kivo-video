@@ -17,7 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.IntOffset
 
 /** 子页路由（手机单栏）。各子页互不嵌套 ⇒ 返回栈深度 ≤1，用可空当前路由即可，不堆多级栈。 */
-internal enum class SettingsRoute { PLAYBACK, CONTROLS, AV, AI, DATA, CACHE, ABOUT }
+internal enum class SettingsRoute { PLAYBACK, CONTROLS, AV, AI, DATA, CACHE, ABOUT, APPEARANCE }
 
 /**
  * push/pop 路由 + 系统返回 + 水平滑入滑出（261 设计 §四）。

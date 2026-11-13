@@ -2,6 +2,7 @@ package com.kivo.cinema.ui.compose
 
 import com.kivo.cinema.ui.compose.player.PlayerHudKind
 import com.kivo.cinema.ui.compose.player.PlayerMotion
+import com.kivo.cinema.ui.design.AppearancePrefs
 
 /**
  * 手势数学：竖滑亮度/音量、长按快进（调速 + 上滑锁定）。
@@ -128,8 +129,10 @@ internal fun PlayerComposeActivity.formatSpeed(value: Double): String {
     return "${text}x"
 }
 
+/** 触感反馈（267）：始终/自动/禁用三态门控，自动跟随系统低电量。 */
 internal fun PlayerComposeActivity.haptic(constant: Int) {
-    runCatching { window.decorView.performHapticFeedback(constant) }
+    if (!AppearancePrefs.hapticAllowed(this)) return
+    window.decorView.performHapticFeedback(constant)
 }
 
 internal fun PlayerComposeActivity.currentHudFraction(kind: PlayerHudKind): Float = when (kind) {

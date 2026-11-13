@@ -108,5 +108,8 @@
   > 证据 `docs/evidence/p265/ai-subtitles/README.md`。
   > 266 = `SettingsDataRoot/DataSources/DataTmdb.kt`（82/142/43 行）+ 重写 `SettingsDataSub.kt`（49 行，ROOT+8 来源屏+内层 BackHandler）；
   > 每源聚合/搜索开关真写回 accounts.bin + 重读复算 + 退出再进持久化（c06–c11），计数为真、TMDB Key/代理/地址只读真值，
-  > 片段标记来源行首版不可钻入已修可钻入（p266b），证据 `docs/evidence/p266/data-resources/README.md`。其余设置子页等用户逐块发图。
+  > 片段标记来源行首版不可钻入已修可钻入（p266b），证据 `docs/evidence/p266/data-resources/README.md`。
+  > 267 = `AppearancePrefs.kt`(73) + `SettingsAppearanceSub/Feedback/Nav/Badge.kt`（82/71/39/23 行）+ `SettingsRows.kt` PlainCard；
+  > 6 真接线（autoplay 共享键同步 / 声音挂载门 / 剧照 / 内容提示 / 触感三态门 / 隐藏标题），触感三态运行时日志+同手势锁屏帧，
+  > 修 manifest 缺 VIBRATE 静默降级真 bug；证据 `docs/evidence/p267/appearance-interaction/README.md`。其余设置子页等用户逐块发图。
   > **D6 已收口**（2026-11-13，codex 接管复核+提交推送，见 TASKS.md / `docs/evidence/p260/code-derex/`）；D1–D5 仍待其他助手领取（D4 用户暂缓）。

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="show_stills" value="true" />
+    <string name="haptic_mode">disabled</string>
+    <boolean name="hide_nav_labels" value="true" />
+    <boolean name="show_content_notes" value="false" />
+</map>

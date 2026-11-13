@@ -14,6 +14,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- 267：缺 VIBRATE 时 performHapticFeedback 抛 SecurityException，触感反馈会静默失效。 -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
     <application
         android:allowBackup="false"
         android:label="Kivo Cinema"

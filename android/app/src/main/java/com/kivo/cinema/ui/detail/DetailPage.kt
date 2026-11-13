@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.kivo.cinema.media.marks.FilmMark
+import com.kivo.cinema.ui.design.AppearancePrefs
 import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.ui.design.PosterPalette
 import com.kivo.cinema.ui.design.RatingBadges
@@ -128,6 +129,7 @@ internal fun DetailPage(
     val overlay = remember { DetailOverlayState() }
     val glassSources = remember { NavigationBackdropState() }
     val today = remember { java.time.LocalDate.now() }
+    LaunchedEffect(Unit) { AppearancePrefs.bind(context) }
     val curSeason = ss.season
     val nextEp = ss.episodes.firstOrNull { !it.played && it.positionTicks > 0 }
         ?: ss.episodes.firstOrNull { !it.played } ?: ss.episodes.firstOrNull()
@@ -215,7 +217,8 @@ internal fun DetailPage(
                         CastRow(d.cast, fg, fgSub, content?.loadImage)
                     }
                 }
-                if (d.certifications.isNotEmpty() || d.contentNotes.isNotEmpty()) {
+                if (AppearancePrefs.showContentNotes &&
+                    (d.certifications.isNotEmpty() || d.contentNotes.isNotEmpty())) {
                     item(key = "guide") {
                         Column(Modifier.fillMaxWidth()) {
                             Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
@@ -246,7 +249,7 @@ internal fun DetailPage(
                         }
                     }
                 }
-                if (d.stills.isNotEmpty()) item(key = "stills") {
+                if (AppearancePrefs.showStills && d.stills.isNotEmpty()) item(key = "stills") {
                     Column(Modifier.fillMaxWidth()) {
                         Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
                         SectionHeader("剧照", fg)

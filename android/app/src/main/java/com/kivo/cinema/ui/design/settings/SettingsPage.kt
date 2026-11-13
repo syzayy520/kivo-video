@@ -30,6 +30,10 @@ fun SettingsPage(
                     HomePreviewSetting(previewEnabled, onPreviewChanged)
                 }
                 Spacer(Modifier.height(14.dp))
+                SectionCard("外观与交互") {
+                    ChevronRow("外观与交互", "主题 · 封面 · 预告片 · 触感 · 图标") { push(SettingsRoute.APPEARANCE) }
+                }
+                Spacer(Modifier.height(14.dp))
                 SectionCard("播放") {
                     ChevronRow("播放", "缓冲 · 播放习惯 · 后台 · 字幕") { push(SettingsRoute.PLAYBACK) }
                 }
@@ -67,6 +71,7 @@ fun SettingsPage(
             when (route) {
                 SettingsRoute.PLAYBACK -> SettingsPlaybackSub(back)
                 SettingsRoute.CONTROLS -> SettingsControlsSub(back)
+                SettingsRoute.APPEARANCE -> SettingsAppearanceSub(previewEnabled, onPreviewChanged, back)
                 SettingsRoute.AV -> SettingsAvSub(back)
                 SettingsRoute.AI -> SettingsAiSub(back)
                 SettingsRoute.DATA -> SettingsDataSub(store, onOpenSources, back)

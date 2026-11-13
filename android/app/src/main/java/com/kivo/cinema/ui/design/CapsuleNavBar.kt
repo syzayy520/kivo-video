@@ -8,12 +8,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.ui.design.home.NavGlyph
@@ -30,6 +32,8 @@ fun CapsuleNavBar(
     onDark: Boolean = false,
     backdrop: NavigationBackdropState? = null,
 ) {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) { AppearancePrefs.bind(context) }
     val fg = Color.Black
     val shape = RoundedCornerShape(25.dp)
     val glass = Brush.verticalGradient(listOf(
@@ -51,7 +55,8 @@ fun CapsuleNavBar(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center) {
                     NavGlyph(label, fg, Modifier.size(25.dp))
-                    Text(label, fontSize = 10.sp, lineHeight = 13.sp, color = fg)
+                    if (!AppearancePrefs.hideNavLabels)
+                        Text(label, fontSize = 10.sp, lineHeight = 13.sp, color = fg)
                 }
             }
             }

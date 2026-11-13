@@ -8,4 +8,7 @@ internal class HomePreferences(context: Context) {
     var autoplay: Boolean
         get() = preferences.getBoolean("preview_autoplay", false)
         set(value) { preferences.edit().putBoolean("preview_autoplay", value).apply() }
+    var previewSound: Boolean
+        get() = preferences.getBoolean("preview_sound", false)
+        set(value) { preferences.edit().putBoolean("preview_sound", value).apply() }
 }

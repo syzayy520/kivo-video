@@ -52,6 +52,12 @@ internal fun SectionCard(header: String, beta: Boolean = false, content: @Compos
     GlassSurface(Modifier.fillMaxWidth()) { Column { content() } }
 }
 
+/** 无头分组卡（267）：与 SectionCard 同玻璃底，仅无节头小字（参考首卡/日历卡形态）。 */
+@Composable
+internal fun PlainCard(content: @Composable ColumnScope.() -> Unit) {
+    GlassSurface(Modifier.fillMaxWidth()) { Column { content() } }
+}
+
 /** 组下多行说明脚注。 */
 @Composable
 internal fun Footnote(text: String) {
