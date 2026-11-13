@@ -56,7 +56,8 @@ private fun AiRoot(onBack: () -> Unit, push: (AiScreen) -> Unit) {
         Spacer(Modifier.height(14.dp))
 
         SectionCard("语音转字幕", beta = true) {
-            ChevronRow("识别音轨中的语音，生成字幕。", value = "缺少模型", valueColor = Color(0xFFFF9500)) {
+            ChevronRow("识别音轨中的语音，生成字幕。", value = "缺少模型", valueColor = Color(0xFFFF9500),
+                icon = SettingsIcons.subtitle, iconColor = SettingsVisuals.teal) {
                 push(AiScreen.ASR)
             }
         }
@@ -67,7 +68,8 @@ private fun AiRoot(onBack: () -> Unit, push: (AiScreen) -> Unit) {
             SwitchRow("使用 AI 翻译", false, enabled = false,
                 subtitle = "大模型翻译客户端尚未接入") {}
             RowDivider()
-            ChevronRow("系统支持的源语言", value = "0 种 / ${systemSourceLanguages.size}") {
+            ChevronRow("系统支持的源语言", value = "0 种 / ${systemSourceLanguages.size}",
+                icon = SettingsIcons.globe, iconColor = SettingsVisuals.blue) {
                 push(AiScreen.SYSLANGS)
             }
         }

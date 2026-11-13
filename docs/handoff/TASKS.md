@@ -8,6 +8,18 @@
 > `C:\ffmpeg-sdk`（bootstrap.cmd 重建 junction）；local.properties / adb 密钥等机器绑定项见 agents.md §0.3。
 > **推送已验**：rev-list origin..HEAD=0。
 
+> 2026-11-13 **✅ 268 设置页 UI 重设计（浅色定稿）收口（K40 `b6e950ee` 真机，主助手自留卡）。**
+> **规格**：[`docs/design/ui/replica/settings-ui-redesign.md`](../design/ui/replica/settings-ui-redesign.md)（家族树先行；只改视觉层，266/267 接线零改动）
+> **证据**：[`docs/evidence/p268/settings-ui-redesign/`](../evidence/p268/settings-ui-redesign/README.md)（before/after 根页+子页 + 写回往返 + 构建日志 + 披露）
+> **新家族** `SettingsVisuals.kt`(35) + `SettingsIcons.kt`(49) + `SettingsRowParts.kt`(90) + `SettingsStorageHero.kt`(80) + `SettingsEntryGrid.kt`(59) + `SettingsStatusTiles.kt`(59)；
+> 升级 `SettingsRows.kt`(243，行加 optional icon/iconColor/footnote 插在 onClick/onChange 之前保尾随 lambda) / `SettingsScaffold.kt`(100，32sp 标题+tint 返回钮+版本脚注) / `SettingsPage.kt`(87，根页 IA 重排)。
+> **根页 IA**：空间占用 hero（真实 8.4MB 图片/0B 评分，可点→缓存）→ 2×2 入口（播放/音画/操控/AI）→ 资源库双卡（Emby/SMB 真实配置计数 1/1，无假连接点）→ 使用偏好/安全关于分组 → 版本脚注 0.1.0-p12a(1)。原 10 入口全保留。
+> **视觉语言**：同色 14% 淡底圆角 chip + 彩色线 glyph（PathParser().parsePathString().toNodes() + 成员 addPath，Compose 1.7.6）；置灰降饱和+原因保留换行不截断。
+> **写回回归**：SwitchRow 升级后「每次从头播放」off→on→off 往返均持久化（playback_prefs.xml 复算），设备还原默认。
+> **闸门**：行数全 ≤300；assembleDebug BUILD SUCCESSFUL；K40 before/after+子页+写回；不静默降级。
+> **披露**：子页图标选择性加在主交互行；资源库双卡为配置计数非实时连接；深色 Noctra 留后续卡。
+> **下一卡**：深色影院候选 / 其余设置子页逐个；#37+#45 行数债 / D3 / D5 待派发。
+
 > 2026-11-13 **✅ 267 外观与交互设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
 > **规格**：[`docs/design/ui/replica/appearance-interaction-settings.md`](../design/ui/replica/appearance-interaction-settings.md)（家族树先行；根页 18 行 = 5 真 + 11 灰 + 2 真钻入）
 > **证据**：[`docs/evidence/p267/appearance-interaction/`](../evidence/p267/appearance-interaction/README.md)（c00–c17 + 20 XML + 触感三态日志/帧 + 复算链 + 披露 D-A–D-H）

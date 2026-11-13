@@ -44,7 +44,8 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
             SwitchRow("预缓冲到本地文件", false, beta = true, enabled = false,
                 subtitle = "本地预缓冲尚未接入") {}
             RowDivider()
-            StepperRow("Wi-Fi 缓冲上限", PlaybackPrefs.bufferLabel(wifiBufferMb)) { picker = "wifi" }
+            StepperRow("Wi-Fi 缓冲上限", PlaybackPrefs.bufferLabel(wifiBufferMb),
+                icon = SettingsIcons.download, iconColor = SettingsVisuals.blue) { picker = "wifi" }
             RowDivider()
             StepperRow("蜂窝网络缓冲上限", PlaybackPrefs.bufferLabel(cellBufferMb)) { picker = "cell" }
             RowDivider()
@@ -72,7 +73,8 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
 
         SectionCard("播放习惯") {
             SwitchRow("每次从头播放", alwaysFromStart,
-                subtitle = "开启后忽略上次进度，每次从 00:00 起播") { prefs.alwaysFromStart = it; revision++ }
+                subtitle = "开启后忽略上次进度，每次从 00:00 起播",
+                icon = SettingsIcons.play, iconColor = SettingsVisuals.blue) { prefs.alwaysFromStart = it; revision++ }
             RowDivider()
             SwitchRow("精确定位进度", seekExact,
                 subtitle = "拖动进度时精确到帧，而非落在最近的关键帧") { prefs.seekExact = it; revision++ }
@@ -126,7 +128,8 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
 
         SectionCard("字幕") {
             StepperRow("字幕首选语言", PlaybackPrefs.languageLabel(subtitleLanguage),
-                subtitle = "自动选择字幕轨时优先匹配的语言") { picker = "lang" }
+                subtitle = "自动选择字幕轨时优先匹配的语言",
+                icon = SettingsIcons.subtitle, iconColor = SettingsVisuals.teal) { picker = "lang" }
             RowDivider()
             SwitchRow("启用字幕 HDR 效果", false, enabled = false, subtitle = "字幕 HDR 尚未接入") {}
             RowDivider()

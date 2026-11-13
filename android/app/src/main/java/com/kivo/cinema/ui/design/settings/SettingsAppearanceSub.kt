@@ -57,7 +57,7 @@ private fun AppearanceCoreCards(push: (AppearanceDrill) -> Unit) {
         SwitchRow("豆瓣评分入口", false, enabled = false,
             subtitle = "豆瓣数据源未接入，评分徽章仅 TMDB。", onChange = {})
         RowDivider()
-        ChevronRow("导航") { push(AppearanceDrill.NAV) }
+        ChevronRow("导航", icon = SettingsIcons.menu, iconColor = SettingsVisuals.blue) { push(AppearanceDrill.NAV) }
     }
     Spacer(Modifier.height(14.dp))
     SectionCard("封面与剧照") {
@@ -65,7 +65,9 @@ private fun AppearanceCoreCards(push: (AppearanceDrill) -> Unit) {
         RowDivider()
         ValueRow("详情封面样式", "幕布", subtitle = "海报模式未接入，详情固定满幅幕布。", dim = true)
         RowDivider()
-        SwitchRow("显示剧照", AppearancePrefs.showStills, onChange = { AppearancePrefs.updateShowStills(it) })
+        SwitchRow("显示剧照", AppearancePrefs.showStills,
+            icon = SettingsIcons.image, iconColor = SettingsVisuals.purple,
+            onChange = { AppearancePrefs.updateShowStills(it) })
         RowDivider()
         SwitchRow("优先使用 TMDB 高清无字海报", false, enabled = false,
             subtitle = "择优按位硬编码：hero 无字优先、详情中文优先、行卡跟元数据语言；全局开关未接。", onChange = {})

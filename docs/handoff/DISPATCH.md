@@ -111,5 +111,11 @@
   > 片段标记来源行首版不可钻入已修可钻入（p266b），证据 `docs/evidence/p266/data-resources/README.md`。
   > 267 = `AppearancePrefs.kt`(73) + `SettingsAppearanceSub/Feedback/Nav/Badge.kt`（82/71/39/23 行）+ `SettingsRows.kt` PlainCard；
   > 6 真接线（autoplay 共享键同步 / 声音挂载门 / 剧照 / 内容提示 / 触感三态门 / 隐藏标题），触感三态运行时日志+同手势锁屏帧，
-  > 修 manifest 缺 VIBRATE 静默降级真 bug；证据 `docs/evidence/p267/appearance-interaction/README.md`。其余设置子页等用户逐块发图。
+  > 修 manifest 缺 VIBRATE 静默降级真 bug；证据 `docs/evidence/p267/appearance-interaction/README.md`。
+  > 268 = **设置页 UI 重设计（浅色 v2，用户拍板"先把浅色做好…就这个去实现"）**；
+  > 新家族 `SettingsVisuals/Icons/RowParts/StorageHero/EntryGrid/StatusTiles.kt`（35/49/90/80/59/59 行）+ 重写 `SettingsRows.kt`(243)/`SettingsScaffold.kt`(100)/`SettingsPage.kt`(87)；
+  > 根页 IA：32sp 标题 → 存储 hero（真实字节可点→缓存）→ 2×2 入口网格 → Emby/SMB **真实配置计数**双卡 → 分组使用偏好/安全与关于 → 版本脚注(tnum)；
+  > 行原语加 tinted chip 彩色线性图标 + 副标题换行不截断 + 五态尾件，202 处尾 lambda 调用点零改（新可选参插在 onClick/onChange 之前）；
+  > 10 真目的地全保留、子页选择性加 chip、置灰原因保持可读；写回往返实测（always_from_start true→false 持久化，设备还原）；
+  > **无假状态**（Emby/SMB 卡=配置计数非在线探测、hero 只显可测量类目）；证据 `docs/evidence/p268/settings-ui-redesign/README.md`。深色 Noctra 暂缓。
   > **D6 已收口**（2026-11-13，codex 接管复核+提交推送，见 TASKS.md / `docs/evidence/p260/code-derex/`）；D1–D5 仍待其他助手领取（D4 用户暂缓）。

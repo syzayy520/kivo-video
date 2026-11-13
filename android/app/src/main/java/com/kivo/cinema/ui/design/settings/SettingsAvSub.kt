@@ -57,7 +57,8 @@ internal fun SettingsAvSub(onBack: () -> Unit) {
                 subtitle = "适配模式尚未接入，比例 override 在播放面板") {}
             RowDivider()
             SwitchRow("单独调整播放亮度", independentBrightness,
-                subtitle = "播放时使用独立亮度；返回桌面或结束播放后，恢复原来的屏幕亮度。") {
+                subtitle = "播放时使用独立亮度；返回桌面或结束播放后，恢复原来的屏幕亮度。",
+                icon = SettingsIcons.theme, iconColor = SettingsVisuals.orange) {
                 prefs.independentBrightness = it; revision++
             }
             RowDivider()
@@ -74,7 +75,8 @@ internal fun SettingsAvSub(onBack: () -> Unit) {
             StepperRow("音频引擎", "标准音频引擎", enabled = false,
                 subtitle = "音频引擎随内核选择，暂无独立开关") {}
             RowDivider()
-            StepperRow("音频首选语言", PlaybackPrefs.audioLanguageLabel(audioLanguage)) { picker = "alang" }
+            StepperRow("音频首选语言", PlaybackPrefs.audioLanguageLabel(audioLanguage),
+                icon = SettingsIcons.speaker, iconColor = SettingsVisuals.purple) { picker = "alang" }
         }
         Spacer(Modifier.height(14.dp))
 

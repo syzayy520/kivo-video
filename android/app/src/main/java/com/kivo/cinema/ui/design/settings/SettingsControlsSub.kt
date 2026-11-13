@@ -70,7 +70,8 @@ internal fun SettingsControlsSub(onBack: () -> Unit) {
             SwitchRow("快进与快退按钮", false, enabled = false,
                 subtitle = "快进/快退按钮尚未接入，当前用双击两侧") {}
             RowDivider()
-            SwitchRow("截图 按钮", showCapture) { prefs.showCaptureButton = it; revision++ }
+            SwitchRow("截图 按钮", showCapture,
+                icon = SettingsIcons.image, iconColor = SettingsVisuals.blue) { prefs.showCaptureButton = it; revision++ }
             RowDivider()
             StepperRow("快进时长", PlaybackPrefs.seekLabel(seekFwd)) { picker = "seekFwd" }
             RowDivider()
@@ -79,7 +80,8 @@ internal fun SettingsControlsSub(onBack: () -> Unit) {
         Spacer(Modifier.height(14.dp))
 
         SectionCard("手势操作") {
-            StepperRow("双击中间触发", PlaybackPrefs.doubleTapCenterLabel(centerAction)) { picker = "center" }
+            StepperRow("双击中间触发", PlaybackPrefs.doubleTapCenterLabel(centerAction),
+                icon = SettingsIcons.hand, iconColor = SettingsVisuals.orange) { picker = "center" }
             RowDivider()
             StepperRow("双击两侧触发", PlaybackPrefs.doubleTapSidesLabel(sidesAction)) { picker = "sides" }
             RowDivider()
@@ -92,7 +94,8 @@ internal fun SettingsControlsSub(onBack: () -> Unit) {
         Spacer(Modifier.height(14.dp))
 
         SectionCard("倍速与快进") {
-            StepperRow("默认播放速度", PlaybackPrefs.speedLabel(defaultSpeed)) { picker = "speed" }
+            StepperRow("默认播放速度", PlaybackPrefs.speedLabel(defaultSpeed),
+                icon = SettingsIcons.play, iconColor = SettingsVisuals.purple) { picker = "speed" }
             RowDivider()
             SwitchRow("长按快进", longPress) { prefs.longPressEnabled = it; revision++ }
             RowDivider()
