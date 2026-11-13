@@ -1,3 +1,16 @@
+> 2026-11-13 **✅ 266 数据与资源设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
+> **规格**：[`docs/design/ui/replica/data-resources-settings.md`](../design/ui/replica/data-resources-settings.md)（家族树先行；根页 5 卡 + 8 来源钻入页）
+> **证据**：[`docs/evidence/p266/data-resources/`](../evidence/p266/data-resources/README.md)（c00–c20 + 2 XML bounds + 复算链 + 披露 D1–D7）
+> **新家族** `SettingsDataRoot.kt`(82) + `SettingsDataSources.kt`(142) + `SettingsDataTmdb.kt`(43)；重写 `SettingsDataSub.kt`(49，ROOT+8 屏枚举+内层 BackHandler)；
+> `SettingsRows.kt` 增 IconChevronRow(265)；根页 DATA 入口副标题改。**无新增持久化键**（每源开关复用 accounts.bin schema2）。
+> **真实接线**：每源聚合/聚合搜索开关真写回+重读复算（c06→c11：1/2→2/2→完全退出再进仍 ON→还原 1/2）；
+> 计数为真（聚合/搜索按源记录算、本机类 1/1、片段标记「未接入」）；TMDB Key/代理/地址只读真值；SMB 搜索灰/聚合真（D7）。
+> **置灰+原因**：语言偏好/全局聚合 3 开关/自定义 API/测试连接/图片修复/排序 5 行/Trakt/片段标记 6 源/AI 搜索等全灰带非空原因；≡ 拖拽柄不放置（D2）。
+> **修正**：首版片段标记来源行 enabled=false 致钻入页死代码 ⇒ 改可钻入（p266b 重编），c03/c16/c19 重取。
+> **闸门**：§五.1–6 全 PASS（行数 49/82/142/43/265 ≤300；c20 播放子页不回归）。
+> **设备已恢复初态**（XiaoMi 聚合 OFF；auto-rotate 恢复；未 uninstall）。
+> **下一卡**：其余设置子页逐个（用户逐块发图）；#37+#45 行数债 / D3 / D5 待派发。
+
 > 2026-11-13 **✅ 265 AI 字幕设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
 > **规格**：[`docs/design/ui/replica/ai-subtitles-settings.md`](../design/ui/replica/ai-subtitles-settings.md)（家族树先行；审计 0 后端 ⇒ 全置灰带原因）
 > **证据**：[`docs/evidence/p265/ai-subtitles/`](../evidence/p265/ai-subtitles/README.md)（c07–c20 + prefs-restored.xml + 披露 D1–D7）

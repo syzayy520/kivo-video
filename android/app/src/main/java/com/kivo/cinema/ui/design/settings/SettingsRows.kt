@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -107,6 +108,41 @@ internal fun ChevronRow(
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (value != null) {
                 Text(value, fontSize = 15.sp, color = valueColor.copy(alpha = if (enabled) 1f else 0.5f))
+                Spacer(Modifier.width(4.dp))
+            }
+            Text("›", fontSize = 24.sp, color = DesignTokens.textSub.copy(alpha = if (enabled) 1f else 0.5f))
+        }
+    }
+}
+
+/** 图标计数行：leading 彩色图标 + 标题 + 右「N/N ›」，钻入来源页。enabled=false 置灰（无后端钻入）。 */
+@Composable
+internal fun IconChevronRow(
+    icon: String,
+    iconColor: Color,
+    title: String,
+    value: String? = null,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = DesignTokens.rowHeight.dp)
+            .clickable(role = Role.Button, enabled = enabled, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier.size(28.dp).clip(RoundedCornerShape(7.dp))
+                .background(iconColor.copy(alpha = if (enabled) 1f else 0.4f)),
+            contentAlignment = Alignment.Center,
+        ) { Text(icon, fontSize = 15.sp, color = Color.White) }
+        Spacer(Modifier.width(12.dp))
+        Text(title, fontSize = DesignTokens.fontRowTitle.sp,
+            color = DesignTokens.textMain.copy(alpha = if (enabled) 1f else 0.4f),
+            modifier = Modifier.weight(1f))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (value != null) {
+                Text(value, fontSize = 15.sp, color = DesignTokens.textSub.copy(alpha = if (enabled) 1f else 0.5f))
                 Spacer(Modifier.width(4.dp))
             }
             Text("›", fontSize = 24.sp, color = DesignTokens.textSub.copy(alpha = if (enabled) 1f else 0.5f))

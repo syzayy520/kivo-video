@@ -47,7 +47,7 @@ fun SettingsPage(
                 }
                 Spacer(Modifier.height(14.dp))
                 SectionCard("数据与资源") {
-                    ChevronRow("媒体服务器与 TMDB", "Emby · SMB · 代理与 Key") { push(SettingsRoute.DATA) }
+                    ChevronRow("数据与资源", "语言 · 聚合 · 来源 · TMDB · 排序") { push(SettingsRoute.DATA) }
                 }
                 Spacer(Modifier.height(14.dp))
                 SectionCard("私密与安全") {
