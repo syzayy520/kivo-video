@@ -1,3 +1,14 @@
+> 2026-11-13 **✅ 269 导航胶囊 v3 收口（K40 `b6e950ee` 真机；268-v3 唯一遗留清零）。**
+> **规格**：[`docs/design/ui/replica/nav-capsule-v3.md`](../design/ui/replica/nav-capsule-v3.md)（家族树先行；无新文件）
+> **证据**：[`docs/evidence/p269/nav-capsule-v3/`](../evidence/p269/nav-capsule-v3/README.md)（before b0–b5 / after a1–a8 + 像素复算 + 回归 + 披露）
+> **视觉**：胶囊/搜索圆扁平 `#E8E9ED` 无描边无渐变（投影保留=v3 悬浮例外）；未选中 `#4B5563`；选中纯白内 pill + `#0A84FF`；
+> 暗环境（发现深色 hero，E11）扁平 `#2C2C2E` + 浅灰未选中 + 白 14% 内 pill，真机首滑捕获。
+> **死接线清除**：胶囊玻璃专属的 MainActivity backdrop state / DiscoverPage 7 处 navigationSource / SourcesScreen overviewModifier 全删；
+> `NavigationBackdrop` 机制保留（详情页三玻璃弹窗自持 state，零改动，a8 模糊回归 PASS）。
+> **token**：navPill 自 SettingsVisuals 迁 DesignTokens（单一来源）+ navIdle/navActive/navPillDark/navIdleDark。
+> **闸门**：家族行 ≤300（MainActivity 354/DiscoverPage 398 为 #37/#45 既有债，只减不增）；BUILD SUCCESSFUL；五页像素同色 + 搜索跳聚合 + 在看入口 + 详情弹窗回归。
+> **下一卡**：Noctra 深色（用户暂缓）/ #37+#45 行数债 / D3 / D5 待派发；详情页玻璃弹窗扁平化留后续。
+
 > 2026-11-13 **✅ 迁移补提交（用户换电脑，拍板：做好的全部提交推送，下一助手 clone 可接手）。**
 > **新入库**：`artifacts/p262-playback-settings/`(11M) + `artifacts/p263-av-settings/`(2.7M) 原始截图（覆盖 D6 时期「保留本地」口径）；266/267 构建日志 7 份；
 > 被 `*.log` 挡住但被 README/status 引用的证据日志 13 份（p220×2 / p224 / p230 / p240×4 / p259 / p261×3 / p9），均 `git add -f`；

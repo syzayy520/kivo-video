@@ -53,8 +53,6 @@ import androidx.compose.ui.unit.sp
 import com.kivo.cinema.library.MediaItem
 import com.kivo.cinema.tmdb.TmdbHome
 import com.kivo.cinema.tmdb.trailer.TrailerResult
-import com.kivo.cinema.ui.design.home.NavigationBackdropState
-import com.kivo.cinema.ui.design.home.navigationSource
 import com.kivo.cinema.ui.design.home.rememberHeroPullZoom
 import com.kivo.cinema.stats.WatchStore
 
@@ -62,7 +60,6 @@ import com.kivo.cinema.stats.WatchStore
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
 fun DiscoverPage(
-    backdrop: NavigationBackdropState? = null,
     previewEnabled: Boolean = false,
     continueItems: List<Pair<MediaItem, WatchStore.Progress>>,
     heroCandidates: List<TmdbHome.Item>,
@@ -106,7 +103,7 @@ fun DiscoverPage(
     val chromeSub = if (chromeDark) Color.White.copy(alpha = .72f) else DesignTokens.textSub
 
     Box(Modifier.fillMaxSize()) {
-      Box(Modifier.fillMaxSize().navigationSource(backdrop).drawBehind { drawRect(scrimColor.value) })
+      Box(Modifier.fillMaxSize().drawBehind { drawRect(scrimColor.value) })
       CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
         LazyColumn(
             state = listState,
@@ -134,7 +131,7 @@ fun DiscoverPage(
             // 继续观看
             if (continueItems.isNotEmpty()) {
                 item(key = "continue") {
-                    Column(Modifier.navigationSource(backdrop)) {
+                    Column {
                         Spacer(Modifier.height(13.dp))
                         HomeSectionHeader("继续观看", chromeFg, onShowWatching)
                         Spacer(Modifier.height(12.dp))
@@ -165,21 +162,21 @@ fun DiscoverPage(
                 "正在播出" to onTheAir,
             ).forEach { (title, list) ->
                 if (list.isNotEmpty()) {
-                    item(key = title) { Box(Modifier.navigationSource(backdrop)) { PosterSection(title, list, chromeFg, onOpenTmdbItem) } }
+                    item(key = title) { Box { PosterSection(title, list, chromeFg, onOpenTmdbItem) } }
                 }
             }
             if (trending.isNotEmpty()) {
-                item(key = "本周趋势") { Box(Modifier.navigationSource(backdrop)) { WideSection(trending, chromeFg, onOpenTmdbItem) } }
+                item(key = "本周趋势") { Box { WideSection(trending, chromeFg, onOpenTmdbItem) } }
             }
             if (variety.isNotEmpty()) {
-                item(key = "近一月·热门综艺") { Box(Modifier.navigationSource(backdrop)) { VarietySection(variety, chromeFg, onOpenTmdbItem) } }
+                item(key = "近一月·热门综艺") { Box { VarietySection(variety, chromeFg, onOpenTmdbItem) } }
             }
             if (todayAnime.isNotEmpty()) {
-                item(key = "今日动漫") { Box(Modifier.navigationSource(backdrop)) { PosterSection("今日动漫", todayAnime, chromeFg, onOpenTmdbItem) } }
+                item(key = "今日动漫") { Box { PosterSection("今日动漫", todayAnime, chromeFg, onOpenTmdbItem) } }
             }
             // 错误态（home.error.network.* 五类原文 + 重试——M04-S04，不可合并）
             if (tmdbError != null && heroCandidates.isNotEmpty()) {
-                item(key = "error") { Box(Modifier.navigationSource(backdrop)) { TmdbErrorCard(tmdbError, onRetryTmdb) } }
+                item(key = "error") { Box { TmdbErrorCard(tmdbError, onRetryTmdb) } }
             }
         }
       }

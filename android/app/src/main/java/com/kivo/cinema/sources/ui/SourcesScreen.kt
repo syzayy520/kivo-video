@@ -38,7 +38,6 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: ()
     onUnlock: (() -> Unit) -> Unit,
     onOpenAggregate: () -> Unit = {},
     navigation: @Composable () -> Unit = {},
-    overviewModifier: Modifier = Modifier,
     onNavigationGuard: (((() -> Unit) -> Unit)?) -> Unit = {}) {
     val workspace = rememberSaveable(saver = SourceWorkspaceState.Saver) { SourceWorkspaceState() }
     val grid = rememberLazyGridState()
@@ -69,7 +68,7 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: ()
         val lifecycle = LocalLifecycleOwner.current.lifecycle
         val minimumCardWidth = 160.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
         SourceWorkspace(panelOpen, navigation = navigation, overview = {
-        Box(Modifier.fillMaxSize().then(overviewModifier), contentAlignment = Alignment.TopCenter) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyVerticalGrid(columns = GridCells.Adaptive(minimumCardWidth), state = grid,
                 modifier = Modifier.widthIn(max = 1200.dp).fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = DesignTokens.screenPad.dp, vertical = 8.dp),

@@ -34,7 +34,6 @@ internal object SettingsVisuals {
     val sec = Color(0xFF7A8089)
     val chev = Color(0xFFC6C9CE)
     val dimTitle = Color(0xFFB9BDC4)
-    val navPill = Color(0xFFE8E9ED)
 
     // 字阶 / 节奏（v3）
     const val fontRootTitle = 32f

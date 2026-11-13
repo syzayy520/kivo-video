@@ -121,4 +121,7 @@
   > 268-v3（同日追加）= **统一画布 + 扁平纯白卡**：四页共用首页 resting `#F2F2F7`（`AnimatedGradientBg(flatColor)` 全屏铺色），
   > 设置家族 GlassSurface 清零换纯白扁平卡；分隔线同卡统一（chip 卡 42 / 无 chip 16，`ChipCardDivider`）；
   > 三页画布像素复算同色 + 写回回归还原；导航灰 pill 留后续卡。证据 `shots-v3/` + `build-p268-v3.log`。
+  > 269（同日追加）= **导航胶囊 v3**：扁平灰 pill `#E8E9ED` + 选中纯白内 pill/蓝 `#0A84FF`，暗环境扁平 `#2C2C2E`（E11 保留，真机捕获）；
+  > 胶囊玻璃专属死接线全删（MainActivity/DiscoverPage/SourcesScreen），`NavigationBackdrop` 保留服务详情页玻璃弹窗（零改动+模糊回归）；
+  > navPill token 迁 DesignTokens 单一来源；五页像素复算 + 搜索/在看/详情弹窗回归。证据 `docs/evidence/p269/nav-capsule-v3/`。
   > **D6 已收口**（2026-11-13，codex 接管复核+提交推送，见 TASKS.md / `docs/evidence/p260/code-derex/`）；D1–D5 仍待其他助手领取（D4 用户暂缓）。

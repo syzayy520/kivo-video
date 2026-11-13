@@ -27,6 +27,13 @@ object DesignTokens {
     val hairline = Color(0x0D000000)        // 分隔线/描边（黑 5%）
     val washFill = Color(0x80EDEDFB)        // 洗色叠加（P3 @50%）
 
+    // 导航 chrome（269 v3：扁平灰 pill + 蓝选中；暗态供发现页深色环境 E11）
+    val navPill = Color(0xFFE8E9ED)
+    val navIdle = Color(0xFF4B5563)
+    val navActive = Color(0xFF0A84FF)
+    val navPillDark = Color(0xFF2C2C2E)
+    val navIdleDark = Color(0xFFEBEBF5).copy(alpha = .66f)
+
     // 玻璃
     const val glassAlpha = 0.70f          // 白 65–75%
     val glassFallback = Color(0xEEFFFFFF) // API31 降级 92% 白

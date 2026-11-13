@@ -24,7 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
-import com.kivo.cinema.ui.design.home.navigationSource
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -233,7 +232,6 @@ class MainActivity : ComponentActivity() {
         }
         var previewEnabled by remember { mutableStateOf(homePreferences.autoplay) }
         var selectedTitle by remember { mutableStateOf<com.kivo.cinema.tmdb.TmdbHome.Item?>(null) }
-        val backdrop = remember { com.kivo.cinema.ui.design.home.NavigationBackdropState() }
         val shellNavigation: @Composable () -> Unit = {
                     CapsuleNavBar(
                         tabs = listOf("发现" to "", "我的" to "", "资源库" to "", "设置" to ""),
@@ -250,7 +248,6 @@ class MainActivity : ComponentActivity() {
                                 com.kivo.cinema.emby.aggregate.ui.AggregateActivity::class.java))
                         },
                         onDark = page == 1 && ambientDark,
-                        backdrop = backdrop,
                     )
         }
         AnimatedGradientBg(
@@ -265,13 +262,11 @@ class MainActivity : ComponentActivity() {
                         // 发现页不裁底：环境层要铺到导航后面（239 §3.2）；其余页留导航空间
                         .padding(bottom = if (page == 0 || page == 1) 0.dp else 84.dp)
                           .windowInsetsPadding(if (page == 0 || page == 1) WindowInsets(0, 0, 0, 0) else WindowInsets.statusBars)
-                        .navigationSource(backdrop, enabled = page != 1 && page != 0)
                 ) {
                     when (page) {
                         0 -> SourcesScreen(
                             model = sources,
                             navigation = shellNavigation,
-                            overviewModifier = Modifier.navigationSource(backdrop),
                             onNavigationGuard = { sourceNavigationGuard = it },
                             onUnlock = { action -> unlockAction = action; showUnlock = true },
                             onOpenSource = { source ->
@@ -287,7 +282,6 @@ class MainActivity : ComponentActivity() {
                             videoCount = localVideoCount,
                         )
                         1 -> DiscoverPage(
-                            backdrop = backdrop,
                             previewEnabled = previewEnabled,
                             continueItems = continueItems,
                             heroCandidates = heroCandidates,
@@ -325,7 +319,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
-                // 距底 22pt（帧实测）；发现页深色环境时转暗玻璃（E11）
+                // 距底 22pt（帧实测）；发现页深色环境时转暗扁平（E11，269）
                 if (page != 0) Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp)) {
                     shellNavigation()
                 }
