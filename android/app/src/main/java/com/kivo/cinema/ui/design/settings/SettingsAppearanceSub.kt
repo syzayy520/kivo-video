@@ -47,28 +47,28 @@ internal fun SettingsAppearanceSub(
 private fun AppearanceCoreCards(push: (AppearanceDrill) -> Unit) {
     PlainCard {
         ValueRow("外观模式", "浅色", subtitle = "深色色板 v2 未实现，当前固定浅色。", dim = true)
-        RowDivider()
+        ChipCardDivider()
         SwitchRow("减弱动画效果", false, enabled = false,
             subtitle = "未接全局动效门，各页动效参数独立。", onChange = {})
-        RowDivider()
+        ChipCardDivider()
         SwitchRow("减弱视觉效果", false, enabled = false,
             subtitle = "未接全局视觉门，玻璃/模糊按宿主独立。", onChange = {})
-        RowDivider()
+        ChipCardDivider()
         SwitchRow("豆瓣评分入口", false, enabled = false,
             subtitle = "豆瓣数据源未接入，评分徽章仅 TMDB。", onChange = {})
-        RowDivider()
+        ChipCardDivider()
         ChevronRow("导航", icon = SettingsIcons.menu, iconColor = SettingsVisuals.blue) { push(AppearanceDrill.NAV) }
     }
     Spacer(Modifier.height(14.dp))
     SectionCard("封面与剧照") {
         ValueRow("首页封面样式", "海报", subtitle = "横向封面布局未接入，行卡固定海报比。", dim = true)
-        RowDivider()
+        ChipCardDivider()
         ValueRow("详情封面样式", "幕布", subtitle = "海报模式未接入，详情固定满幅幕布。", dim = true)
-        RowDivider()
+        ChipCardDivider()
         SwitchRow("显示剧照", AppearancePrefs.showStills,
             icon = SettingsIcons.image, iconColor = SettingsVisuals.purple,
             onChange = { AppearancePrefs.updateShowStills(it) })
-        RowDivider()
+        ChipCardDivider()
         SwitchRow("优先使用 TMDB 高清无字海报", false, enabled = false,
             subtitle = "择优按位硬编码：hero 无字优先、详情中文优先、行卡跟元数据语言；全局开关未接。", onChange = {})
     }

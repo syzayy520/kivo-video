@@ -118,4 +118,7 @@
   > 行原语加 tinted chip 彩色线性图标 + 副标题换行不截断 + 五态尾件，202 处尾 lambda 调用点零改（新可选参插在 onClick/onChange 之前）；
   > 10 真目的地全保留、子页选择性加 chip、置灰原因保持可读；写回往返实测（always_from_start true→false 持久化，设备还原）；
   > **无假状态**（Emby/SMB 卡=配置计数非在线探测、hero 只显可测量类目）；证据 `docs/evidence/p268/settings-ui-redesign/README.md`。深色 Noctra 暂缓。
+  > 268-v3（同日追加）= **统一画布 + 扁平纯白卡**：四页共用首页 resting `#F2F2F7`（`AnimatedGradientBg(flatColor)` 全屏铺色），
+  > 设置家族 GlassSurface 清零换纯白扁平卡；分隔线同卡统一（chip 卡 42 / 无 chip 16，`ChipCardDivider`）；
+  > 三页画布像素复算同色 + 写回回归还原；导航灰 pill 留后续卡。证据 `shots-v3/` + `build-p268-v3.log`。
   > **D6 已收口**（2026-11-13，codex 接管复核+提交推送，见 TASKS.md / `docs/evidence/p260/code-derex/`）；D1–D5 仍待其他助手领取（D4 用户暂缓）。

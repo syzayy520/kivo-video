@@ -53,10 +53,10 @@ fun SettingsPage(
                 Spacer(Modifier.height(14.dp))
                 SectionCard("使用偏好") {
                     HomePreviewSetting(previewEnabled, onPreviewChanged)
-                    RowDivider()
+                    ChipCardDivider()
                     ChevronRow("外观与交互", "主题 · 封面 · 预告片 · 触感 · 图标",
                         icon = SettingsIcons.brush, iconColor = SettingsVisuals.purple) { push(SettingsRoute.APPEARANCE) }
-                    RowDivider()
+                    ChipCardDivider()
                     ChevronRow("数据与资源", "语言 · 聚合 · 来源 · TMDB · 排序",
                         icon = SettingsIcons.drive, iconColor = SettingsVisuals.indigo) { push(SettingsRoute.DATA) }
                 }
@@ -64,7 +64,7 @@ fun SettingsPage(
                 SectionCard("安全与关于") {
                     ChevronRow("应用内数字密码", "私密区 · 隐藏源 · 改密",
                         icon = SettingsIcons.lock, iconColor = SettingsVisuals.green, onClick = onOpenPrivate)
-                    RowDivider()
+                    ChipCardDivider()
                     ChevronRow("版本信息", "版本号 · 构建 · 私密安全",
                         icon = SettingsIcons.info, iconColor = SettingsVisuals.gray) { push(SettingsRoute.ABOUT) }
                 }

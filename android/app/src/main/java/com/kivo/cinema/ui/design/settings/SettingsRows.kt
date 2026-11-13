@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -30,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.ui.design.DesignTokens
-import com.kivo.cinema.ui.design.GlassSurface
 
 /**
  * 设置行原语（268 视觉升级）：inset 分组卡 + 淡底 chip 图标 + 多行副标题 + 开关/步进/分隔/Beta。
@@ -38,30 +36,30 @@ import com.kivo.cinema.ui.design.GlassSurface
  * 新增 icon/iconColor/footnote 一律带默认值且插在 onClick/onChange 之前 —— 尾随 lambda 调用零改动。
  * 骨架（根页/子页固定头）在 SettingsScaffold.kt，按"变化原因"与本文件分离。
  */
-internal val settingsPad = DesignTokens.screenPad.dp
+internal val settingsPad = SettingsVisuals.hInset.dp
 
 /** 节头小字灰 + inset 分组卡。 */
 @Composable
 internal fun SectionCard(header: String, beta: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)) {
-        Text(header, fontSize = SettingsVisuals.fontSection.sp, fontWeight = FontWeight.SemiBold,
-            color = DesignTokens.textSub)
+        modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)) {
+        Text(header, fontSize = SettingsVisuals.fontSection.sp, fontWeight = FontWeight.Medium,
+            color = SettingsVisuals.sec)
         if (beta) BetaBadge()
     }
-    GlassSurface(Modifier.fillMaxWidth()) { Column { content() } }
+    SettingsCard(Modifier.fillMaxWidth()) { content() }
 }
 
-/** 无头分组卡：与 SectionCard 同玻璃底，仅无节头小字。 */
+/** 无头分组卡：与 SectionCard 同扁平纯白底，仅无节头小字。 */
 @Composable
 internal fun PlainCard(content: @Composable ColumnScope.() -> Unit) {
-    GlassSurface(Modifier.fillMaxWidth()) { Column { content() } }
+    SettingsCard(Modifier.fillMaxWidth()) { content() }
 }
 
 /** 组下多行说明脚注。 */
 @Composable
 internal fun Footnote(text: String) {
-    Text(text, fontSize = DesignTokens.fontFootnote.sp, color = DesignTokens.textSub,
+    Text(text, fontSize = DesignTokens.fontFootnote.sp, color = SettingsVisuals.sub,
         lineHeight = 15.sp, modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 8.dp))
 }
 
@@ -81,13 +79,13 @@ internal fun ChevronRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (icon != null) { RowIcon(icon, iconColor, enabled); Spacer(Modifier.width(12.dp)) }
-            RowLabels(title, subtitle, beta, Modifier.alpha(if (enabled) 1f else 0.4f))
+            RowLabels(title, subtitle, beta, dim = !enabled)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (value != null) {
                     Text(value, fontSize = 15.sp, color = valueColor.copy(alpha = if (enabled) 1f else 0.5f))
                     Spacer(Modifier.width(4.dp))
                 }
-                Text("›", fontSize = 24.sp, color = DesignTokens.textSub.copy(alpha = if (enabled) 1f else 0.5f))
+                Text("›", fontSize = 24.sp, color = SettingsVisuals.chev.copy(alpha = if (enabled) 1f else 0.5f))
             }
         }
     }
@@ -111,15 +109,15 @@ internal fun IconChevronRow(
             contentAlignment = Alignment.Center,
         ) { Text(icon, fontSize = 15.sp, color = if (enabled) iconColor else iconColor.copy(alpha = 0.45f)) }
         Spacer(Modifier.width(12.dp))
-        Text(title, fontSize = DesignTokens.fontRowTitle.sp,
-            color = DesignTokens.textMain.copy(alpha = if (enabled) 1f else 0.4f),
+        Text(title, fontSize = SettingsVisuals.fontRow.sp,
+            color = if (enabled) DesignTokens.textMain else SettingsVisuals.dimTitle,
             modifier = Modifier.weight(1f))
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (value != null) {
                 Text(value, fontSize = 15.sp, color = DesignTokens.textSub.copy(alpha = if (enabled) 1f else 0.5f))
                 Spacer(Modifier.width(4.dp))
             }
-            Text("›", fontSize = 24.sp, color = DesignTokens.textSub.copy(alpha = if (enabled) 1f else 0.5f))
+            Text("›", fontSize = 24.sp, color = SettingsVisuals.chev.copy(alpha = if (enabled) 1f else 0.5f))
         }
     }
 }
@@ -135,7 +133,7 @@ internal fun ValueRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (icon != null) { RowIcon(icon, iconColor, !dim); Spacer(Modifier.width(12.dp)) }
-        RowLabels(title, subtitle, false, Modifier.alpha(if (dim) 0.5f else 1f))
+        RowLabels(title, subtitle, false, dim = dim)
         Text(value, fontSize = 15.sp, color = DesignTokens.textSub.copy(alpha = if (dim) 0.5f else 1f))
     }
 }
@@ -147,10 +145,10 @@ internal fun LinkRow(title: String, subtitle: String? = null, enabled: Boolean =
         Modifier.fillMaxWidth().clickable(role = Role.Button, enabled = enabled, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
-        Text(title, fontSize = 15.sp,
+        Text(title, fontSize = SettingsVisuals.fontRow.sp,
             color = if (enabled) Color(0xFF007AFF) else DesignTokens.textSub.copy(alpha = 0.5f))
         if (subtitle != null)
-            Text(subtitle, fontSize = 11.sp, color = DesignTokens.textSub, lineHeight = 16.sp)
+            Text(subtitle, fontSize = SettingsVisuals.fontSub.sp, color = SettingsVisuals.sub, lineHeight = 17.sp)
     }
 }
 
@@ -158,9 +156,9 @@ internal fun LinkRow(title: String, subtitle: String? = null, enabled: Boolean =
 @Composable
 internal fun InfoRow(title: String, detail: String) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
-        Text(title, fontSize = DesignTokens.fontRowTitle.sp, color = DesignTokens.textMain)
+        Text(title, fontSize = SettingsVisuals.fontRow.sp, color = DesignTokens.textMain)
         Spacer(Modifier.height(3.dp))
-        Text(detail, fontSize = 12.sp, color = DesignTokens.textSub, lineHeight = 17.sp)
+        Text(detail, fontSize = SettingsVisuals.fontSub.sp, color = SettingsVisuals.sub, lineHeight = 17.sp)
     }
 }
 
@@ -179,7 +177,7 @@ internal fun SwitchRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (icon != null) { RowIcon(icon, iconColor, enabled); Spacer(Modifier.width(12.dp)) }
-            RowLabels(title, subtitle, beta, Modifier.alpha(if (enabled) 1f else 0.4f))
+            RowLabels(title, subtitle, beta, dim = !enabled)
             Switch(
                 checked = checked, onCheckedChange = null, enabled = enabled,
                 colors = SwitchDefaults.colors(
@@ -211,7 +209,7 @@ internal fun RadioRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (icon != null) { RowIcon(icon, iconColor, enabled); Spacer(Modifier.width(12.dp)) }
-            RowLabels(title, subtitle, beta, Modifier.alpha(if (enabled) 1f else 0.4f))
+            RowLabels(title, subtitle, beta, dim = !enabled)
             if (checked) Text("✓", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF007AFF))
         }
     }
@@ -232,7 +230,7 @@ internal fun StepperRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (icon != null) { RowIcon(icon, iconColor, enabled); Spacer(Modifier.width(12.dp)) }
-            RowLabels(title, subtitle, beta, Modifier.alpha(if (enabled) 1f else 0.4f))
+            RowLabels(title, subtitle, beta, dim = !enabled)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(value, fontSize = 15.sp,
                     color = if (enabled) DesignTokens.textSub else DesignTokens.textSub.copy(alpha = 0.5f))

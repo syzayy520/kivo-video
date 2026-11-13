@@ -23,7 +23,7 @@ object DesignTokens {
     // 语义色板（浅色态实测硬参数；深色态 v2）
     val canvasFill = Color(0xFFFFFFFF)      // 卡片/内容画布
     val groupedFill = Color(0xFFF2F2F7)     // 分组列表底
-    val pageBackground = Color(0xFFF2F2F7)  // 页面底色
+    val pageBackground = Color(0xFFF2F2F7)  // 页面底色 = 统一扁平画布（首页 resting/资源库/我的/设置）
     val hairline = Color(0x0D000000)        // 分隔线/描边（黑 5%）
     val washFill = Color(0x80EDEDFB)        // 洗色叠加（P3 @50%）
 

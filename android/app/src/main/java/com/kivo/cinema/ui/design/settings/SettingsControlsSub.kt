@@ -1,8 +1,6 @@
 package com.kivo.cinema.ui.design.settings
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -14,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.kivo.cinema.playback.PlaybackPrefs
-import com.kivo.cinema.ui.design.GlassSurface
 
 /**
  * 操控设置子页（264 操控卡，参考「操控」2 帧：按钮 / 手势 / 双击 / 长按快进）。
@@ -46,14 +43,12 @@ internal fun SettingsControlsSub(onBack: () -> Unit) {
 
     SubPageScaffold("操控", onBack) {
         // 组1（无节头卡）：旋转跟随 / 转屏按钮 —— 起播固定横屏，两者均无后端 ⇒ 置灰。
-        GlassSurface(Modifier.fillMaxWidth()) {
-            Column {
-                SwitchRow("跟随设备旋转", false, enabled = false,
-                    subtitle = "起播固定横屏，旋转跟随尚未接入") {}
-                RowDivider()
-                SwitchRow("显示转屏按钮", false, enabled = false,
-                    subtitle = "转屏按钮尚未接入（固定横屏）") {}
-            }
+        PlainCard {
+            SwitchRow("跟随设备旋转", false, enabled = false,
+                subtitle = "起播固定横屏，旋转跟随尚未接入") {}
+            RowDivider()
+            SwitchRow("显示转屏按钮", false, enabled = false,
+                subtitle = "转屏按钮尚未接入（固定横屏）") {}
         }
         Spacer(Modifier.height(14.dp))
 
@@ -62,19 +57,19 @@ internal fun SettingsControlsSub(onBack: () -> Unit) {
             RowDivider()
             SwitchRow("App 内画中画", false, enabled = false,
                 subtitle = "应用内小窗尚未接入；系统画中画见「播放」设置") {}
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("下一集 按钮", showNext, subtitle = "剧集切换尚未接入，仅控制按钮显隐") {
                 prefs.showNextButton = it; revision++
             }
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("快进与快退按钮", false, enabled = false,
                 subtitle = "快进/快退按钮尚未接入，当前用双击两侧") {}
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("截图 按钮", showCapture,
                 icon = SettingsIcons.image, iconColor = SettingsVisuals.blue) { prefs.showCaptureButton = it; revision++ }
-            RowDivider()
+            ChipCardDivider()
             StepperRow("快进时长", PlaybackPrefs.seekLabel(seekFwd)) { picker = "seekFwd" }
-            RowDivider()
+            ChipCardDivider()
             StepperRow("快退时长", PlaybackPrefs.seekLabel(seekBack)) { picker = "seekBack" }
         }
         Spacer(Modifier.height(14.dp))
@@ -82,13 +77,13 @@ internal fun SettingsControlsSub(onBack: () -> Unit) {
         SectionCard("手势操作") {
             StepperRow("双击中间触发", PlaybackPrefs.doubleTapCenterLabel(centerAction),
                 icon = SettingsIcons.hand, iconColor = SettingsVisuals.orange) { picker = "center" }
-            RowDivider()
+            ChipCardDivider()
             StepperRow("双击两侧触发", PlaybackPrefs.doubleTapSidesLabel(sidesAction)) { picker = "sides" }
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("全屏上下滑动调整音量和亮度", verticalSwipe) { prefs.verticalSwipeEnabled = it; revision++ }
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("双指缩放画面", false, enabled = false, subtitle = "捏合缩放尚未接入") {}
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("锁定时允许长按和双击操作", lockAllow) { prefs.lockAllowGestures = it; revision++ }
         }
         Spacer(Modifier.height(14.dp))
@@ -96,15 +91,15 @@ internal fun SettingsControlsSub(onBack: () -> Unit) {
         SectionCard("倍速与快进") {
             StepperRow("默认播放速度", PlaybackPrefs.speedLabel(defaultSpeed),
                 icon = SettingsIcons.play, iconColor = SettingsVisuals.purple) { picker = "speed" }
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("长按快进", longPress) { prefs.longPressEnabled = it; revision++ }
-            RowDivider()
+            ChipCardDivider()
             StepperRow("默认长按倍速", PlaybackPrefs.speedLabel(longBase)) { picker = "longSpeed" }
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("快进时左右滑动调整速度", swipeSpeed) { prefs.longPressSwipeSpeed = it; revision++ }
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("快进时向上滑动锁定", swipeLock) { prefs.longPressSwipeLock = it; revision++ }
-            RowDivider()
+            ChipCardDivider()
             StepperRow("长按松手时恢复至", PlaybackPrefs.longPressRestoreLabel(restore)) { picker = "restore" }
         }
         Footnote("松开后回到长按前的播放速度。")

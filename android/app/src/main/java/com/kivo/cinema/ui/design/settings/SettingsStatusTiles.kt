@@ -20,7 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.ui.design.DesignTokens
-import com.kivo.cinema.ui.design.GlassSurface
 
 /**
  * 资源库概览双卡（268）：Emby / SMB 真实配置计数（来自 accounts.bin，非实时连接探针）。
@@ -30,8 +29,8 @@ import com.kivo.cinema.ui.design.GlassSurface
 @Composable
 internal fun SettingsStatusTiles(embyCount: Int, smbCount: Int, onOpen: () -> Unit) {
     Column {
-        Text("资源库", fontSize = SettingsVisuals.fontSection.sp, fontWeight = FontWeight.SemiBold,
-            color = DesignTokens.textSub, modifier = Modifier.padding(start = 4.dp, bottom = 6.dp))
+        Text("资源库", fontSize = SettingsVisuals.fontSection.sp, fontWeight = FontWeight.Medium,
+            color = SettingsVisuals.sec, modifier = Modifier.padding(start = 4.dp, bottom = 6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(SettingsVisuals.cardGap.dp)) {
             StatusTile("Emby", embyCount, SettingsIcons.cloud, SettingsVisuals.blue,
                 Modifier.weight(1f), onOpen)
@@ -46,15 +45,16 @@ private fun StatusTile(
     title: String, count: Int, icon: ImageVector, color: Color,
     modifier: Modifier = Modifier, onClick: () -> Unit,
 ) {
-    GlassSurface(modifier.clickable(role = Role.Button, onClick = onClick), radius = 16f) {
+    SettingsCard(modifier.clickable(role = Role.Button, onClick = onClick)) {
         Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             RowIcon(icon, color)
             Spacer(Modifier.width(10.dp))
-            Column {
-                Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.textMain)
+            Column(Modifier.weight(1f)) {
+                Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.textMain)
                 Text(if (count > 0) "$count 个已配置" else "未配置",
-                    fontSize = 11.sp, color = DesignTokens.textSub)
+                    fontSize = 12.sp, color = SettingsVisuals.sub)
             }
+            Text("›", fontSize = 18.sp, color = SettingsVisuals.chev)
         }
     }
 }

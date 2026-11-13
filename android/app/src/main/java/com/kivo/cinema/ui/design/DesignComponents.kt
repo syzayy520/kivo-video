@@ -39,7 +39,11 @@ import kotlin.math.sin
 
 /** 三色缓慢流动动画渐变背景（05 §二：淡紫→淡粉→米白，随页面缓慢流动）。 */
 @Composable
-fun AnimatedGradientBg(content: @Composable () -> Unit) {
+fun AnimatedGradientBg(flatColor: Color? = null, content: @Composable () -> Unit) {
+    if (flatColor != null) {
+        Box(Modifier.fillMaxSize().background(flatColor)) { content() }
+        return
+    }
     val t = remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     androidx.compose.runtime.LaunchedEffect(Unit) {
         val start = System.currentTimeMillis()

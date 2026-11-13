@@ -1,9 +1,7 @@
 package com.kivo.cinema.ui.design.settings
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,7 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.kivo.cinema.playback.PlaybackPrefs
-import com.kivo.cinema.ui.design.GlassSurface
 
 /**
  * AI 字幕子页（265，参考「AI 字幕」9 帧：根 OFF/ON + 服务商/模型选择 + 语音识别模型 + 系统源语言）。
@@ -47,11 +44,9 @@ internal fun SettingsAiSub(onBack: () -> Unit) {
 private fun AiRoot(onBack: () -> Unit, push: (AiScreen) -> Unit) {
     SubPageScaffold("AI 字幕", onBack) {
         // 组1（无节头卡）：总开关 —— 识别/翻译内核均未接入 ⇒ 置灰不可达。
-        GlassSurface(Modifier.fillMaxWidth()) {
-            Column {
-                SwitchRow("启用 AI 字幕", false, enabled = false,
-                    subtitle = "语音识别与翻译内核尚未接入，开关未开放") {}
-            }
+        PlainCard {
+            SwitchRow("启用 AI 字幕", false, enabled = false,
+                subtitle = "语音识别与翻译内核尚未接入，开关未开放") {}
         }
         Spacer(Modifier.height(14.dp))
 
@@ -67,7 +62,7 @@ private fun AiRoot(onBack: () -> Unit, push: (AiScreen) -> Unit) {
         SectionCard("字幕翻译") {
             SwitchRow("使用 AI 翻译", false, enabled = false,
                 subtitle = "大模型翻译客户端尚未接入") {}
-            RowDivider()
+            ChipCardDivider()
             ChevronRow("系统支持的源语言", value = "0 种 / ${systemSourceLanguages.size}",
                 icon = SettingsIcons.globe, iconColor = SettingsVisuals.blue) {
                 push(AiScreen.SYSLANGS)

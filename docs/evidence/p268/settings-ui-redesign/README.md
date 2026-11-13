@@ -47,3 +47,51 @@
 - 子页图标为选择性加在主交互行（root 承载完整 chip 语言）；置灰解释行保持安静不堆 chip。
 - 资源库双卡为配置计数概览，非实时连接状态；点按钻入数据与资源。
 - 深色影院（Noctra 式）留待后续卡；本轮只浅色。
+
+## 六、v3 收口（统一画布 + 扁平纯白卡，2026-11-13 追加）
+
+> 用户裁决链：否粉紫渐变底（"脏"）→ 否任何描边/投影（"黑边丑到爆"）→ 否近白卡（分组发糊）
+> → 「一次设计到极致」→ 「资源库/我的底色同步换，要耐看」→ 「首页底色挺好的，统一用那个色」。
+> 定稿：四页共用首页 resting 色 `#F2F2F7`（`DesignTokens.pageBackground`）+ 纯白扁平卡（无框无阴影）。
+
+### 6.1 真机截图（`shots-v3/`，K40 b6e950ee）
+
+| 文件 | 内容 |
+| --- | --- |
+| `v3-home.png` | 发现页保留环境渐变（职责不同，不统一） |
+| `v3-sources.png` | 资源库：统一浅灰画布全 bleed（含状态栏/导航条） |
+| `v3-profile.png` | 我的：同画布 |
+| `v3-settings-root.png` | 设置根页上半：hero 30sp tnum + 4dp 条 + 2×2 chip 入口 + 双卡› |
+| `v3-settings-root-bottom.png` | 根页下半：分组卡 + 分隔线内缩 + 版本脚注 |
+| `v3-settings-playback.png` / `v3-playback-habits.png` | 播放子页：扁平头 + chip 卡分隔线 42 / 无 chip 卡 16 |
+
+### 6.2 像素复算（ffmpeg crop 1×1 → rawvideo rgb24）
+
+| 采样点 | RGB | 判定 |
+| --- | --- | --- |
+| 设置根页画布 (20,1200) | 242 242 247 | = #F2F2F7 ✓ |
+| 资源库画布 (20,1200) | 242 242 247 | 同色 ✓ |
+| 我的画布 (20,1200) | 242 242 247 | 同色 ✓ |
+| 设置卡内 (538,444) | 255 255 255 | 纯白扁平 ✓ |
+
+### 6.3 视觉层改动清单
+
+- `AnimatedGradientBg(flatColor)`：外层全屏 Box 铺扁平色 ⇒ 状态栏/底栏同色全 bleed，无需改 inset；
+  page 0/3/≥4 传 `pageBackground`，page 1/2 保留动画渐变。
+- 设置家族 `GlassSurface` **清零**（root hero/grid/tiles + 6 子页文件全换 `SettingsCard`/`PlainCard`）。
+- 分隔线 iOS grouped 惯例：**同卡统一**——含 chip 行的卡 `ChipCardDivider()`(42dp)，无 chip 卡 16dp；
+  45 处调用换别名，其余保留。新增语义别名于 SettingsRowParts.kt（单职责：分隔线原子）。
+- 字阶对齐：autoplay 行 16/12 + `#6B7280` 副题；chevron `#C6C9CE`；hero 数 30/600。
+
+### 6.4 闸门核对（v3）
+
+1. 编译闸：`build-p268-v3.log` BUILD SUCCESSFUL（读日志）。✓
+2. 真机闸：三页画布像素同色 + 卡纯白 + 子页分隔线对照。✓
+3. 写回回归：播放子页「每次从头播放」true→false→true 往返读 `playback_prefs.xml`，**还原原态 true**。✓
+4. 行数闸：改动文件均 ≤300（SettingsRows 242 / SettingsRowParts ~105）。✓
+
+### 6.5 披露（v3）
+
+- 导航灰 pill + 蓝字**本轮不动**（四页共享 chrome，避免波及发现/在看页），留待独立卡。
+- 资源库/我的页的内容卡沿用各自原有卡色（非设置家族），本轮只统一**画布**；设置家族卡纯白。
+- 发现页/在看页保留动画渐变：环境层取色职责与静态画布不同，用户未要求统一这两页。

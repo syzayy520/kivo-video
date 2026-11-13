@@ -19,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.ui.design.DesignTokens
-import com.kivo.cinema.ui.design.GlassSurface
 
 /**
  * 播放体验 2×2 入口卡（268）：播放/音画/操控/AI字幕，各对应真实子页路由。
@@ -49,12 +48,12 @@ private fun EntryCard(
     title: String, subtitle: String, icon: ImageVector, color: Color,
     modifier: Modifier = Modifier, onClick: () -> Unit,
 ) {
-    GlassSurface(modifier.clickable(role = Role.Button, onClick = onClick), radius = 16f) {
+    SettingsCard(modifier.clickable(role = Role.Button, onClick = onClick)) {
         Column(Modifier.fillMaxWidth().heightIn(min = 96.dp).padding(14.dp)) {
             RowIcon(icon, color)
             Spacer(Modifier.height(10.dp))
-            Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.textMain)
-            Text(subtitle, fontSize = 10.5.sp, color = DesignTokens.textSub, maxLines = 1)
+            Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.textMain)
+            Text(subtitle, fontSize = 12.sp, color = SettingsVisuals.sub, maxLines = 1)
         }
     }
 }

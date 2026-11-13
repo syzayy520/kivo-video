@@ -20,6 +20,12 @@
 > **披露**：子页图标选择性加在主交互行；资源库双卡为配置计数非实时连接；深色 Noctra 留后续卡。
 > **下一卡**：深色影院候选 / 其余设置子页逐个；#37+#45 行数债 / D3 / D5 待派发。
 
+> 2026-11-13 **✅ 268-v3 统一画布 + 扁平纯白卡 收口（同日追加轮；用户裁决链：否脏底→否框→否近白卡→「一次设计到极致」→「统一用首页底色」）。**
+> **定稿**：首页 resting/资源库/我的/设置四页共用 `#F2F2F7`（=DesignTokens.pageBackground）；`AnimatedGradientBg(flatColor)` 外层全屏铺扁平色（状态栏/导航条全 bleed）；发现/在看保留动画渐变。
+> **卡**：设置家族 GlassSurface 清零（hero/grid/tiles + 6 子页文件 → SettingsCard/PlainCard 纯白扁平无框无阴影）；分隔线 iOS grouped 同卡统一（含 chip 卡 `ChipCardDivider` 42dp / 无 chip 16dp，45 调用点）。
+> **证据**：`docs/evidence/p268/settings-ui-redesign/shots-v3/` + 三页画布像素复算全 242,242,247、卡 255,255,255；写回回归 true→false→true 还原；`build-p268-v3.log`。
+> **披露**：导航灰 pill+蓝字本轮不动（四页共享 chrome）；资源库/我的内容卡沿用原卡色，本轮只统一画布。
+
 > 2026-11-13 **✅ 267 外观与交互设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
 > **规格**：[`docs/design/ui/replica/appearance-interaction-settings.md`](../design/ui/replica/appearance-interaction-settings.md)（家族树先行；根页 18 行 = 5 真 + 11 灰 + 2 真钻入）
 > **证据**：[`docs/evidence/p267/appearance-interaction/`](../evidence/p267/appearance-interaction/README.md)（c00–c17 + 20 XML + 触感三态日志/帧 + 复算链 + 披露 D-A–D-H）

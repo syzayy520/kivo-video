@@ -27,7 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.ui.design.DesignTokens
-import com.kivo.cinema.ui.design.GlassSurface
 
 /**
  * 空间占用 hero（268）：只读真实缓存字节（图片 + 评分两类，能真实测量），堆叠条 + 图例 + 总量。
@@ -38,21 +37,21 @@ internal fun SettingsStorageHero(imageBytes: Long, ratingBytes: Long, onManage: 
     val total = imageBytes + ratingBytes
     val blue = SettingsVisuals.blue
     val purple = SettingsVisuals.purple
-    GlassSurface(
-        Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onManage), radius = 16f,
+    SettingsCard(
+        Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onManage),
     ) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
                 Text("空间占用", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.textMain)
-                Text("管理 ›", fontSize = 13.sp, color = blue)
+                Text("管理 ›", fontSize = 14.sp, color = blue)
             }
             Spacer(Modifier.height(10.dp))
-            Text(formatBytes(total), fontSize = 26.sp, fontWeight = FontWeight.Bold,
+            Text(formatBytes(total), fontSize = 30.sp, fontWeight = FontWeight.SemiBold,
                 color = DesignTokens.textMain, style = TextStyle(fontFeatureSettings = "tnum"))
-            Text("图片 + 评分缓存", fontSize = 11.sp, color = DesignTokens.textSub)
+            Text("图片 + 评分缓存", fontSize = 12.sp, color = SettingsVisuals.sub)
             Spacer(Modifier.height(12.dp))
-            Row(Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp))
+            Row(Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp))
                 .background(DesignTokens.hairline)) {
                 if (total > 0) {
                     val f = (imageBytes.toFloat() / total).coerceIn(0f, 1f)
@@ -63,11 +62,11 @@ internal fun SettingsStorageHero(imageBytes: Long, ratingBytes: Long, onManage: 
             Spacer(Modifier.height(10.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 LegendDot(blue)
-                Text("图片 ${formatBytes(imageBytes)}", fontSize = 11.sp, color = DesignTokens.textSub,
+                Text("图片 ${formatBytes(imageBytes)}", fontSize = 12.sp, color = SettingsVisuals.sub,
                     style = TextStyle(fontFeatureSettings = "tnum"))
                 Spacer(Modifier.width(14.dp))
                 LegendDot(purple)
-                Text("评分 ${formatBytes(ratingBytes)}", fontSize = 11.sp, color = DesignTokens.textSub,
+                Text("评分 ${formatBytes(ratingBytes)}", fontSize = 12.sp, color = SettingsVisuals.sub,
                     style = TextStyle(fontFeatureSettings = "tnum"))
             }
         }
@@ -76,6 +75,6 @@ internal fun SettingsStorageHero(imageBytes: Long, ratingBytes: Long, onManage: 
 
 @Composable
 private fun LegendDot(color: Color) {
-    Box(Modifier.size(7.dp).clip(CircleShape).background(color))
+    Box(Modifier.size(6.dp).clip(CircleShape).background(color))
     Spacer(Modifier.width(5.dp))
 }

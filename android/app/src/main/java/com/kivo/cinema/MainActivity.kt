@@ -253,7 +253,10 @@ class MainActivity : ComponentActivity() {
                         backdrop = backdrop,
                     )
         }
-        AnimatedGradientBg {
+        AnimatedGradientBg(
+            flatColor = if (page == 0 || page == 3 || page >= 4)
+                com.kivo.cinema.ui.design.DesignTokens.pageBackground else null,
+        ) {
             // 悬浮导航：内容全屏铺底，胶囊浮在内容上（0082 帧：卡标签被导航遮住）
             Box(Modifier.fillMaxSize()) {
                 Box(

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -22,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -58,37 +58,36 @@ internal fun VersionFootnote(version: String) {
         Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("Kivo Video", fontSize = 12.sp, color = DesignTokens.textSub)
-        Text(version, fontSize = 12.sp, color = DesignTokens.textSub,
+        Text("Kivo Video", fontSize = 12.sp, color = SettingsVisuals.sub)
+        Text(version, fontSize = 12.sp, color = SettingsVisuals.sub,
             style = TextStyle(fontFeatureSettings = "tnum"))
     }
 }
 
 /**
- * 子页骨架：固定头不随内容滚（返回钮 + 居中标题钉在顶部）。
- * 头用白玻璃底 + 发丝底线，返回钮淡紫 tint 圆与页面渐变同族；内容在头下方独立滚动。
+ * 子页骨架（v3）：固定头不随内容滚（蓝 tint 返回圆钮 + 左对齐标题 22/700）。
+ * 头与内容同处统一冷灰画布（外层 AnimatedGradientBg flat），无玻璃带；内容在头下方独立滚动。
  */
 @Composable
 internal fun SubPageScaffold(title: String, onBack: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
     Column(Modifier.fillMaxSize()) {
-        Column(
-            Modifier.fillMaxWidth().statusBarsPadding().background(Color.White.copy(alpha = 0.85f)),
-        ) {
-            Box(Modifier.fillMaxWidth().height(52.dp)) {
-                Text(
-                    title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = DesignTokens.textMain,
-                    modifier = Modifier.align(Alignment.Center),
-                )
+        Column(Modifier.fillMaxWidth().statusBarsPadding()) {
+            Row(
+                Modifier.fillMaxWidth().height(52.dp).padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Box(
-                    Modifier.align(Alignment.CenterStart).padding(start = 12.dp).size(36.dp)
-                        .clip(CircleShape).background(Color(0xFFEDE7F6))
+                    Modifier.size(36.dp).clip(CircleShape)
+                        .background(SettingsVisuals.blue.copy(alpha = 0.12f))
                         .clickable(role = Role.Button, onClick = onBack),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("‹", fontSize = 24.sp, color = DesignTokens.textMain)
+                    Text("‹", fontSize = 24.sp, color = SettingsVisuals.blue)
                 }
+                Spacer(Modifier.width(12.dp))
+                Text(title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = DesignTokens.textMain)
             }
-            Box(Modifier.fillMaxWidth().height(0.5.dp).background(DesignTokens.hairline))
+            Box(Modifier.fillMaxWidth().height(0.5.dp).background(SettingsVisuals.hairline))
         }
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = settingsPad),

@@ -43,12 +43,12 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
         SectionCard("缓冲") {
             SwitchRow("预缓冲到本地文件", false, beta = true, enabled = false,
                 subtitle = "本地预缓冲尚未接入") {}
-            RowDivider()
+            ChipCardDivider()
             StepperRow("Wi-Fi 缓冲上限", PlaybackPrefs.bufferLabel(wifiBufferMb),
                 icon = SettingsIcons.download, iconColor = SettingsVisuals.blue) { picker = "wifi" }
-            RowDivider()
+            ChipCardDivider()
             StepperRow("蜂窝网络缓冲上限", PlaybackPrefs.bufferLabel(cellBufferMb)) { picker = "cell" }
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("关闭播放器时清空视频缓存", false, enabled = false,
                 subtitle = "内核缓冲在内存中，关闭即释放，无磁盘缓存可清") {}
         }
@@ -75,13 +75,13 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
             SwitchRow("每次从头播放", alwaysFromStart,
                 subtitle = "开启后忽略上次进度，每次从 00:00 起播",
                 icon = SettingsIcons.play, iconColor = SettingsVisuals.blue) { prefs.alwaysFromStart = it; revision++ }
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("精确定位进度", seekExact,
                 subtitle = "拖动进度时精确到帧，而非落在最近的关键帧") { prefs.seekExact = it; revision++ }
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("显示剩余时长", showRemaining,
                 subtitle = "底栏右侧显示剩余时间而非总时长") { prefs.showRemaining = it; revision++ }
-            RowDivider()
+            ChipCardDivider()
             StepperRow("起播时显示片源规格", PlaybackPrefs.specLabel(specSeconds),
                 subtitle = "起播时短暂显示分辨率/编码等片源信息") { picker = "spec" }
         }
@@ -130,9 +130,9 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
             StepperRow("字幕首选语言", PlaybackPrefs.languageLabel(subtitleLanguage),
                 subtitle = "自动选择字幕轨时优先匹配的语言",
                 icon = SettingsIcons.subtitle, iconColor = SettingsVisuals.teal) { picker = "lang" }
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("启用字幕 HDR 效果", false, enabled = false, subtitle = "字幕 HDR 尚未接入") {}
-            RowDivider()
+            ChipCardDivider()
             SwitchRow("忽略特效字幕样式", ignoreAssStyle,
                 subtitle = "剥离 ASS 特效，按统一样式渲染字幕") { prefs.ignoreAssStyle = it; revision++ }
         }
