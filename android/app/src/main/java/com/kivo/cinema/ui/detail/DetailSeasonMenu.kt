@@ -1,6 +1,5 @@
 package com.kivo.cinema.ui.detail
 
-import android.os.Build
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -37,16 +36,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
@@ -59,8 +54,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.kivo.cinema.emby.EmbyShows
 import com.kivo.cinema.ui.design.DesignTokens
-import com.kivo.cinema.ui.design.home.NavigationBackdrop
-import com.kivo.cinema.ui.design.home.NavigationBackdropState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -104,13 +97,11 @@ internal fun rememberSeasonState(content: DetailContent?): SeasonState {
 }
 
 /**
- * 255 选季控件（帧实测）。
+ * 255 选季控件（帧实测），270 扁平化。
  *
  * 触发器＝节标题式粗体「第 N 季」+ 自绘 ⌄（**无胶囊底**）；
- * 浮层＝白毛玻璃**真背景模糊**（缩略图在玻璃后糊成色块）、圆角 20、宽 250、
+ * 浮层＝不透明纯白卡 + 12dp 浮起投影、圆角 20、宽 250、
  * 行高 42、**勾在行左**（勾心 +26 / 文本左缘 +45）、无分隔线、背景不压暗。
- * 模糊复用首页导航栏的 [NavigationBackdrop] 捕获桥；API31 以下无 RenderEffect，
- * 白底加厚到 94% 兜底（与 GlassSurface 同一降级口径）。
  */
 @Composable
 internal fun SeasonTrigger(
@@ -149,7 +140,7 @@ internal fun SeasonTrigger(
 }
 
 /**
- * 选季浮层：透明点击兜底（不压暗背景）+ 锚在触发器下方的玻璃卡。
+ * 选季浮层：透明点击兜底（不压暗背景）+ 锚在触发器下方的扁平白卡。
  * 进出场 scale+fade、原点左上（从触发器展开）；退出动画期间保持挂载。
  */
 @Composable
@@ -158,7 +149,6 @@ internal fun SeasonMenuOverlay(
     anchor: Rect,
     seasons: List<EmbyShows.Season>,
     current: EmbyShows.Season?,
-    backdrop: NavigationBackdropState,
     onDismiss: () -> Unit,
     onPick: (EmbyShows.Season) -> Unit,
 ) {
@@ -196,29 +186,10 @@ internal fun SeasonMenuOverlay(
                         scaleX = pop; scaleY = pop
                         transformOrigin = TransformOrigin(0f, if (flip) 1f else 0f)
                     }
-                    .shadow(24.dp, shape, clip = false)
+                    .shadow(12.dp, shape, clip = false)
                     .clip(shape)
-                    .drawWithContent {
-                        drawContent()
-                        val corner = CornerRadius(20.dp.toPx())
-                        drawRoundRect(
-                            brush = Brush.verticalGradient(
-                                0f to Color.White.copy(alpha = .28f),
-                                1f to Color.Transparent,
-                                startY = 0f, endY = size.height * .5f),
-                            size = size, cornerRadius = corner)
-                        drawRoundRect(
-                            color = Color.White.copy(alpha = .35f),
-                            size = size, cornerRadius = corner,
-                            style = Stroke(width = 1.dp.toPx()))
-                    },
+                    .background(DesignTokens.canvasFill),
             ) {
-                val blurOk = Build.VERSION.SDK_INT >= 31
-                if (blurOk) {
-                    NavigationBackdrop(backdrop, Modifier.fillMaxSize(), blurRadius = 48f)
-                }
-                Box(Modifier.fillMaxSize()
-                    .background(Color.White.copy(alpha = if (blurOk) .68f else .94f)))
                 Column(
                     Modifier.fillMaxWidth().heightIn(max = 336.dp)
                         .verticalScroll(rememberScrollState()).padding(vertical = 10.dp),

@@ -42,8 +42,6 @@ import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.ui.design.PosterPalette
 import com.kivo.cinema.ui.design.RatingBadges
 import com.kivo.cinema.ui.design.TmdbImageCache
-import com.kivo.cinema.ui.design.home.NavigationBackdropState
-import com.kivo.cinema.ui.design.home.navigationSource
 import com.kivo.cinema.ui.design.home.rememberHeroPullZoom
 import com.kivo.cinema.ui.detail.actions.DetailActionRow
 import com.kivo.cinema.ui.detail.actions.DetailActions
@@ -127,7 +125,6 @@ internal fun DetailPage(
     var menuOpen by remember { mutableStateOf(false) }
     var menuAnchor by remember { mutableStateOf(Rect.Zero) }
     val overlay = remember { DetailOverlayState() }
-    val glassSources = remember { NavigationBackdropState() }
     val today = remember { java.time.LocalDate.now() }
     LaunchedEffect(Unit) { AppearancePrefs.bind(context) }
     val curSeason = ss.season
@@ -140,14 +137,13 @@ internal fun DetailPage(
     }
 
     Box(Modifier.fillMaxSize()) {
-        Box(Modifier.navigationSource(glassSources)) {
+        Box {
             DetailBackdrop(d, sheetColor, scrollDp, pullDp, content?.loadImage)
         }
         LazyColumn(
             state = listState,
             modifier = Modifier.padding(top = statusBarHeight)
-                .fillMaxSize().nestedScroll(pull.connection)
-                .navigationSource(glassSources),
+                .fillMaxSize().nestedScroll(pull.connection),
             contentPadding = PaddingValues(bottom = 60.dp),
         ) {
             item(key = "hero-content") {
@@ -279,10 +275,10 @@ internal fun DetailPage(
             modifier = if (content != null) Modifier.align(Alignment.BottomCenter)
                 .navigationBarsPadding().padding(16.dp)
             else Modifier.align(Alignment.Center).padding(horizontal = 24.dp))
-        SeasonMenuOverlay(menuOpen, menuAnchor, seasons, ss.season, glassSources,
+        SeasonMenuOverlay(menuOpen, menuAnchor, seasons, ss.season,
             onDismiss = { menuOpen = false },
             onPick = { menuOpen = false; ss.season = it })
-        DetailOverlayHost(overlay, content, ss.season, ss.episodes, actions, glassSources, openPage)
+        DetailOverlayHost(overlay, content, ss.season, ss.episodes, actions, openPage)
         BackCircle(onBack)
     }
 }

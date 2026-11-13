@@ -1,3 +1,14 @@
+> 2026-11-13 **✅ 270 详情页玻璃弹窗扁平化 收口（K40 `b6e950ee` 真机；NavigationBackdrop 捕获桥整体退役）。**
+> **规格**：[`docs/design/ui/replica/detail-popups-flat.md`](../design/ui/replica/detail-popups-flat.md)（家族树先行；5 改 1 删，无新文件）
+> **证据**：[`docs/evidence/p270/detail-popups-flat/`](../evidence/p270/detail-popups-flat/README.md)（before b1–b3 / after a1–a9 + 像素复算 + 回归 + 披露）
+> **视觉**：三弹窗不透明纯白 `DesignTokens.canvasFill`，gloss 渐变 + 白描边删除；More/Season 投影 24→12dp（v3 浮起例外）、More radius 18→20；
+> 日历保留顶 radius 30 + scrim Black .32×fade（同坐标复算 ×0.68）；blurOk/API31 分支整删（无模糊 ⇒ 无需降级分支）。
+> **退役**：`ui/design/home/NavigationBackdrop.kt` 删除；DetailPage glassSources/navigationSource、三弹窗 backdrop 参数全删；全仓 grep `NavigationBackdrop|navigationSource` = 0。
+> **闸门**：行数 116/232/178/66/288 全 ≤300；BUILD SUCCESSFUL；浅/深双环境卡内 255 + 画布 242,242,247；
+> 回归：添加到日历/追剧进度/分享/移除/下载诚实 Toast/scrim+BACK/切季（a9 第2季 橘子联盟 集36/36 三处联动）。
+> **披露**：深色选季菜单不可达（服务器季拆独立条目，唯一多季单条目宝可梦为浅色环境）；首次日历 tap 偶发丢失重 tap；a3 首拍滚动漂移已复拍覆盖。
+> **下一卡**：271 详情 hero 横图裁切缺陷（用户真机指出：宝可梦主体被裁剩边边；EmbyResource.kt:99 backdrop 优先 + DetailBackdrop 585dp 竖窗中心裁）；Noctra 深色暂缓 / #37+#45 行数债。
+
 > 2026-11-13 **✅ 269 导航胶囊 v3 收口（K40 `b6e950ee` 真机；268-v3 唯一遗留清零）。**
 > **规格**：[`docs/design/ui/replica/nav-capsule-v3.md`](../design/ui/replica/nav-capsule-v3.md)（家族树先行；无新文件）
 > **证据**：[`docs/evidence/p269/nav-capsule-v3/`](../evidence/p269/nav-capsule-v3/README.md)（before b0–b5 / after a1–a8 + 像素复算 + 回归 + 披露）

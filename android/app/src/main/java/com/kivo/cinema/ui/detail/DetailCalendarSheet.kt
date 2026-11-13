@@ -1,7 +1,6 @@
 package com.kivo.cinema.ui.detail
 
 import android.graphics.Bitmap
-import android.os.Build
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -41,10 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.emby.EmbyShows
 import com.kivo.cinema.tmdb.TmdbDetail
+import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.ui.design.RatingBadges
 import com.kivo.cinema.ui.design.TmdbImage
-import com.kivo.cinema.ui.design.home.NavigationBackdrop
-import com.kivo.cinema.ui.design.home.NavigationBackdropState
 import com.kivo.cinema.ui.detail.actions.ActionGlyph
 import com.kivo.cinema.ui.detail.actions.DetailActionGlyph
 import java.time.LocalDate
@@ -54,7 +52,7 @@ private val CalInk = Color(0xFF292A30)
 private val CalMuted = Color(0xFF77777F)
 
 /**
- * 255 #31 追剧日历浮层：底部升起的大毛玻璃卡（真背景模糊，复用导航捕获桥）。
+ * 255 #31 追剧日历浮层，270 扁平化：底部升起的大纯白卡（不透明，无模糊）。
  * 头部＝海报 + 中文标题 + 第N季·共M集 + 简介 + 评分 + 出品 logo；中部＝月历；
  * 底栏＝服务器名 + 分享（真 ACTION_SEND）+ 移除（仅在待看时）+ 完成。无播日诚实提示，不造假。
  */
@@ -65,7 +63,6 @@ internal fun DetailCalendarSheet(
     season: EmbyShows.Season?,
     episodes: List<EmbyShows.Episode>,
     serverName: String,
-    backdrop: NavigationBackdropState,
     loadImage: (suspend (String) -> Bitmap?)?,
     inWatchlist: Boolean,
     onDismiss: () -> Unit,
@@ -91,10 +88,7 @@ internal fun DetailCalendarSheet(
         Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth()
             .graphicsLayer { alpha = fade; translationY = slide * size.height }
             .clip(shape)) {
-            val blurOk = Build.VERSION.SDK_INT >= 31
-            if (blurOk) NavigationBackdrop(backdrop, Modifier.matchParentSize(), blurRadius = 60f)
-            Box(Modifier.matchParentSize()
-                .background(Color.White.copy(alpha = if (blurOk) .80f else .97f)))
+            Box(Modifier.matchParentSize().background(DesignTokens.canvasFill))
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
                 .padding(horizontal = 22.dp).padding(top = 22.dp, bottom = 26.dp)) {
                 CalendarHeader(details, season, episodes, loadImage)

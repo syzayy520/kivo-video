@@ -10,7 +10,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalContext
 import com.kivo.cinema.emby.EmbyShows
 import com.kivo.cinema.media.marks.FilmMark
-import com.kivo.cinema.ui.design.home.NavigationBackdropState
 import com.kivo.cinema.ui.detail.actions.DetailActions
 import com.kivo.cinema.ui.detail.actions.DetailMorePopup
 
@@ -23,7 +22,7 @@ internal class DetailOverlayState {
 }
 
 /**
- * 「更多」毛玻璃菜单 + 追剧日历浮层的编排宿主（从 DetailPage 抽出，控行数）。
+ * 「更多」扁平菜单 + 追剧日历浮层的编排宿主（从 DetailPage 抽出，控行数）。
  * 添加到日历＝真待看标记 + 开日历；追剧进度＝开日历；下载＝尚未开放，如实提示（不假装下载）。
  * 分享＝真 ACTION_SEND；移除＝真待看开关（仅在待看时显示）。
  */
@@ -34,12 +33,11 @@ internal fun DetailOverlayHost(
     season: EmbyShows.Season?,
     episodes: List<EmbyShows.Episode>,
     actions: DetailActions,
-    backdrop: NavigationBackdropState,
     openPage: (Intent) -> Unit,
 ) {
     val context = LocalContext.current
     val d = content?.details
-    DetailMorePopup(overlay.moreOpen, overlay.moreAnchor, backdrop,
+    DetailMorePopup(overlay.moreOpen, overlay.moreAnchor,
         onDismiss = { overlay.moreOpen = false },
         onAddCalendar = {
             overlay.moreOpen = false
@@ -52,7 +50,7 @@ internal fun DetailOverlayHost(
         },
         onProgress = { overlay.moreOpen = false; overlay.calendarOpen = true })
     DetailCalendarSheet(overlay.calendarOpen, d, season, episodes,
-        content?.serverName.orEmpty(), backdrop, content?.loadImage, actions.marks.watchlist,
+        content?.serverName.orEmpty(), content?.loadImage, actions.marks.watchlist,
         onDismiss = { overlay.calendarOpen = false },
         onShare = {
             val text = buildString {

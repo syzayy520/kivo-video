@@ -124,4 +124,7 @@
   > 269（同日追加）= **导航胶囊 v3**：扁平灰 pill `#E8E9ED` + 选中纯白内 pill/蓝 `#0A84FF`，暗环境扁平 `#2C2C2E`（E11 保留，真机捕获）；
   > 胶囊玻璃专属死接线全删（MainActivity/DiscoverPage/SourcesScreen），`NavigationBackdrop` 保留服务详情页玻璃弹窗（零改动+模糊回归）；
   > navPill token 迁 DesignTokens 单一来源；五页像素复算 + 搜索/在看/详情弹窗回归。证据 `docs/evidence/p269/nav-capsule-v3/`。
+  > 270（同日追加）= **详情页三玻璃弹窗扁平化 + NavigationBackdrop 退役**：不透明纯白卡 + 12dp 浮起投影（日历保留 scrim .32）；
+  > blurOk/API31 分支整删、捕获桥文件删除 grep 零；浅/深像素复算 + 7 项行为回归 + 切季 a9。证据 `docs/evidence/p270/detail-popups-flat/README.md`。
+  > **271 待开工**（主助手自留）：详情 hero 横 backdrop 中心裁切切掉主体（宝可梦真机实测只剩边边），见 TASKS.md 顶部。
   > **D6 已收口**（2026-11-13，codex 接管复核+提交推送，见 TASKS.md / `docs/evidence/p260/code-derex/`）；D1–D5 仍待其他助手领取（D4 用户暂缓）。
