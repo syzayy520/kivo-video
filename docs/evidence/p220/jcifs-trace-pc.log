@@ -1,0 +1,1234 @@
+[main] TRACE jcifs.smb.DfsImpl - Resolving \192.168.5.1\视频\电影\
+[main] TRACE jcifs.smb.DfsImpl - No match for domain based root, checking standalone 192.168.5.1
+[main] TRACE jcifs.smb.DfsImpl - No match for \192.168.5.1\视频\电影\
+[main] DEBUG jcifs.smb.SmbTransportPoolImpl - Trying address 0.0.0.0<00>/192.168.5.1
+[main] TRACE jcifs.smb.SmbTransportPoolImpl - Exclusive false enforced signing false
+[main] DEBUG jcifs.smb.SmbTransportPoolImpl - New transport connection Transport0[0.0.0.0<00>/192.168.5.1:445,state=0,signingEnforced=false,usage=1]
+[main] DEBUG jcifs.util.transport.Transport - Connecting Transport0
+[Transport0] DEBUG jcifs.smb.SmbTransportImpl - Connecting in state 1 addr 192.168.5.1
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - SmbComNegotiate[command=SMB_COM_NEGOTIATE,received=false,errorCode=0,flags=0x0018,flags2=0xC803,signSeq=0,tid=65535,pid=30570,uid=0,mid=0,wordCount=0,byteCount=22,wordCount=0,dialects=NT LM 0.12]
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - FF534D4272000000001803C8000000000000000000000000FFFF6A770000000000160002534D4220322E3F3F3F0002534D4220322E30303200
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - Wrote negotiate request
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport0[0.0.0.0<00>/192.168.5.1:445,state=1,signingEnforced=false,usage=1]
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000000010001000000000000000000000000000000
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - Read negotiate response
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_NEGOTIATE,status=0,flags=0x0000,mid=1,wordCount=0,byteCount=96
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - FE534D42400000000000000000000002000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000240005000100000001000000B7C5EAE6B8775259A54D3187DA9687F3700000000100000002021002000302031103DD010100280000000000010020000100F61A092A66C8FEDCB9D6BE3E6783D7170C3CD3340DFAF3F1CDA11F8FE88F1078A32A
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - Wrote negotiate request
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport0[0.0.0.0<00>/192.168.5.1:445,state=1,signingEnforced=false,usage=1]
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000000010001000000000000000100000000000000
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - Read negotiate response
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - Smb2NegotiateResponse[command=SMB2_NEGOTIATE,status=0,flags=0x0001,mid=1,wordCount=0,byteCount=0,dialectRevision=768,securityMode=0x1,capabilities=0x00000005,serverTime=Sat Nov 07 19:37:28 CST 2026
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - 
+[Transport0] DEBUG jcifs.smb.SmbTransportImpl - Negotiation response on Transport0 :jcifs.internal.SmbNegotiation@4ae82424
+[Transport0] DEBUG jcifs.smb.SmbTransportImpl - Signature negotiation enforced false (server false) enabled false (server true)
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbTransportImpl - Currently 0 session(s) active for Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] DEBUG jcifs.smb.SmbTransportImpl - Establishing new session SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=1] on Transport0
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 1 SmbTree[share=视频,service=?????,tid=-1,inDfs=false,inDomainDfs=false,connectionState=0,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - doConnect: 192.168.5.1
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Connection state was 0
+[main] DEBUG jcifs.smb.SmbTreeImpl - treeConnect: unc=\\192.168.5.1\视频,service=?????
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 5 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[main] DEBUG jcifs.smb.SmbSessionImpl - sessionSetup: 
+[main] DEBUG jcifs.smb.SmbSessionImpl - Remote host is 192.168.5.1
+[main] DEBUG jcifs.smb.NtlmPasswordAuthenticator - Have initial token NegTokenInit[flags=0,mechs=[1.3.6.1.4.1.311.2.2.10],mic=null]
+[main] TRACE jcifs.smb.NtlmContext - Type1Message[suppliedDomain=,suppliedWorkstation=null,flags=0x62088215]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D53535000010000001582086200000000280000000000000028000000060100000000000F
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.session.Smb2SessionSetupRequest costs 1 avail 1 (Transport0)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 512
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=2,wordCount=0,byteCount=98
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000100000200000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000019000001010000000000000058004A000000000000000000604806062B0601050502A03E303CA00E300C060A2B06010401823702020AA22A04284E544C4D53535000010000001582086200000000280000000000000028000000060100000000000F000000000000
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000160000C00100010001000000000000000200000000000000
+[main] DEBUG jcifs.smb.SmbTransportImpl - Breaking on error command=SMB2_SESSION_SETUP,status=More data is available.,flags=0x0001,mid=2,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 1
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_SESSION_SETUP,status=More data is available.,flags=0x0001,mid=2,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.NtlmContext - Type2Message[target=XIAOMI-HD,challenge=<8 bytes>,context=null,targetInformation=<84 bytes>,flags=0x628A8215]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D5353500002000000120012003800000015828A626D6A21167E70DC980000000000000000540054004A000000060100000000000F5800490041004F004D0049002D0048004400020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E00310000000000
+[main] TRACE jcifs.smb.NtlmContext - Type3Message[domain=,user=,workstation=null,lmResponse=<24 bytes>,ntResponse=<252 bytes>,sessionKey=<16 bytes>,flags=0x62888215]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D5353500002000000120012003800000015828A626D6A21167E70DC980000000000000000540054004A000000060100000000000F5800490041004F004D0049002D0048004400020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E00310000000000
+[main] DEBUG jcifs.smb.NtlmContext - Sign key is CC518C58F20F3B6A321B5262520BCBD0
+[main] DEBUG jcifs.smb.NtlmContext - Verify key is 061E96B99CECE97D728390C15B0B663B
+[main] DEBUG jcifs.smb.NtlmContext - Seal key is 8EF9FF150A99C9AD546E115D4CEDCA43
+[main] DEBUG jcifs.smb.NtlmContext - Server seal key is 0FE5045672CC60B8D4A421BF6993BECB
+[main] DEBUG jcifs.smb.NtlmContext - Digest 68A7FBA9870F3A4AB85E32EA559A458A
+[main] DEBUG jcifs.smb.NtlmContext - Truncated 68A7FBA9870F3A4A
+[main] DEBUG jcifs.smb.NtlmContext - Encrypted 3D0D7345A367D63F
+[main] DEBUG jcifs.smb.SpnegoContext - Out Mech list [1.3.6.1.4.1.311.2.2.10]
+[main] DEBUG jcifs.smb.SpnegoContext - Out Mech list encoded 300C060A2B06010401823702020A
+[main] DEBUG jcifs.smb.SpnegoContext - Out Mech list MIC 010000003D0D7345A367D63F00000000
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.session.Smb2SessionSetupRequest costs 1 avail 1 (Transport0)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 512
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=3,wordCount=0,byteCount=440
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000100000200000000000000000300000000000000000000000000000013EAC95600000000000000000000000000000000000000001900000101000000000000005800A0010000000000000000A182019C30820198A28201800482017C4E544C4D53535000030000001800180058000000FC00FC0070000000000000006C010000000000006C010000000000006C010000100010006C01000015828862060100000000000F3715F29BC9D3B6EF2B185E7BA90EF0B2104C20197D72DBDC82DF5130AFDFC953217A133153ACFC533E50029AB7582B75F550E900AB394B89010100000000000030B2C201AC6EDD0102FB7EA755C0A6E100000000020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E0031000700080030B2C201AC6EDD010900200063006900660073002F003100390032002E003100360038002E0035002E0031000A001000000000000000000000000000000000000800300030000000000000000000000000000000B7C5EAE6B8775259A54D3187DA9687F30C04DE900980082E95ED0BDAA13F1AB90000000000000000011C3C6C686324EB0FBEBB688614D13EA3120410010000003D0D7345A367D63F00000000
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[Transport0] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000220000C00100010001000000000000000300000000000000
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 1
+[main] DEBUG jcifs.smb.SmbSessionImpl - Session setup failed
+jcifs.smb.SmbAuthException: Access is denied.
+	at jcifs.smb.SmbTransportImpl.checkStatus2(SmbTransportImpl.java:1464)
+	at jcifs.smb.SmbTransportImpl.checkStatus(SmbTransportImpl.java:1607)
+	at jcifs.smb.SmbTransportImpl.sendrecv(SmbTransportImpl.java:1014)
+	at jcifs.smb.SmbTransportImpl.send(SmbTransportImpl.java:1578)
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:557)
+	at jcifs.smb.SmbSessionImpl.sessionSetup(SmbSessionImpl.java:491)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:369)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:347)
+	at jcifs.smb.SmbTreeImpl.treeConnect(SmbTreeImpl.java:611)
+	at jcifs.smb.SmbTreeConnection.connectTree(SmbTreeConnection.java:614)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:568)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:489)
+	at jcifs.smb.SmbTreeConnection.connect(SmbTreeConnection.java:465)
+	at jcifs.smb.SmbTreeConnection.connectWrapException(SmbTreeConnection.java:426)
+	at jcifs.smb.SmbFile.ensureTreeConnected(SmbFile.java:573)
+	at jcifs.smb.SmbFile.connect(SmbFile.java:532)
+	at T2.test(T2.java:21)
+	at T2.main(T2.java:29)
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 6 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=6]
+[main] TRACE jcifs.util.transport.Transport - Release transport 5 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[main] TRACE jcifs.util.transport.Transport - Release transport 4 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Disconnect tree on treeConnectFailure
+jcifs.smb.SmbAuthException: Access is denied.
+	at jcifs.smb.SmbTransportImpl.checkStatus2(SmbTransportImpl.java:1464)
+	at jcifs.smb.SmbTransportImpl.checkStatus(SmbTransportImpl.java:1607)
+	at jcifs.smb.SmbTransportImpl.sendrecv(SmbTransportImpl.java:1014)
+	at jcifs.smb.SmbTransportImpl.send(SmbTransportImpl.java:1578)
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:557)
+	at jcifs.smb.SmbSessionImpl.sessionSetup(SmbSessionImpl.java:491)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:369)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:347)
+	at jcifs.smb.SmbTreeImpl.treeConnect(SmbTreeImpl.java:611)
+	at jcifs.smb.SmbTreeConnection.connectTree(SmbTreeConnection.java:614)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:568)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:489)
+	at jcifs.smb.SmbTreeConnection.connect(SmbTreeConnection.java:465)
+	at jcifs.smb.SmbTreeConnection.connectWrapException(SmbTreeConnection.java:426)
+	at jcifs.smb.SmbFile.ensureTreeConnected(SmbFile.java:573)
+	at jcifs.smb.SmbFile.connect(SmbFile.java:532)
+	at T2.test(T2.java:21)
+	at T2.main(T2.java:29)
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 4 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 3 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=2]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Authentication failed
+jcifs.smb.SmbAuthException: Access is denied.
+	at jcifs.smb.SmbTransportImpl.checkStatus2(SmbTransportImpl.java:1464)
+	at jcifs.smb.SmbTransportImpl.checkStatus(SmbTransportImpl.java:1607)
+	at jcifs.smb.SmbTransportImpl.sendrecv(SmbTransportImpl.java:1014)
+	at jcifs.smb.SmbTransportImpl.send(SmbTransportImpl.java:1578)
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:557)
+	at jcifs.smb.SmbSessionImpl.sessionSetup(SmbSessionImpl.java:491)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:369)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:347)
+	at jcifs.smb.SmbTreeImpl.treeConnect(SmbTreeImpl.java:611)
+	at jcifs.smb.SmbTreeConnection.connectTree(SmbTreeConnection.java:614)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:568)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:489)
+	at jcifs.smb.SmbTreeConnection.connect(SmbTreeConnection.java:465)
+	at jcifs.smb.SmbTreeConnection.connectWrapException(SmbTreeConnection.java:426)
+	at jcifs.smb.SmbFile.ensureTreeConnected(SmbFile.java:573)
+	at jcifs.smb.SmbFile.connect(SmbFile.java:532)
+	at T2.test(T2.java:21)
+	at T2.main(T2.java:29)
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=3]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 0 SmbTree[share=视频,service=?????,tid=-1,inDfs=false,inDomainDfs=false,connectionState=0,usage=0]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Usage dropped to zero, release session
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 0 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=0]
+[main] DEBUG jcifs.smb.SmbSessionImpl - Usage dropped to zero, release connection Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 0 Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] TRACE jcifs.util.transport.Transport - Transport usage dropped to zero Transport0[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Referral failed, trying next
+jcifs.smb.SmbAuthException: Access is denied.
+	at jcifs.smb.SmbTransportImpl.checkStatus2(SmbTransportImpl.java:1464)
+	at jcifs.smb.SmbTransportImpl.checkStatus(SmbTransportImpl.java:1607)
+	at jcifs.smb.SmbTransportImpl.sendrecv(SmbTransportImpl.java:1014)
+	at jcifs.smb.SmbTransportImpl.send(SmbTransportImpl.java:1578)
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:557)
+	at jcifs.smb.SmbSessionImpl.sessionSetup(SmbSessionImpl.java:491)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:369)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:347)
+	at jcifs.smb.SmbTreeImpl.treeConnect(SmbTreeImpl.java:611)
+	at jcifs.smb.SmbTreeConnection.connectTree(SmbTreeConnection.java:614)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:568)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:489)
+	at jcifs.smb.SmbTreeConnection.connect(SmbTreeConnection.java:465)
+	at jcifs.smb.SmbTreeConnection.connectWrapException(SmbTreeConnection.java:426)
+	at jcifs.smb.SmbFile.ensureTreeConnected(SmbFile.java:573)
+	at jcifs.smb.SmbFile.connect(SmbFile.java:532)
+	at T2.test(T2.java:21)
+	at T2.main(T2.java:29)
+[main] TRACE jcifs.smb.DfsImpl - Resolving \192.168.5.1\视频\电影\
+[main] TRACE jcifs.smb.DfsImpl - No match for domain based root, checking standalone 192.168.5.1
+[main] TRACE jcifs.smb.DfsImpl - No match for \192.168.5.1\视频\电影\
+[main] DEBUG jcifs.smb.SmbTransportPoolImpl - Trying address 0.0.0.0<00>/192.168.5.1
+[main] TRACE jcifs.smb.SmbTransportPoolImpl - Exclusive false enforced signing false
+[main] DEBUG jcifs.smb.SmbTransportPoolImpl - New transport connection Transport1[0.0.0.0<00>/192.168.5.1:445,state=0,signingEnforced=false,usage=1]
+[main] DEBUG jcifs.util.transport.Transport - Connecting Transport1
+[Transport1] DEBUG jcifs.smb.SmbTransportImpl - Connecting in state 1 addr 192.168.5.1
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - SmbComNegotiate[command=SMB_COM_NEGOTIATE,received=false,errorCode=0,flags=0x0018,flags2=0xC803,signSeq=0,tid=65535,pid=53602,uid=0,mid=0,wordCount=0,byteCount=22,wordCount=0,dialects=NT LM 0.12]
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - FF534D4272000000001803C8000000000000000000000000FFFF62D10000000000160002534D4220322E3F3F3F0002534D4220322E30303200
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - Wrote negotiate request
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport1[0.0.0.0<00>/192.168.5.1:445,state=1,signingEnforced=false,usage=1]
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000000010001000000000000000000000000000000
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - Read negotiate response
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_NEGOTIATE,status=0,flags=0x0000,mid=1,wordCount=0,byteCount=96
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - FE534D42400000000000000000000002000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000240005000100000001000000368A5513BD24E99FC184ACA4E311264C700000000100000002021002000302031103DD010100280000000000010020000100FA6A407239015177D25225609BAD91E49A285FFA9C76C025527D0DE452628064A32A
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - Wrote negotiate request
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport1[0.0.0.0<00>/192.168.5.1:445,state=1,signingEnforced=false,usage=1]
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000000010001000000000000000100000000000000
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - Read negotiate response
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - Smb2NegotiateResponse[command=SMB2_NEGOTIATE,status=0,flags=0x0001,mid=1,wordCount=0,byteCount=0,dialectRevision=768,securityMode=0x1,capabilities=0x00000005,serverTime=Sat Nov 07 19:37:29 CST 2026
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - 
+[Transport1] DEBUG jcifs.smb.SmbTransportImpl - Negotiation response on Transport1 :jcifs.internal.SmbNegotiation@668c511c
+[Transport1] DEBUG jcifs.smb.SmbTransportImpl - Signature negotiation enforced false (server false) enabled false (server true)
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbTransportImpl - Currently 0 session(s) active for Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] DEBUG jcifs.smb.SmbTransportImpl - Establishing new session SmbSession[credentials=admin,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=1] on Transport1
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=admin,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 1 SmbTree[share=视频,service=?????,tid=-1,inDfs=false,inDomainDfs=false,connectionState=0,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - doConnect: 192.168.5.1
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=admin,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Connection state was 0
+[main] DEBUG jcifs.smb.SmbTreeImpl - treeConnect: unc=\\192.168.5.1\视频,service=?????
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 5 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[main] DEBUG jcifs.smb.SmbSessionImpl - sessionSetup: admin
+[main] DEBUG jcifs.smb.SmbSessionImpl - Remote host is 192.168.5.1
+[main] DEBUG jcifs.smb.NtlmPasswordAuthenticator - Have initial token NegTokenInit[flags=0,mechs=[1.3.6.1.4.1.311.2.2.10],mic=null]
+[main] TRACE jcifs.smb.NtlmContext - Type1Message[suppliedDomain=,suppliedWorkstation=null,flags=0x62088215]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D53535000010000001582086200000000280000000000000028000000060100000000000F
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.session.Smb2SessionSetupRequest costs 1 avail 1 (Transport1)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 512
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=2,wordCount=0,byteCount=98
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000100000200000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000019000001010000000000000058004A000000000000000000604806062B0601050502A03E303CA00E300C060A2B06010401823702020AA22A04284E544C4D53535000010000001582086200000000280000000000000028000000060100000000000F000000000000
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000160000C00100010001000000000000000200000000000000
+[main] DEBUG jcifs.smb.SmbTransportImpl - Breaking on error command=SMB2_SESSION_SETUP,status=More data is available.,flags=0x0001,mid=2,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 1
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_SESSION_SETUP,status=More data is available.,flags=0x0001,mid=2,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.NtlmContext - Type2Message[target=XIAOMI-HD,challenge=<8 bytes>,context=null,targetInformation=<84 bytes>,flags=0x628A8215]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D5353500002000000120012003800000015828A623132E86F11E070500000000000000000540054004A000000060100000000000F5800490041004F004D0049002D0048004400020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E00310000000000
+[main] TRACE jcifs.smb.NtlmContext - Type3Message[domain=,user=admin,workstation=null,lmResponse=<24 bytes>,ntResponse=<252 bytes>,sessionKey=<16 bytes>,flags=0x62888215]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D5353500002000000120012003800000015828A623132E86F11E070500000000000000000540054004A000000060100000000000F5800490041004F004D0049002D0048004400020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E00310000000000
+[main] DEBUG jcifs.smb.NtlmContext - Sign key is 2073A54F97E81102F73E58D5E253B7D0
+[main] DEBUG jcifs.smb.NtlmContext - Verify key is 7EB6D28C9607CDAE877317B53A5B3CA5
+[main] DEBUG jcifs.smb.NtlmContext - Seal key is C535747F98D82ADF8E57F036CC41C40B
+[main] DEBUG jcifs.smb.NtlmContext - Server seal key is BBB04659F60A0B45207EC708387DBC3F
+[main] DEBUG jcifs.smb.NtlmContext - Digest 2276D8F5A0DB8204F6820A30708025E4
+[main] DEBUG jcifs.smb.NtlmContext - Truncated 2276D8F5A0DB8204
+[main] DEBUG jcifs.smb.NtlmContext - Encrypted 60F959E9D3B21F21
+[main] DEBUG jcifs.smb.SpnegoContext - Out Mech list [1.3.6.1.4.1.311.2.2.10]
+[main] DEBUG jcifs.smb.SpnegoContext - Out Mech list encoded 300C060A2B06010401823702020A
+[main] DEBUG jcifs.smb.SpnegoContext - Out Mech list MIC 0100000060F959E9D3B21F2100000000
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.session.Smb2SessionSetupRequest costs 1 avail 1 (Transport1)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 512
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=3,wordCount=0,byteCount=450
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D424000000000000000010000020000000000000000030000000000000000000000000000009805625400000000000000000000000000000000000000001900000101000000000000005800AA010000000000000000A18201A6308201A2A282018A048201864E544C4D53535000030000001800180058000000FC00FC0070000000000000006C0100000A000A006C0100000000000076010000100010007601000015828862060100000000000FDA8E0D0AC62272F212DFECEF5AFED42F125A7A7FE9AFD04E785A9C278E59B08686D98E2FF4ADB08B3FAEC0109382A17E5FDB408CA97C239F010100000000000050A13A02AC6EDD01A02D13C19F0B020500000000020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E0031000700080050A13A02AC6EDD010900200063006900660073002F003100390032002E003100360038002E0035002E0031000A001000000000000000000000000000000000000800300030000000000000000000000000000000368A5513BD24E99FC184ACA4E311264CD003AB6C913680E590F55880842F47B30000000000000000610064006D0069006E00E6A58A1382987CEA9AFB10147A3F434AA31204100100000060F959E9D3B21F2100000000000000000000
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[Transport1] TRACE jcifs.smb.SmbTransportImpl - FE534D42400000000D0000C00100010001000000000000000300000000000000
+[main] DEBUG jcifs.smb.SmbTransportImpl - Error code: 0xC000000D for Smb2SessionSetupRequest
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 1
+[main] DEBUG jcifs.smb.SmbSessionImpl - Session setup failed
+jcifs.smb.SmbAuthException: Login failed
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:568)
+	at jcifs.smb.SmbSessionImpl.sessionSetup(SmbSessionImpl.java:491)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:369)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:347)
+	at jcifs.smb.SmbTreeImpl.treeConnect(SmbTreeImpl.java:611)
+	at jcifs.smb.SmbTreeConnection.connectTree(SmbTreeConnection.java:614)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:568)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:489)
+	at jcifs.smb.SmbTreeConnection.connect(SmbTreeConnection.java:465)
+	at jcifs.smb.SmbTreeConnection.connectWrapException(SmbTreeConnection.java:426)
+	at jcifs.smb.SmbFile.ensureTreeConnected(SmbFile.java:573)
+	at jcifs.smb.SmbFile.connect(SmbFile.java:532)
+	at T2.test(T2.java:21)
+	at T2.main(T2.java:30)
+Caused by: jcifs.smb.SmbException: The parameter is incorrect.
+	at jcifs.smb.SmbTransportImpl.checkStatus2(SmbTransportImpl.java:1496)
+	at jcifs.smb.SmbTransportImpl.checkStatus(SmbTransportImpl.java:1607)
+	at jcifs.smb.SmbTransportImpl.sendrecv(SmbTransportImpl.java:1014)
+	at jcifs.smb.SmbTransportImpl.send(SmbTransportImpl.java:1578)
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:557)
+	... 13 more
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 6 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=6]
+[main] TRACE jcifs.util.transport.Transport - Release transport 5 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[main] TRACE jcifs.util.transport.Transport - Release transport 4 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Disconnect tree on treeConnectFailure
+jcifs.smb.SmbAuthException: Login failed
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:568)
+	at jcifs.smb.SmbSessionImpl.sessionSetup(SmbSessionImpl.java:491)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:369)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:347)
+	at jcifs.smb.SmbTreeImpl.treeConnect(SmbTreeImpl.java:611)
+	at jcifs.smb.SmbTreeConnection.connectTree(SmbTreeConnection.java:614)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:568)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:489)
+	at jcifs.smb.SmbTreeConnection.connect(SmbTreeConnection.java:465)
+	at jcifs.smb.SmbTreeConnection.connectWrapException(SmbTreeConnection.java:426)
+	at jcifs.smb.SmbFile.ensureTreeConnected(SmbFile.java:573)
+	at jcifs.smb.SmbFile.connect(SmbFile.java:532)
+	at T2.test(T2.java:21)
+	at T2.main(T2.java:30)
+Caused by: jcifs.smb.SmbException: The parameter is incorrect.
+	at jcifs.smb.SmbTransportImpl.checkStatus2(SmbTransportImpl.java:1496)
+	at jcifs.smb.SmbTransportImpl.checkStatus(SmbTransportImpl.java:1607)
+	at jcifs.smb.SmbTransportImpl.sendrecv(SmbTransportImpl.java:1014)
+	at jcifs.smb.SmbTransportImpl.send(SmbTransportImpl.java:1578)
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:557)
+	... 13 more
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 4 SmbSession[credentials=admin,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 3 SmbSession[credentials=admin,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=admin,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=2]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Authentication failed
+jcifs.smb.SmbAuthException: Login failed
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:568)
+	at jcifs.smb.SmbSessionImpl.sessionSetup(SmbSessionImpl.java:491)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:369)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:347)
+	at jcifs.smb.SmbTreeImpl.treeConnect(SmbTreeImpl.java:611)
+	at jcifs.smb.SmbTreeConnection.connectTree(SmbTreeConnection.java:614)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:568)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:489)
+	at jcifs.smb.SmbTreeConnection.connect(SmbTreeConnection.java:465)
+	at jcifs.smb.SmbTreeConnection.connectWrapException(SmbTreeConnection.java:426)
+	at jcifs.smb.SmbFile.ensureTreeConnected(SmbFile.java:573)
+	at jcifs.smb.SmbFile.connect(SmbFile.java:532)
+	at T2.test(T2.java:21)
+	at T2.main(T2.java:30)
+Caused by: jcifs.smb.SmbException: The parameter is incorrect.
+	at jcifs.smb.SmbTransportImpl.checkStatus2(SmbTransportImpl.java:1496)
+	at jcifs.smb.SmbTransportImpl.checkStatus(SmbTransportImpl.java:1607)
+	at jcifs.smb.SmbTransportImpl.sendrecv(SmbTransportImpl.java:1014)
+	at jcifs.smb.SmbTransportImpl.send(SmbTransportImpl.java:1578)
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:557)
+	... 13 more
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=admin,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=3]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=admin,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 0 SmbTree[share=视频,service=?????,tid=-1,inDfs=false,inDomainDfs=false,connectionState=0,usage=0]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Usage dropped to zero, release session
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=admin,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 0 SmbSession[credentials=admin,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=0]
+[main] DEBUG jcifs.smb.SmbSessionImpl - Usage dropped to zero, release connection Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 0 Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] TRACE jcifs.util.transport.Transport - Transport usage dropped to zero Transport1[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Referral failed, trying next
+jcifs.smb.SmbAuthException: Login failed
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:568)
+	at jcifs.smb.SmbSessionImpl.sessionSetup(SmbSessionImpl.java:491)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:369)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:347)
+	at jcifs.smb.SmbTreeImpl.treeConnect(SmbTreeImpl.java:611)
+	at jcifs.smb.SmbTreeConnection.connectTree(SmbTreeConnection.java:614)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:568)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:489)
+	at jcifs.smb.SmbTreeConnection.connect(SmbTreeConnection.java:465)
+	at jcifs.smb.SmbTreeConnection.connectWrapException(SmbTreeConnection.java:426)
+	at jcifs.smb.SmbFile.ensureTreeConnected(SmbFile.java:573)
+	at jcifs.smb.SmbFile.connect(SmbFile.java:532)
+	at T2.test(T2.java:21)
+	at T2.main(T2.java:30)
+Caused by: jcifs.smb.SmbException: The parameter is incorrect.
+	at jcifs.smb.SmbTransportImpl.checkStatus2(SmbTransportImpl.java:1496)
+	at jcifs.smb.SmbTransportImpl.checkStatus(SmbTransportImpl.java:1607)
+	at jcifs.smb.SmbTransportImpl.sendrecv(SmbTransportImpl.java:1014)
+	at jcifs.smb.SmbTransportImpl.send(SmbTransportImpl.java:1578)
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:557)
+	... 13 more
+[main] TRACE jcifs.smb.DfsImpl - Resolving \192.168.5.1\视频\电影\
+[main] TRACE jcifs.smb.DfsImpl - No match for domain based root, checking standalone 192.168.5.1
+[main] TRACE jcifs.smb.DfsImpl - No match for \192.168.5.1\视频\电影\
+[main] DEBUG jcifs.smb.SmbTransportPoolImpl - Trying address 0.0.0.0<00>/192.168.5.1
+[main] TRACE jcifs.smb.SmbTransportPoolImpl - Exclusive false enforced signing false
+[main] DEBUG jcifs.smb.SmbTransportPoolImpl - New transport connection Transport2[0.0.0.0<00>/192.168.5.1:445,state=0,signingEnforced=false,usage=1]
+[main] DEBUG jcifs.util.transport.Transport - Connecting Transport2
+[Transport2] DEBUG jcifs.smb.SmbTransportImpl - Connecting in state 1 addr 192.168.5.1
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - SmbComNegotiate[command=SMB_COM_NEGOTIATE,received=false,errorCode=0,flags=0x0018,flags2=0xC803,signSeq=0,tid=65535,pid=6429,uid=0,mid=0,wordCount=0,byteCount=22,wordCount=0,dialects=NT LM 0.12]
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - FF534D4272000000001803C8000000000000000000000000FFFF1D190000000000160002534D4220322E3F3F3F0002534D4220322E30303200
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - Wrote negotiate request
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport2[0.0.0.0<00>/192.168.5.1:445,state=1,signingEnforced=false,usage=1]
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000000010001000000000000000000000000000000
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - Read negotiate response
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_NEGOTIATE,status=0,flags=0x0000,mid=1,wordCount=0,byteCount=96
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - FE534D42400000000000000000000002000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000240005000100000001000000EF76A1CFF2B68819DA69C4FF746117E0700000000100000002021002000302031103DD01010028000000000001002000010072484A5CD00D44C88048C8612587E0B667B46258D7A13A47188837121691E9EEA32A
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - Wrote negotiate request
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport2[0.0.0.0<00>/192.168.5.1:445,state=1,signingEnforced=false,usage=1]
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000000010001000000000000000100000000000000
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - Read negotiate response
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - Smb2NegotiateResponse[command=SMB2_NEGOTIATE,status=0,flags=0x0001,mid=1,wordCount=0,byteCount=0,dialectRevision=768,securityMode=0x1,capabilities=0x00000005,serverTime=Sat Nov 07 19:37:30 CST 2026
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - 
+[Transport2] DEBUG jcifs.smb.SmbTransportImpl - Negotiation response on Transport2 :jcifs.internal.SmbNegotiation@2653c83c
+[Transport2] DEBUG jcifs.smb.SmbTransportImpl - Signature negotiation enforced false (server false) enabled false (server true)
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbTransportImpl - Currently 0 session(s) active for Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] DEBUG jcifs.smb.SmbTransportImpl - Establishing new session SmbSession[credentials=x,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=1] on Transport2
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=x,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 1 SmbTree[share=视频,service=?????,tid=-1,inDfs=false,inDomainDfs=false,connectionState=0,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - doConnect: 192.168.5.1
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=x,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Connection state was 0
+[main] DEBUG jcifs.smb.SmbTreeImpl - treeConnect: unc=\\192.168.5.1\视频,service=?????
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 5 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[main] DEBUG jcifs.smb.SmbSessionImpl - sessionSetup: x
+[main] DEBUG jcifs.smb.SmbSessionImpl - Remote host is 192.168.5.1
+[main] DEBUG jcifs.smb.NtlmPasswordAuthenticator - Have initial token NegTokenInit[flags=0,mechs=[1.3.6.1.4.1.311.2.2.10],mic=null]
+[main] TRACE jcifs.smb.NtlmContext - Type1Message[suppliedDomain=,suppliedWorkstation=null,flags=0x62088215]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D53535000010000001582086200000000280000000000000028000000060100000000000F
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.session.Smb2SessionSetupRequest costs 1 avail 1 (Transport2)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 512
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=2,wordCount=0,byteCount=98
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000100000200000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000019000001010000000000000058004A000000000000000000604806062B0601050502A03E303CA00E300C060A2B06010401823702020AA22A04284E544C4D53535000010000001582086200000000280000000000000028000000060100000000000F000000000000
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000160000C00100010001000000000000000200000000000000
+[main] DEBUG jcifs.smb.SmbTransportImpl - Breaking on error command=SMB2_SESSION_SETUP,status=More data is available.,flags=0x0001,mid=2,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 1
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_SESSION_SETUP,status=More data is available.,flags=0x0001,mid=2,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.NtlmContext - Type2Message[target=XIAOMI-HD,challenge=<8 bytes>,context=null,targetInformation=<84 bytes>,flags=0x628A8215]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D5353500002000000120012003800000015828A62959763CCCCB133FB0000000000000000540054004A000000060100000000000F5800490041004F004D0049002D0048004400020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E00310000000000
+[main] TRACE jcifs.smb.NtlmContext - Type3Message[domain=,user=x,workstation=null,lmResponse=<24 bytes>,ntResponse=<252 bytes>,sessionKey=<16 bytes>,flags=0x62888215]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D5353500002000000120012003800000015828A62959763CCCCB133FB0000000000000000540054004A000000060100000000000F5800490041004F004D0049002D0048004400020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E00310000000000
+[main] DEBUG jcifs.smb.NtlmContext - Sign key is 92621131E08361DA1F422EE408D9DC42
+[main] DEBUG jcifs.smb.NtlmContext - Verify key is 7F1DAA7581C3BEB1707FDDB0DACABD61
+[main] DEBUG jcifs.smb.NtlmContext - Seal key is 6677135EA88505C8ABE7A2D420B9CF79
+[main] DEBUG jcifs.smb.NtlmContext - Server seal key is 53DE0CEB09A8AD5A4E76A56632A7D1B1
+[main] DEBUG jcifs.smb.NtlmContext - Digest 7C7EA5BF00F39ADBBA9AAACDC2B567F2
+[main] DEBUG jcifs.smb.NtlmContext - Truncated 7C7EA5BF00F39ADB
+[main] DEBUG jcifs.smb.NtlmContext - Encrypted B35D96F7E1A7E302
+[main] DEBUG jcifs.smb.SpnegoContext - Out Mech list [1.3.6.1.4.1.311.2.2.10]
+[main] DEBUG jcifs.smb.SpnegoContext - Out Mech list encoded 300C060A2B06010401823702020A
+[main] DEBUG jcifs.smb.SpnegoContext - Out Mech list MIC 01000000B35D96F7E1A7E30200000000
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.session.Smb2SessionSetupRequest costs 1 avail 1 (Transport2)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 512
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=3,wordCount=0,byteCount=442
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D42400000000000000001000002000000000000000003000000000000000000000000000000D97270C700000000000000000000000000000000000000001900000101000000000000005800A2010000000000000000A182019E3082019AA28201820482017E4E544C4D53535000030000001800180058000000FC00FC0070000000000000006C010000020002006C010000000000006E010000100010006E01000015828862060100000000000F9C00C5DC0D652AFD53F15E4F8C5C462BB2CED9EC6AE21588421903C3CE85E84A9C792E0709901B44257E56BF6C85E395192C82FF59FD4352010100000000000030F4B102AC6EDD0112AAD40526279A1100000000020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E0031000700080030F4B102AC6EDD010900200063006900660073002F003100390032002E003100360038002E0035002E0031000A001000000000000000000000000000000000000800300030000000000000000000000000000000EF76A1CFF2B68819DA69C4FF746117E0DE62C3C4199E8251ED323865645D6E310000000000000000780028D0FD1C2F027F0C8674EF29DEA1784CA312041001000000B35D96F7E1A7E30200000000000000000000
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[Transport2] TRACE jcifs.smb.SmbTransportImpl - FE534D42400000000D0000C00100010001000000000000000300000000000000
+[main] DEBUG jcifs.smb.SmbTransportImpl - Error code: 0xC000000D for Smb2SessionSetupRequest
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 1
+[main] DEBUG jcifs.smb.SmbSessionImpl - Session setup failed
+jcifs.smb.SmbAuthException: Login failed
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:568)
+	at jcifs.smb.SmbSessionImpl.sessionSetup(SmbSessionImpl.java:491)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:369)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:347)
+	at jcifs.smb.SmbTreeImpl.treeConnect(SmbTreeImpl.java:611)
+	at jcifs.smb.SmbTreeConnection.connectTree(SmbTreeConnection.java:614)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:568)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:489)
+	at jcifs.smb.SmbTreeConnection.connect(SmbTreeConnection.java:465)
+	at jcifs.smb.SmbTreeConnection.connectWrapException(SmbTreeConnection.java:426)
+	at jcifs.smb.SmbFile.ensureTreeConnected(SmbFile.java:573)
+	at jcifs.smb.SmbFile.connect(SmbFile.java:532)
+	at T2.test(T2.java:21)
+	at T2.main(T2.java:31)
+Caused by: jcifs.smb.SmbException: The parameter is incorrect.
+	at jcifs.smb.SmbTransportImpl.checkStatus2(SmbTransportImpl.java:1496)
+	at jcifs.smb.SmbTransportImpl.checkStatus(SmbTransportImpl.java:1607)
+	at jcifs.smb.SmbTransportImpl.sendrecv(SmbTransportImpl.java:1014)
+	at jcifs.smb.SmbTransportImpl.send(SmbTransportImpl.java:1578)
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:557)
+	... 13 more
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 6 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=6]
+[main] TRACE jcifs.util.transport.Transport - Release transport 5 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[main] TRACE jcifs.util.transport.Transport - Release transport 4 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Disconnect tree on treeConnectFailure
+jcifs.smb.SmbAuthException: Login failed
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:568)
+	at jcifs.smb.SmbSessionImpl.sessionSetup(SmbSessionImpl.java:491)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:369)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:347)
+	at jcifs.smb.SmbTreeImpl.treeConnect(SmbTreeImpl.java:611)
+	at jcifs.smb.SmbTreeConnection.connectTree(SmbTreeConnection.java:614)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:568)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:489)
+	at jcifs.smb.SmbTreeConnection.connect(SmbTreeConnection.java:465)
+	at jcifs.smb.SmbTreeConnection.connectWrapException(SmbTreeConnection.java:426)
+	at jcifs.smb.SmbFile.ensureTreeConnected(SmbFile.java:573)
+	at jcifs.smb.SmbFile.connect(SmbFile.java:532)
+	at T2.test(T2.java:21)
+	at T2.main(T2.java:31)
+Caused by: jcifs.smb.SmbException: The parameter is incorrect.
+	at jcifs.smb.SmbTransportImpl.checkStatus2(SmbTransportImpl.java:1496)
+	at jcifs.smb.SmbTransportImpl.checkStatus(SmbTransportImpl.java:1607)
+	at jcifs.smb.SmbTransportImpl.sendrecv(SmbTransportImpl.java:1014)
+	at jcifs.smb.SmbTransportImpl.send(SmbTransportImpl.java:1578)
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:557)
+	... 13 more
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 4 SmbSession[credentials=x,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 3 SmbSession[credentials=x,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=x,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=2]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Authentication failed
+jcifs.smb.SmbAuthException: Login failed
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:568)
+	at jcifs.smb.SmbSessionImpl.sessionSetup(SmbSessionImpl.java:491)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:369)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:347)
+	at jcifs.smb.SmbTreeImpl.treeConnect(SmbTreeImpl.java:611)
+	at jcifs.smb.SmbTreeConnection.connectTree(SmbTreeConnection.java:614)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:568)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:489)
+	at jcifs.smb.SmbTreeConnection.connect(SmbTreeConnection.java:465)
+	at jcifs.smb.SmbTreeConnection.connectWrapException(SmbTreeConnection.java:426)
+	at jcifs.smb.SmbFile.ensureTreeConnected(SmbFile.java:573)
+	at jcifs.smb.SmbFile.connect(SmbFile.java:532)
+	at T2.test(T2.java:21)
+	at T2.main(T2.java:31)
+Caused by: jcifs.smb.SmbException: The parameter is incorrect.
+	at jcifs.smb.SmbTransportImpl.checkStatus2(SmbTransportImpl.java:1496)
+	at jcifs.smb.SmbTransportImpl.checkStatus(SmbTransportImpl.java:1607)
+	at jcifs.smb.SmbTransportImpl.sendrecv(SmbTransportImpl.java:1014)
+	at jcifs.smb.SmbTransportImpl.send(SmbTransportImpl.java:1578)
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:557)
+	... 13 more
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=x,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=3]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=x,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 0 SmbTree[share=视频,service=?????,tid=-1,inDfs=false,inDomainDfs=false,connectionState=0,usage=0]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Usage dropped to zero, release session
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=x,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 0 SmbSession[credentials=x,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=0]
+[main] DEBUG jcifs.smb.SmbSessionImpl - Usage dropped to zero, release connection Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 0 Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] TRACE jcifs.util.transport.Transport - Transport usage dropped to zero Transport2[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Referral failed, trying next
+jcifs.smb.SmbAuthException: Login failed
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:568)
+	at jcifs.smb.SmbSessionImpl.sessionSetup(SmbSessionImpl.java:491)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:369)
+	at jcifs.smb.SmbSessionImpl.send(SmbSessionImpl.java:347)
+	at jcifs.smb.SmbTreeImpl.treeConnect(SmbTreeImpl.java:611)
+	at jcifs.smb.SmbTreeConnection.connectTree(SmbTreeConnection.java:614)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:568)
+	at jcifs.smb.SmbTreeConnection.connectHost(SmbTreeConnection.java:489)
+	at jcifs.smb.SmbTreeConnection.connect(SmbTreeConnection.java:465)
+	at jcifs.smb.SmbTreeConnection.connectWrapException(SmbTreeConnection.java:426)
+	at jcifs.smb.SmbFile.ensureTreeConnected(SmbFile.java:573)
+	at jcifs.smb.SmbFile.connect(SmbFile.java:532)
+	at T2.test(T2.java:21)
+	at T2.main(T2.java:31)
+Caused by: jcifs.smb.SmbException: The parameter is incorrect.
+	at jcifs.smb.SmbTransportImpl.checkStatus2(SmbTransportImpl.java:1496)
+	at jcifs.smb.SmbTransportImpl.checkStatus(SmbTransportImpl.java:1607)
+	at jcifs.smb.SmbTransportImpl.sendrecv(SmbTransportImpl.java:1014)
+	at jcifs.smb.SmbTransportImpl.send(SmbTransportImpl.java:1578)
+	at jcifs.smb.SmbSessionImpl.sessionSetupSMB2(SmbSessionImpl.java:557)
+	... 13 more
+[main] TRACE jcifs.smb.DfsImpl - Resolving \192.168.5.1\视频\电影\
+[main] TRACE jcifs.smb.DfsImpl - No match for domain based root, checking standalone 192.168.5.1
+[main] TRACE jcifs.smb.DfsImpl - No match for \192.168.5.1\视频\电影\
+[main] DEBUG jcifs.smb.SmbTransportPoolImpl - Trying address 0.0.0.0<00>/192.168.5.1
+[main] TRACE jcifs.smb.SmbTransportPoolImpl - Exclusive false enforced signing false
+[main] DEBUG jcifs.smb.SmbTransportPoolImpl - New transport connection Transport3[0.0.0.0<00>/192.168.5.1:445,state=0,signingEnforced=false,usage=1]
+[main] DEBUG jcifs.util.transport.Transport - Connecting Transport3
+[Transport3] DEBUG jcifs.smb.SmbTransportImpl - Connecting in state 1 addr 192.168.5.1
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - SmbComNegotiate[command=SMB_COM_NEGOTIATE,received=false,errorCode=0,flags=0x0018,flags2=0xC803,signSeq=0,tid=65535,pid=35884,uid=0,mid=0,wordCount=0,byteCount=22,wordCount=0,dialects=NT LM 0.12]
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - FF534D4272000000001803C8000000000000000000000000FFFF2C8C0000000000160002534D4220322E3F3F3F0002534D4220322E30303200
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - Wrote negotiate request
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport3[0.0.0.0<00>/192.168.5.1:445,state=1,signingEnforced=false,usage=1]
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000000010001000000000000000000000000000000
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - Read negotiate response
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_NEGOTIATE,status=0,flags=0x0000,mid=1,wordCount=0,byteCount=96
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000000000200000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000024000500010000000100000034F8DD553EDBF3CF27103F097427319A700000000100000002021002000302031103DD010100280000000000010020000100564AE406FD0011279AB212D1A38B0A01D0DE50C7C09D6B42A4F266A917C2AB54A32A
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - Wrote negotiate request
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport3[0.0.0.0<00>/192.168.5.1:445,state=1,signingEnforced=false,usage=1]
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000000010001000000000000000100000000000000
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - Read negotiate response
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - Smb2NegotiateResponse[command=SMB2_NEGOTIATE,status=0,flags=0x0001,mid=1,wordCount=0,byteCount=0,dialectRevision=768,securityMode=0x1,capabilities=0x00000005,serverTime=Sat Nov 07 19:37:31 CST 2026
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - 
+[Transport3] DEBUG jcifs.smb.SmbTransportImpl - Negotiation response on Transport3 :jcifs.internal.SmbNegotiation@eb8976c
+[Transport3] DEBUG jcifs.smb.SmbTransportImpl - Signature negotiation enforced false (server false) enabled false (server true)
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbTransportImpl - Currently 0 session(s) active for Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] DEBUG jcifs.smb.SmbTransportImpl - Establishing new session SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=1] on Transport3
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 1 SmbTree[share=视频,service=?????,tid=-1,inDfs=false,inDomainDfs=false,connectionState=0,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - doConnect: 192.168.5.1
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Connection state was 0
+[main] DEBUG jcifs.smb.SmbTreeImpl - treeConnect: unc=\\192.168.5.1\视频,service=?????
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 5 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[main] DEBUG jcifs.smb.SmbSessionImpl - sessionSetup: 
+[main] DEBUG jcifs.smb.SmbSessionImpl - Remote host is 192.168.5.1
+[main] DEBUG jcifs.smb.NtlmPasswordAuthenticator - Have initial token NegTokenInit[flags=0,mechs=[1.3.6.1.4.1.311.2.2.10],mic=null]
+[main] TRACE jcifs.smb.NtlmContext - Type1Message[suppliedDomain=,suppliedWorkstation=null,flags=0x62088215]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D53535000010000001582086200000000280000000000000028000000060100000000000F
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.session.Smb2SessionSetupRequest costs 1 avail 1 (Transport3)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 512
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=2,wordCount=0,byteCount=98
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000100000200000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000019000001010000000000000058004A000000000000000000604806062B0601050502A03E303CA00E300C060A2B06010401823702020AA22A04284E544C4D53535000010000001582086200000000280000000000000028000000060100000000000F000000000000
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000160000C00100010001000000000000000200000000000000
+[main] DEBUG jcifs.smb.SmbTransportImpl - Breaking on error command=SMB2_SESSION_SETUP,status=More data is available.,flags=0x0001,mid=2,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 1
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_SESSION_SETUP,status=More data is available.,flags=0x0001,mid=2,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.NtlmContext - Type2Message[target=XIAOMI-HD,challenge=<8 bytes>,context=null,targetInformation=<84 bytes>,flags=0x628A8215]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D5353500002000000120012003800000015828A6267415BB3451269C70000000000000000540054004A000000060100000000000F5800490041004F004D0049002D0048004400020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E00310000000000
+[main] TRACE jcifs.smb.NtlmContext - Type3Message[domain=null,user=JCIFSGUEST,workstation=null,lmResponse=null,ntResponse=<252 bytes>,sessionKey=<16 bytes>,flags=0x62888215]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D5353500002000000120012003800000015828A6267415BB3451269C70000000000000000540054004A000000060100000000000F5800490041004F004D0049002D0048004400020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E00310000000000
+[main] DEBUG jcifs.smb.NtlmContext - Sign key is 3F1ECB549C5BAD8EC01DEEEE6B53CF89
+[main] DEBUG jcifs.smb.NtlmContext - Verify key is 85BE2CFE631CA4501DF43ACB7C17B3A0
+[main] DEBUG jcifs.smb.NtlmContext - Seal key is 41637B2F994DCB819DF4FC4CC96F21DC
+[main] DEBUG jcifs.smb.NtlmContext - Server seal key is 9021C839FA92D967680C9D1B030F6B63
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.session.Smb2SessionSetupRequest costs 1 avail 1 (Transport3)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 512
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=3,wordCount=0,byteCount=416
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D42400000000000000001000002000000000000000003000000000000000000000000000000CB6F93700000000000000000000000000000000000000000190000010100000000000000580088010000000000000000A182018430820180A282017C048201784E544C4D53535000030000000000000058000000FC00FC0058000000000000005401000014001400540100000000000068010000100010006801000015828862060100000000000F801254C54115DC33EC1ABD0EC78122A2E8278F47014C62D84C9C51FCD15CAE0E0101000000000000D0C82303AC6EDD01956416B65F283C8E00000000020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E00310007000800D0C82303AC6EDD010900200063006900660073002F003100390032002E003100360038002E0035002E0031000A00100000000000000000000000000000000000080030003000000000000000000000000000000034F8DD553EDBF3CF27103F097427319AC709966D74CA21B62BFE0B4CF5F2546D00000000000000004A004300490046005300470055004500530054009AC845070446BF8E448DD12D10F2379E
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000100210001000000000000000300000000000000
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_SESSION_SETUP,status=0,flags=0x0001,mid=3,wordCount=0,byteCount=0
+[main] DEBUG jcifs.smb.SmbSessionImpl - Context is established
+[main] DEBUG jcifs.smb.SmbSessionImpl - No digest setup true B false
+[main] TRACE jcifs.util.transport.Transport - Release transport 4 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.smb.SmbSessionImpl - Request command=SMB2_TREE_CONNECT,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_TREE_CONNECT,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.tree.Smb2TreeConnectRequest costs 1 avail 33 (Transport3)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 480
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_TREE_CONNECT,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_TREE_CONNECT,status=0,flags=0x0000,mid=4,wordCount=0,byteCount=40
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000300E001000000000000000004000000000000000000000000000000CB6F9370000000000000000000000000000000000000000009000000480020005C005C003100390032002E003100360038002E0035002E0031005C00C6899198
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000300210001000000000000000400000000000000
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_TREE_CONNECT,status=0,flags=0x0001,mid=4,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbSessionImpl - Response command=SMB2_TREE_CONNECT,status=0,flags=0x0001,mid=4,wordCount=0,byteCount=0
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Secure negotiation does not apply
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Switching tree
+[main] DEBUG jcifs.smb.SmbTreeConnection - Acquired tree on switch SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 3 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=3]
+[main] TRACE jcifs.smb.SmbTreeConnection - Acquire tree connection 1 jcifs.smb.SmbTreeConnection@6aba2b86
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 4 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=4]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 3 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=3]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 2 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - Already connected
+[main] TRACE jcifs.smb.SmbTreeConnection - Acquire tree connection 2 jcifs.smb.SmbTreeConnection@6aba2b86
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeConnection - Not in DFS
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - Release tree connection 1 jcifs.smb.SmbTreeConnection@6aba2b86
+[main] TRACE jcifs.smb.SmbTreeConnection - Release tree connection 0 jcifs.smb.SmbTreeConnection@6aba2b86
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Tree connection no longer in use, release tree SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 0 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=0]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Usage dropped to zero, release session
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 0 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=0]
+[main] DEBUG jcifs.smb.SmbSessionImpl - Usage dropped to zero, release connection Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 0 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] TRACE jcifs.util.transport.Transport - Transport usage dropped to zero Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] TRACE jcifs.smb.SmbTreeConnection - Acquire tree connection 1 jcifs.smb.SmbTreeConnection@6aba2b86
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 1 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Reacquire session
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] DEBUG jcifs.smb.SmbSessionImpl - Reacquire transport
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Acquire tree on first usage SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - Already connected
+[main] TRACE jcifs.smb.SmbTreeConnection - Acquire tree connection 2 jcifs.smb.SmbTreeConnection@6aba2b86
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeConnection - Not in DFS
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - Release tree connection 1 jcifs.smb.SmbTreeConnection@6aba2b86
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.smb.SmbSessionImpl - Request [command=SMB2_CREATE,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0,name=电影,resolveDfs=false]
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending [command=SMB2_CREATE,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0,name=电影,resolveDfs=false]
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.create.Smb2CreateRequest costs 1 avail 65 (Transport3)
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.info.Smb2QueryDirectoryRequest costs 1 avail 64 (Transport3)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 448
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending [command=SMB2_CREATE,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0,name=电影,resolveDfs=false]
+[main] DEBUG jcifs.internal.smb2.create.Smb2CreateRequest - Opening 电影
+[main] DEBUG jcifs.internal.smb2.create.Smb2CreateRequest - Flags are 0000
+[main] TRACE jcifs.smb.SmbTransportImpl - [command=SMB2_CREATE,status=0,flags=0x0000,mid=5,wordCount=0,byteCount=64,name=电影,resolveDfs=false]
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000500C00100000000800000000500000000000000000000005647025FCB6F9370000000000000000000000000000000000000000039000000020000000000000000000000000000000000000081000000000000000300000001000000010000007800040000000000000000003575715F00000000FE534D4240000000000000000E00000004000000000000000600000000000000000000005647025FCB6F937000000000000000000000000000000000000000002100030000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6000020050FF00002A00000000000000
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000500000001000000980000000500000000000000
+[Transport3] DEBUG jcifs.internal.smb2.create.Smb2CreateResponse - Opened 电影: 7EEC856B0000000014E0580400000000
+[Transport3] DEBUG jcifs.smb.SmbTransportImpl - Compound next command 0 read size 22146 remain 22146
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_CREATE,status=0,flags=0x0001,mid=5,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbSessionImpl - Response command=SMB2_CREATE,status=0,flags=0x0001,mid=5,wordCount=0,byteCount=0
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.smb.SmbSessionImpl - Request command=SMB2_QUERY_DIRECTORY,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_QUERY_DIRECTORY,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.info.Smb2QueryDirectoryRequest costs 1 avail 96 (Transport3)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 417
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_QUERY_DIRECTORY,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_QUERY_DIRECTORY,status=0,flags=0x0000,mid=7,wordCount=0,byteCount=34
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000E00A10100000000000000000700000000000000000000005647025FCB6F9370000000000000000000000000000000000000000021000304000000007EEC856B0000000014E05804000000006000020050FF00002A00000000000000
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000060000800E00210001000000000000000700000000000000
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_QUERY_DIRECTORY,status=No more files were found that match the file specification.,flags=0x0001,mid=7,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbSessionImpl - Response command=SMB2_QUERY_DIRECTORY,status=No more files were found that match the file specification.,flags=0x0001,mid=7,wordCount=0,byteCount=0
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.smb.SmbSessionImpl - Request command=SMB2_CLOSE,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_CLOSE,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.create.Smb2CloseRequest costs 1 avail 128 (Transport3)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 385
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_CLOSE,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] DEBUG jcifs.internal.smb2.create.Smb2CloseRequest - Closing 7EEC856B0000000014E0580400000000 ()
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_CLOSE,status=0,flags=0x0000,mid=8,wordCount=0,byteCount=24
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000600810100000000000000000800000000000000000000005647025FCB6F9370000000000000000000000000000000000000000018000000000000007EEC856B0000000014E0580400000000
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000600210001000000000000000800000000000000
+[Transport3] DEBUG jcifs.internal.smb2.create.Smb2CloseResponse - Closed 7EEC856B0000000014E0580400000000 ()
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_CLOSE,status=0,flags=0x0001,mid=8,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbSessionImpl - Response command=SMB2_CLOSE,status=0,flags=0x0001,mid=8,wordCount=0,byteCount=0
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - Release tree connection 0 jcifs.smb.SmbTreeConnection@6aba2b86
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Tree connection no longer in use, release tree SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 0 SmbTree[share=视频,service=null,tid=1593984854,inDfs=false,inDomainDfs=false,connectionState=2,usage=0]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Usage dropped to zero, release session
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 0 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=0]
+[main] DEBUG jcifs.smb.SmbSessionImpl - Usage dropped to zero, release connection Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 0 Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] TRACE jcifs.util.transport.Transport - Transport usage dropped to zero Transport3[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] TRACE jcifs.smb.DfsImpl - Resolving \192.168.5.1\视频\电影\
+[main] TRACE jcifs.smb.DfsImpl - No match for domain based root, checking standalone 192.168.5.1
+[main] TRACE jcifs.smb.DfsImpl - No match for \192.168.5.1\视频\电影\
+[main] DEBUG jcifs.smb.SmbTransportPoolImpl - Trying address 0.0.0.0<00>/192.168.5.1
+[main] TRACE jcifs.smb.SmbTransportPoolImpl - Exclusive false enforced signing false
+[main] DEBUG jcifs.smb.SmbTransportPoolImpl - New transport connection Transport4[0.0.0.0<00>/192.168.5.1:445,state=0,signingEnforced=false,usage=1]
+[main] DEBUG jcifs.util.transport.Transport - Connecting Transport4
+[Transport4] DEBUG jcifs.smb.SmbTransportImpl - Connecting in state 1 addr 192.168.5.1
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - SmbComNegotiate[command=SMB_COM_NEGOTIATE,received=false,errorCode=0,flags=0x0018,flags2=0xC803,signSeq=0,tid=65535,pid=42859,uid=0,mid=0,wordCount=0,byteCount=22,wordCount=0,dialects=NT LM 0.12]
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - FF534D4272000000001803C8000000000000000000000000FFFF6BA70000000000160002534D4220322E3F3F3F0002534D4220322E30303200
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - Wrote negotiate request
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport4[0.0.0.0<00>/192.168.5.1:445,state=1,signingEnforced=false,usage=1]
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000000010001000000000000000000000000000000
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - Read negotiate response
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_NEGOTIATE,status=0,flags=0x0000,mid=1,wordCount=0,byteCount=96
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - FE534D424000000000000000000000020000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000002400050001000000010000005CECCC742483A0573BE23ACFE69D2A9A700000000100000002021002000302031103DD0101002800000000000100200001008FD6670E761433F6E4789002DB293075B91CC7EB4B3DE3DF5A8FEEF5B99CABFBA32A
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - Wrote negotiate request
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport4[0.0.0.0<00>/192.168.5.1:445,state=1,signingEnforced=false,usage=1]
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000000010001000000000000000100000000000000
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - Read negotiate response
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - Smb2NegotiateResponse[command=SMB2_NEGOTIATE,status=0,flags=0x0001,mid=1,wordCount=0,byteCount=0,dialectRevision=768,securityMode=0x1,capabilities=0x00000005,serverTime=Sat Nov 07 19:37:32 CST 2026
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - 
+[Transport4] DEBUG jcifs.smb.SmbTransportImpl - Negotiation response on Transport4 :jcifs.internal.SmbNegotiation@36cc7990
+[Transport4] DEBUG jcifs.smb.SmbTransportImpl - Signature negotiation enforced false (server false) enabled false (server true)
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbTransportImpl - Currently 0 session(s) active for Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] DEBUG jcifs.smb.SmbTransportImpl - Establishing new session SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=1] on Transport4
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 1 SmbTree[share=视频,service=?????,tid=-1,inDfs=false,inDomainDfs=false,connectionState=0,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - doConnect: 192.168.5.1
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=0,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Connection state was 0
+[main] DEBUG jcifs.smb.SmbTreeImpl - treeConnect: unc=\\192.168.5.1\视频,service=?????
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 5 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[main] DEBUG jcifs.smb.SmbSessionImpl - sessionSetup: 
+[main] DEBUG jcifs.smb.SmbSessionImpl - Remote host is 192.168.5.1
+[main] DEBUG jcifs.smb.NtlmPasswordAuthenticator - Have initial token NegTokenInit[flags=0,mechs=[1.3.6.1.4.1.311.2.2.10],mic=null]
+[main] TRACE jcifs.smb.NtlmContext - Type1Message[suppliedDomain=,suppliedWorkstation=null,flags=0x22080A05]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D5353500001000000050A082200000000280000000000000028000000060100000000000F
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.session.Smb2SessionSetupRequest costs 1 avail 1 (Transport4)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 512
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=2,wordCount=0,byteCount=98
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000100000200000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000019000001010000000000000058004A000000000000000000604806062B0601050502A03E303CA00E300C060A2B06010401823702020AA22A04284E544C4D5353500001000000050A082200000000280000000000000028000000060100000000000F000000000000
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000160000C00100010001000000000000000200000000000000
+[main] DEBUG jcifs.smb.SmbTransportImpl - Breaking on error command=SMB2_SESSION_SETUP,status=More data is available.,flags=0x0001,mid=2,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 1
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_SESSION_SETUP,status=More data is available.,flags=0x0001,mid=2,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.NtlmContext - Type2Message[target=XIAOMI-HD,challenge=<8 bytes>,context=null,targetInformation=<84 bytes>,flags=0x228A0205]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D5353500002000000120012003800000005028A226DBA337BCDA444440000000000000000540054004A000000060100000000000F5800490041004F004D0049002D0048004400020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E00310000000000
+[main] TRACE jcifs.smb.NtlmContext - Type3Message[domain=,user=,workstation=null,lmResponse=null,ntResponse=null,sessionKey=null,flags=0x22080205]
+[main] TRACE jcifs.smb.NtlmContext - 4E544C4D5353500002000000120012003800000005028A226DBA337BCDA444440000000000000000540054004A000000060100000000000F5800490041004F004D0049002D0048004400020012005800490041004F004D0049002D0048004400010012005800490041004F004D0049002D004800440004000A0030002E0030002E003100030012003100320037002E0030002E0030002E00310000000000
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.session.Smb2SessionSetupRequest costs 1 avail 1 (Transport4)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 512
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_SESSION_SETUP,status=0,flags=0x0000,mid=3,wordCount=0,byteCount=104
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D424000000000000000010000020000000000000000030000000000000000000000000000002EF503AD0000000000000000000000000000000000000000190000010100000000000000580050000000000000000000A14E304CA24A04484E544C4D535350000300000000000000480000000000000048000000000000004800000000000000480000000000000048000000000000004800000005020822060100000000000F
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=5]
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000100210001000000000000000300000000000000
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_SESSION_SETUP,status=0,flags=0x0001,mid=3,wordCount=0,byteCount=0
+[main] DEBUG jcifs.smb.SmbSessionImpl - Context is established
+[main] DEBUG jcifs.smb.SmbSessionImpl - No digest setup true B false
+[main] TRACE jcifs.util.transport.Transport - Release transport 4 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.smb.SmbSessionImpl - Request command=SMB2_TREE_CONNECT,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_TREE_CONNECT,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.tree.Smb2TreeConnectRequest costs 1 avail 33 (Transport4)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 480
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_TREE_CONNECT,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_TREE_CONNECT,status=0,flags=0x0000,mid=4,wordCount=0,byteCount=40
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000300E0010000000000000000040000000000000000000000000000002EF503AD000000000000000000000000000000000000000009000000480020005C005C003100390032002E003100360038002E0035002E0031005C00C6899198
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000300210001000000000000000400000000000000
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_TREE_CONNECT,status=0,flags=0x0001,mid=4,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbSessionImpl - Response command=SMB2_TREE_CONNECT,status=0,flags=0x0001,mid=4,wordCount=0,byteCount=0
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Secure negotiation does not apply
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Switching tree
+[main] DEBUG jcifs.smb.SmbTreeConnection - Acquired tree on switch SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 3 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=3]
+[main] TRACE jcifs.smb.SmbTreeConnection - Acquire tree connection 1 jcifs.smb.SmbTreeConnection@36902638
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 4 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=4]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 3 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=3]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 2 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - Already connected
+[main] TRACE jcifs.smb.SmbTreeConnection - Acquire tree connection 2 jcifs.smb.SmbTreeConnection@36902638
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeConnection - Not in DFS
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - Release tree connection 1 jcifs.smb.SmbTreeConnection@36902638
+[main] TRACE jcifs.smb.SmbTreeConnection - Release tree connection 0 jcifs.smb.SmbTreeConnection@36902638
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Tree connection no longer in use, release tree SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 0 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=0]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Usage dropped to zero, release session
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 0 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=0]
+[main] DEBUG jcifs.smb.SmbSessionImpl - Usage dropped to zero, release connection Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 0 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] TRACE jcifs.util.transport.Transport - Transport usage dropped to zero Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] TRACE jcifs.smb.SmbTreeConnection - Acquire tree connection 1 jcifs.smb.SmbTreeConnection@36902638
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 1 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Reacquire session
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] DEBUG jcifs.smb.SmbSessionImpl - Reacquire transport
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Acquire tree on first usage SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - Already connected
+[main] TRACE jcifs.smb.SmbTreeConnection - Acquire tree connection 2 jcifs.smb.SmbTreeConnection@36902638
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeConnection - Not in DFS
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - Release tree connection 1 jcifs.smb.SmbTreeConnection@36902638
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.smb.SmbSessionImpl - Request [command=SMB2_CREATE,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0,name=电影,resolveDfs=false]
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending [command=SMB2_CREATE,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0,name=电影,resolveDfs=false]
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.create.Smb2CreateRequest costs 1 avail 65 (Transport4)
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.info.Smb2QueryDirectoryRequest costs 1 avail 64 (Transport4)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 448
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending [command=SMB2_CREATE,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0,name=电影,resolveDfs=false]
+[main] DEBUG jcifs.internal.smb2.create.Smb2CreateRequest - Opening 电影
+[main] DEBUG jcifs.internal.smb2.create.Smb2CreateRequest - Flags are 0000
+[main] TRACE jcifs.smb.SmbTransportImpl - [command=SMB2_CREATE,status=0,flags=0x0000,mid=5,wordCount=0,byteCount=64,name=电影,resolveDfs=false]
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000500C00100000000800000000500000000000000000000007D656E452EF503AD000000000000000000000000000000000000000039000000020000000000000000000000000000000000000081000000000000000300000001000000010000007800040000000000000000003575715F00000000FE534D4240000000000000000E00000004000000000000000600000000000000000000007D656E452EF503AD00000000000000000000000000000000000000002100030000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6000020050FF00002A00000000000000
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000500000001000000980000000500000000000000
+[Transport4] DEBUG jcifs.internal.smb2.create.Smb2CreateResponse - Opened 电影: 5A7B4256000000002597DF2300000000
+[Transport4] DEBUG jcifs.smb.SmbTransportImpl - Compound next command 0 read size 22146 remain 22146
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_CREATE,status=0,flags=0x0001,mid=5,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbSessionImpl - Response command=SMB2_CREATE,status=0,flags=0x0001,mid=5,wordCount=0,byteCount=0
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.smb.SmbSessionImpl - Request command=SMB2_QUERY_DIRECTORY,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_QUERY_DIRECTORY,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.info.Smb2QueryDirectoryRequest costs 1 avail 96 (Transport4)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 417
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_QUERY_DIRECTORY,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_QUERY_DIRECTORY,status=0,flags=0x0000,mid=7,wordCount=0,byteCount=34
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000E00A10100000000000000000700000000000000000000007D656E452EF503AD000000000000000000000000000000000000000021000304000000005A7B4256000000002597DF23000000006000020050FF00002A00000000000000
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000060000800E00210001000000000000000700000000000000
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_QUERY_DIRECTORY,status=No more files were found that match the file specification.,flags=0x0001,mid=7,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbSessionImpl - Response command=SMB2_QUERY_DIRECTORY,status=No more files were found that match the file specification.,flags=0x0001,mid=7,wordCount=0,byteCount=0
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Acquire session 3 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=4]
+[main] TRACE jcifs.util.transport.Transport - Release transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[main] TRACE jcifs.smb.SmbSessionImpl - Request command=SMB2_CLOSE,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_CLOSE,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.create.Smb2CloseRequest costs 1 avail 128 (Transport4)
+[main] TRACE jcifs.smb.SmbTransportImpl - Request credits 385
+[main] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_CLOSE,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[main] DEBUG jcifs.internal.smb2.create.Smb2CloseRequest - Closing 5A7B4256000000002597DF2300000000 ()
+[main] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_CLOSE,status=0,flags=0x0000,mid=8,wordCount=0,byteCount=24
+[main] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000600810100000000000000000800000000000000000000007D656E452EF503AD000000000000000000000000000000000000000018000000000000005A7B4256000000002597DF2300000000
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=3]
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000600210001000000000000000800000000000000
+[Transport4] DEBUG jcifs.internal.smb2.create.Smb2CloseResponse - Closed 5A7B4256000000002597DF2300000000 ()
+[main] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[main] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_CLOSE,status=0,flags=0x0001,mid=8,wordCount=0,byteCount=0
+[main] TRACE jcifs.smb.SmbSessionImpl - Response command=SMB2_CLOSE,status=0,flags=0x0001,mid=8,wordCount=0,byteCount=0
+[main] TRACE jcifs.util.transport.Transport - Release transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=2]
+[main] TRACE jcifs.util.transport.Transport - Release transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeConnection - Release tree connection 0 jcifs.smb.SmbTreeConnection@36902638
+[main] TRACE jcifs.smb.SmbTreeImpl - Acquire tree 2 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] DEBUG jcifs.smb.SmbTreeConnection - Tree connection no longer in use, release tree SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=2]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 1 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=1]
+[main] TRACE jcifs.smb.SmbTreeImpl - Release tree 0 SmbTree[share=视频,service=null,tid=1164862845,inDfs=false,inDomainDfs=false,connectionState=2,usage=0]
+[main] DEBUG jcifs.smb.SmbTreeImpl - Usage dropped to zero, release session
+[main] TRACE jcifs.smb.SmbSessionImpl - Release session 0 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=2,usage=0]
+[main] DEBUG jcifs.smb.SmbSessionImpl - Usage dropped to zero, release connection Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=1]
+[main] TRACE jcifs.util.transport.Transport - Release transport 0 Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[main] TRACE jcifs.util.transport.Transport - Transport usage dropped to zero Transport4[0.0.0.0<00>/192.168.5.1:445,state=3,signingEnforced=false,usage=0]
+[Thread-3] DEBUG jcifs.smb.SmbTransportPoolImpl - Closing pool
+[Thread-1] DEBUG jcifs.smb.SmbTransportPoolImpl - Closing pool
+[Thread-3] DEBUG jcifs.smb.SmbTransportImpl - Disconnecting transport Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - Currently 1 session(s) active for Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-1] DEBUG jcifs.smb.SmbTransportImpl - Disconnecting transport Transport1[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-1] TRACE jcifs.smb.SmbTransportImpl - Currently 1 session(s) active for Transport1[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-3] TRACE jcifs.util.transport.Transport - Acquire transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=1]
+[Thread-2] DEBUG jcifs.smb.SmbTransportPoolImpl - Closing pool
+[Thread-1] TRACE jcifs.util.transport.Transport - Acquire transport 1 Transport1[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=1]
+[Thread-2] DEBUG jcifs.smb.SmbTransportImpl - Disconnecting transport Transport2[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-0] DEBUG jcifs.smb.SmbTransportPoolImpl - Closing pool
+[Thread-3] DEBUG jcifs.smb.SmbSessionImpl - Logging off session on Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=1]
+[Thread-2] TRACE jcifs.smb.SmbTransportImpl - Currently 1 session(s) active for Transport2[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-1] TRACE jcifs.util.transport.Transport - Release transport 0 Transport1[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-2] TRACE jcifs.util.transport.Transport - Acquire transport 1 Transport2[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=1]
+[Thread-3] DEBUG jcifs.smb.SmbSessionImpl - Disconnect tree on logoff
+[Thread-4] DEBUG jcifs.smb.SmbTransportPoolImpl - Closing pool
+[Thread-0] DEBUG jcifs.smb.SmbTransportImpl - Disconnecting transport Transport0[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-4] DEBUG jcifs.smb.SmbTransportImpl - Disconnecting transport Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-3] TRACE jcifs.smb.SmbSessionImpl - Acquire session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=3,usage=1]
+[Thread-2] TRACE jcifs.util.transport.Transport - Release transport 0 Transport2[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-1] TRACE jcifs.util.transport.Transport - Transport usage dropped to zero Transport1[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-2] TRACE jcifs.util.transport.Transport - Transport usage dropped to zero Transport2[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-3] DEBUG jcifs.smb.SmbSessionImpl - Reacquire transport
+[Thread-3] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=2]
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - Currently 1 session(s) active for Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-0] TRACE jcifs.smb.SmbTransportImpl - Currently 1 session(s) active for Transport0[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-4] TRACE jcifs.util.transport.Transport - Acquire transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=1]
+[Thread-4] DEBUG jcifs.smb.SmbSessionImpl - Logging off session on Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=1]
+[Thread-4] DEBUG jcifs.smb.SmbSessionImpl - Disconnect tree on logoff
+[Thread-4] TRACE jcifs.smb.SmbSessionImpl - Acquire session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=3,usage=1]
+[Thread-0] TRACE jcifs.util.transport.Transport - Acquire transport 1 Transport0[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=1]
+[Thread-0] TRACE jcifs.util.transport.Transport - Release transport 0 Transport0[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-3] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=3]
+[Thread-4] DEBUG jcifs.smb.SmbSessionImpl - Reacquire transport
+[Thread-4] TRACE jcifs.util.transport.Transport - Acquire transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=2]
+[Thread-4] TRACE jcifs.util.transport.Transport - Acquire transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=3]
+[Thread-0] TRACE jcifs.util.transport.Transport - Transport usage dropped to zero Transport0[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-3] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=3,usage=2]
+[Thread-3] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=4]
+[Thread-4] TRACE jcifs.smb.SmbSessionImpl - Acquire session 2 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=3,usage=2]
+[Thread-3] TRACE jcifs.util.transport.Transport - Acquire transport 5 Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=5]
+[Thread-3] TRACE jcifs.util.transport.Transport - Acquire transport 6 Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=6]
+[Thread-4] TRACE jcifs.util.transport.Transport - Acquire transport 4 Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=4]
+[Thread-4] TRACE jcifs.util.transport.Transport - Acquire transport 5 Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=5]
+[Thread-3] TRACE jcifs.util.transport.Transport - Release transport 5 Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=5]
+[Thread-0] TRACE jcifs.smb.SmbTransportImpl - Socket closed
+[Thread-2] TRACE jcifs.smb.SmbTransportImpl - Socket closed
+[Thread-1] TRACE jcifs.smb.SmbTransportImpl - Socket closed
+[Thread-0] DEBUG jcifs.smb.SmbTransportPoolImpl - Scheduling transport connection for removal Transport0[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0] (533420514)
+[Thread-1] DEBUG jcifs.smb.SmbTransportPoolImpl - Scheduling transport connection for removal Transport1[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0] (1078401697)
+[Thread-3] TRACE jcifs.smb.SmbSessionImpl - Request command=SMB2_TREE_DISCONNECT,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[Thread-4] TRACE jcifs.util.transport.Transport - Acquire transport 6 Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=6]
+[Thread-3] DEBUG jcifs.util.transport.Transport - Trying to connect a disconnected transport
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_TREE_DISCONNECT,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[Thread-2] DEBUG jcifs.smb.SmbTransportPoolImpl - Scheduling transport connection for removal Transport2[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0] (1308284502)
+[Thread-4] TRACE jcifs.util.transport.Transport - Release transport 5 Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=5]
+[Thread-4] TRACE jcifs.smb.SmbSessionImpl - Request command=SMB2_TREE_DISCONNECT,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[Thread-4] DEBUG jcifs.util.transport.Transport - Trying to connect a disconnected transport
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_TREE_DISCONNECT,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.tree.Smb2TreeDisconnectRequest costs 1 avail 160 (Transport3)
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - Request credits 353
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.tree.Smb2TreeDisconnectRequest costs 1 avail 160 (Transport4)
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_TREE_DISCONNECT,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[Thread-0] DEBUG jcifs.smb.SmbTransportPoolImpl - Removing transport connection Transport0[0.0.0.0<00>/192.168.5.1:445,state=6,signingEnforced=false,usage=0] (533420514)
+[Thread-1] DEBUG jcifs.smb.SmbTransportPoolImpl - Removing transport connection Transport1[0.0.0.0<00>/192.168.5.1:445,state=6,signingEnforced=false,usage=0] (1078401697)
+[Transport0] TRACE jcifs.util.transport.Transport - Remote closed connection
+[Transport0] DEBUG jcifs.util.transport.Transport - Disconnected
+[Transport0] DEBUG jcifs.util.transport.Transport - Exception without a request pending
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - Request credits 353
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_TREE_DISCONNECT,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[Thread-2] DEBUG jcifs.smb.SmbTransportPoolImpl - Removing transport connection Transport2[0.0.0.0<00>/192.168.5.1:445,state=6,signingEnforced=false,usage=0] (1308284502)
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_TREE_DISCONNECT,status=0,flags=0x0000,mid=9,wordCount=0,byteCount=4
+java.net.SocketException: Socket closed
+	at java.base/sun.nio.ch.NioSocketImpl.endRead(NioSocketImpl.java:253)
+	at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:332)
+	at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:355)
+	at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:808)
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:966)
+	at jcifs.util.transport.Transport.readn(Transport.java:70)
+	at jcifs.smb.SmbTransportImpl.peekKey(SmbTransportImpl.java:828)
+	at jcifs.util.transport.Transport.loop(Transport.java:420)
+	at jcifs.util.transport.Transport.run(Transport.java:779)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+[Transport2] TRACE jcifs.util.transport.Transport - Remote closed connection
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_TREE_DISCONNECT,status=0,flags=0x0000,mid=9,wordCount=0,byteCount=4
+[Transport2] DEBUG jcifs.util.transport.Transport - Disconnected
+[Transport1] TRACE jcifs.util.transport.Transport - Remote closed connection
+[Transport1] DEBUG jcifs.util.transport.Transport - Disconnected
+[Transport1] DEBUG jcifs.util.transport.Transport - Exception without a request pending
+[Transport2] DEBUG jcifs.util.transport.Transport - Exception without a request pending
+java.net.SocketException: Socket closed
+	at java.base/sun.nio.ch.NioSocketImpl.endRead(NioSocketImpl.java:253)
+	at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:332)
+	at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:355)
+	at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:808)
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:966)
+	at jcifs.util.transport.Transport.readn(Transport.java:70)
+	at jcifs.smb.SmbTransportImpl.peekKey(SmbTransportImpl.java:828)
+	at jcifs.util.transport.Transport.loop(Transport.java:420)
+	at jcifs.util.transport.Transport.run(Transport.java:779)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000400610100000000000000000900000000000000000000005647025FCB6F937000000000000000000000000000000000000000000400000000000000
+java.net.SocketException: Socket closed
+	at java.base/sun.nio.ch.NioSocketImpl.endRead(NioSocketImpl.java:253)
+	at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:332)
+	at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:355)
+	at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:808)
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:966)
+	at jcifs.util.transport.Transport.readn(Transport.java:70)
+	at jcifs.smb.SmbTransportImpl.peekKey(SmbTransportImpl.java:828)
+	at jcifs.util.transport.Transport.loop(Transport.java:420)
+	at jcifs.util.transport.Transport.run(Transport.java:779)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000400610100000000000000000900000000000000000000007D656E452EF503AD00000000000000000000000000000000000000000400000000000000
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=5]
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000400210001000000000000000900000000000000
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_TREE_DISCONNECT,status=0,flags=0x0001,mid=9,wordCount=0,byteCount=0
+[Thread-3] TRACE jcifs.smb.SmbSessionImpl - Response command=SMB2_TREE_DISCONNECT,status=0,flags=0x0001,mid=9,wordCount=0,byteCount=0
+[Thread-3] TRACE jcifs.util.transport.Transport - Release transport 4 Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=4]
+[Thread-3] TRACE jcifs.util.transport.Transport - Release transport 3 Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=3]
+[Thread-3] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=3,usage=1]
+[Thread-3] TRACE jcifs.util.transport.Transport - Release transport 2 Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=2]
+[Thread-3] TRACE jcifs.smb.SmbSessionImpl - Release session 0 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=3,usage=0]
+[Thread-3] DEBUG jcifs.smb.SmbSessionImpl - Usage dropped to zero, release connection Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=2]
+[Thread-3] TRACE jcifs.util.transport.Transport - Release transport 1 Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=1]
+[Thread-3] DEBUG jcifs.util.transport.Transport - Trying to connect a disconnected transport
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_LOGOFF,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.session.Smb2LogoffRequest costs 1 avail 192 (Transport3)
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - Request credits 321
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_LOGOFF,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_LOGOFF,status=0,flags=0x0000,mid=10,wordCount=0,byteCount=4
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000200410100000000000000000A000000000000000000000000000000CB6F937000000000000000000000000000000000000000000400000000000000
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=5]
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000400210001000000000000000900000000000000
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_TREE_DISCONNECT,status=0,flags=0x0001,mid=9,wordCount=0,byteCount=0
+[Thread-4] TRACE jcifs.smb.SmbSessionImpl - Response command=SMB2_TREE_DISCONNECT,status=0,flags=0x0001,mid=9,wordCount=0,byteCount=0
+[Thread-4] TRACE jcifs.util.transport.Transport - Release transport 4 Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=4]
+[Thread-4] TRACE jcifs.util.transport.Transport - Release transport 3 Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=3]
+[Thread-4] TRACE jcifs.smb.SmbSessionImpl - Release session 1 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=3,usage=1]
+[Thread-4] TRACE jcifs.util.transport.Transport - Release transport 2 Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=2]
+[Thread-4] TRACE jcifs.smb.SmbSessionImpl - Release session 0 SmbSession[credentials=,targetHost=192.168.5.1,targetDomain=null,uid=0,connectionState=3,usage=0]
+[Thread-4] DEBUG jcifs.smb.SmbSessionImpl - Usage dropped to zero, release connection Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=2]
+[Thread-4] TRACE jcifs.util.transport.Transport - Release transport 1 Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=1]
+[Thread-4] DEBUG jcifs.util.transport.Transport - Trying to connect a disconnected transport
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_LOGOFF,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - jcifs.internal.smb2.session.Smb2LogoffRequest costs 1 avail 192 (Transport4)
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - Request credits 321
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - Sending command=SMB2_LOGOFF,status=0,flags=0x0000,mid=0,wordCount=0,byteCount=0
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - command=SMB2_LOGOFF,status=0,flags=0x0000,mid=10,wordCount=0,byteCount=4
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000200410100000000000000000A0000000000000000000000000000002EF503AD00000000000000000000000000000000000000000400000000000000
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=1]
+[Transport3] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000200210001000000000000000A00000000000000
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_LOGOFF,status=0,flags=0x0001,mid=10,wordCount=0,byteCount=0
+[Thread-3] TRACE jcifs.util.transport.Transport - Release transport 0 Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-3] TRACE jcifs.util.transport.Transport - Transport usage dropped to zero Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-3] TRACE jcifs.smb.SmbTransportImpl - Socket closed
+[Thread-3] DEBUG jcifs.smb.SmbTransportPoolImpl - Scheduling transport connection for removal Transport3[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0] (299407198)
+[Thread-3] DEBUG jcifs.smb.SmbTransportPoolImpl - Removing transport connection Transport3[0.0.0.0<00>/192.168.5.1:445,state=6,signingEnforced=false,usage=0] (299407198)
+[Transport3] TRACE jcifs.util.transport.Transport - Remote closed connection
+[Transport3] DEBUG jcifs.util.transport.Transport - Disconnected
+[Transport3] DEBUG jcifs.util.transport.Transport - Exception without a request pending
+java.net.SocketException: Socket closed
+	at java.base/sun.nio.ch.NioSocketImpl.endRead(NioSocketImpl.java:253)
+	at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:332)
+	at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:355)
+	at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:808)
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:966)
+	at jcifs.util.transport.Transport.readn(Transport.java:70)
+	at jcifs.smb.SmbTransportImpl.peekKey(SmbTransportImpl.java:828)
+	at jcifs.util.transport.Transport.loop(Transport.java:420)
+	at jcifs.util.transport.Transport.run(Transport.java:779)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - New data read: Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=1]
+[Transport4] TRACE jcifs.smb.SmbTransportImpl - FE534D4240000000000000000200210001000000000000000A00000000000000
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - Adding credits 33
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - Response is command=SMB2_LOGOFF,status=0,flags=0x0001,mid=10,wordCount=0,byteCount=0
+[Thread-4] TRACE jcifs.util.transport.Transport - Release transport 0 Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-4] TRACE jcifs.util.transport.Transport - Transport usage dropped to zero Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0]
+[Thread-4] TRACE jcifs.smb.SmbTransportImpl - Socket closed
+[Thread-4] DEBUG jcifs.smb.SmbTransportPoolImpl - Scheduling transport connection for removal Transport4[0.0.0.0<00>/192.168.5.1:445,state=5,signingEnforced=false,usage=0] (1914928636)
+[Thread-4] DEBUG jcifs.smb.SmbTransportPoolImpl - Removing transport connection Transport4[0.0.0.0<00>/192.168.5.1:445,state=6,signingEnforced=false,usage=0] (1914928636)

@@ -1,0 +1,103 @@
+1794063090892 url-play begin url=file:///sdcard/Android/data/com.kivo.cinema/files/media/1gb_720p.mp4
+1794063090900 url-play openUrlVideo rc=0
+1794063090902 url-play start rc=0
+1794063120476 startSmbPlayback begin
+1794063120532 smb size=1090116567
+1794063120535 proxy port=39967 url=http://127.0.0.1:39967/kivo
+1794063120537 openUrlVideo rc=0 err=
+1794063120538 start rc=0
+1794064514301 startSmbPlayback begin
+1794064515153 smb size=5528105
+1794064515157 proxy port=42395 url=http://127.0.0.1:42395/kivo
+1794064515161 openUrlVideo rc=0 err=
+1794064515162 start rc=0
+1794064723916 url-play begin url=file:///sdcard/Android/data/com.kivo.cinema/files/media/1gb_720p.mp4
+1794064723934 url-play openUrlVideo rc=0
+1794064723935 url-play start rc=0
+1794064924754 url-play begin url=file:///sdcard/Android/data/com.kivo.cinema/files/media/1gb_720p.mp4
+1794064924761 url-play openUrlVideo rc=0
+1794064924762 url-play start rc=0
+1794065165100 url-play begin url=file:///sdcard/Android/data/com.kivo.cinema/files/media/1gb_720p.mp4
+1794065165104 url-play openUrlVideo rc=0
+1794065165105 url-play start rc=0
+1794065586340 startSmbPlayback begin
+1794065587195 smb size=33056861
+1794065587198 proxy port=39255 url=http://127.0.0.1:39255/kivo
+1794065587200 openUrlVideo rc=0 err=
+1794065587201 start rc=0
+1794066484981 startSmbPlayback begin
+1794066485791 smb size=33056861
+1794066485795 proxy port=39829 url=http://127.0.0.1:39829/kivo
+1794066485797 openUrlVideo rc=0 err=
+1794066485797 start rc=0
+1794067098214 startSmbPlayback begin
+1794067098267 smb size=1090116567
+1794067098272 proxy port=37083 url=http://127.0.0.1:37083/kivo
+1794067098276 openUrlVideo rc=0 err=
+1794067098278 start rc=0
+1794067230696 startSmbPlayback begin
+1794067230766 smb size=1090116567
+1794067230770 proxy port=41717 url=http://127.0.0.1:41717/kivo
+1794067230772 openUrlVideo rc=0 err=
+1794067230772 start rc=0
+1794068081736 startSmbPlayback begin
+1794068081793 smb size=1090116567
+1794068081795 proxy port=39333 url=http://127.0.0.1:39333/kivo
+1794068111839 harddec failed rc=3 err=start failed: Failed to instantiate extractor. - softdec fallback
+1794068111842 openUrlVideo rc=0 err=
+1794068111843 start rc=0
+1794068208064 startSmbPlayback begin
+1794068208133 smb size=1090116567
+1794068208137 proxy port=41739 url=http://127.0.0.1:41739/kivo
+1794068208923 network harddec start ok 1280x720
+1794068446331 startSmbPlayback begin
+1794068446387 smb size=1090116567
+1794068446390 proxy port=37797 url=http://127.0.0.1:37797/kivo
+1794068447094 network harddec start ok 1280x720
+1794068639965 startSmbPlayback begin
+1794068640021 smb size=1090116567
+1794068640024 proxy port=42181 url=http://127.0.0.1:42181/kivo
+1794068640718 network harddec start ok 1280x720
+1794069742753 url-play begin url=http://192.168.5.142:8080/1080p30_60s.mp4
+1794069742760 url-play openUrlVideo rc=0
+1794069742761 url-play start rc=0
+1794069836385 url-play begin url=http://192.168.5.142:8080/1080p30_60s.mp4
+1794069938968 url-play harddec ok 1920x1080
+1794069965597 url-play begin url=http://192.168.5.142:8080/1080p30_60s.mp4
+1794069965971 url-play harddec ok 1920x1080
+1794070554265 url-play begin url=http://192.168.5.142:8080/1080p30_60s.mp4
+1794070554632 url-play harddec ok 1920x1080
+1794072163940 startSmbPlayback begin
+1794072164016 smb size=1090116567
+1794072164018 proxy port=38341 url=http://127.0.0.1:38341/kivo
+1794072164655 network harddec start ok 1280x720
+1794072206862 startSmbPlayback begin
+1794072206911 smb size=1090116567
+1794072206913 proxy port=38467 url=http://127.0.0.1:38467/kivo
+1794072207514 network harddec start ok 1280x720
+1794072209027 danmaku loaded 201 items
+1794072408804 startSmbPlayback begin
+1794072408842 smb size=1090116567
+1794072408845 proxy port=41213 url=http://127.0.0.1:41213/kivo
+1794072409442 network harddec start ok 1280x720
+1794072410960 danmaku loaded 201 items
+1794072521329 startSmbPlayback begin
+1794072521378 smb size=1090116567
+1794072521381 proxy port=41235 url=http://127.0.0.1:41235/kivo
+1794072522041 network harddec start ok 1280x720
+1794072522042 danmaku try load: /1gb_720p.xml exists=false
+1794072522042 danmaku XML not found: /1gb_720p.xml
+1794072601325 startSmbPlayback begin
+1794072601361 smb size=1090116567
+1794072601363 proxy port=41539 url=http://127.0.0.1:41539/kivo
+1794072601975 network harddec start ok 1280x720
+1794072601976 danmaku try load: /storage/emulated/0/Android/data/com.kivo.cinema/files/danmaku/1gb_720p.xml exists=true
+1794072601985 danmaku loaded 201 items, danmakuOn=true
+1794072722240 startSmbPlayback begin
+1794072722273 smb size=1090116567
+1794072722276 proxy port=41211 url=http://127.0.0.1:41211/kivo
+1794072722834 network harddec start ok 1280x720
+1794072722835 danmaku try load: /storage/emulated/0/Android/data/com.kivo.cinema/files/danmaku/1gb_720p.xml exists=true
+1794072722844 danmaku loaded 201 items, danmakuOn=true
+1794075373296 url-play begin url=https://emby.bangumi.ca/emby/Videos/253192/stream?static=true&api_key=50bafe8f8b864ff18d607b848394baea
+1794075385389 url-play harddec ok 3840x2160

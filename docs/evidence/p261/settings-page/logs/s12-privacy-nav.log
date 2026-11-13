@@ -1,0 +1,4 @@
+=== resumed activity after privacy chevron ===
+    topResumedActivity=ActivityRecord{f1e63d5 u0 com.kivo.cinema/.privatezone.PrivateActivity} t11088}
+=== after back ===
+    topResumedActivity=ActivityRecord{8e3b092 u0 com.kivo.cinema/.MainActivity} t11088}

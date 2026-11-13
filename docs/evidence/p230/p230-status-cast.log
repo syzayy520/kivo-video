@@ -1,0 +1,58 @@
+1794076783471 cast sheet open, scanning begin
+1794076787911 cast scan done: 0 devices 
+1794077170870 cast sheet open, scanning begin
+1794077175744 cast scan done: 0 devices 
+1794077185680 cast sheet open, scanning begin
+1794077190396 cast scan done: 0 devices 
+1794077254706 cast sheet open, scanning begin
+1794077259220 cast scan done: 0 devices 
+1794077432432 cast sheet open, scanning begin
+1794077437345 cast scan done: 0 devices 
+1794077742105 cast sheet open, scanning begin
+1794077742115 cast wifiNi=wlan0 addr=192.168.5.152
+1794077743869 cast rx#1 from 192.168.5.145: HTTP/1.1 200 OK
+1794077744282 cast rx#2 from 192.168.5.145: HTTP/1.1 200 OK
+1794077744785 cast rx#3 from 192.168.5.145: HTTP/1.1 200 OK
+1794077744828 cast rx#4 from 192.168.5.142: HTTP/1.1 200 OK
+1794077745776 cast rx#5 from 192.168.5.145: HTTP/1.1 200 OK
+1794077746779 cast scan end rx=5 found=2
+1794077746850 cast scan done: 0 devices 
+1794077841693 cast sheet open, scanning begin
+1794077841710 cast wifiNi=wlan0 addr=192.168.5.152
+1794077842079 cast rx#1 from 192.168.5.145: HTTP/1.1 200 OK
+1794077844014 cast rx#2 from 192.168.5.145: HTTP/1.1 200 OK
+1794077844526 cast rx#3 from 192.168.5.145: HTTP/1.1 200 OK
+1794077845960 cast rx#4 from 192.168.5.145: HTTP/1.1 200 OK
+1794077846463 cast scan end rx=4 found=1
+1794077846495 cast resolve fail http://192.168.5.145:9999/b26c11d2-7328-4de2-9fb5-d6450b08bf83.xml: IllegalStateException 描述里没有 AVTransport/controlURL（http://192.168.5.145:9999/b26c11d2-7328-4de2-9fb5-d6450b08bf83.xml）
+1794077846497 cast scan done: 0 devices 
+1794077951490 cast sheet open, scanning begin
+1794077951502 cast wifiNi=wlan0 addr=192.168.5.152
+1794077952126 cast rx#1 from 192.168.5.145: HTTP/1.1 200 OK
+1794077953656 cast rx#2 from 192.168.5.145: HTTP/1.1 200 OK
+1794077954235 cast rx#3 from 192.168.5.142: HTTP/1.1 200 OK
+1794077954273 cast rx#4 from 192.168.5.145: HTTP/1.1 200 OK
+1794077954609 cast rx#5 from 192.168.5.145: HTTP/1.1 200 OK
+1794077956112 cast scan end rx=5 found=2
+1794077956168 cast scan done: 2 devices 小爱音箱-8245;kivo-test-renderer
+1794077981394 cast select kivo-test-renderer ctrl=http://192.168.5.142:8060/control/avtransport
+1794078182094 cast sheet open, scanning begin
+1794078182111 cast wifiNi=wlan0 addr=192.168.5.152
+1794078182561 cast rx#1 from 192.168.5.145: HTTP/1.1 200 OK
+1794078184105 cast rx#2 from 192.168.5.145: HTTP/1.1 200 OK
+1794078184816 cast rx#3 from 192.168.5.142: HTTP/1.1 200 OK
+1794078184888 cast rx#4 from 192.168.5.145: HTTP/1.1 200 OK
+1794078186247 cast rx#5 from 192.168.5.145: HTTP/1.1 200 OK
+1794078186749 cast scan end rx=5 found=2
+1794078186805 cast scan done: 2 devices 小爱音箱-8245;kivo-test-renderer
+1794078191563 cast select kivo-test-renderer ctrl=http://192.168.5.142:8060/control/avtransport
+1794078275817 cast sheet open, scanning begin
+1794078275827 cast wifiNi=wlan0 addr=192.168.5.152
+1794078276790 cast rx#1 from 192.168.5.145: HTTP/1.1 200 OK
+1794078277125 cast rx#2 from 192.168.5.145: HTTP/1.1 200 OK
+1794078277287 cast rx#3 from 192.168.5.145: HTTP/1.1 200 OK
+1794078278594 cast rx#4 from 192.168.5.142: HTTP/1.1 200 OK
+1794078279585 cast rx#5 from 192.168.5.145: HTTP/1.1 200 OK
+1794078280588 cast scan end rx=5 found=2
+1794078280632 cast scan done: 2 devices 小爱音箱-8245;kivo-test-renderer
+1794078285990 cast select kivo-test-renderer ctrl=http://192.168.5.142:8060/control/avtransport

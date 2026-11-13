@@ -1,0 +1,15 @@
+=== prefs after ON ===
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="preview_autoplay" value="true" />
+</map>
+=== prefs after restart (still true?) ===
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="preview_autoplay" value="true" />
+</map>
+=== prefs after OFF (restored default) ===
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="preview_autoplay" value="false" />
+</map>

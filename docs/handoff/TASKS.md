@@ -1,3 +1,13 @@
+> 2026-11-13 **✅ 迁移补提交（用户换电脑，拍板：做好的全部提交推送，下一助手 clone 可接手）。**
+> **新入库**：`artifacts/p262-playback-settings/`(11M) + `artifacts/p263-av-settings/`(2.7M) 原始截图（覆盖 D6 时期「保留本地」口径）；266/267 构建日志 7 份；
+> 被 `*.log` 挡住但被 README/status 引用的证据日志 13 份（p220×2 / p224 / p230 / p240×4 / p259 / p261×3 / p9），均 `git add -f`；
+> `third_party/ffmpeg-android/build_ffmpeg_msys.sh`（ffmpeg-shared-dist 构建脚本，原散落在 `C:\re-tools`，原样入库）。
+> **不入库、换机须拷**：`tests/real/` 1.8G 测试片源（gitignore 明确排除）；`C:\re-tools` 交叉构建工作区
+> （libmpv.so / ffmpeg-shared-dist 产物在此；拷后跑 `android/app/buildscripts/mpv/stage-libmpv.sh` 落 52M .so；
+> mpv 本体重建走 mpv-android 上游 buildscripts，**不存在自制 build-libmpv.sh**，stage 脚本报错里的名字是占位）；
+> `C:\ffmpeg-sdk`（bootstrap.cmd 重建 junction）；local.properties / adb 密钥等机器绑定项见 agents.md §0.3。
+> **推送已验**：rev-list origin..HEAD=0。
+
 > 2026-11-13 **✅ 267 外观与交互设置子页 收口（K40 `b6e950ee` 真机，主助手自留卡）。**
 > **规格**：[`docs/design/ui/replica/appearance-interaction-settings.md`](../design/ui/replica/appearance-interaction-settings.md)（家族树先行；根页 18 行 = 5 真 + 11 灰 + 2 真钻入）
 > **证据**：[`docs/evidence/p267/appearance-interaction/`](../evidence/p267/appearance-interaction/README.md)（c00–c17 + 20 XML + 触感三态日志/帧 + 复算链 + 披露 D-A–D-H）
