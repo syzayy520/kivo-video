@@ -41,6 +41,10 @@ internal object OriginHttpConnection {
                 if (endInclusive == null) "bytes=$start-" else "bytes=$start-$endInclusive",
             )
             token?.let { conn.setRequestProperty("X-Emby-Token", it) }
+            // 【274 · 不复用连接】见 [reuseConnection]：源站的**单条连接吞吐会随时间衰减**，
+            // 复用一条连接继续取块 = 越取越慢（实测 226 → 42 KB/s），
+            // 换一条新连接立刻恢复（200–680 KB/s）。这一行就是关掉 JDK 池化的开关。
+            if (!reuseConnection) conn.setRequestProperty("Connection", "close")
 
             val code = conn.responseCode
             if (code !in 300..399) return conn
@@ -67,6 +71,43 @@ internal object OriginHttpConnection {
     private const val CONNECT_TIMEOUT_MS = 10_000
     private const val READ_TIMEOUT_MS = 30_000
     private const val MAX_REDIRECTS = 3
+
+    /**
+     * 是否**复用**源站连接（keep-alive）。
+     *
+     * 【默认否】274 真机 + PC 对照实测（设计稿 `273-emby-stutter-fix.md` §二十八）：
+     * 同一条 keep-alive 连接连续取 8 个 4 MiB 块，正文速率
+     * **226 → 150 → 100 → 50 → 48 → 47 → 42 → 67 KB/s**（表头始终 300–1300 ms，
+     * 说明连接是活的，衰减发生在**正文吞吐**上）；改成每块新建连接后
+     * **203 / 630 / 372 / 678 KB/s**。差 5–10 倍。
+     *
+     * 【代价】每块多一次 TLS 握手（300–1800 ms）。一块 4 MiB 在 500 KB/s 下要 8 秒
+     * ⇒ 握手占 4–20%，而**衰到 40 KB/s 是 10 倍的损失**，这笔账怎么算都该换连接。
+     *
+     * 【为什么要开关】"复用更快"曾被真机实测支持过（v5：复用 300 ms/10 MB/s，
+     * 新建 754–968 ms/2 MB/s）⇒ 这个结论**会被源站策略推翻**。
+     * 留 `debug.kivo.originKeepAlive=1` 一个回退臂，才能在源站改变行为时
+     * 用一条命令回到旧行为，而不是靠改代码重打包。
+     */
+    private val reuseConnection: Boolean by lazy {
+        readSystemProperty(KEEPALIVE_PROPERTY)?.trim() == "1"
+    }
+
+    /** 系统属性名：置 `1` ⇒ 复用连接（旧行为 / 回退臂）。 */
+    private const val KEEPALIVE_PROPERTY = "debug.kivo.originKeepAlive"
+
+    /**
+     * 读 Android 系统属性（`adb shell setprop <name> <value>` 即可生效）。
+     *
+     * 【为什么走反射】`android.os.SystemProperties` 是隐藏 API，编译期不可见。
+     * 非 Android 环境（JVM 单测）读不到 ⇒ 返回 null 走默认，不抛。
+     */
+    private fun readSystemProperty(name: String): String? = try {
+        val clazz = Class.forName("android.os.SystemProperties")
+        clazz.getMethod("get", String::class.java).invoke(null, name) as? String
+    } catch (e: Exception) {
+        null
+    }
 
     /**
      * 连接池参数：必须在**第一次建连之前**设好
