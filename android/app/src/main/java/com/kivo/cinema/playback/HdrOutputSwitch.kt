@@ -53,15 +53,10 @@ internal object HdrOutputSwitch {
         // 【为什么这是硬闸门而不是提示】让 mpv 用 10bit EGL config 之后，
         // gralloc 分配 10bit buffer 失败/卡死 ⇒ VO 初始化不返回 ⇒ 整段卡死。
         // 真机 K40 实测：内核日志停在 EGLConfig dump（见 279 差距表 §三）。
-        if (!Hdr10BitProbe.supports10Bit()) {
-            // 【不许静默降级】原因必须落到诊断日志里（net-diag），否则用户看到
-            // "HDR 片源还是 SDR 的"却查不到为什么。
-            com.kivo.cinema.net.NetDiag.log(
-                "[hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer" +
-                    "（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径"
-            )
-            return false
-        }
+        //
+        // 【降级留痕在探测者自己那边打】（[Hdr10BitProbe.supports10Bit] 首次探测时打一次）
+        // —— 280 之前这句在这里，每调一次 isEnabled 就刷一遍，实测起播刷了 3 次。
+        if (!Hdr10BitProbe.supports10Bit()) return false
 
         // 1) 系统属性（最高优先）
         val prop = sysProp("debug.kivo.hdrOutput")?.lowercase()

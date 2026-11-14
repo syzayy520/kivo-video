@@ -1,0 +1,57 @@
+# 只做一件事：meson 的 Android aarch64 交叉编译配置（cross file）。
+#
+# 用法（由 build-libmpv.sh 调用，不手工用）：
+#   meson setup build --cross-file android/app/buildscripts/mpv/cross-android-arm64.txt
+#
+# 【⚠️ 为什么路径写死成 Windows 绝对路径】
+# cross file 由 meson 直接读，**不经过 shell** ⇒ 环境变量不会展开，
+# Git Bash 的 `/c/...` 形式它也认不了。必须写 `C:/...`。
+# 改路径时与 toolchain.env 保持**同一个 NDK 版本**（那里有版本自检）。
+#
+# 【为什么要显式给 -I / -L】
+# 三个依赖的 .pc 里是 POSIX 路径（prefix=/c/re-tools/...），
+# 依赖 msys pkg-config 做路径转换才能用（见 toolchain.env 的说明）。
+# 多写一份显式 -I/-L 是**冗余但确定**的：即便某天 pkg-config 行为变化，
+# 编译与链接仍然能找到依赖，不会变成"编得过但链错"的静默错误。
+
+[binaries]
+# 用 NDK 的带 target 前缀 wrapper：它自带 --target=aarch64-linux-android26，
+# 不需要在 c_args 里再写一遍。
+c = 'C:/Android/sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/windows-x86_64/bin/aarch64-linux-android26-clang.cmd'
+cpp = 'C:/Android/sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/windows-x86_64/bin/aarch64-linux-android26-clang++.cmd'
+ar = 'C:/Android/sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-ar.exe'
+strip = 'C:/Android/sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-strip.exe'
+ranlib = 'C:/Android/sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-ranlib.exe'
+nm = 'C:/Android/sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-nm.exe'
+# meson 认 `pkg-config` 这个键（`pkgconfig` 已 deprecated，会打警告）。
+# 必须是 msys 版：它会把 .pc 里的 /c/... 转成 C:/...。
+pkg-config = 'C:/msys64/usr/bin/pkg-config.exe'
+
+[host_machine]
+system = 'android'
+cpu_family = 'aarch64'
+cpu = 'aarch64'
+endian = 'little'
+
+[properties]
+# 【必须是 false】踩过：写 true 会让 meson 去探测 **build machine** 的 C 编译器，
+# 而 Windows 上没有 `cc` ⇒ meson 1.12 直接抛
+# `AttributeError: 'NoneType' object has no attribute 'split'`。
+# mpv 的构建过程不需要在构建机上执行目标程序 ⇒ false 是正确且够用的。
+needs_exe_wrapper = false
+# NDK 的 sysroot（与 PKG_CONFIG_SYSROOT_DIR 保持一致）
+sys_root = 'C:/Android/sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/windows-x86_64/sysroot'
+# 依赖查找路径**不写在这里**：由 toolchain.env 导出 PKG_CONFIG_PATH，
+# meson 会继承。写在 cross file 里要处理 Windows 分隔符与 meson 解析的差异，
+# 容易出错且没有额外收益。
+
+[built-in options]
+# 依赖头文件（显式，见文件头说明）
+#
+# 【⚠️ 必须写成单行】meson 的 machine file 用 configparser 解析，
+# **不支持多行数组**（多行会报 `Malformed machine file: Source contains parsing errors`）。
+c_args = ['-IC:/re-tools/ffmpeg-shared-dist/include', '-IC:/re-tools/libass-android/dist/include', '-IC:/re-tools/libplacebo-android/include']
+cpp_args = ['-IC:/re-tools/ffmpeg-shared-dist/include', '-IC:/re-tools/libass-android/dist/include', '-IC:/re-tools/libplacebo-android/include']
+# 依赖库搜索路径
+c_link_args = ['-LC:/re-tools/ffmpeg-shared-dist/lib', '-LC:/re-tools/libass-android/dist/lib', '-LC:/re-tools/libplacebo-android/lib']
+cpp_link_args = ['-LC:/re-tools/ffmpeg-shared-dist/lib', '-LC:/re-tools/libass-android/dist/lib', '-LC:/re-tools/libplacebo-android/lib']

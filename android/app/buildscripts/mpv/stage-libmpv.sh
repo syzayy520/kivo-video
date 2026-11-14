@@ -10,20 +10,30 @@
 #   android/app/src/main/cpp/mpv/prebuilt/arm64-v8a/   ← CMake 的 IMPORTED 库来源
 #   android/app/src/main/jniLibs/arm64-v8a/             ← 随 APK 打包的运行期 .so
 #
-# 用法：bash android/app/buildscripts/mpv/stage-libmpv.sh
+# 用法：
+#   bash android/app/buildscripts/mpv/stage-libmpv.sh                       # 用默认构建目录
+#   bash android/app/buildscripts/mpv/stage-libmpv.sh /tmp/xxx/libmpv.so    # 指定产物
+#
+# 【为什么要能指定产物】`build-libmpv.sh --clean` 会把产物编到 /tmp 下的新目录
+# （受 safe-delete 保护的范围外，见 build-libmpv.sh 的说明）⇒ 这里必须能接住。
 set -e
 
-ROOT=/c/re-tools
-PREBUILT_SRC="$ROOT/mpv-build/mpv/build/libmpv.so"
-FFMPEG_LIB="$ROOT/ffmpeg-shared-dist/lib"
-FFMPEG_INCLUDE="$ROOT/ffmpeg-shared-dist/include"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=toolchain.env
+source "$HERE/toolchain.env"
+
+PREBUILT_SRC="${1:-$KIVO_BUILD/libmpv.so}"
+FFMPEG_LIB="$KIVO_FFMPEG/lib"
+FFMPEG_INCLUDE="$KIVO_FFMPEG/include"
 STAGE_CPP="C:/kivo video/android/app/src/main/cpp/mpv/prebuilt/arm64-v8a"
 STAGE_JNI="C:/kivo video/android/app/src/main/jniLibs/arm64-v8a"
 
 if [ ! -f "$PREBUILT_SRC" ]; then
-  echo "缺少 libmpv.so：先跑 build-libmpv.sh" >&2
+  echo "缺少 libmpv.so：$PREBUILT_SRC" >&2
+  echo "先跑 build-libmpv.sh（或把产物路径作为第一个参数传进来）" >&2
   exit 1
 fi
+echo "源：$PREBUILT_SRC（$(stat -c%s "$PREBUILT_SRC" 2>/dev/null || stat -f%z "$PREBUILT_SRC") 字节）"
 
 mkdir -p "$STAGE_CPP" "$STAGE_JNI"
 
@@ -56,23 +66,18 @@ echo "=== jniLibs ==="
 ls -l "$STAGE_JNI"
 
 # ---------------------------------------------------------------------------
-# 277 · ES3 补丁（必做）
+# 补丁由 build-libmpv.sh 在**编译前**应用（不是这里）。
 #
-# 【为什么】libplacebo 的 HDR 峰值计算（pl_peak_detect）走 **compute shader**，
-# 只有 GLES 3.1+ 才有。mpv 0.39 的 video/out/opengl/egl_helpers.c 把 ES 路径
-# 写死成 EGL_OPENGL_ES2_BIT + EGL_CONTEXT_CLIENT_VERSION=2
-# ⇒ libplacebo 自己禁掉（日志："Disabling HDR peak computation
-# (compute shaders=0, SSBO=1)"）⇒ 真 HDR 输出（G2）不成立。
+# 【为什么挪走】补丁改的是 mpv 的 C 源码，必须在 meson/ninja **之前**生效；
+# 放在 stage（只做搬运）这一步里毫无意义，反而让人误以为"搬一下就有补丁"。
+# 现在 build-libmpv.sh 会：复位源码 → 打 ES3 补丁 → 打 HDR surface 补丁 →
+# 校验补丁标记 → 编译 → 校验产物里的标记。任何一步不过就中止。
 #
-# 【怎么做】在 mpv 源码树里跑一次（幂等：已打过会直接报错退出）：
-#     python android/app/buildscripts/mpv/patch-mpv-es3.py
-# 它改三处，并且**都带回退**（拿不到 ES3 config/context 就退 ES2，
-# 画面不会因为要 HDR 就整个没了）。
-#
-# 【重编】meson/ninja + NDK（见 277 计划 §二）。
-# ⚠️ 现代 NDK 没有 libpthread.a（Android 的 pthread 在 libc 里）
-#    ⇒ 链接前要造一个空归档占位，否则链接失败：
-#        llvm-ar rcs <某个 -L 目录>/libpthread.a <空.o>
+# 【历史坑，记录一下】
+# 253 时代这里有句"现代 NDK 没有 libpthread.a ⇒ 要造空归档占位"。
+# 2026-11-15 用 NDK 30.0.16248370 + meson 1.12.1 完整重编（225/225）**没有踩到**：
+# meson 用的是 .pc 的 `Libs:`（-lavcodec），不是 `Libs.private:`（-pthread），
+# 所以链接时根本没传 -lpthread。⇒ 该坑在现配置下不存在，不需要占位文件。
 #
 # 【别忘了两个地方都要换】真正随 APK 打包的是 src/main/jniLibs/，
 # cpp/mpv/prebuilt/ 只是 CMake 的 IMPORTED 来源 —— 本脚本两处都拷 ✓。

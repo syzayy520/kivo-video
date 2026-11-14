@@ -1,0 +1,28 @@
+# 只做一件事：给 meson 指定 **build machine（构建机，Windows x86_64）** 的编译器。
+#
+# 为什么需要它（2026-11-15 踩过）：
+# meson 在 cross build 的 `project()` 里会**同时探测 build machine 的 C 编译器**
+# （为了生成构建期工具）。Windows 上默认找不到 `cc`/`gcc`/`cl` ⇒ 探测返回 None
+# ⇒ meson 1.12 直接抛 `AttributeError: 'NoneType' object has no attribute 'split'`，
+# 看起来像 meson 的 bug，其实是环境缺编译器。
+#
+# 253 时代的原始构建是在 **MSYS2 shell** 里跑的（meson-log 里 pkg-config 路径是
+# `C:\msys64\usr\bin\pkg-config.exe`），PATH 里自带 gcc，所以没踩到。
+# 在 Git Bash 里跑就必须显式给一个。
+#
+# 用 MSYS2 的 mingw64 gcc：它是 Windows 原生可执行文件，产出的工具能在构建机上跑。
+# 不把它加进 PATH（避免 mingw 的 dll 与其它工具冲突），只在 meson 参数里点名。
+
+[binaries]
+c = 'C:/msys64/mingw64/bin/gcc.exe'
+cpp = 'C:/msys64/mingw64/bin/g++.exe'
+ar = 'C:/msys64/mingw64/bin/ar.exe'
+strip = 'C:/msys64/mingw64/bin/strip.exe'
+windres = 'C:/msys64/mingw64/bin/windres.exe'
+pkg-config = 'C:/msys64/usr/bin/pkg-config.exe'
+
+[host_machine]
+system = 'windows'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'

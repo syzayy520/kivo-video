@@ -40,6 +40,16 @@ internal class MpvStartSequence(
      * 这里却又用 `app` 重犯了一遍 ⇒ 改成显式参数，从根上断掉这条路。）
      */
     private val intent: android.content.Intent? = null,
+    /**
+     * 播放栈选型（内核 / 出画通路 / 真 HDR）。
+     *
+     * 【默认值就是"算一次"】[PlaybackStack.resolve] 只用 [app] 与 [intent]，
+     * 两者在构造时都已就绪 ⇒ 默认参数求值即可得到与
+     * `PlayerComposeActivity.prepareHdrSurface` **完全相同**的结果
+     * （280 之前那两处各算一遍、输入还不等价，会推出矛盾组合）。
+     * 调用方如果已经算过，传进来复用即可，避免重复读系统属性。
+     */
+    private val stack: PlaybackStack.Decision = PlaybackStack.resolve(app, intent),
 ) {
 
     /**
@@ -101,14 +111,17 @@ internal class MpvStartSequence(
         //    ⇒ 242 个文件、125.6 MB 常驻原生堆）⇒ 只给它"最小字体集"。
         val fonts = SubtitleFontSet.prepare(app)
         val native = MpvSession.create(app)
-        // 【278 · 出画通路】默认走 **mpv 自己的 gpu-next VO**（完整 libplacebo 渲染器
-        //   ⇒ ES3 context ⇒ compute shader ⇒ HDR 峰值计算不再被禁）。
-        //   与 SenPlayer 同架构。决策点见 [PlaybackRenderMode]（设置项/系统属性/intent 三层）。
+        // 【280 · 出画通路】选型来自 [PlaybackStack]（唯一决策点）：
+        //   gpu-next = mpv 自己的 VO + 完整 libplacebo 渲染器
+        //              （ES3 context ⇒ compute shader ⇒ HDR 峰值计算不再被禁，与 SenPlayer 同架构）；
+        //   libmpv   = render API + legacy RA（无 compute shader，回退用）。
         //   Surface 由 native 层通过 `wid` 选项交给 mpv（见 mpv_session.cpp）。
-        val vo = if (useGpuNext()) "gpu-next" else "libmpv"
-        // 278-P2：真 HDR 输出只在 gpu-next 通路上有效（legacy RA 没有 libplacebo）。
-        val hdrSurface = HdrOutputSwitch.isEnabled(app, PlaybackRenderMode.resolve(app, intentRenderMode()))
-        NetDiag.log("[hdr] 内核侧 hdrSurface=$hdrSurface（通路=${PlaybackRenderMode.resolve(app, intentRenderMode())}）")
+        val vo = stack.vo
+        // 真 HDR 输出（10bit Surface + BT.2020 PQ）。**已含设备能力闸门**：
+        // 设备 gralloc 不支持 10bit 时这里就是 false（见 [HdrOutputSwitch]），
+        // 所以调用方不必再判一次 —— 280 之前这里有第二份判断，会与 Activity 侧不一致。
+        val hdrSurface = stack.hdrOutput
+        NetDiag.log("[hdr] ${stack.describe()}")
         native.initialize(
             vo = vo,
             ao = "audiotrack",
@@ -186,8 +199,8 @@ internal class MpvStartSequence(
      * 否则内核已经选完轨了，设了也不生效。
      */
     private fun applyPlaybackPolicy(native: MpvSession) {
-        // 278 · 出画通路记录（哪条路出的画 ⇒ 出问题时第一眼能定位）。
-        if (useGpuNext()) {
+        // 280 · 出画通路记录（哪条路出的画 ⇒ 出问题时第一眼能定位）。
+        if (stack.renderMode == PlaybackRenderMode.GPU_NEXT) {
             NetDiag.log("[color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）")
         } else {
             NetDiag.log("[color] 出画模式 = legacy（render API + legacy RA）")
@@ -234,33 +247,10 @@ internal class MpvStartSequence(
      */
     private fun intentDemuxerMb(): Int = intent?.getIntExtra("kivo.demuxerMb", 0) ?: 0
 
-    /**
-     * 278 · 出画通路决策（默认 gpu-next，与 SenPlayer 同架构）。
-     *
-     * 【决策点在别处】[PlaybackRenderMode] 负责"走哪条"的全部规则：
-     * 系统属性 `debug.kivo.renderMode` > intent `--es kivo.renderMode` > 用户设置 > 默认。
-     * 这里只做 intent 参数的取名与转交。
-     *
-     * 【为什么默认 gpu-next】278 的真机对照（同设备同片源同时段，量**上屏**帧）：
-     * legacy 23.97 fps / 间隔 max 55.8 ms；gpu-next 23.98 fps / 间隔 max 47.9 ms
-     * ⇒ 换渲染器无性能代价，而 HDR 能力与 SenPlayer 对齐。
-     */
-    private fun useGpuNext(): Boolean =
-        PlaybackRenderMode.useGpuNext(app, intentRenderMode())
-
-    /**
-     * intent 里显式指定的出画通路（取证脚本用；null = 没指定）。
-     *
-     * 【兼容 277 时代】`--ez kivo.gpuNext true` 仍按 gpu-next 处理。
-     */
-    private fun intentRenderMode(): String? {
-        val override = intent?.getStringExtra("kivo.renderMode")
-        if (override != null) return override
-        if (intent?.getBooleanExtra("kivo.gpuNext", false) == true) {
-            return PlaybackRenderMode.GPU_NEXT
-        }
-        return null
-    }
+    // 280：出画通路与 HDR 的决策已全部上收到 [PlaybackStack]。
+    // 这里原来有 useGpuNext() 与 intentRenderMode() 两个私有函数，
+    // 与 PlayerComposeActivity 各自算一遍、且输入不等价（一个读 kivo.renderMode，
+    // 一个还兼容 kivo.gpuNext）⇒ 已删除，只保留 PlaybackStack 一处。
 
     companion object {
         /**

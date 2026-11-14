@@ -253,24 +253,25 @@ class PlayerComposeActivity : ComponentActivity() {
     }
 
     /**
-     * 278-P2 · 按开关把 Surface 配成 HDR（10bit + BT2020_PQ）或退回默认 8bit。
+     * 280 · 按开关把 Surface 配成 HDR（10bit + BT2020_PQ）或退回默认 8bit。
      *
      * 【为什么在这里】这是 Surface 生命周期里**最早**拿到 holder 的地方，
      * 且在 mpv 拿到 Surface 之前 ⇒ 顺序正确。
+     *
+     * 【为什么用 [PlaybackStack] 而不是各读各的 intent】280 之前这里读
+     * `intent.getStringExtra("kivo.renderMode")`，而 `MpvStartSequence` 读的是
+     * 一个**还兼容 `kivo.gpuNext`** 的版本 ⇒ 两者输入不等价，会推出
+     * "Surface 8bit 但内核要 10bit" 的矛盾组合（在支持 10bit 的设备上会挂死）。
+     * 现在两处都走同一个 [PlaybackStack.resolve]，输入相同 ⇒ 结果必然一致。
      */
     fun prepareHdrSurface(holder: SurfaceHolder) {
-        val renderMode = com.kivo.cinema.playback.PlaybackRenderMode.resolve(
-            this, intent.getStringExtra("kivo.renderMode")
-        )
-        val wantHdr = com.kivo.cinema.playback.HdrOutputSwitch.isEnabled(this, renderMode)
-        val result = if (wantHdr) {
+        val stack = com.kivo.cinema.playback.PlaybackStack.resolve(this, intent)
+        val result = if (stack.hdrOutput) {
             com.kivo.cinema.playback.HdrSurfaceConfig.enableHdrSurface(holder, holder.surface)
         } else {
             com.kivo.cinema.playback.HdrSurfaceConfig.disableHdrSurface(holder, holder.surface)
         }
-        com.kivo.cinema.net.NetDiag.log(
-            "[hdr] 渲染通路=$renderMode 真HDR输出=${if (wantHdr) "开" else "关"} ⇒ $result"
-        )
+        com.kivo.cinema.net.NetDiag.log("[hdr] ${stack.describe()} ⇒ $result")
     }
 
     fun onSurfaceLost() {

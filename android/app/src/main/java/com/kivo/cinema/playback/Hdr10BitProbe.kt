@@ -57,6 +57,16 @@ internal object Hdr10BitProbe {
             false
         }
         cached = result
+        // 【留痕放在探测者自己身上，而且只在真正探测的这一下】
+        // 280 之前这句在 [HdrOutputSwitch] 里 ⇒ 每调一次 isEnabled 就打一遍，
+        // 真机实测起播时同一条降级原因刷了 3 次（Activity 一次 + 内核侧一次 +
+        // Surface 重建又一次）。降级原因必须留痕，但**一次就够**。
+        if (!result) {
+            com.kivo.cinema.net.NetDiag.log(
+                "[hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer" +
+                    "（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径"
+            )
+        }
         return result
     }
 

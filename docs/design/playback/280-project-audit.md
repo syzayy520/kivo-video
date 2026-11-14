@@ -194,3 +194,88 @@ PrefetchBuffer / PrefetchKit / ConnectionLease / HttpConnection / LatencyStats /
 
 3. **下一步优先级**：构建可复现性（1）vs 本地迁移（3）—— 两者都能立刻开工，
    我按上表顺序做，除非你要调整。
+
+---
+
+## 五、执行记录 · 第一批（2026-11-15 06:4x，已真机验证）
+
+用户裁决：**① 按建议顺序做；② 旧内核「迁完就整体删除」。**
+
+### 5.1 P0-2 已修：构建链恢复（4 个文件补齐）
+
+`android/app/buildscripts/mpv/` 现状：
+
+| 文件 | 作用 |
+| --- | --- |
+| `toolchain.env` | **唯一环境真相源**：NDK 路径/版本、API 级别、三个依赖路径、pkg-config。**带 clang 版本自检** |
+| `cross-android-arm64.txt` | meson 跨编译配置（目标机 Android arm64） |
+| `native-windows.txt` | meson 构建机配置（Windows x86_64）——**家族树原本没规划，实necessity** |
+| `build-libmpv.sh` | 唯一入口：复位源码 → 打两个补丁 → 校验 → 编译 → 校验产物 |
+| `stage-libmpv.sh` | 搬运到 App 打包目录（现在可接受任意产物路径） |
+
+**为什么多了第 5 个文件（native-windows.txt）**：家族树只规划了 4 个。
+实测在 Git Bash 里 meson 会探测**构建机**的 C 编译器（为生成构建期工具），
+Windows 默认没有 `cc`/`gcc`/`cl` ⇒ 探测返回 None ⇒ meson 1.12 直接抛
+`AttributeError: 'NoneType' object has no attribute 'split'`（伪装成 meson bug）。
+原构建是在 **MSYS2 shell** 里跑的（PATH 自带 gcc）所以没暴露。⇒ 必须显式给 native file。
+
+**为什么不需要 `pkg-config-shim.py`**（家族树规划了它）：三个依赖的 `.pc` 里是
+POSIX 路径（`prefix=/c/re-tools/...`），而 **msys 版 pkg-config 自带 POSIX→Windows
+路径转换**，实测 `Found pkg-config: YES (C:/msys64/usr/bin/pkg-config.exe) 3.0.10`
+且 8 个依赖全部 `found: YES`。写 shim 属于"没用的东西"（违反铁律），故不写。
+
+### 5.2 顺带查出的真隐患：**当前 .so 是两代 clang 混编的**
+
+`meson-info/intro-compilers.json` 记录原始构建用的是 **clang 21.0.0 = NDK 30.0.16248370**，
+而 2026-11-15 凌晨做过的一次"增量重编"加的是 **NDK 27.0.12077973（clang 18.0.1）** 的 PATH。
+⇒ 同一个 `libmpv.so` 里混了两代编译器产出的目标文件。功能上验证过没问题，
+但**构建不可信**。`toolchain.env` 已加自检把它钉死（版本不对直接失败）。
+
+### 5.3 验证：从零完整重编通过
+
+```
+bash android/app/buildscripts/mpv/build-libmpv.sh --clean
+→ [225/225] Linking target libmpv.so
+→ 产物 /tmp/kivo-mpv-clean-064157/libmpv.so  31 MiB
+→ ✅ ES3 补丁   ✅ HDR surface 补丁   ✅ libplacebo   ✅ vo_gpu_next
+```
+
+**踩到的三个环境坑（都已写进脚本注释）**：
+1. `PATH` 里加 `/c/msys64/usr/bin` ⇒ `meson` 解析到 msys 那个 shebang 是
+   `#!/usr/bin/python` 的版本 ⇒ `bad interpreter`。msys 的 pkg-config **只在
+   cross file 里用绝对路径调用**，不进 PATH。
+2. meson machine file **不支持多行数组** ⇒ `Malformed machine file`。必须单行。
+3. 构建目录在 `C:\re-tools\`（safe-delete 保护内）⇒ meson setup 内部删临时文件
+   会被拦断。`--clean` 因此改用 `/tmp` 下的**带时间戳新目录**（既"全新"又不触删除保护）。
+
+### 5.4 P1-1 已修：HDR 双份决策合并为单一入口
+
+**新增 `playback/PlaybackStack.kt`** —— 唯一决策入口，返回
+`Decision(engine, renderMode, hdrOutput, vo)` 四件套，并统一了 intent 解析
+（`kivo.renderMode` 与兼容的 `kivo.gpuNext` **只在这里解析一次**）。
+
+改动：
+- `MpvStartSequence`：构造参数加 `stack: Decision = PlaybackStack.resolve(app, intent)`
+  （默认值即"算一次"，调用方无需改动）；删掉 `useGpuNext()` 与 `intentRenderMode()` 两个私有函数。
+- `PlayerComposeActivity.prepareHdrSurface`：改调 `PlaybackStack.resolve(this, intent)`。
+- 三个原文件（`PlaybackEngine` / `PlaybackRenderMode` / `HdrOutputSwitch`）**保持单职责不动**，
+  PlaybackStack 只做聚合。
+
+**真机验证（K40 b6e950ee，本地 HDR10 装置）**：
+```
+[hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）   ← Activity 侧
+[hdr] 内核=mpv 出画=gpu-next 真HDR=关                                        ← 内核侧
+```
+⇒ **两处结论完全一致**（280 之前会因输入不等价而矛盾）。画面 mean=91.7 / max=194
+（与 274 的 HDR L2 基线逐项一致）⇒ 干净重编的 libmpv 行为无回归。
+
+### 5.5 顺带修掉：降级日志重复 3 次
+
+真机日志里"gralloc 不支持 10bit"刷了 3 次（Activity 一次 + 内核侧一次 + Surface 重建一次）。
+根因：`HdrOutputSwitch` 在**缓存命中之后**仍每次打日志。
+⇒ 把留痕移到 `Hdr10BitProbe.supports10Bit()` 的**首次探测分支**（探测者自己报告探测结果）。
+验证：从 3 次降到 **1 次**。
+
+### 5.6 下一步
+
+P0-1（本地文件走 mpv）—— 用户已裁决"迁完就整体删除旧内核"。
