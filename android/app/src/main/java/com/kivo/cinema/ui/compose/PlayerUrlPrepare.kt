@@ -90,6 +90,22 @@ internal fun PlayerComposeActivity.prepareUrlSource(): PlayerUrlPrep? {
         tailWindowBytes = tailWindowBytes(),
         seekWindowBytes = HttpOriginSource.DEFAULT_SEEK_WINDOW_BYTES,
         sizeHint = sizeHint,
+        // 274 · 实验开关：覆盖预读环容量（MiB）。
+        //
+        // 【为什么环是降超买的关键旋钮】
+        // 真机/装置实测（确定性本地源，60 s，内核 7 个请求）：
+        //   环 8 MiB ⇒ 每 reader 预读 12 MiB（环 8 + carry 4）⇒ 实下 70.1 MiB，
+        //   而 60 s 播放只需 18.7 MiB ⇒ **超买 3.7 倍**。
+        //   浪费的构成 = 环里内核没消费的部分（8 − 2.7 ≈ 5.3 MiB）
+        //              + 在途的那个 4 MiB 块。
+        // ⇒ 环越小 ⇒ 预读泵越早收手 ⇒ 下载越少。
+        //
+        // 【安全条件】carry + 环 ≥ 块大小（4 MiB）。
+        //   carry 的职责是"把当前块读完"让连接能回 keep-alive 池；
+        //   若 carry + 环 < 块大小，环满时剩余装不进 carry ⇒ 预读泵永远
+        //   走 awaitRoom ⇒ 环满等内核、内核等数据 ⇒ **双向饿死**
+        //   （274 L1 把 carry 压到 1 MiB 就是这么炸的：帧率 4.13）。
+        capacityBytes = intentRingBytes(),
     )
     val prep = PlayerUrlPrep(source)
     Thread({
@@ -168,3 +184,16 @@ internal fun PlayerComposeActivity.tailWindowBytes(): Long {
  * 真机实测握手 1.0–1.6 s ⇒ 2.5 s 足够，等它没有意义。
  */
 internal const val PREP_READY_WAIT_MS = 2_500L
+
+/**
+ * 274 · 实验开关：预读环容量（字节）。
+ *
+ * 【来源】Activity 的 intent `--ei kivo.ringMb N`。
+ * 【缺省】0 = 用默认（8 MiB）。
+ * 【安全条件】carry(4 MiB) + 环 ≥ 块大小(4 MiB) ⇒ 环 ≥ 0 恒成立，但环太小
+ *   会让内核频繁等预读 ⇒ 环 ≥ 1 MiB 才有意义。
+ */
+internal fun PlayerComposeActivity.intentRingBytes(): Int {
+    val mb = intent.getIntExtra("kivo.ringMb", 0)
+    return if (mb > 0) mb * 1024 * 1024 else com.kivo.cinema.net.HttpOriginReader.DEFAULT_CAPACITY_BYTES
+}

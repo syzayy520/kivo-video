@@ -199,6 +199,8 @@ class HttpOriginSource(
      * 预览的环按 2 MiB 给（[PlayerUrlStart.THUMB_CAPACITY_BYTES]）。
      */
     fun openReader(offset: Long, capacity: Int): ByteSource {
+        // 274 · 诊断：环容��到底传没传下去（缩环实验曾"无效"，需要一次定论）。
+        NetDiag.log("[ring] openReader offset=$offset capacity=${capacity / 1048576}MiB")
         val openDelegate: (Long) -> ByteSource = { at ->
             HttpOriginReader(client, at, capacity, label)
         }

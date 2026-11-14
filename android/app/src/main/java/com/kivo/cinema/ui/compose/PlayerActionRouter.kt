@@ -45,6 +45,16 @@ internal fun PlayerComposeActivity.resolutionLabel(): String {
  *   只给"拖动/跳转到未缓存位置"用；双击快进/快退是小幅跳转，不需要等。
  */
 internal fun PlayerComposeActivity.seekTo(ms: Long, waitLandingFirstSlice: Boolean = false) {
+    // 274 · 实验开关：`--ei kivo.noWaitLanding 1` ⇒ 跳过"落点前置等待"（回到 v35 行为）。
+    //
+    // 【为什么要这个开关】在确定性本地源（0.6 MB/s = 1.9×码率）上实测：
+    //   无拖动 23.87 fps · 带拖动 **5.32 fps** ⇒ **拖动是元凶**。
+    // 而"落点前置等待"（v42）会让内核**等 4 MiB 的落点窗口就绪**，
+    // 慢源站下这个窗口要十几秒 ⇒ 预取泵抢光带宽 ⇒ **播放被饿死**。
+    // ⇒ 这个开关用来把"等待"这一项单独摘出来验证。
+    val waitLanding = waitLandingFirstSlice &&
+        intent.getIntExtra("kivo.noWaitLanding", 0) == 0
+
     // 273 v35：落点预取与"用哪个内核"**无关** —— 先把落点那一簇抓进内存，
     // 再让内核跳过去。
     //
@@ -81,7 +91,7 @@ internal fun PlayerComposeActivity.seekTo(ms: Long, waitLandingFirstSlice: Boole
     //
     // 【为什么 landingOffset < 0 就不等】预取没发起（cues 没备好 / 落点超出
     // 片源长度 / 落点已在窗口内）⇒ 没有可等的窗口 ⇒ 直接跳。
-    if (waitLandingFirstSlice && source != null && landingOffset >= 0L) {
+    if (waitLanding && source != null && landingOffset >= 0L) {
         seekAfterLandingReady(ms, source, landingOffset)
         return
     }

@@ -71,7 +71,16 @@ internal class MpvStartSequence(
         //    【为什么不需要 open()】ByteSource 的语义是"打开即已就绪"
         //    （SmbByteSource.open() 里已经建好连接并拿到了大小），
         //    而 RangeSource 那种"分阶段 open"的形态是给 fd 路径用的。
-        val proxy = LocalRangeServer.start()
+        //
+        //    【274 · 单次响应上限（实验开关）】播放主链路默认**不限**（0），
+        //    而 273 v12 给预览设了上限（PREVIEW_MAX_RANGE_BYTES）。
+        //    播放主链路不限 ⇒ 内核拿到第一帧就 seek 走时，代理还在往一个
+        //    没人读的 socket 里灌数据（真机 v18：预览取 1 帧顺序拉了 24 MiB）
+        //    ⇒ 这是"超买"的一大半。
+        //    ⇒ 实验用 `--ei kivo.maxRangeMb N` 覆盖，0 = 不限（保持旧行为）。
+        val proxy = LocalRangeServer.start(
+            maxRangeBytes = intentMaxRangeBytes(),
+        )
         val registeredId = proxy.register(input)
         val url = proxy.urlFor(registeredId)
 
@@ -137,8 +146,38 @@ internal class MpvStartSequence(
         val alang = prefs.audioAlang()
         if (alang.isNotEmpty()) native.setProperty("alang", alang)
         // 缓冲上限：按当前网络（Wi-Fi/蜂窝）取用户设的 demuxer 上限。
-        native.setProperty("demuxer-max-bytes", prefs.demuxerMaxBytes())
+        //
+        // 【274 · 实验开关】`--ei kivo.demuxerMb N` 覆盖。
+        //   【为什么这个旋钮重要】273 v25 在 C++ 侧把它收成 32 MiB，
+        //   但**这一行又覆盖回用户偏好的 64 MiB**（真机内核日志：
+        //   `Set property: demuxer-max-bytes="64MiB" -> 1`）⇒ v25 从未生效。
+        //   真机 240 s 长稳：内核缓存顶格 `total=71-72 M`（64 前向 + 8 回看），
+        //   而 35 s 播放只需 11 MiB ⇒ **67 MiB 是内核吃饱了不读、代理还在灌的浪费**。
+        val demuxerMb = intentDemuxerMb()
+        native.setProperty(
+            "demuxer-max-bytes",
+            if (demuxerMb > 0) "${demuxerMb}MiB" else prefs.demuxerMaxBytes(),
+        )
     }
+
+    /**
+     * 274 · 实验开关：覆盖单次响应上限（字节）。
+     *
+     * 【来源】Activity 的 intent `--ei kivo.maxRangeMb N`。
+     * 【缺省】0 = 不限（= 旧行为）。
+     */
+    private fun intentMaxRangeBytes(): Long {
+        val mb = (app as? android.app.Activity)?.intent?.getIntExtra("kivo.maxRangeMb", 0) ?: 0
+        return if (mb > 0) mb.toLong() * 1024L * 1024L else 0L
+    }
+
+    /**
+     * 274 · 实验开关：覆盖 demuxer 缓存上限（MiB）。
+     *
+     * 【来源】Activity 的 intent `--ei kivo.demuxerMb N`。
+     * 【缺省】0 = 用用户偏好（= 旧行为）。
+     */
+    private fun intentDemuxerMb(): Int = (app as? android.app.Activity)?.intent?.getIntExtra("kivo.demuxerMb", 0) ?: 0
 
     companion object {
         /**
