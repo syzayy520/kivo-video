@@ -3952,3 +3952,48 @@ Enter buffering    0 次
 而事实上**服务器上本来就有一份 0.49 MB/s 的同款 1080p**。
 `PlaybackInfo` 一次请求里就写着这个答案 —— **先读全量数据，再决定优化方向。**
 
+
+### 28.7 选源逻辑的验证强度（诚实分级）
+
+| 验证方式 | 结果 | 强度 |
+| --- | --- | --- |
+| 真机播 1080p 版本 | 23.79 fps / 0 缓冲（`src1080/`） | ✅ 最强（目标行为已达成） |
+| 真机播 4K 版本 | 1.53 fps（`4k-485/`） | ✅ 最强（问题已复现） |
+| **选源算法等价实现**（Python 逐条对齐 Kotlin 分支） | 5/5 用例符合预期（见下） | ⚠️ 中（逻辑对，但不是跑 Kotlin 代码） |
+| **instrumentation 跑 `EmbySourcePicker`** | ❌ **未跑成** | 见下 |
+
+**等价实现验证（输入 = 485 的真实数据 + 4 个边界）**：
+
+| 用例 | 期望 | 实际 |
+| --- | --- | --- |
+| 485 真实数据（4K 排在前面） | 选 1080p | ✅ `aafdd622…` / 4,107,522 bps / 4116 MB |
+| 全部超阈值（54.6 / 20 Mbps） | 取最小 + reason 写明 | ✅ `big-b`（20 Mbps）"全部超阈值" |
+| 单版本 4K | 仍然选它 | ✅ `only-4k` "只有一个版本" |
+| 空 | 回退旧行为（null） | ✅ `null` |
+| 多个可播（4K / 1080 / 720） | 取可播里最高（1080） | ✅ `a-1080` |
+
+### 28.8 ⚠️ 顺带发现：`androidTest` 模块**当前编译不过**（与本案无关，但挡住了 instrumentation）
+
+写好的 `EmbySourcePickerInstrumentation` **跑不起来**，原因不在它：
+
+```
+e: MpvControlPlaneInstrumentation.kt:83:31  No value passed for parameter 'onReady'
+e: MpvReconnectInstrumentation.kt:84:31     No value passed for parameter 'onReady'
+e: MpvSessionPathInstrumentation.kt:72:31   No value passed for parameter 'onReady'
+e: MpvSubtitleDiagnosticInstrumentation.kt:84:31  （同上）
+e: MpvSubtitleEvidenceInstrumentation.kt:94:31    （同上）
+```
+
+**5 个 mpv 验收测试都写 `session.start(surface) { r -> }`**，
+而 `MpvPlaybackSession.start(surface, onReady, startSeconds, loadGate)` 的**参数顺序演进过**
+⇒ 编译器把尾随 lambda 当成 `loadGate`（`PlaybackLoadGate?`）⇒ 类型不匹配。
+
+⇒ **这是历史遗留的测试腐化，不是本卡引入的**，本卡不去改它
+（改 5 个验收测试超出范围，且需要确认当时的调用意图）。
+
+⇒ **影响**：`assembleDebug` 正常（app 代码不受影响），但 `packageDebugAndroidTest` 失败
+⇒ **任何 instrumentation 都跑不了**（包括本卡的选源测试）。
+
+⇒ **建议单开一张卡**：修 5 个 mpv 验收测试的 `start()` 调用，恢复 instrumentation 能力
+（那 5 个测试是 253 内核的验收资产，现在等于**全部失效**）。
+

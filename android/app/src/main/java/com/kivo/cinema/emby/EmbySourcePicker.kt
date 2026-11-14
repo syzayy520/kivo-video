@@ -26,6 +26,9 @@ import org.json.JSONArray
  * 本类**只回答"用哪个 MediaSourceId 播"**。详情页展示的技术规格仍取
  * `MediaSources[0]`，用户看到的还是片源本来面目 —— 不动 UI。
  *
+ * 【为什么不是 internal】`androidTest` 是独立模块，看不到 app 的 `internal`
+ * ⇒ 想用 instrumentation 验证选源结果，必须是 public。这个类是纯函数式工具，公开无副作用。
+ *
  * ## 阈值怎么定
  *
  * [MAX_PLAYABLE_BPS] = **12 Mbps（1.5 MB/s）**：真机单连接能力 1.10–2.16 MB/s，
@@ -34,7 +37,7 @@ import org.json.JSONArray
  * 全都超标时**退回码率最小的那个** —— 它仍是最可能播得动的，
  * 并且由 [Pick.reason] 明确写出"全部超阈值"，不静默。
  */
-internal object EmbySourcePicker {
+object EmbySourcePicker {
 
     /** 单条流的码率上限（bps）。超过它就不指望能流畅。 */
     private const val MAX_PLAYABLE_BPS = 12_000_000L
