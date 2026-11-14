@@ -72,6 +72,16 @@ class HttpOriginSource(
      */
     seekWindowBytes: Long = 0L,
     /**
+     * 274 · 实验开关：预览源是否也在"落点窗口在飞"时让路。
+     *
+     * 【默认】false = 预览**不让路**（新行为，见 init 块的真机数据）。
+     * 【对照臂】true = 旧行为（预览也让路），用于装置 A/B。
+     *
+     * 【为什么默认改了】真机实测：预览被自己的闸门掐掉 ⇒ 内核等 8.9 秒。
+     * 而预览那一跳**也在关键路径上**（内核在等它出帧）⇒ 让路给它 = 饿死它。
+     */
+    private val yieldThumbToLanding: Boolean = false,
+    /**
      * **外给**的片源总长（Emby 详情里就有，零额外请求）。
      *
      * 【它只用来让片尾预取提前发请求】代理写响应头用的总长
@@ -127,7 +137,40 @@ class HttpOriginSource(
 
     init {
         // 273 v31：落点窗口在飞时，主链路预读让路（真机 v30 落点只拿到 632 KB/s）。
-        client.landingInFlight = { prefetchKit.windowCache.hasPending(OriginWindowCache.TAG_SEEK) }
+        //
+        // 274 · **只对 play 主链路生效**（新增 `yieldToLanding` 开关）。
+        //
+        // 【为什么不能对所有源都生效】thumb 与 play 共用同一个 `windowCache`
+        // ⇒ thumb 的闸门也会看到 **play 的**落点窗口 ⇒ thumb 让路
+        // ⇒ **掐掉预览自己正在下的那一块**。
+        // 真机实测（真实源站，K40）：预览那一跳被掐 ⇒ 内核等了 **8.9 秒**：
+        //
+        // ```
+        // 1794665679777  [thumb] origin chunk from=526193 hdrMs=389 len=1048576
+        // 1794665682346  [thumb] origin 让路：掐掉在飞的块
+        // 1794665687557  [thumb] origin 恢复预读（让路结束）
+        // ⇒ GET range=bytes=526193- ms=8908
+        // ```
+        //
+        // 【为什么预览不该让路】v31 的让路规则针对的是"**主链路**在抢带宽"
+        // （v30 实测：主链路同时拉三块 4 MiB，与落点窗口重叠）。
+        // 但**预览的那一跳也在关键路径上**（内核在等它出帧）⇒ 让路给它 = 饿死它。
+        //
+        // 【默认】主链路（label == "play"）让路；预览（label == "thumb"）不让。
+        // ⇒ 保留旧行为的对照臂由 `kivo.yieldThumbToLanding` 开关控制。
+        client.landingInFlight = {
+            yieldToLanding && prefetchKit.windowCache.hasPending(OriginWindowCache.TAG_SEEK)
+        }
+    }
+
+    /**
+     * 本源是否在"落点窗口在飞"时让路。
+     *
+     * 【为什么预览源不让】见 init 块的注释（真机：预览被自己的闸门掐死，等了 8.9 秒）。
+     */
+    private val yieldToLanding: Boolean = when {
+        label == "thumb" -> yieldThumbToLanding
+        else -> true
     }
 
     /**

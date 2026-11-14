@@ -73,6 +73,8 @@ internal fun PlayerComposeActivity.startUrlPlayback(holder: SurfaceHolder, url: 
                 url, token, "thumb", THUMB_CAPACITY_BYTES, thumbChunkBytes(), 0,
                 tailWindowBytes = 0,
                 externalWindowCache = main.windowCache,
+                // 274 · 实验开关：预览是否也在落点窗口在飞时让路（默认否）。
+                yieldThumbToLanding = intent.getIntExtra("kivo.yieldThumbToLanding", 0) == 1,
             )
             thumbRef = thumb
             runOnUiThread {

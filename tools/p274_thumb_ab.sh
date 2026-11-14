@@ -34,7 +34,7 @@ $ADB shell "run-as com.kivo.cinema sh -c ': > files/net-diag.log; : > files/mpv-
 $ADB shell am start -n com.kivo.cinema/.ui.compose.PlayerComposeActivity \
   --es kivo.playurl "$URL_LOCAL" --es kivo.embyToken "$TOKEN" --el kivo.playSize 1935985234 \
   --es kivo.landSeekSecs "$SECS_LIST" --ei kivo.landSeekDelayMs 9000 \
-  --ei kivo.thumbChunkKb "$CHUNK_KB" --ei kivo.thumbMaxRangeKb "${MAXRANGE_KB:-0}" --es kivo.label "$LABEL" >/dev/null 2>&1
+  --ei kivo.thumbChunkKb "$CHUNK_KB" --ei kivo.thumbMaxRangeKb "${MAXRANGE_KB:-0}" --ei kivo.yieldThumbToLanding "${YIELDTHUMB:-0}" --es kivo.label "$LABEL" >/dev/null 2>&1
 sleep 45
 
 $ADB exec-out "run-as com.kivo.cinema cat files/mpv-kernel.log" > "$OUT/kernel.log" 2>/dev/null
