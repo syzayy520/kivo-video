@@ -1,0 +1,27 @@
+{
+  "schema": "kivo.v31.thumbnail\/1",
+  "generated_at_unix_ms": 1794600968059,
+  "source": "",
+  "thumbnail": {
+    "requests": 2,
+    "cache_hits": 0,
+    "decode_failures": 0,
+    "evictions": 0,
+    "cache_size_final": 3,
+    "cache_max": 50,
+    "init_ms": 3338,
+    "init_retries": 0,
+    "cold_first_latency_ms": 1683,
+    "warm_count": 1,
+    "warm_p50_ms": 2598,
+    "warm_p95_ms": 2598,
+    "warm_max_ms": 2598,
+    "frame_seq": 3,
+    "frames_acquired": 3,
+    "grabs": [
+      "t=0 land=0.0 wait=2432ms ok px0=ff000000",
+      "t=475 land=471.8 wait=1683ms ok px0=ff000000",
+      "t=1805 land=1805.3 wait=1755ms ok px0=ff000000"
+    ]
+  }
+}

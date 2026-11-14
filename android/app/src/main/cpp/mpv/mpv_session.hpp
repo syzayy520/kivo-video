@@ -66,8 +66,13 @@ public:
     /// @param vo mpv 的视频输出名（Android 上用 "libmpv"）。
     /// @param ao mpv 的音频输出名；空 = "null"（不出声，见实现里的说明）。
     /// @param log_file mpv 日志落盘路径；空 = 不落盘。
+    /// @param sub_fonts_dir 字幕字体目录；空 = 不设字体选项（见 mpv_options.hpp）。
+    /// @param sub_font_family 字幕字体族名；空 = 用 mpv 默认族。
     [[nodiscard]] bool initialize(const std::string& vo, const std::string& ao,
-                                 const std::string& log_file, std::string& error);
+                                 const std::string& log_file,
+                                 const std::string& sub_fonts_dir,
+                                 const std::string& sub_font_family,
+                                 std::string& error);
 
     /// 绑定一个 Android Surface 作为视频输出目标。
     ///
@@ -94,8 +99,16 @@ public:
     [[nodiscard]] int video_width() const;
     [[nodiscard]] int video_height() const;
 
+    /// 已经**上屏**过至少一帧（true）。
+    ///
+    /// 【为什么单独给一个接口】上层要判"用户看到画面了没有"。
+    /// 内核的播放位置 > 0 只说明时钟在走，画面还没画出来 ——
+    /// 真机上这两个时刻差 1.5–2.8 s，用位置当首帧会把"还在黑屏"说成"正在播放"。
+    [[nodiscard]] bool first_frame_rendered() const;
+
     /// 打开一个 URL（可以是本地路径，也可以是 `smb://` / `http://`）。
-    [[nodiscard]] bool load_file(const std::string& url, std::string& error);
+    /// `start_seconds` > 0 时用 mpv 的每文件选项 `start=`，让内核打开即落到该位置。
+    [[nodiscard]] bool load_file(const std::string& url, double start_seconds, std::string& error);
 
     /// 下发一条 mpv 命令。`args` 是命令名之后的参数（已按 mpv 的格式序列化）。
     [[nodiscard]] bool command(const std::string& name, const std::string& args, std::string& error);

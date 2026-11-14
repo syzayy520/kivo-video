@@ -1,0 +1,522 @@
+{
+  "fetched_at_epoch_ms": 1794627429973,
+  "source": "\/trending\/all\/week?language=zh-CN",
+  "items": [
+    {
+      "id": 1368337,
+      "is_tv": false,
+      "title": "奥德赛",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/Aj0Uykxj0vhwVsyrRJka0aM3SP1.jpg"
+    },
+    {
+      "id": 213375,
+      "is_tv": true,
+      "title": "幻视任务",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/9rWX1tRNd1wIf0XnTjd8GOUoTlH.jpg"
+    },
+    {
+      "id": 84773,
+      "is_tv": true,
+      "title": "指环王：力量之戒",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/x4puqjv2DJL5JnicLzEl8YmEkNc.jpg"
+    },
+    {
+      "id": 1400837,
+      "is_tv": false,
+      "title": "另一个妈妈",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/8NhvDXIZXU39wZCJbhUerrJyRnK.jpg"
+    },
+    {
+      "id": 1792170,
+      "is_tv": false,
+      "title": "模范公民",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/vagcyob8HzG9VbWzhqdkXF1CGYN.jpg"
+    },
+    {
+      "id": 1263337,
+      "is_tv": false,
+      "title": "野兽之心",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/k1nznc9xTRkRq0BNu7qOXE3NSlU.jpg"
+    },
+    {
+      "id": 254630,
+      "is_tv": true,
+      "title": "12 12 12",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/bG4h6C6wRKmf3ryz8gdN6imXW4c.jpg"
+    },
+    {
+      "id": 1423191,
+      "is_tv": false,
+      "title": "生化危机：爆发夜",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/qMvRqzzDVfQpLi5ZoKwttTQdaJe.jpg"
+    },
+    {
+      "id": 1567605,
+      "is_tv": false,
+      "title": "寒夜怪谈",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/gphvlHoe0lAmVVK0lpyhlnFTZl4.jpg"
+    },
+    {
+      "id": 1381071,
+      "is_tv": false,
+      "title": "哥斯拉-0.0",
+      "poster_url": "https:\/\/image.tmdb.org\/t\/p\/w780\/51RBWzkFd4zEsOGg4ZIqYlNszHc.jpg"
+    }
+  ]
+}{
+  "schema": "kivo.p12c.sync/45",
+  "generated_at_unix_ms": 1794386848389,
+  "clock_injection": {
+    "offset_ns": 0,
+    "arm_after_ns": 0,
+    "armed_at_position_ns": -1,
+    "rate_ppm": 0
+  },
+  "drift_gate": {
+    "enabled": true,
+    "step_repay": true,
+    "limit_ns": 0,
+    "band_ns": 0,
+    "limit_ppm_equivalent": 0.000000000,
+    "limit_ppm_equivalent_measured": false,
+    "limit_ppm_equivalent_reason": "drift gate limit is unset (0), so there is no tolerance to convert",
+    "limit_reach_s": 0.000000000,
+    "limit_reach_s_measured": false,
+    "limit_reach_s_reason": "drift gate limit is unset (0), so there is no tolerance to convert",
+    "note": "limit_ns is an absolute time, but the gate guards cumulative drift; cumulative drift = rate error x duration. limit_ppm_equivalent = limit_ns / span, i.e. how much rate error this session's gate actually tolerates (5648 ppm at 8 s, 25 ppm at 1800 s). limit_reach_s = limit_ns / |media_rate - 1|, i.e. how long this session would take to reach the gate at its measured rate error. Neither is a pass/fail line"
+  },
+  "drift_rebase_trace": {
+    "rebases": 0,
+    "sampled": 0,
+    "first_at_ns": 0,
+    "max": {"at_ns": 0, "amount_ns": 0, "lead_before_ns": 0},
+    "recent": []
+  },
+  "drift_discontinuity": {
+    "events": 0,
+    "extrapolated": 0,
+    "rejected": 0,
+    "clamped": 0,
+    "jumped": 0,
+    "jump_max_ns": 0,
+    "stepped": 0,
+    "offset_ns": 0,
+    "sampled_offset_ns": 0,
+    "sampled": 0,
+    "first_at_ns": 0,
+    "max": {"at_ns": 0, "kind": "none", "wall_delta_ns": 0, "raw_delta_ns": 0, "step_ns": 0, "lead_before_ns": 0, "lead_after_ns": 0},
+    "recent": []
+  },
+  "device": {
+    "manufacturer": "Xiaomi",
+    "model": "M2012K11AC",
+    "device": "alioth",
+    "soc_model": "SM8250",
+    "sdk": "33",
+    "release": "13",
+    "abi": "arm64-v8a"
+  },
+  "codec": {
+    "video": "",
+    "audio": ""
+  },
+  "source": {
+    "label": "",
+    "bytes": 0,
+    "has_video": true,
+    "has_audio": false,
+    "duration_us": -1,
+    "video": {"mime": "", "width": 0, "height": 0},
+    "audio": {"mime": "", "sample_rate": 0, "channel_count": 0}
+  },
+  "frame_count": 0,
+  "frames_dropped": 0,
+  "xrun_count": 0,
+  "clock_source": "system",
+  "timestamp_fallback_count": 0,
+  "av_drift": {
+    "reference": "audio_clock",
+    "sync_verdict": "unknown",
+    "sync_verdict_reason": "钟与墙的领先量没有样本：同步结论给不出",
+    "lead_ns": 0,
+    "lead_bound_ns": 0,
+    "measurable": false,
+    "sampling": {
+      "mode": "not_measured",
+      "cross_frame_rate_set": null,
+      "interval_ns": 50000000,
+      "target_hz": 20,
+      "frames_observed": 0,
+      "accepted": 0,
+      "media_span_ns": 0,
+      "skipped": 0,
+      "unobserved_cells": 0,
+      "observed_hz": 0.000000,
+      "reason": "av_drift is not measurable on this run; the reason is in unavailable_reason below (no audio attached / clock_source is system / present_schedule is surface_at_time)"
+    },
+    "quantiles": {},
+    "unavailable_reason": "no audio is attached to this session: either the source has no audio track, or audio was disabled for this run (kivo.audio off). Without an audio timeline there is nothing to compare video pts against",
+    "vs_wall": {
+      "reference": "monotonic_wall_clock",
+      "definition": "present_at - (baseline_mono + (pts - anchor_pts)) = lateness - clock_lead; positive means the picture is late against the wall clock",
+      "samples": 0,
+      "first_ns": 0,
+      "last_ns": 0,
+      "worst_ns": 0,
+      "worst_media_ns": 0,
+      "bound_ns": 0,
+      "bound_ppm": 50.000000,
+      "bound_basis": "max(one frame, bound_ppm x wall span): the wall clock stands in for the DAC, and the two can differ by the crystal skew; this is an assumption, not a measurement",
+      "measurable": false,
+      "note": "this is NOT a DAC measurement: there is no second clock source in this pipeline, so read it as 'offset against the wall clock', not as 'offset against what you hear'",
+      "unavailable_reason": "same reason as av_drift above: this run cannot attribute a per-frame offset to A/V sync at all, so subtracting the clock lead would not make it one"
+    }
+  },
+  "present_jitter": {
+    "measured_at": "submit",
+    "samples": 0,
+    "p50": 0,
+    "p50_range_low_ns": 0,
+    "p50_range_high_ns": 0,
+    "p50_bucket_samples": 0,
+    "bucket_width_ns": 250000,
+    "p95": 0,
+    "p99": 0,
+    "p99_range_low_ns": 0,
+    "p99_range_high_ns": 0,
+    "p99_bucket_samples": 0,
+    "max": 0,
+    "histogram": {
+      "count": 0,
+      "below": 0,
+      "above": 0,
+      "min_ns": 0,
+      "max_ns": 0,
+      "bucket_width_ns": 250000,
+      "low_ns": -128000000,
+      "bucket_count": 1024,
+      "buckets": {}
+    }
+  },
+  "dropped_events": {
+    "total": 0,
+    "sampled": 0,
+    "truncated": false,
+    "recent": []
+  },
+  "timeline": {
+    "nominal_span_ns": 0,
+    "media_pts_span_ns": 0,
+    "media_span_frames": 0,
+    "present_wall_span_ns": 0,
+    "lead_correction_ns": 0,
+    "corrected_wall_span_ns": 0,
+    "nominal_rate": 0.000000,
+    "media_rate": 0.000000000,
+    "media_rate_measured": false,
+    "media_rate_scope": "session",
+    "media_rate_reason": "墙钟跨度 <= 0：只交出过一帧，或呈现时间戳缺失",
+    "anchor_audio_position_ns": 0,
+    "audio_position_at_video_stop_ns": -1,
+    "note": "nominal_rate = (handed-off frames - 1) * frame_duration / wall time: it is a frame count in seconds, NOT media time. media_rate = measured pts span (first to last presented frame) / the same wall time, and is the only one of the two that can catch a clock running off. The audio position at video stop includes teardown latency (poll interval + drain) and must not be compared against either span directly"
+  },
+  "anchor": {
+    "video_pts_ns": 0,
+    "audio_position_ns": 0,
+    "note": "av_drift is measured relative to this anchor; the constant absorbed here is audio_position_ns at the first video frame"
+  },
+  "video": {
+    "frames_received": 0,
+    "frames_released": 0,
+    "frames_rendered": 0,
+    "frames_dropped_late": 0,
+    "frames_discarded_no_surface": 0,
+    "frames_discarded_on_stop": 0,
+    "frames_discarded_on_stop_undelivered": 0,
+    "samples_submitted": 0,
+    "samples_rejected": 0,
+    "wall_us": 0,
+    "first_frame_latency_us": -1,
+    "decode_fps": 0.000000,
+    "speed_vs_realtime": 0.000000,
+    "pipeline_mode": "merged",
+    "present_frames": true,
+    "present_schedule": "surface_at_time",
+    "surface_rebuild": {"rebuilds": 0, "gap_ms": -1, "resume_ms": -1, "frames_lead": 0},
+    "seek": {
+      "requests": 0,
+      "target_us": -1,
+      "landing_us": -1,
+      "prepare_us": -1,
+      "first_frame_us": -1,
+      "video_first_pts_us": -1,
+      "audio_present": false,
+      "audio_landing_us": -1,
+      "assessment": {"total_us": -1, "pass": false, "reason": "no seek happened in this run; the 150 ms budget cannot be judged from a run without a seek"}
+    },
+    "alloc": {"hook_installed": true, "armed": false, "calls_total": 0, "calls_steady": 0, "bytes_steady": 0, "overflow_calls": 0}
+  },
+  "pace": {
+    "enabled": false,
+    "frames_decided": 0,
+    "presented": 0,
+    "dropped": 0,
+    "accounting_scope": "session",
+    "discarded_on_stop": 0,
+    "discarded_no_surface": 0,
+    "undelivered_frames": 0,
+    "over_budget_frames": 0,
+    "over_budget_frames_measured": false,
+    "over_budget_frames_reason": "unmeasured without a recorded reason",
+    "due_step_frames": 0,
+    "due_step_supplied": 0,
+    "first_lateness_ns": 0,
+    "last_lateness_ns": 0,
+    "sum_present_step_ns": 0,
+    "sum_due_step_ns": 0,
+    "closure_gap_ns": 0,
+    "span_frames": 0,
+    "span_segments": 0,
+    "span_basis": "none",
+    "arrive_mono_span_ns": 0,
+    "elapsed_span_ns": 0,
+    "due_span_ns": 0,
+    "pts_span_ns": 0,
+    "clock_lead_ns": 0,
+    "clock_lead_trace": {
+      "samples": 0,
+      "frame_duration_ns": 0,
+      "baseline_elapsed_ns": 0,
+      "baseline_mono_ns": 0,
+      "last_ns": 0,
+      "max_ns": 0,
+      "min_ns": 0,
+      "max_step_ns": 0,
+      "step_frames": 0,
+      "span_ns": 0,
+      "rate_ppm": 0.000000,
+      "verdict": "unknown",
+      "verdict_reason": "unmeasured without a recorded reason",
+      "measured": false,
+      "reason": "unmeasured without a recorded reason"
+    },
+    "clock_supplied_frames": 0,
+    "frame_duration_ns": 0,
+    "derived_fps": 0.000000,
+    "lateness_ns": {
+      "samples": 0,
+      "p50": 0,
+      "p50_range_low_ns": 0,
+      "p50_range_high_ns": 0,
+      "p50_bucket_samples": 0,
+      "bucket_width_ns": 250000,
+      "p99": 0,
+      "p99_range_low_ns": 0,
+      "p99_range_high_ns": 0,
+      "p99_bucket_samples": 0,
+      "max": 0,
+      "measured": false,
+      "reason": "unmeasured without a recorded reason"
+    },
+    "schedule_lead_ns": {"samples": 0, "p50": 0, "spread": 0},
+    "clock_health": {"extrapolated_frames": 0, "free_run_frames": 0, "jump_rebases": 0, "monotonic_rejects": 0, "drift_rebases": 0, "drift_max_correction_ns": 0, "drift_corrected_total_ns": 0},
+    "clock_mix": {"primary_frames": 0, "fallback_frames": 0, "system_frames": 0}
+  },
+  "audio": {
+    "opened": false,
+    "started": false,
+    "negotiated": {"sample_rate": 0, "channel_count": 0, "format": "", "sharing": "", "performance": "", "frames_per_burst": 0},
+    "output_format": {"sample_rate": 0, "channel_count": 0, "encoding": "unknown", "diverged": false},
+    "downmix": {"to_stereo": false, "output_channel_count": 0, "downmixed_frames": 0, "downmixed_peak": 0},
+    "ring_capacity_frames": 0,
+    "prefill_reached": false,
+    "prefill_budget_millis": 500,
+    "prefill_initial_wait_millis": -1,
+    "prefill_last_wait_millis": -1,
+    "prefill_max_wait_millis": 0,
+    "startup_millis": -1,
+    "clock_start_ns": 0,
+    "clock_end_ns": 0,
+    "feed": {"packets_submitted": 0, "chunks_received": 0, "frames_decoded": 0, "decoded_peak": 0, "frames_written": 0, "frames_dropped": 0, "ring_full_waits": 0, "reached_eos": false},
+    "output": {"callbacks": 0, "frames_rendered": 0, "frames_silenced": 0, "silence_head_frames": 0, "silence_tail_frames": 0, "first_audible_frame": -1, "xrun_count": 0, "wall_millis": 0},
+    "clock": {"queries": 0, "published_timestamp": 0, "published_frames_read": 0, "published_frames_written": 0, "published_frozen": 0, "timestamp_not_started": 0, "timestamp_fail": 0, "monotonic_rejects": 0, "jumps_clamped": 0, "latency_frames": 0, "timestamp_age_budget_ns": 0, "max_timestamp_age_ns": 0, "timestamp_stale": 0, "max_extrapolation_ns": 0, "trace": {"event_count": 0, "events": []},
+    "tail": {"samples": 0, "forward": 0, "backward": 0, "max_forward_ns": 0, "max_backward_ns": 0, "clamp_threshold_ns": 200000000, "beyond_threshold": 0, "intervals": 0, "long_gaps": 0, "max_mono_step_ns": 0, "long_candidate_steps": 0, "max_candidate_step_ns": 0, "first_mono_ns": 0, "span_ns": 0, "first_long_gap_at_ns": -1, "last_long_gap_at_ns": -1, "buckets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "edges_ns": [1000000, 2000000, 4000000, 8000000, 16000000, 32000000, 64000000, 128000000, 256000000, 512000000]}
+  }},
+  "completed": false,
+  "end_reason": "interrupted",
+  "error": ""
+}
+{
+  "schema": "kivo.p12c.decode/21",
+  "generated_at_unix_ms": 1794590585009,
+  "source": {
+    "mime": "video/avc",
+    "width": 1280,
+    "height": 720,
+    "duration_us": 20021000,
+    "encryption": {
+      "crypto_mode_present": true,
+      "crypto_mode": 0,
+      "crypto_mode_name": "clear",
+      "default_iv_size": null,
+      "key_declared": false,
+      "verdict": "clear",
+      "reason": null
+    }
+  },
+  "decoder": {
+    "backend": "mediacodec",
+    "codec_name": "OMX.qcom.video.decoder.avc",
+    "output_target": "surface"
+  },
+  "color": {
+    "source_mime": "video/avc",
+    "source_profile": null,
+    "source_is_10bit": null,
+    "negotiated_format": 2141391878,
+    "negotiated_name": "qcom_private",
+    "negotiated_bit_depth": null,
+    "color_standard": 1,
+    "color_transfer": 3,
+    "color_range": 2,
+    "source_color_standard": null,
+    "source_color_transfer": null,
+    "source_color_range": null,
+    "delivered_color_standard": null,
+    "delivered_color_transfer": null,
+    "delivered_color_range": null,
+    "configure_format": {
+      "copied": false,
+      "fallback_reason": null
+    },
+    "hdr": {
+      "kind": "sdr",
+      "kind_reason": "track format carries neither color-standard nor color-transfer; nothing to classify or deliver (this is not a claim that the source is SDR)",
+      "static_info_bytes": null,
+      "dataspace": {
+        "applied": false,
+        "value": 0,
+        "reason": "source is SDR; its dataspace is left untouched on purpose"
+      },
+      "dataspace_readback": {
+        "ok": true,
+        "value": 0,
+        "reason": null
+      },
+      "tonemap": {
+        "implemented": false,
+        "reason": "source is SDR; there is nothing to tone-map"
+      }
+    },
+    "dv": {
+      "verdict": "not_dolby_vision",
+      "dv_profile": null,
+      "dv_level": null,
+      "bl_compatibility_id": null,
+      "bl_mime": null,
+      "configure_format_rebuilt": false,
+      "reason": "mime is video/avc; not a Dolby Vision track"
+    },
+    "verdict": "indeterminate",
+    "reason": "source codec/profile is not in the known table (mime=video/avc, profile=-1); cannot say whether 10-bit is expected"
+  },
+  "seek": {
+    "requests": 0,
+    "target_us": null,
+    "landing_us": null,
+    "prepare_us": null,
+    "first_frame_us": null,
+    "total_us": null,
+    "budget_us": 150000,
+    "pass": false,
+    "video_first_pts_us": null,
+    "reason": "no seek happened in this run; the 150 ms budget cannot be judged from a run without a seek",
+    "av": {
+      "applicable": false,
+      "audio_present": false,
+    "audio_landing_us": null,
+      "gap_us": -1,
+      "limit_us": 40000,
+      "pass": false,
+      "reason": "source has no audio track (or audio was not attached); the A/V criterion does not apply to this run — this is not a pass"
+    }
+  },
+  "counters": {
+    "samples_submitted": 600,
+    "samples_rejected": 0,
+    "bytes_submitted": 756983,
+    "frames_received": 601,
+    "frames_released": 601,
+    "frames_rendered": 600,
+    "frames_dropped_late": 0,
+    "frames_discarded_no_surface": 0,
+    "frames_discarded_on_stop": 0,
+    "frames_discarded_on_stop_undelivered": 0
+  },
+  "pipeline": {
+    "mode": "merged",
+    "present": true,
+    "present_schedule": "surface_at_time",
+    "submit": {
+      "calls": 2052,
+      "mean_us": 297.802632,
+      "total_us": 611091,
+      "max_us": 5711
+    },
+    "eos": {
+      "calls": 1,
+      "mean_us": 333.000000,
+      "total_us": 333,
+      "max_us": 333
+    },
+    "receive": {
+      "calls": 1569,
+      "mean_us": 1702.353728,
+      "total_us": 2670993,
+      "max_us": 144692
+    },
+    "release": {
+      "calls": 601,
+      "mean_us": 154.211314,
+      "total_us": 92681,
+      "max_us": 6458
+    }
+  },
+  "surface_rebuild": {
+    "rebuilds": 0,
+    "gap_ms": -1,
+    "resume_ms": -1,
+    "frames_lead": 0
+  },
+  "metrics": {
+    "cpu": {"valid": true, "reason": "", "wall_ns": 4009531665, "thread_cpu_ns": 106158643, "process_cpu_ns": 1787526804, "thread_ratio": 0.026477, "process_ratio": 0.445819},
+    "alloc": {"hook_installed": true, "armed": false, "calls_total": 48, "calls_steady": 42, "bytes_total": 57842, "bytes_steady": 41287, "thread_count": 2, "overflow_calls": 0, "threads": [{"tid": 13519, "name": "com.kivo.cinema", "calls": 45, "bytes": 20128, "calls_steady": 40, "bytes_steady": 19664}, {"tid": 13664, "name": "kivo-decode", "calls": 3, "bytes": 37714, "calls_steady": 2, "bytes_steady": 21623}]},
+    "buffers": {"pool_owner": "codec", "received": 601, "released": 601, "in_flight": 0, "leaked": 0, "reason": ""},
+    "present_gap": {"iterations": 1568, "long_gaps": 1, "max_gap_ns": 145964166, "worst_submit_ns": 90260, "worst_pump_ns": 145871771, "worst_pace_ns": 0, "worst_release_ns": 1162240, "worst_unaccounted_ns": 2135, "buckets": [1557, 9, 1, 0, 0, 1, 0, 0, 0]}
+  },
+  "timing": {
+    "wall_us": 3437696,
+    "position_us": -1,
+    "first_frame_latency_us": 23911,
+    "decode_fps": 174.535503,
+    "speed_vs_realtime": 5.823959,
+    "pause_count": 0,
+    "pause_total_us": 0
+  },
+  "cold_start": {
+    "applicable": true,
+    "first_frame_us": 23911,
+    "budget_us": 300000,
+    "pass": true,
+    "reason": null
+  },
+  "outcome": {
+    "completed": true,
+    "end_reason": "completed",
+    "error": ""
+  },
+  "pace": {
+    "enabled": false,
+    "reason": "pacing not attached"
+  }
+}

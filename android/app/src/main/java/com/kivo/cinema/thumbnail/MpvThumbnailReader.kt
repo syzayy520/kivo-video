@@ -40,6 +40,8 @@ class MpvThumbnailReader(
     private val input: ByteSource,
     private val cacheDir: File,
     private val cacheSize: Int = DEFAULT_CACHE_SIZE,
+    /** 取证用的追加 mpv 选项（生产路径为空）。见 [MpvThumbOptions.apply]。 */
+    private val extraMpvOptions: List<Pair<String, String>> = emptyList(),
 ) : PreviewFrameReader {
 
     private val cache = object : LruCache<Int, Bitmap>(cacheSize) {
@@ -131,7 +133,7 @@ class MpvThumbnailReader(
         if (initialized || initFailed) return
         val start = SystemClock.elapsedRealtime()
         try {
-            val proxy = LocalRangeServer.start()
+            val proxy = LocalRangeServer.start(maxRangeBytes = PREVIEW_MAX_RANGE_BYTES)
             server = proxy
             val id = proxy.register(input)
             registeredId = id
@@ -141,22 +143,19 @@ class MpvThumbnailReader(
                 vo = "libmpv",
                 ao = "",
                 logFile = File(cacheDir, "mpv-thumb.log").absolutePath,
+                // 不给字体目录：预览内核不渲染字幕（sid=no），
+                // libass 从不初始化 ⇒ 一个字体都不该加载
+                // （真机日志：预览内核 0 条 "Loading font file"）。
             )
             native.setProperty("pause", "yes")
-            // 预览只要关键帧。native seek(exact=false) 发的是 `absolute`，而 mpv
-            // hr-seek 默认=absolute ⇒ 仍精确落位、从关键帧前向解码到目标（真机日志
-            // "hr-seek, skipping to 90" → 单帧 4.6s 主因）。no 关掉前向解码。
-            native.setProperty("hr-seek", "no")
-            // 预览不出声、不要字幕。真机日志 audio/1 堆到 8MiB 上限触发
-            // "Too many packets" 阻塞视频出帧；aid/sid=no 把 demux 队列全留给视频。
-            native.setProperty("aid", "no")
-            native.setProperty("sid", "no")
-            native.setProperty("demuxer-max-bytes", "8MiB") // 常驻内存闸：预览只要单帧。
-            native.setProperty("demuxer-max-back-bytes", "4MiB")
-            // pause⇒still 走 cache+blit 分支，该面 blit 不落（真机全透明）；dumb 模式直绘。
-            native.setProperty("gpu-dumb-mode", "yes")
+            // 预览内核的其余选项（关键帧 seek / 不出声 / 预读上限）集中在一处设，
+            // 并带回执：设不动的那几项必须留痕，否则"限流参数配了但没生效"查不出来。
+            val optFailures = MpvThumbOptions.apply(native, extraMpvOptions)
+            if (optFailures.isNotEmpty()) {
+                File(cacheDir, "mpv-thumb.log").appendText("OPTFAIL ${optFailures.joinToString(",")}\n")
+            }
             native.attachCapture(WIDTH, HEIGHT)
-            native.loadFile(proxy.urlFor(id))
+            native.loadFile(proxy.urlFor(id, reconnect = false))
             val deadline = System.currentTimeMillis() + LOAD_DEADLINE_MS
             while (System.currentTimeMillis() < deadline && native.durationSeconds() <= 0.0) {
                 Thread.sleep(100)
@@ -290,5 +289,17 @@ class MpvThumbnailReader(
         private const val MAX_INIT_RETRIES = 1
         private const val WIDTH = 480
         private const val HEIGHT = 270
+
+        /**
+         * 预览实例的**单次响应上限**（字节）。
+         *
+         * 【为什么必须有上限】内核 seek 之后会**一路往前拉**：真机实测（273 v12）
+         * 取 475 秒那一帧，帧在 seek 后 1.1 秒就出来了，内核却继续往前读了
+         * 9 秒 / 约 24 MiB，一次预览会话下掉 32 MiB 只为显示一帧。
+         * mpv 侧的旋钮都拦不住它 ⇒ 只能在供给侧截（见 [LocalRangeResponder]）。
+         *
+         * 【为什么 4 MiB 够】实测簇间距 0.66–1.8 MB，装得下目标关键帧簇 + 余量。
+         */
+        private const val PREVIEW_MAX_RANGE_BYTES = 4L * 1024 * 1024
     }
 }

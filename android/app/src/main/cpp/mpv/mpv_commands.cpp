@@ -19,7 +19,25 @@ namespace kivo::video::mpv {
 namespace {
 
 /// 打开一个媒体文件。mpv 的 `loadfile` 接受 URL 字符串。
-bool load_file_impl(mpv_handle* handle, const std::string& url, std::string& error) {
+///
+/// 【start_seconds 的作用】mpv 的 `loadfile` 第 4 个参数是**每文件选项**，
+/// 其中 `start=<秒>` 让内核在打开后**直接落到该位置**。
+/// 没有它时上层只能"先播 0 秒、等首帧出来、再补一条 seek" ——
+/// 真机实测那条路多花 0.5–0.8 秒，且用户会看到"从 0 秒闪一下再跳"。
+/// 传 -1 表示不指定（从头播）。
+bool load_file_impl(mpv_handle* handle, const std::string& url, double start_seconds,
+                    std::string& error) {
+    if (start_seconds > 0.0) {
+        char option[64];
+        std::snprintf(option, sizeof(option), "start=%.3f", start_seconds);
+        const char* command[] = {"loadfile", url.c_str(), "replace", "0", option, nullptr};
+        const int rc = mpv_command(handle, command);
+        if (rc < 0) {
+            error = "loadfile failed: " + std::string(mpv_error_string(rc));
+            return false;
+        }
+        return true;
+    }
     const char* command[] = {"loadfile", url.c_str(), "replace", nullptr};
     const int rc = mpv_command(handle, command);
     if (rc < 0) {
@@ -90,12 +108,12 @@ bool seek_impl(mpv_handle* handle, double position_seconds, bool exact, std::str
 
 }  // namespace
 
-bool Session::load_file(const std::string& url, std::string& error) {
+bool Session::load_file(const std::string& url, double start_seconds, std::string& error) {
     if (!impl_ || !impl_ || impl_->handle == nullptr) {
         error = "session not created";
         return false;
     }
-    return load_file_impl(impl_->handle, url, error);
+    return load_file_impl(impl_->handle, url, start_seconds, error);
 }
 
 bool Session::command(const std::string& name, const std::string& args, std::string& error) {

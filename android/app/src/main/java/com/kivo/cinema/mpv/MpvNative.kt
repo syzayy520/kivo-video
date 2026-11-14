@@ -26,17 +26,26 @@ object MpvNative {
      *   **必须传**：mpv 的硬解与音频输出要通过它拿到 JavaVM 与 MediaCodec 上下文。
      */
     @JvmStatic external fun nativeCreate(appContext: Any): Long
-    @JvmStatic external fun nativeInitialize(handle: Long, vo: String, ao: String, logFile: String): Int
+    @JvmStatic external fun nativeInitialize(handle: Long, vo: String, ao: String, logFile: String,
+                                           subFontsDir: String, subFontFamily: String): Int
     @JvmStatic external fun nativeAttachSurface(handle: Long, surface: Any): Int
     @JvmStatic external fun nativeAttachCapture(handle: Long, width: Int, height: Int): Int
     @JvmStatic external fun nativeReadCaptureFrame(handle: Long): ByteArray?
     @JvmStatic external fun nativeCaptureFramePts(handle: Long): Double
     @JvmStatic external fun nativeCaptureFrameGen(handle: Long): Long
-    @JvmStatic external fun nativeLoadFile(handle: Long, url: String): Int
+    @JvmStatic external fun nativeLoadFile(handle: Long, url: String, startSeconds: Double): Int
     @JvmStatic external fun nativeSeek(handle: Long, position: Double, exact: Boolean): Int
     @JvmStatic external fun nativeCommand(handle: Long, name: String, args: String): Int
     @JvmStatic external fun nativePositionSeconds(handle: Long): Double
     @JvmStatic external fun nativeDurationSeconds(handle: Long): Double
+
+    /**
+     * 已经**上屏**过至少一帧 = 1。
+     *
+     * 【为什么不用 positionSeconds > 0 当首帧】那个只说明时钟在走，
+     * 画面还没画出来 —— 真机上两者差 1.5–2.8 s。
+     */
+    @JvmStatic external fun nativeFirstFrameRendered(handle: Long): Int
 
     /**
      * 读一个内核属性（字符串形式）。
@@ -75,6 +84,12 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
      * @param logFile mpv 日志落盘路径。留空 = 不落盘。
      *   **崩溃定位的关键**：这台设备上 adb logcat 读不到 app 进程的日志，
      *   而 native 崩溃没有异常可捕获 —— 只能让 mpv 自己写日志出来。
+     * @param subFontsDir 字幕字体目录。留空 = **不设字体选项**。
+     *   【为什么不能指向系统字体目录】libass 会把该目录里的**每个文件**都装进进程
+     *   （真机：/system/fonts ⇒ 242 个文件、125.6 MB 常驻原生堆）。
+     *   留空用于**不起字幕**的场景（预览缩略图内核）—— 它一帧字幕都不渲染，
+     *   不该背这份内存。
+     * @param subFontFamily 字幕字体族名。留空 = 用 mpv 默认族。
      *
      * @throws IllegalStateException 初始化失败，**消息里带 mpv 给的原始原因**
      *   （例如 "mpv option rejected: vo=xxx (error setting option)"）。
@@ -84,9 +99,15 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
      *   而 mpv 自己**不打印**被拒选项的任何消息。
      *   抛出带原因的异常，是让失败可诊断的唯一办法。
      */
-    fun initialize(vo: String = "libmpv", ao: String = "", logFile: String = "") {
+    fun initialize(
+        vo: String = "libmpv",
+        ao: String = "",
+        logFile: String = "",
+        subFontsDir: String = "",
+        subFontFamily: String = "",
+    ) {
         try {
-            MpvNative.nativeInitialize(handle, vo, ao, logFile)
+            MpvNative.nativeInitialize(handle, vo, ao, logFile, subFontsDir, subFontFamily)
         } catch (e: IllegalStateException) {
             throw IllegalStateException("mpv initialize failed: ${e.message}", e)
         }
@@ -111,9 +132,14 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
     /** 最新离屏帧的 seek 代数；> 发 seek 前读到的代数 = 本次 seek 的新帧。 */
     fun captureFrameGen(): Long = MpvNative.nativeCaptureFrameGen(handle)
 
-    /** 打开一个媒体（本地路径或 URL，例如 `smb://host/share/path`）。 */
-    fun loadFile(url: String) {
-        MpvNative.nativeLoadFile(handle, url)
+    /**
+     * 打开一个媒体（本地路径或 URL，例如 `smb://host/share/path`）。
+     *
+     * @param startSeconds > 0 时用 mpv 的每文件选项 `start=` —— 内核打开即落到该位置，
+     *   不用"先播 0 秒、等首帧、再补一条 seek"。
+     */
+    fun loadFile(url: String, startSeconds: Double = -1.0) {
+        MpvNative.nativeLoadFile(handle, url, startSeconds)
     }
 
     /**
@@ -139,6 +165,14 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
 
     /** 总时长（秒）；读不到返回 -1。 */
     fun durationSeconds(): Double = MpvNative.nativeDurationSeconds(handle)
+
+    /**
+     * 已经**上屏**过至少一帧（true）。
+     *
+     * 【这是"用户看到画面"的真实时刻】内核的播放位置 > 0 只说明时钟在走，
+     * 画面还没画出来（真机：两者差 1.5–2.8 s）。
+     */
+    fun firstFrameRendered(): Boolean = MpvNative.nativeFirstFrameRendered(handle) == 1
 
     /**
      * 读一个内核属性（字符串形式）。

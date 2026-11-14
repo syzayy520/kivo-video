@@ -60,6 +60,8 @@ android/app/src/main/cpp/mpv/
 ├── mpv_session_impl.hpp            # 家族内私有的共享状态（家族外不可见）
 ├── mpv_session_table.{hpp,cpp}     # 只做一件事：句柄表与它的锁（JNI 层共用）
 ├── mpv_options.{hpp,cpp}           # 只做一件事：设 mpv 选项，并**逐项检查回执**
+├── mpv_option_item.hpp             # 只做一件事：选项原语（name/value/optional + 统一回执检查）
+├── mpv_sub_options.{hpp,cpp}       # 只做一件事：**字幕/字体**这一组选项（273 v20）
 ├── mpv_commands.cpp                # 只做一件事：seek/pause/属性读取等**命令**下发
 ├── mpv_event_loop.cpp              # 只做一件事：轮询 mpv 属性 → 回调给上层
 ├── mpv_video_output.hpp            # 视频输出层的接口声明
@@ -80,6 +82,9 @@ android/app/src/main/cpp/mpv/
 | （新增）`mpv_java_vm.{hpp,cpp}` | — | **初稿漏了**：mpv 的硬解与音频都要 JavaVM，宿主不注册就全废 |
 | （P6 新增）`mpv_session_table.{hpp,cpp}` | — | JNI 层拆成多个文件后，会话表必须**只有一份**，锁也只能有一把 |
 | （P6 新增）`jni_mpv_command_bridge.cpp` | — | JNI 层按**关注点**拆：生命周期失败 / 命令失败 / 属性失败是三类问题，排查手段不同 |
+| （273 v20 新增）`mpv_option_item.hpp` | — | **选项原语被两组共用**（基础组 + 字幕组），所以先把它抽成一个头文件；不抽的话两组各写一份"逐项检查回执"，改一处漏一处 |
+| （273 v20 新增）`mpv_sub_options.{hpp,cpp}` | — | **字体选项自成一体**：它带着"目录里每个文件都会被 libass 装进进程"这个约束，失败模式（候选缺失 ⇒ 回退）与基础组完全不同，混在一个文件里会让"哪一项失败"的日志失去可读性 |
+| （273 v20 新增）`playback/SubtitleFontSet.kt` | — | 最小字体目录是**Kotlin 侧的事**（要 Context 的 filesDir、要 `android.system.Os.symlink`），C++ 侧只负责把"目录 + 族名"传给内核 |
 
 **边界规则**（写进每个文件的注释头）：
 
@@ -101,7 +106,8 @@ mpv/
 └── MpvSpeedController.kt           # 只做一件事：读与写 mpv 的 speed 属性
 playback/
 ├── MpvPlaybackSession.kt           # libmpv 内核的播放会话（与 NetworkPlaybackSession 同名同义）
-└── PlaybackEngine.kt               # 只做一件事：内核选择（系统属性 mpv / legacy）
+├── PlaybackEngine.kt               # 只做一件事：内核选择（系统属性 mpv / legacy）
+└── SubtitleFontSet.kt              # 只做一件事：准备**最小字幕字体目录**（273 v20）
 ```
 
 `LocalRangeServer` 放在 Kotlin 而不是 C++ 的理由：它要实现 `ByteSource`（Kotlin 接口），

@@ -248,6 +248,11 @@ void VideoOutput::render_loop(EglWindowSurface& egl, mpv_render_context* render_
             const EGLBoolean swapped = eglSwapBuffers(egl.display(), egl.surface());
             const EGLint swap_err = eglGetError();
             ++swap_count;
+            // 【首帧的真实时刻】画面真正上屏 = swap 成功。
+            // 之前 Kotlin 侧用"播放时钟起跳"当首帧，比这个早 1.5–2.8 s（真机实测）。
+            if (swapped == EGL_TRUE) {
+                first_frame_.store(true, std::memory_order_release);
+            }
             char line[96];
             std::snprintf(line, sizeof(line), "swap #%d ok=%d err=0x%x target=%dx%d",
                           swap_count, static_cast<int>(swapped), swap_err, target_w, target_h);

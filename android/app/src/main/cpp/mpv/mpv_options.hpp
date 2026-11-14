@@ -30,6 +30,10 @@ namespace kivo::video::mpv {
 /// @param vo          视频输出名。
 /// @param ao          音频输出名；空 = "null"（不出声）。
 /// @param log_file    mpv 日志落盘路径；空 = 不落盘。
+/// @param sub_fonts_dir 字幕字体目录；**空 = 不设字体选项**（预览内核不起字幕，
+///                       不该背这份内存）。非空时该目录里的每个文件都会被 libass
+///                       装进进程 —— 所以只能给"最小字体集"（273 v20）。
+/// @param sub_font_family 字幕字体族名；空 = 用 mpv 默认族。
 /// @param hwdec_out   出参：硬解驱动名。**必须在 initialize 之后**用 set_property 设
 ///                    （原因见 mpv_options.cpp 的说明），所以这里只把值带出去。
 /// @param error       出参：第一个失败的选项（"name: reason"）。全部成功时为空。
@@ -43,6 +47,8 @@ namespace kivo::video::mpv {
                                       const std::string& vo,
                                       const std::string& ao,
                                       const std::string& log_file,
+                                      const std::string& sub_fonts_dir,
+                                      const std::string& sub_font_family,
                                       std::string& hwdec_out,
                                       std::string& error);
 

@@ -91,6 +91,11 @@ int Session::video_height() const {
     return impl_ && impl_->video_output ? impl_->video_output->height() : 0;
 }
 
+bool Session::first_frame_rendered() const {
+    // 离屏取帧（预览缩略图）那条链路没有 VideoOutput —— 那里靠 capture 的代数判帧。
+    return impl_ && impl_->video_output ? impl_->video_output->first_frame_rendered() : false;
+}
+
 Session::~Session() {
     shutdown();
 }
@@ -126,7 +131,10 @@ void Session::set_render_callback(RenderCallback callback) {
 }
 
 bool Session::initialize(const std::string& vo, const std::string& ao,
-                        const std::string& log_file, std::string& error) {
+                        const std::string& log_file,
+                        const std::string& sub_fonts_dir,
+                        const std::string& sub_font_family,
+                        std::string& error) {
     if (!impl_ || impl_->handle == nullptr) {
         error = "session not created";
         return false;
@@ -145,7 +153,8 @@ bool Session::initialize(const std::string& vo, const std::string& ao,
     mark_step(log_file.c_str(), "before-options");
     std::string hwdec;
     std::string option_error;
-    if (!apply_mpv_options(handle, vo, ao, log_file, hwdec, option_error)) {
+    if (!apply_mpv_options(handle, vo, ao, log_file, sub_fonts_dir, sub_font_family,
+                           hwdec, option_error)) {
         error = option_error;
         mark_step(log_file.c_str(), "options-rejected");
         return false;

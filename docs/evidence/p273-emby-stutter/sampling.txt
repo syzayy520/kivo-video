@@ -1,0 +1,16 @@
+# 播放期连接与内存采样（K40 b6e950ee）
+## ss（播放中）
+Recv-Q Send-Q Local Address:Port                Peer Address:Port              
+Cannot open netlink socket: Permission denied
+0      0      192.168.5.152:38986              223.109.195.135:443                
+0      0      192.168.5.152:46990              203.119.204.54:443                
+13785361 0         [::ffff:192.168.5.152]:42188                [::ffff:172.67.212.223]:443                
+0      0         [::ffff:192.168.5.152]:43794              [::ffff:104.21.45.99]:443                
+0      0         [::ffff:192.168.5.152]:40558                [::ffff:203.56.114.247]:443                
+State       Recv-Q Send-Q Local Address:Port               Peer Address:Port              
+Cannot open netlink socket: Permission denied
+LISTEN      0      0      0.0.0.0:14241              0.0.0.0:*                  
+LISTEN      0      0       [::ffff:127.0.0.1]:39657                    *:*                  
+LISTEN      0      0       [::ffff:127.0.0.1]:38571                    *:*                  
+LISTEN      0      0       [::ffff:127.0.0.1]:40853                    *:*                  
+           TOTAL PSS:   843074            TOTAL RSS:   976504       TOTAL SWAP PSS:    48687

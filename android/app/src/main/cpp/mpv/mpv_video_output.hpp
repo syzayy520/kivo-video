@@ -57,6 +57,15 @@ public:
     [[nodiscard]] int width() const { return width_.load(std::memory_order_relaxed); }
     [[nodiscard]] int height() const { return height_.load(std::memory_order_relaxed); }
 
+    /// 已经**渲染并上屏**过至少一帧（true）。
+    ///
+    /// 【为什么不用"播放时钟起跳"当首帧】内核的 position > 0 只说明
+    /// 复用了时钟在走，画面还没画出来（真机：两者差 1.5–2.8 s）。
+    /// 用户看到的是画面，所以"首帧"必须以**真正 swap 过一帧**为准。
+    [[nodiscard]] bool first_frame_rendered() const {
+        return first_frame_.load(std::memory_order_acquire);
+    }
+
 private:
     void run();
     void render_loop(EglWindowSurface& egl, mpv_render_context* render_context);
@@ -79,6 +88,8 @@ private:
     std::atomic<bool> stopping_{false};
     std::atomic<int> width_{0};
     std::atomic<int> height_{0};
+    /// 已经上屏过至少一帧（GL 线程置位）。
+    std::atomic<bool> first_frame_{false};
     std::string failure_;
 };
 

@@ -30,66 +30,17 @@
 #include <vector>
 
 #include "mpv/client.h"
+#include "mpv_option_item.hpp"
+#include "mpv_sub_options.hpp"
 
 namespace kivo::video::mpv {
-namespace {
-
-/// 一个待设的选项。
-struct Option {
-    const char* name;
-    const char* value;
-    /// 设为 true 时，**这一项失败不算整体失败**（只记录）。
-    /// 用于"锦上添花"的选项 —— 例如字体族名不匹配时，字幕仍可能靠内嵌字体渲染。
-    bool optional;
-};
-
-/// 把一行文本追加到日志文件。
-///
-/// 【为什么需要它】mpv 对不存在的选项**只返回错误码、不打日志**。
-/// 若上层把异常吞掉（Kotlin 侧的 initialize 曾经就是这样），
-/// 失败原因就彻底消失了 —— 于是排查只能靠猜。
-/// 直接写进 mpv 的日志文件，是唯一"谁都能看见"的地方。
-void append_log(const std::string& log_file, const std::string& line) {
-    if (log_file.empty()) {
-        return;
-    }
-    FILE* file = std::fopen(log_file.c_str(), "a");
-    if (file == nullptr) {
-        return;
-    }
-    std::fputs(line.c_str(), file);
-    std::fputc('\n', file);
-    std::fclose(file);
-}
-
-/// 逐项设置并检查回执。
-///
-/// @param failures 出参：失败项的描述（"name=value (reason)"），逐条追加。
-/// @return true = 全部非 optional 项成功。
-bool apply_options(mpv_handle* handle, const std::vector<Option>& options,
-                   std::vector<std::string>& failures) {
-    bool all_ok = true;
-    for (const Option& option : options) {
-        const int rc = mpv_set_option_string(handle, option.name, option.value);
-        if (rc >= 0) {
-            continue;
-        }
-        const char* reason = mpv_error_string(rc);
-        failures.push_back(std::string(option.name) + "=" + option.value + " (" +
-                           (reason != nullptr ? reason : "unknown") + ")");
-        if (!option.optional) {
-            all_ok = false;
-        }
-    }
-    return all_ok;
-}
-
-}  // namespace
 
 bool apply_mpv_options(mpv_handle* handle,
                        const std::string& vo,
                        const std::string& ao,
                        const std::string& log_file,
+                       const std::string& sub_fonts_dir,
+                       const std::string& sub_font_family,
                        std::string& hwdec_out,
                        std::string& error) {
     if (handle == nullptr) {
@@ -130,75 +81,69 @@ bool apply_mpv_options(mpv_handle* handle,
     options.push_back({"ao", ao.empty() ? "null" : ao.c_str(), false});
     // video-sync=audio：音画以音频为主时钟 —— 与旧内核的"音频主时钟"一致。
     options.push_back({"video-sync", "audio", false});
+    // 【273 v19 实验结论：不要开 --audio-stream-silence】
+    // 试过（真机 Redmi K40）：mpv 接受了该选项并自己警告
+    //   "The --audio-stream-silence option is set. This will break certain player behavior."
+    // 但**欠载一次也没消**（起播 1 次 + seek 2 次，与不开时完全相同）——
+    // 因为 mpv 0.39 的 audiotrack AO 不支持静音填充控制。
+    // 换来的只有 A/V 同步被改动 ⇒ 收益为零、代价明确 ⇒ 不开。
     // hr-seek=default：精确落位交给 mpv 自己的 demuxer（索引 + 帧级回退）。
     options.push_back({"hr-seek", "default", false});
     // demuxer 缓存上限：mpv-android 在移动端把它压到 32~64 MB
     // （"defaults are too high for mobile devices"）。我们照做 ——
     // 缓存太大在 SMB 上会拖慢起播，且占内存。
-    options.push_back({"demuxer-max-bytes", "64MiB", false});
-    options.push_back({"demuxer-max-back-bytes", "64MiB", false});
+    //
+    // 【273 v25：64 MiB → 32 MiB】真机 A/B（同一片源、同一台 K40、
+    // 四臂各 125 s、24 次采样、0 次缓冲事件）：
+    //   基线（cache-secs=60 / 64+16 MiB）：native 堆峰值 121,649 KB，
+    //   总下载 86.31 MiB，mpv demux 缓存 49.3 MB；
+    //   cache-secs=15 那一臂：native 堆峰值 104,519 KB、总下载 73.31 MiB。
+    // 字节上限这一项当时**没能在运行时验证**（mpv 拒绝运行期改这一项，
+    // 静默失败、无日志）⇒ 只能焊在初始化里，改完重编再复算。
+    options.push_back({"demuxer-max-bytes", "32MiB", false});
+    // 回看缓存（当前播放点**之前**的数据）单独给 8 MiB（v25：16 → 8）。
+    //
+    // 【为什么不给 64】mpv 的 demux 缓存有两块：前向（demuxer-max-bytes）
+    // 与回看（demuxer-max-back-bytes），二者相加才是真实常驻。273 真机实测：
+    // 64+64=128 MiB 把 Native Heap 顶到 297.8 MB、总 PSS 518.7 MB。
+    // 回看缓存只服务于"往回 seek"，而我们的取数层（v6 有界分块 + 连接复用）
+    // 在回退时本来就会按目标字节重新开 Range 请求 —— 4K 片源上回退 seek
+    // 实测 1.16 s 可达，不需要 64 MiB 回看缓存兜底。
+    options.push_back({"demuxer-max-back-bytes", "8MiB", false});
+    // 网络缓存同时受"时间"约束（273）：cache-secs 默认约 1000 小时 —— 时间上等于
+    // 无上限，真正的兜底只有 demuxer-max-bytes。给 60 秒把预读的**时间跨度**也
+    // 钉住，避免连接一路读到片尾把整片塞进内存。
+    //
+    // 【273 v25：60 → 20 秒】这是四个臂里**唯一真正生效**的旋钮
+    // （mpv 运行期接受 cache-secs 与 demuxer-max-bytes，唯独拒绝
+    // demuxer-max-back-bytes）。真机四臂都是 0 次缓冲事件 ⇒ 20 秒安全。
+    // 取 20 而不是实测的 15：15 与 20 之间没有实测差别，而 20 多留 5 秒
+    // 的跑道给慢源（起播那一跳的冷连接表头最高见过 1.6 s）。
+    options.push_back({"cache-secs", "20", false});
+    // 迟滞：缓存掉到零附近时不立刻回退重缓冲，先攒够 10 秒再继续播。
+    // mpv 用它消掉"缓存 100% → 0% → 100%"的来回抖动。
+    options.push_back({"demuxer-hysteresis-secs", "10", false});
 
-    // ---- 3) 字幕（253-P6-2）----
+    // ---- 3) 字幕 ----
     //
-    // 【为什么指向 /system/fonts】
-    // 我们编的 libass 是 CONFIG_FONTCONFIG 未定义的版本（见
-    // libass-android 的 config.h），也就是**没有 fontconfig 字体提供器**。
-    // mpv 的 sub/osd.c 会把 fonts_dir 交给 libass 的 ass_set_fonts_dir，
-    // 于是系统字体目录里的字体文件会被逐个 ass_add_font 装进来。
-    // 不给目录 ⇒ 中文字幕全是空白或豆腐块。
+    // 【为什么字幕选项单独一组】字体相关的那几项（目录/族名）会随
+    // "最小字体集"这件事一起变（273 v20：目录从整个 /system/fonts 变成
+    // 只含一两个文件的私有目录），与本组的其它项无关 —— 见 mpv_sub_options.cpp。
     //
-    // 【字体族名为什么给 "Noto Sans CJK JP" 而不是 SC】
-    // libass 加载字体目录时逐个文件调 ass_add_font，而 ass_add_font 对
-    // **TrueType Collection 只取 0 号 face**（libass 的 ass_font.c：
-    // FT_Open_Face(ftlib, &args, index, &face) 的 index 来自选中的那一张）。
-    // Android 的 NotoSansCJK-Regular.ttc 里 0 号 face 是 JP。
-    // 字形层面无损失：CJK 全字集每个 face 都带，中文照样显示。
+    // 【字体目录为什么不再是 /system/fonts】
+    // 我们编的 libass 没有 CONFIG_FONTCONFIG（没有 fontconfig 字体提供器），
+    // 于是 mpv 会把 fonts_dir 交给 libass 的 ass_set_fonts_dir，
+    // 它对该目录里的**每个条目**调一次 ass_add_font，
+    // 而 FreeType 的 FT_New_Face 会把整个文件读进内存。
+    // 真机实测（Redmi K40，273 v20）：指向 /system/fonts ⇒ 242 条
+    // "Loading font file" ⇒ 239 个字体文件、125.6 MB 全部常驻原生堆。
+    // 现在由上层把"最小字体目录"准备好传进来（见 Kotlin 的 SubtitleFontSet）。
     //
-    // 【osd-font 与 sub-font 都要设】
-    // mpv 把字幕转成 ASS 事件后**由 OSD 层统一渲染**（osd_render），
-    // 而 osd_render 取的是 **osd_style** 的字体设置 —— 不是 sub_style。
-    // 只设 sub-font 时日志仍打印 (sans-serif, 400, 0)，即完全没生效。
-    //
-    // 【optional = true 的理由】
-    // 字体族名匹配不上时，mpv 会退回 libass 的默认字体族（可能仍能显示，
-    // 只是字形不对）。这属于"降级但可见"，不该让内核整个起不来 ——
-    // 但**必须被记录**，否则又变成静默失败。
-    options.push_back({"sub-fonts-dir", "/system/fonts", true});
-    options.push_back({"osd-font", "Noto Sans CJK JP", true});
-    options.push_back({"sub-font", "Noto Sans CJK JP", true});
-    // 字号：mpv 默认按视频高度的比例算字号。
-    // sub-scale 是百分比因子且会破坏 ASS 缩放，sub-font-size 是绝对字号，
-    // 只对纯文本字幕的默认字号生效。52 px 在 1080 高的画面上约等于 5%。
-    options.push_back({"sub-font-size", "52", true});
-    // 自动加载同名字幕文件（外挂 .srt/.ass 放在媒体旁边）。
-    options.push_back({"sub-auto", "fuzzy", true});
-    // ---- 位图字幕（PGS）的显示时长 ----
-    //
-    // 【为什么必须开】PGS 是**渐进式位图字幕**：一句对白被拆成一串"更新包"，
-    // 每个包只带画面的一小块更新。实测 Shelter 的中文 PGS 轨：
-    //   包区间 [13.639..13.680] [13.847..13.889] [14.056..14.097] …
-    //   ⇒ 每个包只有 **41 ms** 宽，间隔约 **208 ms**。
-    //
-    // 原因在 mpv 的 sub/sd_lavc.c:
-    //   endpts = pts + sub.end_display_time / 1000.0;
-    // FFmpeg 的 pgssub 解码器把 end_display_time 设为 0（PGS 没有"结束时间"，
-    // 它用 composition 的 display_end），于是每个包只覆盖自己那 41 ms。
-    //
-    // 而 mpv 的 get_current 要求 `pts < sub->endpts` —— 严格落在包内才命中。
-    // 于是**包与包之间的 208 ms 间隙里没有字幕**，一句完整对白被切成断断续续的碎片。
-    //
-    // 【--sub-fix-timing 正是为此存在】官方说明：
-    //   "Adjust subtitle timing to remove minor gaps or overlaps between
-    //    subtitles (if the difference is smaller than 210 ms, the gap or
-    //    overlap is removed)."
-    // 阈值 210 ms 与实测的 208 ms 间隔刚好吻合 ⇒ 开启后间隙被填平，
-    // 一句对白变成连续显示。
-    //
-    // 【为什么设成 optional】它只影响字幕的时间轴，不影响能否起播；
-    // 但它对位图字幕是**必需**的，所以失败必须被记录（不许静默降级）。
-    options.push_back({"sub-fix-timing", "yes", true});
-
-    const bool ok = apply_options(handle, options, failures);
+    // 【顺序】放在 apply_options 之后 —— 日志文件必须先打开，
+    // 否则字幕这组的失败无处留痕。
+    const bool base_ok = apply_options(handle, options, failures);
+    const bool sub_ok = apply_sub_options(handle, sub_fonts_dir, sub_font_family, failures);
+    const bool ok = base_ok && sub_ok;
 
     if (!ok) {
         std::string message = "mpv option rejected: ";
@@ -212,7 +157,7 @@ bool apply_mpv_options(mpv_handle* handle,
         // 【为什么还要写日志】失败可能发生在上层把异常吞掉的地方
         // （Kotlin 的 initialize 曾经就吞了）。日志文件是唯一"一定看得见"的地方 ——
         // 真机诊断时，第一件事就是读它。
-        append_log(log_file, "OPTFAIL " + message);
+        append_option_log(log_file, "OPTFAIL " + message);
         return false;
     }
 
@@ -227,13 +172,22 @@ bool apply_mpv_options(mpv_handle* handle,
             message += failures[i];
         }
         error = message;
-        append_log(log_file, "OPTWARN " + message);
+        append_option_log(log_file, "OPTWARN " + message);
     }
 
     // 硬解驱动名：**必须在 initialize 之后**用 set_property 设。
     // 在 initialize 之前用 set_option 设会被 mpv 用默认值覆盖
     // （真机日志：明明设了 mediacodec-copy，mpv 仍去加载 aimagereader 驱动）。
-    hwdec_out = "mediacodec-copy";
+    //
+    // 【为什么是零拷贝的 "mediacodec" 而不是 "mediacodec-copy"】
+    // "-copy" 会把解码出来的每一帧拷进 CPU 内存（4K NV12 = 11.06 MB/帧），
+    // 真机实测 native heap 337 MB / TOTAL PSS 737 MB；
+    // 零拷贝把帧留在 MediaCodec 的 Surface 上，native 降到 278 MB / PSS 544 MB
+    // （Redmi K40，4K HEVC 3840×1920，同一片源同一口径）。
+    //
+    // 【零拷贝在我们这条渲染链上确实能用】vo=libmpv + 我们自己的 EGL/GLES3 上下文，
+    // mpv 能把 MediaCodec 的帧映射进来：真机画面正常、渲染 23.5 fps 稳定、无映射报错。
+    hwdec_out = "mediacodec";
     return true;
 }
 

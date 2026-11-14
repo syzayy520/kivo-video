@@ -85,7 +85,9 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeCreate(JNIEnv* env, jclass, jobject app
 JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_mpv_MpvNative_nativeInitialize(JNIEnv* env, jclass, jlong handle,
                                                    jstring vo, jstring ao,
-                                                   jstring log_file) {
+                                                   jstring log_file,
+                                                   jstring sub_fonts_dir,
+                                                   jstring sub_font_family) {
     // 【整段持锁】查表 → 调用 → 可能改表 必须是一个原子区间，
     // 否则中途表被别的线程清掉就会拿到野指针（use-after-free）。
     kivo::video::mpv::SessionTableLock lock;
@@ -100,6 +102,8 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeInitialize(JNIEnv* env, jclass, jlong h
         vo_name.empty() ? "libmpv" : vo_name,
         kivo::video::mpv::to_string(env, ao),
         kivo::video::mpv::to_string(env, log_file),
+        kivo::video::mpv::to_string(env, sub_fonts_dir),
+        kivo::video::mpv::to_string(env, sub_font_family),
         error);
     if (!ok) {
         kivo::video::mpv::throw_error(env, error);
@@ -182,8 +186,16 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeCaptureFrameGen(JNIEnv* env, jclass, jl
 }
 
 JNIEXPORT jint JNICALL
+Java_com_kivo_cinema_mpv_MpvNative_nativeFirstFrameRendered(JNIEnv* env, jclass, jlong handle) {
+    kivo::video::mpv::SessionTableLock lock;
+    Session* session = kivo::video::mpv::find_session_locked(handle);
+    if (session == nullptr) return 0;
+    return session->first_frame_rendered() ? 1 : 0;
+}
+
+JNIEXPORT jint JNICALL
 Java_com_kivo_cinema_mpv_MpvNative_nativeLoadFile(JNIEnv* env, jclass, jlong handle,
-                                                  jstring url) {
+                                                  jstring url, jdouble start_seconds) {
     kivo::video::mpv::SessionTableLock lock;
     Session* session = kivo::video::mpv::find_session_locked(handle);
     if (session == nullptr) {
@@ -191,7 +203,8 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeLoadFile(JNIEnv* env, jclass, jlong han
         return -1;
     }
     std::string error;
-    const bool ok = session->load_file(kivo::video::mpv::to_string(env, url), error);
+    const bool ok = session->load_file(kivo::video::mpv::to_string(env, url),
+                                       static_cast<double>(start_seconds), error);
     if (!ok) {
         kivo::video::mpv::throw_error(env, error);
         return -1;

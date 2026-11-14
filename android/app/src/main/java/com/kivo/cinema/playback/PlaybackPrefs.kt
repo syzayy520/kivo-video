@@ -82,15 +82,23 @@ class PlaybackPrefs(context: Context) {
         get() = sp.getString("audio_language", "media") ?: "media"
         set(v) { sp.edit().putString("audio_language", v).apply() }
 
-    /** Wi-Fi 缓冲上限（MB）。 */
+    /**
+     * Wi-Fi 缓冲上限（MB）。
+     *
+     * 【为什么夹到 64–256】`demuxer-max-bytes` 是 mpv 的**预读字节上限**，
+     * 不是磁盘缓存。273 真机实测：256MiB 时进程 PSS 冲到 783–843 MB，
+     * 内存压力直接表现为 "Audio device underrun"（音频环被抢）。
+     * mpv-android 官方在移动端压到 32–64 MB —— 我们取同量级。
+     * 读取与写入都夹，设置页显示的就是真正生效的值 —— 不许静默降级。
+     */
     var wifiBufferMb: Int
-        get() = sp.getInt("wifi_buffer_mb", 2048)
-        set(v) { sp.edit().putInt("wifi_buffer_mb", v).apply() }
+        get() = sp.getInt("wifi_buffer_mb", DEFAULT_BUFFER_MB).coerceIn(MIN_BUFFER_MB, MAX_BUFFER_MB)
+        set(v) { sp.edit().putInt("wifi_buffer_mb", v.coerceIn(MIN_BUFFER_MB, MAX_BUFFER_MB)).apply() }
 
-    /** 蜂窝网络缓冲上限（MB）。 */
+    /** 蜂窝网络缓冲上限（MB）。夹取口径同 [wifiBufferMb]。 */
     var cellBufferMb: Int
-        get() = sp.getInt("cell_buffer_mb", 1024)
-        set(v) { sp.edit().putInt("cell_buffer_mb", v).apply() }
+        get() = sp.getInt("cell_buffer_mb", DEFAULT_BUFFER_MB).coerceIn(MIN_BUFFER_MB, MAX_BUFFER_MB)
+        set(v) { sp.edit().putInt("cell_buffer_mb", v.coerceIn(MIN_BUFFER_MB, MAX_BUFFER_MB)).apply() }
 
     // ---- 操控（264 操控设置卡）：按钮显隐 / 双击 / 竖滑 / 长按快进。播放器消费，UI 只编辑。 ----
 
@@ -234,8 +242,23 @@ class PlaybackPrefs(context: Context) {
         /** 起播规格停留秒数候选。 */
         val SPEC_SECONDS: List<Int> = listOf(0, 3, 5, 10)
 
-        /** 缓冲上限候选（MB）。 */
-        val BUFFER_MB: List<Int> = listOf(256, 512, 1024, 2048, 4096)
+        /**
+         * 缓冲上限候选（MB）。
+         *
+         * 【为什么不再有 1024/2048/4096】273 真机实测：GiB 级 `demuxer-max-bytes`
+         * 在 K40 上把内存吃穿，音频环被抢 ⇒ "Audio device underrun" ⇒ 卡顿。
+         * 候选与 [MAX_BUFFER_MB] 保持一致，别再把上限抬回去。
+         */
+        val BUFFER_MB: List<Int> = listOf(64, 128, 256)
+
+        /** 缓冲上限下限（MB）：低于 64MB 预读太浅，起播后立刻要再取。 */
+        const val MIN_BUFFER_MB: Int = 64
+
+        /** 缓冲上限上限（MB）：见 [BUFFER_MB] 的说明。 */
+        const val MAX_BUFFER_MB: Int = 256
+
+        /** 缓冲上限默认值（MB）：64 —— 与 mpv-android 官方移动端口径一致。 */
+        const val DEFAULT_BUFFER_MB: Int = 64
 
         fun bufferLabel(mb: Int): String = if (mb >= 1024) "${mb / 1024}GB" else "${mb}MB"
 
