@@ -132,9 +132,18 @@ class EmbyClient(serverInput: String) {
         } finally { c.disconnect() }
     }
 
-    /** D3：直连流 URL（static=true）。token 走 X-Emby-Token 头（254），永不进 URL/日志。 */
-    fun streamUrl(auth: Auth, itemId: String): String =
-        "$base$prefix/Videos/$itemId/stream?static=true"
+    /**
+     * D3：直连流 URL（static=true）。token 走 X-Emby-Token 头（254），永不进 URL/日志。
+     *
+     * @param mediaSourceId 274：指定**版本**（同一条目常有 1080p / 4K 多份）。
+     *   null/空 = 不带参数（旧行为，由服务端挑默认版本）。
+     *   真机验证：加 `&MediaSourceId=` 后 `Content-Range` 总长由
+     *   57,523,754,510（4K）变为 4,316,184,874（1080p）。
+     */
+    fun streamUrl(auth: Auth, itemId: String, mediaSourceId: String? = null): String {
+        val base = "$base$prefix/Videos/$itemId/stream?static=true"
+        return if (mediaSourceId.isNullOrBlank()) base else "$base&MediaSourceId=$mediaSourceId"
+    }
 
     /** 海报/详情图字节下载（位图解码在调用侧）。token 可选：匿名图不带头。 */
     fun fetchBytes(url: String, token: String? = null): ByteArray {
@@ -207,7 +216,13 @@ class EmbyClient(serverInput: String) {
                     if (pid.isNotBlank() && ptag.isNotBlank())
                         "$base$prefix/Items/$pid/Images/Primary?maxWidth=300&quality=90&tag=$ptag" else "")
             }
-            val ms = o.optJSONArray("MediaSources")?.optJSONObject(0)
+            val mss = o.optJSONArray("MediaSources")
+            val ms = mss?.optJSONObject(0)
+            // 274：挑一个"播得动"的版本（只影响播放 URL，不动展示）。
+            val pick = EmbySourcePicker.pick(mss)
+            com.kivo.cinema.net.NetDiag.log(
+                "[emby] 选源 item=$itemId -> ${pick.id ?: "(默认)"} 依据=${pick.reason}",
+            )
             val streams = ms?.optJSONArray("MediaStreams")
             fun titles(type: String): List<String> {
                 if (streams == null) return emptyList()
@@ -241,6 +256,9 @@ class EmbyClient(serverInput: String) {
                 logoUrl = image("Logo", o.optJSONObject("ImageTags")?.optString("Logo").orEmpty(), 1080),
                 isFavorite = ud?.optBoolean("IsFavorite") ?: false,
                 played = ud?.optBoolean("Played") ?: false,
+                // 274：播放走挑好的版本（展示仍用 MediaSources[0]，UI 不变）。
+                playMediaSourceId = pick.id,
+                playSizeBytes = pick.sizeBytes,
             )
         } finally { c.disconnect() }
     }

@@ -82,7 +82,11 @@ internal class EmbyResource private constructor(
         }
         val quality = emby.media?.takeIf { it.width > 0 }
             ?.let { resolutionTier(it.width, it.height).ifEmpty { "SD" } } ?: "未知"
-        val play = playIntent(c, a, emby.media?.sizeBytes ?: -1L)
+        // 274：片源总长要**跟着选中的版本**（4K 57.5GB / 1080p 4.3GB），
+        // 否则片尾预取窗口会算到片外。
+        val playSize = if (emby.playSizeBytes > 0) emby.playSizeBytes
+        else (emby.media?.sizeBytes ?: -1L)
+        val play = playIntent(c, a, playSize, emby.playMediaSourceId)
         // 273 v16：详情页就把源站连接与片尾窗口预热好（用户点播放时直接复用）。
         prewarm(play, a.token)
         return DetailContent(details, media, quality, play, tmdbId, false,
@@ -253,9 +257,15 @@ internal class EmbyResource private constructor(
         }
     }
 
-    private fun playIntent(c: EmbyClient, a: EmbyClient.Auth, sizeBytes: Long): Intent =
+    private fun playIntent(
+        c: EmbyClient,
+        a: EmbyClient.Auth,
+        sizeBytes: Long,
+        mediaSourceId: String?,
+    ): Intent =
         Intent(context, PlayerComposeActivity::class.java)
-            .putExtra("kivo.playurl", c.streamUrl(a, itemId))
+            // 274：带上挑好的 MediaSourceId（同一条目的 1080p / 4K 是两份文件）。
+            .putExtra("kivo.playurl", c.streamUrl(a, itemId, mediaSourceId))
             .putExtra("kivo.label", name)
             .putExtra("kivo.sourceName", serverName)
             .putExtra("kivo.sourceId", sourceId)
