@@ -63,8 +63,19 @@ internal class OriginTimePrefetch(
         force: Boolean = false,
         parts: Int = 1,
     ): Boolean {
-        if (timeMs <= 0L || windowBytes <= 0L) return false
-        val index = indexOf() ?: return false
+        // 273 v35 复检补：**每一个早退分支都要留日志**。
+        // 【为什么】原来 66/67/75 三处是静默 return ⇒ 真机上"落点预取 0 次"
+        // 时**分不清是哪一条分支退的**（本轮就卡在这里很久）。
+        // 静默早退 = 取证黑洞：现象可见，原因不可见。
+        if (timeMs <= 0L || windowBytes <= 0L) {
+            NetDiag.log("[$tag] 落点预取入参非法 timeMs=$timeMs windowBytes=$windowBytes ⇒ 不预取")
+            return false
+        }
+        val index = indexOf()
+        if (index == null) {
+            NetDiag.log("[$tag] cues 索引尚未就绪 ⇒ 不预取（timeMs=$timeMs）")
+            return false
+        }
         // 【覆盖不到就不猜】cues 表可能被缓冲夹住（只读到前半段）⇒
         // 超出范围的时间算出来的偏移是**错的** ⇒ 宁可**不预取**。
         if (!index.covers(timeMs)) {
@@ -72,7 +83,10 @@ internal class OriginTimePrefetch(
             return false
         }
         val offset = index.clusterOffsetAt(timeMs)
-        if (offset < 0L) return false
+        if (offset < 0L) {
+            NetDiag.log("[$tag] 落点偏移算不出 ⇒ 不预取（timeMs=$timeMs）")
+            return false
+        }
         // 【已经有人在下了】落点被某个窗口圈住 ⇒ 不重复预取
         // （那个窗口边下边给，读侧跟着它走 ⇒ 比另开一条更快也更省）。
         if (cache.coversRange(offset)) {

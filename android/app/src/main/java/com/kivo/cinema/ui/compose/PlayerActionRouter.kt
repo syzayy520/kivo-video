@@ -39,6 +39,25 @@ internal fun PlayerComposeActivity.resolutionLabel(): String {
 
 /** 统一 seek 入口（四条链路）。 */
 internal fun PlayerComposeActivity.seekTo(ms: Long) {
+    // 273 v35：落点预取与"用哪个内核"**无关** —— 先把落点那一簇抓进内存，
+    // 再让内核跳过去。
+    //
+    // 【为什么必须放最前，而不是放在某个分支里】
+    // 原实现把 prefetchSeek 放在 `mpvNetSession != null` 分支内，而那个字段
+    // **全仓只有 PlayerSmbStart.kt:152 一处赋值** ⇒ 只有走 SMB 软解降级时才非空。
+    // Emby/URL 链路走的是 PlayerUrlStart → startNetworkPlayback →
+    // `smbNetSession = netSession`（字段名有误导：它同时承载 SMB 与 URL 两条链路）。
+    // ⇒ **Emby 播放时 mpvNetSession 恒为 null ⇒ prefetchSeek 从未执行**
+    // ⇒ 落点窗口从未建立 ⇒ 真机 seek→首帧 3453 ms（拖动后白屏 2-4 s）。
+    //
+    // 【为什么提出来是对的】
+    // ① 预取是**源站侧**动作，内核是**播放侧**动作 —— 两者本无耦合；
+    // ② `urlPrep?.source` 只在有 URL 源时非空 ⇒ SMB/本地链路自然跳过（幂等）；
+    // ③ force=true 只在**用户松手**时调（onSeek → seekTo），
+    //    拖动途中不调 ⇒ 不会重现 v26 的"一次拖动开 19 条连接"风暴；
+    // ④ 让路闸的 landingInFlight 判的是"落点窗口在飞" ⇒ 窗口建了，
+    //    v31 那套让路机制才第一次真正生效（此前恒 false）。
+    urlPrep?.source?.prefetchSeek(ms, force = true)
     val soft = smbSoftSession
     when {
         soft != null -> {
@@ -48,12 +67,6 @@ internal fun PlayerComposeActivity.seekTo(ms: Long) {
             positionMs = ms
         }
         mpvNetSession != null -> {
-            // 273 v26：**先**把落点那一簇抓进内存，再让内核跳过去。
-            // 【为什么顺序不能反】内核 seek 之后 demux 缓存被清空 ⇒ 落点那一段
-            // 必须回源站取 ⇒ 真机新建连接表头 1,274 ms ⇒ 画面停 0.597 s。
-            // 先抓 ⇒ 那一跳本地供，不必新建连接。
-            // 273 v27：松手这一刻 force = true（位置已定，必须立刻下，不受节流约束）。
-            urlPrep?.source?.prefetchSeek(ms, force = true)
             mpvNetSession?.seekTo(ms * 1000, exact = playbackPrefs.seekExact)
         }
         smbNetSession != null -> smbNetSession?.seekTo(ms * 1000)

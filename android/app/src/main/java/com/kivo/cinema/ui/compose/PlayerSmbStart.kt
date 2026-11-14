@@ -174,6 +174,11 @@ internal fun PlayerComposeActivity.startMpvPlayback(
             android.os.Handler(mainLooper).post(positionPoll)
             applyProbeSubtitle(session)
             applyProbeMpvOptions(session)
+            // 273 v35：落点 seek 取证钩子（URL 与 SMB 两条链路共用本函数 ⇒ 挂这里两边都覆盖）。
+            // 【为什么必须有它】见 PlayerProbeLandingSeek.kt 的文件头：
+            // `input swipe` 与 `input motionevent` 都进不去 App 的手势层 ⇒
+            // Emby 链路的落点行为**无法脚本复现** ⇒ v26 才从未被验证过。
+            applyProbeLandingSeek()
             // 起播后才有 video-params：此时更新 PiP 宽高比才是真值。
             updatePipParams()
             // `start=` 已经把内核放到续播位了，这里只补齐界面上的位置。

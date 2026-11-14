@@ -1666,3 +1666,183 @@ v24 第 3 次拖动（跳到 4932 s）实测：
 `OriginCueIndexSource` 的变化原因是"**索引从哪来、什么时候备好**"，
 `OriginTimePrefetch` 的变化原因是"**给定时间该抓哪一段**"；
 合成一个文件 ⇒ 以后加第二种索引来源（容器换格式）时两个理由会缠在一起。
+
+---
+
+## 二十一、v34/v35/v36 · 落点那一跳的真实根因（2026-11-14 复检）
+
+> 本段是**接管复检**发现的：**v26 从未被验证过**。
+> 上一轮把 v26 写成"已收口"，但 `docs/evidence/p273-emby-stutter/` 里**没有 `v26-*` 目录**，
+> 且真机复算报「落点预取 **0 次**、落点窗口 **0 个**」⇒ **那条代码路径根本没跑起来**。
+
+### 21.1 复检的实测事实（K40 `b6e950ee`，同片源 233908）
+
+| 指标 | 实测 | v13 声称 | 判定 |
+| --- | --- | --- | --- |
+| 播放中 `Enter buffering` | **0** | 0 | ✅ 一致 |
+| 帧率 | **23.8 fps** | 23.96 | ✅ 一致 |
+| 渲染失败帧 | **0** | 0 | ✅ 一致 |
+| **拖动后 seek→首帧** | **3453 ms** | 1.44 s | ❌ **差 2.4 倍** |
+| 落点预取次数 | **0** | ≤3 | ❌ **从未触发** |
+| 落点窗口数 | **0** | — | ❌ **从未创建** |
+| 让路闸 开/关 | **0 / 0** | 应 >0 | ❌ **从未触发** |
+| 拖动期源站总搬 | **67 MiB** | — | ⚠️ 超买 |
+
+⇒ **"卡"不是播放性能问题**（缓冲 0、帧率达标、零失败帧），
+**问题全部集中在"落点那一跳"**：拖动/跳转后要重新取数，
+那一跳慢 ⇒ 用户看到的是**白屏**（画面停住），不是掉帧。
+
+### 21.2 v35 根因：URL 链路进不了预取分支（确凿，读代码即可判定）
+
+`PlayerActionRouter.kt:52-58`：
+
+```kotlin
+mpvNetSession != null -> {
+    urlPrep?.source?.prefetchSeek(ms, force = true)   // ← 唯一强制预取入口
+    mpvNetSession?.seekTo(ms * 1000, exact = playbackPrefs.seekExact)
+}
+```
+
+**而 `mpvNetSession` 全仓只有一处赋值**：`PlayerSmbStart.kt:152`
+—— 即**只有走 SMB 软解降级链路时才非空**。
+
+Emby/URL 链路走的是 `PlayerUrlStart.kt:100` → `startNetworkPlayback(...)`
+→ `PlayerSessionStart.kt:118` `smbNetSession = netSession`
+（**字段名有误导**：它同时承载 SMB 与 URL(emby) 两条链路，靠 `routing` 参数区分）。
+
+⇒ **Emby 播放时 `mpvNetSession` 恒为 null ⇒ `prefetchSeek(force=true)` 从未执行**
+⇒ 落点那一跳永远回源站新建连接（真机表头 1962/2075 ms）
+⇒ 拖动后白屏 2–4 s。
+
+**佐证（真机 net.log，同一偏移被两路各拉一次）**：
+
+```
+PROXY REQ range=bytes=126734306- cap=0
+[thumb] origin chunk from=126734306 hdrMs=1962 len=1048576   ← 预览自建连接
+[play]  origin chunk from=126734306 hdrMs=2075 len=4194304   ← 播放自建连接
+PROXY conn fail: ConnectionResetException
+GET range=bytes=126734306- bytes=4194304 ms=3630
+```
+
+**两条路拉的是同一个偏移** —— 落点窗口没有建成，所以谁也没得用缓存。
+
+### 21.3 v36 根因：让路闸从未触发（确凿）
+
+`OriginYieldPolicy.shouldYield()` 依赖两个条件：
+`gate.isYielding()`（拖动闸门）或 `landingInFlight()`（落点窗口在飞）。
+
+- `landingInFlight` 判的是 `windowCache.hasPending(TAG_SEEK)`
+  ⇒ **落点窗口从没建过**（因为 v35）⇒ 这个条件恒 false；
+- `gate.isYielding()` 由 `PlayerComposeRoot.kt:144` 的 `yieldSource(SCRUB_YIELD_MS=1500)` 打开。
+
+⇒ **v35 是 v36 的上游**：落点窗口不建 ⇒ 让路闸的两个条件里最关键的那个恒假。
+⇒ 修好 v35，`landingInFlight` 才有真值，v31 那套"让路闸 + 掐掉在飞的块"才第一次真正生效。
+
+**因此本段的实施顺序是固定的：先修 v35，再复测 v36** ——
+反过来做等于在一条从未接通的线路上调阈值。
+
+### 21.4 修法（v35）
+
+把强制预取从 `mpvNetSession` 分支里**提出来**，提到 `seekTo()` 的最前面 ——
+**预取与用哪个内核无关**（预取是"源站侧"的动作，内核是"播放侧"的动作）。
+
+```kotlin
+internal fun PlayerComposeActivity.seekTo(ms: Long) {
+    // 273 v35：落点预取与内核无关 —— 先把落点那一簇抓进内存，再让内核跳过去。
+    // 【为什么必须放最前】原实现放在 mpvNetSession 分支内，
+    // 而该字段只有 SMB 软解降级时才非空 ⇒ Emby/URL 链路（smbNetSession）永远进不去
+    // ⇒ 落点窗口从未建立 ⇒ 真机 seek→首帧 3453 ms（白屏 2-4 s）。
+    urlPrep?.source?.prefetchSeek(ms, force = true)
+    val soft = smbSoftSession
+    when { /* 原来的四条链路分支，mpvNetSession 分支里的 prefetchSeek 删掉 */ }
+}
+```
+
+**为什么这样改是对的**：
+① 预取是**源站侧**动作，`urlPrep?.source` 只在有 URL 源时非空（SMB/本地链路为 null ⇒ 自然跳过）；
+② `force = true` 只在**用户松手**时调（`onSeek` → `seekTo`），拖动途中不调 ⇒ 不会重现 v26 的连接风暴；
+③ 幂等：本地/软解链路 `urlPrep` 为 null，不受影响。
+
+### 21.5 复验判据
+
+| # | 判据 | 目标 |
+| --- | --- | --- |
+| 1 | 拖动后 `seek→首帧` | ≤ 1500 ms（当前 3453 ms） |
+| 2 | 落点预取次数 | 1（当前 0） |
+| 3 | 落点窗口数 | ≥ 1（当前 0） |
+| 4 | 让路闸 开次数 | ≥ 1（当前 0） |
+| 5 | 同一偏移被 `[thumb]` 与 `[play]` 各拉一次 | 不再发生（当前 2 次） |
+| 6 | `PROXY conn fail` | 0 次 |
+| 7 | 播放中 `Enter buffering` | 仍为 0（不许为了快落点牺牲播放） |
+| 8 | 帧率 | ≥ 23.8 fps（不许回退） |
+
+### 21.6 v35 实施与复验（真机 K40 `b6e950ee`）
+
+**改动（3 处）**：
+
+| # | 文件 | 改动 |
+| --- | --- | --- |
+| 1 | `ui/compose/PlayerActionRouter.kt` | 把 `prefetchSeek(ms, force=true)` 从 `mpvNetSession` 分支**提到 `seekTo()` 最前**（§21.4） |
+| 2 | `net/OriginTimePrefetch.kt` | 补齐 3 处**静默早退分支**的日志（静默早退 = 取证黑洞） |
+| 3 | `ui/compose/PlayerProbeLandingSeek.kt`【新增】 | **可脚本化的落点 seek 取证钩子**（见 21.7） |
+
+**复验结果（真机，同片源 233908）**：
+
+| 判据 | 目标 | 修复前 | 修复后 | 判定 |
+| --- | --- | --- | --- | --- |
+| 拖动/落点 seek→首帧 | ≤ 1500 ms | **3453 ms** | **1156 ms** | ✅ |
+| 落点预取次数 | 1 | **0** | **1** | ✅ |
+| 落点窗口数 | ≥ 1 | **0** | **1** | ✅ |
+| 让路闸 开/关 | ≥1 | **0 / 0** | **2 / 2** | ✅ |
+| 首帧前读到字节 | 落点偏移起 | n/a | **437,545 B**（窗口命中 54 次） | ✅ |
+| 预览拖动期回源站 | ~0 | 2 块同偏移 | **0 块 / 0.00 MiB** | ✅ |
+| 落点窗口有效速率 | — | n/a | **1782 KB/s**（4 片并发，表头 348–1319 ms） | ✅ |
+| 播放缓冲事件 | 0 | 0 | **1** | ⚠️ 见 21.8 |
+| 帧率 | ≥ 23.8 fps | 23.8 | **22.8** | ⚠️ 见 21.8 |
+
+**证据**：`docs/evidence/p273-emby-stutter/v35-land/`（kernel.log / diag.log / net.log）
+
+### 21.7 为什么必须新增落点探针（这是本轮最重要的工程教训）
+
+**前助手 v26 声称"已收口"，但它从未被真机验证过** —— 因为**当时没有能触发它的手段**：
+
+| 尝试的手段 | 结果 |
+| --- | --- |
+| `adb shell input swipe` | 走系统注入，**不经过 App 手势分发** ⇒ Compose 收不到 MotionEvent ⇒ 实测内核 **0 次 seek** |
+| `adb shell input motionevent DOWN/MOVE/UP` | 同样是系统级注入，不产生给 App 的真实触摸序列 ⇒ 实测内核 **0 次 seek** |
+| SMB 链路的 `kivo.seekMs` 探针 | 挂在 `PlayerSmbStart.kt:175`，**URL(emby) 链路没有挂任何探针** |
+
+⇒ **Emby 链路的落点行为无法脚本复现** ⇒ v26 的证据目录 `v26-*` 从未产出 ⇒
+那一版是**未经任何真机验证就写进规格并标记"✅ 收口"**的。
+
+**修法**：新增 `PlayerProbeLandingSeek.kt` —— 起播后按 `--ei kivo.landSeekSec N`
+走一次**与用户拖动松手完全相同的入口**（`PlayerComposeActivity.seekTo`）。
+因为走的是同一条路径，它测的就是真机上的落点那一跳，不是另造一条平行路径。
+
+> **教训（写进本仓库的规矩）**：
+> **"看起来该生效"的代码路径，必须有一条能脚本复现它的取证手段**，
+> 否则它就是"写了但没跑过"—— 而 v26 就是这么混进规格的。
+
+### 21.8 遗留：落点后那一次 0.5 s 缓冲事件（下一步）
+
+真机时间线（`v35-land/net.log`）：
+
+```
+1794652957584  [seek] cues=4244 条，4932000ms → 偏移 1613145699，预取 1613080163..1617340003
+1794652957586  PROXY REQ range=bytes=1613145699- cap=0     ← 内核 2 ms 后就跳过去了
+1794652957932  [play-seek] origin chunk from=1613080163 hdrMs=348 len=1064960
+1794652958035  [seek] cache hit offset=1613145699 src=inflight   ← 边下边给
+...
+内核: first video frame after restart shown @ 16.853
+内核: Enter buffering (100% -> 0%) @ 17.005
+内核: End buffering (waited 0.499 s) @ 17.403
+```
+
+**归因**：落点窗口**边下边给**（`src=inflight`），内核跳过去后要等窗口把
+落点那一小段喂进来 ⇒ 中间空了 0.5 s ⇒ 一次缓冲事件 + 一次 850 ms 的渲染间隔
+⇒ 帧率从 23.8 掉到 22.8。
+
+**这比修复前好得多**（修复前是 3453 ms 全程空白 + 无任何缓存命中），
+但**还没到极致**。下一步方向：**内核跳过去之前，先等窗口把落点那一小段备好**
+（窗口已有 `READ_WAIT_MS` 上限，需要量一下实际等了多久、够不够）。
+
