@@ -64,7 +64,7 @@ internal fun PlayerComposeActivity.seekTo(ms: Long, waitLandingFirstSlice: Boole
     // ④ 让路闸的 landingInFlight 判的是"落点窗口在飞" ⇒ 窗口建了，
     //    v31 那套让路机制才第一次真正生效（此前恒 false）。
     val source = urlPrep?.source
-    source?.prefetchSeek(ms, force = true)
+    val landingOffset = source?.prefetchSeek(ms, force = true) ?: -1L
 
     // 273 v42：**远跳**时等落点第一片就绪再跳。
     //
@@ -76,10 +76,13 @@ internal fun PlayerComposeActivity.seekTo(ms: Long, waitLandingFirstSlice: Boole
     // 【为什么不等整块】整块 4 MiB / 4 片并行下完要 2683 ms（真机），
     // 等整块会把首帧拖到 2.7 s —— 比现在 1.16 s **更差**。
     //
-    // 【为什么不等太久】等 900 ms 就放弃：源站慢时不能把用户的跳转卡住
+    // 【为什么不等太久】等 1200 ms 就放弃：源站慢时不能把用户的跳转卡住
     // ⇒ 超时后照常跳（功能不缺，只是没加速）。
-    if (waitLandingFirstSlice && source != null) {
-        seekAfterLandingReady(ms, source)
+    //
+    // 【为什么 landingOffset < 0 就不等】预取没发起（cues 没备好 / 落点超出
+    // 片源长度 / 落点已在窗口内）⇒ 没有可等的窗口 ⇒ 直接跳。
+    if (waitLandingFirstSlice && source != null && landingOffset >= 0L) {
+        seekAfterLandingReady(ms, source, landingOffset)
         return
     }
     performSeek(ms)
@@ -91,16 +94,17 @@ internal fun PlayerComposeActivity.seekTo(ms: Long, waitLandingFirstSlice: Boole
  * 【为什么要绕一圈】`awaitWindow` 是**阻塞**的（`lock.wait`）⇒ 不能在主线程调。
  * ⇒ 后台线程等，主线程发 seek。
  *
- * 【兜底】等待期间用户可能又发了一次 seek（连续拖动）⇒ 用 [landingSeekSeq]
+ * 【兜底】等待期间用户可能又发了一次 seek（连续拖动）⇒ 用 [LandingSeekState]
  * 序号丢弃过期的等待结果，避免"跳回旧位置"。
  */
 private fun PlayerComposeActivity.seekAfterLandingReady(
     ms: Long,
     source: com.kivo.cinema.net.HttpOriginSource,
+    landingOffset: Long,
 ) {
     val seq = landingSeek.begin()
     Thread({
-        val ready = source.awaitLandingReady(LANDING_WAIT_TIMEOUT_MS)
+        val ready = source.awaitLandingReady(landingOffset, LANDING_WAIT_TIMEOUT_MS)
         runOnUiThread {
             if (!landingSeek.isCurrent(seq)) return@runOnUiThread
             if (!ready) {

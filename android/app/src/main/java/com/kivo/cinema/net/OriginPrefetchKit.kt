@@ -204,13 +204,16 @@ internal class OriginPrefetchKit(
      * 落点那一簇事先在本地 ⇒ 那一跳不必新建连接。
      *
      * @param force true = 松手那一刻（位置已定，必须立刻下，不受节流约束）。
+     * @return 本次落点的**字节偏移**；-1 = 没有预取（索引没备好 / 覆盖不到 /
+     *   已在窗口内）。调用方拿它去判"等的是哪个窗口"（见 [awaitLandingFirstSlice]）。
      */
-    fun prefetchSeek(timeMs: Long, force: Boolean = false) {
-        val client = seekClient ?: return
-        timePrefetch.prefetch(
+    fun prefetchSeek(timeMs: Long, force: Boolean = false): Long {
+        val client = seekClient ?: return -1L
+        val ok = timePrefetch.prefetch(
             timeMs, OriginWindowCache.TAG_SEEK, client, seekWindowBytes, force,
             parts = LANDING_WINDOW_PARTS,
         )
+        return if (ok) timePrefetch.lastLandingOffset() else -1L
     }
 
     /**
@@ -247,10 +250,11 @@ internal class OriginPrefetchKit(
      * @param timeoutMs 等多久就放弃（放弃 ⇒ 照常跳，功能不缺，只是没加速）。
      * @return true = 第一片已就绪；false = 超时/失败/没有这个窗口。
      */
-    fun awaitLandingFirstSlice(timeoutMs: Long): Boolean {
+    fun awaitLandingFirstSlice(expectOffset: Long, timeoutMs: Long): Boolean {
         val snapshot = windowCache.awaitWindow(
             OriginWindowCache.TAG_SEEK, timeoutMs,
             minBytes = LANDING_FIRST_SLICE_MIN_BYTES,
+            expectOffset = expectOffset,
         )
         return snapshot != null
     }

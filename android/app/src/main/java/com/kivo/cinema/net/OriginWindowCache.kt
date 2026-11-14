@@ -203,13 +203,27 @@ class OriginWindowCache {
      *
      * @param minBytes > 0 时：**前缀够这么多字节就可以走**（不必等整块下完）。
      *   解析方用它把"等整块 4 MiB"换成"等开头 64 KiB"⇒ 冷源上早十几秒开工。
-     * @return 窗口快照；null = 没有这个窗口 / 预取失败 / 超时。
+     * @param expectOffset > 0 时：只认**范围里含它**的那个窗口。
+     *   【为什么需要】同标签的旧窗口在"新预取没发起"时**不会被清掉**
+     *   （`prefetch` 里的 `replaceTag` 清理只在发起时跑）⇒ 等的时候可能等到
+     *   **上一个落点的残留窗口** ⇒ 误判"已就绪"。真机 v43 实测：
+     *   落点超出 cues 覆盖范围 ⇒ 预取没发起 ⇒ 却报"落点第一片已就绪"。
+     *   用"范围含落点偏移"判定 ⇒ 残留窗口（范围在别处）自然不匹配。
+     * @return 窗口快照；null = 没有这个窗口 / 预取失败 / 超时 / 范围不含落点。
      */
-    fun awaitWindow(tag: String, timeoutMs: Long, minBytes: Int = 0): Snapshot? {
+    fun awaitWindow(
+        tag: String,
+        timeoutMs: Long,
+        minBytes: Int = 0,
+        expectOffset: Long = -1L,
+    ): Snapshot? {
         val deadline = System.currentTimeMillis() + timeoutMs
         synchronized(lock) {
             while (true) {
-                val w = windows.firstOrNull { it.tag == tag } ?: return null
+                val w = windows.firstOrNull {
+                    it.tag == tag &&
+                        (expectOffset < 0L || (it.actualStart <= expectOffset && expectOffset < it.endExclusive))
+                } ?: return null
                 when {
                     w.state == OriginWindow.State.READY -> {
                         val data = w.snapshot(w.filled) ?: return null

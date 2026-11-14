@@ -45,6 +45,18 @@ internal class OriginTimePrefetch(
     private var lastStartWallMs = -1L
 
     /**
+     * 上一次成功发起的落点的**字节偏移**；-1 = 没有。
+     *
+     * 【为什么记它】调用方（[OriginPrefetchKit.prefetchSeek]）要在**等待窗口**
+     * 时指明"等的是哪个窗口"—— 否则可能等到**上一个落点的残留窗口**
+     * （同标签的旧窗口在新预取没发起时不会被清掉）⇒ 误判"已就绪"。
+     */
+    @Volatile private var lastLandingOffset = -1L
+
+    /** 上一次成功发起的落点偏移（-1 = 没有）。 */
+    fun lastLandingOffset(): Long = lastLandingOffset
+
+    /**
      * 预取"某个时间对应的簇"那一段。
      *
      * @param timeMs 目标时间（毫秒）。
@@ -103,6 +115,7 @@ internal class OriginTimePrefetch(
             return false
         }
         lastStartWallMs = now
+        lastLandingOffset = offset
 
         val total = totalOf()
         // 【窗口贴着落点铺】起点往前挪一截（兜住内核那几字节的回退），
