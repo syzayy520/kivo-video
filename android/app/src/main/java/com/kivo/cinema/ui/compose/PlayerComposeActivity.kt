@@ -92,6 +92,8 @@ class PlayerComposeActivity : ComponentActivity() {
     internal var pipActive by mutableStateOf(false)
     /** 本次进入请求是否真的收到 mode-changed（看门狗判静默拒绝用）。 */
     internal var pipEnterConfirmed = false
+    /** 273 v42：落点跳转状态（谁在等落点窗口就绪）。 */
+    internal val landingSeek = LandingSeekState()
     /** 后台自动暂停标记（262）：onStop 置真，onResume 据此决定是否自动恢复。 */
     internal var pausedByBackground = false
 

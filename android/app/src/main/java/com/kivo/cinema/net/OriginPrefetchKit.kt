@@ -214,6 +214,48 @@ internal class OriginPrefetchKit(
     }
 
     /**
+     * 273 v42：等落点窗口的**第一片**就绪（阻塞调用，**必须**在后台线程跑）。
+     *
+     * ## 它消掉哪 0.5 s
+     *
+     * v35 修好之后，落点那一跳的字节供给已经**完全正确**（真机：内核一次都没回源站，
+     * 全部由窗口边下边给供给）。但仍剩一次 499 ms 的缓冲事件：
+     *
+     * ```
+     * [15.698] stream level seek from 141012675 to 1613145699
+     * [16.149] seek done                                     ← 内核 seek 花了 451 ms
+     * [16.853] first video frame after restart shown          ← 首帧
+     * [17.005] Enter buffering (100% -> 0%)                   ← 首帧之后 demux 缓存空了
+     * [17.403] End buffering (waited 0.499 secs)
+     * ```
+     *
+     * 归因：**内核跳过去时，窗口的第一片还没到**（真机：预取发起 → 第一片到达 348 ms，
+     * 而内核在 2 ms 后就跳过去了）⇒ 内核先把 demux 缓存读空（首帧出来了），
+     * 紧接着缓存耗尽 ⇒ 缓冲 0.5 s。
+     *
+     * ## 为什么等"第一片"而不是等整块
+     *
+     * 窗口是 4 MiB / 4 片并行，全下完要 2683 ms（真机）。等整块会把首帧拖到 2.7 s，
+     * 比现在的 1.16 s **更差**。内核真正要的是**落点那一簇**（第一片，1064960 B），
+     * 它到齐后内核就能开始解 ⇒ 等第一片是**收益最大、代价最小**的那一刀。
+     *
+     * ## 为什么不在主线程等
+     *
+     * `awaitWindow` 是**阻塞**的（`lock.wait`）⇒ 只能在后台线程调用。
+     * 调用方（播放器）负责把它搬到后台，见 [HttpOriginSource.awaitLandingReady] 的用法。
+     *
+     * @param timeoutMs 等多久就放弃（放弃 ⇒ 照常跳，功能不缺，只是没加速）。
+     * @return true = 第一片已就绪；false = 超时/失败/没有这个窗口。
+     */
+    fun awaitLandingFirstSlice(timeoutMs: Long): Boolean {
+        val snapshot = windowCache.awaitWindow(
+            OriginWindowCache.TAG_SEEK, timeoutMs,
+            minBytes = LANDING_FIRST_SLICE_MIN_BYTES,
+        )
+        return snapshot != null
+    }
+
+    /**
      * 后台把 cues 索引读出来（拖动之前备好 ⇒ 拖动时零等待）。
      */
     fun warmCueIndex() {
@@ -236,6 +278,21 @@ internal class OriginPrefetchKit(
          * 每片都要一次表头往返，摊不薄。
          */
         private const val LANDING_WINDOW_PARTS = 4
+
+        /**
+         * 273 v42：等落点**第一片**多少字节就算就绪。
+         *
+         * 【为什么是 256 KiB 而不是整片】真机 v42 复验：
+         * 等 1 MiB（整片）时 **900 ms 超时**，但那一���内核已经能读到
+         * 65536 + 115546 = **181,082 B**（落点簇就位）⇒ 白等。
+         * 落点簇本身只有几十 KiB 量级（内核 demuxer 回退到簇头后读的那一段）
+         * ⇒ 等 256 KiB 就够内核开始解，且**远小于**一整片。
+         *
+         * 【为什么不能更小（如 64 KiB）】内核的 demuxer 会**回退**到簇头，
+         * 回退量在几十 KiB 量级 ⇒ 阈值太小会"等了个刚够、但内核还要再退一点"，
+         * 仍会空档。256 KiB 留了 4 倍余量。
+         */
+        private const val LANDING_FIRST_SLICE_MIN_BYTES = 256 * 1024
 
         /**
          * 落点保温池的**起跑延迟**（毫秒）。

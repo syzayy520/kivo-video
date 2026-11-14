@@ -232,6 +232,13 @@ class HttpOriginSource(
      */
     fun prefetchSeek(timeMs: Long, force: Boolean = false) = prefetchKit.prefetchSeek(timeMs, force)
 
+    /**
+     * 273 v42：等落点窗口的**第一片**就绪（**阻塞**，必须后台线程调用）。
+     *
+     * @return true = 第一片已就绪（内核可以立刻跳过去解）；false = 超时/没有窗口。
+     */
+    fun awaitLandingReady(timeoutMs: Long): Boolean = prefetchKit.awaitLandingFirstSlice(timeoutMs)
+
     /** 让源站给落点那一跳让路（273 v29：拖动期间主链路预读与保温都停手）。 */
     fun yieldSource(ms: Long) = client.yieldGate.yieldFor(ms)
 

@@ -64,8 +64,8 @@ internal fun PlayerComposeActivity.applyProbeLandingSeek() {
             if (finishRequested || isDestroyed) return@postDelayed
             val ms = sec * 1000L
             smbTrace("probe landing-seek $ms ms（起播后 ${at}ms）")
-            // 走**与用户拖动松手完全相同**的入口。
-            seekTo(ms)
+            // 走**与用户拖动松手完全相同**的入口（含 v42 的"等第一片就绪"）。
+            seekTo(ms, waitLandingFirstSlice = true)
         }, at.toLong())
     }
 }

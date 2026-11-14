@@ -37,8 +37,14 @@ internal fun PlayerComposeActivity.resolutionLabel(): String {
     return label.ifEmpty { lastResolutionLabel }
 }
 
-/** 统一 seek 入口（四条链路）。 */
-internal fun PlayerComposeActivity.seekTo(ms: Long) {
+/**
+ * 统一 seek 入口（四条链路）。
+ *
+ * @param waitLandingFirstSlice 273 v42：**远跳**时先等落点窗口的第一片就绪，
+ *   再让内核跳过去（消除首帧之后那 0.5 s 的 demux 缓存空档）。
+ *   只给"拖动/跳转到未缓存位置"用；双击快进/快退是小幅跳转，不需要等。
+ */
+internal fun PlayerComposeActivity.seekTo(ms: Long, waitLandingFirstSlice: Boolean = false) {
     // 273 v35：落点预取与"用哪个内核"**无关** —— 先把落点那一簇抓进内存，
     // 再让内核跳过去。
     //
@@ -57,7 +63,60 @@ internal fun PlayerComposeActivity.seekTo(ms: Long) {
     //    拖动途中不调 ⇒ 不会重现 v26 的"一次拖动开 19 条连接"风暴；
     // ④ 让路闸的 landingInFlight 判的是"落点窗口在飞" ⇒ 窗口建了，
     //    v31 那套让路机制才第一次真正生效（此前恒 false）。
-    urlPrep?.source?.prefetchSeek(ms, force = true)
+    val source = urlPrep?.source
+    source?.prefetchSeek(ms, force = true)
+
+    // 273 v42：**远跳**时等落点第一片就绪再跳。
+    //
+    // 【为什么等】真机 v35-land：内核在预取发起后 **2 ms** 就跳过去了，
+    // 而窗口第一片 **348 ms** 后才到 ⇒ 内核先把 demux 缓存读空（首帧出来），
+    // 紧接着缓存耗尽 ⇒ `Enter buffering` **499 ms**。
+    // 等第一片到齐再跳 ⇒ 内核一落地就有整簇可解 ⇒ 那个空档消失。
+    //
+    // 【为什么不等整块】整块 4 MiB / 4 片并行下完要 2683 ms（真机），
+    // 等整块会把首帧拖到 2.7 s —— 比现在 1.16 s **更差**。
+    //
+    // 【为什么不等太久】等 900 ms 就放弃：源站慢时不能把用户的跳转卡住
+    // ⇒ 超时后照常跳（功能不缺，只是没加速）。
+    if (waitLandingFirstSlice && source != null) {
+        seekAfterLandingReady(ms, source)
+        return
+    }
+    performSeek(ms)
+}
+
+/**
+ * 273 v42：等落点窗口第一片就绪后再执行真正的 seek。
+ *
+ * 【为什么要绕一圈】`awaitWindow` 是**阻塞**的（`lock.wait`）⇒ 不能在主线程调。
+ * ⇒ 后台线程等，主线程发 seek。
+ *
+ * 【兜底】等待期间用户可能又发了一次 seek（连续拖动）⇒ 用 [landingSeekSeq]
+ * 序号丢弃过期的等待结果，避免"跳回旧位置"。
+ */
+private fun PlayerComposeActivity.seekAfterLandingReady(
+    ms: Long,
+    source: com.kivo.cinema.net.HttpOriginSource,
+) {
+    val seq = landingSeek.begin()
+    Thread({
+        val ready = source.awaitLandingReady(LANDING_WAIT_TIMEOUT_MS)
+        runOnUiThread {
+            if (!landingSeek.isCurrent(seq)) return@runOnUiThread
+            if (!ready) {
+                com.kivo.cinema.net.NetDiag.log(
+                    "[landing] 等落点第一片超时（${LANDING_WAIT_TIMEOUT_MS}ms）⇒ 照常跳",
+                )
+            } else {
+                com.kivo.cinema.net.NetDiag.log("[landing] 落点第一片已就绪 ⇒ 跳过去")
+            }
+            performSeek(ms)
+        }
+    }, "KivoLandingSeek").apply { isDaemon = true }.start()
+}
+
+/** 真正执行 seek（四条链路）。 */
+private fun PlayerComposeActivity.performSeek(ms: Long) {
     val soft = smbSoftSession
     when {
         soft != null -> {
@@ -73,6 +132,18 @@ internal fun PlayerComposeActivity.seekTo(ms: Long) {
         else -> playbackSession?.seekTo(ms * 1000)
     }
 }
+
+/**
+ * 273 v42：等待落点第一片的**上限**（毫秒）。
+ *
+ * 【为什么是 1200】真机 v42：第一片源站表头就要 **336–413 ms**，
+ * 再加传输时间 ⇒ 900 ms 太紧（实测超时）。1200 ms 留 2.5 倍余量。
+ *
+ * 【为什么不更长】再长就会让用户的跳转显得"卡住"——
+ * 那比多一次 200 ms 的缓冲更糟（用户会觉得"按了没反应"）。
+ */
+private const val LANDING_WAIT_TIMEOUT_MS = 1200L
+
 
 internal fun PlayerComposeActivity.togglePlayPause() {
     lastTouchMs = System.currentTimeMillis()
