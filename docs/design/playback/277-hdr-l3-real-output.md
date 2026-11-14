@@ -266,3 +266,51 @@ B 臂的帧间隔 max 还更小（47.9 vs 55.8 ms）⇒ **性能上没有因为�
 ⇒ **最终形态定调**：出画走 **vo=gpu-next**（与 SenPlayer 同架构），
    硬解用 **aimagereader 零拷贝**（**超过它**），
    HDR 输出按 **dataspace 路线**做（对齐它），杜比视界作为后续增量。
+
+---
+
+## 十、278 · **默认切换**：出画通路改为 gpu-next（与 SenPlayer 同架构）
+
+### 10.1 为什么敢切（依据全在 278 的实测里）
+
+| 回归项 | 结果 |
+| --- | --- |
+| 上屏帧率 | 23.98 fps（源 1920x804 @23.976 ⇒ 精确贴合） |
+| 帧间隔 | p50 41.9 / p99 44.4 / **max 47.6 ms**、>200ms **0** 次 |
+| 前后台切换 | 恢复后 23.98 fps / max 48.7 ms，VO 未重建未崩 |
+| 字幕 | PGS 轨识别 + 内核层 OSD 画进同一 Surface |
+| seek | seek→900 s：`playback restart complete @ 900.024000`，落点预取协同正常 |
+| 音频 | `ao/audiotrack` 48000Hz 5.1，`playback restart complete, audio=playing` |
+| 预览取帧 | **不受影响**（预览是独立的第二个 mpv 实例，自己 `initialize(vo="libmpv")`，不经 MpvStartSequence） |
+
+### 10.2 决策点：`playback/PlaybackRenderMode.kt`【新增】
+
+单一职责：**决定走哪条出画通路**。三层优先级：
+
+1. **系统属性** `debug.kivo.renderMode` = `legacy` / `gpu-next`
+   —— 最高优先，紧急回退不必发版（与既有 `debug.kivo.originKeepAlive` 同一套惯例）。
+   实现用**反射**读 `android.os.SystemProperties`（隐藏 API，直接 import 编译不过）；
+   反射被拦就当"没设"，不影响正常路径。
+2. **intent** `--es kivo.renderMode legacy|gpu-next` —— 脚本化取证用。
+   （兼容 277 时代的布尔开关 `--ez kivo.gpuNext true`。）
+3. **用户设置项**「视频输出」= 自动 / 新版 / 兼容 —— 持久化在 `PlaybackPrefs.renderMode`。
+4. **默认 = gpu-next**。
+
+### 10.3 设置页（**只加一行，不改任何视觉风格**）
+
+`ui/design/settings/SettingsPlaybackSub.kt` 新增一节「视频输出」，
+用**已有的** `SectionCard` + `StepperRow` + `Footnote` 组件，
+文案「渲染通路 / 新版·兼容·自动」。
+（用户授权："设置开关里的功能可以加，但不改变现有 UI 风格"。）
+
+### 10.4 真机验证（三层全中）
+
+| 场景 | 日志 |
+| --- | --- |
+| 默认（无任何开关） | `出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）` |
+| `setprop debug.kivo.renderMode legacy` | `出画模式 = legacy（render API + legacy RA）` |
+| `--es kivo.renderMode legacy` | `出画模式 = legacy（render API + legacy RA）` |
+| 默认路径长稳 | **23.98 fps / max 47.6 ms / >200ms 0 次** |
+
+⇒ **线上行为已切换**：默认走 gpu-next，与 SenPlayer 同架构；
+   硬解用 aimagereader 零拷贝（**比 SenPlayer 的 mediacodec-copy 强**）。

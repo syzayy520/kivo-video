@@ -173,6 +173,21 @@ class PlaybackPrefs(context: Context) {
         set(v) { sp.edit().putString("long_press_restore", v).apply() }
 
     /**
+     * 视频出画通路：`auto`（默认 = gpu-next）/ `gpu-next` / `legacy`。
+     *
+     * 【为什么要有这个设置】`gpu-next` 用 mpv 自己的 VO + 完整 libplacebo 渲染器
+     * （有 compute shader ⇒ HDR 峰值计算可用）；`legacy` 是 render API + legacy RA
+     * （无 compute shader ⇒ libplacebo 禁掉 HDR 峰值计算）。
+     * 278 已证明两条路性能等价 ⇒ 默认 gpu-next；这个设置留给"某台设备的 gpu-next 有问题"
+     * 时用户手动退回去，不必等我们发版。
+     *
+     * 【系统属性优先级更高】`debug.kivo.renderMode=legacy` 能覆盖本设置（紧急回退用）。
+     */
+    var renderMode: String
+        get() = sp.getString("render_mode", "auto") ?: "auto"
+        set(v) { sp.edit().putString("render_mode", v).apply() }
+
+    /**
      * 当前网络应使用的 demuxer 缓冲上限（mpv `demuxer-max-bytes` 值，如 "2048MiB"）。
      * 读不到网络类型时按 Wi-Fi 上限（内网片源多在 Wi-Fi，取大值更稳）。
      */
@@ -218,6 +233,22 @@ class PlaybackPrefs(context: Context) {
     data class Language(val code: String, val label: String, val slang: String)
 
     companion object {
+        /** 渲染通路：自动（跟随默认 = gpu-next）。 */
+        const val RENDER_MODE_AUTO = "auto"
+
+        /** 渲染通路：新版（mpv 自己的 gpu-next VO + 完整 libplacebo 渲染器）。 */
+        const val RENDER_MODE_GPU_NEXT = "gpu-next"
+
+        /** 渲染通路：兼容（render API + legacy RA）。 */
+        const val RENDER_MODE_LEGACY = "legacy"
+
+        /** 渲染通路的中文标签（设置页用）。 */
+        fun renderModeLabel(mode: String): String = when (mode) {
+            RENDER_MODE_GPU_NEXT -> "新版"
+            RENDER_MODE_LEGACY -> "兼容"
+            else -> "自动"
+        }
+
         val LANGUAGES: List<Language> = listOf(
             Language("system", "跟随系统", ""),
             Language("zh", "中文", "zh,chi,zho"),

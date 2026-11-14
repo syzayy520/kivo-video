@@ -38,6 +38,7 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
     val ignoreAssStyle = remember(revision) { prefs.ignoreAssStyle }
     val wifiBufferMb = remember(revision) { prefs.wifiBufferMb }
     val cellBufferMb = remember(revision) { prefs.cellBufferMb }
+    val renderMode = remember(revision) { prefs.renderMode }
 
     SubPageScaffold("播放", onBack) {
         SectionCard("缓冲") {
@@ -113,6 +114,14 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
         Footnote("片头/片尾与片段标记接入后，可自动跳过并保留手动跳过按钮。")
         Spacer(Modifier.height(14.dp))
 
+        SectionCard("视频输出") {
+            StepperRow("渲染通路", PlaybackPrefs.renderModeLabel(renderMode),
+                subtitle = "兼容模式用于个别设备上新版通路显示异常时退回",
+                icon = SettingsIcons.play, iconColor = SettingsVisuals.blue) { picker = "render" }
+        }
+        Footnote("新版通路由播放内核完整渲染器输出，高动态范围片源亮度更准确。")
+        Spacer(Modifier.height(14.dp))
+
         SectionCard("后台播放") {
             SwitchRow("后台继续播放音频", backgroundAudio,
                 subtitle = "退到后台时暂停或继续播放声音") { prefs.backgroundAudio = it; revision++ }
@@ -149,6 +158,13 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
         "spec" -> SettingsPicker(true, "起播时显示片源规格",
             PlaybackPrefs.SPEC_SECONDS.map { PickerOption(it.toString(), PlaybackPrefs.specLabel(it)) },
             specSeconds.toString(), { prefs.startupSpecSeconds = it.toInt(); revision++ }, { picker = null })
+        "render" -> SettingsPicker(true, "渲染通路",
+            listOf(
+                PickerOption(PlaybackPrefs.RENDER_MODE_AUTO, PlaybackPrefs.renderModeLabel(PlaybackPrefs.RENDER_MODE_AUTO)),
+                PickerOption(PlaybackPrefs.RENDER_MODE_GPU_NEXT, PlaybackPrefs.renderModeLabel(PlaybackPrefs.RENDER_MODE_GPU_NEXT)),
+                PickerOption(PlaybackPrefs.RENDER_MODE_LEGACY, PlaybackPrefs.renderModeLabel(PlaybackPrefs.RENDER_MODE_LEGACY)),
+            ),
+            renderMode, { prefs.renderMode = it; revision++ }, { picker = null })
         "lang" -> SettingsPicker(true, "字幕首选语言",
             PlaybackPrefs.LANGUAGES.map { PickerOption(it.code, it.label) },
             subtitleLanguage, { prefs.subtitleLanguage = it; revision++ }, { picker = null })
