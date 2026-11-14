@@ -1,3 +1,110 @@
+> 2026-11-14 **📋 274 设计审查归档 + 273 收口 + HDR 方案已出稿；代码未动，等 G0 闸门授权。**
+> **⚠️ 用户裁决（2026-11-14 18:19）：不允许写 UI，UI 已经设计好了。**
+> ⇒ 本轮只做 **273 前助手未完成的任务** ＋ **最后的 HDR**；272 批次二~五（视觉/a11y/交互/工程化）**不实施**。
+> **文档**：[`docs/design/ui/replica/274-design-system.md`](../design/ui/replica/274-design-system.md)（**审查归档**，结论固化供将来参考，本轮不改 UI）
+> ＋ [`274-hdr-rendering.md`](../design/ui/replica/274-hdr-rendering.md)（HDR 能力探测/色彩空间链路/四档降级/A-B 六臂，**本轮要实施**）
+> ＋ [`274-design-system-plan.md`](../design/ui/replica/274-design-system-plan.md)（执行顺序 S0–S6：G0 入库 → v25/v26 复验 → v29/v31 规格 → 273-B 剩余 → HDR）
+> **实测基线（2026-11-14 全 275 个 `.kt`）**：字号 **20 种** · 裸 dp **890 处** · 网格 **6 套** · 海报宽度 **6 种** ·
+> token **两套并存**（`DesignTokens` vs `SettingsVisuals`，字阶 17/16 与 hairline 两值冲突）·
+> `Role.`/`onClick` 语义 **0 处**（⇒ TalkBack 无法激活任何播放控件）· 响应式仅 **2 处** `BoxWithConstraints`、无 `WindowSizeClass`。
+> **实测设备侧（K40 `b6e950ee`）**：`mSupportedHdrTypes=[1,2,3,4]`、`mMaxLuminance=420`、GLES 3.2、
+> EGL 含 `EGL_EXT_gl_colorspace_bt2020_pq` ⇒ **HDR 设备侧就绪，缺的只是我们没打开链路**。
+> **实测 libmpv**：`libplacebo` **520 处引用**、`target-trc/prim/peak/colorspace` 四选项齐备、`vo_gpu_next` 可用
+> ⇒ **HDR 无需重编 mpv**，只需下发选项 + 改 `mpv_egl_surface.cpp` 的 EGL 配置。
+> **⚠️ 本卡不改一行代码**。两条硬约束：① **G0 闸门**（104 项未提交改动须先入库冻结）
+> ② **HDR 参数全部留空待实测**（设计与实现分离，避免过早锁死）。
+> **⏳ 待授权**：G0 入库（动 git 历史，按铁律不擅自执行）。
+> **下一卡**：G0 → S1 v25 复验 → S2 v26 复验 → S3 v29/v31 规格 → S4 预览内核生命周期 → S5 取数层超买 → S6 HDR（最后）。
+
+> 2026-11-14 **✅ 273 Emby 播放卡顿 · v13 预览浪费收口（K40 `dd137cf7` 真机）。**
+> **规格**：[`docs/design/playback/273-emby-stutter-fix.md`](../design/playback/273-emby-stutter-fix.md) §十一（v13 最终稿，含 v1→v13 结论推翻链）
+> **证据**：[`docs/evidence/p273-emby-stutter/`](../evidence/p273-emby-stutter/README.md) §七（v12/ 7 组 A/B + v13/ 单点预览 + 20 点扫描 + 240 s 会话 + 拖动复验 4 次 + 11 张截图）
+> **这一段收的是"拖动预览浪费带宽"**：浮窗里那一帧由**独立的第二个 mpv 实例**去源站取，
+> v11 实测**为了取一帧下载 38.1 MiB**。
+> **v12 先证伪"mpv 参数能治"**（`--es kivo.thumbOpt` 运行时下发 7 组全试）：
+> 最好的一组（`cache=no` + `demuxer-max-bytes=64KiB` + `demuxer-readahead-secs=0`）也还要 **16.1 MiB**，
+> `demuxer-readahead-secs=0` 单独反而**涨到 42.1 MiB**。
+> **根因**：FFmpeg 拿到的是**开口区间**（`Range: bytes=N-`），出帧之后内核**还会继续往前读**（实测 9 s / ≈24 MiB）；
+> mpv 的 `cache`/`cache-secs`/`demuxer-max-bytes`/`demuxer-readahead-secs` 控的是**缓存多大**，不是**这次读要不要停**。
+> **修法三条（供给侧）**：① 代理侧单次响应截到 **4 MiB**（**偏移 0 豁免** —— FFmpeg 在片头靠 `Content-Length` 推整个文件大小，
+> 截了会让所有后续 seek 失效）② 预览 URL 带 `reconnect_at_eof=0`（否则到截断点会重连继续拉 ⇒ 截断白做）
+> ③ 预览环 4→2 MiB、块 2→1 MiB（每连接浪费 ≈ 环 + 块，3 条连接 ⇒ 18→9 MiB）。
+> **家族树**：`mpv/LocalRangeServer.kt` 409→**216** 行（只剩连接骨架）＋ 新增 `mpv/LocalRangeResponder.kt` **282** 行（范围语义：截断 / 206 / 416 / 重试窗口）——
+> "怎么接"与"怎么算"变化原因不同，故拆；`ui/compose/PlayerUrlStart.kt` 预览环与块常量收小。
+> **闸门（v13 实测）**：预览下载 **38.1 → 10.1 MiB**（20 点扫描 13.1 MiB）· 代理层每次响应 `bytes=4194304 cap=4194304`（截断生效）·
+> **EOF 之后仍能 seek**（`GET range=bytes=463010741-` ⇒ 靠 FFmpeg `http_seek` 带新 Range 重开）· 帧照出 ·
+> 播放侧回归：0 缓冲 · 0 失败帧 · **23.96 fps** · 间隔 >200 ms **0** 次（max 190 ms，p99 43 ms）· underrun 1 次（起播瞬态）·
+> 拖到未缓存位置 **0.2–2.5 s** 出画面（4 次复验）· 11 张截图近白像素 ≤ **1.7 %**（白屏会接近 100 %）⇒ **无白屏**。
+> **如实记**：① 4 MiB 上限是**按本片源定的**（本 MKV 簇间距 0.66–1.8 MB），不是普适常数；
+> ② 预览的**内存**那一半（第二个 4K mpv 实例）未收，仍属 273-B；
+> ③ 播放会话仍会多拉 **136–200 MiB / 4 分钟**（需求只有 435 KB/s，是 mpv demux 缓存需求 + 取数层预读泵在超买）——**改动前就存在**，比预览浪费大一个量级；
+> ④ v13 那次起播/表头比 v11 差（`Opening done` 2.226 s / 表头 max 658 ms）是**环境方差**（播放代理 `cap=0`，截断逻辑不在播放路径上；该次会话源站拉了 200.1 MiB vs v11 136.1 MiB）⇒ 既不记"回归"也不记"达成"。
+> **工具**：本机无 Python ⇒ 复算一律用 node：`tools/p273_gaps.mjs`（渲染/缓冲）、`tools/p273_preview_bytes.mjs`（预览下载量，**新增**）、
+> `tools/p273_png_avg.mjs`（截图是不是白屏，**新增**）、`tools/p273_origin_chunks.mjs`（取数层）。
+> **下一卡 273-B**：① **显存侧**：EGL mtrack 93 MB + Graphics 101 MB ≈ 194 MB —— 限帧队列 / 纹理池上限 / 帧缓冲复用
+> ② **native 侧**：mpv demux 前向缓存 64 MiB（本片源需求只有 435 KB/s ⇒ 64 MiB ≈ 154 秒片源）是不是给大了 + 预览内核作为第二个 4K mpv 实例的生命周期
+> ③ 播放会话超买（4 分钟拉 136–200 MiB，需求 435 KB/s）
+> ④ MKV cues 预取（cues 在文件尾，起播仍要跳尾读）→ 与 273-F 合并。
+> ⚠️ **零拷贝已经做完**（v13 之前就换好了，`hwdec=mediacodec`，真机日志 `Using hardware decoding (mediacodec)`）：
+> native 337 MB → 278 MB、PSS 737 MB → 544 MB。**"4K 帧回拷"不再是待办**，别再当成 273-B 的第一项。
+
+> 2026-11-14 **✅ 273 Emby 播放卡顿 · v11 起播提速收口（K40 `b6e950ee` / `dd137cf7` 真机）。**
+> **规格**：[`docs/design/playback/273-emby-stutter-fix.md`](../design/playback/273-emby-stutter-fix.md)（v11 最终稿，含 v1→v11 结论推翻链）
+> **证据**：[`docs/evidence/p273-emby-stutter/`](../evidence/p273-emby-stutter/README.md)（§六 v8–v11；v11/ 240 s 会话 + 拖动会话 + 内存 + 预览 + 8 张截图）
+> **这一段收的是"起播慢"**（v5–v7 已收"播放中不卡"）。起播慢 = **连接冷**（新建连接 TLS 握手 983–1301 ms，
+> 复用只要 266–362 ms）＋ **定位晚**（续播位在起播之后才 seek）两件事叠加，与带宽无关。
+> **v8** 一次性 keep-alive 预热（表头 max 1076→695 ms，有效但会被抢）；**v9** `loadfile` 带 `start=` 让内核一打开就落在续播位
+> （`mpv_commands.cpp` / `mpv_session.hpp` / `jni_mpv_bridge.cpp` / `MpvNative.kt` / `MpvPlaybackSession.kt`，每处只加一个语义）；
+> **v10 串行 keeper 倒退**（keeper 抢走了取数侧刚还池的连接 ⇒ 首块 978 ms、跳读 1211 ms，比不保温还慢 —— 教训：keep-alive 池先到先得，
+> 保温必须并行占住 N 条、让池里有富余）；**v11 并行 keeper**（`net/OriginWarmupPool.kt`，2 个守护线程各每 8 s 续一次，池里永远有热连接）。
+> **闸门（v11 实测）**：起播 → 首帧 **3.201 s**（`Opening done` 1.401 s / `seek done` 1.859 s / `restart complete` 3.217 s）·
+> 240 s 会话 35 次请求 **零新建连接**（表头 min 266 / p50 287 / p99 362 / max **362** ms）· `Enter buffering` **0** · `End buffering` 0 ·
+> underrun 1 次（起播瞬态 t=3.218 s）· 渲染 5641 帧 / 235.4 s / **23.96 fps** · 间隔 >200 ms **0** 次（max 194 ms，p99 43 ms）· 失败帧 0 ·
+> 拖到未缓存位置 **1.44 s** 出画面（15.346→16.785 s，跳读表头 ≤334 ms 复用）· 无白屏。
+> **内存（如实记）**：TOTAL PSS **503,061 KB**（= 491.3 MiB / 503.1 MB），较 v5 924,482 KB 降 **45.6 %**
+> （Native Heap 572→301 MB）。判据 "< 500 MB" **按 MiB 成立、按 MB 差 0.6 %** ⇒ 记"逼近"不记"达成"；
+> 渲染侧 EGL+Graphics ≈ 194 MB 是下一个 273-B 的活。
+> **仍未修（如实记）**：预览 `[thumb]` 取一帧仍读 **38.1 MiB**（273-E）；起播仍要跳到文件尾读 MKV cues（273-F，273-B）。
+> **放弃项**：Android 上 TLS 会话复用无效（PC 有效 1182→700 ms，Android 恒 1000–1200 ms）⇒ 不追"让握手更快"，只追"复用连接"。
+> **工具**：本机无 Python ⇒ 复算一律用 `tools/p273_gaps.mjs`（node）。
+> **下一卡 273-B**（⚠️ **已被 v13 稿更正**：① 零拷贝 `mediacodec` 早已换好，"4K 帧回拷"不是待办；③ 预览的**带宽**已在 v13 收掉，剩**内存**）：
+> ① **显存侧**（EGL 93 MB + Graphics 101 MB）② native 侧（demux 前向 64 MiB / 预览内核生命周期）③ 播放超买 ④ MKV cues 预取（273-F）。
+
+> 2026-11-14 **✅ 273 Emby 播放卡顿 · v5 收口（K40 `b6e950ee` 真机；卡顿根因 = 源站连接老化）。**
+> **规格**：[`docs/design/playback/273-emby-stutter-fix.md`](../design/playback/273-emby-stutter-fix.md)（v5 最终稿，含 v1→v5 结论推翻链）
+> **证据**：[`docs/evidence/p273-emby-stutter/`](../evidence/p273-emby-stutter/README.md)（v5/ 六份日志 + 截图 6 张；v4 现场保留并标注已被修正）
+> **真根因**：不是带宽不够，是**源站连接老化** —— 闲置过的连接塌陷到 60–250 KB/s（需求 435 KB/s），
+> 需 ~60 s 指数退避恢复；**新连接立刻满速**（v5 实测 2459–7609 KB/s，中位 3663）。
+> **修法三条**：闲置即回收（空闲 ≥3 s 关连接）· 慢读即换连接（<300 KB/s 且曾跑过 >1 MB/s）· 重开门槛 4 MiB（缓冲不够 4 MiB 不重开）。
+> **家族树**：`net/` 新增 5 文件 —— `HttpOriginClient`(161) · `HttpOriginReader`(86) · `HttpOriginSource`(70) ·
+> `OriginPrefetchBuffer`(125) · `OriginConnectionHealth`(114) · `OriginConnectionLease`(265) · `OriginPrefetchPump`(197)，全 ≤300 行。
+> **闸门**：`Enter buffering` **0**（v4 为 11 次）· `End buffering` 0 · underrun 1 次（起播瞬态）·
+> `Opening done` **1.605 s**（v4 13.9–14.3 s）· 渲染间隔 >200 ms **0** 次（v4 31 次 / 冻结 166 s）· 19894 帧 / 23.98 fps ·
+> 源站连接 1 条（Recv-Q 1.8 MB，v4 泄漏 13.7 MB）· 位置连续（11:20 → 12:48，剩余 -19:54）。
+> **未达成（如实记）**：**PSS 924 MB > A6 目标 500 MB** —— 播放期多出 ~550 MB native，
+> 主因 `mediacodec-copy` 的 4K 帧回拷（3840×1920 NV12 = 11.06 MB/帧）+ 预览内核是第二个 mpv 实例；预览仍重复下载整片。
+> **工具**：本机无 Python ⇒ 复算改用 `tools/p273_gaps.mjs`（node）；`tools/p273_v5_gaps.py` 已删（不可用）。
+> **下一卡 273-B**：① 渲染侧 `mediacodec-copy` → 零拷贝 / 限帧队列 ② 预览内核生命周期与重复下载 ③ MKV cues 预取（cues 在文件尾）。
+
+> 2026-11-13 **✅ 272 UI 审计 · 批次一（纯缺陷修复）收口（K40 `b6e950ee` 真机）。**
+> **规格**：[`docs/design/ui/replica/272-ui-audit-b1-defect-fix.md`](../design/ui/replica/272-ui-audit-b1-defect-fix.md)（家族树先行；3 新文件 + 17 改，无新工程包）
+> **证据**：[`docs/evidence/ui-audit-b1/`](../evidence/ui-audit-b1/README.md)（S1–S6 场景 + 截图 7 张 + 披露）
+> **D1 播放器阶段制**：新增 `player/PlayerPhase.kt`（Idle/Playing/Buffering/Reconnecting/Ended/Failed）+ `PlayerPhaseWatchdog.kt`（30 秒起播超时）；
+> 阶段只从内核真值来（会话 state / buffering / lastError），**不再从 `statusText` 文案子串嗅探**；
+> 状态层改由 `PlayerStatusLayer` 按阶段渲染（缓冲=中央三点波纹 / 失败=原因面板+重试 / 重连=底部轻提示 / 结束=居中提示）。
+> **D2 起播失败不再 `finish()`**：本地/网络/SMB/URL 四条起播路径的失败都留在页面上并带非空原因。
+> **D3 重试会卡死**：libmpv 内核互斥且 `stop()` 是异步的 ⇒ 重试先关旧内核（`awaitClosed(3_000)`）再起新会话。
+> **D4 详情页 CTA 与副标题一致**：播放钮与副标题同源于 `nextEp`（旧：副标题报"下一集"、按钮永远播第一集）。
+> **D5 详情页返回键分层**：日历 → 更多菜单 → 选季菜单 → 才退出详情页。
+> **D6 移出待看二次确认**：新增 `DetailConfirmDialog.kt`（扁平 Material3 AlertDialog）。
+> **D7 设置写回失败可见**：`SettingsDataSub` 的 `onFailure` 弹 Toast（原因非空），不再静默弹回。
+> **D8 导航选中态**：「在看」是「发现」的子页 ⇒ 胶囊选中落在「发现」；「在看」页底色改冷灰 `#F2F2F7`（不再漏出发现页粉紫渐变）；
+> 「在看」页补「‹ 发现」返回行 + 系统返回键 + 空态「去发现」；导航胶囊加 `navigationBarsPadding()`（不被手势条压住）。
+> **闸门**：全部改动文件行数 ≤300；`assembleDebug` BUILD SUCCESSFUL（`build-p272-b1.log`）；K40 真机 6 场景全 PASS；
+> S4 决定性证据：详情页副标题「第1季·2集」⇒ 播放器标题「S01E02 割草狗」（旧代码会开 S01E01）。
+> **披露**：设置写回失败 toast **只做代码级实现、未取得真机截图**（需真实写盘失败，无法稳定制造）；Emby 进度**只读不写回**（应用内看完一集不改变 nextEp）——既有功能缺口，不在本批范围。
+> **下一批**：视觉收口（统一画布 / 卡片层级）/ a11y（Role.Button、contentDescription、48dp 触区）/ 交互（暂停保持控件、seek 灵敏度、面板返回栈）/ 工程债（59 参对象化、sealed `PlaybackEngine`、454 处硬编码 dp/sp token 化）。
+
 > 2026-11-13 **✅ 270 详情页玻璃弹窗扁平化 收口（K40 `b6e950ee` 真机；NavigationBackdrop 捕获桥整体退役）。**
 > **规格**：[`docs/design/ui/replica/detail-popups-flat.md`](../design/ui/replica/detail-popups-flat.md)（家族树先行；5 改 1 删，无新文件）
 > **证据**：[`docs/evidence/p270/detail-popups-flat/`](../evidence/p270/detail-popups-flat/README.md)（before b1–b3 / after a1–a9 + 像素复算 + 回归 + 披露）
