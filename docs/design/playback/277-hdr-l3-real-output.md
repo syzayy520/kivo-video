@@ -204,3 +204,65 @@ compute shader 到位后（P0+P1 做完才有意义）：
 3. **P2**：EGL PQ + dataspace + 10 bit 渲染目标。
 4. **P3**：回归矩阵。
 5. **并行**：明天下午的"卡"两臂复验（与 HDR 无关，独立排期）。
+
+---
+
+## 九、278 · gpu-next 与旧路径的正面较量（真机，K40，Emby 485 的 1080p）
+
+### 9.1 先造一把与出画通路无关的尺子
+
+**问题**：现有的 `tools/p273_gaps.mjs` 靠 **mpv render 回调**计数
+⇒ 只对 render API 路径有效；`vo=gpu-next` 模式下**没有 render 回调**
+（画面由 mpv 自己的 VO 直接上屏）⇒ 统计**恒为 0**（本轮 B 臂就踩到了）。
+
+**新量具**：`tools/p274_sf_latency.mjs` + `tools/p274_sf_latency.sh`
+—— 量 **SurfaceFlinger 的 latency**（`dumpsys SurfaceFlinger --latency <layer>`）：
+每行第一个数 = 该帧**真正上屏**的时刻（SurfaceFlinger 合成时刻）。
+
+为什么这个量具更权威：
+
+| | p273_gaps.mjs（render 回调） | 本量具（SF latency） |
+| --- | --- | --- |
+| 量的东西 | 内核**交给**我们的帧 | **用户眼睛看到**的帧 |
+| 通路依赖 | 只适用 render API | **与出画通路无关**（两条都用） |
+| 覆盖合成/丢帧 | 否 | 是 |
+
+**两个必须记住的坑**：
+1. 层名必须带 `(BLAST)` 与 **id**（`SurfaceView[...](BLAST)#4452`）——
+   id 每次启动都变 ⇒ 脚本先查再采；不带 id 只返回刷新周期。
+2. latency 是 **128 帧的环形缓冲**（60 fps 下约 2.1 秒）
+   ⇒ 一次 dump 不够 ⇒ 必须**反复采样并按时间戳去重**（多次采样有重叠）。
+
+### 9.2 两臂对照（同一台设备、同一片源、同一时段）
+
+| 臂 | 出画路径 | 上屏帧率 | 帧间隔 p50 / p99 / max | >200ms | 关键内核行 |
+| --- | --- | --- | --- | --- | --- |
+| **A** | render API（legacy RA + mediacodec） | **23.97 fps** | 41.9 / 44.1 / **55.8 ms** | 0 | `Disabling HDR peak computation (compute shaders=0, SSBO=1)` |
+| **B** | **vo=gpu-next**（libplacebo + aimagereader） | **23.98 fps** | 41.9 / 44.0 / **47.9 ms** | 0 | `Initialized libplacebo v7.391.0`、**无** Disabling 行 |
+
+片源是 1920x804 @ 23.976 fps ⇒ **两臂都精确贴合源帧率**（24.0 目标），
+B 臂的帧间隔 max 还更小（47.9 vs 55.8 ms）⇒ **性能上没有因为换渲染器付出代价**。
+
+### 9.3 其它回归点（gpu-next，全部通过）
+
+| 项 | 结果 |
+| --- | --- |
+| **前后台切换**（HOME → 回来） | 恢复后 **23.98 fps / max 48.7 ms**，VO 未重建、未崩 ⇒ mpv 自己的 VO 扛得住 Surface 重建 |
+| **字幕** | PGS 轨被识别（`Subs --sid=1 (hdmv_pgs_subtitle)`），**内核层 OSD 直接画进同一 Surface**（`[vo/gpu-next] OSD borders` / `osd_render`）⇒ 字幕链路通 |
+| **硬解** | aimagereader 路径活了（旧路径走 `hevc_mediacodec`） |
+| **轨道** | hevc 1920x804 + 4 音轨 + 字幕轨，`Opening done` 4.8 s |
+
+### 9.4 与 SenPlayer 的正面对比（含我们更强的一项）
+
+| | SenPlayer | 我们（gpu-next 路径） |
+| --- | --- | --- |
+| 渲染器 | 完整 libplacebo（`pl_render_image` / `pl_dispatch_compute` / `pl_peak_detect`） | **同样完整**（v7.391.0 vs 它 v7.360.1） |
+| compute shader | 有 | **有**（ES3 补丁后 `GL_VERSION='OpenGL ES 3.2'`） |
+| HDR 峰值计算 | 有 | **有**（"Disabling HDR peak computation" 消失） |
+| **gpu-next 下的硬解** | 库里**没有** `aimagereader`，只有 `mediacodec` / `mediacodec-copy` ⇒ **帧要拷回 CPU 再上 GPU** | **aimagereader**（零拷贝）⇒ **这一项我们更强** |
+| Android HDR 输出 | 有 `ANativeWindow_setBuffersDataSpace`（**dataspace 路线**，非 EGL_GL_COLORSPACE 属性） | 待做（P2）⇒ **照它的手法做，可对齐** |
+| 杜比视界 | `dovi_split` bsf + `dovi-fel-hwdec` + `dolby-vision-profile` | 无 |
+
+⇒ **最终形态定调**：出画走 **vo=gpu-next**（与 SenPlayer 同架构），
+   硬解用 **aimagereader 零拷贝**（**超过它**），
+   HDR 输出按 **dataspace 路线**做（对齐它），杜比视界作为后续增量。
