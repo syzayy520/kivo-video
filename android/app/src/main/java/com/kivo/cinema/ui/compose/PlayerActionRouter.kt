@@ -104,15 +104,22 @@ private fun PlayerComposeActivity.seekAfterLandingReady(
 ) {
     val seq = landingSeek.begin()
     Thread({
-        val ready = source.awaitLandingReady(landingOffset, LANDING_WAIT_TIMEOUT_MS)
+        // 273 v44：上限**跟着源站当前的快慢走**，不写死。
+        // 【为什么】写死 1200 ms 是在源站 3 MB/s 时量的；
+        // 源站慢到 1.4 MB/s 时首片表头就要 1190 ms ⇒ 频繁超时 ⇒ 修复失效
+        // （真机 v43 配对实验：等待超时那轮 seek→首帧 2758 ms）。
+        val budget = source.landingWaitBudgetMs(LANDING_WAIT_TIMEOUT_MS)
+        val ready = source.awaitLandingReady(landingOffset, budget)
         runOnUiThread {
             if (!landingSeek.isCurrent(seq)) return@runOnUiThread
             if (!ready) {
                 com.kivo.cinema.net.NetDiag.log(
-                    "[landing] 等落点第一片超时（${LANDING_WAIT_TIMEOUT_MS}ms）⇒ 照常跳",
+                    "[landing] 等落点第一片超时（${budget}ms）⇒ 照常跳",
                 )
             } else {
-                com.kivo.cinema.net.NetDiag.log("[landing] 落点第一片已就绪 ⇒ 跳过去")
+                com.kivo.cinema.net.NetDiag.log(
+                    "[landing] 落点第一片已就绪 ⇒ 跳过去（预算 ${budget}ms）",
+                )
             }
             performSeek(ms)
         }

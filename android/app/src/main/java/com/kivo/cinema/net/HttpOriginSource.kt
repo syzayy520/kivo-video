@@ -120,6 +120,8 @@ class HttpOriginSource(
         url, token, label,
         tailWindowBytes, headWindowBytes, resumeWindowBytes, seekWindowBytes,
         externalWindowCache,
+        // 273 v44：把主 client 给 kit（它要读表头耗时统计来决定落点等待上限）。
+        accessClient = client,
         { access.prefetchTotal(sizeHint) },
     ) { access.learnedSize = it }
 
@@ -246,6 +248,14 @@ class HttpOriginSource(
      */
     fun awaitLandingReady(expectOffset: Long, timeoutMs: Long): Boolean =
         prefetchKit.awaitLandingFirstSlice(expectOffset, timeoutMs)
+
+    /**
+     * 273 v44：落点等待的**上限**（毫秒）—— 按源站当前快慢自适应。
+     *
+     * @param fallbackMs 没有源站样本时的兜底上限。
+     */
+    fun landingWaitBudgetMs(fallbackMs: Long): Long =
+        prefetchKit.landingWaitBudgetMs(fallbackMs)
 
     /** 让源站给落点那一跳让路（273 v29：拖动期间主链路预读与保温都停手）。 */
     fun yieldSource(ms: Long) = client.yieldGate.yieldFor(ms)

@@ -51,6 +51,9 @@ run_one() {
   echo "--- $label ---"
   node tools/p273_drag.mjs "$dir" 2>&1 | grep -E "seek→首帧|落点窗口 " | sed 's/^/  /'
   node tools/p273_gaps.mjs "$dir/kernel.log" "$dir/diag.log" 2>&1 | grep -E "实际帧率|缓冲" | sed 's/^/  /'
+  # 273 v44：自适应等待预算的实际取值（源站慢时会 > 1200ms）
+  grep -oE "\[landing\].*（预算 [0-9]+ms）" "$dir/net.log" 2>/dev/null | sed 's/^/  /'
+  grep -oE "\[landing\] 等落点第一片超时（[0-9]+ms）" "$dir/net.log" 2>/dev/null | sed 's/^/  /'
 }
 
 for round in 1 2; do

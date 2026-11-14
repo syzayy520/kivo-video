@@ -65,6 +65,44 @@ class HttpOriginClient(
     internal var landingInFlight: (() -> Boolean)? = null
 
     /**
+     * 273 v44：源站**表头耗时**的滑动统计（最近 N 次的 p90）。
+     *
+     * ## 它解决什么
+     *
+     * v42 的"落点前置等待"上限写死 1200 ms —— 那是**源站 3 MB/s 时**量出来的。
+     * 源站慢到 1.4 MB/s 时，首片表头就要 1190 ms ⇒ 等待频繁超时
+     * ⇒ 退化成修复前的行为（真机 v43 配对实验：等待超时那轮 seek→首帧 2758 ms）。
+     *
+     * ⇒ 上限必须**跟着源站当前快慢走**，而不是写死。
+     *
+     * ## 为什么用 p90 而不是平均
+     *
+     * 源站偶发慢（一次 TLS 握手慢、一个坏包）不代表它一直慢。
+     * 用平均值 ⇒ 被偶发值拉高；用最大值 ⇒ 一次抖动就把上限顶到几秒
+     * （用户会感觉"按了没反应"）。**p90** = 90% 的请求都快，
+     * 只有最慢的那 10% 才拉高上限 ⇒ 既能覆盖常态，又不会被离群值绑架。
+     *
+     * ## 为什么挂在 client 上
+     *
+     * 预读、保温、落点窗口**共用这一批 TCP**（见 [HttpOriginSource] 的注释），
+     * 而它们的表头耗时反映的是**同一个源站**的快慢 ⇒ 挂在 client 上，
+     * 谁测的都算数。
+     */
+    private val headerStats = OriginLatencyStats()
+
+    /**
+     * 源站表头耗时的当前 p90（毫秒）；**-1 = 还没有样本**。
+     *
+     * 【谁用】落点等待的上限计算（见 [OriginPrefetchKit.awaitLandingFirstSlice]）。
+     */
+    fun headerP90Ms(): Long = headerStats.p90()
+
+    /** 记一次表头耗时（每次请求完都记）。 */
+    private fun noteHeader(ms: Long) {
+        headerStats.note(ms)
+    }
+
+    /**
      * 一条已打开的**分块**范围流。
      *
      * 【三种收尾的区别】
@@ -139,6 +177,8 @@ class HttpOriginClient(
                 "[$label] origin probe total=$total hdrMs=${System.currentTimeMillis() - started} " +
                     "thread=${Thread.currentThread().name}",
             )
+            // 273 v44：探测的表头耗时也计入统计（它同样反映源站快慢）。
+            noteHeader(System.currentTimeMillis() - started)
             return total
         } finally {
             if (body != null) {
@@ -173,6 +213,9 @@ class HttpOriginClient(
                 "[$label] origin warmup hdrMs=${System.currentTimeMillis() - started} " +
                     "thread=${Thread.currentThread().name}",
             )
+            // 273 v44：保温 ping 的表头耗时也计入统计
+            // （保温每 8 s 一次 ⇒ 这是**最稳定**的源站快慢样本来源）。
+            noteHeader(System.currentTimeMillis() - started)
             true
         }.getOrDefault(false)
     }
@@ -197,6 +240,8 @@ class HttpOriginClient(
         val conn = open(start, requestedEnd)
         val code = conn.responseCode
         val hdrMs = System.currentTimeMillis() - started
+        // 273 v44：分块请求的表头耗时计入统计（**落点窗口的表头就是它**）。
+        noteHeader(hdrMs)
         if (code == 416) {
             conn.disconnect()
             throw IOException("起点越过片源末尾")

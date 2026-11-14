@@ -39,6 +39,15 @@ internal class OriginPrefetchKit(
      * 带宽被劈成两半，两边都慢。
      */
     externalWindowCache: OriginWindowCache? = null,
+    /**
+     * 播放主 client（273 v44：**只用来读它的表头耗时统计**）。
+     *
+     * 【为什么需要它】落点等待的上限要跟着源站快慢走（见 [landingWaitBudgetMs]）。
+     * 落点窗口用 [seekClient] 拉字节，但**还没有任何样本**时（新起播、
+     * 或落点第一次发生）⇒ 要用主 client 的表头统计当基线
+     * （保温 ping 每 8 s 一次 ⇒ 那是最稳的样本来源）。
+     */
+    private val accessClient: HttpOriginClient? = null,
     /** 片源总长（外给提示优先；-1 = 还不知道）。 */
     private val totalOf: () -> Long,
     /** 任何一次响应报出总长时叫一声（源据此记住总长）。 */
@@ -260,6 +269,46 @@ internal class OriginPrefetchKit(
     }
 
     /**
+     * 273 v44：落点等待的**上限**（毫秒）—— 按源站当前的快慢自适应。
+     *
+     * ## 为什么不能写死
+     *
+     * v42 把上限写死 1200 ms（源站 3 MB/s 时量的）。
+     * 源站慢到 1.4 MB/s 时，首片表头就要 1190 ms ⇒ 等待频繁超时
+     * ⇒ 真机 v43 配对实验里"等待超时"那轮 seek→首帧 **2758 ms**
+     * ⇒ 修复等于没生效。
+     *
+     * ## 判据
+     *
+     * ```
+     * 上限 = clamp(源站表头 p90 × 系数, 最小值, 最大值)
+     * ```
+     *
+     * | 项 | 值 | 理由 |
+     * | --- | --- | --- |
+     * | 系数 | **3.0** | 表头 p90 只覆盖"建立响应"；字节还要传一会儿 ⇒ 留 3 倍 |
+     * | 最小值 | **1200 ms** | 源站快时的基线（= v42 用的那个值） |
+     * | 最大值 | **4000 ms** | 再长用户会觉得"按了没反应"（宁可超时放行） |
+     *
+     * ## 没有样本怎么办
+     *
+     * 刚起播还没有样本 ⇒ 用**最小值** 1200 ms（与 v42 一致，行为不退化）。
+     *
+     * @param fallbackMs 没有样本时的兜底上限。
+     */
+    fun landingWaitBudgetMs(fallbackMs: Long): Long {
+        // 【为什么用 seekClient 而不是播放主 client】落点窗口**就是** seekClient 拉字节的
+        // ⇒ 它的表头耗时才是"落点那一跳要等多久"的直接度量。
+        // 主 client 的表头（保温 ping）反映的是源站整体快慢，作为兜底更稳。
+        val p90 = (seekClient?.headerP90Ms() ?: -1L).takeIf { it > 0L }
+            ?: accessClient?.headerP90Ms()
+            ?: -1L
+        if (p90 <= 0L) return fallbackMs
+        val scaled = p90 * LANDING_WAIT_HEADER_FACTOR
+        return scaled.coerceIn(fallbackMs, LANDING_WAIT_MAX_MS)
+    }
+
+    /**
      * 后台把 cues 索引读出来（拖动之前备好 ⇒ 拖动时零等待）。
      */
     fun warmCueIndex() {
@@ -297,6 +346,24 @@ internal class OriginPrefetchKit(
          * 仍会空档。256 KiB 留了 4 倍余量。
          */
         private const val LANDING_FIRST_SLICE_MIN_BYTES = 256 * 1024
+
+        /**
+         * 273 v44：等待上限 = 源站表头 p90 × **这个系数**。
+         *
+         * 【为什么是 3】表头 p90 只覆盖"拿到响应头"这一段；
+         * 字节还要再传一会儿（真机：首片 1 MiB 在 1200 KB/s 下要 ~870 ms）。
+         * ⇒ 留 3 倍余量。
+         */
+        private const val LANDING_WAIT_HEADER_FACTOR = 3L
+
+        /**
+         * 273 v44：等待上限的**最大值**（毫秒）。
+         *
+         * 【为什么封顶】再长用户会觉得"按了没反应"——
+         * 那比多一次 200 ms 的缓冲更糟（用户会以为 App 死了）。
+         * ⇒ 超时就照常跳（功能不缺，只是没加速）。
+         */
+        private const val LANDING_WAIT_MAX_MS = 4_000L
 
         /**
          * 落点保温池的**起跑延迟**（毫秒）。
