@@ -320,7 +320,10 @@ android/app/src/main/cpp/mpv/
 **G2 不启动**，且**不引入任何 HDR 输出宣称**。
 
 ⇒ **后续路径**（按本文件 §1.3「不换掉现有 `vo=libmpv` + OpenGL render API」的范围约束）：
-- **R2（可行，待验）**：只做 **L2 = HDR→SDR tone-map**。
+- **R2（✅ 已落地，2026-11-15）**：只做 **L2 = HDR→SDR tone-map**。
+  ⇒ 见 [276-hdr-tone-map-l2.md](../../playback/276-hdr-tone-map-l2.md)：
+  真机三臂 + 自动路径验证通过（同一段 PQ 画面 mean 75.0 → 93.7，SDR 片源零改动）。
+  **仍然不宣称 HDR 输出**（G2 未过，架构闸门依旧）。
   它不需要 PQ 输出，只需要 tone-map 曲线 ⇒ 可能留在现有后端上。
   ⚠️ 但 **legacy RA 的 tonemap 支持有限**，需按 §六/§八单独取证
   （`tone-mapping-visualize` 是现成的可视化判据）。

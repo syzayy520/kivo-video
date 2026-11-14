@@ -1,0 +1,25 @@
+{
+  "schema": "kivo.p12e4.frame-luma/1",
+  "generated_at_unix_ms": 1794688278086,
+  "method": "Rec.709 luma on sRGB-encoded RGB values from the screenshot; NOT linear light",
+  "thresholds": {
+    "bright_clip": 250,
+    "dark_clip": 5
+  },
+  "frames": [
+    {
+      "label": "a-baseline",
+      "file": "docs/evidence/p274-hdr/l2-ab/a-baseline.png",
+      "width": 2400,
+      "height": 1080,
+      "pixels": 2592000,
+      "luma_mean": 0.03,
+      "luma_p05": 0,
+      "luma_p50": 0,
+      "luma_p95": 0,
+      "luma_max": 55,
+      "bright_clip_ratio": 0.0,
+      "dark_clip_ratio": 0.99943
+    }
+  ]
+}

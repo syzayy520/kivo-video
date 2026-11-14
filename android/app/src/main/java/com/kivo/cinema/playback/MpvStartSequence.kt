@@ -119,6 +119,12 @@ internal class MpvStartSequence(
         // 6) 等**画面真的上屏**（口径见 [MpvFirstFrameWait]）。
         val first = MpvFirstFrameWait.await(native, isCancelled)
 
+        // 7) 274-HDR · L2：HDR→SDR 色调映射。
+        //    【为什么放在首帧之后】色彩参数（`video-params`）要等解封装报出轨道才有值；
+        //    而"是不是 HDR"这个判定必须在**拿到真实参数**之后才能做（不许按扩展名猜）。
+        //    【为什么对 SDR 内容零影响】见 [MpvHdrToneMap]：非 HDR 时一个参数都不下发。
+        MpvHdrToneMap.applyIfHdr(native)
+
         // 时长：mpv 的 `duration` 属性在媒体加载完成后才有值。
         // 不回填的话进度条会一直显示 0:00:00 / 0:00:00（用户没法拖进度）。
         return Prepared(
