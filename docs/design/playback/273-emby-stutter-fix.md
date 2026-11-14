@@ -3997,3 +3997,47 @@ e: MpvSubtitleEvidenceInstrumentation.kt:94:31    （同上）
 ⇒ **建议单开一张卡**：修 5 个 mpv 验收测试的 `start()` 调用，恢复 instrumentation 能力
 （那 5 个测试是 253 内核的验收资产，现在等于**全部失效**）。
 
+
+### 28.9 §28.8 的后续：androidTest 已修好，选源验收 **9/9 PASS**
+
+**根因不是测试逻辑错，是 Kotlin 的语法约束**：
+
+> **尾随 lambda 只能绑定最后一个参数。**
+> `MpvPlaybackSession.start(surface, onReady, startSeconds = -1.0, loadGate = null)`
+> 的最后一个是 `loadGate: PlaybackLoadGate?`（**不是函数类型**）⇒
+> `session.start(surface) { r -> }` 语法上不成立，编译器把 lambda 拿去匹配 `loadGate`。
+
+**修法（5 个文件，各 1 处）**：
+
+```kotlin
+// 改前
+session.start(surface) { r -> ... }
+
+// 改后
+session.start(surface, onReady = { r -> ... })
+```
+
+**修复后**：`packageDebugAndroidTest` 通过，`am instrument` 可跑。
+⇒ **253 内核那 5 个验收测试同时恢复可用**（它们是同一处语法问题导致的集体失效）。
+
+**选源验收结果（K40 `b6e950ee`）**：
+
+```
+INSTRUMENTATION_RESULT: pass=9
+INSTRUMENTATION_RESULT: total=9
+INSTRUMENTATION_CODE: -1        # Activity.RESULT_OK
+```
+
+证据与复现命令：`docs/evidence/p274-user-stutter/picker-instrumentation/README.md`
+
+⇒ **§28.7 验证表里"instrumentation 未跑成"这一行，现在升级为 ✅ 9/9 PASS。**
+
+### 28.10 当前仍未闭合的唯一一项
+
+| 项 | 状态 | 说明 |
+| --- | --- | --- |
+| 真机 1080p 版本播放 23.79 fps | ✅ | `src1080/` |
+| 真机 4K 版本 1.53 fps | ✅ | `4k-485/` |
+| 选源逻辑 9/9 | ✅ | `picker-instrumentation/` |
+| **详情页点击 → 实际发出带 MediaSourceId 的请求** | ❌ | **需在 UI 上点一次播放**（本机不能注入触摸）；点完看 `net-diag.log` 是否出现 `[emby] 选源 item=485 -> aafdd622…` |
+

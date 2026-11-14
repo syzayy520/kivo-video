@@ -69,10 +69,12 @@ class MpvSessionPathInstrumentation : Instrumentation() {
                 session = MpvPlaybackSession(targetContext, source)
                 val ready = java.util.concurrent.CountDownLatch(1)
                 var result = -1
-                session.start(surface) { r ->
+                // 274：Kotlin 的尾随 lambda 只能绑定**最后一个**参数，
+                // 而 start() 的最后一个是 loadGate（PlaybackLoadGate?）⇒ onReady 必须显式命名。
+                session.start(surface, onReady = { r ->
                     result = r
                     ready.countDown()
-                }
+                })
                 check(ready.await(40, java.util.concurrent.TimeUnit.SECONDS)) {
                     "起播超时（40 秒内没有回调）"
                 }
