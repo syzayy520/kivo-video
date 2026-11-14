@@ -91,6 +91,10 @@ internal fun PlayerComposeActivity.startUrlPlayback(holder: SurfaceHolder, url: 
                 // 但**窗口缓存是共用的**（见上）⇒ 落点那一段只下一次。
                 mountNetworkThumbnails(thumb)
                 if (engine == com.kivo.cinema.playback.PlaybackEngine.Engine.MPV) {
+                    // 280 · 指标：源站对象已建好（连接可能还在握手中，见下面的闸门说明）。
+                    com.kivo.cinema.playback.PlaybackMetrics.mark(
+                        com.kivo.cinema.playback.PlaybackMetrics.T_SOURCE_READY
+                    )
                     // 273 v15：闸门只挡**第一跳**，内核创建与源站握手并行。
                     startMpvPlayback(holder, main, prep)
                     return@runOnUiThread

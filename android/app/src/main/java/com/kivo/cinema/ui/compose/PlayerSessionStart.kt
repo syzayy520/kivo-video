@@ -11,6 +11,16 @@ import com.kivo.cinema.ui.compose.player.PlayerPhase
 internal fun PlayerComposeActivity.maybeStartPlayback(holder: SurfaceHolder) {
     if (finishRequested || isDestroyed) return
     surfaceReady = true
+    // 280 · 指标起点必须在这里（**所有**起播路径的唯一入口）。
+    // 踩过：begin 原来放在 startMpvPlayback 里，而本地/URL 路径在调用它**之前**
+    // 就 mark(SOURCE_READY) ⇒ begin 把已打的标记清空了（source_ready 恒 not_measured）。
+    // isActive 守卫：Surface 重建会再次进本函数，不能把同一轮记录重置掉。
+    if (!com.kivo.cinema.playback.PlaybackMetrics.isActive()) {
+        com.kivo.cinema.playback.PlaybackMetrics.begin(
+            intent.getStringExtra("kivo.label") ?: "play",
+            com.kivo.cinema.playback.PlaybackStack.resolve(this, intent).renderMode,
+        )
+    }
     // 278-P2：真 HDR 输出要在 **交给 mpv 之前** 把 Surface 配成 10bit + BT2020_PQ
     // （EGL 按当时的 buffer 格式挑 config ⇒ 事后改就晚了）。
     // 默认关闭（见 [HdrOutputSwitch]）；失败自动退回 8bit，不影响播放。

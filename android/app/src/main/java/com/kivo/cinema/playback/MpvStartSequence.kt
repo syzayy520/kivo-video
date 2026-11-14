@@ -111,6 +111,8 @@ internal class MpvStartSequence(
         //    ⇒ 242 个文件、125.6 MB 常驻原生堆）⇒ 只给它"最小字体集"。
         val fonts = SubtitleFontSet.prepare(app)
         val native = MpvSession.create(app)
+        // 280 · 指标：内核创建完成（与"源站握手"是并行关系，见文件头时序说明）。
+        PlaybackMetrics.mark(PlaybackMetrics.T_KERNEL_CREATED)
         // 【280 · 出画通路】选型来自 [PlaybackStack]（唯一决策点）：
         //   gpu-next = mpv 自己的 VO + 完整 libplacebo 渲染器
         //              （ES3 context ⇒ compute shader ⇒ HDR 峰值计算不再被禁，与 SenPlayer 同架构）；
@@ -146,6 +148,9 @@ internal class MpvStartSequence(
         loadGate?.verdict?.let { throw PlaybackRejected(it.message ?: "源站拒绝了这个视频") }
 
         // 4) 发第一跳。
+        // 280 · 指标：loadfile 起点。到首帧的差就是"打开+解封装+解码+上屏"的总耗时，
+        // 口径比 275 的 open_ms 宽（275 的 open_ms 只到 demux 可用，mpv 没对外暴露那个点）。
+        PlaybackMetrics.mark(PlaybackMetrics.T_LOADFILE)
         native.loadFile(url, startSeconds)
 
         // 5) 挂缓存归因探针（内存/超买两个缺口的唯一证据来源）。

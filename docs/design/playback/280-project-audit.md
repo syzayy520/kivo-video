@@ -325,3 +325,53 @@ P0-1（本地文件走 mpv）—— 用户已裁决"迁完就整体删除旧内�
 `Syntax error: Unclosed comment`。**Kotlin 的块注释可以嵌套**：注释正文里出现
 "斜杠 + 双星号"（哪怕只是排版）会被解析成新开一层，后面的闭合符只关内层。
 ⇒ 注释里不要写这种组合，已在文件头标注。
+
+---
+
+## 七、执行记录 · 第四批：按 275 §6.1 建**可复算指标**
+
+### 7.1 为什么做这个
+
+275 §6.1 的原话：「把'不卡'变成可复算指标」。在此之前我们只有自由文本日志
+（`NetDiag.log("MPV 首帧就绪")`）—— 能看，但**不能汇总、不能跨版本对比、
+更无法证明"比 SenPlayer 好"**。
+
+### 7.2 新增 `playback/PlaybackMetrics.kt`
+
+每次播放落一个 JSON 到 `files/metrics/<label>-<时刻>.json`。
+**严格按 275 的字段口径，测不到的写 `not_measured: <原因>`，绝不写 0。**
+
+| 275 字段 | 我们 | 状态 |
+| --- | --- | --- |
+| `startup_total_ms` | 入口 → 首帧回调 | ✅ |
+| `open_ms` | 用 `loadfile_to_first_frame` 替代（口径更宽：含解码+上屏；mpv 不暴露 demux 可用时刻） | ⚠️ 口径已在字段名里写清 |
+| `first_decode_ms` / `first_present_ms` | mpv 无对外事件 | ❌ not_measured + reason |
+| `buffer_runway_ms` | mpv 属性 `demuxer-cache-time` | ✅ |
+| `frames_dropped` | mpv 属性 `frame-drop-count`（total）；`vo-drop-frame-count` 读不到 ⇒ 如实标注 | ✅ / 部分 |
+| `render_gap_ms` | 由 `tools/p274_sf_latency.mjs` 采 SurfaceFlinger latency，JSON 里指向它 | ❌ 设备侧采 |
+| `read_latency_ms` | 指向 `OriginLatencyStats`（取数层自带） | ❌ 不重复采 |
+| `seek_total_ms` / `network_recovery_ms` | 尚未埋点 | ❌ 如实标注 |
+
+另外把 `video_params` 原样落进 JSON（codec / 位深 / primaries / gamma / max-luma），
+这样"HDR 是否真的按 PQ 处理"有据可查。
+
+### 7.3 真机实测（K40，本地 HDR10）
+
+```json
+"device": {"model":"M2012K11AC","soc":"kona","android":33}
+"stages_ms": {"startup_total":681,"source_ready":15,"kernel_created":27,
+              "loadfile_to_first_frame":647}
+"metrics": {"buffer_runway_ms":23900,"frames_dropped_total":2}
+"video_params": yuv420p10 / bt.2020-ncl / pq / max-luma 1000 / max-cll 1000
+```
+
+⇒ **本地播放从"点了到看见"681 ms**，起播后前向可播 23.9 s，2 帧丢弃。
+
+### 7.4 两个埋点踩坑（都已修，写在代码里）
+
+1. **`Build.HARDWARE` 不是 SoC**：K40 上它返回通用值 `"android"`，
+   真实值要从 `ro.board.platform` 读（`kona`）。
+2. **begin 顺序错 ⇒ 标记被清空**：`begin()` 原来放在 `startMpvPlayback`，
+   而本地/URL 路径在调用它**之前**就 `mark(SOURCE_READY)` ⇒ begin 清空了标记，
+   `source_ready` 恒为 `not_measured`。现在 begin 提到 `maybeStartPlayback`
+   （所有路径的唯一入口），并加 `isActive()` 守卫防 Surface 重建重置。

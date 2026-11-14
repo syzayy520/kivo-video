@@ -73,6 +73,12 @@ internal fun PlayerComposeActivity.startLocalPlayback(
     // 本地片源能直接探时长，不必等内核报（进度条从一开始就是对的）。
     durationMs = probeDurationUs(media.absolutePath) / 1000
 
-    startMpvPlayback(holder, FileByteSource(media.absolutePath), isLocal = true)
+    val source = FileByteSource(media.absolutePath)
+    // 本地文件的"源就绪"= 打开文件句柄，几乎瞬时（网络源这里要付 TLS 握手）。
+    // 打这个点是为了让 JSON 里的 source_ready 有意义，而不是 not_measured。
+    com.kivo.cinema.playback.PlaybackMetrics.mark(
+        com.kivo.cinema.playback.PlaybackMetrics.T_SOURCE_READY
+    )
+    startMpvPlayback(holder, source, isLocal = true)
     return true
 }

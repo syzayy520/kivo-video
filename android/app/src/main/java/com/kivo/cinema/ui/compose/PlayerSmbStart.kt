@@ -157,6 +157,8 @@ internal fun PlayerComposeActivity.startMpvPlayback(
     if (finishRequested || isDestroyed) return
     playbackStarted = true
     smbPlayback = !isLocal
+    // 280 · 指标：**不在这里 begin**（会被 PlaybackMetrics 的入口守卫拦住，也不该拦）。
+    // 起点统一由 maybeStartPlayback 打 —— 那里比本函数早，且覆盖全部路径。
     phase = PlayerPhase.Buffering
     statusText = "正在准备内核播放…"
     val session = com.kivo.cinema.playback.MpvPlaybackSession(this, source)
@@ -167,6 +169,10 @@ internal fun PlayerComposeActivity.startMpvPlayback(
     session.start(holder.surface, { result ->
         if (finishRequested || isDestroyed || mpvNetSession !== session) return@start
         if (result == 0) {
+            // 280 · 指标：首帧就绪 = 用户真正看到画面的时刻（275 §6.1 的 startup_total 终点）。
+            com.kivo.cinema.playback.PlaybackMetrics.mark(
+                com.kivo.cinema.playback.PlaybackMetrics.T_FIRST_FRAME
+            )
             // 取证锚点：首帧就绪的**绝对时刻**。
             // 内核日志里的时间是相对 mpv 进程时钟的，与主机侧的 tap 时刻对不上；
             // 没有这个锚点，"从点播放到出画面"就只能靠两边的时钟猜。
@@ -201,11 +207,22 @@ internal fun PlayerComposeActivity.startMpvPlayback(
             // 起播默认倍速（264 默认播放速度）：mpv 出厂 1.0，仅非默认值才下发。
             if (playbackPrefs.defaultSpeed != 1.0) applySpeed(playbackPrefs.defaultSpeed)
             showStartupSpec()
+            // 280 · 首帧后 2 s 才落盘指标：`demuxer-cache-time`（前向可播时长）
+            // 与丢帧计数要跑一会儿才有意义，首帧瞬间采是 0（那会被误读成"没有缓存"）。
+            android.os.Handler(mainLooper).postDelayed({
+                com.kivo.cinema.playback.PlaybackMetrics.finish(
+                    applicationContext, session.nativeOrNull()
+                )
+            }, 2000)
         } else {
             statusText = "网络视频无法播放：${session.lastError}"
             phase = PlayerPhase.Failed("网络视频无法播放：${session.lastError.ifBlank { "未知错误" }}")
             isPlaying = false
             controlsVisible = true
+            // 失败也要落盘（记录卡在哪一步），否则"为什么慢"永远查不到。
+            com.kivo.cinema.playback.PlaybackMetrics.finish(
+                applicationContext, null, "首帧失败：${session.lastError}"
+            )
         }
     }, resumeMs / 1000.0, gate)
 }
