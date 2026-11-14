@@ -142,7 +142,13 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
                 check(!closing.get()) { "播放已取消" }
                 // 【277】传 host（Activity）而不是 app（applicationContext）：
                 //   intent 开关要读 Activity 的 intent。
-                val prepared = MpvStartSequence(host, input, prefs).prepare(
+                // 【intent 显式传进去】起播序列要读 Activity 的 intent
+                // （渲染通路 / HDR / 各个实验开关）—— `app` 是 applicationContext，
+                // 不是 Activity ⇒ 在里面 cast 是拿不到的（见 MpvStartSequence 的说明）。
+                val prepared = MpvStartSequence(
+                    host, input, prefs,
+                    (host as? android.app.Activity)?.intent
+                ).prepare(
                     surface = surface,
                     startSeconds = startSeconds,
                     loadGate = loadGate,

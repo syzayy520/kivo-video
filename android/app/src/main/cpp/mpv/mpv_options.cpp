@@ -26,6 +26,7 @@
 #include "mpv_options.hpp"
 
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <vector>
 
@@ -41,6 +42,7 @@ bool apply_mpv_options(mpv_handle* handle,
                        const std::string& log_file,
                        const std::string& sub_fonts_dir,
                        const std::string& sub_font_family,
+                       bool hdr_surface,
                        std::string& hwdec_out,
                        std::string& error) {
     if (handle == nullptr) {
@@ -50,6 +52,22 @@ bool apply_mpv_options(mpv_handle* handle,
 
     hwdec_out.clear();
     std::vector<std::string> failures;
+
+    // 278-P2：告诉 mpv 的 Android EGL context"把 surface 标成 BT.2020 PQ"。
+    // 【为什么用环境变量而不是 mpv 选项】这条开关要传到 vo→ra_ctx→egl 多层，
+    // 而 mpv 选项穿不过去；环境变量在我们自己的进程里设，mpv 直接 getenv 即可。
+    // 【必须在 mpv_create 之前设】否则 VO 初始化时读不到。
+    setenv("KIVO_HDR_SURFACE", hdr_surface ? "1" : "0", 1);
+    // 取证：确认环境变量确实设上了（mpv 的补丁靠它决定要不要标 PQ）。
+    if (!log_file.empty()) {
+        const char* probe = getenv("KIVO_HDR_SURFACE");
+        std::FILE* f = std::fopen(log_file.c_str(), "a");
+        if (f) {
+            std::fprintf(f, "KIVO-HDR-ENV set=%s readback=%s\n",
+                         hdr_surface ? "1" : "0", probe ? probe : "(null)");
+            std::fclose(f);
+        }
+    }
 
     // ---- 1) 日志：先把日志打开，后面任何失败的现场才有地方落 ----
     //
@@ -78,6 +96,18 @@ bool apply_mpv_options(mpv_handle* handle,
     // 我们给 egl_helpers.c 打的 ES3 补丁就落在这条路径上 ⇒ 有 compute shader。
     if (vo == "gpu-next") {
         options.push_back({"gpu-context", "android", false});
+        // 278-P2 · 真 HDR 输出：10bit 的 EGL config。
+        // 【为什么必须 10bit】PQ 的码值要 10 位才装得下；8bit surface 配
+        // BT2020_PQ dataspace 会被内核直接拒（我们实测 dataspace 返回 EINVAL）。
+        // 【为什么用 rgb10_a2 而不是 rgb16f】rgb16f 要 EGL_EXT_pixel_format_float
+        // 且很多设备没有；rgb10_a2 是 Android 的标准 HDR buffer 格式。
+        // 【拿不到会怎样】mpv 会退回 8bit config ⇒ EGL surface 的 PQ 标注也会被拒
+        // ⇒ mpv 侧自动退回普通 SDR surface（见我们打的 context_android.c 补丁）。
+        if (hdr_surface) {
+            // 【选项名】mpv 里它在 `--egl` 子选项组下 ⇒ 全名是 `egl-output-format`
+            // （写 `gpu-output-format` 会被拒：mpv option rejected: option not found）。
+            options.push_back({"egl-output-format", "rgb10_a2", false});
+        }
     }
     // 硬解只对 mpv-android 明确支持的编码启用 —— 与 mpv-android 的
     // hwdec-codecs="h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1" 保持一致。

@@ -29,6 +29,17 @@ internal class MpvStartSequence(
     private val app: Context,
     private val input: ByteSource,
     private val prefs: PlaybackPrefs,
+    /**
+     * **宿主 Activity 的 intent**（可为空）。
+     *
+     * 【为什么必须显式传】`app` 是 `applicationContext`，**不是 Activity**
+     * ⇒ `(app as? Activity)` 恒为 null ⇒ intent 里的实验开关
+     * （`kivo.renderMode` / `kivo.gpuNext` / `kivo.demuxerMb` /
+     * `kivo.maxRangeMb` / `kivo.hdrProbe` …）**从来就读不到**。
+     * （这个坑之前在 `MpvPlaybackSession` 已经犯过一次：那里加了 `host`，
+     * 这里却又用 `app` 重犯了一遍 ⇒ 改成显式参数，从根上断掉这条路。）
+     */
+    private val intent: android.content.Intent? = null,
 ) {
 
     /**
@@ -95,12 +106,20 @@ internal class MpvStartSequence(
         //   与 SenPlayer 同架构。决策点见 [PlaybackRenderMode]（设置项/系统属性/intent 三层）。
         //   Surface 由 native 层通过 `wid` 选项交给 mpv（见 mpv_session.cpp）。
         val vo = if (useGpuNext()) "gpu-next" else "libmpv"
+        // 278-P2：真 HDR 输出只在 gpu-next 通路上有效（legacy RA 没有 libplacebo）。
+        val hdrSurface = HdrOutputSwitch.isEnabled(app, PlaybackRenderMode.resolve(app, intentRenderMode()))
+        NetDiag.log("[hdr] 内核侧 hdrSurface=$hdrSurface（通路=${PlaybackRenderMode.resolve(app, intentRenderMode())}）")
         native.initialize(
             vo = vo,
             ao = "audiotrack",
             logFile = File(app.filesDir, "mpv-kernel.log").absolutePath,
             subFontsDir = fonts.dir,
             subFontFamily = fonts.family,
+            // 278-P2：真 HDR 输出（10bit Surface + BT.2020 PQ）。
+            // 【为什么这里再判一次】Surface 的 10bit 格式与 dataspace 已在
+            // Activity 侧配好（PlayerSessionStart.prepareHdrSurface）；
+            // 这里只负责让内核用 10bit EGL config + 给 EGL surface 打 PQ 标注。
+            hdrSurface = hdrSurface,
         )
         applyPlaybackPolicy(native)
         native.attachSurface(surface)
@@ -128,7 +147,26 @@ internal class MpvStartSequence(
         //    【为什么放在首帧之后】色彩参数（`video-params`）要等解封装报出轨道才有值；
         //    而"是不是 HDR"这个判定必须在**拿到真实参数**之后才能做（不许按扩展名猜）。
         //    【为什么对 SDR 内容零影响】见 [MpvHdrToneMap]：非 HDR 时一个参数都不下发。
-        MpvHdrToneMap.applyIfHdr(native)
+        //    【开关】`debug.kivo.hdrToneMap=off` 可关掉（取证量真基线用，见 [HdrToneMapSwitch]）。
+        if (HdrToneMapSwitch.isEnabled(app)) {
+            MpvHdrToneMap.applyIfHdr(native)
+        } else {
+            NetDiag.log("[color] L2 已按 debug.kivo.hdrToneMap=off 关闭 ⇒ 不下发色调映射参数")
+        }
+
+        // 7b) 278-P2 · 真 HDR 输出：写 Surface 的 PQ dataspace。
+        //     【为什么必须在这里（首帧之后）】对 gpu-next 通路，mpv 的 EGL surface
+        //     是**打开文件时**才创建的，不是 attachSurface 时 ⇒ 早一步写 dataspace
+        //     时 buffer 还是 8bit，内核会以 EINVAL 拒（真机实测 rc=-22）。
+        //     首帧之后：EGL 已用 10bit config 建好面，buffer 已是 10bit ⇒ 合法。
+        if (hdrSurface) {
+            // 取证用：intent --ei kivo.hdrProbe 1 ⇒ 挨个试候选 dataspace。
+            val probe = intent?.getIntExtra("kivo.hdrProbe", 0) == 1
+            NetDiag.log(
+                "[hdr] " + if (probe) HdrSurfaceConfig.probeDataspaces(surface)
+                else HdrSurfaceConfig.applyDataspace(surface)
+            )
+        }
 
         // 时长：mpv 的 `duration` 属性在媒体加载完成后才有值。
         // 不回填的话进度条会一直显示 0:00:00 / 0:00:00（用户没法拖进度）。
@@ -184,7 +222,7 @@ internal class MpvStartSequence(
      * 【缺省】0 = 不限（= 旧行为）。
      */
     private fun intentMaxRangeBytes(): Long {
-        val mb = (app as? android.app.Activity)?.intent?.getIntExtra("kivo.maxRangeMb", 0) ?: 0
+        val mb = intent?.getIntExtra("kivo.maxRangeMb", 0) ?: 0
         return if (mb > 0) mb.toLong() * 1024L * 1024L else 0L
     }
 
@@ -194,7 +232,7 @@ internal class MpvStartSequence(
      * 【来源】Activity 的 intent `--ei kivo.demuxerMb N`。
      * 【缺省】0 = 用用户偏好（= 旧行为）。
      */
-    private fun intentDemuxerMb(): Int = (app as? android.app.Activity)?.intent?.getIntExtra("kivo.demuxerMb", 0) ?: 0
+    private fun intentDemuxerMb(): Int = intent?.getIntExtra("kivo.demuxerMb", 0) ?: 0
 
     /**
      * 278 · 出画通路决策（默认 gpu-next，与 SenPlayer 同架构）。
@@ -207,14 +245,21 @@ internal class MpvStartSequence(
      * legacy 23.97 fps / 间隔 max 55.8 ms；gpu-next 23.98 fps / 间隔 max 47.9 ms
      * ⇒ 换渲染器无性能代价，而 HDR 能力与 SenPlayer 对齐。
      */
-    private fun useGpuNext(): Boolean {
-        val intent = (app as? android.app.Activity)?.intent
+    private fun useGpuNext(): Boolean =
+        PlaybackRenderMode.useGpuNext(app, intentRenderMode())
+
+    /**
+     * intent 里显式指定的出画通路（取证脚本用；null = 没指定）。
+     *
+     * 【兼容 277 时代】`--ez kivo.gpuNext true` 仍按 gpu-next 处理。
+     */
+    private fun intentRenderMode(): String? {
         val override = intent?.getStringExtra("kivo.renderMode")
-        // 兼容 277 时代的布尔开关（取证脚本里还在用）。
-        if (override == null && intent?.getBooleanExtra("kivo.gpuNext", false) == true) {
-            return true
+        if (override != null) return override
+        if (intent?.getBooleanExtra("kivo.gpuNext", false) == true) {
+            return PlaybackRenderMode.GPU_NEXT
         }
-        return PlaybackRenderMode.useGpuNext(app, override)
+        return null
     }
 
     companion object {

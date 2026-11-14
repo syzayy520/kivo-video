@@ -49,6 +49,7 @@ namespace kivo::video::mpv {
                                       const std::string& log_file,
                                       const std::string& sub_fonts_dir,
                                       const std::string& sub_font_family,
+                                      bool hdr_surface,
                                       std::string& hwdec_out,
                                       std::string& error);
 

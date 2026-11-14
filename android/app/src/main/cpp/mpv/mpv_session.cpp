@@ -166,6 +166,7 @@ bool Session::initialize(const std::string& vo, const std::string& ao,
                         const std::string& log_file,
                         const std::string& sub_fonts_dir,
                         const std::string& sub_font_family,
+                        bool hdr_surface,
                         std::string& error) {
     if (!impl_ || impl_->handle == nullptr) {
         error = "session not created";
@@ -186,7 +187,7 @@ bool Session::initialize(const std::string& vo, const std::string& ao,
     std::string hwdec;
     std::string option_error;
     if (!apply_mpv_options(handle, vo, ao, log_file, sub_fonts_dir, sub_font_family,
-                           hwdec, option_error)) {
+                           hdr_surface, hwdec, option_error)) {
         error = option_error;
         mark_step(log_file.c_str(), "options-rejected");
         return false;

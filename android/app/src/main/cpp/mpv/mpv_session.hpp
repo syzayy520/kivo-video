@@ -68,10 +68,13 @@ public:
     /// @param log_file mpv 日志落盘路径；空 = 不落盘。
     /// @param sub_fonts_dir 字幕字体目录；空 = 不设字体选项（见 mpv_options.hpp）。
     /// @param sub_font_family 字幕字体族名；空 = 用 mpv 默认族。
+    /// @param hdr_surface true = **真 HDR 输出**（10bit Surface + BT.2020 PQ）。
+    ///   只在 gpu-next 通路上有效（legacy RA 没有 libplacebo ⇒ 无从谈起）。
     [[nodiscard]] bool initialize(const std::string& vo, const std::string& ao,
                                  const std::string& log_file,
                                  const std::string& sub_fonts_dir,
                                  const std::string& sub_font_family,
+                                 bool hdr_surface,
                                  std::string& error);
 
     /// 绑定一个 Android Surface 作为视频输出目标。

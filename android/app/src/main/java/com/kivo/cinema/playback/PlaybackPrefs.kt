@@ -188,6 +188,18 @@ class PlaybackPrefs(context: Context) {
         set(v) { sp.edit().putString("render_mode", v).apply() }
 
     /**
+     * 真 HDR 输出（面板收到 PQ/BT.2020）：`auto`（默认）/ `on` / `off`。
+     *
+     * 【为什么默认关】真 HDR 输出要四层配合（10bit Surface / dataspace /
+     * EGL PQ colorspace / libplacebo 输出 PQ），其中 Surface 格式变了
+     * ⇒ 在不支持的设备上有黑屏风险 ⇒ 宁可默认关，靠"失败自动退回 8bit"兜底。
+     * 【只在 gpu-next 通路有效】legacy RA 没有 libplacebo ⇒ 无从谈起。
+     */
+    var hdrOutput: String
+        get() = sp.getString("hdr_output", "auto") ?: "auto"
+        set(v) { sp.edit().putString("hdr_output", v).apply() }
+
+    /**
      * 当前网络应使用的 demuxer 缓冲上限（mpv `demuxer-max-bytes` 值，如 "2048MiB"）。
      * 读不到网络类型时按 Wi-Fi 上限（内网片源多在 Wi-Fi，取大值更稳）。
      */
@@ -241,6 +253,18 @@ class PlaybackPrefs(context: Context) {
 
         /** 渲染通路：兼容（render API + legacy RA）。 */
         const val RENDER_MODE_LEGACY = "legacy"
+
+        /** 真 HDR 输出的取值。 */
+        const val HDR_OUTPUT_AUTO = "auto"
+        const val HDR_OUTPUT_ON = "on"
+        const val HDR_OUTPUT_OFF = "off"
+
+        /** 真 HDR 输出的中文标签（设置页用）。 */
+        fun hdrOutputLabel(mode: String): String = when (mode) {
+            HDR_OUTPUT_ON -> "开启"
+            HDR_OUTPUT_OFF -> "关闭"
+            else -> "自动"
+        }
 
         /** 渲染通路的中文标签（设置页用）。 */
         fun renderModeLabel(mode: String): String = when (mode) {

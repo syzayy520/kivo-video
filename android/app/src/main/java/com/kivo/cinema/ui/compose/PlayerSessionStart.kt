@@ -11,6 +11,12 @@ import com.kivo.cinema.ui.compose.player.PlayerPhase
 internal fun PlayerComposeActivity.maybeStartPlayback(holder: SurfaceHolder) {
     if (finishRequested || isDestroyed) return
     surfaceReady = true
+    // 278-P2：真 HDR 输出要在 **交给 mpv 之前** 把 Surface 配成 10bit + BT2020_PQ
+    // （EGL 按当时的 buffer 格式挑 config ⇒ 事后改就晚了）。
+    // 默认关闭（见 [HdrOutputSwitch]）；失败自动退回 8bit，不影响播放。
+    // 【为什么在这里而不是 onSurfaceAvailable】root 走的是本函数
+    // （PlayerComposeRoot 的 onSurfaceReady 直调 maybeStartPlayback）⇒ 这里是唯一入口。
+    prepareHdrSurface(holder)
     if (playbackStarted) {
         mpvNetSession?.rebind(holder.surface)
         smbNetSession?.rebind(holder.surface)

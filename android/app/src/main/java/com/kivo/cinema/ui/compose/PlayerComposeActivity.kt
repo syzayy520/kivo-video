@@ -252,6 +252,27 @@ class PlayerComposeActivity : ComponentActivity() {
         maybeStartPlayback(holder)
     }
 
+    /**
+     * 278-P2 · 按开关把 Surface 配成 HDR（10bit + BT2020_PQ）或退回默认 8bit。
+     *
+     * 【为什么在这里】这是 Surface 生命周期里**最早**拿到 holder 的地方，
+     * 且在 mpv 拿到 Surface 之前 ⇒ 顺序正确。
+     */
+    fun prepareHdrSurface(holder: SurfaceHolder) {
+        val renderMode = com.kivo.cinema.playback.PlaybackRenderMode.resolve(
+            this, intent.getStringExtra("kivo.renderMode")
+        )
+        val wantHdr = com.kivo.cinema.playback.HdrOutputSwitch.isEnabled(this, renderMode)
+        val result = if (wantHdr) {
+            com.kivo.cinema.playback.HdrSurfaceConfig.enableHdrSurface(holder, holder.surface)
+        } else {
+            com.kivo.cinema.playback.HdrSurfaceConfig.disableHdrSurface(holder, holder.surface)
+        }
+        com.kivo.cinema.net.NetDiag.log(
+            "[hdr] 渲染通路=$renderMode 真HDR输出=${if (wantHdr) "开" else "关"} ⇒ $result"
+        )
+    }
+
     fun onSurfaceLost() {
         surfaceReady = false
         val network = smbNetSession

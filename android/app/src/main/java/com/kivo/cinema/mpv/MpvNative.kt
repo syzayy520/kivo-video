@@ -26,9 +26,26 @@ object MpvNative {
      *   **必须传**：mpv 的硬解与音频输出要通过它拿到 JavaVM 与 MediaCodec 上下文。
      */
     @JvmStatic external fun nativeCreate(appContext: Any): Long
+    /**
+     * @param hdrSurface true = **真 HDR 输出**（10bit Surface + BT.2020 PQ）。
+     *   只在 gpu-next 通路上有效（legacy RA 没有 libplacebo ⇒ 无从谈起）。
+     */
     @JvmStatic external fun nativeInitialize(handle: Long, vo: String, ao: String, logFile: String,
-                                           subFontsDir: String, subFontFamily: String): Int
+                                           subFontsDir: String, subFontFamily: String,
+                                           hdrSurface: Boolean): Int
     @JvmStatic external fun nativeAttachSurface(handle: Long, surface: Any): Int
+
+    /**
+     * 278-P2 · 给 Surface 设定 dataspace（真 HDR 输出用）。
+     *
+     * 【为什么不用 `Surface.setDataspace`】那个是 API 33+（我们 minSdk 26）；
+     * native 的 `ANativeWindow_setBuffersDataSpace` 是 API 28+，
+     * 且**正是 SenPlayer 用的那一个** ⇒ 与它对齐。
+     *
+     * @param dataspace `ADATASPACE_*` 常量（`ADATASPACE_BT2020_PQ = 163971072`）
+     * @return 0 = 成功；负数 = 失败（调用方要据此退回 SDR，**不许崩**）
+     */
+    @JvmStatic external fun nativeSetSurfaceDataspace(surface: Any, dataspace: Int): Int
     @JvmStatic external fun nativeAttachCapture(handle: Long, width: Int, height: Int): Int
     @JvmStatic external fun nativeReadCaptureFrame(handle: Long): ByteArray?
     @JvmStatic external fun nativeCaptureFramePts(handle: Long): Double
@@ -105,9 +122,12 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
         logFile: String = "",
         subFontsDir: String = "",
         subFontFamily: String = "",
+        hdrSurface: Boolean = false,
     ) {
         try {
-            MpvNative.nativeInitialize(handle, vo, ao, logFile, subFontsDir, subFontFamily)
+            MpvNative.nativeInitialize(
+                handle, vo, ao, logFile, subFontsDir, subFontFamily, hdrSurface
+            )
         } catch (e: IllegalStateException) {
             throw IllegalStateException("mpv initialize failed: ${e.message}", e)
         }

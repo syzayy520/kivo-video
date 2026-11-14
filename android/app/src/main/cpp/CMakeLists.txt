@@ -496,6 +496,7 @@ if(EXISTS "${KIVO_MPV_PREBUILT}/libmpv.so")
         "mpv/mpv_session_table.cpp"
         "mpv/jni_mpv_bridge.cpp"
         "mpv/jni_mpv_command_bridge.cpp"
+        "mpv/mpv_surface_dataspace.cpp"
     )
 
     target_include_directories(kivo_mpv PRIVATE "${CMAKE_CURRENT_LIST_DIR}/mpv")
