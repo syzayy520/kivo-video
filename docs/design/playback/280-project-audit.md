@@ -279,3 +279,49 @@ bash android/app/buildscripts/mpv/build-libmpv.sh --clean
 ### 5.6 下一步
 
 P0-1（本地文件走 mpv）—— 用户已裁决"迁完就整体删除旧内核"。
+
+---
+
+## 六、执行记录 · 第三批：**本地文件接入 mpv（P0-1，核心目标缺口）**
+
+### 6.1 改了什么
+
+| 文件 | 改动 |
+| --- | --- |
+| `ui/compose/PlayerLocalStart.kt`【新增】 | 本地文件的起播分流：按 `PlaybackStack` 决定走 mpv 还是自研内核 |
+| `ui/compose/PlayerSessionStart.kt` | 本地分支加一行分流（`if (startLocalPlayback(holder, media)) return`） |
+| `ui/compose/PlayerSmbStart.kt` | `startMpvPlayback` 加 `isLocal` 参数（只影响投屏的"时长未知"标记） |
+
+**按功能对等分流**（不是按偏好）：
+
+| 条件 | 走哪条 | 理由 |
+| --- | --- | --- |
+| `debug.kivo.engine=legacy` | 自研旧内核 | 取证 / 紧急回退 |
+| 开了「后台继续播放音频」 | 自研旧内核 | **mpv 路径没有后台服务**（`onDestroy → closeNetworkPlayback()` 直接关会话），硬迁等于悄悄删功能 |
+| 其余（默认） | **mpv（gpu-next）** | 目标形态 |
+
+`backgroundAudio` 默认 **false** ⇒ 绝大多数用户第一次起播就吃到新内核。
+真正的解法是给 mpv 会话加 Service 所有权，列为后续任务（不是本轮范围）。
+
+### 6.2 真机验证（K40 b6e950ee，本地 HDR10 素材 1385893 B）
+
+```
+[local] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 走 mpv 内核（本地文件）
+[color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+内核：[vo/gpu-next/opengl] GL_VERSION='OpenGL ES 3.2'
+内核：[vo/gpu-next/libplacebo] Initialized libplacebo v7.391.0 (API v391)
+内核：Opening done: http://127.0.0.1:37913/1（经本地代理读）
+画面 mean=91.7 / max=194（与 URL 路径逐项一致）
+上屏帧率 23.98 fps | 帧间隔 p50 41.9 / p99 46.2 / max 51.6 ms | >200ms 0 次
+```
+
+**回退验证**：
+- `setprop debug.kivo.engine legacy` ⇒ `[local] 内核=legacy（debug.kivo.engine 指定）⇒ 走自研链路`
+- 恢复默认 ⇒ 又回到 `走 mpv 内核（本地文件）` + `gpu-next`
+
+### 6.3 顺带记录一个 Kotlin 的坑
+
+`PlayerSmbStart.kt` 的 KDoc 里写了 `HTTP/**本地文件**`，编译报
+`Syntax error: Unclosed comment`。**Kotlin 的块注释可以嵌套**：注释正文里出现
+"斜杠 + 双星号"（哪怕只是排版）会被解析成新开一层，后面的闭合符只关内层。
+⇒ 注释里不要写这种组合，已在文件头标注。

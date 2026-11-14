@@ -38,6 +38,10 @@ internal fun PlayerComposeActivity.maybeStartPlayback(holder: SurfaceHolder) {
         ?.let { java.io.File(it) }?.takeIf { it.isFile }
         ?: locateTestMedia() ?: return
     playbackStarted = true
+    // 280 · 本地文件分流：默认走 **mpv（gpu-next）**，返回 true = 已接走。
+    // 落到下面的自研链路只有两种情况：内核选 legacy，或开了「后台继续播放音频」
+    // （功能对等，见 [startLocalPlayback] 的文件头）。
+    if (startLocalPlayback(holder, media)) return
     phase = PlayerPhase.Buffering
     statusText = "surface ok, probing..."
     val routing = FfmpegRouting.probe(media)

@@ -136,16 +136,27 @@ internal fun PlayerComposeActivity.startSmbPlayback(
     }, "KivoSmbPrepare").start()
 }
 
-/** mpv 内核起播：吃 ByteSource（SMB/HTTP，代理按 offset 读），与 fd 链路互斥。 */
+/**
+ * mpv 内核起播：吃 ByteSource（SMB / HTTP / 本地文件，代理按 offset 读），与 fd 链路互斥。
+ *
+ * 【注意】Kotlin 的块注释**可以嵌套**：注释正文里若出现"斜杠 + 双星号"（哪怕只是
+ * 路径或加粗排版的一部分），会被解析成新开一层注释 ⇒ 后面的闭合符只关内层，
+ * 外层一直不闭合，报 `Syntax error: Unclosed comment`。这里栽过一次，别再写。
+ */
 internal fun PlayerComposeActivity.startMpvPlayback(
     holder: SurfaceHolder,
     source: com.kivo.cinema.net.ByteSource,
-    /** 起播放行闸门（null = 不设）：URL 起播用它挡第一跳，SMB 不用。 */
+    /** 起播放行闸门（null = 不设）：URL 起播用它挡第一跳，SMB/本地不用。 */
     gate: com.kivo.cinema.playback.PlaybackLoadGate? = null,
+    /**
+     * 是否是**本地文件**（280）。只影响 [smbPlayback] 标记 ——
+     * 它被投屏桥读作"时长未知"（-2）。本地文件有确定时长，不该被当成网络流。
+     */
+    isLocal: Boolean = false,
 ) {
     if (finishRequested || isDestroyed) return
     playbackStarted = true
-    smbPlayback = true
+    smbPlayback = !isLocal
     phase = PlayerPhase.Buffering
     statusText = "正在准备内核播放…"
     val session = com.kivo.cinema.playback.MpvPlaybackSession(this, source)
