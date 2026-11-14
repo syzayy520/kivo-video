@@ -3285,3 +3285,253 @@ Enter buffering  0 次
 | 3 | **reader 池**（跨请求复用连接） | 另一助手的下一卡③，未做 |
 | 4 | 真实源站速率正常时的复验 | 待做（需源站速率 ≥ 2 MB/s 的时段） |
 
+
+### 23.18 ⚠️ v45（落点窗口自适应）**被证伪** —— 落点窗口不是超买
+
+**原本的假设**（来自 §23.17 遗留①）：
+「落点窗口固定 4 MiB，play-seek 3 次 = 12.19 MiB ⇒ 应自适应」。
+
+**装置上的初测**（`final-landing` / `handoff-drag`）：
+落点窗口命中 **17 次**（每次约 3 KB ⇒ 共约 **57 KB**），
+而窗口下的是 **4.06 MiB** ⇒ 看着像"超买 73 倍"。
+
+> **⚠️ 2026-11-14 22:5x 更正**：上面那个"57 KB"是**统计口径错了**
+> （当时只数了带 `src=inflight` 标记的那一类命中，漏掉了已就绪窗口的命中）。
+> **重算的正确数字**：装置上落点窗口命中 **17 次、共 4.00 MiB，占窗口 98%** ——
+> **与真实源站完全一致**（真实源站也是 17 次 / 4.00 MiB / 98%）。
+> ⇒ **装置并没有低估内核需求**（§23.19 的那条警告在这一点上是错的，特此更正）。
+> ⇒ **v45 不做的结论仍然成立，但理由要改成**：
+> **4 MiB 窗口在装置与真实源站上都被用满 98% ⇒ 没有可省的量**，
+> 而不是"装置上只用 57 KB"。
+
+**真实源站（`real-final`，同一片源）实测**：
+
+```
+落点窗口命中 17 次，共 4194304 B（= 整 4 MiB）
+命中偏移范围 1613145699 .. 1617143395（跨度 3.81 MiB）
+内核: cached range 0: 4944.940000 <-> 4963.750000   ← 落点后播了 18.8 秒
+```
+
+⇒ **真实片源上内核落点后持续读了 3.81 MiB**（18.8 秒的播放量）
+⇒ **几乎用满了整个 4 MiB 窗口** ⇒ **4 MiB 不是超买，是刚好够**。
+
+**为什么装置上看着只用了 57 KB**：**统计口径错了**（见上面的更正框）——
+当时只数了带 `src=inflight` 标记的命中，漏掉了已就绪窗口的命中。
+**重算后装置与真实源站一致（都是 98%）** ⇒ 装置在这一点上是可信的。
+
+⇒ **判决：v45（落点窗口自适应）不做。**
+理由：
+1. 真实片源上 4 MiB 窗口**被用满 95%** ⇒ 没有可省的量；
+2. 缩小窗口 ⇒ 内核落点后会**回源站补读**（窗口外的字节没预取）
+   ⇒ 多一次连接 + 一次表头 ⇒ 反而更慢；
+3. 「自适应」在没有第二个真实数据点前是拍脑袋。
+
+⇒ **§23.17 遗留①关闭**（不是"已完成"，是"**被证伪，不做**"）。
+
+### 23.19 装置的适用边界（新立，写给下一个助手）
+
+装置（`tools/p274_local_origin.mjs`）**消除源站波动**这件事很有价值，
+但它**不是生产的形态**，用它下结论时必须分清：
+
+| 结论类型 | 装置上能不能下 |
+| --- | --- |
+| **带宽/耗时类**（响应耗时、并发、让路时机、字节数） | ✅ 能 —— 由带宽模型决定，与片源长度无关 |
+| **字节需求类**（内核要用多少窗口） | ⚠️ **要当心，但本轮实测是可用的** —— 装置片源是短片段；**本轮落点窗口实测装置与真实源站都是 98%（一致）**，但这是**这个片源**的结果，不是普适保证 |
+
+⇒ **装置上测"要多少字节"必须外推到真实片源再确认。**
+（**本轮的反例**：我第一次统计时口径错了（只数 `src=inflight`），
+得出"装置只用 57 KB vs 真实 3.81 MiB，差 68 倍"的假象；
+**重算后两边都是 98%，装置其实是准的** ⇒
+**教训变成：统计口径错了，任何结论都要推翻重来**——
+这与 §22.6「先确认现象本身是不是真的」是同一条纪律。）
+
+
+---
+
+## 二十四、274 · HDR 的 G1 闸门：完整 HDR 在当前 render API 路径上**不成立**
+
+> 承接另一助手改写的 [274-hdr-rendering.md](../../ui/replica/274-hdr-rendering.md)（12 章，闸门 G0–G5）。
+> 本节是 **G0 + G1** 的执行结果 —— 结论是**否定性**的，但必须写清楚。
+
+### 24.1 G1 实测：选项被接受，但 HDR 计算被禁用
+
+**做法**：用既有的 `kivo.mpvOpt` 运行时通道下发四个 HDR 选项（真机 K40 `b6e950ee`，
+片源 233908，证据 `docs/evidence/p274-hdr/g1/`）：
+
+```
+target-trc=pq, target-prim=bt.2020, target-peak=400, tone-mapping=hable
+```
+
+**回执（全部 ok=true）**：
+
+```
+probe mpv-opt target-trc=pq ok=true
+probe mpv-opt target-prim=bt.2020 ok=true
+probe mpv-opt target-peak=400 ok=true
+probe mpv-opt tone-mapping=hable ok=true
+```
+
+**但内核日志同时给出决定性的一行**：
+
+```
+[0.012][v][libmpv_render] Disabling HDR peak computation
+        (one or more of the following is not supported: compute shaders=0, SSBO=1).
+```
+
+⇒ **选项被接受 ≠ 生效**。HDR 峰值计算被**禁用**了。
+
+### 24.2 归因：不是设备不行，是我们**走的渲染路径**不行
+
+**设备完全支持**（同一份日志）：
+
+```
+GL_VERSION='OpenGL ES 3.2 V@0502.0 ...'
+Detected GLES 3.2.
+GL_SHADING_LANGUAGE_VERSION='OpenGL ES GLSL ES 3.20'
+```
+
+⇒ ES 3.2 / GLSL ES 3.20 / SSBO=1 都在，
+**只有 compute shaders=0** ⇒ 说明**不是设备能力问题，是渲染后端问题**。
+
+**决定性证据（libmpv.so 二进制扫描）**：该日志字符串的上下文字符串全是
+legacy RA 的源文件：
+
+```
+../video/out/gpu/video.c:1838
+../video/out/gpu/osd.c:92
+out_image · blend subs · cscale-blur · gl_video_uninit
+```
+
+⇒ 这条日志属于 **`vo_gpu`（legacy RA）**。
+而我们用的是 **`MPV_RENDER_API_TYPE_OPENGL`**（`mpv_gl_render.cpp:148`）⇒ 内部就是 legacy RA。
+
+### 24.3 实验：把 EGL context 升到 ES 3（**仍然不够**）
+
+**改动**：`mpv_egl_surface.cpp` —— 先申请 `EGL_OPENGL_ES3_BIT_KHR` 的 config，
+失败回落 ES 2；context 版本随之取 3 / 2。
+
+**真机结果**（`docs/evidence/p274-hdr/g1-es3/`）：
+
+```
+GL_VERSION='OpenGL ES 3.2 ...'
+Detected GLES 3.2.
+GL_SHADING_LANGUAGE_VERSION='OpenGL ES GLSL ES 3.20'
+Disabling HDR peak computation (… compute shaders=0, SSBO=1).   ← 仍然禁用
+```
+
+⇒ **GLSL ES 3.20 已就位，compute shaders 仍是 0**
+⇒ **legacy RA 本身就不提供 compute shader 能力**（不是 context 版本问题）。
+
+**附带证据**：还有一条 `shader link log (status=1)` —— 那是 legacy RA 的
+**fragment shader**（`out_color` / `gl_FragCoord`）链接日志，
+进一步确认走的是 RA 的 tonemap 着色器路径，**不是 libplacebo 的 compute 路径**。
+
+### 24.4 架构结论：完整 HDR 需要换渲染后端
+
+mpv 0.39 的 render API 只有两种后端：
+
+| 后端 | HDR 能力 |
+| --- | --- |
+| `MPV_RENDER_API_TYPE_OPENGL`（我们在用） | legacy RA ⇒ **无 compute shader ⇒ HDR 峰值计算禁用** |
+| `MPV_RENDER_API_TYPE_SW` | 软件渲染 ⇒ 更不可能 |
+
+⇒ **完整 HDR（libplacebo 的 PQ 输出）必须走 `vo_gpu_next`，而 `vo_gpu_next` 不是 render API**，
+它是 mpv 的**独立视频输出（VO）**—— 意味着：
+① 要放弃 render API 那套（我们自己在 `mpv_gl_render.cpp` 里做的每帧渲染 + OSD 合成）；
+② 要改 Surface 交付方式（VO 自己管 EGL/Surface）；
+③ 字幕/OSD 的叠加要交给 mpv（`osd-level` / `sub-scale` 等选项），
+   而**不是**我们现在的"内核画面 + Compose 叠层"。
+
+⇒ **这是架构级改动，不是"加几个 mpv 选项"能到的。**
+
+### 24.5 仍然可达的部分：L2（HDR→SDR tone-map）
+
+即便完整 HDR 不可达，**HDR 内容在 SDR 屏上的正确映射**仍然值得做 ——
+它不需要 compute shader，只需要 libplacebo/RA 的 tonemap 曲线。
+
+但要诚实标注：
+- legacy RA 的 tonemap（`--tone-mapping`）在 **mpv 0.39 的 RA 上支持有限**；
+- 真正完整的是 libplacebo 的 `vo_gpu_next` ⇒ 同样是架构改动。
+
+⇒ **L2 在当前路径上是否可用，需要单独验证**（本节未验）。
+
+### 24.6 给用户的结论（按"不吹"的要求）
+
+| 结论 | 状态 |
+| --- | --- |
+| 设备支持 HDR10/PQ | ✅ 实测（`mSupportedHdrTypes=[1,2,3,4]`、GLES 3.2、EGL 有 `bt2020_pq`） |
+| libmpv 内置 libplacebo、四选项齐备 | ✅ 实测（二进制扫描） |
+| **当前渲染路径能输出 HDR** | ❌ **否** —— legacy RA 无 compute shader ⇒ HDR 峰值计算禁用 |
+| 升 ES 3 能解决 | ❌ **否** —— 实测无效（§24.3） |
+| 完整 HDR 需要换后端（`vo_gpu_next`） | ✅ 架构判断（§24.4） |
+| **G1 闸门判决** | ❌ **未通过** ⇒ 按方案 §十的规矩，**不引入 HDR 输出宣称** |
+
+⇒ **建议**：在换 VO 的架构改动之前，
+**只做 L1/L2 的"诚实降级"**（片源是 HDR 时明确告诉用户"本机当前播放路径不做 HDR 映射"），
+或者**接受"当前架构下 HDR 不可得"这个结论**，把 HDR 这张卡标记为
+「**需要架构改动（换 VO）**」而不是"待调优"。
+
+
+### 24.7 G1 的补充实验：用**真 HDR10 素材**走 mpv 路径
+
+**素材**：`build/avtmp/hdr10_1080p.mp4`（HEVC 1920×1080，BT.2020 + PQ；
+p12e2 的证据确认它 `color_standard=6(bt2020)`、`color_transfer=6(st2084/pq)`、
+`hdr_kind=hdr10`）。推到设备 `/sdcard/Download/hdr10.mp4`，
+再用装置的 HTTP 服务（支持 Range）经 `adb reverse` 让 mpv 走我们的取数链路。
+
+**结果**（`docs/evidence/p274-hdr/g1-hdr10/`）：
+
+```
+[0.024][v][libmpv_render] Disabling HDR peak computation (… compute shaders=0, SSBO=1).
+[0.601][cplayer] Opening done
+[0.601][cplayer] ● Video --vid=1 (h264 1920x1080 23.976 fps)
+[8.974][cplayer] first video frame after restart shown
+[12.048][cplayer] Set property: target-trc="pq" -> 1
+```
+
+⇒ **播放链路本身正常**（首帧出来、选项被接受、画面正确显示）。
+⇒ 但 **`Disabling HDR peak computation` 依旧** ⇒
+**与片源是不是 HDR 无关** —— 这是**渲染后端**的固有限制。
+
+**踩坑记录（两个）**：
+1. `adb push` 到 `/data/local/tmp/` 报 `remote fchown failed: Operation not permitted`
+   ⇒ 改推到 `/sdcard/Download/`（Git Bash 下要用 `//sdcard/...` 双斜杠，否则路径被 POSIX 转换）。
+2. Python 的 `http.server` **不支持 Range** ⇒ mpv 的代理链路卡在起播
+   （`内核起播超时`）⇒ 必须用装置的服务器（`p274_local_origin.mjs`，支持 206）。
+
+### 24.8 G1 最终判决
+
+| 判据（方案 §十 G1） | 结果 |
+| --- | --- |
+| 精确的 libmpv OpenGL render API 能否正确处理 HDR 输入并输出已知 SDR 参考？ | ❌ **否** |
+
+**理由（三条独立证据）**：
+1. `Disabling HDR peak computation (… compute shaders=0, SSBO=1)`
+   —— 设备是 ES 3.2 / GLSL ES 3.20 / SSBO=1，**只有 compute shader 缺失**；
+2. 该日志字符串的上下文字符串是 **`../video/out/gpu/`（legacy RA）**
+   ⇒ 我们用的 `MPV_RENDER_API_TYPE_OPENGL` 内部就是 legacy RA；
+3. **升 ES 3 context 后仍然禁用**（§24.3）⇒ 不是 context 版本问题。
+
+⇒ **legacy RA 没有 compute shader 能力** ⇒ libplacebo 的 HDR 峰值计算无法启用。
+
+### 24.9 由此得出的 HDR 路线（不是"调优"，是"换路"）
+
+| 路线 | 内容 | 代价 | 当前可行性 |
+| --- | --- | --- | --- |
+| **R1 换 VO** | 放弃 render API，改用 mpv 的 `vo_gpu_next`（内置 libplacebo） | ① Surface 交付方式要改（VO 自己管 EGL）② 字幕/OSD 叠加要交给 mpv（现在是"内核画面 + Compose 叠层"）③ 我们自己在 `mpv_gl_render.cpp` 做的每帧渲染要重做 | **架构级**，独立立项 |
+| **R2 只做 L2** | HDR→SDR tone-map（不输出 PQ，只把 HDR 正确映射到 SDR 屏） | legacy RA 的 tonemap 支持有限，**需要单独验证** | **待验**（G1 下一轮） |
+| **R3 诚实降级** | 检测到 HDR 片源时明确告诉用户"当前播放路径不做 HDR 映射" | 零风险，但**要改 UI**（用户已明确"不允许写 UI"） | 受用户约束 |
+
+⇒ **按当前约束**（不允许写 UI + 不新建架构），
+**可做的只有 R2 的验证**；R1 要立项，R3 碰 UI 红线。
+
+### 24.10 对用户的一句话结论
+
+> **HDR 这件事不是"调一调参数"能到极致完美的** ——
+> 设备完全支持（ES 3.2 / HDR10 / PQ / EGL 扩展齐备）、libmpv 也内置了 libplacebo，
+> 但**我们走的渲染后端（legacy RA）没有 compute shader**，
+> HDR 峰值计算被 mpv **明确禁用**。
+> ⇒ 要真正输出 HDR，必须**换渲染后端（`vo_gpu_next`）**，那是架构级改动。
+> ⇒ 在那之前，诚实的做法是**先验证 L2（HDR→SDR 正确映射）** ——
+> 它不需要 PQ 输出，只需要 tone-map 曲线，可能在现有后端上就能拿到大部分观感收益。
+

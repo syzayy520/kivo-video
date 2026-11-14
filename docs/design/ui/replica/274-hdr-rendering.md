@@ -287,6 +287,54 @@ android/app/src/main/cpp/mpv/
 | G4 · 播放回归 | 长播、seek、暂停恢复、前后台和字幕叠层是否稳定？ | 目标片源保持原帧率；没有新增掉帧/缓冲/黑屏；Surface 生命周期遵循 P12-D1；热状态与内存数据留证 |
 | G5 · 兼容范围 | 非 HDR 屏、旧 Android API、其他 SoC/GPU 的实际行为是什么？ | 能力不足时准确回退或报错；不声称未覆盖机型已支持；形成设备/API/输出 profile 矩阵 |
 
+### 10.0 G0 / G1 的执行结果（2026-11-14，K40 `b6e950ee`）
+
+> 本节是**闸门执行记录**，不是新结论 —— 结论都在上面的正文里。
+> 证据目录：`docs/evidence/p274-hdr/`（`g1/` · `g1-es3/` · `g1-hdr10/` · `l2/`）。
+
+| 闸门 | 结论 | 关键证据 |
+| --- | --- | --- |
+| **G0 · 基线与素材** | ✅ **通过** | HDR10 素材可用：`build/avtmp/hdr10_1080p.mp4`（ffprobe 实测 `hevc` / `bt2020nc` / `smpte2084` / `bt2020` / `yuv420p10le`）；设备 `/sdcard/Download/hdr10.mp4`；K40 报告 `mSupportedHdrTypes=[1,2,3,4]`、`GLES 3.2`、EGL 含 `EGL_EXT_gl_colorspace_bt2020_pq` |
+| **G1 · 当前 render API 能力** | ❌ **未通过** | 见下 |
+
+**G1 的决定性证据（三条独立）**：
+
+```
+[0.012][v][libmpv_render] Disabling HDR peak computation
+        (one or more of the following is not supported: compute shaders=0, SSBO=1).
+```
+
+1. **选项被接受但不生效**：`target-trc=pq` / `target-prim=bt.2020` /
+   `target-peak=400` / `tone-mapping=hable` 四个选项回执**全部 `ok=true`**，
+   但同一时刻内核报 HDR 峰值计算被**禁用**。
+2. **不是设备能力问题**：同一份日志里 `GL_VERSION='OpenGL ES 3.2'`、
+   `Detected GLES 3.2.`、`GL_SHADING_LANGUAGE_VERSION='OpenGL ES GLSL ES 3.20'`、
+   `SSBO=1` ⇒ 设备只差 **compute shader**。
+3. **是渲染后端的固有限制**：该日志字符串在 `libmpv.so` 里的上下文字符串是
+   `../video/out/gpu/video.c` / `../video/out/gpu/osd.c` ⇒ 属 **legacy RA（`vo_gpu`）**；
+   而我们用的是 `MPV_RENDER_API_TYPE_OPENGL`（`mpv_gl_render.cpp:148`）⇒ 内部就是 legacy RA。
+   **把 EGL context 升到 ES 3 实测仍然禁用**（`g1-es3/`）⇒ 不是 context 版本问题。
+
+⇒ **G1 判决：当前 render API 路径不具备 HDR 输出能力。**
+按本文件 §十的规矩（"某项失败时保留'未验证/不支持'的精确结论"），
+**G2 不启动**，且**不引入任何 HDR 输出宣称**。
+
+⇒ **后续路径**（按本文件 §1.3「不换掉现有 `vo=libmpv` + OpenGL render API」的范围约束）：
+- **R2（可行，待验）**：只做 **L2 = HDR→SDR tone-map**。
+  它不需要 PQ 输出，只需要 tone-map 曲线 ⇒ 可能留在现有后端上。
+  ⚠️ 但 **legacy RA 的 tonemap 支持有限**，需按 §六/§八单独取证
+  （`tone-mapping-visualize` 是现成的可视化判据）。
+- **R1（架构级，本卡范围外）**：换 `vo_gpu_next`（内置 libplacebo）⇒ 独立立项。
+- **R3**：诚实降级提示 —— **需要改 UI**，与用户「不允许写 UI」的约束冲突，本轮不做。
+
+**踩坑记录**：
+1. `adb push` 到 `/data/local/tmp/` 报 `remote fchown failed: Operation not permitted`
+   ⇒ 改推 `/sdcard/Download/`（Git Bash 下路径要写 `//sdcard/...`，否则被 POSIX 转换）。
+2. Python 的 `http.server` **不支持 Range** ⇒ mpv 代理链路卡在起播（`内核起播超时`）
+   ⇒ 改用 `tools/p274_local_origin.mjs`（支持 206）。
+3. 本地文件走 `kivo.media` ⇒ 进的是**自研内核**（`playbackSession`），**不产 mpv 日志**
+   ⇒ 验证 mpv 路径必须用 HTTP 源（`kivo.playurl`）。
+
 ### 10.1 颜色正确性的证据要求
 
 - 至少包含标准灰阶、PQ/HLG 亮度阶梯、BT.2020 饱和色块、亮部 roll-off 细节和黑位阶梯；保存 pattern 版本、hash 与 metadata。
