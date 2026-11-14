@@ -251,6 +251,12 @@ class OriginPrefetchPump(
 
     companion object {
         /** 一次从源站读多少（中间缓冲，避免每 8 KB 一次系统调用）。 */
+        /**
+         * 单次 `read` 最多读多少字节。
+         *
+         * 【274 实测：256 KiB 保持不动】曾试到 1 MiB（想减少循环顶部的
+         * `synchronized` + 让路判定开销），装置对照无收益 ⇒ 回退。
+         */
         private const val SCRATCH_BYTES = 256 * 1024
 
         /**

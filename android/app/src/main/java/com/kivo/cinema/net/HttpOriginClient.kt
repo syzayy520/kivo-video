@@ -254,6 +254,15 @@ class HttpOriginClient(
         if (code == 206) {
             OriginHeadParser.rangeStart(range)?.let { actualStart = it }
             OriginHeadParser.rangeEnd(range)?.let { actualEnd = it }
+            // 【274 取证】206 但 `Content-Range` 解析不出终点 ⇒ 这是**畸形头**，
+            // 必须把原文留下来，否则下次只能看到"len 是负数"却不知道为什么。
+            // 真机已知形态：`bytes 71303168--1/…`（`substringAfter('-')` 会得到 -1）。
+            if (range == null || OriginHeadParser.rangeEnd(range) == null) {
+                NetDiag.log(
+                    "[$label] origin 响应头畸形 from=$actualStart " +
+                        "range=${range ?: "(无 Content-Range)"}",
+                )
+            }
         } else if (start > 0) {
             // 200 = 服务器把整个文件从头给了；这时"从 start 读"是假的，
             // 继续用就会把文件头当成文件中间 ⇒ 宁可报错也不能给错字节。
@@ -270,6 +279,22 @@ class HttpOriginClient(
         total?.let { onTotalKnown?.invoke(it) }
         if (code == 200 && total != null) {
             actualEnd = total - 1
+        }
+        // 【274 · 致命 bug 的第二道防线】范围必须是**非负长度**。
+        //
+        // 第一道防线在 [OriginHeadParser.rangeEnd]（畸形头不再返回负数）。
+        // 这里是兜底：万一还有别的路径算出 `actualEnd < actualStart`，
+        // 绝不能构造 `endExclusive = actualEnd + 1` 的流 —— 那会让
+        // `remaining()` 变成负数 ⇒ 预读泵当成"读完了"⇒ 无限空转
+        // （真机 89 秒 200+ 次空转，用户看到卡成 PPT）。
+        //
+        // 正确语义：**响应不可信 ⇒ 丢掉这条连接重开**，
+        // 而不是把一个负数长度悄悄吃下去。
+        if (actualEnd < actualStart) {
+            conn.disconnect()
+            throw IOException(
+                "源站返回的区间非法（from=$actualStart end=$actualEnd range=$range）",
+            )
         }
         // 长度写进日志：证据复算要按**实际**块长统计字节，
         // 不能假设"每块都是 chunkBytes"——源站会在文件尾把块夹短（cues 块只有 64 KB）。
