@@ -1,0 +1,54 @@
+Applications Memory Usage (in Kilobytes):
+Uptime: 329573541 Realtime: 329573541
+
+** MEMINFO in pid 21245 [com.kivo.cinema] **
+                   Pss  Private  Private  SwapPss      Rss     Heap     Heap     Heap
+                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free
+                ------   ------   ------   ------   ------   ------   ------   ------
+  Native Heap   118449   118428        8       32   119624   137680   132563     5116
+  Dalvik Heap    19045    13972     4948        9    20900    75462    18866    56596
+ Dalvik Other     7468     4752      368        0    10896                           
+        Stack     2236     2236        0        0     2248                           
+       Ashmem      747        0        0        0     2504                           
+      Gfx dev     7344     6536      808        0     7344                           
+    Other dev       22        0       16        0      480                           
+     .so mmap    16270      588    11692        0    50340                           
+    .jar mmap     2828        0     1148        0    42892                           
+    .apk mmap    13120     1520    11132        0    14556                           
+    .ttf mmap      804        0      612        0     4772                           
+    .dex mmap    30219    28852     1324        0    30896                           
+    .oat mmap       25        0        0        0     2004                           
+    .art mmap     7841     6228     1400       10    17660                           
+   Other mmap      123        8       44        0      956                           
+   EGL mtrack    88496    88496        0        0    88496                           
+    GL mtrack      768      768        0        0      768                           
+      Unknown     1023     1008       12        0     1388                           
+        TOTAL   316879   273392    33512       51   418724   213142   151429    61712
+ 
+ App Summary
+                       Pss(KB)                        Rss(KB)
+                        ------                         ------
+           Java Heap:    21600                          38560
+         Native Heap:   118428                         119624
+                Code:    56884                         150156
+               Stack:     2236                           2248
+            Graphics:    96608                          96608
+       Private Other:    11148
+              System:     9975
+             Unknown:                                   11528
+ 
+           TOTAL PSS:   316879            TOTAL RSS:   418724       TOTAL SWAP PSS:       51
+ 
+ Objects
+               Views:        9         ViewRootImpl:        1
+         AppContexts:        5           Activities:        1
+              Assets:       27        AssetManagers:        0
+       Local Binders:       18        Proxy Binders:       45
+       Parcel memory:       10         Parcel count:       40
+    Death Recipients:        3      OpenSSL Sockets:        5
+            WebViews:        0
+ 
+ SQL
+         MEMORY_USED:        0
+  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0
+ 
