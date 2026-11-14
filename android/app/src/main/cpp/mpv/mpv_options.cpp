@@ -73,6 +73,12 @@ bool apply_mpv_options(mpv_handle* handle,
 
     // ---- 2) 视频/音频通路 ----
     options.push_back({"vo", vo.c_str(), false});
+    // gpu-next 模式：让 mpv 用 **Android 的 EGL context**
+    // （mpv 源码 video/out/opengl/context_android.c：GPU context 名 "android"）。
+    // 我们给 egl_helpers.c 打的 ES3 补丁就落在这条路径上 ⇒ 有 compute shader。
+    if (vo == "gpu-next") {
+        options.push_back({"gpu-context", "android", false});
+    }
     // 硬解只对 mpv-android 明确支持的编码启用 —— 与 mpv-android 的
     // hwdec-codecs="h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1" 保持一致。
     // VC-1 / TrueHD 这类平台没有硬解的，走 FFmpeg 软解（mpv 内部自动回退）。
@@ -187,7 +193,19 @@ bool apply_mpv_options(mpv_handle* handle,
     //
     // 【零拷贝在我们这条渲染链上确实能用】vo=libmpv + 我们自己的 EGL/GLES3 上下文，
     // mpv 能把 MediaCodec 的帧映射进来：真机画面正常、渲染 23.5 fps 稳定、无映射报错。
-    hwdec_out = "mediacodec";
+    // 【277 · 出画模式决定硬解驱动】
+    //
+    // · vo=libmpv（render API，我们自建 EGL context）：**mediacodec**（零拷贝）。
+    //   MediaCodec 的帧留在它自己的 Surface 上，mpv 把它映射进我们的 GL 管线
+    //   （真机：23.5 fps 稳定、native 278 MB / PSS 544 MB）。
+    //
+    // · vo=gpu-next（mpv 自己的 VO + 完整 libplacebo）：**aimagereader**。
+    //   mpv 的 Android VO 要把帧读回自己的 GL 管线，零拷贝的 mediacodec
+    //   拿不到帧 ⇒ 日志实测："[vo/gpu-next/aimagereader] Waiting for frame
+    //   timed out! / acquireLatestImage failed: -30001"。
+    //   aimagereader 驱动我们这版 mpv 里是编进去的
+    //   （构建产物含 video_out_hwdec_hwdec_aimagereader.c.o）。
+    hwdec_out = (vo == "gpu-next") ? "aimagereader" : "mediacodec";
     return true;
 }
 

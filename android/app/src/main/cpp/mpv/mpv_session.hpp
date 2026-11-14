@@ -78,7 +78,13 @@ public:
     ///
     /// 内部会起一个**独立的 GL 线程**（EGL 上下文与 Surface 都绑定在那个线程）。
     /// 上层不需要（也不能）自己碰 GL。
-    [[nodiscard]] bool attach_surface(ANativeWindow* window, std::string& error);
+    /// 把 Surface 接到视频输出上。
+    ///
+    /// @param window Surface 的 native 句柄（render API 模式用）。
+    /// @param wid **jobject Surface 的指针值**（gpu-next 模式用；0 = 不适用）。
+    ///        mpv 的 android VO 通过 `vo->opts->WinID` 拿它再
+    ///        `ANativeWindow_fromSurface`（mpv 源码 video/out/android_common.c）。
+    [[nodiscard]] bool attach_surface(ANativeWindow* window, int64_t wid, std::string& error);
 
     /// 离屏取帧目标（预览缩略图）：渲染进纹理 FBO 并读回 CPU，**不走 Surface**。
     /// 与 attach_surface 互斥：一个会话要么上屏、要么离屏取帧。

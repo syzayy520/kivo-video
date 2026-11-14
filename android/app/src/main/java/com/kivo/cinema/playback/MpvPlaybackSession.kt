@@ -53,6 +53,17 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
     enum class State { IDLE, PREPARING, PLAYING, PAUSED, ENDED, FAILED, CLOSED }
 
     private val app = context.applicationContext
+
+    /**
+     * **宿主 Activity**（不是 applicationContext）。
+     *
+     * 【为什么单独留一份】intent 里的实验开关（`kivo.gpuNext` / `kivo.demuxerMb` /
+     * `kivo.maxRangeMb` …）只能从 Activity 的 intent 读；
+     * 而 `applicationContext` **不是** Activity ⇒ `(app as? Activity)` 恒为 null
+     * ⇒ 那些开关**从来就没生效过**（实测：`--ez kivo.gpuNext true` 跑了，
+     * 日志里连"出画模式 = gpu-next"都没有）。
+     */
+    private val host: Context = context
     private val prefs by lazy { PlaybackPrefs(app) }
     private val main = Handler(Looper.getMainLooper())
     private val worker = ScheduledThreadPoolExecutor(1) { r -> Thread(r, "KivoMpvSession") }
@@ -129,7 +140,9 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
         worker.execute {
             try {
                 check(!closing.get()) { "播放已取消" }
-                val prepared = MpvStartSequence(app, input, prefs).prepare(
+                // 【277】传 host（Activity）而不是 app（applicationContext）：
+                //   intent 开关要读 Activity 的 intent。
+                val prepared = MpvStartSequence(host, input, prefs).prepare(
                     surface = surface,
                     startSeconds = startSeconds,
                     loadGate = loadGate,

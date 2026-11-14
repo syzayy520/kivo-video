@@ -9,6 +9,7 @@
 #include <android/native_window.h>
 
 #include "mpv_diag.hpp"
+#include "mpv_java_vm.hpp"
 #include "mpv_options.hpp"
 #include "mpv_session_impl.hpp"
 #include "mpv_video_output.hpp"
@@ -24,7 +25,7 @@ void mark_step(const char* log_file, const char* step) {
 
 }  // namespace
 
-bool Session::attach_surface(ANativeWindow* window, std::string& error) {
+bool Session::attach_surface(ANativeWindow* window, int64_t wid, std::string& error) {
     if (!impl_ || impl_->handle == nullptr) {
         error = "session not created";
         return false;
@@ -32,6 +33,27 @@ bool Session::attach_surface(ANativeWindow* window, std::string& error) {
     if (window == nullptr) {
         error = "surface is null";
         return false;
+    }
+    // 【gpu-next 模式：不建渲染上下文】
+    // Surface 直接交给 mpv（`wid` 选项 = jobject Surface 的指针值），
+    // mpv 自己建 EGL context（ES3，见我们对 egl_helpers.c 的补丁）并用
+    // **完整 libplacebo 渲染器**画 ⇒ compute shader 可用 ⇒ HDR 峰值计算不再被禁。
+    // （277 计划 P1；证据与边界见 docs/design/playback/277-hdr-l3-real-output.md）
+    if (impl_->gpu_next_mode) {
+        if (wid == 0) {
+            error = "gpu-next mode needs a Surface jobject (wid)";
+            return false;
+        }
+        // 记住全局引用：会话销毁时要 DeleteGlobalRef（否则泄漏，且 mpv 还可能再用它）。
+        impl_->surface_global_ref = wid;
+        int rc = mpv_set_option(impl_->handle, "wid", MPV_FORMAT_INT64, &wid);
+        if (rc < 0) {
+            error = std::string("wid rejected: ") + mpv_error_string(rc);
+            mark_step(impl_->log_path.c_str(), ("attach-surface gpu-next failed: " + error).c_str());
+            return false;
+        }
+        mark_step(impl_->log_path.c_str(), "attach-surface gpu-next (wid set)");
+        return true;
     }
     // 渲染层归本会话所有（不是全局静态）—— 理由见 mpv_session_impl.hpp 里
     // "为什么不能是全局"的说明：mpv_render_context_free() 必须早于
@@ -93,6 +115,16 @@ int Session::video_height() const {
 
 bool Session::first_frame_rendered() const {
     // 离屏取帧（预览缩略图）那条链路没有 VideoOutput —— 那里靠 capture 的代数判帧。
+    if (impl_ && impl_->gpu_next_mode) {
+        // gpu-next 模式没有 render 回调 ⇒ 用 mpv 的 `vo-configured` 属性
+        // （VO 已经按视频参数配置好，下一帧就会上屏）。
+        if (!impl_ || impl_->handle == nullptr) {
+            return false;
+        }
+        int flag = 0;
+        const int rc = mpv_get_property(impl_->handle, "vo-configured", MPV_FORMAT_FLAG, &flag);
+        return rc >= 0 && flag != 0;
+    }
     return impl_ && impl_->video_output ? impl_->video_output->first_frame_rendered() : false;
 }
 
@@ -165,6 +197,8 @@ bool Session::initialize(const std::string& vo, const std::string& ao,
         impl_->degraded_options = option_error;
     }
     impl_->hwdec_ = hwdec;
+    // 出画模式：vo=gpu-next ⇒ 走 mpv 自己的 VO（完整 libplacebo 渲染器）。
+    impl_->gpu_next_mode = (vo == "gpu-next");
     mark_step(log_file.c_str(), "after-options");
 
     mark_step(log_file.c_str(), "before-mpv_initialize");
@@ -216,6 +250,14 @@ void Session::shutdown() {
     if (state->frame_capture) {
         state->frame_capture->stop();
         state->frame_capture.reset();
+    }
+    // 释放 gpu-next 模式下的 Surface 全局引用（会话结束 ⇒ mpv 不会再用它）。
+    if (state->surface_global_ref != 0) {
+        if (JNIEnv* env = attach_env(); env != nullptr) {
+            env->DeleteGlobalRef(reinterpret_cast<jobject>(
+                reinterpret_cast<intptr_t>(state->surface_global_ref)));
+        }
+        state->surface_global_ref = 0;
     }
     if (state->handle != nullptr) {
         mpv_terminate_destroy(state->handle);

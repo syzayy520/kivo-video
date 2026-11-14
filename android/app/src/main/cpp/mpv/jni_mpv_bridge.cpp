@@ -127,7 +127,23 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeAttachSurface(JNIEnv* env, jclass, jlon
         return -1;
     }
     std::string error;
-    const bool ok = session->attach_surface(window, error);
+    // gpu-next 模式要的是 **jobject Surface 的指针值**（mpv 的 android VO
+    // 内部会 ANativeWindow_fromSurface 一次）。
+    //
+    // 【必须用全局引用】裸的局部引用会被 GC 回收 ⇒ mpv 之后拿到野指针
+    // ⇒ 真机实测 SIGSEGV（CheckJNI: CheckPossibleHeapValue abort）。
+    // 全局引用由会话持有、销毁时 DeleteGlobalRef（见 mpv_session.cpp）。
+    jobject global_surface = env->NewGlobalRef(surface);
+    if (global_surface == nullptr) {
+        ANativeWindow_release(window);
+        kivo::video::mpv::throw_error(env, "cannot retain surface");
+        return -1;
+    }
+    const int64_t wid = static_cast<int64_t>(reinterpret_cast<intptr_t>(global_surface));
+    const bool ok = session->attach_surface(window, wid, error);
+    if (!ok) {
+        env->DeleteGlobalRef(global_surface);
+    }
     // ANativeWindow_fromSurface 返回的引用由我们持有 —— mpv 会 retain 一次，
     // 这里必须 release 掉我们这一份，否则 Surface 永远解不开。
     ANativeWindow_release(window);

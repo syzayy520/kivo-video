@@ -43,6 +43,23 @@ struct SessionImpl {
     /// 硬解驱动名。在 initialize **之后**才真正 set_property 给 mpv
     /// （见 mpv_session.cpp 里关于"set_option 会被默认值覆盖"的说明）。
     std::string hwdec_;
+    /// 出画模式：**true = 用 mpv 自己的 `vo=gpu-next` 直接画到 Android Surface**
+    /// （完整 libplacebo 渲染器 ⇒ 有 compute shader ⇒ HDR 峰值计算可用）；
+    /// **false = 现有的 render API + legacy RA**（我们自建 EGL context）。
+    ///
+    /// 【为什么需要两套】见 docs/design/playback/277-hdr-l3-real-output.md：
+    /// legacy RA 没有 compute shader，libplacebo 会禁掉 HDR 峰值计算；
+    /// 而 mpv 的 render API 只带 legacy 实现（无 r_gl_pl.c）⇒ 换渲染器只能换 VO。
+    bool gpu_next_mode = false;
+
+    /// gpu-next 模式下交给 mpv 的 **Surface 全局引用**（jobject 的全局引用指针值）。
+    ///
+    /// 【为什么必须是全局引用】我们把 jobject 的指针值当 int64 塞进 mpv 的 `wid` 选项，
+    /// JVM 并不认识它 ⇒ 那个 Surface 对象随时可能被 GC ⇒ 之后 mpv 再拿它去
+    /// `ANativeWindow_fromSurface` 就是野指针 ⇒ 真机实测 **SIGSEGV（CheckJNI abort）**。
+    /// 全局引用是 GC 的根 ⇒ 对象活着；会话销毁时删掉（见 mpv_session.cpp 的 shutdown）。
+    int64_t surface_global_ref = 0;
+
     /// **降级**的选项（optional 项失败时记下）。不是致命错误，但必须让上层看见。
     ///
     /// 【为什么单独存一份】initialize() 的 error 出参在"成功"路径上通常不用，

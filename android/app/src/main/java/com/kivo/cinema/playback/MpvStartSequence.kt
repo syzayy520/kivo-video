@@ -90,8 +90,13 @@ internal class MpvStartSequence(
         //    ⇒ 242 个文件、125.6 MB 常驻原生堆）⇒ 只给它"最小字体集"。
         val fonts = SubtitleFontSet.prepare(app)
         val native = MpvSession.create(app)
+        // 【277 · P1】出画模式：默认走 render API（vo=libmpv）；
+        //   开关打开时走 **mpv 自己的 gpu-next VO**（完整 libplacebo 渲染器
+        //   ⇒ ES3 context ⇒ compute shader ⇒ HDR 峰值计算不再被禁）。
+        //   Surface 由 native 层通过 `wid` 选项交给 mpv（见 mpv_session.cpp）。
+        val vo = if (intentGpuNext()) "gpu-next" else "libmpv"
         native.initialize(
-            vo = "libmpv",
+            vo = vo,
             ao = "audiotrack",
             logFile = File(app.filesDir, "mpv-kernel.log").absolutePath,
             subFontsDir = fonts.dir,
@@ -143,14 +148,9 @@ internal class MpvStartSequence(
      * 否则内核已经选完轨了，设了也不生效。
      */
     private fun applyPlaybackPolicy(native: MpvSession) {
-        // 276 · 实验开关：完整 libplacebo 渲染器（vo_gpu_next）。
-        //    【必须在开文件之前设】VO 是加载文件时创建的 ⇒ 晚设无效。
-        //    【为什么值得试】legacy RA 没有 compute shader ⇒ HDR 峰值计算被禁；
-        //    而 gpu-next 的 libplacebo 有 `pl_dispatch_compute`/`pl_peak_detect`
-        //    （SenPlayer 的库里就是这么做的）。
+        // 277 · 出画模式记录（哪条路出的画 ⇒ 出问题时第一眼能定位）。
         if (intentGpuNext()) {
-            val ok = native.setProperty("gpu-next", "yes")
-            NetDiag.log("[color] gpu-next=yes 请求已下发 回执=${if (ok) "ok" else "失败"}")
+            NetDiag.log("[color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）")
         }
         // ASS 特效：忽略=剥成统一样式，否则保留源特效（面板仍可临时改写）。
         native.setProperty("sub-ass-override", if (prefs.ignoreAssStyle) "yes" else "no")
@@ -195,19 +195,22 @@ internal class MpvStartSequence(
     private fun intentDemuxerMb(): Int = (app as? android.app.Activity)?.intent?.getIntExtra("kivo.demuxerMb", 0) ?: 0
 
     /**
-     * 276 · 实验开关：让内核用 **完整 libplacebo 渲染器**（`vo_gpu_next`）而不是 legacy RA。
+     * 277 · 实验开关：出画模式切到 **mpv 自己的 gpu-next VO**。
      *
      * 【来源】Activity 的 intent `--ez kivo.gpuNext true`。
-     * 【缺省】false = 旧行为（render API + legacy RA）。
+     * 【缺省】false = 现有路径（render API + legacy RA，自建 EGL context）。
      *
-     * 【为什么要这个开关】274 的 G1 判"当前 render API 路径不具备 HDR 输出能力"，
+     * 【为什么值得切】274 的 G1 判"当前 render API 路径不具备 HDR 输出能力"，
      * 理由是 legacy RA **没有 compute shader** ⇒ libplacebo 关掉 HDR 峰值计算
      * （`Disabling HDR peak computation (compute shaders=0, SSBO=1)`）。
-     * 而 SenPlayer 的 `libFFmpegKit.so` 里**带完整 libplacebo 渲染器**
-     * （`pl_dispatch_compute` / `pl_peak_detect` / `pl_render_image` + `vo_gpu_next`）
-     * ⇒ 它走的就是这条路。
-     * ⇒ 本开关用来验证：**我们这套 libmpv 能不能也切到 gpu-next**（我们的二进制里
-     * 已经带着 `video/out/placebo/ra_pl.c` 与 `vo_gpu_next` 字符串 ⇒ 不用重编 mpv）。
+     * 而 SenPlayer 走的是 `vo=gpu-next`（完整 libplacebo 渲染器 +
+     * `pl_dispatch_compute`/`pl_peak_detect`）⇒ 它能做 HDR 峰值计算。
+     * 我们的 mpv 0.39 **已经编进** gpu_next VO（源码 `video/out/vo_gpu_next.c`）、
+     * 也已经有 Android EGL context（`video/out/opengl/context_android.c`），
+     * 且我们给 `egl_helpers.c` 打了 **ES3 补丁** ⇒ 不用重编第三方内核也能切。
+     *
+     * 【风险】这条路径会换掉出画核心（Surface 生命周期 / 字幕合成 / PiP 都要重做），
+     * 所以做成开关、可一键回退；回归矩阵见 277 计划 §五。
      */
     private fun intentGpuNext(): Boolean =
         (app as? android.app.Activity)?.intent?.getBooleanExtra("kivo.gpuNext", false) == true

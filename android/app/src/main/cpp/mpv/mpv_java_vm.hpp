@@ -49,6 +49,14 @@ bool register_java_vm(JNIEnv* env, jobject app_context, std::string& out_error);
 /// 查询当前已注册的 JavaVM（诊断用；未注册返回 nullptr）。
 void* registered_java_vm();
 
+/// 拿到当前线程可用的 JNIEnv（必要时 AttachCurrentThread）。
+///
+/// 【为什么需要】会话销毁时要 `DeleteGlobalRef` 掉 Surface 的全局引用，
+/// 而销毁发生在**非 Java 线程**（native 线程）⇒ 必须自己 attach。
+///
+/// @return 可用的 env；失败返回 nullptr（此时不能碰任何 jobject）。
+JNIEnv* attach_env();
+
 }  // namespace kivo::video::mpv
 
 #endif  // KIVO_VIDEO_MPV_JAVA_VM_HPP

@@ -54,3 +54,25 @@ echo "=== cpp/prebuilt ==="
 ls -l "$STAGE_CPP"
 echo "=== jniLibs ==="
 ls -l "$STAGE_JNI"
+
+# ---------------------------------------------------------------------------
+# 277 · ES3 补丁（必做）
+#
+# 【为什么】libplacebo 的 HDR 峰值计算（pl_peak_detect）走 **compute shader**，
+# 只有 GLES 3.1+ 才有。mpv 0.39 的 video/out/opengl/egl_helpers.c 把 ES 路径
+# 写死成 EGL_OPENGL_ES2_BIT + EGL_CONTEXT_CLIENT_VERSION=2
+# ⇒ libplacebo 自己禁掉（日志："Disabling HDR peak computation
+# (compute shaders=0, SSBO=1)"）⇒ 真 HDR 输出（G2）不成立。
+#
+# 【怎么做】在 mpv 源码树里跑一次（幂等：已打过会直接报错退出）：
+#     python android/app/buildscripts/mpv/patch-mpv-es3.py
+# 它改三处，并且**都带回退**（拿不到 ES3 config/context 就退 ES2，
+# 画面不会因为要 HDR 就整个没了）。
+#
+# 【重编】meson/ninja + NDK（见 277 计划 §二）。
+# ⚠️ 现代 NDK 没有 libpthread.a（Android 的 pthread 在 libc 里）
+#    ⇒ 链接前要造一个空归档占位，否则链接失败：
+#        llvm-ar rcs <某个 -L 目录>/libpthread.a <空.o>
+#
+# 【别忘了两个地方都要换】真正随 APK 打包的是 src/main/jniLibs/，
+# cpp/mpv/prebuilt/ 只是 CMake 的 IMPORTED 来源 —— 本脚本两处都拷 ✓。

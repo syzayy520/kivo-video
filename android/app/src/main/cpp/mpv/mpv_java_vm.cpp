@@ -48,6 +48,11 @@ int av_jni_set_android_app_ctx(void* app_ctx, void* log_ctx);
 
 namespace kivo::video::mpv {
 
+namespace {
+/// 已注册的 JavaVM（277：`attach_env()` 要用它 attach 当前线程）。
+JavaVM* g_vm = nullptr;
+}  // namespace
+
 bool register_java_vm(JNIEnv* env, jobject app_context, std::string& out_error) {
     if (env == nullptr) {
         out_error = "JNIEnv is null";
@@ -63,6 +68,7 @@ bool register_java_vm(JNIEnv* env, jobject app_context, std::string& out_error) 
     // 注册 VM。FFmpeg 允许重复注册同一个指针。
     if (av_jni_set_java_vm(vm, nullptr) < 0) {
         out_error = "av_jni_set_java_vm failed";
+    g_vm = vm;
         return false;
     }
 
@@ -82,6 +88,20 @@ bool register_java_vm(JNIEnv* env, jobject app_context, std::string& out_error) 
     }
 
     return true;
+}
+
+JNIEnv* attach_env() {
+    if (g_vm == nullptr) {
+        return nullptr;
+    }
+    JNIEnv* env = nullptr;
+    if (g_vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
+        return env;
+    }
+    if (g_vm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+        return nullptr;
+    }
+    return env;
 }
 
 void* registered_java_vm() {
