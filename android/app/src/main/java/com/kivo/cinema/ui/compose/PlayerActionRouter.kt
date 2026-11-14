@@ -1,6 +1,7 @@
 package com.kivo.cinema.ui.compose
 
 import com.kivo.cinema.ui.compose.player.DoubleTapZone
+import com.kivo.cinema.ui.compose.player.PlayerPhase
 import com.kivo.cinema.ui.compose.player.resolutionTier
 
 /**
@@ -46,7 +47,15 @@ internal fun PlayerComposeActivity.seekTo(ms: Long) {
             smbSoftAudio?.seekTo(ms * 1000)
             positionMs = ms
         }
-        mpvNetSession != null -> mpvNetSession?.seekTo(ms * 1000, exact = playbackPrefs.seekExact)
+        mpvNetSession != null -> {
+            // 273 v26：**先**把落点那一簇抓进内存，再让内核跳过去。
+            // 【为什么顺序不能反】内核 seek 之后 demux 缓存被清空 ⇒ 落点那一段
+            // 必须回源站取 ⇒ 真机新建连接表头 1,274 ms ⇒ 画面停 0.597 s。
+            // 先抓 ⇒ 那一跳本地供，不必新建连接。
+            // 273 v27：松手这一刻 force = true（位置已定，必须立刻下，不受节流约束）。
+            urlPrep?.source?.prefetchSeek(ms, force = true)
+            mpvNetSession?.seekTo(ms * 1000, exact = playbackPrefs.seekExact)
+        }
         smbNetSession != null -> smbNetSession?.seekTo(ms * 1000)
         else -> playbackSession?.seekTo(ms * 1000)
     }
@@ -63,7 +72,8 @@ internal fun PlayerComposeActivity.togglePlayPause() {
             // 恢复播放后闸门还记着"已压住"，音频就再也起不来。
             smbSoftAudioGated = nowPaused
         } else {
-            statusText = "播放控制失败：${soft.nativeError()}"
+            // 控制失败是"操作没生效"，不是"播放挂了" ⇒ 走轻提示，不劫持播放状态层。
+            showToast("播放控制失败：${soft.nativeError()}")
             controlsVisible = true
         }
         return
@@ -82,7 +92,10 @@ internal fun PlayerComposeActivity.togglePlayPause() {
     val session = playbackSession ?: return
     val result = if (isPlaying) session.pause() else session.resume()
     if (result == 0) isPlaying = !isPlaying
-    else { statusText = "播放控制失败：${session.lastError}"; controlsVisible = true }
+    else {
+        showToast("播放控制失败：${session.lastError}")
+        controlsVisible = true
+    }
 }
 
 /** 顶栏 8 个动作入口（语义序见 player-ui-v3 §1.1）。 */
@@ -214,10 +227,24 @@ internal fun PlayerComposeActivity.togglePanel(kind: String) {
 internal fun PlayerComposeActivity.onRetry() {
     lastTouchMs = System.currentTimeMillis()
     statusText = "正在重连…"
+    phase = PlayerPhase.Buffering
     controlsVisible = true
-    val holder = lastSurfaceHolder ?: return
+    val holder = lastSurfaceHolder ?: run {
+        phase = PlayerPhase.Failed("播放窗口已失效，请退出后重新进入")
+        return
+    }
+    // libmpv 内核互斥：旧内核不关，新会话永远停在 PREPARING（真机复验：重试后一直转圈）。
+    // stop() 是异步的 ⇒ 必须等它真的关掉再起新的。
+    val oldMpv = mpvNetSession
+    closeNetworkPlayback()
     playbackStarted = false
-    maybeStartPlayback(holder)
+    Thread({
+        oldMpv?.awaitClosed(3_000)
+        android.os.Handler(mainLooper).post {
+            if (finishRequested || isDestroyed) return@post
+            maybeStartPlayback(holder)
+        }
+    }, "KivoPlayerRetry").start()
 }
 
 /**

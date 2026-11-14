@@ -52,9 +52,20 @@ class MovieDetailActivity : ComponentActivity() {
 
     private var openingPage = false
 
+    /** Emby 详情资源（273 v16：销毁时要关掉没人接手的源站预热）。 */
+    private var emby: EmbyResource? = null
+
     override fun onResume() {
         super.onResume()
         openingPage = false
+    }
+
+    override fun onDestroy() {
+        // 273 v16：没人接手的预热（用户没点播放就走了）要关掉，
+        // 否则源站连接与片尾缓存一直占着。
+        emby?.discardPrewarm()
+        emby = null
+        super.onDestroy()
     }
 
     private fun openPage(intent: Intent) {
@@ -82,12 +93,13 @@ class MovieDetailActivity : ComponentActivity() {
             finish()
             return
         }
-        val emby = embyItemId?.let { EmbyResource.from(this, intent, it) }
+        val embyRes = embyItemId?.let { EmbyResource.from(this, intent, it) }
+        emby = embyRes
         val tmdb = TmdbDetail(TmdbClient(this))
         val load: () -> DetailContent? =
-            if (emby != null) emby::loadDetails else { { localDetailContent(this, tmdb, isTv, id) } }
+            if (embyRes != null) embyRes::loadDetails else { { localDetailContent(this, tmdb, isTv, id) } }
         setContent {
-            val actions = if (emby != null) emby.actions()
+            val actions = if (embyRes != null) embyRes.actions()
                 else rememberDetailActions(FilmKey(id, isTv))
             DetailPage(actions, load,
                 onBack = { finish() },

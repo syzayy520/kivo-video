@@ -80,6 +80,38 @@ internal fun PlayerComposeActivity.applyProbeSubtitle(session: MpvPlaybackSessio
 }
 
 /**
+ * 取证钩子：播放中**运行时**改 mpv 选项，做 A/B 取证。
+ *
+ * 用法：
+ * ```
+ * am start -n com.kivo.cinema/.ui.compose.PlayerComposeActivity \
+ *   --es kivo.playurl <url> --es kivo.mpvOpt "demuxer-max-bytes=8MiB,hwdec=mediacodec"
+ * ```
+ *
+ * 【为什么要有这个钩子】内存/卡顿这类问题要归因到**某一个**选项，
+ * 而每次改代码重编装机一轮要好几分钟。把改选项做成运行时下发，
+ * 一次装机就能把候选组合逐个跑完，每组都有回执与内存读数。
+ *
+ * 【不许静默】每项 setProperty 的回执都写进 trace —— 改不动的选项要看得见。
+ */
+internal fun PlayerComposeActivity.applyProbeMpvOptions(session: MpvPlaybackSession) {
+    val spec = intent.getStringExtra("kivo.mpvOpt")?.trim().orEmpty()
+    if (spec.isEmpty()) return
+    val items = spec.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+    if (items.isEmpty()) return
+    // 起播后再下发：内核 initialize 之前设置会走 option 通道（受回执检查约束），
+    // 这里走的是 property 通道，用于**已经跑起来**的会话。
+    android.os.Handler(mainLooper).postDelayed({
+        items.forEach { item ->
+            val name = item.substringBefore('=').trim()
+            val value = item.substringAfter('=', "").trim()
+            val ok = runCatching { session.native().setProperty(name, value) }.getOrDefault(false)
+            smbTrace("probe mpv-opt $name=$value ok=$ok")
+        }
+    }, 3_000)
+}
+
+/**
  * 让 mpv 自己截"合成后的画面"。
  *
  * 【为什么必须在播放页而不是 instrumentation】`screenshot-to-file ... window` 走
@@ -111,6 +143,23 @@ private fun PlayerComposeActivity.probeScreenshot(session: MpvPlaybackSession) {
     )
     statusText = "截图：window ${if (windowShot.isFile) windowShot.length() else -1}B" +
         " / subs ${if (subOnly.isFile) subOnly.length() else -1}B"
+}
+
+// ---- 273-E 取证：`--es kivo.thumbOpt "name=value,name=value"`` 追加预览内核的 mpv 选项 ----
+// 预览实例"取一帧却读了 38 MiB"（真机 273-E）需要归因到**某一个**选项，
+// 而每次改代码重编装机一轮要好几分钟。把改选项做成运行时下发，
+// 一次装机就能把候选组合逐个跑完（每组都有回执与下载量读数）。
+internal fun PlayerComposeActivity.probeThumbOptions(): List<Pair<String, String>> {
+    val spec = intent.getStringExtra("kivo.thumbOpt")?.trim().orEmpty()
+    if (spec.isEmpty()) return emptyList()
+    return spec.split(',')
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .mapNotNull { item ->
+            val name = item.substringBefore('=').trim()
+            val value = item.substringAfter('=', "").trim()
+            if (name.isEmpty()) null else name to value
+        }
 }
 
 // ---- v3.1 取证：`--ei kivo.thumbDumpSec N` 在 N 秒后落缩略图证据（SMB 拖动预览用）----

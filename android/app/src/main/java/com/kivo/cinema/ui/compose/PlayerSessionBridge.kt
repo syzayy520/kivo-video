@@ -3,6 +3,7 @@ package com.kivo.cinema.ui.compose
 import android.util.Log
 import com.kivo.cinema.playback.MpvPlaybackSession
 import com.kivo.cinema.playback.NetworkPlaybackSession
+import com.kivo.cinema.ui.compose.player.PlayerPhase
 
 /** 会话状态回显：位置轮询 + 网速采样 + mpv 属性读写 + 观看时长累计。 */
 
@@ -55,6 +56,12 @@ internal fun PlayerComposeActivity.sampleTelemetry() {
 
 internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnable {
     override fun run() {
+        val intervalMs = pollOnce()
+        android.os.Handler(a.mainLooper).postDelayed(this, intervalMs)
+    }
+
+    /** 轮询一次并把内核真值写成 [PlayerPhase]；返回下一次轮询间隔（ms）。 */
+    private fun pollOnce(): Long {
         val soft = a.smbSoftSession
         if (soft != null) {
             val dur = soft.durationUs()
@@ -100,14 +107,15 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
             }
             if (!soft.isRunning()) {
                 // 位置是否到头是客户端唯一可分辨 EOS/失败的判据。
-                a.statusText = if (a.durationMs > 0 && a.positionMs >= a.durationMs - 1000) "播放结束" else "软解中断"
+                val ended = a.durationMs > 0 && a.positionMs >= a.durationMs - 1000
+                a.phase = if (ended) PlayerPhase.Ended else PlayerPhase.Failed("软解中断：解码线程已停止")
+                a.statusText = if (ended) "播放结束" else "软解中断"
                 a.isPlaying = false
                 a.controlsVisible = true
-                return
+                return 200L
             }
             if (System.currentTimeMillis() - a.lastTouchMs > 3000) a.controlsVisible = false
-            android.os.Handler(a.mainLooper).postDelayed(this, 200)
-            return
+            return 200L
         }
         val mpvSession = a.mpvNetSession
         if (mpvSession != null) {
@@ -117,23 +125,32 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
             a.isPlaying = mpvSession.state == MpvPlaybackSession.State.PLAYING
             when (mpvSession.state) {
                 MpvPlaybackSession.State.FAILED -> {
+                    a.phase = PlayerPhase.Failed("网络播放失败：${mpvSession.lastError}")
                     a.statusText = "网络播放失败：${mpvSession.lastError}"
                     a.controlsVisible = true
-                    return
+                    return 100L
                 }
                 MpvPlaybackSession.State.ENDED -> {
+                    a.phase = PlayerPhase.Ended
                     a.statusText = "播放结束"
                     a.controlsVisible = true
-                    return
+                    return 100L
                 }
-                else -> if (a.statusText.startsWith("网络中断")) a.statusText = "正在播放"
+                MpvPlaybackSession.State.PREPARING, MpvPlaybackSession.State.IDLE -> {
+                    a.phase = PlayerPhase.Buffering
+                }
+                else -> {
+                    if (a.phase is PlayerPhase.Buffering || a.phase is PlayerPhase.Reconnecting) {
+                        a.phase = PlayerPhase.Playing
+                    }
+                    if (a.statusText.startsWith("网络中断")) a.statusText = "正在播放"
+                }
             }
             // 必须重新排期：提前 return 会跳过 postDelayed，位置恒 0（真机踩过）。
             // 自动隐藏：控制条常驻会盖住底部字幕（真机取证曾误判"字幕没渲染"）。
             if (System.currentTimeMillis() - a.lastTouchMs > 3000) a.controlsVisible = false
             a.sampleTelemetry()
-            android.os.Handler(a.mainLooper).postDelayed(this, 100)
-            return
+            return 100L
         }
         val netSession = a.smbNetSession
         if (netSession != null) {
@@ -143,25 +160,32 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
             a.isPlaying = netSession.state == NetworkPlaybackSession.State.PLAYING
             when (netSession.state) {
                 NetworkPlaybackSession.State.FAILED -> {
+                    a.phase = PlayerPhase.Failed("网络播放失败：${netSession.lastError}")
                     a.statusText = "网络播放失败：${netSession.lastError}"
                     a.controlsVisible = true
-                    return
+                    return 100L
                 }
                 NetworkPlaybackSession.State.ENDED -> {
+                    a.phase = PlayerPhase.Ended
                     a.statusText = "播放结束"
                     a.controlsVisible = true
-                    return
+                    return 100L
                 }
                 else -> when {
                     netSession.buffering -> {
+                        a.phase = PlayerPhase.Reconnecting
                         a.statusText = "网络中断，正在重连…"
                         a.controlsVisible = true
                     }
                     netSession.lastError.isNotBlank() -> {
+                        a.phase = PlayerPhase.Failed(netSession.lastError)
                         a.statusText = netSession.lastError
                         a.controlsVisible = true
                     }
                     else -> {
+                        if (a.phase is PlayerPhase.Reconnecting || a.phase is PlayerPhase.Buffering) {
+                            a.phase = PlayerPhase.Playing
+                        }
                         if (a.statusText.startsWith("网络中断")) {
                             a.statusText = if (netSession.hasAudio) "正在播放" else "正在播放 · 片源没有音轨"
                         }
@@ -169,10 +193,9 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
                     }
                 }
             }
-            android.os.Handler(a.mainLooper).postDelayed(this, 100)
-            return
+            return 100L
         }
-        val session = a.playbackSession ?: return
+        val session = a.playbackSession ?: return 100L
         // EOS 后时钟外推会越过片长（真机 205s/60s 片）——clamp。
         a.positionMs = (session.positionUs() / 1000).coerceAtMost(a.durationMs)
         if (com.kivo.cinema.BuildConfig.DEBUG) {
@@ -183,7 +206,16 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
             }
         }
         if (a.previewMs < 0 && System.currentTimeMillis() - a.lastTouchMs > 3000) a.controlsVisible = false
-        android.os.Handler(a.mainLooper).postDelayed(this, 100)
+        // 本地软解会话没有公开的 state 枚举，只能用两个真值判据：
+        // 播完（isFinished）与明确报错（lastError 非空且已停）。
+        when {
+            session.isFinished() -> a.phase = PlayerPhase.Ended
+            !session.isRunning() && session.lastError.isNotBlank() ->
+                a.phase = PlayerPhase.Failed("播放失败：${session.lastError}")
+            a.phase is PlayerPhase.Buffering || a.phase is PlayerPhase.Reconnecting ->
+                a.phase = PlayerPhase.Playing
+        }
+        return 100L
     }
 }
 
@@ -202,7 +234,18 @@ internal class PlayerWatchPoll(private val a: PlayerComposeActivity) : Runnable 
     }
 }
 
-internal fun PlayerComposeActivity.watchKey(): String = currentMediaPath().ifBlank { playUrlOverride }
+/**
+ * 观看记录的键。
+ *
+ * 【URL 优先于本地路径】URL 片源（Emby）的观看记录必须挂在**它的 URL** 上：
+ * 详情页也要用同一个键查续播位（273 v18 的恢复点预取）⇒ 键必须一致。
+ * 旧写法（路径优先）会被设备上的本地测试片源顶掉 ⇒ URL 片源存的是本地路径的键，
+ * 详情页按 URL 查不到 ⇒ 两边对不上。
+ *
+ * 【本地片源不受影响】`kivo.playurl` 为空 ⇒ 键仍是本地路径。
+ */
+internal fun PlayerComposeActivity.watchKey(): String =
+    playUrlOverride.ifBlank { currentMediaPath() }
 
 internal fun PlayerComposeActivity.flushWatch() {
     if (watchLastPosMs > 0 && durationMs > 0) {

@@ -1,5 +1,6 @@
 package com.kivo.cinema.ui.design
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,15 +31,30 @@ import com.kivo.cinema.stats.WatchStore
  * 在看页（AppWatching 147 键语义；HomeEditor `viewing.progress.full.width` 契约）：
  * 整行卡 = 左缩略图 103pt 16:9 + 右标题 17pt 粗体/元信息 11pt 灰 + 黑进度条 3pt（05 §三）。
  * 弃剧/折叠记录/追剧日历 = v2。
+ *
+ * 「在看」是**发现的子页**（不是第五个标签）：顶部有返回条，系统返回键也回发现，
+ * 空态给一个「去发现」按钮 —— 否则用户进来就出不去了（272 审计 D8）。
  */
 @Composable
 fun WatchingPage(
     continueItems: List<Pair<MediaItem, WatchStore.Progress>>,
     posterOf: @Composable (MediaItem) -> (@Composable () -> Unit)?,
     onOpenItem: (MediaItem) -> Unit,
+    onBack: () -> Unit,
 ) {
+    BackHandler { onBack() }
     Column(Modifier.fillMaxSize()) {
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(6.dp))
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = DesignTokens.screenPad.dp)
+                .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onBack)
+                .padding(vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("‹", fontSize = 20.sp, color = DesignTokens.textMain,
+                modifier = Modifier.padding(end = 6.dp))
+            Text("发现", fontSize = 15.sp, color = DesignTokens.textMain)
+        }
         Text("在看", fontSize = 28.sp, fontWeight = FontWeight.Bold,
             color = DesignTokens.textMain,
             modifier = Modifier.padding(horizontal = DesignTokens.screenPad.dp))
@@ -49,10 +65,22 @@ fun WatchingPage(
         Spacer(Modifier.height(12.dp))
         if (continueItems.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("还没有在看记录\n去发现页选一部片，进度会出现在这里",
-                    fontSize = 14.sp, color = DesignTokens.textSub,
-                    lineHeight = 22.sp,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("还没有在看记录\n去发现页选一部片，进度会出现在这里",
+                        fontSize = 14.sp, color = DesignTokens.textSub,
+                        lineHeight = 22.sp,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Spacer(Modifier.height(14.dp))
+                    Box(
+                        Modifier.clip(RoundedCornerShape(50.dp))
+                            .background(DesignTokens.navActive)
+                            .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onBack)
+                            .padding(horizontal = 22.dp, vertical = 9.dp)
+                    ) {
+                        Text("去发现", color = Color.White, fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium)
+                    }
+                }
             }
             return
         }

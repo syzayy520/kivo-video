@@ -8,6 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.kivo.cinema.bridge.PlaybackSession
+import com.kivo.cinema.ui.compose.player.PlayerPhase
+import com.kivo.cinema.ui.compose.player.PlayerPhaseHolder
 
 /**
  * Compose 播放页的**组合根**（213 / 253-v3）。
@@ -39,12 +41,32 @@ class PlayerComposeActivity : ComponentActivity() {
     internal var evidenceName = ""
     internal var thumbnailReader: com.kivo.cinema.thumbnail.PreviewFrameReader? = null
 
+    /**
+     * 预览内核**待预热**（273 v15）。
+     *
+     * 【为什么用标志而不是直接预热】预览内核要自己开一条源站连接，
+     * 而起播第一跳要的**也是**空连接 —— 两条握手撞在一起时，
+     * 片头表头从 0.34 s 涨到 0.96–2.1 s（真机 273 v15）。
+     * 所以挂载时只**记下**"要预热"，实际预热等首帧之后（见 `prewarmThumbnails`）。
+     */
+    internal var pendingThumbPrewarm = false
+
     // ---- 播放状态（Compose）----
     internal var isPlaying by mutableStateOf(false)
     internal var controlsVisible by mutableStateOf(true)
     internal var positionMs by mutableStateOf(0L)
     internal var durationMs by mutableStateOf(0L)
     internal var statusText by mutableStateOf("starting...")
+    /**
+     * 播放阶段（272：唯一真值模型）。
+     *
+     * `statusText` 是**展示文案**，不参与任何判定 —— 阶段只从内核真值来
+     * （会话 state / buffering 标志 / lastError）。理由见 [PlayerPhase]。
+     */
+    internal val phaseHolder = PlayerPhaseHolder { armBufferWatchdog() }
+    internal var phase: PlayerPhase
+        get() = phaseHolder.phase
+        set(value) { phaseHolder.phase = value }
     internal var thumbnailBitmap by mutableStateOf<android.graphics.Bitmap?>(null)
     /** 预览帧产不出时的可见原因（不许静默降级）；空 = 正常或尚未请求。 */
     internal var thumbnailUnavailableReason by mutableStateOf("")
@@ -139,6 +161,18 @@ class PlayerComposeActivity : ComponentActivity() {
     internal var networkGeneration = 0
     internal var networkPreparationCancelled: java.util.concurrent.atomic.AtomicBoolean? = null
 
+    /**
+     * 273 v15：URL（Emby）起播的**预备**句柄。
+     *
+     * 【为什么它属于 Activity 而不是起播线程】源站握手要 0.8–1.6 s，
+     * 而内核起播窗口只有几秒 —— 握手必须与**应用自身启动**（≈1.4 s）重叠，
+     * 所以源在 `onCreate` 就建（见 [prepareUrlSource]），起播时直接用。
+     *
+     * 【谁负责关】源的生命周期跟着 Activity 走 ⇒ 在 `onDestroy` 里关
+     * （**在** [closeNetworkPlayback] 之后：内核还在读时不能先关源）。
+     */
+    internal var urlPrep: PlayerUrlPrep? = null
+
     // ---- 观看数据域（237-A）----
     internal val watchStore by lazy { com.kivo.cinema.stats.WatchStore(this) }
     /** 播放策略（262）：设置页编辑、播放器消费，全页唯一入口。 */
@@ -180,12 +214,17 @@ class PlayerComposeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.kivo.cinema.net.NetDiag.attach(application)
         livePlayer?.get()?.takeIf { it !== this }?.finish()
         livePlayer = java.lang.ref.WeakReference(this)
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         // 沉浸式全屏：播放器里状态栏与导航条都是"切画面"，黑底电影尤其刺眼。
         com.kivo.cinema.ui.compose.player.applyImmersivePlayerWindow(this)
         readProbeExtras()
+        // 273 v15：URL 起播的**预备**在这里就开跑 —— 源站握手与应用启动重叠，
+        // 等 Surface 到了内核第一跳直接复用已有连接（真机 1.5 s → 0.3 s）。
+        // 非 URL 起播（本地 / SMB）返回 null，什么都不做。
+        urlPrep = prepareUrlSource()
         scheduleThumbDump()
         scheduleThumbProbe()
         scheduleThumbScan()
@@ -207,6 +246,7 @@ class PlayerComposeActivity : ComponentActivity() {
         if (finishRequested || isDestroyed) return
         surfaceReady = true
         lastSurfaceHolder = holder
+        com.kivo.cinema.net.NetDiag.log("[prep] surface 就绪")
         maybeStartPlayback(holder)
     }
 
@@ -280,6 +320,9 @@ class PlayerComposeActivity : ComponentActivity() {
         thumbnailReader?.release()
         thumbnailReader = null
         closeNetworkPlayback()
+        // 源是内核的读源 ⇒ 必须**在**内核停掉之后才关（顺序反了就是读已关闭的源）。
+        runCatching { urlPrep?.source?.close() }
+        urlPrep = null
         playbackSession?.close()
         playbackSession = null
         super.onDestroy()

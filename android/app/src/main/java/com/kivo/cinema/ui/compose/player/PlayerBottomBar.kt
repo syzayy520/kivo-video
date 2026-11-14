@@ -66,6 +66,7 @@ internal fun PlayerBottomBar(
     onNext: () -> Unit,
     onScrub: (Long) -> Unit,
     onSeek: (Long) -> Unit,
+    onScrubEnd: () -> Unit,
     onTextAction: (String) -> Unit,
     onPanelSelect: (PlayerOptionItem) -> Unit,
     onCapture: () -> Unit,
@@ -134,6 +135,7 @@ internal fun PlayerBottomBar(
                     onDragTarget = { dragTargetMs = it },
                     onScrub = onScrub,
                     onSeek = onSeek,
+                    onScrubEnd = onScrubEnd,
                     onCapture = onCapture,
                     modifier = Modifier.weight(1f),
                 )

@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalContext
@@ -37,6 +38,7 @@ internal fun DetailOverlayHost(
 ) {
     val context = LocalContext.current
     val d = content?.details
+    var confirmRemove by remember { mutableStateOf(false) }
     DetailMorePopup(overlay.moreOpen, overlay.moreAnchor,
         onDismiss = { overlay.moreOpen = false },
         onAddCalendar = {
@@ -63,5 +65,14 @@ internal fun DetailOverlayHost(
                 .putExtra(Intent.EXTRA_TEXT, text)
             openPage(Intent.createChooser(send, "分享"))
         },
-        onRemove = { actions.toggle(FilmMark.WATCHLIST) })
+        onRemove = { confirmRemove = true })
+    if (confirmRemove) {
+        DetailConfirmDialog(
+            title = "移出待看？",
+            message = "这部片会从「待看」列表移除，观看记录不受影响。",
+            confirmLabel = "移出",
+            onConfirm = { actions.toggle(FilmMark.WATCHLIST) },
+            onDismiss = { confirmRemove = false },
+        )
+    }
 }

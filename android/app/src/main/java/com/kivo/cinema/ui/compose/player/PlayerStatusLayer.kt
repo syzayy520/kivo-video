@@ -33,66 +33,116 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * 播放页状态层（player-ui-v2.md §3.5）。
+ * 播放页状态层（272：阶段制）。
  *
  * **存在的理由**：现有实现把 `statusText` 用一个 10sp 黑底白字浮在**左上角** ——
- * 那是调试残留，产品界面里像日志。状态必须有自己的**专门层**，
- * 且形态要与参考一致：
- * · 加载/缓冲 → **中央三点波纹**（不是 Material 的转圈 spinner —— 转圈太重，
+ * 那是调试残留，产品界面里像日志。状态必须有自己的**专门层**。
+ *
+ * ## 阶段 → 形态
+ * 272 之前这些形态写好了，却因为判定靠文案子串而基本没出现过：
+ * · [PlayerPhase.Buffering] → **中央三点波纹**（不是 Material 的转圈 spinner —— 转圈太重，
  *   在暗画面上抢视线；三点波纹安静，且"在动"本身就是"还在等"的表达）；
- * · 失败 → 居中面板（图标 + 原因 + 重试）；
- * · 网络中断 → 轻提示，落在底部渐变区里，**不挡画面中央**。
+ * · [PlayerPhase.Failed] → 居中面板（原因 + 重试）；
+ * · [PlayerPhase.Reconnecting] → **底部轻提示**，不挡画面中央
+ *   （重连只需等待，不该像失败那样抢注意力）；
+ * · [PlayerPhase.Ended] → 居中「播放结束」。
+ *
+ * 【为什么参数是阶段而不是两个布尔/字符串】两个布尔会让"缓冲中同时失败"这类
+ * 组合无定义，字符串则把状态和文案绑死（改一个字就改坏一个判定）。
  */
 @Composable
 internal fun PlayerStatusLayer(
-    buffering: Boolean,
-    errorText: String,
+    phase: PlayerPhase,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (buffering && errorText.isBlank()) {
-        BufferingRipple(modifier)
-        return
+    when (phase) {
+        PlayerPhase.Buffering -> BufferingRipple(modifier)
+        is PlayerPhase.Failed -> FailedPanel(phase.reason, onRetry, modifier)
+        PlayerPhase.Reconnecting -> ReconnectHint(modifier)
+        PlayerPhase.Ended -> EndedPanel(modifier)
+        PlayerPhase.Idle, PlayerPhase.Playing -> Unit
     }
-    if (errorText.isNotBlank()) {
-        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+}
+
+/** 致命错误：原因（必须非空）+ 重试。 */
+@Composable
+private fun FailedPanel(reason: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .padding(horizontal = 40.dp)
+                .clip(RoundedCornerShape(PlayerTokens.panelRadius.dp))
+                .background(PlayerTokens.panelSurface)
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+        ) {
+            Text(
+                text = "播放失败",
+                color = PlayerTokens.textPrimary,
+                fontSize = PlayerTokens.panelTitleSize.sp,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = reason,
+                color = PlayerTokens.textSecondary,
+                fontSize = PlayerTokens.panelSubtitleSize.sp,
+                textAlign = TextAlign.Center,
+                maxLines = 3,
+            )
+            Spacer(Modifier.height(16.dp))
+            Box(
                 modifier = Modifier
-                    .padding(horizontal = 40.dp)
                     .clip(RoundedCornerShape(PlayerTokens.panelRadius.dp))
-                    .background(PlayerTokens.panelSurface)
-                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                    .background(Color.White)
+                    .clickable(onClick = onRetry)
+                    .padding(horizontal = 22.dp, vertical = 9.dp),
             ) {
                 Text(
-                    text = "播放失败",
-                    color = PlayerTokens.textPrimary,
+                    text = "重试",
+                    color = Color.Black,
                     fontSize = PlayerTokens.panelTitleSize.sp,
                 )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = errorText,
-                    color = PlayerTokens.textSecondary,
-                    fontSize = PlayerTokens.panelSubtitleSize.sp,
-                    textAlign = TextAlign.Center,
-                    maxLines = 3,
-                )
-                Spacer(Modifier.height(16.dp))
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(PlayerTokens.panelRadius.dp))
-                        .background(Color.White)
-                        .clickable(onClick = onRetry)
-                        .padding(horizontal = 22.dp, vertical = 9.dp),
-                ) {
-                    Text(
-                        text = "重试",
-                        color = Color.Black,
-                        fontSize = PlayerTokens.panelTitleSize.sp,
-                    )
-                }
             }
         }
+    }
+}
+
+/**
+ * 网络中断重连：底部轻提示。
+ *
+ * 之前这条被误判成"失败"（文案里带"中断"两个字）⇒ 自动重连时弹居中失败面板。
+ * 重连只需要等待，不该像失败那样抢画面中央的注意力。
+ */
+@Composable
+private fun ReconnectHint(modifier: Modifier = Modifier) {
+    Box(modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+        Text(
+            text = "网络中断，正在重连…",
+            color = PlayerTokens.textPrimary,
+            fontSize = 13.sp,
+            modifier = Modifier
+                .padding(bottom = PlayerTokens.bottomScrimHeight.dp + 12.dp)
+                .clip(RoundedCornerShape(50))
+                .background(PlayerTokens.panelSurface)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+    }
+}
+
+/** 播完：告知结束（"重播 / 下一集"入口属后续批次）。 */
+@Composable
+private fun EndedPanel(modifier: Modifier = Modifier) {
+    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = "播放结束",
+            color = PlayerTokens.textPrimary,
+            fontSize = PlayerTokens.panelTitleSize.sp,
+            modifier = Modifier
+                .clip(RoundedCornerShape(PlayerTokens.panelRadius.dp))
+                .background(PlayerTokens.panelSurface)
+                .padding(horizontal = 22.dp, vertical = 14.dp),
+        )
     }
 }
 

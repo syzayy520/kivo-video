@@ -4,6 +4,7 @@ import android.util.Log
 import android.view.SurfaceHolder
 import com.kivo.cinema.bridge.FfmpegRouting
 import com.kivo.cinema.bridge.PlaybackSession
+import com.kivo.cinema.ui.compose.player.PlayerPhase
 
 /** 起播入口：本地 / URL / 网络硬解三条链路的分发与启动。SMB 与软解见 PlayerSmbStart。 */
 
@@ -31,6 +32,7 @@ internal fun PlayerComposeActivity.maybeStartPlayback(holder: SurfaceHolder) {
         ?.let { java.io.File(it) }?.takeIf { it.isFile }
         ?: locateTestMedia() ?: return
     playbackStarted = true
+    phase = PlayerPhase.Buffering
     statusText = "surface ok, probing..."
     val routing = FfmpegRouting.probe(media)
     statusText = "route=${routing.decision} reason=${routing.reason}"
@@ -42,20 +44,31 @@ internal fun PlayerComposeActivity.maybeStartPlayback(holder: SurfaceHolder) {
     statusText = "openVideo rc=$rc lastError=${localSession.lastError}"
     if (rc != 0) {
         Log.e(PlayerComposeActivity.TAG, "openVideo failed rc=$rc: ${localSession.lastError}")
-        localSession.close(); playbackSession = null; finish(); return
+        // 不再直接 finish()：失败要**留在屏幕上**并给出原因与重试，
+        // 否则用户只看到黑屏弹回上一层，不知道发生了什么（272 审计 D2）。
+        localSession.close(); playbackSession = null
+        phase = PlayerPhase.Failed("无法打开视频：${localSession.lastError.ifBlank { "错误码 $rc" }}")
+        controlsVisible = true
+        return
     }
     // 音频必须先于节拍启动，native 才会选音频主时钟。
     val audioProbe = com.kivo.cinema.bridge.MediaTrackProbe.inspectAudioTrack(media)
     if (audioProbe.isFailure) {
         statusText = "无法检查音轨，已停止播放：${audioProbe.exceptionOrNull()?.javaClass?.simpleName}"
-        localSession.close(); playbackSession = null; controlsVisible = true; return
+        localSession.close(); playbackSession = null
+        phase = PlayerPhase.Failed("无法检查音轨：${audioProbe.exceptionOrNull()?.javaClass?.simpleName ?: "未知错误"}")
+        controlsVisible = true
+        return
     }
     val hasAudio = audioProbe.getOrThrow()
     if (hasAudio) {
         val audioRc = localSession.openAudio()
         if (audioRc != 0) {
             statusText = "音频无法启动：${localSession.lastError.ifBlank { "错误码 $audioRc" }}"
-            localSession.close(); playbackSession = null; controlsVisible = true; return
+            localSession.close(); playbackSession = null
+            phase = PlayerPhase.Failed("音频无法启动：${localSession.lastError.ifBlank { "错误码 $audioRc" }}")
+            controlsVisible = true
+            return
         }
     }
     localSession.configurePacing(targetFps = 0, allowDrop = true)
@@ -65,9 +78,13 @@ internal fun PlayerComposeActivity.maybeStartPlayback(holder: SurfaceHolder) {
     statusText = "start rc=$startRc"
     if (startRc != 0) {
         Log.e(PlayerComposeActivity.TAG, "start failed rc=$startRc")
-        localSession.close(); playbackSession = null; finish(); return
+        localSession.close(); playbackSession = null
+        phase = PlayerPhase.Failed("无法开始播放：${localSession.lastError.ifBlank { "错误码 $startRc" }}")
+        controlsVisible = true
+        return
     }
     isPlaying = true
+    phase = PlayerPhase.Playing
     lastTouchMs = System.currentTimeMillis()
     android.os.Handler(mainLooper).post(positionPoll)
     durationMs = probeDurationUs(media.absolutePath) / 1000
@@ -96,6 +113,7 @@ internal fun PlayerComposeActivity.startNetworkPlayback(
     if (finishRequested || isDestroyed) return
     playbackStarted = true
     smbPlayback = routing == "smb" || routing == "emby"
+    phase = PlayerPhase.Buffering
     statusText = "正在准备网络播放…"
     smbNetSession = netSession
     netSession.start(holder.surface) { result ->
@@ -103,14 +121,20 @@ internal fun PlayerComposeActivity.startNetworkPlayback(
         if (result == 0) {
             durationMs = netSession.durationUs / 1000
             statusText = if (netSession.hasAudio) "正在播放" else "正在播放 · 片源没有音轨"
+            phase = PlayerPhase.Playing
             isPlaying = true
             lastTouchMs = System.currentTimeMillis()
             android.os.Handler(mainLooper).post(positionPoll)
             updatePipParams()
+            // 273 v15：首帧之后才起保温池（URL 源；SMB 走原路径，这里是空操作）。
+            startUrlWarmup()
+            // 273 v15：预览内核同理（第二实例 = 第二条源站连接）。
+            prewarmThumbnails()
         } else {
             val fallback = onPlatformFailed
             if (fallback != null) { fallback(); return@start }
             statusText = "网络视频无法播放：${netSession.lastError}"
+            phase = PlayerPhase.Failed("网络视频无法播放：${netSession.lastError.ifBlank { "未知错误" }}")
             isPlaying = false
             controlsVisible = true
         }

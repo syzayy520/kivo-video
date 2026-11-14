@@ -61,6 +61,12 @@ internal fun PlayerSeekTrack(
     onDragTarget: (Long?) -> Unit,
     onScrub: (Long) -> Unit,
     onSeek: (Long) -> Unit,
+    /**
+     * 拖动**未落到 seek**时也要走一次（取消 / 片长为 0）。
+     * 拖动期间弹幕让位（scrubbing），只有 onSeek 会复位它 ——
+     * 取消时若不复位，弹幕会永久消失（272 修）。
+     */
+    onScrubEnd: () -> Unit,
     onCapture: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -140,11 +146,13 @@ internal fun PlayerSeekTrack(
                     onDragEnd = {
                         dragging = false
                         onDragTarget(null)
-                        if (durState.value > 0) onSeek(lastTarget)
+                        if (durState.value > 0) onSeek(lastTarget) else onScrubEnd()
                     },
                     onDragCancel = {
                         dragging = false
                         onDragTarget(null)
+                        // 取消也要复位：拖动期间弹幕让位，拖动没落 seek 就没人复位它。
+                        onScrubEnd()
                     },
                 )
             },

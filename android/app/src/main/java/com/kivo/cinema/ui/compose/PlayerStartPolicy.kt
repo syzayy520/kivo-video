@@ -26,6 +26,22 @@ internal fun PlayerComposeActivity.applyResumePosition() {
 }
 
 /**
+ * 起播**之前**取续播位（毫秒）；没有则 -1。
+ *
+ * 【为什么要提前算】续播位有两条用法：
+ *  ① 交给内核 `loadfile ... start=`，让内核打开即落到该位置；
+ *  ② 起播后再补一条 seek。
+ * ①快得多（真机：稳定首帧 5.15 s → 4.39 s，续播那一跳省掉整段"先播 0 秒"），
+ * ②只在①不可用时兜底。片尾（≥95%）由 [com.kivo.cinema.stats.WatchStore.progressOf] 判 null。
+ */
+internal fun PlayerComposeActivity.resumePositionMs(): Long {
+    if (playbackPrefs.alwaysFromStart) return -1L
+    val progress = watchStore.progressOf(watchKey()) ?: return -1L
+    val pos = progress.positionMs
+    return if (pos > 0L) pos else -1L
+}
+
+/**
  * 起播规格：按设置停留 N 秒，内容全部取内核真值（video-params / video-codec / video-bitrate）。
  * 读不到的项不拼进去 —— 不许编一个"1080P"骗用户；一项都读不到就不显示。
  */

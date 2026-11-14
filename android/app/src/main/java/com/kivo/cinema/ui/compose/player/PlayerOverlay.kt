@@ -74,8 +74,7 @@ internal fun PlayerOverlay(
     thumbUnavailable: String,
     previewMs: Long,
     resolutionLabel: String,
-    buffering: Boolean,
-    errorText: String,
+    phase: PlayerPhase,
     activeAction: String,
     activePanel: String,
     panelTitle: String,
@@ -100,6 +99,7 @@ internal fun PlayerOverlay(
     onNext: () -> Unit,
     onScrub: (Long) -> Unit,
     onSeek: (Long) -> Unit,
+    onScrubEnd: () -> Unit,
     onTextAction: (String) -> Unit,
     onPanelSelect: (PlayerOptionItem) -> Unit,
     onPanelStep: (PlayerOptionItem, Int) -> Unit,
@@ -181,6 +181,7 @@ internal fun PlayerOverlay(
             onNext = onNext,
             onScrub = onScrub,
             onSeek = onSeek,
+            onScrubEnd = onScrubEnd,
             onTextAction = onTextAction,
             onPanelSelect = onPanelSelect,
             onCapture = onCapture,
@@ -233,69 +234,6 @@ internal fun PlayerOverlay(
         if (flashZone != null) {
             PlayerGestureFlash(zone = flashZone, modifier = Modifier.align(Alignment.Center))
         }
-        PlayerStatusLayer(buffering = buffering, errorText = errorText, onRetry = onRetry)
+        PlayerStatusLayer(phase = phase, onRetry = onRetry)
     }
 }
-
-/** 浮层面板：锚点/壳全部问 [PlayerPanelHost]，这里只挂过渡。 */
-@Composable
-private fun BoxScope.FloatingPanel(
-    kind: String,
-    open: Boolean,
-    reduceMotion: Boolean,
-    audioOnly: Boolean,
-    title: String,
-    items: List<PlayerOptionItem>,
-    onSelect: (PlayerOptionItem) -> Unit,
-    onStep: (PlayerOptionItem, Int) -> Unit,
-    onDismiss: () -> Unit,
-    panelRect: MutableState<Rect?>,
-) {
-    // 关闭即清空：底栏被盖的文字随之淡回（面板淡出时不再误隐）。
-    LaunchedEffect(open) { if (!open) panelRect.value = null }
-    // 记住最后打开的形态：淡出的 150ms 里 kind 已变空，
-    // 不保留的话面板会瞬间变成空壳再淡出（肉眼可见的"闪没"）。
-    var lastKind by remember { mutableStateOf("") }
-    LaunchedEffect(kind) { if (kind.isNotBlank()) lastKind = kind }
-    val shownKind = if (kind.isNotBlank()) kind else lastKind
-    AnimatedVisibility(
-        visible = open,
-        enter = if (reduceMotion) fadeIn(tween(PlayerMotion.reduceMotionMs))
-        else fadeIn(PlayerMotion.panelSpring) +
-            scaleIn(PlayerMotion.panelSpring, initialScale = 0.94f),
-        exit = if (reduceMotion) fadeOut(tween(PlayerMotion.reduceMotionMs))
-        else fadeOut(tween(PlayerMotion.panelExitMs, easing = PlayerMotion.panelExitEasing)) +
-            scaleOut(tween(PlayerMotion.panelExitMs, easing = PlayerMotion.panelExitEasing), targetScale = 0.94f),
-        modifier = Modifier
-            .align(Alignment.TopEnd)
-            .playerSafeArea(WindowInsetsSides.Horizontal)
-            .padding(
-                top = PlayerPanelHost.topPad(shownKind).dp,
-                end = PlayerPanelHost.trailingPad(shownKind, audioOnly).dp,
-            ),
-    ) {
-        // 钻入换页（倍速→微调卡等）：交叉淡化而不是整壳重建，锚点不动。
-        AnimatedContent(
-            targetState = shownKind,
-            transitionSpec = {
-                fadeIn(tween(PlayerMotion.panelSwapEnterMs, easing = PlayerMotion.easing)) togetherWith
-                    fadeOut(tween(PlayerMotion.panelSwapExitMs, easing = PlayerMotion.easing))
-            },
-            label = "panelSwap",
-        ) { targetKind ->
-            PlayerPanelShell(
-                kind = targetKind,
-                title = title,
-                items = items,
-                onSelect = onSelect,
-                onStep = onStep,
-                onDismiss = onDismiss,
-                // 在壳上量真实矩形（含壳自身宽高），只在打开时发布。
-                modifier = Modifier.onGloballyPositioned {
-                    if (open) panelRect.value = it.boundsInRoot()
-                },
-            )
-        }
-    }
-}
-

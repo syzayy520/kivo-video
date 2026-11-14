@@ -4,13 +4,15 @@ import android.view.SurfaceHolder
 import com.kivo.cinema.smb.SmbAddress
 import com.kivo.cinema.smb.SmbByteSource
 import com.kivo.cinema.smb.SmbCredential
+import com.kivo.cinema.ui.compose.player.PlayerPhase
 
-/** SMB 起播：mpv / 硬解 / 软解三链路互斥；软解音频独立字节源。 */
+/** SMB 起播：mpv / 硬解 / 软解三链路互斥；软解链路见 PlayerSmbSoftStart.kt。 */
 
 internal fun PlayerComposeActivity.startSmbPlayback(
     holder: SurfaceHolder, sourceId: String, filePath: String, shareOverride: String = "",
 ) {
     playbackStarted = true
+    phase = PlayerPhase.Buffering
     statusText = "正在连接SMB…"
     val generation = ++networkGeneration
     val cancelled = java.util.concurrent.atomic.AtomicBoolean(false)
@@ -110,6 +112,7 @@ internal fun PlayerComposeActivity.startSmbPlayback(
                             } catch (e: Exception) {
                                 runOnUiThread {
                                     statusText = "这个片源无法播放：${e.message?.take(80)}"
+                                    phase = PlayerPhase.Failed("这个片源无法播放：${e.message?.take(80) ?: "未知错误"}")
                                     controlsVisible = true
                                 }
                             }
@@ -124,6 +127,7 @@ internal fun PlayerComposeActivity.startSmbPlayback(
                 if (!cancelled.get() && !finishRequested && !isDestroyed && generation == networkGeneration) {
                     networkPreparationCancelled = null
                     statusText = e.message?.takeIf { it.isNotBlank() } ?: "SMB连接失败（${e.javaClass.simpleName}）"
+                    phase = PlayerPhase.Failed(statusText)
                     isPlaying = false
                     controlsVisible = true
                 }
@@ -133,44 +137,78 @@ internal fun PlayerComposeActivity.startSmbPlayback(
 }
 
 /** mpv 内核起播：吃 ByteSource（SMB/HTTP，代理按 offset 读），与 fd 链路互斥。 */
-internal fun PlayerComposeActivity.startMpvPlayback(holder: SurfaceHolder, source: com.kivo.cinema.net.ByteSource) {
+internal fun PlayerComposeActivity.startMpvPlayback(
+    holder: SurfaceHolder,
+    source: com.kivo.cinema.net.ByteSource,
+    /** 起播放行闸门（null = 不设）：URL 起播用它挡第一跳，SMB 不用。 */
+    gate: com.kivo.cinema.playback.PlaybackLoadGate? = null,
+) {
     if (finishRequested || isDestroyed) return
     playbackStarted = true
     smbPlayback = true
+    phase = PlayerPhase.Buffering
     statusText = "正在准备内核播放…"
     val session = com.kivo.cinema.playback.MpvPlaybackSession(this, source)
     mpvNetSession = session
-    session.start(holder.surface) { result ->
+    // 续播位在**起播前**取：交给内核的每文件选项 `start=`，
+    // 内核打开即落到该位置（否则要等首帧出来再补一条 seek，白等 0.5–0.8 秒）。
+    val resumeMs = resumePositionMs()
+    session.start(holder.surface, { result ->
         if (finishRequested || isDestroyed || mpvNetSession !== session) return@start
         if (result == 0) {
+            // 取证锚点：首帧就绪的**绝对时刻**。
+            // 内核日志里的时间是相对 mpv 进程时钟的，与主机侧的 tap 时刻对不上；
+            // 没有这个锚点，"从点播放到出画面"就只能靠两边的时钟猜。
+            // 【口径】这里的"首帧"= 渲染层真的 swap 过一帧（画面已上屏），
+            // 不是"播放时钟起跳"—— 后者会早 1.5–2.8 s（真机实测）。
+            com.kivo.cinema.net.NetDiag.log("MPV 首帧就绪")
+            // 273 v15：首帧之后才起保温池（起播关键路径上的连接不能让给它）。
+            startUrlWarmup()
+            // 273 v15：预览内核同理 —— 它要自己开一条源站连接。
+            prewarmThumbnails()
             if (session.durationUs > 0) durationMs = session.durationUs / 1000
             statusText = "正在播放"
+            phase = PlayerPhase.Playing
             isPlaying = true
             lastTouchMs = System.currentTimeMillis()
             android.os.Handler(mainLooper).post(positionPoll)
             applyProbeSubtitle(session)
+            applyProbeMpvOptions(session)
             // 起播后才有 video-params：此时更新 PiP 宽高比才是真值。
             updatePipParams()
-            applyResumePosition()
+            // `start=` 已经把内核放到续播位了，这里只补齐界面上的位置。
+            if (resumeMs > 0L) {
+                positionMs = resumeMs
+            } else {
+                applyResumePosition()
+            }
             // 起播默认倍速（264 默认播放速度）：mpv 出厂 1.0，仅非默认值才下发。
             if (playbackPrefs.defaultSpeed != 1.0) applySpeed(playbackPrefs.defaultSpeed)
             showStartupSpec()
         } else {
             statusText = "网络视频无法播放：${session.lastError}"
+            phase = PlayerPhase.Failed("网络视频无法播放：${session.lastError.ifBlank { "未知错误" }}")
             isPlaying = false
             controlsVisible = true
         }
-    }
+    }, resumeMs / 1000.0, gate)
 }
 
 /** v3.1b：挂网络缩略图读取器（mpv 第二实例，SMB/HTTP 同构）。
  *  MediaExtractor 在无索引 MKV 上首请求即线性扫卡死（真机 handler busy 定论），
- *  网络源预览帧改走内核；本地索引源仍用 ThumbnailReader。 */
+ *  网络源预览帧改走内核；本地索引源仍用 ThumbnailReader。
+ *
+ *  【源的归属】谁创建谁拥有：读者释放时会关掉自己注册的源。
+ *  所以这里传进来的必须是**只给预览用**的那份源（SMB 是第二份 SmbByteSource，
+ *  HTTP 是第二段 HttpOriginSource）—— 绝不能把主播放的源传进来。 */
 internal fun PlayerComposeActivity.mountNetworkThumbnails(source: com.kivo.cinema.net.ByteSource) {
     // 主重试真重建：旧 reader 的内核/线程/代理先收（release 会关它注册的旧源），避免泄漏与抢链路。
     thumbnailReader?.release()
     netThumbSource = source
-    val reader = com.kivo.cinema.thumbnail.MpvThumbnailReader(applicationContext, source, cacheDir)
+    val reader = com.kivo.cinema.thumbnail.MpvThumbnailReader(
+        applicationContext, source, cacheDir,
+        extraMpvOptions = probeThumbOptions(),
+    )
     thumbnailReader = reader
     // 预热期空框也要有字：内核起好前拖动，用户看到的是"准备中"而不是黑框猜谜。
     thumbnailUnavailableReason = "预览帧准备中…"
@@ -183,118 +221,31 @@ internal fun PlayerComposeActivity.mountNetworkThumbnails(source: com.kivo.cinem
     reader.onUnavailable = { reason ->
         android.os.Handler(mainLooper).post { thumbnailUnavailableReason = reason }
     }
-    reader.prewarm()
+    // 【关掉拖动预览时不要预热】
+    // 预热不是"顺手做一下"：它会起**第二个 mpv 内核**（多一个 4K HEVC 的
+    // MediaCodec 解码器 + 一整套 libplacebo 上下文），并把片源从 0 顺序读到
+    // 20–35 MB（真机 273-E：4K 片源上 ≈20 MiB / ≈17 s）。
+    // 预览关着的时候，这些带宽和内存全是白花 —— 实测本机就关着预览，
+    // 却在起播后十几秒里白下 26–38 MiB。
+    if (playbackPrefs.scrubPreview) {
+        // 273 v15：预热挪到**首帧之后**（见 [prewarmThumbnails]）——
+        // 预览内核要自己开一条源站连接，而起播第一跳要的也是空连接，
+        // 两条握手撞在一起时片头表头从 0.34 s 涨到 0.96–2.1 s。
+        pendingThumbPrewarm = true
+    }
 }
 
-/** 软解起播：open 会读文件头（SMB 一次往返），整段后台线程，结果回主线程落状态。 */
-internal fun PlayerComposeActivity.startSoftPlayback(
-    holder: SurfaceHolder,
-    range: com.kivo.cinema.net.RangeFd,
-    routing: com.kivo.cinema.bridge.FfmpegRouting.Decision,
-    filePath: String,
-    generation: Int,
-    cancelled: java.util.concurrent.atomic.AtomicBoolean,
-    address: SmbAddress,
-    credential: SmbCredential,
-) {
-    playbackStarted = true
-    smbPlayback = true
-    statusText = "正在用软解打开…"
-    smbSoftRange = range
-    val surface = holder.surface
-    if (surface == null || !surface.isValid) {
-        statusText = "播放窗口还没准备好"
-        isPlaying = false
-        controlsVisible = true
-        return
-    }
-    Thread({
-        val label = filePath.substringAfterLast('/').ifBlank { "smb-media" }
-        val session = com.kivo.cinema.bridge.FfmpegPlaybackSession(
-            label, { range.openDescriptor() }, range.size, routing.decision, routing.reason)
-        var failure: String? = null
-        try {
-            val openRc = session.openVideo(surface)
-            if (openRc != 0) {
-                failure = "软解打不开这个片源：${session.nativeError().ifBlank { "rc=$openRc" }}"
-            } else {
-                val startRc = session.start()
-                if (startRc != 0) failure = "软解启动失败：${session.nativeError().ifBlank { "rc=$startRc" }}"
-            }
-        } catch (e: Exception) {
-            failure = "软解启动异常（${e.javaClass.simpleName}）"
-        }
-        val reason = failure
-        if (reason != null) {
-            runCatching { session.close() }
-            runOnUiThread {
-                if (cancelled.get() || finishRequested || isDestroyed || generation != networkGeneration) return@runOnUiThread
-                networkPreparationCancelled = null
-                statusText = reason
-                isPlaying = false
-                controlsVisible = true
-            }
-            return@Thread
-        }
-        runOnUiThread {
-            if (cancelled.get() || finishRequested || isDestroyed || generation != networkGeneration) {
-                Thread { runCatching { session.close() } }.start()
-                return@runOnUiThread
-            }
-            networkPreparationCancelled = null
-            smbSoftSession = session
-            smbSoftAudioGated = false
-            softRateMarkMs = 0L; softRateMarkPosUs = -1L; softAudioMarkUs = -1L
-            val dur = session.durationUs()
-            durationMs = if (dur > 0) dur / 1000 else 0L
-            statusText = "正在播放 · 软解"
-            isPlaying = true
-            lastTouchMs = System.currentTimeMillis()
-            android.os.Handler(mainLooper).post(positionPoll)
-            Thread({ mountSoftAudio(label, address, credential, filePath, generation) }, "KivoSmbSoftAudio").start()
-        }
-    }, "KivoSmbSoftPrepare").start()
-}
-
-/** 软解音频用自己的 SmbByteSource/RangeFd/fd：共用会让 1MiB 预读窗口互相顶掉→PPT。 */
-internal fun PlayerComposeActivity.mountSoftAudio(
-    label: String, address: SmbAddress, credential: SmbCredential, filePath: String, generation: Int,
-) {
-    var src: SmbByteSource? = null
-    var audioRange: com.kivo.cinema.net.RangeFd? = null
-    var fd: android.os.ParcelFileDescriptor? = null
-    try {
-        src = SmbByteSource.open(address, credential, filePath,
-            online = { com.kivo.cinema.net.NetworkLinkMonitor.isOnline(applicationContext) })
-        src.setPrefetchEnabled(true)   // 顺序流式读；关掉每 1MiB 同步等往返（fill_avg 213ms）
-        audioRange = com.kivo.cinema.net.RangeFd(
-            src, getSystemService(android.os.storage.StorageManager::class.java),
-            online = { com.kivo.cinema.net.NetworkLinkMonitor.isOnline(applicationContext) })
-        fd = audioRange.openDescriptor()
-        val audio = com.kivo.cinema.playback.SoftAudioSession(label, fd, audioRange.size)
-        if (audio.start() != 0) {
-            smbTrace("soft audio start failed: ${audio.describeFailure()}")
-            runCatching { audio.close() }; runCatching { fd.close() }
-            runCatching { audioRange.close() }; runCatching { src.close() }
-            return
-        }
-        val keepSrc = src; val keepRange = audioRange; val keepFd = fd
-        runOnUiThread {
-            if (generation != networkGeneration || smbSoftSession == null) {
-                Thread({
-                    runCatching { audio.close() }; runCatching { keepFd.close() }
-                    runCatching { keepRange.close() }; runCatching { keepSrc.close() }
-                }, "KivoSmbSoftAudioDrop").start()
-                return@runOnUiThread
-            }
-            smbSoftAudio = audio
-            smbSoftAudioPfd = keepFd
-            smbSoftAudioRange = keepRange
-            smbSoftAudioSource = keepSrc
-            smbTrace("soft audio mounted: own source + own window")
-        }
-    } catch (e: Exception) {
-        smbTrace("soft audio source failed: ${e.message?.take(120)}")
-        runCatching { fd?.close() }; runCatching { audioRange?.close() }; runCatching { src?.close() }
-    }
+/**
+ * 预热预览内核 —— **首帧之后**才调（273 v15）。
+ *
+ * 【为什么关掉预览时不预热】预热不是"顺手做一下"：它会起**第二个 mpv 内核**
+ * （多一个 4K HEVC 的 MediaCodec 解码器 + 一整套 libplacebo 上下文），
+ * 并把片源从 0 顺序读到 20–35 MB（真机 273-E：4K 片源上约 20 MiB / 约 17 s）。
+ * 预览关着的时候，这些带宽和内存全是白花 —— 实测本机就关着预览，
+ * 却在起播后十几秒里白下 26–38 MiB。
+ */
+internal fun PlayerComposeActivity.prewarmThumbnails() {
+    if (!pendingThumbPrewarm) return
+    pendingThumbPrewarm = false
+    thumbnailReader?.prewarm()
 }

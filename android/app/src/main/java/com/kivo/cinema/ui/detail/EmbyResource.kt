@@ -15,8 +15,11 @@ import com.kivo.cinema.emby.EmbyDetails
 import com.kivo.cinema.emby.EmbyShows
 import com.kivo.cinema.media.marks.FilmKey
 import com.kivo.cinema.media.marks.FilmMark
+import com.kivo.cinema.net.OriginPrewarm
+import com.kivo.cinema.playback.PlaybackPrefs
 import com.kivo.cinema.sources.SourceRepository
 import com.kivo.cinema.sources.storage.SourceStore
+import com.kivo.cinema.stats.WatchStore
 import com.kivo.cinema.tmdb.TmdbClient
 import com.kivo.cinema.tmdb.TmdbDetail
 import com.kivo.cinema.ui.compose.PlayerComposeActivity
@@ -79,8 +82,51 @@ internal class EmbyResource private constructor(
         }
         val quality = emby.media?.takeIf { it.width > 0 }
             ?.let { resolutionTier(it.width, it.height).ifEmpty { "SD" } } ?: "未知"
-        return DetailContent(details, media, quality, playIntent(c, a), tmdbId, false,
+        val play = playIntent(c, a, emby.media?.sizeBytes ?: -1L)
+        // 273 v16：详情页就把源站连接与片尾窗口预热好（用户点播放时直接复用）。
+        prewarm(play, a.token)
+        return DetailContent(details, media, quality, play, tmdbId, false,
             loadImage = ::loadImage, serverName = serverName)
+    }
+
+    /** 273 v16：预热出去的 URL（详情页销毁时要关掉没人接手的那份）。 */
+    private val prewarmedUrls = ArrayList<String>()
+
+    /** 观看进度（续播位）：详情页就知道 ⇒ 恢复点那一簇可以提前抓。 */
+    private val watchStore = WatchStore(context)
+
+    /** 播放策略（"每次从头播放"打开时不需要恢复点预取）。 */
+    private val playbackPrefs = PlaybackPrefs(context)
+
+    /**
+     * 详情页就把源站连接与片尾窗口预热好（273 v16）。
+     *
+     * 【为什么能预热】详情页在**用户点播放之前**就已经拿到了 URL、token、
+     * 片源总长（Emby 详情里就有，零额外请求）⇒ 连接与片尾窗口可以先建好，
+     * 玩家页接手即复用（真机：起播第一跳的表头 1000–1600 ms → 270–360 ms）。
+     */
+    private fun prewarm(intent: Intent, token: String?) {
+        val url = intent.getStringExtra("kivo.playurl") ?: return
+        val size = intent.getLongExtra("kivo.playSize", -1L)
+        prewarmedUrls.add(url)
+        OriginPrewarm.offer(url, token, size, resumeMsOf(url))
+    }
+
+    /**
+     * 续播位（毫秒）—— 恢复点预取用。
+     *
+     * 【键必须与播放器一致】播放器的观看键是**片源 URL**（URL 优先于本地路径），
+     * 详情页用同一个 URL 查 ⇒ 存哪取哪。
+     */
+    private fun resumeMsOf(url: String): Long {
+        if (playbackPrefs.alwaysFromStart) return 0L
+        return watchStore.progressOf(url)?.positionMs?.takeIf { it > 0L } ?: 0L
+    }
+
+    /** 详情页销毁：没人接手的预热要关掉（否则连接与片尾缓存泄漏）。 */
+    fun discardPrewarm() {
+        prewarmedUrls.forEach { OriginPrewarm.discard(it) }
+        prewarmedUrls.clear()
     }
 
     /** 255 #30 图择优：海报/幕布按像素宽选更清者（同级库优先，与海报墙同源）；logo 走中文规则。 */
@@ -118,12 +164,12 @@ internal class EmbyResource private constructor(
             ?.let { stillsFirst(shows.episodes(a, itemId, it.id), it.index) } ?: emptyList()
         return DetailContent(
             details = details, media = null, quality = "",
-            playIntent = episodes.firstOrNull()?.let { episodeIntent(c, a, it) },
+            playIntent = episodes.firstOrNull()?.let { episodeIntent(c, a, it).also { p -> prewarm(p, a.token) } },
             tmdbId = tmdbId, tmdbIsTv = true,
             noPlayReason = "该服务器未返回可播放的剧集",
             seasons = seasons, episodes = episodes,
             loadEpisodes = { s -> stillsFirst(shows.episodes(a, itemId, s.id), s.index) },
-            playEpisode = { ep -> episodeIntent(c, a, ep) },
+            playEpisode = { ep -> episodeIntent(c, a, ep).also { p -> prewarm(p, a.token) } },
             loadImage = ::loadImage,
             serverName = serverName,
         )
@@ -207,13 +253,16 @@ internal class EmbyResource private constructor(
         }
     }
 
-    private fun playIntent(c: EmbyClient, a: EmbyClient.Auth): Intent =
+    private fun playIntent(c: EmbyClient, a: EmbyClient.Auth, sizeBytes: Long): Intent =
         Intent(context, PlayerComposeActivity::class.java)
             .putExtra("kivo.playurl", c.streamUrl(a, itemId))
             .putExtra("kivo.label", name)
             .putExtra("kivo.sourceName", serverName)
             .putExtra("kivo.sourceId", sourceId)
             .putExtra("kivo.embyToken", a.token)
+            // 273 v15：片源总长（Emby 详情里就有，零额外请求）——
+            // 起播时片尾预取要靠它算出窗口起点，才能在 t=0 就把请求发出去。
+            .putExtra("kivo.playSize", sizeBytes)
 
     private fun ensureClient(): Boolean {
         if (client != null && auth != null) return true

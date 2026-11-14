@@ -1,8 +1,8 @@
 package com.kivo.cinema.ui.detail
 
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -132,6 +132,9 @@ internal fun DetailPage(
         ?: ss.episodes.firstOrNull { !it.played } ?: ss.episodes.firstOrNull()
     val playSubtitle = if (loadEpisodes != null && curSeason != null && nextEp != null)
         "第${curSeason.index}季·${nextEp.index}集" else null
+    // 播放钮与副标题必须指向**同一集**（272 审计 D1）：
+    // 副标题报的是"下一集"，播放钮却总开第一集 ⇒ 按钮说的和做的不是一回事。
+    val ctaPlayable = if (loadEpisodes != null) nextEp != null else playIntent != null
     val calendarLabel = remember(ss.episodes, today) {
         DetailCalendarData.barLabel(ss.episodes, today)
     }
@@ -153,12 +156,15 @@ internal fun DetailPage(
                     if (d != null) {
                         TitleLayer(d, fg)
                         MetaLine(d, fg)
-                        DetailActionRow(playIntent != null, fg, actions,
+                        DetailActionRow(ctaPlayable, fg, actions,
                             playSubtitle = playSubtitle,
                             onPlay = {
-                                if (playIntent == null) Toast.makeText(context,
+                                val target = if (loadEpisodes != null) {
+                                    nextEp?.let { ep -> content?.playEpisode?.invoke(ep) }
+                                } else playIntent
+                                if (target == null) Toast.makeText(context,
                                     noPlayReason, Toast.LENGTH_LONG).show()
-                                else openPage(playIntent)
+                                else openPage(target)
                             },
                             onOpenMore = { overlay.openMore(it) })
                         if (d.overview.isNotBlank()) Overview(d.overview, fg)
@@ -202,70 +208,7 @@ internal fun DetailPage(
                 }
             }
             if (d != null) {
-                d.studioLogo?.let { url ->
-                    item(key = "studio") { Column(Modifier.fillMaxWidth()) { StudioLogo(url, fg) } }
-                }
-                if (d.cast.isNotEmpty()) item(key = "cast") {
-                    Column(Modifier.fillMaxWidth()) {
-                        Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
-                        SectionHeader("演职员", fg)
-                        Spacer(Modifier.height(14.dp))
-                        CastRow(d.cast, fg, fgSub, content?.loadImage)
-                    }
-                }
-                if (AppearancePrefs.showContentNotes &&
-                    (d.certifications.isNotEmpty() || d.contentNotes.isNotEmpty())) {
-                    item(key = "guide") {
-                        Column(Modifier.fillMaxWidth()) {
-                            Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
-                            SectionHeader("家长指南", fg)
-                            Spacer(Modifier.height(20.dp))
-                            ParentalGuide(d.certifications, d.contentNotes)
-                        }
-                    }
-                }
-                if (d.genres.isNotEmpty()) item(key = "genres") {
-                    Column(Modifier.fillMaxWidth()) {
-                        Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
-                        SectionHeader("分类", fg)
-                        Spacer(Modifier.height(12.dp))
-                        GenreChips(d.genres)
-                    }
-                }
-                d.trailerKey?.let { key ->
-                    item(key = "trailer") {
-                        Column(Modifier.fillMaxWidth()) {
-                            Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
-                            SectionHeader("预告片 · YouTube", fg)
-                            Spacer(Modifier.height(12.dp))
-                            TrailerCard(key, "预告片", onClick = {
-                                openPage(Intent(Intent.ACTION_VIEW,
-                                    Uri.parse("https://www.youtube.com/watch?v=$key")))
-                            })
-                        }
-                    }
-                }
-                if (AppearancePrefs.showStills && d.stills.isNotEmpty()) item(key = "stills") {
-                    Column(Modifier.fillMaxWidth()) {
-                        Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
-                        SectionHeader("剧照", fg)
-                        Spacer(Modifier.height(12.dp))
-                        StillsRow(d.stills)
-                    }
-                }
-                if (d.similar.isNotEmpty()) item(key = "similar") {
-                    Column(Modifier.fillMaxWidth()) {
-                        Spacer(Modifier.height(DETAIL_SECTION_GAP_DP.dp))
-                        SectionHeader("相似作品", fg)
-                        Spacer(Modifier.height(10.dp))
-                        SimilarList(d.similar.filter { it.id > 0 && it.id != d.id }.take(8), fg, fgSub,
-                            onOpen = { similar ->
-                                openPage(Intent(context, MovieDetailActivity::class.java)
-                                    .putExtra(MovieDetailActivity.EXTRA_ID, similar.id)
-                                    .putExtra(MovieDetailActivity.EXTRA_TV, tmdbIsTv))
-                            })
-                    }
-                }
+                detailLowerSections(d, fg, fgSub, tmdbIsTv, content?.loadImage, openPage)
             }
         }
         if (content == null && loading) CircularProgressIndicator(
@@ -279,6 +222,14 @@ internal fun DetailPage(
             onDismiss = { menuOpen = false },
             onPick = { menuOpen = false; ss.season = it })
         DetailOverlayHost(overlay, content, ss.season, ss.episodes, actions, openPage)
+        // 返回键先关浮层（272 审计 D3）：日历 → 更多菜单 → 选季菜单 → 才退出详情页。
+        BackHandler(enabled = overlay.calendarOpen || overlay.moreOpen || menuOpen) {
+            when {
+                overlay.calendarOpen -> overlay.calendarOpen = false
+                overlay.moreOpen -> overlay.moreOpen = false
+                else -> menuOpen = false
+            }
+        }
         BackCircle(onBack)
     }
 }

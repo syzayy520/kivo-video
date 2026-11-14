@@ -37,6 +37,14 @@ internal fun SettingsDataSub(store: SettingsStore, onOpenSources: () -> Unit, on
                 repo.setControl(record.id, record.revision, control, on)
             }
             result.onSuccess { records = it }
+            // 写回失败不许静默：开关会自己弹回去，但用户必须知道为什么（272 审计 D9）。
+            result.onFailure { e ->
+                val reason = (e as? com.kivo.cinema.sources.SourceFailure)?.reason?.takeIf { it.isNotBlank() }
+                    ?: e.message?.takeIf { it.isNotBlank() }
+                    ?: "未知原因"
+                android.widget.Toast.makeText(context, "设置未保存：$reason",
+                    android.widget.Toast.LENGTH_LONG).show()
+            }
         }
     }
     var category by rememberSaveable { mutableStateOf<DataSourceCategory?>(null) }
