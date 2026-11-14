@@ -17,6 +17,7 @@ internal fun PlayerComposeActivity.maybeStartPlayback(holder: SurfaceHolder) {
     // isActive 守卫：Surface 重建会再次进本函数，不能把同一轮记录重置掉。
     if (!com.kivo.cinema.playback.PlaybackMetrics.isActive()) {
         com.kivo.cinema.playback.PlaybackMetrics.begin(
+            applicationContext,
             intent.getStringExtra("kivo.label") ?: "play",
             com.kivo.cinema.playback.PlaybackStack.resolve(this, intent).renderMode,
         )

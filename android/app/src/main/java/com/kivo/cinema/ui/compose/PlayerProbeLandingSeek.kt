@@ -45,6 +45,34 @@ package com.kivo.cinema.ui.compose
  * 改字幕探针不该动落点探针。故独立成文件。
  */
 internal fun PlayerComposeActivity.applyProbeLandingSeek() {
+    // 280 · 275 §6.2 的「连续 20 次 seek 无旧请求覆盖新目标」压测模式。
+    //
+    // 【为什么需要单独一个模式】`kivo.landSeekSecs` 会 distinct+sorted 去重，
+    // 且每组之间至少隔一个 delayMs ⇒ 测的是"慢速、目标互不相同"的落点，
+    // **测不出**"上一次 seek 还没落位又来了下一次"这种覆盖竞争。
+    // 压测模式用固定间隔连发，目标循环选取，专门压这条路径。
+    //
+    // 用法：--ei kivo.seekStress 20 [--ei kivo.seekStressIntervalMs 1200]
+    val stress = intent.getIntExtra("kivo.seekStress", 0).coerceIn(0, 100)
+    if (stress > 0) {
+        val interval = intent.getIntExtra("kivo.seekStressIntervalMs", 1_200).coerceIn(300, 10_000)
+        val startDelay = intent.getIntExtra("kivo.seekStressDelayMs", 8_000).coerceIn(1_000, 60_000)
+        val handler = android.os.Handler(mainLooper)
+        repeat(stress) { i ->
+            handler.postDelayed({
+                if (finishRequested || isDestroyed) return@postDelayed
+                val totalSec = durationMs / 1000
+                if (totalSec <= 0) return@postDelayed
+                // 在 [10s, 片尾-10s] 之间循环取目标（步长 37 是质数，避免与间隔形成周期）
+                val span = (totalSec - 20).coerceAtLeast(10)
+                val target = 10 + (i.toLong() * 37) % span
+                smbTrace("probe seek-stress ${i + 1}/$stress → ${target}s")
+                seekTo(target * 1000L, waitLandingFirstSlice = true)
+            }, (startDelay + i * interval).toLong())
+        }
+        return
+    }
+
     val single = intent.getIntExtra("kivo.landSeekSec", -1)
     val many = intent.getStringExtra("kivo.landSeekSecs").orEmpty()
     val delayMs = intent.getIntExtra("kivo.landSeekDelayMs", 8_000).coerceIn(1_000, 120_000)

@@ -299,6 +299,15 @@ class PlayerComposeActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         onPlayerStop()
+        // 280 · 指标：退出/切后台时**再落一次盘**。
+        // 【为什么必须再写】首帧后 2 s 那次只够记起播阶段；seek 压测要到 8 s 后才开始、
+        // 长稳数据更晚 ⇒ 只写一次的话这些永远是空的（踩过：seeks.count 恒为 0）。
+        // finish() 现在文件名固定、可反复覆盖写，所以这次是补数据不是覆盖损失。
+        runCatching {
+            com.kivo.cinema.playback.PlaybackMetrics.finish(
+                applicationContext, mpvNetSession?.nativeOrNull()
+            )
+        }
     }
 
     override fun onResume() {

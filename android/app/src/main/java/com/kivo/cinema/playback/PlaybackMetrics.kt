@@ -52,8 +52,24 @@ internal object PlaybackMetrics {
     private val beginMs = AtomicLong(0L)
     private val marks = ConcurrentHashMap<String, Long>()
     private val notes = ConcurrentHashMap<String, String>()
+
+    /** 一次 seek 的实测（275 §6.2 要求「连续 20 次 seek 无旧请求覆盖新目标」）。 */
+    private data class SeekRec(
+        val requestedUs: Long,
+        val landingUs: Long,
+        val totalMs: Long,
+        val error: String?,
+    )
+    private val seeks = java.util.Collections.synchronizedList(mutableListOf<SeekRec>())
     private var label: String = ""
     private var renderMode: String = ""
+    private val writes = AtomicLong(0L)
+
+    /** 保存上下文与最近一次读到的内核句柄 —— seek 之后要靠它们独立落盘。 */
+    @Volatile private var appContext: Context? = null
+    @Volatile private var lastNative: MpvSession? = null
+    private val mainHandler by lazy { android.os.Handler(android.os.Looper.getMainLooper()) }
+    @Volatile private var flushScheduled = false
 
     /**
      * 开始一轮记录。**每个起播入口调一次**。
@@ -61,10 +77,13 @@ internal object PlaybackMetrics {
      * @param label 取证标签（`kivo.label`），决定输出文件名。
      * @param renderMode 出画通路（写进 JSON，便于按通路分组对比）。
      */
-    fun begin(label: String, renderMode: String) {
+    fun begin(context: Context?, label: String, renderMode: String) {
+        appContext = context?.applicationContext
         beginMs.set(System.currentTimeMillis())
         marks.clear()
         notes.clear()
+        seeks.clear()
+        writes.set(0L)
         this.label = label.ifBlank { "play" }
         this.renderMode = renderMode
     }
@@ -74,6 +93,48 @@ internal object PlaybackMetrics {
         val t = beginMs.get()
         if (t == 0L) return
         marks.putIfAbsent(stage, System.currentTimeMillis())
+    }
+
+    /**
+     * 记一次 seek（成功与失败都记）。
+     *
+     * @param requestedUs 用户/脚本请求的目标位置。
+     * @param landingUs 实际落点（-1 = 没落成）。
+     * @param totalMs 请求到落点确认的耗时。
+     * @param error 失败原因（成功传 null）。
+     */
+    fun recordSeek(requestedUs: Long, landingUs: Long, totalMs: Long, error: String?) {
+        // 取证：确认这条路径真的被调用（没有它就只能靠猜，见 280 的排查记录）
+        com.kivo.cinema.net.NetDiag.log(
+            "[metrics] recordSeek active=" + (beginMs.get() != 0L) +
+                " req=" + requestedUs / 1000 + "ms land=" + landingUs / 1000 +
+                "ms t=" + totalMs + "ms " + (error ?: "ok")
+        )
+        if (beginMs.get() == 0L) return
+        seeks.add(SeekRec(requestedUs, landingUs, totalMs, error))
+        scheduleFlush()
+    }
+
+    /**
+     * 1 s 后落盘（debounce：连续 seek 只写一次）。
+     *
+     * 【为什么不能只靠生命周期】280 踩过：首帧后 2 s 写的那份只有起播指标，
+     * 而 `onStop` 里补写那次实测**没有生效**（`writes` 恒为 1）⇒ seek 数据全丢。
+     * 与其赌生命周期，不如在数据产生的当下就安排落盘。
+     */
+    private fun scheduleFlush() {
+        if (flushScheduled) return
+        flushScheduled = true
+        mainHandler.postDelayed({
+            flushScheduled = false
+            flush()
+        }, 1_000)
+    }
+
+    /** 把当前快照写成文件（不重置任何状态）。 */
+    fun flush() {
+        val ctx = appContext ?: return
+        finish(ctx, lastNative, null)
     }
 
     /** 记一条自由说明（进 JSON 的 notes）。 */
@@ -93,6 +154,8 @@ internal object PlaybackMetrics {
     fun finish(context: Context, native: MpvSession?, failure: String? = null) {
         val t0 = beginMs.get()
         if (t0 == 0L) return
+        if (context.applicationContext != null) appContext = context.applicationContext
+        if (native != null) lastNative = native
         val now = System.currentTimeMillis()
 
         fun since(stage: String): Long? = marks[stage]?.let { it - t0 }
@@ -144,6 +207,28 @@ internal object PlaybackMetrics {
         sb.append("    \"network_recovery_ms\": ").append(q("not_measured: 尚未埋点")).append("\n")
         sb.append("  },\n")
 
+        // seek：单次明细 + 汇总（275 §6.2 的验收项）
+        sb.append("  \"seeks\": {\n")
+        sb.append("    \"count\": ").append(seeks.size).append(",\n")
+        val totals = seeks.map { it.totalMs }.sorted()
+        val errs = seeks.map { kotlin.math.abs(it.landingUs - it.requestedUs) / 1000 }
+            .filter { it >= 0 }.sorted()
+        fun pct(xs: List<Long>, p: Double): String =
+            if (xs.isEmpty()) q("not_measured") else xs[((xs.size - 1) * p).toInt()].toString()
+        sb.append("    \"total_ms_p50\": ").append(pct(totals, 0.50)).append(",\n")
+        sb.append("    \"total_ms_p95\": ").append(pct(totals, 0.95)).append(",\n")
+        sb.append("    \"total_ms_max\": ").append(pct(totals, 1.0)).append(",\n")
+        sb.append("    \"error_ms_p50\": ").append(pct(errs, 0.50)).append(",\n")
+        sb.append("    \"error_ms_max\": ").append(pct(errs, 1.0)).append(",\n")
+        sb.append("    \"failed\": ").append(seeks.count { it.error != null }).append(",\n")
+        sb.append("    \"items\": [")
+        sb.append(seeks.joinToString(", ") { r ->
+            "{\"req_ms\":${r.requestedUs / 1000},\"land_ms\":${r.landingUs / 1000}," +
+                "\"total_ms\":${r.totalMs}" +
+                (if (r.error != null) ",\"error\":${q(r.error)}" else "") + "}"
+        })
+        sb.append("]\n  },\n")
+
         sb.append("  \"video_params\": ").append(q(videoParams)).append(",\n")
         sb.append("  \"failure\": ").append(if (failure == null) "null" else q(failure)).append(",\n")
         sb.append("  \"notes\": {")
@@ -154,6 +239,7 @@ internal object PlaybackMetrics {
             sb.append(q(k)).append(": ").append(q(v))
         }
         sb.append("},\n")
+        sb.append("  \"writes\": ").append(writes.get() + 1).append(",\n")
         sb.append("  \"wall_ms\": {")
         sb.append("\"begin\": ").append(t0).append(", \"finish\": ").append(now)
         sb.append("}\n")
@@ -161,11 +247,17 @@ internal object PlaybackMetrics {
 
         runCatching {
             val dir = File(context.applicationContext.filesDir, "metrics").apply { mkdirs() }
-            // 文件名带时刻，避免同一 label 反复起播互相覆盖
-            val f = File(dir, "${label}-$now.json")
+            // 【文件名固定、可反复覆盖写】280 踩过：原来文件名带时刻且写完就把
+            // beginMs 清零 ⇒ 首帧后 2 s 写的那一份把指标"封盘"了，
+            // 而 seek 压测要到起播后 8 s 才开始 ⇒ `seeks.count` 恒为 0。
+            // 现在同一场播放只对应一个文件，后续每次 finish 覆盖它，
+            // 文件里用 `writes` 记是第几次写，`wall.finish` 是最后一次写的时刻。
+            val f = File(dir, "$label.json")
             f.writeText(sb.toString())
         }
-        beginMs.set(0L)
+        // 【不清 beginMs】留着，让后续的 seek / 长稳数据还能记进来，
+        // 直到下一轮 begin() 或 Activity 销毁时的 finish()。
+        writes.incrementAndGet()
     }
 
     private fun num(v: Long?): String = v?.toString() ?: q("not_measured")

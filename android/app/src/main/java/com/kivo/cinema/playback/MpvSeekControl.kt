@@ -51,13 +51,25 @@ class MpvSeekControl(private val sessionProvider: () -> MpvSession?) {
      */
     fun seek(targetUs: Long, exact: Boolean): Result {
         val requestId = nextRequestId()
+        // 280 · 指标：从请求发出到落点确认的完整耗时（275 §6.2 的 seek_total_ms）。
+        val t0 = System.currentTimeMillis()
         val native = sessionProvider()
-            ?: return Result(requestId, targetUs, -1, "内核会话尚未启动或已释放")
+            ?: return Result(requestId, targetUs, -1, "内核会话尚未启动或已释放").also {
+                PlaybackMetrics.recordSeek(targetUs, -1, 0L, it.error)
+            }
         return try {
             native.seek(targetUs / 1_000_000.0, exact = exact)
-            Result(requestId, targetUs, awaitLanding(native, targetUs))
+            val landing = awaitLanding(native, targetUs)
+            Result(requestId, targetUs, landing).also {
+                PlaybackMetrics.recordSeek(
+                    targetUs, landing, System.currentTimeMillis() - t0, null
+                )
+            }
         } catch (e: Exception) {
-            Result(requestId, targetUs, -1, "调整进度失败（${e.javaClass.simpleName}）")
+            val msg = "调整进度失败（${e.javaClass.simpleName}）"
+            Result(requestId, targetUs, -1, msg).also {
+                PlaybackMetrics.recordSeek(targetUs, -1, System.currentTimeMillis() - t0, msg)
+            }
         }
     }
 
