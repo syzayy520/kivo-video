@@ -213,6 +213,8 @@ internal fun PlayerComposeActivity.mountNetworkThumbnails(source: com.kivo.cinem
     val reader = com.kivo.cinema.thumbnail.MpvThumbnailReader(
         applicationContext, source, cacheDir,
         extraMpvOptions = probeThumbOptions(),
+        // 274 · 实验开关：预览单次响应上限（--ei kivo.thumbMaxRangeKb N，0 = 旧行为）。
+        maxRangeBytesOverride = intent.getIntExtra("kivo.thumbMaxRangeKb", 0).toLong() * 1024L,
     )
     thumbnailReader = reader
     // 预热期空框也要有字：内核起好前拖动，用户看到的是"准备中"而不是黑框猜谜。

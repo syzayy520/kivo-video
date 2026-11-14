@@ -42,6 +42,16 @@ class MpvThumbnailReader(
     private val cacheSize: Int = DEFAULT_CACHE_SIZE,
     /** 取证用的追加 mpv 选项（生产路径为空）。见 [MpvThumbOptions.apply]。 */
     private val extraMpvOptions: List<Pair<String, String>> = emptyList(),
+    /**
+     * 274 · 实验用：预览实例的**单次响应上限**（字节）。
+     *
+     * 【为什么是构造参数而不是从 Context 里挖】
+     * `appContext` 是**应用 Context**，不是 Activity ⇒ 从它拿不到 intent
+     * ⇒ 实测开关传不进去（`thumb` 预读量纹丝不动）。
+     * ⇒ 由创建方（Activity）直接算好传进来。
+     * 【默认】0 = 用 [DEFAULT_PREVIEW_MAX_RANGE_BYTES]（4 MiB，旧行为）。
+     */
+    private val maxRangeBytesOverride: Long = 0L,
 ) : PreviewFrameReader {
 
     private val cache = object : LruCache<Int, Bitmap>(cacheSize) {
@@ -133,7 +143,10 @@ class MpvThumbnailReader(
         if (initialized || initFailed) return
         val start = SystemClock.elapsedRealtime()
         try {
-            val proxy = LocalRangeServer.start(maxRangeBytes = PREVIEW_MAX_RANGE_BYTES)
+            val proxy = LocalRangeServer.start(
+                maxRangeBytes = if (maxRangeBytesOverride > 0L) maxRangeBytesOverride
+                else DEFAULT_PREVIEW_MAX_RANGE_BYTES,
+            )
             server = proxy
             val id = proxy.register(input)
             registeredId = id
@@ -303,3 +316,22 @@ class MpvThumbnailReader(
         private const val PREVIEW_MAX_RANGE_BYTES = 4L * 1024 * 1024
     }
 }
+
+/**
+ * 预览单次响应上限的默认值（字节）—— 与旧行为一致。
+ *
+ * 【为什么上限本身是个杠杆（装置实测）】
+ * 装置（0.35 MB/s）实测的**决定性一行**：
+ *
+ * ```
+ * PROXY REQ range=bytes=1905- cap=4194304
+ * GET range=bytes=1905- bytes=4194304 cap=4194304 ms=14605
+ * ```
+ *
+ * 内核要的预览帧**就在这个响应的开头**，但 HTTP 响应必须**整个写完**
+ * 内核才拿到数据 ⇒ 4 MiB / 0.35 MB/s ≈ **12 秒**（实测 14.6 秒）。
+ *
+ * ⇒ **上一轮"缩 chunk / 缩环"都打错了靶**：它们改的是"取多少"，
+ * 而真正的杠杆是"**单次响应给多少**"—— 响应越短，内核越早拿到开头那一帧。
+ */
+private const val DEFAULT_PREVIEW_MAX_RANGE_BYTES = 4L * 1024 * 1024

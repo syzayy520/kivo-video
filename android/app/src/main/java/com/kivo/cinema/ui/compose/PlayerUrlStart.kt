@@ -70,7 +70,7 @@ internal fun PlayerComposeActivity.startUrlPlayback(holder: SurfaceHolder, url: 
             // 那几 MB，预览与播放各取所需，**不必各下各的**（真机 v24：同一段
             // `from=1613145699` 被下了两次，带宽被劈成两半，两边都慢）。
             val thumb = HttpOriginSource(
-                url, token, "thumb", THUMB_CAPACITY_BYTES, THUMB_CHUNK_BYTES, 0,
+                url, token, "thumb", THUMB_CAPACITY_BYTES, thumbChunkBytes(), 0,
                 tailWindowBytes = 0,
                 externalWindowCache = main.windowCache,
             )
@@ -130,6 +130,32 @@ internal fun PlayerComposeActivity.startUrlPlayback(holder: SurfaceHolder, url: 
  * 而拖动的首要指标是"浮窗多快冒出来"。
  */
 private const val THUMB_CAPACITY_BYTES = 2 * 1024 * 1024
+
+/**
+ * 274 · 实验开关：预览源的分块大小（字节）。
+ *
+ * 【来源】Activity 的 intent `--ei kivo.thumbChunkKb N`。
+ * 【默认】0 = 用 [THUMB_CHUNK_BYTES]（1 MiB，旧行为）。
+ *
+ * ## 为什么需要这个开关（要验证的假设）
+ *
+ * 装置实测（`tools/p274_lab.sh`，0.35 MB/s，45 秒，3 次落点跳）：
+ * **`thumb` 标签下了 8.00 MiB**（8 次 × 1 MiB）—— 而它**只要 1 帧**。
+ *
+ * 上一轮已证伪"缩小预读环"（环不是决定者，因为 **carry 恒等于 chunkBytes**，
+ * 缩环时 carry 会吃掉差额 ⇒ 每 reader 的预读量不变）。
+ *
+ * ⇒ **carry 才是杠杆**：`OriginPrefetchPump` 的 `carry = ByteArray(client.chunkBytes)`，
+ * 它的职责是"把当前块整个读完，连接才能回 keep-alive 池"。
+ * ⇒ **缩 chunk 会同步缩 carry** ⇒ 每条连接少下 (chunk − 实际需要) 字节。
+ *
+ * 【为什么要开关而不是直接改】这是个**取舍**（chunk 越小 ⇒ 源站请求次数越多 ⇒
+ * 每次都要付一次表头）⇒ 必须 A/B 出数据再定，不能拍。
+ */
+private fun PlayerComposeActivity.thumbChunkBytes(): Long {
+    val kb = intent.getIntExtra("kivo.thumbChunkKb", 0)
+    return if (kb > 0) kb.toLong() * 1024L else THUMB_CHUNK_BYTES
+}
 
 /**
  * 预览源的分块大小：1 MiB。
