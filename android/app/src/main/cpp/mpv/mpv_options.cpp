@@ -123,9 +123,15 @@ bool apply_mpv_options(mpv_handle* handle,
     options.push_back({"ao", ao.empty() ? "null" : ao.c_str(), false});
     // video-sync：音画谁做主时钟。
     //   默认 `audio` —— 与旧内核的"音频主时钟"一致（SDR 普通播放的既定行为，零改动）。
-    //   `display-resample` 只在**帧插值开启**时用：它把显示时钟当主时钟，
+    //   `display-tempo` 只在**帧插值开启**时用：它把显示时钟当主时钟，
     //   按刷新率重采样 ⇒ 24fps 内容不再 3:2 抖动。
-    options.push_back({"video-sync", interpolation ? "display-resample" : "audio", false});
+    //   【为什么是 display-tempo 而不是 display-resample】真机实测（2026-11-15 18:2x）：
+    //   display-resample 在 65 秒里打了 **33 次** `Change display sync audio drift`
+    //   + `Compensation factor` 在 0.9899~1.0149 之间反复横跳，同时
+    //   `Audio device underrun` 6 次 —— 它靠**改音频采样率**追时钟，音画在持续打架，
+    //   用户直接反馈"现在就会卡了"。display-tempo 用**音频变速（保持音高）**代替重采样，
+    //   收敛更平滑，代价是音频会有极小的节奏变化（mpv 限制在 ±2% 内）。
+    options.push_back({"video-sync", interpolation ? "display-tempo" : "audio", false});
     if (interpolation) {
         // display-fps 是**插值的硬前提**（真机实测，见 hpp 的 @param 说明）：
         // gpu-next 在 Android 上拿不到刷新率时会用视频帧率顶替 ⇒ ratio=0 ⇒

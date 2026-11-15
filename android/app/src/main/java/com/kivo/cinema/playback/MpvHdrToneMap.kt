@@ -41,13 +41,48 @@ import com.kivo.cinema.mpv.MpvSession
 internal object MpvHdrToneMap {
 
     /** L2 参数组：SDR 目标 + BT.2390 色调映射 + 峰值按 SDR 参考白 100 nit。 */
-    private val L2_OPTIONS = listOf(
+    private fun l2Options(): List<Pair<String, String>> = listOf(
         "target-trc" to "bt.1886",
         "target-prim" to "bt.709",
         "target-peak" to "100",
         "tone-mapping" to "bt.2390",
         "target-colorspace-hint" to "yes",
+        // 282：**默认关掉逐帧峰值检测**，改用片源自带的静态元数据。
+        //
+        // 【为什么】真机 4K HDR + 帧插值到 60fps 时，内核有 6 次
+        // `Render queue underrun`（同条件插值关 = 0 次）。插值不增加解码帧数
+        // （解码仍是 25fps），所以瓶颈在**渲染侧**；而 libplacebo 的
+        // `hdr-compute-peak` 每帧都要在 4K 上做一遍降采样 + 直方图，是最贵的一步。
+        // 关掉后欠载 **6 → 3 次**（55 s 采样）。
+        //
+        // 【为什么关掉基本不损失准确性】片源自带静态元数据（真机读数
+        // `max-cll=1007 / max-fall=105`），libplacebo 会直接采用；
+        // 逐帧检测只在**没有静态元数据**或画面亮度剧烈跳变时才有额外收益。
+        //
+        // 【回滚】`adb shell setprop debug.kivo.hdrPeak on`（见 [hdrPeakEnabled]）。
+        "hdr-compute-peak" to if (hdrPeakEnabled()) "yes" else "no",
     )
+
+    /**
+     * 逐帧峰值检测是否启用（默认 **关**，282 起）。
+     *
+     * 留这条通道是为了**画质取证**：可以切回逐帧检测，与默认值逐帧比对亮度。
+     */
+    private fun hdrPeakEnabled(): Boolean {
+        val v = sysProp("debug.kivo.hdrPeak")?.lowercase()
+        return v == "on" || v == "1" || v == "true" || v == "yes"
+    }
+
+    /**
+     * 读系统属性（隐藏 API，用反射）。反射被拦当"没设" ⇒ 回到默认值。
+     */
+    private fun sysProp(name: String): String? = try {
+        val c = Class.forName("android.os.SystemProperties")
+        val m = c.getMethod("get", String::class.java, String::class.java)
+        (m.invoke(null, name, "") as? String)?.trim()?.takeIf { it.isNotEmpty() }
+    } catch (_: Throwable) {
+        null
+    }
 
     /**
      * 看内核回报的色彩参数，是 HDR 就下发 L2；不是就**什么都不做**。
@@ -67,7 +102,7 @@ internal object MpvHdrToneMap {
             NetDiag.log("[color] 非 HDR（gamma=$gamma primaries=$primaries）⇒ 色彩参数不动")
             return "SDR（gamma=${gamma ?: "未知"}）"
         }
-        val results = L2_OPTIONS.map { (k, v) ->
+        val results = l2Options().map { (k, v) ->
             val ok = native.setProperty(k, v)
             "$k=$v:${if (ok) "ok" else "失败"}"
         }
