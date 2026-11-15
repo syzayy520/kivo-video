@@ -2,6 +2,7 @@ package com.kivo.cinema.mpv
 
 import com.kivo.cinema.net.ByteSource
 import com.kivo.cinema.net.NetDiag
+import com.kivo.cinema.net.PassthroughSource
 import java.io.BufferedOutputStream
 import java.io.IOException
 import java.net.InetAddress
@@ -158,7 +159,27 @@ class LocalRangeServer private constructor(
 
                 val id = path.trim('/').substringBefore('?')
                 val source = synchronized(sources) { sources[id] }
+                if (source is PassthroughSource) {
+                    // 283 · 直通会话的主请求（清单本身）：透明转发。
+                    when (method) {
+                        "HEAD" -> responder.respondHeadForward(output, source.targetUrl)
+                        "GET" -> responder.respondForward(output, source.targetUrl)
+                        else -> responder.respondSimple(output, 405, "Method Not Allowed")
+                    }
+                    return
+                }
                 if (source == null) {
+                    // HLS 子请求（子清单/分片）是**相对路径**：/main.m3u8?…
+                    // 不带会话 id ⇒ 找当前唯一的直通会话映射到源站。
+                    // 【为什么敢假设只有一个】同一时刻只有一个播放器会话；
+                    // 代理每次起播新建实例，旧实例随会话关闭。
+                    val passthrough = synchronized(sources) {
+                        sources.values.filterIsInstance<PassthroughSource>().firstOrNull()
+                    }
+                    if (passthrough != null && method == "GET") {
+                        responder.respondForward(output, passthrough.resolve(path))
+                        return
+                    }
                     responder.respondSimple(output, 404, "Not Found")
                     return
                 }

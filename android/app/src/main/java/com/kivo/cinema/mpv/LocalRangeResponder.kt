@@ -2,6 +2,7 @@ package com.kivo.cinema.mpv
 
 import com.kivo.cinema.net.ByteSource
 import com.kivo.cinema.net.NetDiag
+import com.kivo.cinema.net.PassthroughSource
 import com.kivo.cinema.net.RangeReaderSource
 import java.io.BufferedOutputStream
 import java.util.concurrent.atomic.AtomicLong
@@ -63,12 +64,89 @@ internal class LocalRangeResponder(
         out.flush()
     }
 
+    /** HEAD 的直通分支：只取源站响应头（不拷贝体）。 */
+    fun respondHeadForward(out: BufferedOutputStream, targetUrl: String) {
+        val conn = openPassthrough(targetUrl, method = "HEAD") ?: run {
+            writeSimple(out, 503, "Service Unavailable"); return
+        }
+        try {
+            val code = conn.responseCode
+            if (code !in 200..299) {
+                NetDiag.log("PROXY 直通 HEAD fail: HTTP $code")
+                writeSimple(out, 503, "Service Unavailable"); return
+            }
+            val type = conn.contentType ?: "application/octet-stream"
+            val len = conn.contentLengthLong
+            val head = StringBuilder("HTTP/1.1 200 OK\r\n")
+                .append("Content-Type: ").append(type).append("\r\n")
+            if (len >= 0) head.append("Content-Length: ").append(len).append("\r\n")
+            head.append("Connection: close\r\n\r\n")
+            out.write(head.toString().toByteArray()); out.flush()
+        } finally { conn.disconnect() }
+    }
+
+    private fun openPassthrough(targetUrl: String, method: String): java.net.HttpURLConnection? =
+        runCatching {
+            (java.net.URL(targetUrl).openConnection() as java.net.HttpURLConnection).apply {
+                requestMethod = method
+                connectTimeout = 10_000
+                readTimeout = 30_000
+                instanceFollowRedirects = true
+            }
+        }.getOrElse {
+            NetDiag.log("PROXY 直通 open fail: ${it.javaClass.simpleName}: ${it.message}")
+            null
+        }
+
+    /**
+     * 透明转发：代理自己做 TLS（内核的 ffmpeg **没有 TLS 后端**，真机实测
+     * `Protocol not found`），把源站响应原样写给内核。
+     *
+     * 【为什么不是 302】第一版就是 302，真机立刻打脸：重定向目标是 https，
+     * 而内核从没见过非回环地址 —— 我们的架构里 TLS 一直由 Java 代理层负责。
+     * 所以这一路必须由代理把字节搬过去；HLS 的分片请求都走这里。
+     *
+     * 【为什么长连接不能断】分片每 2–4 秒一个，若每次重新 TLS 握手（1–2 s），
+     * 转码会被播成幻灯片 ⇒ 不调 disconnect()，靠 JVM 的 KeepAliveCache 复用。
+     */
+    fun respondForward(out: BufferedOutputStream, targetUrl: String) {
+        val conn = openPassthrough(targetUrl, "GET") ?: run {
+            writeSimple(out, 503, "Service Unavailable"); return
+        }
+        try {
+            val code = conn.responseCode
+            if (code !in 200..299) {
+                NetDiag.log("PROXY 直通 fail: HTTP $code ${targetUrl.substringBefore('?').substringAfterLast('/')}")
+                writeSimple(out, 503, "Service Unavailable"); return
+            }
+            val type = conn.contentType ?: "application/octet-stream"
+            val len = conn.contentLengthLong
+            val head = StringBuilder("HTTP/1.1 200 OK\r\n")
+                .append("Content-Type: ").append(type).append("\r\n")
+            if (len >= 0) head.append("Content-Length: ").append(len).append("\r\n")
+            head.append("Connection: close\r\n\r\n")
+            out.write(head.toString().toByteArray())
+            conn.inputStream.use { ins -> ins.copyTo(out, 64 * 1024) }
+            out.flush()
+            NetDiag.log("PROXY 直通 ok len=$len ${targetUrl.substringBefore('?').substringAfterLast('/')}")
+        } catch (e: Exception) {
+            NetDiag.log("PROXY 直通 fail: ${e.javaClass.simpleName}: ${e.message}")
+            runCatching { writeSimple(out, 503, "Service Unavailable") }
+        }
+    }
+
     /** GET：按 [rangeHeader] 给一段；读不到就 503（让内核按退避重试）。 */
     fun respondGet(
         out: BufferedOutputStream,
         source: ByteSource,
         rangeHeader: String?,
     ) {
+        // 282/283 · 直通源：代理自己做 TLS，把源站响应透明转发给内核。
+        // （第一版是 302，真机立刻报 Protocol not found：内核的 ffmpeg 没有 TLS 后端。）
+        if (source is PassthroughSource) {
+            respondForward(out, source.targetUrl)
+            return
+        }
         val spec = MpvRangeSpec.parse(rangeHeader)
 
         // 【请求头先留痕】响应结束才写的那行日志**看不到片头那一跳**（开口区间，

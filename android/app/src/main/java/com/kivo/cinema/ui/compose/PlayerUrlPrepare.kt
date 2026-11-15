@@ -37,12 +37,20 @@ import java.util.concurrent.TimeUnit
  * 卡死起播比慢 0.3 s 更糟。
  */
 internal class PlayerUrlPrep(
-    /** 主播放源（预备完成即可用；**由 Activity 负责关**）。 */
-    val source: HttpOriginSource,
+    /** 主播放源（预备完成即可用；**由 Activity 负责关**）。
+     *
+     * 【283 起可为 null】直通源（HLS 转码）走 [passthroughUrl]，不经分段取数层
+     * —— 转码流无总长、不支持 Range，进随机读层只会被拒（真机实测
+     * "服务器忽略了范围请求"）。此时闸门天然放行（[ready] 未被 countDown
+     * 前没有人在等它，且没有判决可产生）。
+     */
+    val source: HttpOriginSource?,
     /** 预备就绪信号（外部预热时用**它**的）。 */
     private val ready: CountDownLatch = CountDownLatch(1),
     /** 判决的来源：预热接手时读对方的字段，否则读自己的。 */
     private val verdictOf: () -> Throwable? = { null },
+    /** 283 · HLS 直通地址（非 null = 走 302 让内核直连源站，[source] 为 null）。 */
+    val passthroughUrl: String? = null,
 ) : PlaybackLoadGate {
 
     /** 源站**明确拒绝**时的理由（null = 没判决）。瞬时错误不算判决。 */
@@ -79,11 +87,26 @@ internal fun PlayerComposeActivity.prepareUrlSource(): PlayerUrlPrep? {
     val token = intent.getStringExtra("kivo.embyToken")
     // Emby 详情里就有片源总长（零额外请求）⇒ 片尾预取能在 t=0 发出去。
     val sizeHint = intent.getLongExtra("kivo.playSize", -1L)
+    // 283 · HLS 直通（转码降码率的唯一可行通道）。
+    //
+    // 【为什么不能走下面的 HttpOriginSource】分段取数层建立在"源是完整文件"
+    // 的随机读契约上（size + readAt）；HLS 转码清单是文本（无总长、不支持
+    // Range），硬塞进去真机实测直接失败：
+    //   [play] origin open fail @4194304: 服务器忽略了范围请求
+    //
+    // 【为什么这很重要】283 取证：手机侧到源站只有 0.87–1.75 MB/s，而 20.3 Mbps
+    // 片源需要 2.54 MB/s ⇒ 物理缺口。唯一出路是降码率；Emby 的 HLS 转码
+    // （1.63 Mbps 平均 = 0.2 MB/s）带宽足够，且 HLS 分片天生可随机请求 ⇒
+    // seek 依旧可用。代理对这一路只回 302（见 [PassthroughSource]）。
+    if (url.substringBefore('?').endsWith(".m3u8")) {
+        NetDiag.log("[prep] HLS 直通：不经分段取数层，代理只回 302 让内核直连源站")
+        return PlayerUrlPrep(source = null, passthroughUrl = url)
+    }
     // 273 v16：详情页预热好的源 —— 接手它，别再握手一次。
     val prewarmed = OriginPrewarm.take(url)
     if (prewarmed != null) {
         NetDiag.log("[prep] 接管详情页预热的源（连接与片尾窗口已就绪）")
-        return PlayerUrlPrep(prewarmed.source, prewarmed.ready) { prewarmed.verdict }
+        return PlayerUrlPrep(prewarmed.source, prewarmed.ready, verdictOf = { prewarmed.verdict })
     }
     val source = HttpOriginSource(
         url, token, "play",

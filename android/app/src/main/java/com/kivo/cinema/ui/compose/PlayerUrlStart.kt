@@ -2,6 +2,7 @@ package com.kivo.cinema.ui.compose
 
 import android.view.SurfaceHolder
 import com.kivo.cinema.net.HttpOriginSource
+import com.kivo.cinema.net.PassthroughSource
 import com.kivo.cinema.ui.compose.player.PlayerPhase
 
 /**
@@ -40,6 +41,48 @@ internal fun PlayerComposeActivity.startUrlPlayback(holder: SurfaceHolder, url: 
         var owned: HttpOriginSource? = null
         var thumbRef: HttpOriginSource? = null
         try {
+            // 283 · HLS 直通：转码降码率路线。
+            //
+            // 【为什么这一路没有主源/预览源】转码流不走分段取数层（无总长、
+            // 不支持 Range），所以没有 windowCache 可共享、也没有片尾预取；
+            // 预览缩略图对转码流同样无意义（拖动预览需要 Range，转码分片不给）。
+            // 直接把 [PassthroughSource] 交给内核，代理对它的每个请求回 302，
+            // 清单与分片全部由 mpv 直连源站。
+            val purl = prep?.passthroughUrl
+            if (purl != null) {
+                val engine = com.kivo.cinema.playback.PlaybackEngine.select()
+                check(!cancelled.get())
+                // 【PlaySessionId 必须先拿到】HLS 分片请求服务端强校验它：
+                // 真机实测   不带/为空 → HTTP 400；自造 GUID → HTTP 404。
+                // ⇒ 先调一次 PlaybackInfo 拿服务端发的会话 id，拼进 master URL ——
+                //   Emby 会把它带进子清单，分片请求就自动合法。
+                val finalUrl = fetchPlaySessionId(purl, token)?.let { psid ->
+                    com.kivo.cinema.net.NetDiag.log("[prep] PlaySessionId=$psid")
+                    purl + if (purl.contains('?')) "&PlaySessionId=$psid" else "?PlaySessionId=$psid"
+                } ?: purl.also {
+                    com.kivo.cinema.net.NetDiag.log("[prep] PlaySessionId 拿不到 ⇒ 分片会被拒（仍按原 URL 尝试）")
+                }
+                runOnUiThread {
+                    if (cancelled.get() || finishRequested || isDestroyed ||
+                        generation != networkGeneration || !surfaceReady
+                    ) return@runOnUiThread
+                    networkPreparationCancelled = null
+                    if (engine == com.kivo.cinema.playback.PlaybackEngine.Engine.MPV) {
+                        com.kivo.cinema.playback.PlaybackMetrics.mark(
+                            com.kivo.cinema.playback.PlaybackMetrics.T_SOURCE_READY,
+                        )
+                        startMpvPlayback(holder, PassthroughSource(finalUrl), prep)
+                    } else {
+                        // 旧内核（RangeFd 路径）要随机读；转码流给不了。
+                        // 不许静默：明说原因。
+                        statusText = "转码播放需要新版内核通路（当前内核不支持无总长流）"
+                        phase = PlayerPhase.Failed(statusText)
+                        isPlaying = false
+                        controlsVisible = true
+                    }
+                }
+                return@Thread
+            }
             val main = prep?.source ?: HttpOriginSource(
                 url, token, "play",
                 tailWindowBytes = tailWindowBytes(),
@@ -176,3 +219,40 @@ private fun PlayerComposeActivity.thumbChunkBytes(): Long {
  * 但换来的预读浪费从每连接 6 MiB 降到 3 MiB。
  */
 private const val THUMB_CHUNK_BYTES = 1L * 1024 * 1024
+
+/**
+ * 283 · 向源站开一个播放会话（拿 PlaySessionId）。
+ *
+ * 【为什么必须】HLS 分片请求服务端强校验这个 id：真机实测
+ *   · 不带 / 为空 → HTTP 400；自造 GUID → HTTP 404（服务端只认自己发过的）。
+ * ⇒ 只能先调一次 PlaybackInfo。Emby 会把它带进子清单，分片请求自动合法。
+ *
+ * 【为什么放这而不是 EmbyClient】它需要的全部输入（服务器、itemId、token）
+ * 都能从直通 URL 里推导 —— 这是 URL 起播路径的私有推导，不出 Activity。
+ *
+ * @return 有效的 PlaySessionId；null = 拿不到（调用方按原 URL 继续并留痕，不静默成功）。
+ */
+private fun fetchPlaySessionId(hlsUrl: String, token: String?): String? = runCatching {
+    val itemId = Regex("/Videos/([^/]+)/").find(hlsUrl)?.groupValues?.get(1)
+        ?: return null
+    val server = hlsUrl.substringBefore("/Videos/")
+    // 认证走 query 里的 api_key（直通 URL 自带）⇒ 不依赖调用方传了 token 头。
+    // 真机实测：只带 token 头而 intent 没传 token 时会匿名 401，PlaySessionId 拿不到。
+    val apiKey = Regex("[?&]api_key=([^&]+)").find(hlsUrl)?.groupValues?.get(1)
+    val url = "$server/emby/Items/$itemId/PlaybackInfo?AutoOpenLiveStream=false" +
+        (apiKey?.let { "&api_key=$it" } ?: "")
+    val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+    try {
+        conn.connectTimeout = 10_000
+        conn.readTimeout = 15_000
+        token?.takeIf { it.isNotBlank() }?.let { conn.setRequestProperty("X-Emby-Token", it) }
+        if (conn.responseCode !in 200..299) {
+            com.kivo.cinema.net.NetDiag.log("[prep] PlaybackInfo HTTP ${conn.responseCode}")
+            return null
+        }
+        val json = org.json.JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
+        json.optString("PlaySessionId").takeIf { it.isNotBlank() }
+    } finally {
+        conn.disconnect()
+    }
+}.getOrNull()
