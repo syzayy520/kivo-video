@@ -39,6 +39,7 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
     val wifiBufferMb = remember(revision) { prefs.wifiBufferMb }
     val cellBufferMb = remember(revision) { prefs.cellBufferMb }
     val renderMode = remember(revision) { prefs.renderMode }
+    val interpolation = remember(revision) { prefs.videoInterpolation }
 
     SubPageScaffold("播放", onBack) {
         SectionCard("缓冲") {
@@ -118,8 +119,11 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
             StepperRow("渲染通路", PlaybackPrefs.renderModeLabel(renderMode),
                 subtitle = "兼容模式用于个别设备上新版通路显示异常时退回",
                 icon = SettingsIcons.play, iconColor = SettingsVisuals.blue) { picker = "render" }
+            ChipCardDivider()
+            StepperRow("帧插值", PlaybackPrefs.interpolationLabel(interpolation),
+                subtitle = "把 24 帧片源按屏幕刷新率插帧，运动更顺滑（可能失去胶片感）") { picker = "interp" }
         }
-        Footnote("新版通路由播放内核完整渲染器输出，高动态范围片源亮度更准确。")
+        Footnote("新版通路由播放内核完整渲染器输出，高动态范围片源亮度更准确。帧插值在高码率 4K 片上会增加显卡负担。")
         Spacer(Modifier.height(14.dp))
 
         SectionCard("后台播放") {
@@ -165,6 +169,13 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
                 PickerOption(PlaybackPrefs.RENDER_MODE_LEGACY, PlaybackPrefs.renderModeLabel(PlaybackPrefs.RENDER_MODE_LEGACY)),
             ),
             renderMode, { prefs.renderMode = it; revision++ }, { picker = null })
+        "interp" -> SettingsPicker(true, "帧插值",
+            listOf(
+                PickerOption(PlaybackPrefs.INTERPOLATION_AUTO, PlaybackPrefs.interpolationLabel(PlaybackPrefs.INTERPOLATION_AUTO)),
+                PickerOption(PlaybackPrefs.INTERPOLATION_ON, PlaybackPrefs.interpolationLabel(PlaybackPrefs.INTERPOLATION_ON)),
+                PickerOption(PlaybackPrefs.INTERPOLATION_OFF, PlaybackPrefs.interpolationLabel(PlaybackPrefs.INTERPOLATION_OFF)),
+            ),
+            interpolation, { prefs.videoInterpolation = it; revision++ }, { picker = null })
         "lang" -> SettingsPicker(true, "字幕首选语言",
             PlaybackPrefs.LANGUAGES.map { PickerOption(it.code, it.label) },
             subtitleLanguage, { prefs.subtitleLanguage = it; revision++ }, { picker = null })

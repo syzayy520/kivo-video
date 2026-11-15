@@ -88,7 +88,9 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeInitialize(JNIEnv* env, jclass, jlong h
                                                    jstring log_file,
                                                    jstring sub_fonts_dir,
                                                    jstring sub_font_family,
-                                                   jboolean hdr_surface) {
+                                                   jboolean hdr_surface,
+                                                   jboolean interpolation,
+                                                   jdouble display_fps) {
     // 【整段持锁】查表 → 调用 → 可能改表 必须是一个原子区间，
     // 否则中途表被别的线程清掉就会拿到野指针（use-after-free）。
     kivo::video::mpv::SessionTableLock lock;
@@ -106,6 +108,8 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeInitialize(JNIEnv* env, jclass, jlong h
         kivo::video::mpv::to_string(env, sub_fonts_dir),
         kivo::video::mpv::to_string(env, sub_font_family),
         hdr_surface == JNI_TRUE,
+        interpolation == JNI_TRUE,
+        static_cast<double>(display_fps),
         error);
     if (!ok) {
         kivo::video::mpv::throw_error(env, error);

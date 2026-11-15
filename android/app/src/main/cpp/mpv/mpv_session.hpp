@@ -70,11 +70,17 @@ public:
     /// @param sub_font_family 字幕字体族名；空 = 用 mpv 默认族。
     /// @param hdr_surface true = **真 HDR 输出**（10bit Surface + BT.2020 PQ）。
     ///   只在 gpu-next 通路上有效（legacy RA 没有 libplacebo ⇒ 无从谈起）。
+    /// @param interpolation true = 帧插值（`video-sync=display-resample` + 插值核）。
+    ///   **必须在这里设**：`video-sync` 是打开文件时读的，`display-fps` 在
+    ///   initialize 之后不可写（真机 -3 = PROPERTY_UNAVAILABLE）。
+    /// @param display_fps 设备真实刷新率（Hz）；<= 0 = 不设（插值会因此失效）。
     [[nodiscard]] bool initialize(const std::string& vo, const std::string& ao,
                                  const std::string& log_file,
                                  const std::string& sub_fonts_dir,
                                  const std::string& sub_font_family,
                                  bool hdr_surface,
+                                 bool interpolation,
+                                 double display_fps,
                                  std::string& error);
 
     /// 绑定一个 Android Surface 作为视频输出目标。

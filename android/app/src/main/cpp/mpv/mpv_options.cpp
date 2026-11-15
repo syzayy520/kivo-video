@@ -43,6 +43,8 @@ bool apply_mpv_options(mpv_handle* handle,
                        const std::string& sub_fonts_dir,
                        const std::string& sub_font_family,
                        bool hdr_surface,
+                       bool interpolation,
+                       double display_fps,
                        std::string& hwdec_out,
                        std::string& error) {
     if (handle == nullptr) {
@@ -52,6 +54,10 @@ bool apply_mpv_options(mpv_handle* handle,
 
     hwdec_out.clear();
     std::vector<std::string> failures;
+
+    // display-fps 的字符串缓冲：**必须活到 options 被消费为止**
+    // （options 里存的是 const char*，把栈上临时变量的地址塞进去会悬空）。
+    char display_fps_buf[32] = {0};
 
     // 278-P2：告诉 mpv 的 Android EGL context"把 surface 标成 BT.2020 PQ"。
     // 【为什么用环境变量而不是 mpv 选项】这条开关要传到 vo→ra_ctx→egl 多层，
@@ -115,8 +121,33 @@ bool apply_mpv_options(mpv_handle* handle,
     options.push_back({"hwdec-codecs", "h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1", false});
     // 音频输出：ao 由调用方给；空 = "null"（不出声）。
     options.push_back({"ao", ao.empty() ? "null" : ao.c_str(), false});
-    // video-sync=audio：音画以音频为主时钟 —— 与旧内核的"音频主时钟"一致。
-    options.push_back({"video-sync", "audio", false});
+    // video-sync：音画谁做主时钟。
+    //   默认 `audio` —— 与旧内核的"音频主时钟"一致（SDR 普通播放的既定行为，零改动）。
+    //   `display-resample` 只在**帧插值开启**时用：它把显示时钟当主时钟，
+    //   按刷新率重采样 ⇒ 24fps 内容不再 3:2 抖动。
+    options.push_back({"video-sync", interpolation ? "display-resample" : "audio", false});
+    if (interpolation) {
+        // display-fps 是**插值的硬前提**（真机实测，见 hpp 的 @param 说明）：
+        // gpu-next 在 Android 上拿不到刷新率时会用视频帧率顶替 ⇒ ratio=0 ⇒
+        // 内核自己打印 "disabling interpolation" ⇒ 三个插值参数全 ok 但功能是假的。
+        //
+        // 【选项名是 display-fps-override，不是 display-fps】
+        // 真机第一版写成 `display-fps` 直接被拒：
+        //   `OPTFAIL mpv option rejected: display-fps=60.000004 (option not found)`
+        // 因为 `display-fps` 在我们的内核里**只是只读属性**；覆盖值用的是
+        // `--display-fps-override`（旧名 `override-display-fps`，两个字符串库里都有）。
+        //
+        // 【为什么标 optional】这一项设不上只应导致"插值不生效"，**绝不能**
+        // 让整个播放起不来 —— 而 apply_options 的默认语义是"一项失败整体失败"。
+        // 标 optional 后失败会记 `OPTFAIL`（不静默），但起播继续。
+        if (display_fps > 0.0) {
+            std::snprintf(display_fps_buf, sizeof(display_fps_buf), "%.6f", display_fps);
+            options.push_back({"display-fps-override", display_fps_buf, true});
+        }
+        // oversample：mpv 官方推荐的插值核 —— 锐利、开销低（4K 上尤其重要）。
+        options.push_back({"interpolation", "yes", true});
+        options.push_back({"tscale", "oversample", true});
+    }
     // 【273 v19 实验结论：不要开 --audio-stream-silence】
     // 试过（真机 Redmi K40）：mpv 接受了该选项并自己警告
     //   "The --audio-stream-silence option is set. This will break certain player behavior."

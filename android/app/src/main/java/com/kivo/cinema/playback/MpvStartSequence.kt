@@ -124,6 +124,10 @@ internal class MpvStartSequence(
         // 所以调用方不必再判一次 —— 280 之前这里有第二份判断，会与 Activity 侧不一致。
         val hdrSurface = stack.hdrOutput
         NetDiag.log("[hdr] ${stack.describe()}")
+        // 帧插值（MEMC）：必须在 initialize **之前**解析 —— `display-fps` 是
+        // initialize 之后不可写的选项（真机 -3 = PROPERTY_UNAVAILABLE），
+        // 而它是插值能否真正生效的前提（见 [VideoInterpolation]）。
+        val interp = VideoInterpolation.plan(app, VideoInterpolationSwitch.isEnabled(prefs, intent))
         native.initialize(
             vo = vo,
             ao = "audiotrack",
@@ -135,6 +139,8 @@ internal class MpvStartSequence(
             // Activity 侧配好（PlayerSessionStart.prepareHdrSurface）；
             // 这里只负责让内核用 10bit EGL config + 给 EGL surface 打 PQ 标注。
             hdrSurface = hdrSurface,
+            interpolation = interp.enabled,
+            displayFps = interp.displayFps,
         )
         applyPlaybackPolicy(native)
         native.attachSurface(surface)

@@ -200,6 +200,22 @@ class PlaybackPrefs(context: Context) {
         set(v) { sp.edit().putString("hdr_output", v).apply() }
 
     /**
+     * 帧插值（MEMC）：`auto`（默认）/ `on` / `off`。
+     *
+     * 【为什么是用户设置而不是内部常量】24fps 电影插到 60fps 会失去胶片感
+     * （俗称肥皂剧效应），这是**主观偏好**，不能替用户决定。
+     * 同机对照 SenPlayer 播 24fps 片源上屏 34.19 fps，我们 24–25 fps（= 片源帧率）
+     * ⇒ 观感差异就来自这一项，所以必须给开关。
+     *
+     * 【auto 现在等于 on】真机实测（2026-11-15，K40）：4K HDR 25fps 从 25.00 → **59.47 fps**，
+     * 1080p 23.9fps 到 **60.44 fps**（满帧），两档 >200 ms 均 0 次；
+     * 对照 SenPlayer 同源 34.19 fps / 3 次卡顿 ⇒ 默认开启。详见 [VideoInterpolationSwitch]。
+     */
+    var videoInterpolation: String
+        get() = sp.getString("video_interpolation", INTERPOLATION_AUTO) ?: INTERPOLATION_AUTO
+        set(v) { sp.edit().putString("video_interpolation", v).apply() }
+
+    /**
      * 当前网络应使用的 demuxer 缓冲上限（mpv `demuxer-max-bytes` 值，如 "2048MiB"）。
      * 读不到网络类型时按 Wi-Fi 上限（内网片源多在 Wi-Fi，取大值更稳）。
      */
@@ -258,6 +274,18 @@ class PlaybackPrefs(context: Context) {
         const val HDR_OUTPUT_AUTO = "auto"
         const val HDR_OUTPUT_ON = "on"
         const val HDR_OUTPUT_OFF = "off"
+
+        /** 帧插值的取值。 */
+        const val INTERPOLATION_AUTO = "auto"
+        const val INTERPOLATION_ON = "on"
+        const val INTERPOLATION_OFF = "off"
+
+        /** 帧插值的中文标签（设置页用）。 */
+        fun interpolationLabel(mode: String): String = when (mode) {
+            INTERPOLATION_ON -> "开启"
+            INTERPOLATION_OFF -> "关闭"
+            else -> "自动"
+        }
 
         /** 真 HDR 输出的中文标签（设置页用）。 */
         fun hdrOutputLabel(mode: String): String = when (mode) {

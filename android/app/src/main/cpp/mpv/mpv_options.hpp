@@ -34,6 +34,16 @@ namespace kivo::video::mpv {
 ///                       不该背这份内存）。非空时该目录里的每个文件都会被 libass
 ///                       装进进程 —— 所以只能给"最小字体集"（273 v20）。
 /// @param sub_font_family 字幕字体族名；空 = 用 mpv 默认族。
+/// @param hdr_surface 真 HDR 输出：用 10bit EGL config 并要求 VO 给 surface 标 PQ。
+/// @param interpolation 帧插值：true = `video-sync=display-resample` + `interpolation=yes`。
+///                   **必须在这里（initialize 之前）设** —— `video-sync` 是打开文件时读的，
+///                   且 `display-fps` 作为选项在 initialize 后不可写
+///                   （真机：`options/display-fps` 返回 -3 = PROPERTY_UNAVAILABLE）。
+/// @param display_fps 设备真实刷新率（Hz）；<= 0 = 不设。
+///                    **不设的后果**：gpu-next 在 Android 上走 `wid` 路径拿不到刷新率，
+///                    会用视频帧率顶替 ⇒ 内核日志 "display FPS: 25.000"（源帧率）
+///                    ⇒ `Detected fps ratio 0.0000 ... disabling interpolation`
+///                    ⇒ 插值参数全部返回 ok 但**功能被内核自己关掉**。
 /// @param hwdec_out   出参：硬解驱动名。**必须在 initialize 之后**用 set_property 设
 ///                    （原因见 mpv_options.cpp 的说明），所以这里只把值带出去。
 /// @param error       出参：第一个失败的选项（"name: reason"）。全部成功时为空。
@@ -50,6 +60,8 @@ namespace kivo::video::mpv {
                                       const std::string& sub_fonts_dir,
                                       const std::string& sub_font_family,
                                       bool hdr_surface,
+                                      bool interpolation,
+                                      double display_fps,
                                       std::string& hwdec_out,
                                       std::string& error);
 

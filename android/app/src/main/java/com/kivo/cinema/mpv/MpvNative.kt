@@ -32,7 +32,8 @@ object MpvNative {
      */
     @JvmStatic external fun nativeInitialize(handle: Long, vo: String, ao: String, logFile: String,
                                            subFontsDir: String, subFontFamily: String,
-                                           hdrSurface: Boolean): Int
+                                           hdrSurface: Boolean, interpolation: Boolean,
+                                           displayFps: Double): Int
     @JvmStatic external fun nativeAttachSurface(handle: Long, surface: Any): Int
 
     /**
@@ -123,10 +124,13 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
         subFontsDir: String = "",
         subFontFamily: String = "",
         hdrSurface: Boolean = false,
+        interpolation: Boolean = false,
+        displayFps: Double = 0.0,
     ) {
         try {
             MpvNative.nativeInitialize(
-                handle, vo, ao, logFile, subFontsDir, subFontFamily, hdrSurface
+                handle, vo, ao, logFile, subFontsDir, subFontFamily, hdrSurface,
+                interpolation, displayFps,
             )
         } catch (e: IllegalStateException) {
             throw IllegalStateException("mpv initialize failed: ${e.message}", e)
