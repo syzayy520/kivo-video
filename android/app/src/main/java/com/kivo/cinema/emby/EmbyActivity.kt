@@ -38,10 +38,12 @@ class EmbyActivity : ComponentActivity() {
             isAppearanceLightStatusBars = true
             isAppearanceLightNavigationBars = true
         }
-        val sourceId = intent.getStringExtra("kivo.sourceId")
-        // 317 · 服务器列表（供右上角切服下拉）：进页面时读一次，切服后本页重启。
+        val launchSourceId = intent.getStringExtra("kivo.sourceId")
+        // 338 · 切服只换会话不重启本页；sourceId 是可变展示态，gate 检查仍绑初始服。
+        var sourceId by androidx.compose.runtime.mutableStateOf(launchSourceId)
+        // 317 · 服务器列表（供右上角切服下拉）：进页面时读一次，名字后台刷新。
         var allSources by androidx.compose.runtime.mutableStateOf<List<Pair<String, String>>>(emptyList())
-        if (sourceId == null) {
+        if (launchSourceId == null) {
             // 254 D15：无 sourceId 不是有效入口——添加 Emby 统一走资源库的 workspace 添加流。
             startActivity(Intent(this, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
@@ -57,7 +59,7 @@ class EmbyActivity : ComponentActivity() {
             var gateError by remember { mutableStateOf<String?>(null) }
             var showUnlock by remember { mutableStateOf(false) }
             val unlocked = SourceAccessSession.unlocked
-            LaunchedEffect(sourceId, unlocked) {
+            LaunchedEffect(launchSourceId, unlocked) {
                 val result = withContext(Dispatchers.IO) { SourceStore(this@EmbyActivity).read() }
                 val records = result.getOrNull().orEmpty()
                 val source = records.firstOrNull { it.id == sourceId }
@@ -77,11 +79,11 @@ class EmbyActivity : ComponentActivity() {
                 allSources = embySources.map { it.id to it.name }
 
                 if (source != null && (!protected || unlocked)) {
-                    model.openSaved(this@EmbyActivity, sourceId)
+                    model.openSaved(this@EmbyActivity, launchSourceId)
                     // 后台并行查 Emby ServerName（nyamedia / iLoveHD），失败用源名兜底。
                     // 当前服的真名 connect() 内部也会取，这里跳过它避免重复网络请求。
                     withContext(Dispatchers.IO) {
-                        embySources.filter { it.id != sourceId }.map { rec ->
+                        embySources.filter { it.id != launchSourceId }.map { rec ->
                             async {
                                 val pretty = runCatching {
                                     com.kivo.cinema.emby.EmbyClient(rec.address).publicServerName()
@@ -116,7 +118,9 @@ class EmbyActivity : ComponentActivity() {
                     } else if (model.inLibrary) {
                         // 254 D1/D14：海报 → 复用详情页（TMDB 智能填充 + Emby 资源槽），不再直接播放。
                         val openDetail: (EmbyItem) -> Unit = { item ->
-                            startActivity(MovieDetailActivity.embyIntent(this@EmbyActivity, sourceId, item,
+                            // token / sourceId 必须同属一个服（切服异步期间用 model 的真实归属）。
+                            startActivity(MovieDetailActivity.embyIntent(this@EmbyActivity,
+                                model.currentSourceId ?: sourceId, item,
                                 model.accessToken, model.accessUserId, model.serverName))
                         }
                         val drilled = model.drilled
@@ -125,17 +129,13 @@ class EmbyActivity : ComponentActivity() {
                             onBack = { model.back(); finish() },
                             onOpenView = { model.openView(it) },
                             onItem = openDetail,
-                            currentSourceId = sourceId,
+                            // 338 · 高亮跟数据真实所属服走：后台切服期间不提前变。
+                            currentSourceId = model.currentSourceId ?: sourceId,
                             sources = allSources,
-                            // 317 · 切服：重启本页并带新 sourceId。不退回资源库再选一次
-                            // （用户明确要求），体验上就是"原地换服"。
+                            // 338 · 原地切服：不重启 Activity、不回资源库；命中缓存即秒切。
                             onSwitchSource = { newId ->
-                                startActivity(
-                                    Intent(this@EmbyActivity, EmbyActivity::class.java)
-                                        .putExtra("kivo.sourceId", newId)
-                                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                                )
-                                finish()
+                                sourceId = newId
+                                model.switchTo(this@EmbyActivity, newId)
                             },
                         )
                         else EmbyLibraryScreen(model, onBack = { model.closeView() },
@@ -146,7 +146,7 @@ class EmbyActivity : ComponentActivity() {
                         if (model.connecting) { CircularProgressIndicator(); Spacer(Modifier.height(16.dp)); Text("正在连接资源库") }
                         else {
                             Text(model.error ?: "连接未完成", color = MaterialTheme.colorScheme.error)
-                            Button(onClick = { model.openSaved(this@EmbyActivity, sourceId, retry = true) }) { Text("重试") }
+                            Button(onClick = { model.openSaved(this@EmbyActivity, launchSourceId, retry = true) }) { Text("重试") }
                         }
                         TextButton(onClick = { model.cancel(); finish() }) { Text("返回资源库") }
                     }

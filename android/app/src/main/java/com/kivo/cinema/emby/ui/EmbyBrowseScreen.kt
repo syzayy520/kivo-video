@@ -60,7 +60,7 @@ fun EmbyBrowseScreen(
     currentSourceId: String? = null,
     /** 317：可切换的服务器（id to 名称），来自资源库的源列表。 */
     sources: List<Pair<String, String>> = emptyList(),
-    /** 317：切服（宿主重启本页并带新 sourceId，不用退回资源库）。 */
+    /** 338：切服（宿主原地换会话，不重启、不回资源库）。 */
     onSwitchSource: (String) -> Unit = {},
 ) {
     EmbyBrowseBody(model, onBack, onOpenView, onItem, currentSourceId, sources, onSwitchSource)
@@ -77,7 +77,11 @@ private fun EmbyBrowseBody(
     val context = androidx.compose.ui.platform.LocalContext.current
     var heroes by remember(model) { mutableStateOf<List<EmbyHeroItem>?>(null) }
     var resumed by remember(model) { mutableStateOf<List<EmbyHeroItem>>(emptyList()) }
-    LaunchedEffect(model) {
+    // 338：原地切服时 model 实例不变，必须监听 sourceId 才会重新取新服 hero。
+    // 不用 sourceId 作 remember key —— 保留旧值直到新数据到达，切服过程不闪空位。
+    val sourceKey = model.currentSourceId
+    LaunchedEffect(model, sourceKey) {
+        if (sourceKey == null) return@LaunchedEffect
         // 335：hero 与「继续观看」并行发起，谁先到先显示。
         // 336：hero 数据（Emby 直连，快）一到就先出首屏；TMDB 评分改后台补，
         // 不再让 16 个评分请求挡住整页（net-diag 实证：Emby 数据早已到，界面仍空位）。

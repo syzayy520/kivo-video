@@ -9,7 +9,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.kivo.cinema.emby.session.EmbyServerSession
+import com.kivo.cinema.emby.session.EmbySessionRegistry
 import java.net.URI
+import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
@@ -29,19 +32,24 @@ class EmbySessionModel : ViewModel() {
     private var auth: EmbyClient.Auth? = null
     private val main = Handler(Looper.getMainLooper())
     private val pool = Executors.newFixedThreadPool(4)  // 337：login 后并发 items+hero+resume
-    // 337：login 后并发预取的首屏数据（只依赖 token，不等 items）。
-    // 带 generation 标签，切服/重连后旧结果自动失效；@Volatile 保证 UI 线程读到最新。
+    // 337：login 后并发预取的首屏数据。338：owner=sourceId（不再用 generation），
+    // 这样切服后台连接期间 ++generation 不会让旧页 hero 变空；只在原子提交时换 owner。
     @Volatile private var heroPrefetch: HeroPrefetch? = null
-    private class HeroPrefetch(val generation: Int, val heroes: List<EmbyHeroItem>,
+    private class HeroPrefetch(val owner: String, val heroes: List<EmbyHeroItem>,
                                val resumed: List<EmbyHeroItem>)
     private var work: Future<*>? = null
     private var generation = 0
+    private val sessions = EmbySessionRegistry()  // 338：按服缓存已连接会话，避免回资源库重走
+    private var activeId by mutableStateOf<String?>(null)  // state：UI 靠它感知原地切服
+    private var pendingId: String? = null
+    /** 338：当前页面数据真正所属的服（顶栏高亮/详情 intent 都用它，避免 token 与服错配）。 */
+    val currentSourceId: String? get() = activeId
     private val posters = object : LruCache<String, Bitmap>(24 * 1024 * 1024) {
         override fun sizeOf(key: String, value: Bitmap) = value.allocationByteCount
     }
-    // 335：改为 state —— serverName 后台异步刷新时要触发顶栏重组。
     private var savedName by mutableStateOf<String?>(null)
     private var savedStarted = false
+
     fun openSaved(context: android.content.Context, id: String, retry: Boolean = false) {
         if (savedStarted && !retry) return
         savedStarted = true
@@ -64,71 +72,131 @@ class EmbySessionModel : ViewModel() {
                         return@fold
                     }
                     server = source.address; username = source.username; password = source.password
-                    savedName = source.name
+                    savedName = source.name; activeId = id
                     connect()
                 }, { error = if (it is com.kivo.cinema.sources.SourceFailure) it.reason else "无法读取连接，请返回资源库后重试" })
             }
         }
     }
+
     val serverName: String get() = savedName ?: runCatching {
         URI(if (server.contains("://")) server.trim() else "https://${server.trim()}").host
     }.getOrNull() ?: "Emby"
 
+    /** 338 · 后台纯取数：登录 + 并行 hero/resume + items。不碰任何 UI state，首次连接与切服共用。 */
+    private class Connected(val c: EmbyClient, val a: EmbyClient.Auth,
+                            val list: EmbyClient.Page, val heroes: List<EmbyHeroItem>,
+                            val resumed: List<EmbyHeroItem>)
+
+    private fun connectCore(address: String, user: String, secret: String): Connected {
+        val c = EmbyClient(address)
+        val t0 = System.currentTimeMillis()
+        val a = c.login(user, secret)
+        val t1 = System.currentTimeMillis()
+        com.kivo.cinema.net.NetDiag.log("[emby-connect] login ${t1 - t0}ms")
+        // login 拿到 token 后立即并发预取 hero/resume：与 items 重叠，首屏空白期大幅缩短。
+        val recentFuture = pool.submit(Callable<List<EmbyHeroItem>> {
+            runCatching { EmbyHeroSource(c).recent(a, limit = 8) }.getOrDefault(emptyList())
+        })
+        val resumeFuture = pool.submit(Callable<List<EmbyHeroItem>> {
+            runCatching { EmbyHeroSource(c).resume(a, limit = 12) }.getOrDefault(emptyList())
+        })
+        val list = c.items(a)
+        val t2 = System.currentTimeMillis()
+        com.kivo.cinema.net.NetDiag.log("[emby-connect] items ${t2 - t1}ms total ${t2 - t0}ms count=${list.items.size}")
+        val hs = runCatching { recentFuture.get() }.getOrDefault(emptyList())
+        val rs = runCatching { resumeFuture.get() }.getOrDefault(emptyList())
+        return Connected(c, a, list, hs, rs)
+    }
+
+    /** 一次性把连接结果提交到 UI（首次连接、切服成功共用）。调用前 activeId 须已指向目标服。 */
+    private fun submitConnected(conn: Connected, ticket: Int) {
+        client = conn.c; auth = conn.a
+        library.attach(conn.c, conn.a, conn.list)
+        heroPrefetch = HeroPrefetch(activeId ?: "", conn.heroes, conn.resumed)
+        inLibrary = true
+        views = emptyList(); viewsLoaded = false   // 切服时不能把旧服分类留给新服
+        loadViews(conn.c, conn.a)
+        pool.submit {
+            val pretty = runCatching { conn.c.publicServerName() }.getOrNull()
+            if (pretty == null) com.kivo.cinema.net.NetDiag.log("[emby] ServerName 查询失败，保留源名 $savedName")
+            else main.post { if (ticket == generation) savedName = pretty }
+        }
+    }
+
     private fun connect() {
         if (connecting || server.isBlank() || username.isBlank()) return
-        error = null
-        connecting = true
+        error = null; connecting = true
         val ticket = ++generation
-        val address = server.trim()
-        val user = username.trim()
-        val secret = password
+        val address = server.trim(); val user = username.trim(); val secret = password
         work = pool.submit {
-            val result = runCatching {
-                val c = EmbyClient(address)
-                // 337：连接分段计时（login / items），定位"连接资源库慢"卡在哪一步。
-                val t0 = System.currentTimeMillis()
-                val a = c.login(user, secret)
-                val t1 = System.currentTimeMillis()
-                com.kivo.cinema.net.NetDiag.log("[emby-connect] login ${t1 - t0}ms")
-                // 337：login 拿到 token 后立即并发预取 hero/resume —— 它们只依赖 token，
-                // 不必等 items。这样 hero 的 ~2.1s 与 items 的 ~0.68s 重叠，首屏空白期大幅缩短。
-                val recentFuture = pool.submit(java.util.concurrent.Callable<List<EmbyHeroItem>> {
-                    runCatching { EmbyHeroSource(c).recent(a, limit = 8) }.getOrDefault(emptyList())
-                })
-                val resumeFuture = pool.submit(java.util.concurrent.Callable<List<EmbyHeroItem>> {
-                    runCatching { EmbyHeroSource(c).resume(a, limit = 12) }.getOrDefault(emptyList())
-                })
-                val list = c.items(a)
-                val t2 = System.currentTimeMillis()
-                com.kivo.cinema.net.NetDiag.log("[emby-connect] items ${t2 - t1}ms total ${t2 - t0}ms count=${list.items.size}")
-                // 等 hero 预取完成再进首页：缓存已就绪，首页 heroRaw/resumeItems 秒返。
-                // recent/resume 与 items 三者并行，这里只是汇总，不额外增加总时长。
-                val hs = runCatching { recentFuture.get() }.getOrDefault(emptyList())
-                val rs = runCatching { resumeFuture.get() }.getOrDefault(emptyList())
-                heroPrefetch = HeroPrefetch(ticket, hs, rs)
-                Triple(c, a, list)
-            }
+            val result = runCatching { connectCore(address, user, secret) }
             main.post {
                 if (ticket != generation) return@post
                 connecting = false
-                result.fold(onSuccess = { (c, a, list) ->
-                    // 335：login+items 成功即显示内容，不再把 ServerName 网络查询串在前面。
-                    // 顶栏此时用 openSaved 写入的源记录名（savedName 已有值），无空白。
-                    client = c; auth = a; library.attach(c, a, list)
-                    inLibrary = true
-                    loadViews(c, a)
-                    // 服务器自有名字（nyamedia 等）后台补查，成功才覆盖源名；失败保留源名并留日志。
-                    pool.submit {
-                        val pretty = runCatching { c.publicServerName() }.getOrNull()
-                        if (pretty == null) {
-                            com.kivo.cinema.net.NetDiag.log("[emby] ServerName 查询失败，保留源名 $savedName")
-                        } else {
-                            main.post { if (ticket == generation) savedName = pretty }
-                        }
-                    }
-                }, onFailure = { error = friendlyError(it) })
+                result.fold(onSuccess = { submitConnected(it, ticket) },
+                            onFailure = { error = friendlyError(it) })
             }
         }
+    }
+
+    /**
+     * 338 · 原地切服：不重启 Activity，不回资源库。
+     * · 目标服连过 ⇒ 原样恢复（列表滚动/搜索/评分全在），零 loading；
+     * · 未连过 ⇒ 旧页保持不动，后台取数，成功后一次性原子替换；失败留日志并保留当前服。
+     */
+    fun switchTo(context: android.content.Context, id: String) {
+        if (id == activeId || id == pendingId) return
+        val source = runCatching {
+            com.kivo.cinema.sources.SourceRepository(
+                com.kivo.cinema.sources.storage.SourceStore(context.applicationContext))
+                .read().getOrThrow().firstOrNull { it.id == id }
+        }.getOrNull()
+        if (source == null || !com.kivo.cinema.sources.access.SourceEligibility.visible(source,
+                com.kivo.cinema.sources.access.SourceAccessSession.unlocked)) {
+            com.kivo.cinema.net.NetDiag.log("[emby-switch] $id 不可访问，忽略切服")
+            return
+        }
+        if (activeId != null && inLibrary) saveCurrent()
+        pendingId = id
+        sessions.find(id)?.let { cached ->
+            activeId = id; pendingId = null
+            restore(cached)
+            com.kivo.cinema.net.NetDiag.log("[emby-switch] $id 命中缓存，秒切")
+            return
+        }
+        com.kivo.cinema.net.NetDiag.log("[emby-switch] $id 未缓存，后台连接（旧页保留）")
+        val ticket = ++generation
+        val address = source.address.trim(); val user = source.username.trim(); val secret = source.password
+        work = pool.submit {
+            val result = runCatching { connectCore(address, user, secret) }
+            main.post {
+                if (ticket != generation) return@post
+                pendingId = null
+                result.fold(onSuccess = { conn ->
+                    activeId = id; savedName = source.name
+                    submitConnected(conn, ticket)
+                    com.kivo.cinema.net.NetDiag.log("[emby-switch] $id 原子切换完成")
+                }, onFailure = { com.kivo.cinema.net.NetDiag.log("[emby-switch] $id 失败：${friendlyError(it)}，保留当前服") })
+            }
+        }
+    }
+
+    private fun saveCurrent() {
+        val c = client ?: return; val a = auth ?: return
+        val id = activeId ?: return
+        sessions.save(id, EmbyServerSession(c, a, library.snapshot(), views,
+            heroPrefetch?.heroes.orEmpty(), heroPrefetch?.resumed.orEmpty(), savedName ?: serverName))
+    }
+
+    private fun restore(s: EmbyServerSession) {
+        client = s.client; auth = s.auth
+        library.restore(s.list, s.client, s.auth)
+        views = s.views; viewsLoaded = true; drilled = null
+        heroPrefetch = HeroPrefetch(activeId ?: "", s.heroes, s.resumed)
+        savedName = s.savedName
+        server = ""; username = ""; password = ""   // 凭据不缓存；详情/播放只用 auth 里的 token。
+        error = null; inLibrary = true
     }
 
     fun cancel() { ++generation; work?.cancel(true); connecting = false }
@@ -145,33 +213,22 @@ class EmbySessionModel : ViewModel() {
         }
     }
 
-    /** 255：首页某分类横排的首屏（IO 调用方自备线程）。 */
-    /**
-     * 317 · 首页 hero 候选（最近入库，跨库混合）。
-     *
-     * 【为什么跨库】Rex 的服务器首页 hero 是整服精选，不是某个库的前几个 ——
-     * 用户进服务器第一眼是想看"最近有什么新的"，而不是"某个库的第一条"。
-     *
-     * 336 · 拆成 [heroRaw] + [enrichHeroRatings] 两步：Emby 数据先出首屏，
-     * TMDB 评分后台补。原 heroItems 把 16 个 TMDB 请求全 `get()` 完才返回，
-     * 首屏 hero 被评分拖住好几秒（net-diag 铁证：Emby 数据早已到，界面仍空位）。
-     */
+    /** 317/336 · hero 数据先出首屏（Emby 直连），TMDB 评分后台补。 */
     fun heroRaw(): List<com.kivo.cinema.emby.EmbyHeroItem> {
-        // 337：优先用 login 后并发预取的缓存（generation 匹配 = 本次连接），命中即秒返。
-        heroPrefetch?.let { if (it.generation == generation) return it.heroes }
+        heroPrefetch?.let { if (it.owner == activeId) return it.heroes }
         val c = client ?: return emptyList(); val a = auth ?: return emptyList()
         return runCatching { com.kivo.cinema.emby.EmbyHeroSource(c).recent(a, limit = 8) }
             .getOrDefault(emptyList())
     }
 
-    /** 336 · 后台给 hero 补 TMDB 评分（4 并发 + 磁盘缓存命中即快）。查不到留 null ⇒ UI 回退 Emby 分。 */
+    /** 336 · 后台给 hero 补 TMDB 评分（4 并发 + 磁盘缓存命中即快）。 */
     fun enrichHeroRatings(context: android.content.Context,
                           raw: List<com.kivo.cinema.emby.EmbyHeroItem>): List<com.kivo.cinema.emby.EmbyHeroItem> {
         if (raw.isEmpty()) return raw
         val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
         return try {
             val futures = raw.map { item ->
-                pool.submit(java.util.concurrent.Callable {
+                pool.submit(Callable {
                     val rating = runCatching {
                         val tmdb = com.kivo.cinema.tmdb.TmdbClient(context)
                         val id = tmdb.searchId(item.name, item.year, item.isSeries) ?: return@Callable item
@@ -186,7 +243,7 @@ class EmbySessionModel : ViewModel() {
 
     /** 317 · 继续观看（Emby 原生 Resume：自带位置与总时长）。 */
     fun resumeItems(): List<com.kivo.cinema.emby.EmbyHeroItem> {
-        heroPrefetch?.let { if (it.generation == generation) return it.resumed }
+        heroPrefetch?.let { if (it.owner == activeId) return it.resumed }
         val c = client ?: return emptyList(); val a = auth ?: return emptyList()
         return runCatching { com.kivo.cinema.emby.EmbyHeroSource(c).resume(a, limit = 12) }
             .getOrDefault(emptyList())
@@ -212,11 +269,11 @@ class EmbySessionModel : ViewModel() {
 
     fun back() {
         cancel()
-        inLibrary = false
+        inLibrary = false; pendingId = null
         // Switching servers must not keep authenticated playback or old artwork alive.
-        client = null; auth = null; library.clear(); posters.evictAll()
+        client = null; auth = null; library.clear(); posters.evictAll(); sessions.clear()
         views = emptyList(); viewsLoaded = false; drilled = null
-        server = ""; username = ""; password = ""; savedStarted = false
+        server = ""; username = ""; password = ""; savedStarted = false; activeId = null
     }
     /** 254：token 只经 intent 交给播放页的 HttpByteSource 头，不进 URL。 */
     val accessToken: String? get() = auth?.token
@@ -238,5 +295,5 @@ class EmbySessionModel : ViewModel() {
 
     private fun friendlyError(e: Throwable): String = EmbyErrors.reason(e)
 
-    override fun onCleared() { cancel(); library.close(); pool.shutdownNow(); posters.evictAll() }
+    override fun onCleared() { cancel(); library.close(); pool.shutdownNow(); posters.evictAll(); sessions.clear() }
 }

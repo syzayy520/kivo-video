@@ -99,5 +99,22 @@ class EmbyLibraryModel(private val errorText: (Throwable) -> String) {
         loading = false; error = null; hasMore = false
     }
 
+    /** 338 · 列表状态快照：切服缓存用。client/auth 由外层会话快照持有，这里只存可序列化的列表态。 */
+    data class Snapshot(
+        val items: List<EmbyItem>, val total: Int?, val query: String, val sort: Int,
+        val hasMore: Boolean, val offset: Int, val parentId: String?, val types: String,
+        val genres: String?,
+    )
+
+    fun snapshot() = Snapshot(items, total, query, sort, hasMore, offset, parentId, types, genres)
+
+    /** 338 · 恢复某服的列表态：不重新拉网，滚动位置/搜索词/排序原样回来。 */
+    fun restore(s: Snapshot, c: EmbyClient, a: EmbyClient.Auth) {
+        invalidate()
+        client = c; auth = a; parentId = s.parentId; types = s.types; genres = s.genres
+        items = s.items; total = s.total; query = s.query; sort = s.sort
+        hasMore = s.hasMore; offset = s.offset; loading = false; error = null
+    }
+
     fun close() { clear(); pool.shutdownNow() }
 }
