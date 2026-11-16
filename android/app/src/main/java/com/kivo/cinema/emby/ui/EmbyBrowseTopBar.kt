@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -40,15 +39,15 @@ import com.kivo.cinema.ui.design.DesignTokens
  * （曾经长到 466 行，违反单文件 ≤300 行铁律）。
  *
  * ## 视觉约定（对齐 Rex 真机截图）
- * · 左上只有一个**箭头图标**，不套药丸、不带文字；
+ * · 左上是**白色圆形玻璃胶囊 + 深色箭头**（不是裸箭头）；
  * · 右上角是**浅色胶囊**：官方 Emby 绿标 + **粗体**服名 + ⌄；
+ * · 两枚胶囊共用 [GlassPillSurface] 同一套外观；
  * · 点胶囊弹切服菜单：白卡片、每项同款 **官方 Emby 绿标 + 粗体名**，当前服右侧绿色对勾。
  * 胶囊与弹层是同一套浅色语言，和 App 主体（资源库卡片/详情页）一致。
  */
 @Composable
 internal fun EmbyBrowseTopBar(
     serverName: String,
-    chromeFg: Color,
     currentSourceId: String?,
     sources: List<Pair<String, String>>,
     onSwitchSource: (String) -> Unit,
@@ -58,21 +57,17 @@ internal fun EmbyBrowseTopBar(
         Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onBack) {
-            BackArrow(color = chromeFg)
+        // 返回键：白色圆形玻璃胶囊 + 深色箭头（对齐 Rex 左上角那枚圆钮）。
+        GlassPillSurface(onClick = onBack, circle = true) {
+            BackArrow(color = DesignTokens.textMain)
         }
         Spacer(Modifier.weight(1f))
         var menuOpen by remember { mutableStateOf(false) }
         Box {
-            // 浅色胶囊：与切服白卡片同一套语言（对齐 Rex 截图中底部那枚服名牌）。
-            Surface(
-                shape = RoundedCornerShape(50),
-                color = Color.White.copy(alpha = .95f),
-                shadowElevation = 4.dp,
-            ) {
+            // 服名牌：与返回键、切服白卡片同一套玻璃语言。
+            GlassPillSurface(onClick = { if (sources.size > 1) menuOpen = true }) {
                 Row(
-                    Modifier.clickable { if (sources.size > 1) menuOpen = true }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     BrandMark(20.dp)
@@ -107,6 +102,30 @@ internal fun EmbyBrowseTopBar(
             }
         }
     }
+}
+
+/**
+ * 玻璃胶囊容器：白底 + 圆角 + 轻阴影，是本页所有悬浮控件的统一外观。
+ *
+ * · `circle=true`：正方形尺寸 + 正圆（返回键）；内容由调用方给定 size。
+ * · 否则：按内容自适应宽高（服名牌）。
+ * 后续「全局弹窗玻璃风」可直接复用这套外观常量，保证风格统一。
+ */
+@Composable
+private fun GlassPillSurface(
+    onClick: () -> Unit,
+    circle: Boolean = false,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = Color.White.copy(alpha = .95f),
+        shadowElevation = 4.dp,
+        modifier = Modifier
+            .then(if (circle) Modifier.size(44.dp) else Modifier)
+            .clickable(onClick = onClick),
+        content = content,
+    )
 }
 
 /** 返回箭头（三段线，跟随前景色）。 */

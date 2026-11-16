@@ -203,7 +203,6 @@ private fun EmbyBrowseBody(
         // 悬浮顶部栏（返回 + 服务器名 + 切服），压在 hero 上不占布局高度
         EmbyBrowseTopBar(
             serverName = model.serverName,
-            chromeFg = chromeFg,
             currentSourceId = currentSourceId,
             sources = sources,
             onSwitchSource = onSwitchSource,
