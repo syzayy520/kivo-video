@@ -115,10 +115,27 @@ class EmbySessionModel : ViewModel() {
      * 【为什么跨库】Rex 的服务器首页 hero 是整服精选，不是某个库的前几个 ——
      * 用户进服务器第一眼是想看"最近有什么新的"，而不是"某个库的第一条"。
      */
-    fun heroItems(): List<com.kivo.cinema.emby.EmbyHeroItem> {
+    fun heroItems(context: android.content.Context): List<com.kivo.cinema.emby.EmbyHeroItem> {
         val c = client ?: return emptyList(); val a = auth ?: return emptyList()
-        return runCatching { com.kivo.cinema.emby.EmbyHeroSource(c).recent(a, limit = 8) }
+        val raw = runCatching { com.kivo.cinema.emby.EmbyHeroSource(c).recent(a, limit = 8) }
             .getOrDefault(emptyList())
+        if (raw.isEmpty()) return raw
+        // 317 · 并行补 TMDB 评分（4 并发）。8 个条目 × 2 次请求，串行要 3~4 s，
+        // 并行后约 2 轮（~1 s）。查不到就留 null ⇒ UI 回退 Emby 自己的分并标 "Emby"。
+        val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
+        return try {
+            val futures = raw.map { item ->
+                pool.submit(java.util.concurrent.Callable {
+                    val rating = runCatching {
+                        val tmdb = com.kivo.cinema.tmdb.TmdbClient(context)
+                        val id = tmdb.searchId(item.name, item.year, item.isSeries) ?: return@Callable item
+                        com.kivo.cinema.tmdb.TmdbDetail(tmdb).details(item.isSeries, id)?.rating
+                    }.getOrNull()
+                    if (rating != null && rating > 0f) item.copy(tmdbRating = rating.toDouble()) else item
+                })
+            }
+            futures.map { it.get() }
+        } finally { pool.shutdown() }
     }
 
     /** 317 · 继续观看（Emby 原生 Resume：自带位置与总时长）。 */

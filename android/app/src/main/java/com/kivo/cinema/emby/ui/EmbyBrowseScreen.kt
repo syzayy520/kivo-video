@@ -1,6 +1,9 @@
 package com.kivo.cinema.emby.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -51,19 +54,29 @@ import kotlinx.coroutines.withContext
 fun EmbyBrowseScreen(
     model: EmbySessionModel, onBack: () -> Unit,
     onOpenView: (EmbyCatalog.View) -> Unit, onItem: (EmbyItem) -> Unit,
+    /** 317：当前服务器源 id（列表中高亮用）。 */
+    currentSourceId: String? = null,
+    /** 317：可切换的服务器（id to 名称），来自资源库的源列表。 */
+    sources: List<Pair<String, String>> = emptyList(),
+    /** 317：切服（宿主重启本页并带新 sourceId，不用退回资源库）。 */
+    onSwitchSource: (String) -> Unit = {},
 ) {
-    EmbyBrowseBody(model, onBack, onOpenView, onItem)
+    EmbyBrowseBody(model, onBack, onOpenView, onItem, currentSourceId, sources, onSwitchSource)
 }
 
 @Composable
 private fun EmbyBrowseBody(
     model: EmbySessionModel, onBack: () -> Unit,
     onOpenView: (EmbyCatalog.View) -> Unit, onItem: (EmbyItem) -> Unit,
+    currentSourceId: String?,
+    sources: List<Pair<String, String>>,
+    onSwitchSource: (String) -> Unit,
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var heroes by remember(model) { mutableStateOf<List<EmbyHeroItem>?>(null) }
     var resumed by remember(model) { mutableStateOf<List<EmbyHeroItem>>(emptyList()) }
     LaunchedEffect(model) {
-        heroes = withContext(Dispatchers.IO) { model.heroItems() }
+        heroes = withContext(Dispatchers.IO) { model.heroItems(context) }
         resumed = withContext(Dispatchers.IO) { model.resumeItems() }
     }
     // 317 · **完全照抄首页（DiscoverPage）的吸色写法**。
@@ -113,8 +126,9 @@ private fun EmbyBrowseBody(
                 heroUrl = h.heroUrl,
                 metaLine = h.metaLine(),
                 overview = h.overview,
-                rating = h.rating,
-                ratingSource = "Emby",
+                // TMDB 优先（详情页同口径）；没匹配到才回退 Emby 的 CommunityRating
+                rating = h.tmdbRating ?: h.rating,
+                ratingSource = if (h.tmdbRating != null) "TMDB" else "Emby",
                 logoUrl = null,          // Emby 没有片名艺术字 ⇒ HeroPage 回落文字标题
                 isSeries = h.isSeries,
             )
@@ -186,24 +200,74 @@ private fun EmbyBrowseBody(
             }
         }
 
-        // 悬浮返回栏：压在 hero 上（不占布局高度，海报才能顶到状态栏）
+        // 悬浮栏：压在 hero 上（不占布局高度，海报才能顶到状态栏）
+        //
+        // 317 · 对齐 Rex：**左上角只有一个箭头图标**（不套药丸、不带文字），
+        // **右上角是服务器名**，点它弹出服务器列表直接切 —— 不用退回资源库再选一次。
         Row(
-            Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 12.dp, vertical = 6.dp),
+            Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Surface(shape = RoundedCornerShape(50), color = Color.Black.copy(alpha = .34f)) {
-                TextButton(onClick = onBack) { Text("‹  返回", fontSize = 15.sp, color = Color.White) }
+            androidx.compose.material3.IconButton(onClick = onBack) {
+                // 用字形画箭头（项目里 PlayerGlyph 有 chevron，但那是播放器命名空间；
+                // 这里只是一个返回箭头，直接画线更省依赖且能跟随前景色）。
+                androidx.compose.foundation.Canvas(Modifier.size(22.dp)) {
+                    val w = size.width
+                    val h = size.height
+                    val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
+                        width = w * 0.10f,
+                        cap = androidx.compose.ui.graphics.StrokeCap.Round,
+                        join = androidx.compose.ui.graphics.StrokeJoin.Round,
+                    )
+                    val path = androidx.compose.ui.graphics.Path().apply {
+                        moveTo(w * 0.62f, h * 0.16f)
+                        lineTo(w * 0.30f, h * 0.50f)
+                        lineTo(w * 0.62f, h * 0.84f)
+                    }
+                    drawPath(path, color = chromeFg, style = stroke)
+                }
             }
-            // 317 · 服务器名放中间：放在「继续观看」下方会让人以为那是内容分区的标题
-            // （用户反馈"很奇怪"）；这里是导航层，位置语义正确。
-            Text(
-                model.serverName, fontSize = 13.sp, color = Color.White.copy(alpha = .82f),
-                maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            )
-            Surface(shape = RoundedCornerShape(50), color = Color.Black.copy(alpha = .34f)) {
-                TextButton(onClick = onBack) { Text("切换服务器", fontSize = 13.sp, color = Color.White) }
+            Spacer(Modifier.weight(1f))
+            var menuOpen by remember { mutableStateOf(false) }
+            Box {
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = Color.Black.copy(alpha = if (chromeDark) .28f else .10f),
+                ) {
+                    Row(
+                        Modifier.clickable { if (sources.size > 1) menuOpen = true }
+                            .padding(horizontal = 12.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            model.serverName, fontSize = 13.sp, color = chromeFg,
+                            maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = 180.dp),
+                        )
+                        if (sources.size > 1) {
+                            Text(" ⌄", fontSize = 11.sp, color = chromeFg.copy(alpha = .8f))
+                        }
+                    }
+                }
+                androidx.compose.material3.DropdownMenu(
+                    expanded = menuOpen,
+                    onDismissRequest = { menuOpen = false },
+                ) {
+                    sources.forEach { (id, name) ->
+                        androidx.compose.material3.DropdownMenuItem(
+                            text = {
+                                Text(
+                                    name,
+                                    fontWeight = if (id == currentSourceId) FontWeight.Bold else FontWeight.Normal,
+                                )
+                            },
+                            onClick = {
+                                menuOpen = false
+                                if (id != currentSourceId) onSwitchSource(id)
+                            },
+                        )
+                    }
+                }
             }
         }
     }

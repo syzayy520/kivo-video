@@ -37,6 +37,8 @@ class EmbyActivity : ComponentActivity() {
             isAppearanceLightNavigationBars = true
         }
         val sourceId = intent.getStringExtra("kivo.sourceId")
+        // 317 · 服务器列表（供右上角切服下拉）：进页面时读一次，切服后本页重启。
+        var allSources by androidx.compose.runtime.mutableStateOf<List<Pair<String, String>>>(emptyList())
         if (sourceId == null) {
             // 254 D15：无 sourceId 不是有效入口——添加 Emby 统一走资源库的 workspace 添加流。
             startActivity(Intent(this, MainActivity::class.java)
@@ -55,6 +57,10 @@ class EmbyActivity : ComponentActivity() {
             val unlocked = SourceAccessSession.unlocked
             LaunchedEffect(sourceId, unlocked) {
                 val result = withContext(Dispatchers.IO) { SourceStore(this@EmbyActivity).read() }
+                allSources = result.getOrNull()
+                    ?.filter { it.protocol == com.kivo.cinema.sources.SourceRecord.PROTOCOL_EMBY && !it.hidden }
+                    ?.map { it.id to it.name }
+                    ?: emptyList()
                 val source = result.getOrNull()?.firstOrNull { it.id == sourceId }
                 protected = source?.hidden ?: true
                 checked = source != null
@@ -88,8 +94,24 @@ class EmbyActivity : ComponentActivity() {
                                 model.accessToken, model.accessUserId, model.serverName))
                         }
                         val drilled = model.drilled
-                        if (drilled == null) EmbyBrowseScreen(model, onBack = { model.back(); finish() },
-                            onOpenView = { model.openView(it) }, onItem = openDetail)
+                        if (drilled == null) EmbyBrowseScreen(
+                            model,
+                            onBack = { model.back(); finish() },
+                            onOpenView = { model.openView(it) },
+                            onItem = openDetail,
+                            currentSourceId = sourceId,
+                            sources = allSources,
+                            // 317 · 切服：重启本页并带新 sourceId。不退回资源库再选一次
+                            // （用户明确要求），体验上就是"原地换服"。
+                            onSwitchSource = { newId ->
+                                startActivity(
+                                    Intent(this@EmbyActivity, EmbyActivity::class.java)
+                                        .putExtra("kivo.sourceId", newId)
+                                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                                )
+                                finish()
+                            },
+                        )
                         else EmbyLibraryScreen(model, onBack = { model.closeView() },
                             title = drilled.name, series = drilled.collectionType == "tvshows",
                             onItem = openDetail)

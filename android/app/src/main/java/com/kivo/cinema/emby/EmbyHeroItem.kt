@@ -36,6 +36,14 @@ data class EmbyHeroItem(
     val resumeMs: Long = 0L,
     /** 该条目总时长（毫秒）。0 = 未知。 */
     val runtimeMs: Long = 0L,
+    /**
+     * 317 · TMDB 评分（`vote_average`）。null = 没匹配到 / 没 key。
+     *
+     * 【为什么不用 Emby 的 CommunityRating 直接当 TMDB】它是 Emby 元数据插件从
+     * TMDB/IMDb/各家抓来混在一起的，来源不确定；标成 "Emby" 是错标，标成 "TMDB"
+     * 也可能不准。这里真去查一次 TMDB，查不到才回退 [rating]（并老实标 Emby）。
+     */
+    val tmdbRating: Double? = null,
 ) {
     /** 「韩国 · 剧情 · 2025-09-24 · 12集」——Rex 的元信息行格式。 */
     fun metaLine(): String {
