@@ -134,6 +134,8 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
                     a.phase = PlayerPhase.Ended
                     a.statusText = "播放结束"
                     a.controlsVisible = true
+                    // 317 · 连播：有下一集就安排（幂等，轮询会重复进来）。
+                    com.kivo.cinema.playback.AutoNextEpisode.maybeSchedule(a)
                     return 100L
                 }
                 MpvPlaybackSession.State.PREPARING, MpvPlaybackSession.State.IDLE -> {
@@ -149,6 +151,8 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
             // 必须重新排期：提前 return 会跳过 postDelayed，位置恒 0（真机踩过）。
             // 自动隐藏：控制条常驻会盖住底部字幕（真机取证曾误判"字幕没渲染"）。
             if (System.currentTimeMillis() - a.lastTouchMs > 3000) a.controlsVisible = false
+            // 317 · 快到片尾时把下一集的片头预热好（幂等，内部只在剩余 ≤5 分钟时发一次）。
+            com.kivo.cinema.playback.NextEpisodePrewarm.maybeOffer(a)
             a.sampleTelemetry()
             return 100L
         }
@@ -169,6 +173,7 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
                     a.phase = PlayerPhase.Ended
                     a.statusText = "播放结束"
                     a.controlsVisible = true
+                    com.kivo.cinema.playback.AutoNextEpisode.maybeSchedule(a)
                     return 100L
                 }
                 else -> when {

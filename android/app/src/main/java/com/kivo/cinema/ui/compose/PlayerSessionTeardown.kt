@@ -9,7 +9,7 @@ package com.kivo.cinema.ui.compose
  * 改起播的人不会顺手动到这条顺序。
  */
 
-internal fun PlayerComposeActivity.closeNetworkPlayback() {
+internal fun PlayerComposeActivity.closeNetworkPlayback(onDone: (() -> Unit)? = null) {
     ++networkGeneration
     networkPreparationCancelled?.set(true)
     networkPreparationCancelled = null
@@ -18,8 +18,15 @@ internal fun PlayerComposeActivity.closeNetworkPlayback() {
     if (network != null) {
         closingNetworks += network
         network.stop {
-            android.os.Handler(mainLooper).post { closingNetworks -= network }
+            android.os.Handler(mainLooper).post {
+                closingNetworks -= network
+                // 317 · 换集要在旧会话**停稳之后**才起新的（同一条代理/内核路径不能重入）。
+                onDone?.invoke()
+            }
         }
+    } else {
+        // 没有网络会话 ⇒ 无需等待，直接放行。
+        onDone?.invoke()
     }
     // libmpv 内核与旧内核互斥，但收尾路径要一并处理。
     val mpv = mpvNetSession

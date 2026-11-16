@@ -50,6 +50,15 @@ internal class EmbyResource private constructor(
     private val series: Boolean,
 ) {
     private var serverFavorite by mutableStateOf(false)
+
+    /**
+     * 317 · 当前展示的剧集列表（用来找"下一集"）。
+     *
+     * 【为什么存在这里】`playEpisode` 是 UI 回调，参数只有被点的那一集，
+     * 拿不到"它在列表里的位置"。而连播必须知道下一集是谁。
+     * 初始加载与换季加载都会刷新它，保证点哪一季就按哪一季算。
+     */
+    private var currentEpisodes: List<EmbyShows.Episode> = emptyList()
     private var serverWatched by mutableStateOf(false)
     private var tmdbId by mutableStateOf(0)
     private var serverError by mutableStateOf<String?>(null)
@@ -166,14 +175,23 @@ internal class EmbyResource private constructor(
         val seasons = shows.seasons(a, itemId)
         val episodes = seasons.firstOrNull()
             ?.let { stillsFirst(shows.episodes(a, itemId, it.id), it.index) } ?: emptyList()
+        currentEpisodes = episodes
         return DetailContent(
             details = details, media = null, quality = "",
-            playIntent = episodes.firstOrNull()?.let { episodeIntent(c, a, it).also { p -> prewarm(p, a.token) } },
+            playIntent = episodes.firstOrNull()
+                ?.let { episodeIntent(c, a, it, episodes.getOrNull(1)).also { p -> prewarm(p, a.token) } },
             tmdbId = tmdbId, tmdbIsTv = true,
             noPlayReason = "该服务器未返回可播放的剧集",
             seasons = seasons, episodes = episodes,
-            loadEpisodes = { s -> stillsFirst(shows.episodes(a, itemId, s.id), s.index) },
-            playEpisode = { ep -> episodeIntent(c, a, ep).also { p -> prewarm(p, a.token) } },
+            loadEpisodes = { s ->
+                stillsFirst(shows.episodes(a, itemId, s.id), s.index).also { currentEpisodes = it }
+            },
+            playEpisode = { ep ->
+                // 按 id 在**当前列表**里定位，取它的下一集（同季内递增；跨季由 UI 换列表后自然成立）
+                val i = currentEpisodes.indexOfFirst { it.id == ep.id }
+                val next = if (i >= 0) currentEpisodes.getOrNull(i + 1) else null
+                episodeIntent(c, a, ep, next).also { p -> prewarm(p, a.token) }
+            },
             loadImage = ::loadImage,
             serverName = serverName,
         )
@@ -191,9 +209,26 @@ internal class EmbyResource private constructor(
         }
     }
 
-    private fun episodeIntent(c: EmbyClient, a: EmbyClient.Auth, ep: EmbyShows.Episode): Intent =
+    private fun episodeIntent(
+        c: EmbyClient,
+        a: EmbyClient.Auth,
+        ep: EmbyShows.Episode,
+        next: EmbyShows.Episode? = null,
+    ): Intent =
         Intent(context, PlayerComposeActivity::class.java)
             .putExtra("kivo.playurl", c.streamUrl(a, ep.id))
+            // 317 · 连播：详情页本来就知道整个剧集列表，把**下一集的 URL 直接带过去**，
+            // 比播放页结束再去查 API 省一次往返（也避免播放页依赖 token/系列上下文）。
+            // 没有下一集（最后一集）就不带 ⇒ 播放页结束就是"播放结束"。
+            .apply {
+                if (next != null) {
+                    putExtra("kivo.nextUrl", c.streamUrl(a, next.id))
+                    putExtra(
+                        "kivo.nextLabel",
+                        "$name · " + "S%02dE%02d".format(next.seasonIndex, next.index) + " " + next.name,
+                    )
+                }
+            }
             .putExtra("kivo.label", "$name · " + "S%02dE%02d".format(ep.seasonIndex, ep.index) + " " + ep.name)
             .putExtra("kivo.sourceName", serverName)
             .putExtra("kivo.sourceId", sourceId)
