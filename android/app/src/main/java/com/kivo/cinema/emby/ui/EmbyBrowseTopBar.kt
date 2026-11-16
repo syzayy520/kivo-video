@@ -58,7 +58,7 @@ internal fun EmbyBrowseTopBar(
         Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // 返回键：1:1 复刻 Apple Music 左上角圆钮——白底 + 细灰描边 + 纯黑 Chevron + 近零阴影。
+        // 返回键：对齐 Apple Music 左上角圆钮——浅灰白底 + 极淡描边 + 小号纯黑 Chevron + 无阴影。
         GlassPillSurface(onClick = onBack, circle = true) {
             BackArrow(color = Color(0xFF111114))
         }
@@ -108,8 +108,8 @@ internal fun EmbyBrowseTopBar(
 /**
  * 悬浮胶囊容器。两种外观，各自对齐一个真机基准：
  *
- * · `circle=true`（返回键）：1:1 复刻 **Apple Music** 左上角圆钮——纯白底 +
- *   一圈极细浅灰描边 + 近零阴影（靠描边勾勒，不靠投影），44dp 正圆。
+ * · `circle=true`（返回键）：对齐 **Apple Music** 左上角圆钮——浅灰白底 +
+ *   一圈极淡描边 + 无阴影（靠描边勾勒，不靠投影），44dp 正圆、小号箭头。
  * · 否则（服名牌）：浅玻璃胶囊——白底 .95 + 4dp 阴影（对齐 Rex 底部服名牌）。
  *
  * 两者共存于此仅为「返回键跟 Apple Music、服名牌跟 Rex」两个不同基准；
@@ -124,30 +124,39 @@ private fun GlassPillSurface(
     val shape = RoundedCornerShape(50)
     Surface(
         shape = shape,
-        color = Color.White,
-        // 返回键靠细描边勾边（Apple Music），服名牌靠阴影浮起（Rex）。
+        // 返回键 1:1 Apple Music：冷灰白底 #E7EDFB + 淡描边 #CFD4E0 + 无阴影。
+        // 服名牌=纯白+阴影（Rex）。底色取自 3x 参考图实采 231/237/251，非目测。
+        color = if (circle) Color(0xFFE7EDFB) else Color.White,
         shadowElevation = if (circle) 0.dp else 4.dp,
         modifier = Modifier
-            .then(if (circle) Modifier.size(44.dp).border(0.6.dp, Color(0xFFD6D6DB), shape) else Modifier)
+            .then(if (circle) Modifier.size(44.dp).border(0.5.dp, Color(0xFFCFD4E0), shape) else Modifier)
             .clickable(onClick = onClick),
         content = content,
     )
 }
 
-/** 返回箭头（三段线，跟随前景色）。 */
+/**
+ * 返回箭头（Chevron "＜"）—— 尺寸按 3x 参考图逐像素标定，比例相对圆直径。
+ *
+ * 参考图实测：圆直径 132px、箭头 bbox 32×56px ⇒ 箭头高/圆=42%、宽/圆=24%、线粗/圆≈6%。
+ * 【关键坑】Surface 的 content 会把 Canvas 拉伸到父容器（44dp），**忽略 Canvas 自己的 size**。
+ * 所以不能用「小画布 + 大比例」(上一版 26dp 画布被拉成 44dp，箭头画到 78% 圆)。
+ * 正解：画布=圆尺寸(44dp)，路径坐标直接用相对圆的比例 —— 高 0.29~0.71、宽 0.38~0.62、
+ * 线粗 0.06×圆。这样无论外层如何拉伸，箭头与圆的比例恒定。
+ */
 @Composable
 private fun BackArrow(color: Color) {
-    Canvas(Modifier.size(22.dp)) {
+    Canvas(Modifier.size(44.dp)) {
         val w = size.width
         val h = size.height
         val p = Path().apply {
-            moveTo(w * 0.62f, h * 0.16f)
-            lineTo(w * 0.30f, h * 0.50f)
-            lineTo(w * 0.62f, h * 0.84f)
+            moveTo(w * 0.58f, h * 0.29f)   // 上臂端点
+            lineTo(w * 0.34f, h * 0.50f)   // 左顶点
+            lineTo(w * 0.58f, h * 0.71f)   // 下臂端点
         }
         drawPath(
             p, color = color,
-            style = Stroke(width = w * 0.13f, cap = StrokeCap.Round, join = StrokeJoin.Round),
+            style = Stroke(width = w * 0.06f, cap = StrokeCap.Round, join = StrokeJoin.Round),
         )
     }
 }
