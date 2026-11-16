@@ -249,24 +249,54 @@ private fun EmbyBrowseBody(
                         }
                     }
                 }
-                androidx.compose.material3.DropdownMenu(
-                    expanded = menuOpen,
-                    onDismissRequest = { menuOpen = false },
-                ) {
-                    sources.forEach { (id, name) ->
-                        androidx.compose.material3.DropdownMenuItem(
-                            text = {
-                                // 317 · 当前服打勾（对齐 Rex 的 ✓），不只靠字重区分
-                                Text(
-                                    if (id == currentSourceId) "✓  $name" else "    $name",
-                                    fontWeight = if (id == currentSourceId) FontWeight.Bold else FontWeight.Normal,
-                                )
-                            },
-                            onClick = {
-                                menuOpen = false
-                                if (id != currentSourceId) onSwitchSource(id)
-                            },
-                        )
+                // 317 · 切服弹层：**不依赖主题色**自己定色。
+                //
+                // 踩过：用 Material 的 DropdownMenu 时它取 surface 色，而 surface 被我们
+                // 设成了吸色后的浅色 ⇒ 白字落浅底，整块菜单看不清（真机截图确认）。
+                // 这里改成深色半透明卡片，配白字；每项"图标 + 粗体名称"，与 Rex 同构。
+                if (menuOpen) {
+                    androidx.compose.ui.window.Popup(
+                        alignment = Alignment.TopEnd,
+                        offset = androidx.compose.ui.unit.IntOffset(0, with(density) { 92.dp.roundToPx() }),
+                        onDismissRequest = { menuOpen = false },
+                        properties = androidx.compose.ui.window.PopupProperties(focusable = true),
+                    ) {
+                        Column(
+                            Modifier
+                                .width(210.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color(0xFF1B1B1E).copy(alpha = .96f))
+                                .padding(vertical = 6.dp),
+                        ) {
+                            sources.forEach { (id, name) ->
+                                val selected = id == currentSourceId
+                                Row(
+                                    Modifier.fillMaxWidth()
+                                        .clickable {
+                                            menuOpen = false
+                                            if (!selected) onSwitchSource(id)
+                                        }
+                                        .padding(horizontal = 18.dp, vertical = 15.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        if (selected) "✓" else "",
+                                        color = Color.White,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.width(22.dp),
+                                    )
+                                    Text(
+                                        name,
+                                        color = Color.White,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
