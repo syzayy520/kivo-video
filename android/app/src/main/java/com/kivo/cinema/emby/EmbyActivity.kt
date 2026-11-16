@@ -57,10 +57,20 @@ class EmbyActivity : ComponentActivity() {
             val unlocked = SourceAccessSession.unlocked
             LaunchedEffect(sourceId, unlocked) {
                 val result = withContext(Dispatchers.IO) { SourceStore(this@EmbyActivity).read() }
-                allSources = result.getOrNull()
-                    ?.filter { it.protocol == com.kivo.cinema.sources.SourceRecord.PROTOCOL_EMBY && !it.hidden }
-                    ?.map { it.id to it.name }
-                    ?: emptyList()
+                // 317 · 切服菜单显示 Emby 的 ServerName（nyamedia / iLoveHD），不是域名。
+                // `System/Info/Public` 不需要鉴权，所以这里能对**所有**服都查一次；
+                // 逐个查失败就用源记录名兜底（不静默丢项）。
+                allSources = withContext(Dispatchers.IO) {
+                    result.getOrNull()
+                        ?.filter { it.protocol == com.kivo.cinema.sources.SourceRecord.PROTOCOL_EMBY && !it.hidden }
+                        ?.map { rec ->
+                            val pretty = runCatching {
+                                com.kivo.cinema.emby.EmbyClient(rec.address).publicServerName()
+                            }.getOrNull()
+                            rec.id to (pretty ?: rec.name)
+                        }
+                        ?: emptyList()
+                }
                 val source = result.getOrNull()?.firstOrNull { it.id == sourceId }
                 protected = source?.hidden ?: true
                 checked = source != null

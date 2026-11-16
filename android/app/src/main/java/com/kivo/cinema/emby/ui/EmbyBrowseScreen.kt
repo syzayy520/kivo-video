@@ -256,8 +256,9 @@ private fun EmbyBrowseBody(
                     sources.forEach { (id, name) ->
                         androidx.compose.material3.DropdownMenuItem(
                             text = {
+                                // 317 · 当前服打勾（对齐 Rex 的 ✓），不只靠字重区分
                                 Text(
-                                    name,
+                                    if (id == currentSourceId) "✓  $name" else "    $name",
                                     fontWeight = if (id == currentSourceId) FontWeight.Bold else FontWeight.Normal,
                                 )
                             },
@@ -354,11 +355,22 @@ private fun ViewRow(
     }
 }
 
-/** 横排缩略图（Emby 图要 token ⇒ 走 model 的带鉴权加载器，不直接用通用 loader）。 */
+/**
+ * 横排缩略图。
+ *
+ * 【为什么用通用 loader 而不是 model.image】hero 主图已经证明这些 Emby 图 URL
+ * 不带 token 也能取到（[com.kivo.cinema.ui.design.TmdbImageCache] 走的就是无鉴权路径，
+ * 上屏正常）。而 `model.image()` 那条路在这张卡上没出图 ⇒ 统一到已验证能用的那条，
+ * 顺带复用它的内存 + 磁盘双缓存，滚动回来不用重下。
+ */
 @Composable
 private fun EmbyHeroThumb(model: EmbySessionModel, url: String, name: String) {
     var bmp by remember(url) { mutableStateOf<android.graphics.Bitmap?>(null) }
-    LaunchedEffect(url) { bmp = withContext(Dispatchers.IO) { model.image(url) } }
+    LaunchedEffect(url) {
+        bmp = withContext(Dispatchers.IO) {
+            if (url.isBlank()) null else com.kivo.cinema.ui.design.TmdbImageCache.load(url)
+        }
+    }
     val frame = bmp
     if (frame != null) {
         androidx.compose.foundation.Image(

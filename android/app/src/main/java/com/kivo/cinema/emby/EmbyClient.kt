@@ -279,6 +279,23 @@ class EmbyClient(serverInput: String) {
         } finally { c.disconnect() }
     }
 
+    /**
+     * 317 · 服务器**自己的名字**（`System/Info/Public` 的 `ServerName`）。
+     *
+     * 【为什么不用域名/源记录名】用户添加服务器时填的名字常常就是域名
+     * （`emby.bangumi.ca`），显示出来像网址；而 Emby 服务器本身有个人类可读名
+     * （`nyamedia` / `iLoveHD`），别的播放器显示的都是这个。
+     * 无需鉴权（Public 接口），放在登录后顺手取。
+     */
+    fun publicServerName(): String? = runCatching {
+        val c = conn("$base$prefix/System/Info/Public", "GET")
+        try {
+            if (c.responseCode !in 200..299) return null
+            org.json.JSONObject(c.inputStream.bufferedReader().use { it.readText() })
+                .optString("ServerName").takeIf { it.isNotBlank() }
+        } finally { c.disconnect() }
+    }.getOrNull()
+
     // ---- 317 · 播放会话上报（Emby 的 Sessions/Playing 三连） ----
     //
     // 【为什么必须有】这只是"别的播放器都能看到你在看什么、看到哪"的来源：

@@ -76,16 +76,21 @@ class EmbySessionModel : ViewModel() {
         val address = server.trim()
         val user = username.trim()
         val secret = password
+        var fetchedName: String? = null
         work = pool.submit {
             val result = runCatching {
                 val c = EmbyClient(address)
                 val a = c.login(user, secret)
-                Triple(c, a, c.items(a))
+                val list = c.items(a)
+                // 317 · 顺手取服务器自己的名字（比域名/源记录名更可读）。
+                fetchedName = c.publicServerName()
+                Triple(c, a, list)
             }
             main.post {
                 if (ticket != generation) return@post
                 connecting = false
                 result.fold(onSuccess = { (c, a, list) ->
+                    fetchedName?.let { savedName = it }
                     client = c; auth = a; library.attach(c, a, list)
                     inLibrary = true
                     loadViews(c, a)
