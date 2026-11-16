@@ -54,17 +54,22 @@ class EmbyHeroSource(private val c: EmbyClient) {
     }
 
     private fun fetch(url: String, auth: EmbyClient.Auth): List<EmbyHeroItem> {
+        // 337：分段计时——请求发起 / 响应完成，定位首屏 hero 慢是网络还是解析。
+        val tag = url.substringAfterLast("Items")
+        val t0 = System.currentTimeMillis()
+        com.kivo.cinema.net.NetDiag.log("[emby-hero] 发起 $tag")
         val conn = c.conn(url, "GET")
         try {
             conn.setRequestProperty("X-Emby-Token", auth.token)
             val code = conn.responseCode
             if (code !in 200..299) throw EmbyClient.HttpFailure(code)
-            val arr = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
-                .optJSONArray("Items") ?: return emptyList()
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            val t1 = System.currentTimeMillis()
+            val arr = JSONObject(body).optJSONArray("Items") ?: return emptyList()
             val out = (0 until arr.length()).mapNotNull { i ->
                 runCatching { parse(arr.getJSONObject(i)) }.getOrNull()
             }
-            com.kivo.cinema.net.NetDiag.log("[emby] hero 数据 n=${out.size} url=${url.substringAfterLast("Items")}")
+            com.kivo.cinema.net.NetDiag.log("[emby-hero] 完成 n=${out.size} 耗时=${t1 - t0}ms $tag")
             return out
         } finally { conn.disconnect() }
     }

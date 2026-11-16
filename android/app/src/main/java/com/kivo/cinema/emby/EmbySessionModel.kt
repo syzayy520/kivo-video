@@ -28,7 +28,12 @@ class EmbySessionModel : ViewModel() {
     private var client: EmbyClient? = null
     private var auth: EmbyClient.Auth? = null
     private val main = Handler(Looper.getMainLooper())
-    private val pool = Executors.newFixedThreadPool(2)
+    private val pool = Executors.newFixedThreadPool(4)  // 337：login 后并发 items+hero+resume
+    // 337：login 后并发预取的首屏数据（只依赖 token，不等 items）。
+    // 带 generation 标签，切服/重连后旧结果自动失效；@Volatile 保证 UI 线程读到最新。
+    @Volatile private var heroPrefetch: HeroPrefetch? = null
+    private class HeroPrefetch(val generation: Int, val heroes: List<EmbyHeroItem>,
+                               val resumed: List<EmbyHeroItem>)
     private var work: Future<*>? = null
     private var generation = 0
     private val posters = object : LruCache<String, Bitmap>(24 * 1024 * 1024) {
@@ -80,8 +85,27 @@ class EmbySessionModel : ViewModel() {
         work = pool.submit {
             val result = runCatching {
                 val c = EmbyClient(address)
+                // 337：连接分段计时（login / items），定位"连接资源库慢"卡在哪一步。
+                val t0 = System.currentTimeMillis()
                 val a = c.login(user, secret)
+                val t1 = System.currentTimeMillis()
+                com.kivo.cinema.net.NetDiag.log("[emby-connect] login ${t1 - t0}ms")
+                // 337：login 拿到 token 后立即并发预取 hero/resume —— 它们只依赖 token，
+                // 不必等 items。这样 hero 的 ~2.1s 与 items 的 ~0.68s 重叠，首屏空白期大幅缩短。
+                val recentFuture = pool.submit(java.util.concurrent.Callable<List<EmbyHeroItem>> {
+                    runCatching { EmbyHeroSource(c).recent(a, limit = 8) }.getOrDefault(emptyList())
+                })
+                val resumeFuture = pool.submit(java.util.concurrent.Callable<List<EmbyHeroItem>> {
+                    runCatching { EmbyHeroSource(c).resume(a, limit = 12) }.getOrDefault(emptyList())
+                })
                 val list = c.items(a)
+                val t2 = System.currentTimeMillis()
+                com.kivo.cinema.net.NetDiag.log("[emby-connect] items ${t2 - t1}ms total ${t2 - t0}ms count=${list.items.size}")
+                // 等 hero 预取完成再进首页：缓存已就绪，首页 heroRaw/resumeItems 秒返。
+                // recent/resume 与 items 三者并行，这里只是汇总，不额外增加总时长。
+                val hs = runCatching { recentFuture.get() }.getOrDefault(emptyList())
+                val rs = runCatching { resumeFuture.get() }.getOrDefault(emptyList())
+                heroPrefetch = HeroPrefetch(ticket, hs, rs)
                 Triple(c, a, list)
             }
             main.post {
@@ -133,6 +157,8 @@ class EmbySessionModel : ViewModel() {
      * 首屏 hero 被评分拖住好几秒（net-diag 铁证：Emby 数据早已到，界面仍空位）。
      */
     fun heroRaw(): List<com.kivo.cinema.emby.EmbyHeroItem> {
+        // 337：优先用 login 后并发预取的缓存（generation 匹配 = 本次连接），命中即秒返。
+        heroPrefetch?.let { if (it.generation == generation) return it.heroes }
         val c = client ?: return emptyList(); val a = auth ?: return emptyList()
         return runCatching { com.kivo.cinema.emby.EmbyHeroSource(c).recent(a, limit = 8) }
             .getOrDefault(emptyList())
@@ -160,6 +186,7 @@ class EmbySessionModel : ViewModel() {
 
     /** 317 · 继续观看（Emby 原生 Resume：自带位置与总时长）。 */
     fun resumeItems(): List<com.kivo.cinema.emby.EmbyHeroItem> {
+        heroPrefetch?.let { if (it.generation == generation) return it.resumed }
         val c = client ?: return emptyList(); val a = auth ?: return emptyList()
         return runCatching { com.kivo.cinema.emby.EmbyHeroSource(c).resume(a, limit = 12) }
             .getOrDefault(emptyList())
