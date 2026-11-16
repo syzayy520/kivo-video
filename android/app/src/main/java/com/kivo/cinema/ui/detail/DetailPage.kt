@@ -132,6 +132,18 @@ internal fun DetailPage(
         ?: ss.episodes.firstOrNull { !it.played } ?: ss.episodes.firstOrNull()
     val playSubtitle = if (loadEpisodes != null && curSeason != null && nextEp != null)
         "第${curSeason.index}季·${nextEp.index}集" else null
+    // 317 · 观看进度：有位置就显示「继续观看 12:34」，否则仍是「播放」。
+    // 位置来自服务器 UserData（跨客户端通用）或本地记录，见 EmbyResource 的续播点。
+    val resumeMs = (nextEp?.positionTicks ?: 0L) / 10_000L
+    val resumeTotalMs = (nextEp?.runtimeMinutes ?: 0L) * 60_000L
+    val playLabel = if (resumeMs >= 5_000L) {
+        "继续观看 " + com.kivo.cinema.ui.compose.player.formatPlayerTime(resumeMs)
+    } else null
+    // 317 · 副标题补进度百分比（Rex 的 Viewing Progress 在播放器按钮上的等价信息）。
+    // 只在有真实进度且时长可信时加 —— 时长缺失时算不出百分比，宁可不显示也不给错的。
+    val progressSuffix = if (resumeMs >= 5_000L && resumeTotalMs > 0L) {
+        " · 已看 " + ((resumeMs * 100 / resumeTotalMs).coerceIn(0L, 100L)) + "%"
+    } else ""
     // 播放钮与副标题必须指向**同一集**（272 审计 D1）：
     // 副标题报的是"下一集"，播放钮却总开第一集 ⇒ 按钮说的和做的不是一回事。
     val ctaPlayable = if (loadEpisodes != null) nextEp != null else playIntent != null
@@ -157,7 +169,8 @@ internal fun DetailPage(
                         TitleLayer(d, fg)
                         MetaLine(d, fg)
                         DetailActionRow(ctaPlayable, fg, actions,
-                            playSubtitle = playSubtitle,
+                            playSubtitle = playSubtitle?.let { it + progressSuffix },
+                            playLabel = playLabel,
                             onPlay = {
                                 val target = if (loadEpisodes != null) {
                                     nextEp?.let { ep -> content?.playEpisode?.invoke(ep) }

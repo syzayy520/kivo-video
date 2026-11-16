@@ -38,6 +38,13 @@ import com.kivo.cinema.ui.detail.DETAIL_PAD_DP
 internal fun DetailActionRow(
     playable: Boolean, fg: Color, actions: DetailActions,
     playSubtitle: String?,
+    /**
+     * 317 · 主按钮文案。null = 「播放」。
+     *
+     * 有观看进度时传「继续观看 12:34」（对齐 Rex 的 `Continue %@`）——
+     * 用户一眼能看出"点它接着上次"，而不是每次都要猜按钮是不是从头开始。
+     */
+    playLabel: String? = null,
     onPlay: () -> Unit, onOpenMore: (Rect) -> Unit,
 ) {
     var marksOpen by remember { mutableStateOf(false) }
@@ -55,7 +62,9 @@ internal fun DetailActionRow(
                 .clickable(role = Role.Button, onClick = onPlay),
                 contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(if (playable) "▶  播放" else "未加载到相关资源",
+                    Text(
+                        if (!playable) "未加载到相关资源"
+                        else "▶  " + (playLabel ?: "播放"),
                         fontSize = 15.sp, fontWeight = FontWeight.Medium,
                         color = DesignTokens.textMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     if (playable && playSubtitle != null) {
