@@ -32,9 +32,11 @@ class MovieDetailActivity : ComponentActivity() {
         const val EXTRA_EMBY_SERIES = "kivo.embySeries"
 
         fun intent(context: Context, item: TmdbHome.Item): Intent =
-            Intent(context, MovieDetailActivity::class.java)
-                .putExtra(EXTRA_ID, item.id)
-                .putExtra(EXTRA_TV, item.isTv)
+            DetailPreview.fill(
+                Intent(context, MovieDetailActivity::class.java)
+                    .putExtra(EXTRA_ID, item.id)
+                    .putExtra(EXTRA_TV, item.isTv),
+                item)
 
         /** Emby 海报 → 详情（254 D1）：token/userId 供收藏/已看与播放，凭据只经 intent 不进 URL。 */
         fun embyIntent(context: Context, sourceId: String?, item: EmbyItem,
@@ -48,6 +50,14 @@ class MovieDetailActivity : ComponentActivity() {
                 .putExtra(EXTRA_EMBY_YEAR, item.year ?: 0)
                 .putExtra(EXTRA_EMBY_SERVER, serverName)
                 .putExtra(EXTRA_EMBY_SERIES, item.series)
+                .putExtra(EXTRA_TV, item.series)
+                .putExtra(DetailPreview.EXTRA_TITLE, item.name)
+                .putExtra(DetailPreview.EXTRA_DATE, item.year?.toString() ?: "")
+                .putStringArrayListExtra(DetailPreview.EXTRA_GENRES, ArrayList(item.genres))
+                .putExtra(DetailPreview.EXTRA_RATING, item.rating?.toFloat() ?: 0f)
+                .putExtra(DetailPreview.EXTRA_POSTER, item.posterUrl)
+                .putExtra(DetailPreview.EXTRA_HERO, item.posterUrl)
+                .putExtra(DetailPreview.EXTRA_SOURCE, "emby")
     }
 
     private var openingPage = false
@@ -98,10 +108,18 @@ class MovieDetailActivity : ComponentActivity() {
         val tmdb = TmdbDetail(TmdbClient(this))
         val load: () -> DetailContent? =
             if (embyRes != null) embyRes::loadDetails else { { localDetailContent(this, tmdb, isTv, id) } }
+        // 336 R2：列表页已有的标题/海报/评分先渲染（首帧即可见），完整详情后台补。
+        // 预览体没有片源匹配/演员/相似，标 preview=true 让页面暂不显示这些未解析区块。
+        val previewDetails = DetailPreview.from(intent)
+        val previewContent = previewDetails?.let {
+            DetailContent(details = it, media = null, quality = "",
+                playIntent = null, tmdbId = id, tmdbIsTv = isTv,
+                loadImage = embyRes?.previewLoader(), preview = true)
+        }
         setContent {
             val actions = if (embyRes != null) embyRes.actions()
                 else rememberDetailActions(FilmKey(id, isTv))
-            DetailPage(actions, load,
+            DetailPage(actions, load, previewContent,
                 onBack = { finish() },
                 onDarkStatusIcons = { setDarkStatusIcons(it) },
                 openPage = { openPage(it) })

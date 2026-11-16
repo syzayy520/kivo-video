@@ -59,37 +59,45 @@ import kotlinx.coroutines.withContext
 internal fun DetailPage(
     actions: DetailActions,
     load: () -> DetailContent?,
+    previewContent: DetailContent? = null,
     onBack: () -> Unit,
     onDarkStatusIcons: (Boolean) -> Unit,
     openPage: (Intent) -> Unit,
 ) {
     val context = LocalContext.current
-    var content by remember { mutableStateOf<DetailContent?>(null) }
+    // 336 R2：列表快照先上屏（首帧即有海报/标题/评分），完整详情后台补。
+    var content by remember { mutableStateOf<DetailContent?>(previewContent) }
     var error by remember { mutableStateOf<String?>(null) }
-    var fieldColor by remember { mutableStateOf(DesignTokens.pageBackground) }
+    // 336 R2：有 preview 时首帧幕布已是深色海报，底色中性深灰起步（白字可读、无浅灰块），
+    // 吸色 effect 随即改成真实海报色；无 preview 维持原浅色初始。
+    var fieldColor by remember {
+        mutableStateOf(if (previewContent != null) Color(0xFF1A1A1F) else DesignTokens.pageBackground)
+    }
     var reload by remember { mutableStateOf(0) }
-    var loading by remember { mutableStateOf(true) }
+    var loading by remember { mutableStateOf(previewContent == null) }
     LaunchedEffect(reload) {
         loading = true
         error = null
         try {
             val c = withContext(Dispatchers.IO) { load() }
             if (c == null) {
-                error = "加载失败，请检查网络后重试"
+                // 有 preview 就保留它（内容仍在，只是次要字段缺），不展示"整页失败"。
+                if (content == null) error = "加载失败，请检查网络后重试"
             } else {
                 content = c
-                // Sample the same artwork used by the backdrop to avoid a color seam.
-                val artUrl = c.details.heroArtworkUrl
-                if (artUrl.isNotEmpty()) {
-                    val bmp = withContext(Dispatchers.IO) {
-                        c.loadImage?.invoke(artUrl) ?: TmdbImageCache.load(artUrl)
-                    }
-                    bmp?.let { fieldColor = PosterPalette.ambientOf(it) }
-                }
             }
         } catch (e: CancellationException) { throw e }
-        catch (_: Exception) { error = "无法获取影片详情，请检查网络后重试" }
+        catch (_: Exception) { if (content == null) error = "无法获取影片详情，请检查网络后重试" }
         finally { loading = false }
+    }
+    // 336 R2：吸色跟随当前幕布 URL —— preview 上屏当帧就采（图已在磁盘缓存，毫秒级），
+    // 避免"海报已显示但底色还是 pageBackground"的浅灰块；完整详情替换后 URL 变了再采一次。
+    val artUrl = content?.details?.heroArtworkUrl.orEmpty()
+    val artLoader = content?.loadImage
+    LaunchedEffect(artUrl, artLoader) {
+        if (artUrl.isBlank()) return@LaunchedEffect
+        val bmp = withContext(Dispatchers.IO) { artLoader?.invoke(artUrl) ?: TmdbImageCache.load(artUrl) }
+        bmp?.let { fieldColor = PosterPalette.ambientOf(it) }
     }
     val listState = rememberLazyListState()
     val density = LocalDensity.current
@@ -114,6 +122,7 @@ internal fun DetailPage(
     val fg = if (chromeDark) Color.White else DesignTokens.textMain
     val fgSub = if (chromeDark) Color.White.copy(alpha = .72f) else DesignTokens.textSub
     val d = content?.details
+    val isPreview = content?.preview == true
     val media = content?.media
     val quality = content?.quality ?: ""
     val playIntent = content?.playIntent
@@ -187,7 +196,11 @@ internal fun DetailPage(
                                     modifier = Modifier.fillMaxWidth(), alignCenter = true, valueColor = fg)
                             }
                         }
-                        if (media != null) {
+                        if (isPreview) {
+                            // 336 R2：列表快照阶段片源/季集尚未解析，留白即可（完整详情到达会补上），
+                            // 不显示"没有匹配的本地视频"误导用户。
+                            Spacer(Modifier.height(140.dp))
+                        } else if (media != null) {
                             Column(Modifier.fillMaxWidth()) {
                                 Spacer(Modifier.height(56.dp))
                                 PlaySourceHeader(quality, fg)
@@ -220,13 +233,13 @@ internal fun DetailPage(
                     }
                 }
             }
-            if (d != null) {
+            if (d != null && !isPreview) {
                 detailLowerSections(d, fg, fgSub, tmdbIsTv, content?.loadImage, openPage)
             }
         }
-        // 336：加载期底已改深色（见 DetailBackdrop），转圈同步用白，避免浅底深圈的白屏观感。
+        // 336 R2：有 preview 时首帧内容已在，不显示转圈；仅无 preview 的纯等待期转圈。
         if (content == null && loading) CircularProgressIndicator(
-            modifier = Modifier.align(Alignment.Center), color = Color.White)
+            modifier = Modifier.align(Alignment.Center), color = fg)
         DetailLoadFeedback(error, content != null, loading,
             onRetry = { if (!loading) reload++ },
             modifier = if (content != null) Modifier.align(Alignment.BottomCenter)

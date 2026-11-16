@@ -350,6 +350,9 @@ internal class EmbyResource private constructor(
         }.getOrNull()
     }
 
+    /** 336 R2：Emby 图需 token，把带鉴权的加载器透传给预览体（首帧用它加载列表海报）。 */
+    fun previewLoader(): suspend (String) -> android.graphics.Bitmap? = ::loadImage
+
     /** 收藏/已看 = 服务端真值覆盖；待看 = 本地。toggle 拦截 FAVORITE/WATCHED 走 Emby。 */
     @Composable
     fun actions(): DetailActions {

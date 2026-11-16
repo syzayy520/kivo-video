@@ -28,6 +28,7 @@ internal class DetailContent(
     val playEpisode: ((EmbyShows.Episode) -> Intent)? = null,
     val loadImage: (suspend (String) -> Bitmap?)? = null,  // Emby 图需 token，TmdbImageCache 不带
     val serverName: String = "",   // 255 #31：日历底栏来源名（Emby 服务器名 / 本地）
+    val preview: Boolean = false,  // 336 R2：列表快照预览体，片源/演员/相似尚未解析，页面暂不显示
 )
 
 internal const val DETAIL_NO_LOCAL_PLAY = "没有匹配的本地视频，请先在资源库添加资源"

@@ -114,3 +114,41 @@ emby/
 - 加载期首帧仍有极短（<1 帧）重组开销，无法归零；改深色后观感与最终态一致，不再"白闪"。
 - TMDB 宽带/跨境是客观上界；本地缓存命中时为磁盘读取（毫秒级）。
 - 缓存不缓存失败响应；密钥/代理配置不变（设备当前无代理，走直连）。
+
+## 八、返工：白改黑是遮羞布，正解是「列表数据 preview 立即上屏」（336 R2）
+
+**用户裁决（2026-11-16 19:25）**：「你把白变成了黑，这也不是好的做法」。
+ reviewed 后承认：第六节那版只是换占位底色，**屏幕在等待期仍然没有任何内容** —— 治标不治本。
+
+### 真正的根因（比第六节更深一层）
+`MovieDetailActivity.intent(context, item: TmdbHome.Item)` 只传了 `EXTRA_ID + EXTRA_TV`。
+而 `TmdbHome.Item` 本身已带齐 **title / overview / rating / posterUrl / posterHeroUrl / backdropUrl / genres / date** ——
+列表卡片就是用这些字段渲染的（图片已在 `TmdbImageCache` 磁盘缓存）。
+⇒ 用户点击时数据**早就在本机**，却被丢弃，详情页再从零发网络请求，才产生"空白期"。
+
+### 正解：preview-then-replace（与 Rex「先出内容再填」同源）
+1. intent 把列表项已有字段全部传入（TMDB / Emby 两路）。
+2. 详情页 `content` 初值 = 用这些字段构造的 `DetailContent` 预览体 ⇒ **首帧即有海报+标题+评分+简介**，
+   且海报走磁盘缓存（毫秒级），无需等 TMDB append 大请求。
+3. `load()` 后台拉完整详情，成功后**整体替换** content（演员/剧照/相似/播放源补上）。
+   替换前后主体字段值一致 ⇒ 视觉零跳变。
+4. **撤销第六节的白改黑补丁**：`DetailBackdrop` 恢复 `pageBackground` 占位、`DetailPage` 转圈恢复 `fg` —— 
+   因为不再有"数据全无"的空白期，深色占位失去意义；保留反而是无用改动（违反铁律：不留被替代代码）。
+
+### 文件家族树（R2，先看树再写）
+```
+ui/detail/
+├── DetailPreview.kt        [新] 单职责：intent 字段 → 预览用 TmdbDetail.Details/DetailContent
+├── MovieDetailActivity.kt  [改] intent()/embyIntent() 传全字段；onCreate 读字段构造 previewContent
+├── DetailPage.kt           [改] 新增 previewContent 参数；content 初值=preview；
+│                                load() 成功再替换；撤销转圈白色改动
+└── DetailBackdrop.kt       [改] 撤销第六节黑底/抑制渐变，恢复原样
+```
+- 预览体是**过渡态**，不是第二套详情页：共用 `DetailPage` 全套渲染，只把网络详情换成列表已有数据。
+- `load()` 失败不再清空已显示的 preview（内容在、只是次要字段缺）⇒ 比原来"加载失败整页空"更稳。
+- 不改任何 UI 组件、不新增设置项；最终视觉零变化。
+
+### 证据要求（R2）
+- 录屏抽帧：点击后**第 1～2 帧**就出现海报+标题（对比旧版第 7～13 帧才出）。
+- 采样首帧中心像素不再是纯色占位底，而是海报图像。
+- 说明诚实边界：preview 的简介/评分来自列表快照，完整详情到位后可能被更精确值替换（一次无感刷新）。

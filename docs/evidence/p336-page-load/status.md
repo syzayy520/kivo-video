@@ -44,3 +44,40 @@
 - 加载期仍有 <1 帧重组开销，无法归零；改深色后与最终态一致，不再"白闪"。
 - 首页/详情骨架占位按铁律「不写 UI」未加（与 Rex 的客观差距，登记不隐瞒）。
 - 多源聚合/反代属新架构，不在本次范围；设备当前 TMDB 直连无代理。
+
+## R2 返工（用户裁决「把白变成黑不是好做法」，2026-11-16 19:25）
+
+### 承认错误
+上面第 3 层修复（白改黑）只是换占位底色，**等待期屏幕仍无任何内容**——治标不治本。
+应用户要求撤销：`DetailBackdrop` 恢复 `pageBackground`、`DetailPage` 转圈恢复 `fg`，黑色占位改动全部移除。
+
+### 真正根因
+`MovieDetailActivity.intent(context, item)` 只传 `id/isTv`，把 `TmdbHome.Item` 已有的
+**title/overview/rating/posterUrl/posterHeroUrl/backdropUrl/genres/date** 全丢了。
+列表卡片就是用这些渲染的（图已在磁盘缓存）——点击时数据早在本机，却被丢弃再从零发网络。
+
+### 正解：preview-then-replace（与 Rex 先出内容再填同源）
+- 新建 `DetailPreview.kt`（70 行，单职责）：intent 字段 → 预览 `TmdbDetail.Details`；
+  TMDB 首页/搜索、Emby 入口、相似作品三处 `intent()` 都填全字段。
+- `DetailContent` 加 `preview` 标记；`DetailPage` 初值 = preview content ⇒ **首帧即海报+标题+评分+简介**；
+  吸色 effect 跟随幕布 URL（preview 上屏当帧就采，避免浅灰块）；`load()` 成功整体替换，失败保留 preview。
+  preview 阶段跳过未解析的片源/季集/演员/相似区块（不留"没有匹配本地视频"误导）。
+- Emby 图需 token：`EmbyResource.previewLoader()` 透传带鉴权加载器给预览体。
+
+### 真机铁证（K40，清 JSON 缓存的最坏情况，TMDB 详情仍走网络 STORE）
+- 日志：`1794828898130 [tmdb-cache] STORE movie/1263337?append_to_response=...` —— 详情主请求确实走网络。
+- 抽帧宫格 `preview_final_grid.png`（6×5，每格 0.1s，每格 0.1s）：
+  - 第 1–16 格：首页；
+  - **第 17 格（≈1.6s）：详情页首次出现，第一帧就是完整海报大图 + "野兽之心"标题**，
+    此前此后无任何纯白/纯黑/转圈等待格。
+  - 对比最原始版 `detail_in_grid.png`（无缓存无 preview，白屏那版）：详情页出现后有 7–9 格白屏 + 转圈。
+  - 目录内 `detail_after_fix_grid.png`/`detail_final_grid.png` 是中间"白改黑"返工版证据，已撤销；
+    最终版以 `preview_final_grid.png` 为准（首帧即内容，不再靠换底色掩盖）。
+- 标题一致性核对：`api.tmdb.org/3/movie/1263337?language=zh-CN` → `title=野兽之心 / original=Heart of the Beast`，
+  与 preview 标题一致，无替换跳变。（海报上烧的"狂野雄心"是海报自带译名，非标题字段，同一部片。）
+- 编译 `BUILD SUCCESSFUL`；7 文件均 <300 行（DetailPage 266）；白改黑补丁零残留。
+
+### R2 诚实边界
+- preview 的简介/评分是列表快照，完整详情到位后会被更精确值替换（同部片，视觉基本无感）。
+- 点击→详情出现约 1.6s 中包含 Activity 切换动画 + tap 响应，非详情页加载等待；详情页本身首帧完整。
+- 骨架占位仍未加（铁律不写 UI），但 preview 已用真实列表数据替代了空白，观感上不再是"白屏等待"。

@@ -87,9 +87,16 @@ internal fun LazyListScope.detailLowerSections(
             Spacer(Modifier.height(10.dp))
             SimilarList(d.similar.filter { it.id > 0 && it.id != d.id }.take(8), fg, fgSub,
                 onOpen = { similar ->
+                    // 336 R2：相似作品卡片已有标题/海报/评分，带上做预览首帧，详情后台补。
                     openPage(Intent(context, MovieDetailActivity::class.java)
                         .putExtra(MovieDetailActivity.EXTRA_ID, similar.id)
-                        .putExtra(MovieDetailActivity.EXTRA_TV, tmdbIsTv))
+                        .putExtra(MovieDetailActivity.EXTRA_TV, tmdbIsTv)
+                        .putExtra(DetailPreview.EXTRA_TITLE, similar.title)
+                        .putExtra(DetailPreview.EXTRA_DATE, similar.date)
+                        .putExtra(DetailPreview.EXTRA_OVERVIEW, similar.overview)
+                        .putExtra(DetailPreview.EXTRA_RATING, similar.rating)
+                        .putExtra(DetailPreview.EXTRA_POSTER, similar.posterUrl)
+                        .putExtra(DetailPreview.EXTRA_HERO, similar.posterUrl))
                 })
         }
     }
