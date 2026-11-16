@@ -1677,3 +1677,61 @@ UI 显示"正在播放"，用户无限干等。
 表现为"左右滑调亮度/音量"。已补 `detectHorizontalDragGestures` + HUD（详见 318）。
 
 证据：`docs/evidence/p317-vo-surface-lost/`（OSD）、`docs/evidence/p318-gesture-audit/`（手势）。
+
+---
+
+## 三十三、317 下午公网两臂终判（2026-11-16 16:44–18:01，用户裁决「回到主线，现在正是下午」）
+
+> 承接 §九 / §12.7 挂了多天的「卡不卡终判」。这次在**下午窗口**跑（夜间源站快、判不了），
+> 硬解口径 gpu-next、片源 485 1080p（同 MediaSourceId）、每臂 300s 纯净采样。
+> 三臂全部 `FALLBACK=0`、前台播放器校验通过、采样全程零截图不并发 adb。
+
+### 33.1 前置与源站基线（方法论 2）
+- 时段：A1 起 16:44 / B 起 17:50 / A2 复跑 17:56，均在下午；源站会老化，数字必带基线。
+- 源站基线：本机 curl `-r 0-8388608` = **3.15 / 3.69 MB/s**；K40 设备侧 run-as curl = **2.84 MB/s**
+  （206，8,388,609B / 2.96s）。需求 501 KB/s（485 4.1Mbps）⇒ 带宽有 5–7 倍余量。
+- **禁续播修正**：`p274_soak.sh` 本轮补 `&kivo.run=<label>-<ts>` 唯一 query（watch.json 按完整
+  playUrl 存续播位，见 `PlayerSessionBridge.watchKey()`）。Emby 忽略未知参数（curl 实测 206）
+  ⇒ 每臂从 0 起播，A/B 起点相同（落实 11-15 方法论增补 2，堵住续播位隐形变量）。
+
+### 33.2 三臂数据（权威判据）
+| 判据 | A1 `ko=0` 首跑 | B `ko=1` | A2 `ko=0` 复跑 |
+|---|---|---|---|
+| 上屏帧率 | 18.30 fps ❌ | 58.86 fps ⚠️ | **60.16 fps** ✅ |
+| 漏采窗口 | 0 段 ✅ | 9 段/7.2s ❌ | 1 段/32ms（可忽略） |
+| `>200ms` / max | 2 次 / 237.8ms | 1 次 / 260.0ms | 1 次 / 750.5ms |
+| **Enter buffering** | **0** | **0** | **0** |
+| **Video frame dropped** | **0** | **0** | **0** |
+| acquireLatestImage 失败 | **2485** | 0 | **0** |
+| Render queue underrun | 1 | 25 | 28 |
+| 公网连接退化/换连接 | 4 | 7 | 6 |
+| origin chunk / FALLBACK | 59 / 0 | 63 / 0 | 62 / 0 |
+| 首帧耗时 | 7.545s | 3.588s | 5.177s |
+
+### 33.3 ★ A1 首跑 18.30fps = 随机 GPU 故障，不是 keepalive 策略问题
+- A1 在 mpv 时钟 18.989s 出现 `Waiting for frame timed out` → `acquireLatestImage failed: -30001`
+  → `Mapping hardware decoded surface failed` → **`Could not render image for frame mixing.. disabling!`**，
+  之后 aimagereader 硬解 surface 映射持续失败直到 303.9s（2485 次），libplacebo 帧插值被永久禁用
+  ⇒ 上屏退化到源 23.976fps 附近（实测 18.30）。`frame mixing disabling` 在**全部历史证据中仅此一次**。
+- **同参数复跑 A2（ko=0）完全不复现**：60.16fps、acquireLatestImage 失败 0、Enter buffering 0、dropped 0。
+  ⇒ 判定为**一次性 GPU/libplacebo 初始化竞态**（随机），**与 ko=0/1 无因果**（keepalive 管 HTTP 连接复用，
+  acquireLatestImage 是 MediaCodec surface/GPU 层，无链路）。默认 ko=0 配置无需改。
+- 因果判据（方法论 6，看供给不看帧率）：A1 虽 4 次公网退化，但 `FALLBACK=0`、chunk 持续在供、
+  rate 爬回 1.9–2.0M/s、缓存 dur 始终 ≥10s、underrun=false ⇒ 供给健康，18.30fps 纯属渲染侧假象。
+
+### 33.4 结论（诚实边界）
+- **两臂都无卡顿**：A2 / B 三臂 `Enter buffering=0 / dropped=0`，300s 全程连续渲染。
+  keepalive=0（默认）与 =1（回退臂）在**不卡顿**这一终判上等效；首帧 ko=1 略快（3.6s vs 5.2–7.5s），
+  与历史同向，但都 <8s，不构成改成 keepalive=1 的理由（274 已证 =1 长连接吞吐衰减，应废弃）。
+- **帧率口径**：A2 60.16fps（漏采可忽略）可信；B 58.86fps 因 9 段漏采（块间隔 max 4.02s > 2.1s
+  环形缓冲，疑似采样期 dumpsys 抖动）**不作卡顿结论**，但内核全程事件可信且与 A2 一致。
+- **SenPlayer 同源同时段对照 = `not_measured + reason`**（沿用 §12.1/§12.7 裁决，非本次遗漏）：
+  真机复核 `dumpsys package com.wuziqi.SenPlayer`（v12/targetSdk36）VIEW intent-filter 仍只有
+  `content`/`file`，**无 http/https** ⇒ 吃不了公网 Emby 直链；数据目录非 debuggable 不可读，
+  手工配 Emby 源既可能误触更新（11-15 事故）又走其自有客户端策略、非严格同 URL。
+  ⇒ 不硬凑，按 275 §6.1 写未测。
+- **仍不能宣布整体对齐/超越 SenPlayer**：严格同 URL 对照不可得、第二 SoC 未验证、真 HDR PQ surface /
+  DoVi FEL 未闭合——§12.7 边界一字不改。本轮只闭合了「下午公网卡顿终判」这一项。
+
+证据：`docs/evidence/p274-startup/fix-nokeepalive-hw-afternoon{,-r2}/`、
+`docs/evidence/p274-startup/fix-keepalive-hw-afternoon/`（各含 latency.txt / kernel.log / net.log / diag.log / playing.png）。

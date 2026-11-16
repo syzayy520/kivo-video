@@ -65,6 +65,12 @@ cd "C:/kivo video" || exit 1
 OUT="docs/evidence/p274-startup/$LABEL"
 mkdir -p "$OUT"
 
+# ---- 禁续播（A/B 起点相同）----
+# watch.json 按**完整 playUrl** 存续播位（PlayerSessionBridge.watchKey = playUrlOverride）。
+# 两臂若用同一 URL，第二臂会读第一臂写下的续播位 ⇒ 起点不同、对照作废（279 方法论增补 2）。
+# 追加唯一 query：Emby 忽略未知参数（curl 实测 206），但 watchKey 变成新键 ⇒ 每臂从 0 起播。
+PLAY_URL="${URL}&kivo.run=${LABEL}-$(date +%s)"
+
 # ---- 起播 ----
 # 291/292：三个修复开关默认 on；置 off 即为 A/B 对照臂（一次装包跑多臂归因）。
 $ADB shell "setprop debug.kivo.originKeepAlive $KEEPALIVE"
@@ -78,9 +84,9 @@ GPFLAG=""
 if [ "$GPUNEXT" = "1" ]; then GPFLAG="--ez kivo.gpuNext true"; fi
 TOKENFLAG=""
 if [ -n "$TOKEN" ]; then TOKENFLAG="--es kivo.embyToken '$TOKEN'"; fi
-$ADB shell "am start -n $ACT --es kivo.playurl '$URL' $TOKENFLAG \
+$ADB shell "am start -n $ACT --es kivo.playurl '$PLAY_URL' $TOKENFLAG \
   --el kivo.playSize $SIZE --es kivo.label '$LABEL' $GPFLAG" >/dev/null 2>&1
-echo "T0=$(date '+%Y-%m-%d %H:%M:%S') keepalive=$KEEPALIVE gpuNext=$GPUNEXT secs=$SECS url=$URL"
+echo "T0=$(date '+%Y-%m-%d %H:%M:%S') keepalive=$KEEPALIVE gpuNext=$GPUNEXT secs=$SECS url=$PLAY_URL"
 
 # ---- 等 (BLAST) 上屏层就绪（每次启动 id 都变，带 30s 重试）----
 LAYER_BASE="SurfaceView[$PKG/$PKG.ui.compose.PlayerComposeActivity](BLAST)"
