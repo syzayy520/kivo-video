@@ -10,5 +10,15 @@
              【已回退主题拆分】曾拆成 Base + 派生以便 v31 加系统启动页属性，
              但那是今晚唯一触及播放页的改动，回退它验证"进度条多一条"是否因此而来。 -->
         <item name="android:windowBackground">@color/brand_startup_background</item>
+        <!-- 335 · 页面切换淡入淡出，消除进出页面的黑/白空窗。只改窗口过渡，
+             不动 windowBackground/页面内部 UI（避免重蹈改主题导致进度条异常的覆辙）。 -->
+        <item name="android:windowAnimationStyle">@style/KivoWindowAnimation</item>
+    </style>
+
+    <style name="KivoWindowAnimation">
+        <item name="android:activityOpenEnterAnimation">@anim/kivo_fade_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/kivo_fade_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/kivo_fade_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/kivo_fade_out</item>
     </style>
 </resources>

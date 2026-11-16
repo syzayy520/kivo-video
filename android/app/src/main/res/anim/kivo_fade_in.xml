@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 335 · Activity 进入淡入：消除页面切换时的黑/白空窗。
+     短时长（140ms）只Cover窗口交接，不拖慢体感；不改任何页面内部 UI。 -->
+<alpha xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fromAlpha="0.0"
+    android:toAlpha="1.0"
+    android:duration="140" />

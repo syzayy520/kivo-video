@@ -34,7 +34,8 @@ class EmbySessionModel : ViewModel() {
     private val posters = object : LruCache<String, Bitmap>(24 * 1024 * 1024) {
         override fun sizeOf(key: String, value: Bitmap) = value.allocationByteCount
     }
-    private var savedName: String? = null
+    // 335：改为 state —— serverName 后台异步刷新时要触发顶栏重组。
+    private var savedName by mutableStateOf<String?>(null)
     private var savedStarted = false
     fun openSaved(context: android.content.Context, id: String, retry: Boolean = false) {
         if (savedStarted && !retry) return
@@ -76,24 +77,31 @@ class EmbySessionModel : ViewModel() {
         val address = server.trim()
         val user = username.trim()
         val secret = password
-        var fetchedName: String? = null
         work = pool.submit {
             val result = runCatching {
                 val c = EmbyClient(address)
                 val a = c.login(user, secret)
                 val list = c.items(a)
-                // 317 · 顺手取服务器自己的名字（比域名/源记录名更可读）。
-                fetchedName = c.publicServerName()
                 Triple(c, a, list)
             }
             main.post {
                 if (ticket != generation) return@post
                 connecting = false
                 result.fold(onSuccess = { (c, a, list) ->
-                    fetchedName?.let { savedName = it }
+                    // 335：login+items 成功即显示内容，不再把 ServerName 网络查询串在前面。
+                    // 顶栏此时用 openSaved 写入的源记录名（savedName 已有值），无空白。
                     client = c; auth = a; library.attach(c, a, list)
                     inLibrary = true
                     loadViews(c, a)
+                    // 服务器自有名字（nyamedia 等）后台补查，成功才覆盖源名；失败保留源名并留日志。
+                    pool.submit {
+                        val pretty = runCatching { c.publicServerName() }.getOrNull()
+                        if (pretty == null) {
+                            com.kivo.cinema.net.NetDiag.log("[emby] ServerName 查询失败，保留源名 $savedName")
+                        } else {
+                            main.post { if (ticket == generation) savedName = pretty }
+                        }
+                    }
                 }, onFailure = { error = friendlyError(it) })
             }
         }

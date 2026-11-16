@@ -31,6 +31,7 @@ import com.kivo.cinema.tmdb.trailer.TrailerResult
 import com.kivo.cinema.ui.design.HeroCarousel
 import com.kivo.cinema.ui.design.home.HeroCard
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 
 /**
@@ -77,8 +78,13 @@ private fun EmbyBrowseBody(
     var heroes by remember(model) { mutableStateOf<List<EmbyHeroItem>?>(null) }
     var resumed by remember(model) { mutableStateOf<List<EmbyHeroItem>>(emptyList()) }
     LaunchedEffect(model) {
-        heroes = withContext(Dispatchers.IO) { model.heroItems(context) }
-        resumed = withContext(Dispatchers.IO) { model.resumeItems() }
+        // 335：hero 与「继续观看」是两个独立网络请求，原来串行（实测间隔 ~3.7s）
+        // ⇒ 首屏被第二个请求拖住。并行发起；hero（首屏主角）一拿到就先显示，
+        // 「继续观看」（下方横排）随后补上，都不用等对方。
+        val h = async(Dispatchers.IO) { model.heroItems(context) }
+        val r = async(Dispatchers.IO) { model.resumeItems() }
+        heroes = h.await()
+        resumed = r.await()
     }
     // 317 · **完全照抄首页（DiscoverPage）的吸色写法**。
     //
