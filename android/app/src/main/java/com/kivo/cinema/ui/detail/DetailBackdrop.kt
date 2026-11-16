@@ -32,7 +32,9 @@ internal fun DetailBackdrop(
     var failed by remember(art) { mutableStateOf(false) }
     val missing = art.isBlank() || failed
     Box(Modifier.fillMaxSize().background(when {
-        details == null -> com.kivo.cinema.ui.design.DesignTokens.pageBackground
+        // 336：加载期用深色底（与数据到位后的海报深底一致），消除进入详情瞬间的浅色白屏。
+        // 数据到位后 details!=null，走 missing/海报逻辑，最终视觉完全不变。
+        details == null -> Color.Black
         missing -> field.value
         else -> Color.Black
     }).clipToBounds()) {
@@ -50,7 +52,9 @@ internal fun DetailBackdrop(
             fontSize = 14.sp, textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(top = 200.dp),
         )
-        Box(Modifier.fillMaxSize().drawBehind {
+        // 336：加载期（details==null）不铺吸色渐变——初始 field 是浅色 pageBackground，
+        // 会在深底上画出一大片浅灰白块（录屏实证）。数据到位、field 采到海报色后再渐进绘制。
+        if (details != null) Box(Modifier.fillMaxSize().drawBehind {
             val color = field.value
             val shift = (scrollDp() - pullDp) * density
             drawRect(Brush.verticalGradient(

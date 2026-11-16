@@ -113,15 +113,25 @@ class TmdbHome(private val client: TmdbClient) {
 
     private fun get(path: String): Pair<JSONObject?, String?> {
         if (client.apiKey().isEmpty()) return null to "offline"
+        val url = auth("${TmdbClient.API_BASE}$path")
+        // 336：首页列表缓存（12h TTL，热映/趋势更新快于详情）。失败不落盘，仍按原错误分类上报。
+        TmdbResponseCache.get(url, TmdbResponseCache.TTL_LIST)?.let { cached ->
+            val parsed = runCatching { JSONObject(cached) }.getOrNull()
+            if (parsed != null) return parsed to null
+            TmdbResponseCache.invalidate(url)
+        }
         return try {
-            val conn = client.openConnection(auth("${TmdbClient.API_BASE}$path"))
+            val conn = client.openConnection(url)
             conn.connectTimeout = 8000
             conn.readTimeout = 15000
             try {
                 val code = conn.responseCode
                 val body = (if (code in 200..299) conn.inputStream else conn.errorStream)
                     ?.bufferedReader()?.use { it.readText() } ?: ""
-                if (code !in 200..299) null to "server" else JSONObject(body) to null
+                if (code !in 200..299) null to "server" else {
+                    TmdbResponseCache.put(url, body)
+                    JSONObject(body) to null
+                }
             } finally { conn.disconnect() }
         } catch (e: Exception) {
             null to kindOf(e)

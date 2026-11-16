@@ -269,17 +269,26 @@ class TmdbDetail(private val client: TmdbClient) {
 
     private fun get(path: String): Pair<JSONObject?, String?> {
         if (client.apiKey().isEmpty()) return null to "offline"
+        val url = "${TmdbClient.API_BASE}$path" +
+            (if (path.contains("?")) "&api_key=${client.apiKey()}"
+             else "?api_key=${client.apiKey()}")
+        // 336：详情页缓存（对标 Rex "Detail cache duration"）。命中即秒开，不再每次跨境 2.6s。
+        TmdbResponseCache.get(url, TmdbResponseCache.TTL_METADATA)?.let { cached ->
+            val parsed = runCatching { JSONObject(cached) }.getOrNull()
+            if (parsed != null) return parsed to null
+            TmdbResponseCache.invalidate(url)
+        }
         return try {
-            val url = "${TmdbClient.API_BASE}$path" +
-                (if (path.contains("?")) "&api_key=${client.apiKey()}"
-                 else "?api_key=${client.apiKey()}")
             val conn = client.openConnection(url)
             conn.connectTimeout = 8000
             conn.readTimeout = 15000
             val code = conn.responseCode
             val body = (if (code in 200..299) conn.inputStream else conn.errorStream)
-                ?.bufferedReader()?.readText() ?: ""
-            if (code !in 200..299) null to "server" else JSONObject(body) to null
+                ?.bufferedReader()?.use { it.readText() } ?: ""
+            if (code !in 200..299) null to "server" else {
+                TmdbResponseCache.put(url, body)
+                JSONObject(body) to null
+            }
         } catch (e: Exception) {
             null to "lost"
         }

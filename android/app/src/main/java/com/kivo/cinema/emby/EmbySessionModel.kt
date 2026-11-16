@@ -127,14 +127,21 @@ class EmbySessionModel : ViewModel() {
      *
      * 【为什么跨库】Rex 的服务器首页 hero 是整服精选，不是某个库的前几个 ——
      * 用户进服务器第一眼是想看"最近有什么新的"，而不是"某个库的第一条"。
+     *
+     * 336 · 拆成 [heroRaw] + [enrichHeroRatings] 两步：Emby 数据先出首屏，
+     * TMDB 评分后台补。原 heroItems 把 16 个 TMDB 请求全 `get()` 完才返回，
+     * 首屏 hero 被评分拖住好几秒（net-diag 铁证：Emby 数据早已到，界面仍空位）。
      */
-    fun heroItems(context: android.content.Context): List<com.kivo.cinema.emby.EmbyHeroItem> {
+    fun heroRaw(): List<com.kivo.cinema.emby.EmbyHeroItem> {
         val c = client ?: return emptyList(); val a = auth ?: return emptyList()
-        val raw = runCatching { com.kivo.cinema.emby.EmbyHeroSource(c).recent(a, limit = 8) }
+        return runCatching { com.kivo.cinema.emby.EmbyHeroSource(c).recent(a, limit = 8) }
             .getOrDefault(emptyList())
+    }
+
+    /** 336 · 后台给 hero 补 TMDB 评分（4 并发 + 磁盘缓存命中即快）。查不到留 null ⇒ UI 回退 Emby 分。 */
+    fun enrichHeroRatings(context: android.content.Context,
+                          raw: List<com.kivo.cinema.emby.EmbyHeroItem>): List<com.kivo.cinema.emby.EmbyHeroItem> {
         if (raw.isEmpty()) return raw
-        // 317 · 并行补 TMDB 评分（4 并发）。8 个条目 × 2 次请求，串行要 3~4 s，
-        // 并行后约 2 轮（~1 s）。查不到就留 null ⇒ UI 回退 Emby 自己的分并标 "Emby"。
         val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
         return try {
             val futures = raw.map { item ->

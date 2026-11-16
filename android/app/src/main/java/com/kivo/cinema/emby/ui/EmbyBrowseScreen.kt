@@ -78,13 +78,17 @@ private fun EmbyBrowseBody(
     var heroes by remember(model) { mutableStateOf<List<EmbyHeroItem>?>(null) }
     var resumed by remember(model) { mutableStateOf<List<EmbyHeroItem>>(emptyList()) }
     LaunchedEffect(model) {
-        // 335：hero 与「继续观看」是两个独立网络请求，原来串行（实测间隔 ~3.7s）
-        // ⇒ 首屏被第二个请求拖住。并行发起；hero（首屏主角）一拿到就先显示，
-        // 「继续观看」（下方横排）随后补上，都不用等对方。
-        val h = async(Dispatchers.IO) { model.heroItems(context) }
+        // 335：hero 与「继续观看」并行发起，谁先到先显示。
+        // 336：hero 数据（Emby 直连，快）一到就先出首屏；TMDB 评分改后台补，
+        // 不再让 16 个评分请求挡住整页（net-diag 实证：Emby 数据早已到，界面仍空位）。
+        val h = async(Dispatchers.IO) { model.heroRaw() }
         val r = async(Dispatchers.IO) { model.resumeItems() }
-        heroes = h.await()
+        val raw = h.await()
+        heroes = raw                       // 首屏立即可见（此刻用 Emby 自己的分兜底）
         resumed = r.await()
+        // 评分后台补：拿到后替换，卡片重组只更新评分角标，不闪布局。
+        val enriched = async(Dispatchers.IO) { model.enrichHeroRatings(context, raw) }
+        enriched.await().let { heroes = it }
     }
     // 317 · **完全照抄首页（DiscoverPage）的吸色写法**。
     //

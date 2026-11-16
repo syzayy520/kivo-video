@@ -224,8 +224,9 @@ internal fun DetailPage(
                 detailLowerSections(d, fg, fgSub, tmdbIsTv, content?.loadImage, openPage)
             }
         }
+        // 336：加载期底已改深色（见 DetailBackdrop），转圈同步用白，避免浅底深圈的白屏观感。
         if (content == null && loading) CircularProgressIndicator(
-            modifier = Modifier.align(Alignment.Center), color = fg)
+            modifier = Modifier.align(Alignment.Center), color = Color.White)
         DetailLoadFeedback(error, content != null, loading,
             onRetry = { if (!loading) reload++ },
             modifier = if (content != null) Modifier.align(Alignment.BottomCenter)

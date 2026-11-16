@@ -16,6 +16,8 @@ import java.net.URL
  */
 class TmdbClient(context: Context) {
 
+    init { TmdbResponseCache.init(context.cacheDir) }
+
     companion object {
         // TMDB's API hostname; keep it shared by home, details and rating requests.
         const val API_BASE = "https://api.tmdb.org/3"
@@ -100,18 +102,28 @@ class TmdbClient(context: Context) {
             } ?: ""
             val url = "$API_BASE/search/${if (series) "tv" else "movie"}?api_key=${apiKey()}" +
                 "&language=zh-CN&query=$q$yq"
-            val conn = openConnection(url)
-            conn.connectTimeout = 8000
-            conn.readTimeout = 15000
-            val code = conn.responseCode
-            val body = (if (code in 200..299) conn.inputStream else conn.errorStream)
-                ?.bufferedReader()?.readText() ?: ""
-            if (code !in 200..299) return null
-            val results = JSONObject(body).getJSONArray("results")
+            // 336：命中磁盘缓存直接用；否则回源并落盘。解析失败删缓存重建（不静默降级）。
+            val body = TmdbResponseCache.get(url, TmdbResponseCache.TTL_METADATA)
+                ?: fetchText(url)?.also { TmdbResponseCache.put(url, it) }
+                ?: return null
+            val results = runCatching { JSONObject(body).getJSONArray("results") }.getOrNull()
+                ?: run { TmdbResponseCache.invalidate(url); return null }
             if (results.length() == 0) null else results.getJSONObject(0)
         } catch (e: Exception) {
             null
         }
+    }
+
+    /** 统一的成功文本请求：仅 2xx 返回正文，其它一律 null（错误信息由调用方按语义上报）。 */
+    private fun fetchText(url: String): String? {
+        val conn = openConnection(url)
+        return try {
+            conn.connectTimeout = 8000
+            conn.readTimeout = 15000
+            val code = conn.responseCode
+            if (code !in 200..299) return null
+            conn.inputStream?.bufferedReader()?.use { it.readText() }
+        } finally { conn.disconnect() }
     }
 
     /** 254 D2：片名+年份 → TMDB id（详情智能填充入口）。无匹配 → null（调用方走 Emby 文本兜底）。 */
