@@ -111,6 +111,10 @@ class PlayerComposeActivity : ComponentActivity() {
     internal var toastText by mutableStateOf("")
     internal var hudKind by mutableStateOf<com.kivo.cinema.ui.compose.player.PlayerHudKind?>(null)
     internal var hudFraction by mutableStateOf(0f)
+    /** 317：横滑 seek HUD 的目标时刻（只在 SEEK_* 时被读）。 */
+    internal var hudSeekTargetMs by mutableStateOf(0L)
+    /** 317：横滑相对起点的偏移（负=后退），HUD 第二行用。 */
+    internal var hudSeekDeltaMs by mutableStateOf(0L)
     /** 竖滑 HUD 的延时淡出令牌：再次滑动前先撤销上一个，避免旧计时器提前收掉 HUD。 */
     internal var hudHideToken: Runnable? = null
     /** 顶栏实时网速，来自 mpv `cache-speed`（bytes/s、1s 窗口），不是自己估的。 */

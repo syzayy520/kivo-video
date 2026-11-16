@@ -189,7 +189,20 @@ internal fun PlayerSeekTrack(
             val h = with(density) { thickness.dp.toPx() }
             val y = (size.height - h) / 2f
             val radius = CornerRadius(h / 2f)
-            val f = if (dragging) dragFraction else smoothFraction
+            // 317：拖动中的进度条要"实时跟手"。
+            //
+            // 三种来源，优先级从高到低：
+            // ① 手指正在拖进度条（dragging）⇒ 用拖动比例；
+            // ② **全屏横滑 seek**（previewMs >= 0）⇒ 用目标时刻算比例
+            //    —— 横滑时内核的 positionMs 还没跟上（seek 是异步的），
+            //    只有读 previewMs 才能让进度条立刻跟着手指走；
+            // ③ 平时 ⇒ 平滑后的真实播放位置。
+            val f = when {
+                dragging -> dragFraction
+                previewMs >= 0 && durationMs > 0 ->
+                    (previewMs.toFloat() / durationMs).coerceIn(0f, 1f)
+                else -> smoothFraction
+            }
             // 玻璃质感＝半透明填充 + 1px 提亮描边（v3.2 实测），不是实色色块。
             val rim = with(density) { 1.dp.toPx() }
 

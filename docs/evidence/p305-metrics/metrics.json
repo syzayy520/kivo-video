@@ -1,0 +1,38 @@
+{
+  "label": "play",
+  "render_mode": "gpu-next",
+  "device": {"model": "M2012K11AC", "soc": "kona", "android": 33},
+  "stages_ms": {
+    "startup_total": 12065,
+    "source_ready": "not_measured",
+    "kernel_created": 1968,
+    "loadfile_to_first_frame": 10089,
+    "first_decode": "not_measured: mpv 未对外暴露解码完成事件",
+    "first_present": "not_measured: 首帧回调本身已是\"已上屏\"，无法再分段"
+  },
+  "metrics": {
+    "buffer_runway_ms": 52202,
+    "frames_dropped_vo": "not_measured: mpv 属性读不到",
+    "frames_dropped_total": 0,
+    "render_gap_ms": "not_measured: 由 tools/p274_sf_latency.mjs 采 SurfaceFlinger latency",
+    "read_latency_ms": "not_measured: 见 OriginLatencyStats（取数层自带统计）",
+    "seek_total_ms": "not_measured: 尚未埋点",
+    "network_recovery_ms": "not_measured: 本次会话未发生断网→恢复",
+    "thermal_context": {"status":"NONE","code":0,"max_temp_c":62.0}
+  },
+  "seeks": {
+    "count": 0,
+    "total_ms_p50": "not_measured",
+    "total_ms_p95": "not_measured",
+    "total_ms_max": "not_measured",
+    "error_ms_p50": "not_measured",
+    "error_ms_max": "not_measured",
+    "failed": 0,
+    "items": []
+  },
+  "video_params": "{\"pixelformat\":\"mediacodec\",\"w\":1920,\"h\":804,\"dw\":1920,\"dh\":804,\"crop-x\":0,\"crop-y\":0,\"crop-w\":1920,\"crop-h\":804,\"aspect\":2.388060,\"aspect-name\":\"Panavision\",\"par\":1.000000,\"sar\":2.388060,\"sar-name\":\"Panavision\",\"colormatrix\":\"bt.709\",\"colorlevels\":\"limited\",\"primaries\":\"bt.709\",\"gamma\":\"bt.1886\",\"sig-peak\":0.000000,\"light\":\"display\",\"chroma-location\":\"mpeg2/4/h264\",\"stereo-in\":\"mono\",\"rotate\":0}",
+  "failure": null,
+  "notes": {},
+  "writes": 1,
+  "wall_ms": {"begin": 1794772624704, "finish": 1794772638899}
+}

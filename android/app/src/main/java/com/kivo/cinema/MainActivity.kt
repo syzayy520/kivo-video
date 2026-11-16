@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.kivo.cinema.library.MediaItem
 import com.kivo.cinema.stats.WatchStore
@@ -37,6 +38,13 @@ class MainActivity : ComponentActivity() {
     /** 默认首页已处理（一次性动作；跨重建靠 savedInstanceState 记）。 */
     internal var defaultHomeHandled = false
 
+    // 312 · 品牌启动动画
+    /** 策略与计划（"已播完"的状态在 Compose 里用 remember 持有）。 */
+    private val startupPolicy by lazy { com.kivo.cinema.ui.brand.StartupPolicy(this) }
+    private val startupPlan by lazy {
+        startupPolicy.planForColdStart(System.currentTimeMillis())
+    }
+
     // 237-A：观看数据域 + 评分源 + 首页 TMDB 节
     internal val watchStore by lazy { WatchStore(this) }
     internal val tmdb by lazy { TmdbClient(this) }
@@ -56,7 +64,26 @@ class MainActivity : ComponentActivity() {
         window.navigationBarColor = android.graphics.Color.TRANSPARENT
         com.kivo.cinema.ui.design.TmdbImageCache.diskDir = cacheDir
         TmdbClient.setShared(TmdbClient(this))
-        setContent { MainShell(this, shellState) }
+        // 312 · 品牌启动动画：只有**冷启动**（savedInstanceState == null）才播，
+        // 进程被系统杀掉再恢复（savedInstanceState 非 null）不重播。
+        val coldStart = savedInstanceState == null
+        setContent {
+            MainShell(this, shellState)
+            // 【必须用 Compose State】之前用 Activity 普通字段存"已播完"，
+            // onFinished 里改它**不会触发重组** ⇒ 覆盖层永远留在界面上，
+            // 真机上表现为主页中间残留一条细线（动画停在 t≈0.4 s 的那一帧）。
+            var brandDone by remember { mutableStateOf(false) }
+            if (coldStart && !brandDone) {
+                com.kivo.cinema.ui.brand.StartupOverlay(
+                    plan = startupPlan,
+                    onFinished = {
+                        startupPolicy.markFullShown(System.currentTimeMillis())
+                        startupPolicy.markVersionSeen()
+                        brandDone = true
+                    },
+                )
+            }
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

@@ -1,6 +1,8 @@
 package com.kivo.cinema.stats
 
 import android.content.Context
+import android.util.AtomicFile
+import com.kivo.cinema.net.NetDiag
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -11,12 +13,20 @@ import java.io.File
  * ② 观看统计：按天累计观看毫秒数（统计页柱状图数据源）
  *
  * 持久化 = filesDir/watch.json（同 PrivateStore 模式）。单线程调用方自备同步。
+ *
+ * @param fileName 文件名；默认 `watch.json`。给测试传另一个名字，
+ *   避免 instrumentation 动到用户真实的观看进度。
  */
-class WatchStore(context: Context) {
+class WatchStore(context: Context, fileName: String = "watch.json") {
 
     data class Progress(val positionMs: Long, val durationMs: Long, val updatedAtMs: Long)
 
-    private val file: File = File(context.filesDir, "watch.json")
+    private val file: File = File(context.filesDir, fileName)
+    // 307：原实现用 `file.writeText()` 直接覆写 —— 写到一半掉电/崩溃就留下半个 JSON，
+    // 下次 `load()` 解析失败（且异常被 runCatching 吞掉）⇒ **观看进度与统计静默全丢**。
+    // 改用 AtomicFile（与 [com.kivo.cinema.sources.storage.SourceStore] 同一写法）：
+    // 先写 `.new`、fsync 后再原子改名，任何时刻磁盘上都有一份完整文件。
+    private val disk = AtomicFile(file)
     private val progress = LinkedHashMap<String, Progress>()   // key=path
     private val dailyMs = LinkedHashMap<String, Long>()        // key=yyyy-MM-dd → 观看 ms
     private var loaded = false
@@ -25,9 +35,16 @@ class WatchStore(context: Context) {
     private fun load() {
         if (loaded) return
         loaded = true
-        runCatching {
-            if (!file.exists()) return
-            val root = JSONObject(file.readText())
+        if (!file.exists() && !File(file.path + ".bak").exists()) return
+        val text = try {
+            disk.readFully().toString(Charsets.UTF_8)
+        } catch (e: Exception) {
+            // 读失败（含 `AtomicFile` 自己回滚到 `.bak` 后仍失败）：要说出来，不许静默。
+            NetDiag.log("[watch] 读 watch.json 失败：${e.javaClass.simpleName}: ${e.message}")
+            return
+        }
+        try {
+            val root = JSONObject(text)
             root.optJSONObject("progress")?.let { p ->
                 p.keys().forEach { k ->
                     val o = p.getJSONObject(k)
@@ -37,6 +54,19 @@ class WatchStore(context: Context) {
             root.optJSONObject("daily")?.let { d ->
                 d.keys().forEach { k -> dailyMs[k] = d.getLong(k) }
             }
+        } catch (e: Exception) {
+            // 307：损坏时必须留证据。watch.json 是**每秒级高频写**的文件，
+            // 不能像源列表那样"永不覆盖"（那会让新进度也存不下），
+            // 所以折中：把坏文件改名备份，然后从空开始 —— 历史可查、新进度能存。
+            val backup = File(file.parentFile, "${file.name}.corrupt-${System.currentTimeMillis()}")
+            val moved = runCatching { file.renameTo(backup) }.getOrDefault(false)
+            NetDiag.log(
+                "[watch] watch.json 解析失败（${e.javaClass.simpleName}: ${e.message}）；" +
+                    if (moved) "已备份为 ${backup.name}，本次从空开始"
+                    else "备份失败（原文件保留），本次从空开始",
+            )
+            progress.clear()
+            dailyMs.clear()
         }
     }
 
@@ -49,7 +79,18 @@ class WatchStore(context: Context) {
         }
         val d = JSONObject()
         dailyMs.forEach { (k, v) -> d.put(k, v) }
-        file.writeText(JSONObject().put("progress", p).put("daily", d).toString())
+        val bytes = JSONObject().put("progress", p).put("daily", d)
+            .toString().toByteArray(Charsets.UTF_8)
+        var out: java.io.FileOutputStream? = null
+        try {
+            out = disk.startWrite()
+            out.write(bytes)
+            disk.finishWrite(out)
+        } catch (e: Exception) {
+            // failWrite 会把半成品删掉、回滚到上一份完整文件。
+            disk.failWrite(out)
+            NetDiag.log("[watch] 写 watch.json 失败：${e.javaClass.simpleName}: ${e.message}")
+        }
     }
 
     /** 播放器上报：位置 + 时长 + 本次新增观看毫秒。 */

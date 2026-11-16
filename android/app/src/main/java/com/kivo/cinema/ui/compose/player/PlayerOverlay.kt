@@ -83,8 +83,15 @@ internal fun PlayerOverlay(
     toastText: String,
     hudKind: PlayerHudKind?,
     hudFraction: Float,
+    /** 317：横滑 seek HUD 的目标时刻（SEEK_* 时显示；其余 kind 不用）。 */
+    hudSeekTargetMs: Long,
+    /** 317：横滑的偏移量（负=后退）与总时长，用于两行 HUD。 */
+    hudSeekDeltaMs: Long,
+    hudTotalDurationMs: Long,
     longPressSpeedLabel: String,
     longPressLocked: Boolean,
+    /** 317：长按快进是否**正在生效**（拖动中或已锁定）—— 用于压掉横/竖滑。 */
+    longPressActive: Boolean,
     screenLocked: Boolean,
     lockHintVisible: Boolean,
     audioOnly: Boolean,
@@ -109,6 +116,9 @@ internal fun PlayerOverlay(
     onLockHint: () -> Unit,
     onUnlock: () -> Unit,
     onDoubleTap: (DoubleTapZone) -> Unit,
+    onHorizontalDragStart: () -> Unit,
+    onHorizontalDrag: (Float) -> Unit,
+    onHorizontalDragEnd: (Boolean) -> Unit,
     onVerticalDragStart: (Float) -> Unit,
     onVerticalDrag: (Float) -> Unit,
     onVerticalDragEnd: () -> Unit,
@@ -140,6 +150,10 @@ internal fun PlayerOverlay(
             },
             onDoubleTap = onDoubleTap,
             locked = screenLocked,
+            suppressSwipe = longPressActive,
+            onHorizontalDragStart = onHorizontalDragStart,
+            onHorizontalDrag = onHorizontalDrag,
+            onHorizontalDragEnd = onHorizontalDragEnd,
             onVerticalDragStart = onVerticalDragStart,
             onVerticalDrag = onVerticalDrag,
             onVerticalDragEnd = onVerticalDragEnd,
@@ -218,6 +232,9 @@ internal fun PlayerOverlay(
         )
         // 常挂 + visible 驱动：退出时整棵子树淡出 300ms，而不是被 if 直接摘掉。
         PlayerGestureHud(
+            seekTargetMs = hudSeekTargetMs,
+            seekDeltaMs = hudSeekDeltaMs,
+            totalDurationMs = hudTotalDurationMs,
             visible = hudKind != null && !screenLocked,
             kind = hudKind,
             fraction = hudFraction,

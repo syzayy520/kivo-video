@@ -14,6 +14,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * 253-P3：**libmpv 内核**的播放会话。
@@ -120,6 +121,21 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
 
     /** seek 语义代理（273 v16 拆出来的）。 */
     private val seeks = MpvSeekControl { session }
+
+    /**
+     * 异步 seek 的票据：连续拖动时**只执行最后一个**，中间目标直接跳过。
+     *
+     * 【为什么需要】[seekTo] 是同步等落点（上限 1.5 s）。UI 在主线程调它 ⇒
+     * 松手那一刻主线程被占住 100–216 ms（真机 300 实测），快速拖动会累加成卡顿。
+     * 只把"换线程"还不够：用户拖 5 次会依次执行 5 次，画面逐个跳过去。
+     * ⇒ 用票据比大小，投递时若不是最新就直接返回。
+     */
+    private val seekTicket = AtomicLong()
+
+    /** 异步 seek **实际执行**次数（诊断用：合并生效时应远小于提交次数）。 */
+    @Volatile
+    var seekExecuted = 0
+        private set
 
     /**
      * 启动播放。
@@ -238,8 +254,53 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
         return result.requestId
     }
 
-    fun rebind(surface: Surface?) {
-        val native = session ?: return
+    /**
+     * 异步 seek：**不阻塞调用线程**，连续调用只执行最后一个目标。
+     *
+     * ## 与 [seekTo] 的分工
+     * · [seekTo]：同步等落点，给**探针/instrumentation**用（要拿到确定的结果再断言）；
+     * · 本方法：给**UI**用（手势松手、双击快进）。主线程调用立即返回，画面异步跳。
+     *
+     * ## "取消过期"是怎么做的
+     * 每次调用领一张票（单调递增）。投递到 worker 后先比票：
+     * 如果期间又来了更新的请求，这张票已经过期 ⇒ **直接返回，连 seek 都不发**。
+     * 于是"拖 5 次"只会在内核上执行 1 次（最后一次），而不是排队 5 次逐个跳。
+     *
+     * ## 为什么不另起线程池
+     * [worker] 是会话自己的单线程 —— seek 与 start/poll 天然串行，
+     * 不会出现"上一个 seek 还没落定、下一个已经发出去"的交错状态。
+     * 代价是 seek 期间 poll（200 ms）会推迟，但 seek 完成后位置会被落点直接覆盖，无影响。
+     *
+     * @return 本次请求的票据号（调试用；真正落地的是最后一个）
+     */
+    fun seekToAsync(targetUs: Long, exact: Boolean = false): Long {
+        val ticket = seekTicket.incrementAndGet()
+        worker.execute {
+            // 已有更新的请求 ⇒ 这次连发都不发（合并过期 seek）。
+            if (closing.get() || ticket != seekTicket.get()) return@execute
+            val native = session ?: return@execute
+            if (state !in setOf(State.PLAYING, State.PAUSED)) {
+                lastError = "当前播放状态无法调整进度"
+                lastSeekResult = MpvSeekControl.Result(seeks.nextRequestId(), targetUs, -1, lastError)
+                return@execute
+            }
+            seekExecuted += 1
+            val result = seeks.seek(targetUs, exact)
+            // 落点回来时又来了新请求 ⇒ 旧结果不许覆盖新目标（否则进度条会回跳）。
+            if (ticket != seekTicket.get() || closing.get()) return@execute
+            lastSeekResult = result
+            if (result.error.isEmpty()) {
+                lastSeekLandingUs = result.landingUs
+                positionUs = result.landingUs
+                lastError = ""
+            } else {
+                lastError = result.error
+            }
+        }
+        return ticket
+    }
+
+    fun rebind(surface: Surface?) {        val native = session ?: return
         if (surface == null) return
         // 不许静默吞：Surface 重建失败就是黑屏，必须留下原因（铁律：禁止静默降级）。
         try {

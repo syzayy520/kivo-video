@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      310 · 品牌：adaptive icon 背景色。
+      ★白底版：与 Kivo Music 的白底图标统一（同门一致），用户已确认效果。
+    -->
+    <color name="ic_launcher_background">#FFFFFF</color>
+
+    <!-- 312 · 品牌启动动画底色。与设计稿「系统启动页同色」一致（#050506），
+         窗口底色与系统启动页共用它 ⇒ 冷启动全程无跳变。 -->
+    <color name="brand_startup_background">#050506</color>
+</resources>

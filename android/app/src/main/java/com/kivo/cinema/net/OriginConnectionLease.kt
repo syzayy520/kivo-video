@@ -53,6 +53,12 @@ class OriginConnectionLease(
 
     private var consecutiveFailures = 0
 
+    /** 291：整块吞吐看门狗（识别退化连接，见 [OriginChunkWatchdog]）。 */
+    private val watchdog = OriginChunkWatchdog(label)
+
+    /** 293：下一块的有界短时前瞻（消除表头空窗，见 [OriginChunkPrefetch]）。 */
+    private val prefetch = OriginChunkPrefetch(client, label)
+
     /** 当前块（null = 没有）。 */
     fun current(): HttpOriginClient.OriginStream? = synchronized(lock) { stream }
 
@@ -60,6 +66,23 @@ class OriginConnectionLease(
     fun remaining(): Long = synchronized(lock) {
         val active = stream ?: return@synchronized 0L
         active.endExclusive - active.start - active.consumed
+    }
+
+    /**
+     * 293：当前块剩余不足提前量时，启动下一块的预开（非阻塞）。
+     *
+     * 由 [OriginPrefetchPump] 每轮循环调用；开关关闭时是空操作。
+     */
+    fun maybePrefetch() {
+        val active = synchronized(lock) { stream } ?: return
+        val next = active.endExclusive
+        // 293：最后一个块（下一块起点已越过片源末尾）**不预开** ——
+        // 否则会白白打一次越界请求（p293-seek 实测：片尾 `prefetch 启动 @总长`
+        // 造成装置 FALLBACK=1）。open() 有同样的越界判定，预开也必须有。
+        val total = buffer.knownTotal
+        if (total > 0 && next >= total) return
+        val rest = active.endExclusive - active.start - active.consumed
+        prefetch.maybeStart(next, rest)
     }
 
     /**
@@ -79,6 +102,8 @@ class OriginConnectionLease(
             lock.notifyAll()
         }
         runCatching { old?.abort() }
+        // 293：跳读 ⇒ 预开的旧位置块必须作废（否则旧字节会被当成新位置数据）。
+        if (reset) prefetch.invalidate("跳读")
 
         // 【越界起点就地判掉，不去打源站】
         //
@@ -98,6 +123,25 @@ class OriginConnectionLease(
             return
         }
 
+        // 293：先尝试复用「预开的下一块」——起点精确匹配才用，省掉一次表头空窗。
+        if (!reset) {
+            val reused = prefetch.obtain(target)
+            if (reused != null) {
+                synchronized(lock) {
+                    stream = reused
+                    reused.total?.let { buffer.setTotal(it) }
+                    consecutiveFailures = 0
+                    lock.notifyAll()
+                }
+                watchdog.reset()
+                NetDiag.log(
+                    "[$label] origin 复用预开块 @$target（跳过表头，" +
+                        "len=${reused.endExclusive - reused.start}）",
+                )
+                return
+            }
+        }
+
         try {
             val opened = client.openChunk(target)
             synchronized(lock) {
@@ -106,6 +150,8 @@ class OriginConnectionLease(
                 consecutiveFailures = 0
                 lock.notifyAll()
             }
+            // 新块 = 新连接：吞吐窗口从头计，别拿上一块的字节数判它。
+            watchdog.reset()
         } catch (e: Exception) {
             // 建连失败（源站抖动 / 网络断）⇒ 先自己重试若干次，再把原因交给上层。
             synchronized(lock) {
@@ -150,6 +196,15 @@ class OriginConnectionLease(
             onUnexpectedEof(active, myGeneration)
             return -1
         }
+        // 291：整块吞吐看门狗 —— 源站每 <30s 吐一点字节时 read() 会一直返回
+        // 正数，soTimeout 永不触发，一条退化连接能把播放拖死两分钟（p290-live
+        // 实测 127.8s）。判定退化就丢掉这条流重开：这是**自救**，不计入连续失败。
+        if (watchdog.note(got)) {
+            dropStream(active, myGeneration, countFailure = false)?.let { dropped ->
+                runCatching { dropped.abort() }
+            }
+            return -1
+        }
         synchronized(lock) {
             consecutiveFailures = 0
         }
@@ -184,6 +239,8 @@ class OriginConnectionLease(
             generation += 1
         }
         runCatching { old?.abort() }
+        // 293：换流 ⇒ 预开的块位置已失效。
+        prefetch.invalidate("换流")
     }
 
     fun close() {
@@ -195,6 +252,7 @@ class OriginConnectionLease(
             lock.notifyAll()
         }
         runCatching { old?.abort() }
+        prefetch.close()
     }
 
     /** 这一块读满了：关流 ⇒ 连接回 keep-alive 池。 */
@@ -240,11 +298,14 @@ class OriginConnectionLease(
     /**
      * 把当前块丢掉。
      *
+     * @param countFailure false = 主动换连接自救（看门狗判定退化），
+     *        不计入连续失败，也不把原因交给上层 [OriginPrefetchBuffer.markFailure]。
      * @return 被丢掉的那块（null = 已经被别人换掉了，不是故障）。
      */
     private fun dropStream(
         active: HttpOriginClient.OriginStream,
         myGeneration: Int,
+        countFailure: Boolean = true,
     ): HttpOriginClient.OriginStream? {
         var dropped: HttpOriginClient.OriginStream? = null
         synchronized(lock) {
@@ -256,14 +317,18 @@ class OriginConnectionLease(
             dropped = stream
             stream = null
             generation += 1
-            consecutiveFailures += 1
-            if (consecutiveFailures > MAX_CONSECUTIVE_FAILURES) {
-                buffer.markFailure(
-                    IOException("源站连接中断（已读 ${buffer.writePosition} / ${buffer.knownTotal}）"),
-                )
+            if (countFailure) {
+                consecutiveFailures += 1
+                if (consecutiveFailures > MAX_CONSECUTIVE_FAILURES) {
+                    buffer.markFailure(
+                        IOException("源站连接中断（已读 ${buffer.writePosition} / ${buffer.knownTotal}）"),
+                    )
+                }
             }
             lock.notifyAll()
         }
+        // 293：丢流后生产循环会从新的写入位置重开 ⇒ 预开的旧位置块作废。
+        prefetch.invalidate("丢流")
         return dropped
     }
 

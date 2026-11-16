@@ -1,5 +1,7 @@
 package com.kivo.cinema.net
 
+import com.kivo.cinema.playback.OriginSupplyPressure
+
 /**
  * 273 v9：源站 keep-alive 连接池的**保温**。
  *
@@ -102,7 +104,12 @@ internal class OriginWarmupPool(
             // 【为什么】保温请求会从池里借走一条空闲连接并占住它（≈300 ms），
             // 落点那一跳撞上这个窗口就只能新建连接（真机新建表头 763–1,292 ms，
             // 复用只要 306–822 ms）⇒ 让路期间把空闲连接留在池里给落点用。
-            if (!client.yieldGate.isYielding() && !skipPing()) {
+            // 291：源站吞吐不足时，保温 ping 会持续借/建连接（真机断层窗口内
+            // 52 次 ping 对 1 条主 chunk）。按 275 §5.2「低优先级预取」让路：
+            // 主链路 runway 爬回健康线之前，一轮 ping 都不发。
+            if (!client.yieldGate.isYielding() && !skipPing() &&
+                !OriginSupplyPressure.shouldDeferLowPriority()
+            ) {
                 val ok = client.warmConnection()
                 // 只在失败时记日志：成功是常态，几小时的电影不该刷出几千行。
                 if (!ok) NetDiag.log("[$label] origin keepalive #$index round=$round failed")

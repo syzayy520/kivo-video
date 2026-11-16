@@ -42,6 +42,11 @@ internal fun PlayerComposeActivity.onVerticalDrag(dragAmount: Float) {
  * 现在复用 decorView 的队列，结束/重新开始时都先 removeCallbacks 上一个令牌。
  */
 internal fun PlayerComposeActivity.onVerticalDragEnd() {
+    scheduleHudHide()
+}
+
+/** 安排 HUD 在 [PlayerMotion.hudHoldMs] 后淡出（横竖滑共用，317）。 */
+private fun PlayerComposeActivity.scheduleHudHide() {
     cancelHudHide()
     val token = Runnable { hudKind = null; hudHideToken = null }
     hudHideToken = token
@@ -138,10 +143,14 @@ internal fun PlayerComposeActivity.haptic(constant: Int) {
 internal fun PlayerComposeActivity.currentHudFraction(kind: PlayerHudKind): Float = when (kind) {
     PlayerHudKind.BRIGHTNESS -> currentWindowBrightness()
     PlayerHudKind.VOLUME -> currentMediaVolume()
+    // 317：横滑 seek 的 HUD 比例由目标时刻算，这里不参与。
+    PlayerHudKind.SEEK_FORWARD, PlayerHudKind.SEEK_BACKWARD -> 0f
 }
 
 internal fun PlayerComposeActivity.applyHudValue(kind: PlayerHudKind, value: Float) {
     when (kind) {
+        // 317：seek 不改系统值（真正的跳转在 onHorizontalDragEnd 里）。
+        PlayerHudKind.SEEK_FORWARD, PlayerHudKind.SEEK_BACKWARD -> Unit
         PlayerHudKind.BRIGHTNESS -> {
             // 窗口级亮度：改系统全局会让整台设备变暗，退出还得手动调回来。
             // 窗口级只影响本播放器，退出即失效，天然满足"退出还原系统亮度"。
@@ -179,3 +188,91 @@ internal fun PlayerComposeActivity.currentMediaVolume(): Float {
 
 internal fun PlayerComposeActivity.audioManager(): android.media.AudioManager =
     getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+
+// ---- 317 · 全屏横滑 = 快进/快退 ----
+
+/** 实时 seek 的节流间隔（毫秒）。 */
+private const val REALTIME_SEEK_INTERVAL_MS = 150L
+
+/** 横滑起点（毫秒）与累积位移（毫秒）。 */
+private var hSeekStartMs = 0L
+private var hSeekAccumMs = 0L
+private var hSeekTargetMs = 0L
+
+/** 实时 seek 的节流时间（`uptimeMillis`）：横滑时每 150ms 才真跳一次。 */
+private var hSeekLastAt = 0L
+
+/**
+ * 横滑开始：记下起点，HUD 立刻接管。
+ *
+ * 【为什么按"时长的 10%"定比例尺】固定秒数对短片太粗（一屏就过半）、对长片太慢
+ * （两小时的片滑到手酸）。取时长 10% 并要求全屏宽走完，再夹在 [15s, 300s]：
+ * · 2 分钟短片 ⇒ 15s（下限，够细）
+ * · 30 分钟     ⇒ 180s
+ * · 2 小时      ⇒ 300s（上限，一屏 5 分钟）
+ */
+internal fun PlayerComposeActivity.onHorizontalDragStart() {
+    if (!playbackPrefs.horizontalSeekEnabled) return
+    if (durationMs <= 0) return
+    hSeekStartMs = positionMs
+    hSeekAccumMs = 0L
+    hSeekTargetMs = positionMs
+    // 【必须显示控制栏】缩略图浮窗挂在底部进度条上（PlayerSeekTrack 的 AnimatedVisibility），
+    // 控制栏隐藏时浮窗也跟着不在 ⇒ 横滑就看不到预览画面。这里强制拉起，
+    // 松手后由 lastTouchMs 的 3s 自动隐藏逻辑收掉。
+    controlsVisible = true
+    lastTouchMs = System.currentTimeMillis()
+    cancelHudHide()
+    hudKind = PlayerHudKind.SEEK_FORWARD
+    hudFraction = (positionMs.toFloat() / durationMs).coerceIn(0f, 1f)
+    hudSeekTargetMs = positionMs
+}
+
+/** 横滑过程：只更新目标与 HUD，**不 seek**（与进度条拖动同口径）。 */
+internal fun PlayerComposeActivity.onHorizontalDrag(dx: Float) {
+    if (!playbackPrefs.horizontalSeekEnabled) return
+    if (hSeekStartMs <= 0L || durationMs <= 0L) return
+    val w = resources.displayMetrics.widthPixels.toFloat().coerceAtLeast(1f)
+    val spanMs = (durationMs * 0.1f).coerceIn(15_000f, 300_000f)
+    hSeekAccumMs += (dx / w * spanMs).toLong()
+    hSeekTargetMs = (hSeekStartMs + hSeekAccumMs).coerceIn(0L, durationMs)
+    hudKind = if (hSeekAccumMs >= 0) PlayerHudKind.SEEK_FORWARD else PlayerHudKind.SEEK_BACKWARD
+    hudFraction = (hSeekTargetMs.toFloat() / durationMs).coerceIn(0f, 1f)
+    hudSeekTargetMs = hSeekTargetMs
+    hudSeekDeltaMs = hSeekAccumMs
+
+    // ★实时预览（对齐 SenPlayer）：复用进度条拖动那套缩略图浮窗。
+    // `previewMs` 是 PlayerSeekTrack 里浮窗的显示条件（>=0 即显示），
+    // 它同时决定浮窗比例位置 —— 所以横滑和拖进度条看到的是同一个浮窗。
+    previewMs = hSeekTargetMs
+    thumbnailReader?.seekTo(hSeekTargetMs * 1000)
+
+    // ★实时跳转（对齐 SenPlayer 的"边滑边看"）。
+    //
+    // 【为什么节流 150ms】每帧都 seek 会把内核的落点预取打爆（每次 seek 都触发
+    // prefetchSeek + 内核跳读），而 6~7 次/秒已经足够让画面跟手。
+    // 【为什么不等落点】实时跟手要的是"立刻有反应"，等落点那套（v42）会让
+    // 每次跳都卡 100~1200ms ⇒ 拖动变成幻灯片。最终落点在松手时补一次精确 seek。
+    val now = android.os.SystemClock.uptimeMillis()
+    if (now - hSeekLastAt >= REALTIME_SEEK_INTERVAL_MS) {
+        hSeekLastAt = now
+        seekTo(hSeekTargetMs, waitLandingFirstSlice = false)
+    }
+}
+
+/** 横滑结束：commit=true 才真的跳；取消则什么都不做。 */
+internal fun PlayerComposeActivity.onHorizontalDragEnd(commit: Boolean) {
+    if (!playbackPrefs.horizontalSeekEnabled) return
+    val target = hSeekTargetMs
+    val start = hSeekStartMs
+    hSeekStartMs = 0L
+    hSeekAccumMs = 0L
+    hSeekLastAt = 0L
+    // 收起预览浮窗（与拖进度条松手同一口径）。
+    previewMs = -1L
+    if (commit && durationMs > 0L) {
+        // 松手补一次**精确** seek：带落点等待，消除实时节流带来的最后一点偏差。
+        seekTo(target, waitLandingFirstSlice = true)
+    }
+    scheduleHudHide()
+}

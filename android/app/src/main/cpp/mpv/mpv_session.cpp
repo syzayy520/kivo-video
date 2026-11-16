@@ -45,13 +45,29 @@ bool Session::attach_surface(ANativeWindow* window, int64_t wid, std::string& er
             return false;
         }
         // 记住全局引用：会话销毁时要 DeleteGlobalRef（否则泄漏，且 mpv 还可能再用它）。
-        impl_->surface_global_ref = wid;
         int rc = mpv_set_option(impl_->handle, "wid", MPV_FORMAT_INT64, &wid);
         if (rc < 0) {
+            // 失败时新的 global ref 由 JNI 层释放（jni_mpv_bridge.cpp 的 !ok 分支），
+            // 旧的必须保留 —— 内核还在用它。
             error = std::string("wid rejected: ") + mpv_error_string(rc);
             mark_step(impl_->log_path.c_str(), ("attach-surface gpu-next failed: " + error).c_str());
             return false;
         }
+        // 【300 修复】旧 Surface 的全局引用必须在这里释放。
+        //
+        // 原实现只做 `surface_global_ref = wid` 覆盖，直到会话销毁才 DeleteGlobalRef
+        // **最后一个** ⇒ 每次 rebind 泄漏 1 个 global ref（300 压测实测：100 次前后台
+        // 之后 diag 的 attach-surface 计数 1→101，与泄漏次数一一对应）。
+        // JNI global ref 表有上限，累计到上限会 abort（global reference table overflow）。
+        //
+        // 顺序必须是"先让 mpv 切到新 window，再删旧的"：切换期间内核可能仍在用旧 surface。
+        if (impl_->surface_global_ref != 0 && impl_->surface_global_ref != wid) {
+            if (JNIEnv* env = attach_env(); env != nullptr) {
+                env->DeleteGlobalRef(reinterpret_cast<jobject>(
+                    reinterpret_cast<intptr_t>(impl_->surface_global_ref)));
+            }
+        }
+        impl_->surface_global_ref = wid;
         mark_step(impl_->log_path.c_str(), "attach-surface gpu-next (wid set)");
         return true;
     }

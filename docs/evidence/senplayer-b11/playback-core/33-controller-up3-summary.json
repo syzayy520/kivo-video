@@ -1,0 +1,1163 @@
+{
+  "artifact": {
+    "path": "F:\\Files\\实用工具\\苹果相关\\ipaDown20261030\\App\\syzayy91@gmail.com\\SenPlayer-1.0.0-b11-Android-arm64-v8a.apk",
+    "sha256": "5b298aa118c9ea8b1e7615d38f42ab00452fc9cf1f248cb6f5facf83d1089963"
+  },
+  "provider": {
+    "name": "JADX headless MCP via REA",
+    "version": "0.7.1"
+  },
+  "operation": "get_class_summary",
+  "parameters": {
+    "class_name": "up3"
+  },
+  "response": {
+    "id": 2,
+    "result": {
+      "content": [
+        {
+          "text": "{\"full_name\":\"defpackage.up3\",\"name\":\"up3\",\"method_count\":76,\"field_count\":133,\"inner_class_count\":0,\"methods\":[{\"name\":\"<init>\",\"signature\":\"<init>(pp3, rp3): void\",\"is_constructor\":true,\"def_pos\":0},{\"name\":\"A\",\"signature\":\"A(): int\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"B\",\"signature\":\"B(): double\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"C\",\"signature\":\"C(): boolean\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"D\",\"signature\":\"D(): JSONObject\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"E\",\"signature\":\"E(): String\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"F\",\"signature\":\"F(): long\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"G\",\"signature\":\"G(): Double\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"H\",\"signature\":\"H(): double\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"I\",\"signature\":\"I(): fn3\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"J\",\"signature\":\"J(): int\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"K\",\"signature\":\"K(): zp3\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"L\",\"signature\":\"L(): String\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"M\",\"signature\":\"M(): zv4\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"N\",\"signature\":\"N(): List\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"O\",\"signature\":\"O(): boolean\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"P\",\"signature\":\"P(JSONArray, String, String, String, boolean): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"Q\",\"signature\":\"Q(boolean, boolean): JSONObject\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"R\",\"signature\":\"R(): boolean\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"S\",\"signature\":\"S(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"T\",\"signature\":\"T(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"U\",\"signature\":\"U(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"V\",\"signature\":\"V(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"W\",\"signature\":\"W(double): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"X\",\"signature\":\"X(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"Y\",\"signature\":\"Y(Player, vh3, tm1, long, String, int, String, boolean): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"Z\",\"signature\":\"Z(vh3, String): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"a\",\"signature\":\"a(vh3, JSONObject, boolean): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"a0\",\"signature\":\"a0(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"b\",\"signature\":\"b(String, String, vh3, long, xu4, boolean, String, boolean): CompletableFuture\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"b0\",\"signature\":\"b0(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"c\",\"signature\":\"c(up3, String, String, vh3, long, xu4, int): CompletableFuture\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"c0\",\"signature\":\"c0(up3, double, boolean, int): CompletableFuture\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"d\",\"signature\":\"d(long, vh3): xu4\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"d0\",\"signature\":\"d0(tm1, vh3, long): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"e\",\"signature\":\"e(boolean): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"e0\",\"signature\":\"e0(double, long, mf1): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"f\",\"signature\":\"f(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"f0\",\"signature\":\"f0(u94): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"g\",\"signature\":\"g(): CompletableFuture\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"g0\",\"signature\":\"g0(zp3): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"h\",\"signature\":\"h(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"h0\",\"signature\":\"h0(String): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"i\",\"signature\":\"i(zp3): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"i0\",\"signature\":\"i0(String, boolean): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"j\",\"signature\":\"j(int, kf1): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"j0\",\"signature\":\"j0(double): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"k\",\"signature\":\"k(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"k0\",\"signature\":\"k0(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"l\",\"signature\":\"l(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"l0\",\"signature\":\"l0(JSONObject, double, boolean, CompletableFuture): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"m\",\"signature\":\"m(kf1, kf1, mf1): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"m0\",\"signature\":\"m0(up3, int, CompletableFuture, Surface, Surface, String, String, Display, int, int, double, double, double, boolean, int, int, String, Map, double, boolean, LinkedHashMap, String, JSONObject, JSONObject, JSONObject, JSONObject, zv4): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"n\",\"signature\":\"n(up3, kf1, yj3, mf1, int): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"n0\",\"signature\":\"n0(Player, boolean, int, int, up3, int): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"o\",\"signature\":\"o(String): ai3\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"o0\",\"signature\":\"o0(Player, up3, int, zv4, JSONObject, JSONObject, tp3): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"p\",\"signature\":\"p(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"p0\",\"signature\":\"p0(LinkedHashMap, Player, up3, String, JSONObject, JSONObject, JSONObject, JSONObject, int, boolean): tp3\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"q\",\"signature\":\"q(int, Throwable): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"q0\",\"signature\":\"q0(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"r\",\"signature\":\"r(qp3, boolean, Boolean): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"r0\",\"signature\":\"r0(): String\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"s\",\"signature\":\"s(up3, boolean, boolean, boolean, int): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"s0\",\"signature\":\"s0(): String\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"t\",\"signature\":\"t(): double\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"t0\",\"signature\":\"t0(String): String\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"u\",\"signature\":\"u(): int\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"u0\",\"signature\":\"u0(): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"v\",\"signature\":\"v(): boolean\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"v0\",\"signature\":\"v0(String): String\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"w\",\"signature\":\"w(): boolean\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"w0\",\"signature\":\"w0(zv4): void\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"x\",\"signature\":\"x(): String\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"y\",\"signature\":\"y(): double\",\"is_constructor\":false,\"def_pos\":0},{\"name\":\"z\",\"signature\":\"z(): boolean\",\"is_constructor\":false,\"def_pos\":0}],\"fields\":[{\"name\":\"A\",\"type\":\"JSONObject\",\"def_pos\":0},{\"name\":\"A0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"A1\",\"type\":\"String\",\"def_pos\":0},{\"name\":\"B\",\"type\":\"kf1\",\"def_pos\":0},{\"name\":\"B0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"B1\",\"type\":\"long\",\"def_pos\":0},{\"name\":\"C\",\"type\":\"kh3\",\"def_pos\":0},{\"name\":\"C0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"C1\",\"type\":\"kf1\",\"def_pos\":0},{\"name\":\"D\",\"type\":\"ek3\",\"def_pos\":0},{\"name\":\"D0\",\"type\":\"AtomicLong\",\"def_pos\":0},{\"name\":\"E\",\"type\":\"ag1\",\"def_pos\":0},{\"name\":\"E0\",\"type\":\"ks5\",\"def_pos\":0},{\"name\":\"F\",\"type\":\"mf1\",\"def_pos\":0},{\"name\":\"F0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"G\",\"type\":\"mf1\",\"def_pos\":0},{\"name\":\"G0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"H\",\"type\":\"mf1\",\"def_pos\":0},{\"name\":\"H0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"I\",\"type\":\"pj3\",\"def_pos\":0},{\"name\":\"I0\",\"type\":\"long\",\"def_pos\":0},{\"name\":\"J\",\"type\":\"String\",\"def_pos\":0},{\"name\":\"J0\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"K\",\"type\":\"String\",\"def_pos\":0},{\"name\":\"K0\",\"type\":\"long\",\"def_pos\":0},{\"name\":\"L\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"L0\",\"type\":\"long\",\"def_pos\":0},{\"name\":\"M\",\"type\":\"wu4\",\"def_pos\":0},{\"name\":\"M0\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"N\",\"type\":\"uo3\",\"def_pos\":0},{\"name\":\"N0\",\"type\":\"long\",\"def_pos\":0},{\"name\":\"O\",\"type\":\"uo3\",\"def_pos\":0},{\"name\":\"O0\",\"type\":\"int\",\"def_pos\":0},{\"name\":\"P\",\"type\":\"JSONObject\",\"def_pos\":0},{\"name\":\"P0\",\"type\":\"int\",\"def_pos\":0},{\"name\":\"Q\",\"type\":\"JSONObject\",\"def_pos\":0},{\"name\":\"Q0\",\"type\":\"int\",\"def_pos\":0},{\"name\":\"R\",\"type\":\"JSONObject\",\"def_pos\":0},{\"name\":\"R0\",\"type\":\"Handler\",\"def_pos\":0},{\"name\":\"S\",\"type\":\"JSONObject\",\"def_pos\":0},{\"name\":\"S0\",\"type\":\"nv1\",\"def_pos\":0},{\"name\":\"T\",\"type\":\"d\",\"def_pos\":0},{\"name\":\"T0\",\"type\":\"ExecutorService\",\"def_pos\":0},{\"name\":\"U\",\"type\":\"LinkedHashMap\",\"def_pos\":0},{\"name\":\"U0\",\"type\":\"AtomicInteger\",\"def_pos\":0},{\"name\":\"V\",\"type\":\"LinkedHashMap\",\"def_pos\":0},{\"name\":\"V0\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"W\",\"type\":\"LinkedHashMap\",\"def_pos\":0},{\"name\":\"W0\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"X\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"X0\",\"type\":\"CompletableFuture\",\"def_pos\":0},{\"name\":\"Y\",\"type\":\"Map\",\"def_pos\":0},{\"name\":\"Y0\",\"type\":\"CompletableFuture\",\"def_pos\":0},{\"name\":\"Z\",\"type\":\"String\",\"def_pos\":0},{\"name\":\"Z0\",\"type\":\"vk3\",\"def_pos\":0},{\"name\":\"a\",\"type\":\"String\",\"def_pos\":0},{\"name\":\"a0\",\"type\":\"Map\",\"def_pos\":0},{\"name\":\"a1\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"b\",\"type\":\"String\",\"def_pos\":0},{\"name\":\"b0\",\"type\":\"kp3\",\"def_pos\":0},{\"name\":\"b1\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"c\",\"type\":\"String\",\"def_pos\":0},{\"name\":\"c0\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"c1\",\"type\":\"AtomicBoolean\",\"def_pos\":0},{\"name\":\"d\",\"type\":\"String\",\"def_pos\":0},{\"name\":\"d0\",\"type\":\"long\",\"def_pos\":0},{\"name\":\"d1\",\"type\":\"Exception\",\"def_pos\":0},{\"name\":\"e\",\"type\":\"double\",\"def_pos\":0},{\"name\":\"e0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"e1\",\"type\":\"Surface\",\"def_pos\":0},{\"name\":\"f\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"f0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"f1\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"g\",\"type\":\"double\",\"def_pos\":0},{\"name\":\"g0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"g1\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"h\",\"type\":\"kf1\",\"def_pos\":0},{\"name\":\"h0\",\"type\":\"pi3\",\"def_pos\":0},{\"name\":\"h1\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"i\",\"type\":\"kf1\",\"def_pos\":0},{\"name\":\"i0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"i1\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"j\",\"type\":\"kf1\",\"def_pos\":0},{\"name\":\"j0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"j1\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"k\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"k0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"k1\",\"type\":\"Display\",\"def_pos\":0},{\"name\":\"l\",\"type\":\"mf1\",\"def_pos\":0},{\"name\":\"l0\",\"type\":\"String\",\"def_pos\":0},{\"name\":\"l1\",\"type\":\"Surface\",\"def_pos\":0},{\"name\":\"m\",\"type\":\"Map\",\"def_pos\":0},{\"name\":\"m0\",\"type\":\"ki\",\"def_pos\":0},{\"name\":\"m1\",\"type\":\"int\",\"def_pos\":0},{\"name\":\"n\",\"type\":\"String\",\"def_pos\":0},{\"name\":\"n0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"n1\",\"type\":\"int\",\"def_pos\":0},{\"name\":\"o\",\"type\":\"hi3\",\"def_pos\":0},{\"name\":\"o0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"o1\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"p\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"p0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"p1\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"q\",\"type\":\"double\",\"def_pos\":0},{\"name\":\"q0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"q1\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"r\",\"type\":\"String\",\"def_pos\":0},{\"name\":\"r0\",\"type\":\"xx4\",\"def_pos\":0},{\"name\":\"r1\",\"type\":\"Double\",\"def_pos\":0},{\"name\":\"s\",\"type\":\"tf3\",\"def_pos\":0},{\"name\":\"s0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"s1\",\"type\":\"Player\",\"def_pos\":0},{\"name\":\"t\",\"type\":\"mf1\",\"def_pos\":0},{\"name\":\"t0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"t1\",\"type\":\"long\",\"def_pos\":0},{\"name\":\"u\",\"type\":\"xf3\",\"def_pos\":0},{\"name\":\"u0\",\"type\":\"xb3\",\"def_pos\":0},{\"name\":\"u1\",\"type\":\"boolean\",\"def_pos\":0},{\"name\":\"v\",\"type\":\"gg3\",\"def_pos\":0},{\"name\":\"v0\",\"type\":\"vb3\",\"def_pos\":0},{\"name\":\"v1\",\"type\":\"int\",\"def_pos\":0},{\"name\":\"w\",\"type\":\"JSONObject\",\"def_pos\":0},{\"name\":\"w0\",\"type\":\"long\",\"def_pos\":0},{\"name\":\"w1\",\"type\":\"qp3\",\"def_pos\":0},{\"name\":\"x\",\"type\":\"JSONObject\",\"def_pos\":0},{\"name\":\"x0\",\"type\":\"int\",\"def_pos\":0},{\"name\":\"x1\",\"type\":\"uo3\",\"def_pos\":0},{\"name\":\"y\",\"type\":\"JSONObject\",\"def_pos\":0},{\"name\":\"y0\",\"type\":\"long\",\"def_pos\":0},{\"name\":\"y1\",\"type\":\"CompletableFuture\",\"def_pos\":0},{\"name\":\"z\",\"type\":\"fn3\",\"def_pos\":0},{\"name\":\"z0\",\"type\":\"int\",\"def_pos\":0},{\"name\":\"z1\",\"type\":\"eg3\",\"def_pos\":0}],\"inner_classes\":[]}",
+          "type": "text"
+        }
+      ]
+    },
+    "jsonrpc": "2.0"
+  },
+  "normalized_result": {
+    "full_name": "defpackage.up3",
+    "name": "up3",
+    "method_count": 76,
+    "field_count": 133,
+    "inner_class_count": 0,
+    "methods": [
+      {
+        "name": "<init>",
+        "signature": "<init>(pp3, rp3): void",
+        "is_constructor": true,
+        "def_pos": 0
+      },
+      {
+        "name": "A",
+        "signature": "A(): int",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "B",
+        "signature": "B(): double",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "C",
+        "signature": "C(): boolean",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "D",
+        "signature": "D(): JSONObject",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "E",
+        "signature": "E(): String",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "F",
+        "signature": "F(): long",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "G",
+        "signature": "G(): Double",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "H",
+        "signature": "H(): double",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "I",
+        "signature": "I(): fn3",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "J",
+        "signature": "J(): int",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "K",
+        "signature": "K(): zp3",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "L",
+        "signature": "L(): String",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "M",
+        "signature": "M(): zv4",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "N",
+        "signature": "N(): List",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "O",
+        "signature": "O(): boolean",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "P",
+        "signature": "P(JSONArray, String, String, String, boolean): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "Q",
+        "signature": "Q(boolean, boolean): JSONObject",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "R",
+        "signature": "R(): boolean",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "S",
+        "signature": "S(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "T",
+        "signature": "T(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "U",
+        "signature": "U(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "V",
+        "signature": "V(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "W",
+        "signature": "W(double): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "X",
+        "signature": "X(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "Y",
+        "signature": "Y(Player, vh3, tm1, long, String, int, String, boolean): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "Z",
+        "signature": "Z(vh3, String): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "a",
+        "signature": "a(vh3, JSONObject, boolean): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "a0",
+        "signature": "a0(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "b",
+        "signature": "b(String, String, vh3, long, xu4, boolean, String, boolean): CompletableFuture",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "b0",
+        "signature": "b0(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "c",
+        "signature": "c(up3, String, String, vh3, long, xu4, int): CompletableFuture",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "c0",
+        "signature": "c0(up3, double, boolean, int): CompletableFuture",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "d",
+        "signature": "d(long, vh3): xu4",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "d0",
+        "signature": "d0(tm1, vh3, long): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "e",
+        "signature": "e(boolean): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "e0",
+        "signature": "e0(double, long, mf1): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "f",
+        "signature": "f(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "f0",
+        "signature": "f0(u94): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "g",
+        "signature": "g(): CompletableFuture",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "g0",
+        "signature": "g0(zp3): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "h",
+        "signature": "h(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "h0",
+        "signature": "h0(String): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "i",
+        "signature": "i(zp3): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "i0",
+        "signature": "i0(String, boolean): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "j",
+        "signature": "j(int, kf1): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "j0",
+        "signature": "j0(double): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "k",
+        "signature": "k(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "k0",
+        "signature": "k0(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "l",
+        "signature": "l(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "l0",
+        "signature": "l0(JSONObject, double, boolean, CompletableFuture): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "m",
+        "signature": "m(kf1, kf1, mf1): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "m0",
+        "signature": "m0(up3, int, CompletableFuture, Surface, Surface, String, String, Display, int, int, double, double, double, boolean, int, int, String, Map, double, boolean, LinkedHashMap, String, JSONObject, JSONObject, JSONObject, JSONObject, zv4): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "n",
+        "signature": "n(up3, kf1, yj3, mf1, int): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "n0",
+        "signature": "n0(Player, boolean, int, int, up3, int): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "o",
+        "signature": "o(String): ai3",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "o0",
+        "signature": "o0(Player, up3, int, zv4, JSONObject, JSONObject, tp3): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "p",
+        "signature": "p(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "p0",
+        "signature": "p0(LinkedHashMap, Player, up3, String, JSONObject, JSONObject, JSONObject, JSONObject, int, boolean): tp3",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "q",
+        "signature": "q(int, Throwable): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "q0",
+        "signature": "q0(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "r",
+        "signature": "r(qp3, boolean, Boolean): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "r0",
+        "signature": "r0(): String",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "s",
+        "signature": "s(up3, boolean, boolean, boolean, int): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "s0",
+        "signature": "s0(): String",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "t",
+        "signature": "t(): double",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "t0",
+        "signature": "t0(String): String",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "u",
+        "signature": "u(): int",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "u0",
+        "signature": "u0(): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "v",
+        "signature": "v(): boolean",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "v0",
+        "signature": "v0(String): String",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "w",
+        "signature": "w(): boolean",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "w0",
+        "signature": "w0(zv4): void",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "x",
+        "signature": "x(): String",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "y",
+        "signature": "y(): double",
+        "is_constructor": false,
+        "def_pos": 0
+      },
+      {
+        "name": "z",
+        "signature": "z(): boolean",
+        "is_constructor": false,
+        "def_pos": 0
+      }
+    ],
+    "fields": [
+      {
+        "name": "A",
+        "type": "JSONObject",
+        "def_pos": 0
+      },
+      {
+        "name": "A0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "A1",
+        "type": "String",
+        "def_pos": 0
+      },
+      {
+        "name": "B",
+        "type": "kf1",
+        "def_pos": 0
+      },
+      {
+        "name": "B0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "B1",
+        "type": "long",
+        "def_pos": 0
+      },
+      {
+        "name": "C",
+        "type": "kh3",
+        "def_pos": 0
+      },
+      {
+        "name": "C0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "C1",
+        "type": "kf1",
+        "def_pos": 0
+      },
+      {
+        "name": "D",
+        "type": "ek3",
+        "def_pos": 0
+      },
+      {
+        "name": "D0",
+        "type": "AtomicLong",
+        "def_pos": 0
+      },
+      {
+        "name": "E",
+        "type": "ag1",
+        "def_pos": 0
+      },
+      {
+        "name": "E0",
+        "type": "ks5",
+        "def_pos": 0
+      },
+      {
+        "name": "F",
+        "type": "mf1",
+        "def_pos": 0
+      },
+      {
+        "name": "F0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "G",
+        "type": "mf1",
+        "def_pos": 0
+      },
+      {
+        "name": "G0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "H",
+        "type": "mf1",
+        "def_pos": 0
+      },
+      {
+        "name": "H0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "I",
+        "type": "pj3",
+        "def_pos": 0
+      },
+      {
+        "name": "I0",
+        "type": "long",
+        "def_pos": 0
+      },
+      {
+        "name": "J",
+        "type": "String",
+        "def_pos": 0
+      },
+      {
+        "name": "J0",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "K",
+        "type": "String",
+        "def_pos": 0
+      },
+      {
+        "name": "K0",
+        "type": "long",
+        "def_pos": 0
+      },
+      {
+        "name": "L",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "L0",
+        "type": "long",
+        "def_pos": 0
+      },
+      {
+        "name": "M",
+        "type": "wu4",
+        "def_pos": 0
+      },
+      {
+        "name": "M0",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "N",
+        "type": "uo3",
+        "def_pos": 0
+      },
+      {
+        "name": "N0",
+        "type": "long",
+        "def_pos": 0
+      },
+      {
+        "name": "O",
+        "type": "uo3",
+        "def_pos": 0
+      },
+      {
+        "name": "O0",
+        "type": "int",
+        "def_pos": 0
+      },
+      {
+        "name": "P",
+        "type": "JSONObject",
+        "def_pos": 0
+      },
+      {
+        "name": "P0",
+        "type": "int",
+        "def_pos": 0
+      },
+      {
+        "name": "Q",
+        "type": "JSONObject",
+        "def_pos": 0
+      },
+      {
+        "name": "Q0",
+        "type": "int",
+        "def_pos": 0
+      },
+      {
+        "name": "R",
+        "type": "JSONObject",
+        "def_pos": 0
+      },
+      {
+        "name": "R0",
+        "type": "Handler",
+        "def_pos": 0
+      },
+      {
+        "name": "S",
+        "type": "JSONObject",
+        "def_pos": 0
+      },
+      {
+        "name": "S0",
+        "type": "nv1",
+        "def_pos": 0
+      },
+      {
+        "name": "T",
+        "type": "d",
+        "def_pos": 0
+      },
+      {
+        "name": "T0",
+        "type": "ExecutorService",
+        "def_pos": 0
+      },
+      {
+        "name": "U",
+        "type": "LinkedHashMap",
+        "def_pos": 0
+      },
+      {
+        "name": "U0",
+        "type": "AtomicInteger",
+        "def_pos": 0
+      },
+      {
+        "name": "V",
+        "type": "LinkedHashMap",
+        "def_pos": 0
+      },
+      {
+        "name": "V0",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "W",
+        "type": "LinkedHashMap",
+        "def_pos": 0
+      },
+      {
+        "name": "W0",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "X",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "X0",
+        "type": "CompletableFuture",
+        "def_pos": 0
+      },
+      {
+        "name": "Y",
+        "type": "Map",
+        "def_pos": 0
+      },
+      {
+        "name": "Y0",
+        "type": "CompletableFuture",
+        "def_pos": 0
+      },
+      {
+        "name": "Z",
+        "type": "String",
+        "def_pos": 0
+      },
+      {
+        "name": "Z0",
+        "type": "vk3",
+        "def_pos": 0
+      },
+      {
+        "name": "a",
+        "type": "String",
+        "def_pos": 0
+      },
+      {
+        "name": "a0",
+        "type": "Map",
+        "def_pos": 0
+      },
+      {
+        "name": "a1",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "b",
+        "type": "String",
+        "def_pos": 0
+      },
+      {
+        "name": "b0",
+        "type": "kp3",
+        "def_pos": 0
+      },
+      {
+        "name": "b1",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "c",
+        "type": "String",
+        "def_pos": 0
+      },
+      {
+        "name": "c0",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "c1",
+        "type": "AtomicBoolean",
+        "def_pos": 0
+      },
+      {
+        "name": "d",
+        "type": "String",
+        "def_pos": 0
+      },
+      {
+        "name": "d0",
+        "type": "long",
+        "def_pos": 0
+      },
+      {
+        "name": "d1",
+        "type": "Exception",
+        "def_pos": 0
+      },
+      {
+        "name": "e",
+        "type": "double",
+        "def_pos": 0
+      },
+      {
+        "name": "e0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "e1",
+        "type": "Surface",
+        "def_pos": 0
+      },
+      {
+        "name": "f",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "f0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "f1",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "g",
+        "type": "double",
+        "def_pos": 0
+      },
+      {
+        "name": "g0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "g1",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "h",
+        "type": "kf1",
+        "def_pos": 0
+      },
+      {
+        "name": "h0",
+        "type": "pi3",
+        "def_pos": 0
+      },
+      {
+        "name": "h1",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "i",
+        "type": "kf1",
+        "def_pos": 0
+      },
+      {
+        "name": "i0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "i1",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "j",
+        "type": "kf1",
+        "def_pos": 0
+      },
+      {
+        "name": "j0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "j1",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "k",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "k0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "k1",
+        "type": "Display",
+        "def_pos": 0
+      },
+      {
+        "name": "l",
+        "type": "mf1",
+        "def_pos": 0
+      },
+      {
+        "name": "l0",
+        "type": "String",
+        "def_pos": 0
+      },
+      {
+        "name": "l1",
+        "type": "Surface",
+        "def_pos": 0
+      },
+      {
+        "name": "m",
+        "type": "Map",
+        "def_pos": 0
+      },
+      {
+        "name": "m0",
+        "type": "ki",
+        "def_pos": 0
+      },
+      {
+        "name": "m1",
+        "type": "int",
+        "def_pos": 0
+      },
+      {
+        "name": "n",
+        "type": "String",
+        "def_pos": 0
+      },
+      {
+        "name": "n0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "n1",
+        "type": "int",
+        "def_pos": 0
+      },
+      {
+        "name": "o",
+        "type": "hi3",
+        "def_pos": 0
+      },
+      {
+        "name": "o0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "o1",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "p",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "p0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "p1",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "q",
+        "type": "double",
+        "def_pos": 0
+      },
+      {
+        "name": "q0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "q1",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "r",
+        "type": "String",
+        "def_pos": 0
+      },
+      {
+        "name": "r0",
+        "type": "xx4",
+        "def_pos": 0
+      },
+      {
+        "name": "r1",
+        "type": "Double",
+        "def_pos": 0
+      },
+      {
+        "name": "s",
+        "type": "tf3",
+        "def_pos": 0
+      },
+      {
+        "name": "s0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "s1",
+        "type": "Player",
+        "def_pos": 0
+      },
+      {
+        "name": "t",
+        "type": "mf1",
+        "def_pos": 0
+      },
+      {
+        "name": "t0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "t1",
+        "type": "long",
+        "def_pos": 0
+      },
+      {
+        "name": "u",
+        "type": "xf3",
+        "def_pos": 0
+      },
+      {
+        "name": "u0",
+        "type": "xb3",
+        "def_pos": 0
+      },
+      {
+        "name": "u1",
+        "type": "boolean",
+        "def_pos": 0
+      },
+      {
+        "name": "v",
+        "type": "gg3",
+        "def_pos": 0
+      },
+      {
+        "name": "v0",
+        "type": "vb3",
+        "def_pos": 0
+      },
+      {
+        "name": "v1",
+        "type": "int",
+        "def_pos": 0
+      },
+      {
+        "name": "w",
+        "type": "JSONObject",
+        "def_pos": 0
+      },
+      {
+        "name": "w0",
+        "type": "long",
+        "def_pos": 0
+      },
+      {
+        "name": "w1",
+        "type": "qp3",
+        "def_pos": 0
+      },
+      {
+        "name": "x",
+        "type": "JSONObject",
+        "def_pos": 0
+      },
+      {
+        "name": "x0",
+        "type": "int",
+        "def_pos": 0
+      },
+      {
+        "name": "x1",
+        "type": "uo3",
+        "def_pos": 0
+      },
+      {
+        "name": "y",
+        "type": "JSONObject",
+        "def_pos": 0
+      },
+      {
+        "name": "y0",
+        "type": "long",
+        "def_pos": 0
+      },
+      {
+        "name": "y1",
+        "type": "CompletableFuture",
+        "def_pos": 0
+      },
+      {
+        "name": "z",
+        "type": "fn3",
+        "def_pos": 0
+      },
+      {
+        "name": "z0",
+        "type": "int",
+        "def_pos": 0
+      },
+      {
+        "name": "z1",
+        "type": "eg3",
+        "def_pos": 0
+      }
+    ],
+    "inner_classes": []
+  },
+  "limitations": [
+    "Static JADX output only; does not establish runtime execution."
+  ],
+  "evidence_id": "ev_3d06d9b3e13a0df99d78e92ded6bd0f6e71f8b903ed460ed3057e4b46b4ee1b7"
+}

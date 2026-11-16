@@ -163,7 +163,7 @@ class LocalRangeServer private constructor(
                     // 283 · 直通会话的主请求（清单本身）：透明转发。
                     when (method) {
                         "HEAD" -> responder.respondHeadForward(output, source.targetUrl)
-                        "GET" -> responder.respondForward(output, source.targetUrl)
+                        "GET" -> responder.respondForward(output, source.targetUrl, source.hls)
                         else -> responder.respondSimple(output, 405, "Method Not Allowed")
                     }
                     return
@@ -177,7 +177,7 @@ class LocalRangeServer private constructor(
                         sources.values.filterIsInstance<PassthroughSource>().firstOrNull()
                     }
                     if (passthrough != null && method == "GET") {
-                        responder.respondForward(output, passthrough.resolve(path))
+                        responder.respondForward(output, passthrough.resolve(path), passthrough.hls)
                         return
                     }
                     responder.respondSimple(output, 404, "Not Found")

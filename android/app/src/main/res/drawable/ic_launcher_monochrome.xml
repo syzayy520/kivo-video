@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  312d · 单色版播放三角（Android 13+ themed icon）。
+
+  系统会把这一层**染成壁纸主题色**，只给纯白剪影、不带渐变（带渐变会被 tint 压糊）。
+  几何与彩色版完全一致：宽 43.85dp / 高 52.92dp（相对 72dp 可见区 高 73.5%）。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:pathData="M39.68,37.95Q39.68,36.72 40.76,37.33L65.81,51.55Q68.32,52.97 65.44,52.97L40.92,52.97Q39.68,52.97 39.68,51.74Z"
+        android:fillColor="#FFFFFF" />
+
+    <path
+        android:pathData="M39.68,56.26Q39.68,55.03 40.92,55.03L65.44,55.03Q68.32,55.03 65.81,56.45L40.76,70.67Q39.68,71.28 39.68,70.05Z"
+        android:fillColor="#FFFFFF" />
+</vector>

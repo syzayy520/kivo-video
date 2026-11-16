@@ -59,6 +59,12 @@ internal fun PlayerComposeActivity.showStartupSpec() {
         if (tier.isNotBlank()) add(tier)
         if (codec != null) add(codec)
         if (bitrate != null && bitrate > 0) add("%.1f Mbps".format(java.util.Locale.US, bitrate / 1_000_000.0))
+        // 301：4K+ AV1 且本机无 AV1 硬解 ⇒ 实测 10.87 fps（dav1d 打满 CPU）。
+        // 必须在这里说清楚，否则用户只看到"很卡"却不知道为什么。复用同一个 Toast，
+        // 不加新控件、不改布局 —— 只是多一段文字。
+        if (com.kivo.cinema.playback.Av1HardwareProbe.isLikelyUnplayable(codec, h)) {
+            add("本机无 AV1 硬解·可能无法流畅")
+        }
     }
     if (parts.isEmpty()) return
     showToast(parts.joinToString(" · "), seconds * 1000L)

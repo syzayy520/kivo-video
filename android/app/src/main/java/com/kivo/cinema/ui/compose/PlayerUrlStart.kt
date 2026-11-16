@@ -71,7 +71,7 @@ internal fun PlayerComposeActivity.startUrlPlayback(holder: SurfaceHolder, url: 
                         com.kivo.cinema.playback.PlaybackMetrics.mark(
                             com.kivo.cinema.playback.PlaybackMetrics.T_SOURCE_READY,
                         )
-                        startMpvPlayback(holder, PassthroughSource(finalUrl), prep)
+                        startMpvPlayback(holder, PassthroughSource(finalUrl, hlsPolicy()), prep)
                     } else {
                         // 旧内核（RangeFd 路径）要随机读；转码流给不了。
                         // 不许静默：明说原因。
@@ -256,3 +256,32 @@ private fun fetchPlaySessionId(hlsUrl: String, token: String?): String? = runCat
         conn.disconnect()
     }
 }.getOrNull()
+
+/**
+ * 310 · HLS master 选档策略（交给代理层执行）。
+ *
+ * ## 为什么需要它
+ * 真实 HLS master 的每个码率档是**独立 program**，而 mpv 没有 `--program`
+ * ⇒ 内核只能播**第一个**（Apple 流实测 = 960x540，不是最高档）。
+ * 代理层按本策略把 master 裁成单档，内核才可能播"选中的那一档"。
+ *
+ * ## 参数怎么定
+ * · `maxHeight` = 屏幕短边 **× 1.2**（容差）。K40 实测短边只有 **1036**（扣掉状态栏/导航栏），
+ *   若直接用 1036 会把 **1080p 档挡掉**（1080 > 1036，差 44 像素）——
+ *   真机实测就踩了这个坑（选了 720p）。而 1080p 内容在 1036 高的屏上**依然更清晰**
+ *   （超采样后降采样）；4K（2160）远超 1.2×1036≈1243，仍会被挡掉。
+ * · `maxBps` = **12 Mbps**，与 `EmbySourcePicker` 同一阈值（真机单连接 1.10–2.16 MB/s）。
+ * · `canDecode` = 复用 302 的 AV1 硬解闸门（4K AV1 无硬解实测 10.87 fps）。
+ */
+private fun PlayerComposeActivity.hlsPolicy(): com.kivo.cinema.hls.HlsForwardPolicy {
+    val dm = resources.displayMetrics
+    val screenShort = minOf(dm.widthPixels, dm.heightPixels)
+    val heightLimit = (screenShort * 1.2).toInt()
+    return com.kivo.cinema.hls.HlsForwardPolicy(
+        maxHeight = heightLimit,
+        maxBps = 12_000_000L,
+        canDecode = { v ->
+            !com.kivo.cinema.playback.Av1HardwareProbe.isLikelyUnplayable(v.videoCodec, v.height)
+        },
+    )
+}

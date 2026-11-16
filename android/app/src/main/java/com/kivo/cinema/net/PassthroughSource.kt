@@ -37,6 +37,14 @@ package com.kivo.cinema.net
 class PassthroughSource(
     /** 目标地址（HLS 清单或任何"让内核自己连"的 URL）。 */
     val targetUrl: String,
+    /**
+     * 310：master 选档策略。null = 不改写（旧行为）。
+     *
+     * 非 null 时代理会在转发 **master playlist** 时裁剪成只剩一档
+     * （原因见 [com.kivo.cinema.hls.HlsMaster]：真实 HLS 的每个码率档是独立
+     * `program`，而 mpv 没有 `--program` 选项，只能播第一个）。
+     */
+    val hls: com.kivo.cinema.hls.HlsForwardPolicy? = null,
 ) : ByteSource {
 
     /**

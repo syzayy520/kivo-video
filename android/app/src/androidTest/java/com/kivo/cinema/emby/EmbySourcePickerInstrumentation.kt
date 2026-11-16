@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Instrumentation
 import android.os.Bundle
 import android.util.Log
+import com.kivo.cinema.playback.Av1HardwareProbe
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -69,6 +70,41 @@ class EmbySourcePickerInstrumentation : Instrumentation() {
         results += "6 多个可播取码率最高（1080 优于 720）" to
             (EmbySourcePicker.pick(reordered).id == "a-1080")
 
+        // ---- 7/8/9：301 编码闸门（4K+ AV1 且无硬解 ⇒ 实测 10.87 fps，必须避开）
+        //
+        // 【为什么这条必须有】4K AV1 的码率（11.9 Mbps）**低于** 12 Mbps 阈值，
+        // 旧逻辑会把它当成"可播版本里画质最好的"选中，结果只有 10 fps。
+        val av1VsHevc = JSONArray()
+            .put(sourceWithVideo("av1-4k", "2160p AV1", 11_904_908L, 5_229_112_152L, "av1", 2160))
+            .put(sourceWithVideo("hevc-1080", "1080p HEVC", 8_000_000L, 4_000_000_000L, "hevc", 1080))
+
+        val pick7 = EmbySourcePicker.pick(av1VsHevc, av1Hw = false)
+        results += "7 无 AV1 硬解 ⇒ 跳过 4K AV1，选 1080p HEVC" to (pick7.id == "hevc-1080")
+        results += "7b 原因写明跳过了 4K AV1" to pick7.reason.contains("已跳过")
+
+        // 有硬解就不该拦 —— 否则是另一种静默降权。
+        val pick8 = EmbySourcePicker.pick(av1VsHevc, av1Hw = true)
+        results += "8 有 AV1 硬解 ⇒ 按码率选 4K AV1（不误伤）" to (pick8.id == "av1-4k")
+
+        // 全部都是 4K AV1 且无硬解 ⇒ 只能选最小，且原因不许留空。
+        val allAv1 = JSONArray()
+            .put(sourceWithVideo("av1-a", "2160p A", 11_904_908L, 5_229_112_152L, "av1", 2160))
+            .put(sourceWithVideo("av1-b", "2160p B", 9_000_000L, 4_000_000_000L, "av1", 2160))
+        val pick9 = EmbySourcePicker.pick(allAv1, av1Hw = false)
+        results += "9 全 4K AV1 无硬解 ⇒ 选最小码率" to (pick9.id == "av1-b")
+        results += "9b 原因写明无 AV1 硬解" to pick9.reason.contains("无 AV1 硬解")
+
+        // 1080p AV1 实测 60.44 fps 可播 ⇒ 任何情况下都不该被拦。
+        val av1_1080 = JSONArray()
+            .put(sourceWithVideo("av1-1080", "1080p AV1", 8_000_000L, 4_000_000_000L, "av1", 1080))
+            .put(sourceWithVideo("av1-1080b", "1080p AV1 b", 6_000_000L, 3_000_000_000L, "av1", 1080))
+        results += "10 1080p AV1 不拦（实测 60.44fps）" to
+            (EmbySourcePicker.pick(av1_1080, av1Hw = false).id == "av1-1080")
+
+        // 本机事实：K40 应报"无 AV1 硬解"。这只影响上面分支走哪边，不影响结论正确性。
+        val av1Hw = Av1HardwareProbe.hasHardwareAv1()
+        Log.i(TAG, "本机 hasHardwareAv1=$av1Hw")
+
         val pass = results.count { it.second }
         results.forEach { (name, ok) ->
             Log.i(TAG, (if (ok) "PASS  " else "FAIL  ") + name)
@@ -80,12 +116,28 @@ class EmbySourcePickerInstrumentation : Instrumentation() {
             Bundle().apply {
                 putInt("total", results.size)
                 putInt("pass", pass)
+                putBoolean("av1Hardware", av1Hw)
             },
         )
     }
 
     private fun source(id: String, name: String, bps: Long, size: Long): JSONObject =
         JSONObject().put("Id", id).put("Name", name).put("Bitrate", bps).put("Size", size)
+
+    /** 带 `MediaStreams`（Video 的 Codec/Height）的版本 —— 301 编码闸门要用。 */
+    private fun sourceWithVideo(
+        id: String,
+        name: String,
+        bps: Long,
+        size: Long,
+        codec: String,
+        height: Int,
+    ): JSONObject = source(id, name, bps, size).put(
+        "MediaStreams",
+        JSONArray().put(
+            JSONObject().put("Type", "Video").put("Codec", codec).put("Height", height),
+        ),
+    )
 
     private companion object {
         const val TAG = "EmbyPicker"

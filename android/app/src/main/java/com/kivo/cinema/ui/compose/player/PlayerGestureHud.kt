@@ -56,6 +56,12 @@ internal fun PlayerGestureHud(
     visible: Boolean,
     kind: PlayerHudKind?,
     fraction: Float,
+    /** 317：横滑 seek 时的目标时刻（只在 SEEK_* 时被读）。 */
+    seekTargetMs: Long = 0L,
+    /** 317：总时长（SEEK 时与目标时刻并排显示）。 */
+    totalDurationMs: Long = 0L,
+    /** 317：相对拖动起点的偏移（负=后退，正=前进）。 */
+    seekDeltaMs: Long = 0L,
     modifier: Modifier = Modifier,
 ) {
     // 淡出的 300ms 里 kind 已变 null，不保留最后一种就会瞬间换成空图标再淡出。
@@ -71,7 +77,14 @@ internal fun PlayerGestureHud(
     ) {
         Column(
             modifier = Modifier
-                .width(208.dp)
+                // 317：SEEK 是两行、且第一行是「目标 / 总长」，长片会到 `1:23:45 / 2:15:30`
+                // （17 字符），208dp 放不下 ⇒ 右半截被 maxLines=1 吃掉，
+                // 表现为"只显示目标时刻、总时长不见"。这里按 kind 给宽度。
+                .width(
+                    if (shownKind == PlayerHudKind.SEEK_FORWARD ||
+                        shownKind == PlayerHudKind.SEEK_BACKWARD
+                    ) 288.dp else 208.dp,
+                )
                 .clip(RoundedCornerShape(20.dp))
                 .background(Color(0xB3000000))
                 .padding(horizontal = 18.dp, vertical = 12.dp),
@@ -85,14 +98,32 @@ internal fun PlayerGestureHud(
                     kind = when (shownKind) {
                         PlayerHudKind.BRIGHTNESS -> "sun"
                         PlayerHudKind.VOLUME -> "volume"
+                        PlayerHudKind.SEEK_FORWARD -> "forward"
+                        PlayerHudKind.SEEK_BACKWARD -> "backward"
                     },
                     color = Color.White,
                     modifier = Modifier.size(22.dp),
                 )
                 Text(
-                    text = "${(fraction.coerceIn(0f, 1f) * 100).toInt()}%",
+                    text = when (shownKind) {
+                        // 317：对齐 SenPlayer 的横滑 HUD ——「目标 / 总长」
+                        PlayerHudKind.SEEK_FORWARD, PlayerHudKind.SEEK_BACKWARD ->
+                            "${formatPlayerTime(seekTargetMs)} / ${formatPlayerTime(totalDurationMs)}"
+                        else -> "${(fraction.coerceIn(0f, 1f) * 100).toInt()}%"
+                    },
                     color = Color.White,
                     fontSize = 22.sp,
+                    maxLines = 1,
+                )
+            }
+            // 317：第二行 —— 相对拖动起点的偏移（SenPlayer 的「+00:31 / -00:26」）。
+            // 只在横滑时出现；亮度/音量没有"偏移"这个语义。
+            if (shownKind == PlayerHudKind.SEEK_FORWARD || shownKind == PlayerHudKind.SEEK_BACKWARD) {
+                val sign = if (seekDeltaMs >= 0) "+" else "-"
+                Text(
+                    text = "$sign${formatPlayerTime(kotlin.math.abs(seekDeltaMs))}",
+                    color = Color.White.copy(alpha = 0.75f),
+                    fontSize = 15.sp,
                     maxLines = 1,
                 )
             }
@@ -121,5 +152,5 @@ internal fun PlayerGestureHud(
     }
 }
 
-/** HUD 的种类：亮度 / 音量。 */
-internal enum class PlayerHudKind { BRIGHTNESS, VOLUME }
+/** HUD 的种类：亮度 / 音量 / 横滑快进 / 横滑快退。 */
+internal enum class PlayerHudKind { BRIGHTNESS, VOLUME, SEEK_FORWARD, SEEK_BACKWARD }

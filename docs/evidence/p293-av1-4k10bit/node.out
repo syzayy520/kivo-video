@@ -1,0 +1,19 @@
+本地限速源站已启动 http://127.0.0.1:8165/v
+  MBPS=20  bytesPerSec=20971520  B/s  globalMBPS=0
+  表头延迟 0ms
+  数据源 本地文件 docs/evidence/p274-local-origin/av1_4k_10bit.mp4
+  宣称总长 28155305
+  退化连接 every=0 mbps=0.04 after=0s
+  adb reverse tcp:8165 tcp:8165
+
+=== 统计 ===
+请求 0 · 供出 0.0 MiB · 平均 0.000 MB/s · 退化注入 0 次
+
+=== 统计 ===
+请求 10 · 供出 27.5 MiB · 平均 2.702 MB/s · 退化注入 0 次
+
+=== 统计 ===
+请求 10 · 供出 27.5 MiB · 平均 1.822 MB/s · 退化注入 0 次
+
+=== 统计 ===
+请求 10 · 供出 27.5 MiB · 平均 1.368 MB/s · 退化注入 0 次

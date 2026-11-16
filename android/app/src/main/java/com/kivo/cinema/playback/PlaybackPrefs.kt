@@ -137,6 +137,16 @@ class PlaybackPrefs(context: Context) {
         get() = sp.getBoolean("vertical_swipe", true)
         set(v) { sp.edit().putBoolean("vertical_swipe", v).apply() }
 
+    /**
+     * 317：全屏**横滑** = 快进/快退。
+     *
+     * 【为什么单独一个开关】它与竖滑（亮度/音量）在同一个手势层上按**主方向**互斥：
+     * 关掉它之后横滑仍然什么都不做（回到 317 之前的行为），便于 A/B 对照。
+     */
+    var horizontalSeekEnabled: Boolean
+        get() = sp.getBoolean("horizontal_seek", true)
+        set(v) { sp.edit().putBoolean("horizontal_seek", v).apply() }
+
     /** 锁定态是否仍允许长按和双击（false = 锁定后手势全禁）。 */
     var lockAllowGestures: Boolean
         get() = sp.getBoolean("lock_allow_gestures", true)

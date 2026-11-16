@@ -226,6 +226,8 @@ class OriginPrefetchPump(
             }
 
             // ④ 环有空间：边读边进环（不等整块读完 ⇒ 起播快）。
+            // 293：还剩 <= 提前量时预开下一块，把下一块的表头空窗叠到这一段传输上。
+            lease.maybePrefetch()
             val want = minOf(SCRATCH_BYTES.toLong(), room, rest).toInt()
             if (want <= 0) {
                 // 这一块读满了 ⇒ 归还连接，让下一块能复用它。

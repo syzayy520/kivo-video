@@ -145,6 +145,24 @@ internal class MpvStartSequence(
         applyPlaybackPolicy(native)
         native.attachSurface(surface)
 
+        // 301 · 字幕字体诊断：**读回内核实际生效的字体选项**。
+        //
+        // 【为什么必须读回】`sub-fonts-dir` 走的是 option 通道（initialize 之前 set），
+        // 它的失败**不会**出现在 property 日志里（"Set property" 只记录运行期改动）。
+        // 而 libass 是否扫描字体目录直接决定**文本字幕能不能显示**：
+        // 301 实测同一部片 PGS 正常、SRT 全空，内核日志只有
+        // `can't find selected font provider`，**一条 `Loading font file` 都没有**
+        // —— 说明 libass 根本没拿到目录（libass 的 embedded provider 会无条件扫描
+        // `fonts_dir` 并逐条打 "Loading font file"，与 fontconfig 无关）。
+        if (fonts.dir.isNotBlank()) {
+            val actual = runCatching { native.property("options/sub-fonts-dir") }.getOrNull()
+            val ok = actual == fonts.dir
+            NetDiag.log(
+                "[subfonts] 内核 sub-fonts-dir=$actual 期望=${fonts.dir} " +
+                    if (ok) "匹配" else "不匹配 ⇒ 文本字幕会显示不出来",
+            )
+        }
+
         // 3) 过闸门：等源站连接（273 v15/v16）。
         //    【超时也放行】闸门是加速器不是依赖 —— 卡死起播比慢 0.3 s 更糟。
         NetDiag.log("[prep] 内核创建完成 ms=${System.currentTimeMillis() - t0}")
@@ -162,10 +180,24 @@ internal class MpvStartSequence(
         // 5) 挂缓存归因探针（内存/超买两个缺口的唯一证据来源）。
         //    【为什么在这挂、而不是等画面上屏】缓存从第一跳就开始涨 ——
         //    等首帧再挂会漏掉"起播期灌了多少"，而那正是超买最凶的一段。
-        MpvCacheDiag.attach(native)
+        MpvCacheDiag.attach(native, app)
 
         // 6) 等**画面真的上屏**（口径见 [MpvFirstFrameWait]）。
+        //    292 · 方案 C：这里**不**恢复起播预缓冲选项。方案 B 已证伪 ——
+        //    mpv 的 initial buffering 恰在首帧**之后**才进入，绑首帧恢复会当场掐断它。
+        //    恢复改由 [MpvCacheDiag] 每 2s 喂 runway、达标或超时才写回默认
+        //    （见 [RebufferPolicy.note]）。
         val first = MpvFirstFrameWait.await(native, isCancelled)
+
+        // 317 · 取证：首帧后到底能不能读到视频属性。
+        // 【为什么必须打这条】317 修复用 `video-codec` 区分"纯音频"与"vo 失败"，
+        // 但如果这个属性在本实现里根本读不到，那个判据就是盲的 —— 先证明可读性。
+        NetDiag.log(
+            "[vo] 首帧后属性 vid=${native.property("vid")} " +
+                "codec=${native.property("video-codec")} " +
+                "conf=${first.confirmed} " +
+                "params=${native.property("video-params")?.take(80)}",
+        )
 
         // 7) 274-HDR · L2：HDR→SDR 色调映射。
         //    【为什么放在首帧之后】色彩参数（`video-params`）要等解封装报出轨道才有值；
@@ -237,6 +269,22 @@ internal class MpvStartSequence(
             "demuxer-max-bytes",
             if (demuxerMb > 0) "${demuxerMb}MiB" else prefs.demuxerMaxBytes(),
         )
+        // 298 · 诊断开关：`debug.kivo.hwdec` 覆盖 hwdec（取证用，缺省不写）。
+        //
+        // 【为什么需要它】HDR10+ 的动态元数据（SMPTE ST 2094-40）**硬解路径拿不到**：
+        // MediaCodec 只把它塞进 `hdr10-plus-info` 这个 Java ByteBuffer，
+        // ffmpeg 的 hevc_mediacodec 不转成 `AV_FRAME_DATA_DYNAMIC_HDR_PLUS` side data
+        // ⇒ mpv/libplacebo 看不到 ⇒ tone-map 只能靠 `hdr-compute-peak`（内容分析）。
+        // 要确认「软解能否用上动态元数据」，就得临时强制软解（`no`），本开关为此存在。
+        // 真机 298 取证：硬解 4K HDR10+ 60.51fps / 软解性能见 279 §十六。
+        val hwdecOverride = systemProperty(HWDEC_PROPERTY)
+        if (!hwdecOverride.isNullOrBlank()) {
+            val ok = native.setProperty("hwdec", hwdecOverride)
+            NetDiag.log("[hwdec] 诊断覆盖 hwdec=$hwdecOverride 写入=$ok")
+        }
+        // 292 · 自适应 rebuffer 闸门：必须在 loadFile 之前预置（首帧零缓冲窗口
+        // 早于 MpvCacheDiag 第一次采样）。开关 off 时一行属性都不写。
+        RebufferPolicy.beforeLoad(native)
     }
 
     /**
@@ -258,12 +306,27 @@ internal class MpvStartSequence(
      */
     private fun intentDemuxerMb(): Int = intent?.getIntExtra("kivo.demuxerMb", 0) ?: 0
 
+    /**
+     * 298 · 读系统属性（诊断开关用；取不到返回 null，不抛）。
+     *
+     * 与 [RebufferPolicy] 里那份同源 —— 反射读 `android.os.SystemProperties.get`。
+     */
+    private fun systemProperty(name: String): String? = try {
+        Class.forName("android.os.SystemProperties")
+            .getMethod("get", String::class.java).invoke(null, name) as? String
+    } catch (e: Exception) {
+        null
+    }
+
     // 280：出画通路与 HDR 的决策已全部上收到 [PlaybackStack]。
     // 这里原来有 useGpuNext() 与 intentRenderMode() 两个私有函数，
     // 与 PlayerComposeActivity 各自算一遍、且输入不等价（一个读 kivo.renderMode，
     // 一个还兼容 kivo.gpuNext）⇒ 已删除，只保留 PlaybackStack 一处。
 
     companion object {
+        /** 298 · 诊断：覆盖 hwdec（`mediacodec` / `no` / …）。缺省不写。 */
+        private const val HWDEC_PROPERTY = "debug.kivo.hwdec"
+
         /**
          * 闸门等待的上限（毫秒）。
          *

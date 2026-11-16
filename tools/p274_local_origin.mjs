@@ -53,6 +53,30 @@ const UPSTREAM = arg('--upstream', 'https://emby.bangumi.ca/emby/Videos/233908/s
 const TOKEN = arg('--token', process.env.EMBY_TOKEN || '');
 const DECLARED_SIZE = parseInt(arg('--size', '0'), 10);
 
+// 291 · 退化连接注入：确定性复现「单条连接吞吐塌陷」造成的分钟级冻结。
+// 真机 p290-live 的 127.8s 冻结就是一条 4MiB 块被源站以几十 KB/s 慢慢吐；
+// 主链路没有整块吞吐下限，soTimeout 永不触发，也不留任何日志。
+// 这里每 N 个主 chunk 把一条响应降到 DEGENERATE_MBPS ⇒ 两臂命中次数/时机确定。
+const DEGENERATE_EVERY = parseInt(arg('--degenerate-every', '0'), 10);
+const DEGENERATE_MBPS = parseFloat(arg('--degenerate-mbps', '0.04'));
+const DEGENERATE_AFTER_SEC = parseFloat(arg('--degenerate-after-sec', '0'));
+
+// 292 · 只给**主 chunk（>=1 MiB 的有界 Range）**注入表头空窗，用来确定性复现
+// 「首帧零缓冲起步 + 串行补块表头空窗」造成的连环 buffering（p291-night-both 起播
+// 7.767s 冻结）。探测 / cues / 片尾这些小请求保持零延迟，避免拖慢起播 prep
+// 让首帧超时 ⇒ 两臂起播条件一致，变量只有「主 chunk 之间有没有空窗」。
+const CHUNK_HDR_MS = parseInt(arg('--chunk-hdr-ms', '0'), 10);
+
+// 293 · 全局总带宽（--global-mbps > 0）：所有响应共享一条虚拟管道。
+// 默认 0 = 每连接独立限速（旧行为；多连接会叠加，做方案 D 对照时偏乐观）。
+// 设为与 --mbps 相同 ⇒ 单连接不变、双连接各分一半，模拟「源站总带宽固定」。
+const GLOBAL_MBPS = parseFloat(arg('--global-mbps', '0'));
+const globalBytesPerSec = GLOBAL_MBPS > 0 ? GLOBAL_MBPS * 1024 * 1024 : 0;
+let globalNextAt = 0;
+const degenerateBytesPerSec = DEGENERATE_MBPS * 1024 * 1024;
+let mainChunkCount = 0;
+let degenerateCount = 0;
+
 const bytesPerSec = MBPS * 1024 * 1024;
 const started = Date.now();
 let reqCount = 0;
@@ -102,7 +126,16 @@ async function throttle(src, dst, speed, onBytes) {
       served += chunk.length;
       if (onBytes) onBytes(chunk.length);
       const dueMs = t0 + (served / speed) * 1000;
-      const wait = dueMs - Date.now();
+      let target = dueMs;
+      // 293 · 全局带宽桶：先「预约」再等（Node 单线程 ⇒ 预约无竞态）。
+      // 被背压卡住的响应不会推进 globalNextAt ⇒ 也不会抢别路的配额。
+      if (globalBytesPerSec > 0) {
+        const slot = Math.max(Date.now(), globalNextAt) +
+          (chunk.length / globalBytesPerSec) * 1000;
+        globalNextAt = slot;
+        target = Math.max(target, slot);
+      }
+      const wait = target - Date.now();
       if (wait > 1) await sleep(wait);
       if (dst.destroyed) return;
       const ok = dst.write(chunk);
@@ -208,6 +241,18 @@ function serveLocal(id, res, range, hdrDelay) {
   const tailEnd = TAIL_START + tailSize - 1;
   const inTail = TAIL_FILE && start >= TAIL_START && start <= tailEnd;
 
+  // 292 · 主 chunk 表头空窗：p291-night-both 起播期主 chunk 表头 1.5–8 s，
+  // 串行补块时这段窗口供给为 0 ⇒ 首帧零缓冲起步必然 underrun。
+  // 放宽到「任一本地段 + 有界请求 >=1 MiB」：run/arm query 禁续播后会从头播，
+  // 起播主链路落在 head 段（sample.mkv），若只判 inMain 就命中不到 ⇒ 复现失效。
+  // 探测(1B)/cues(256KB)/warmup ping(1B) 天然 <1MiB 被排除 ⇒ 起播 prep 不拖慢。
+  const isBigLocalChunk = (inHead || inMain || inTail) &&
+    (requestedEnd - start + 1) >= 1024 * 1024;
+  const effectiveDelay = hdrDelay + (isBigLocalChunk ? CHUNK_HDR_MS : 0);
+  if (isBigLocalChunk && CHUNK_HDR_MS > 0) {
+    log(`  CHUNK-HDR#${id} 主块表头空窗 +${CHUNK_HDR_MS}ms（range ${start}-${requestedEnd}）`);
+  }
+
   const fire = () => {
     if (inTail) {
       const localStart = start - TAIL_START;
@@ -257,6 +302,21 @@ function serveLocal(id, res, range, hdrDelay) {
     const end = Math.min(requestedEnd, mainEnd);
     const length = end - start + 1;
     const localStart = start - mainStart;
+
+    // 291 · 只挑 **主 chunk**（>=1 MiB）降级：探测 / 片尾 / cues 那些小请求
+    // 保持正常，避免污染起播首帧口径。两臂用同一组参数 ⇒ 因果判据成立。
+    let speed = bytesPerSec;
+    const eligible = length >= 1024 * 1024 &&
+      (Date.now() - started) / 1000 >= DEGENERATE_AFTER_SEC;
+    if (DEGENERATE_EVERY > 0 && eligible) {
+      mainChunkCount++;
+      if (mainChunkCount % DEGENERATE_EVERY === 0) {
+        speed = degenerateBytesPerSec;
+        degenerateCount++;
+        log(`  DEGENERATE#${id} 第 ${degenerateCount} 次：本块 ${(length / 1048576).toFixed(0)}MiB 降到 ${DEGENERATE_MBPS} MB/s（预期 ${Math.round(length / speed)}s 读完）`);
+      }
+    }
+    const tag = speed !== bytesPerSec ? ' [degenerate]' : '';
     res.writeHead(206, {
       'Content-Type': 'video/x-matroska',
       'Content-Length': String(length),
@@ -266,26 +326,28 @@ function serveLocal(id, res, range, hdrDelay) {
     const t0 = Date.now();
     let n = 0;
     const src = fs.createReadStream(LOCAL_FILE, { start: localStart, end: localStart + length - 1 });
-    throttle(src, res, bytesPerSec, (c) => { n += c; bytesServed += c; }).then(() => {
+    throttle(src, res, speed, (c) => { n += c; bytesServed += c; }).then(() => {
       const ms = Date.now() - t0;
-      log(`  DONE#${id} bytes=${n} (${(n / 1048576).toFixed(2)} MiB) in ${ms}ms ⇒ ${(n / 1048576 / (ms / 1000)).toFixed(3)} MB/s`);
+      log(`  DONE#${id}${tag} bytes=${n} (${(n / 1048576).toFixed(2)} MiB) in ${ms}ms ⇒ ${(n / 1048576 / (ms / 1000)).toFixed(3)} MB/s`);
     });
   };
-  if (hdrDelay > 0) setTimeout(fire, hdrDelay); else fire();
+  // 292：主 chunk 额外等 CHUNK_HDR_MS 再发响应头（表头空窗），其余请求维持原延迟。
+  if (effectiveDelay > 0) setTimeout(fire, effectiveDelay); else fire();
 }
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`本地限速源站已启动 http://127.0.0.1:${PORT}/v`);
-  console.log(`  MBPS=${MBPS}  bytesPerSec=${bytesPerSec}  B/s`);
+  console.log(`  MBPS=${MBPS}  bytesPerSec=${bytesPerSec}  B/s  globalMBPS=${GLOBAL_MBPS}`);
   console.log(`  表头延迟 ${HDR_MS}ms${STALE ? '（随时间增长）' : ''}`);
   console.log(`  数据源 ${LOCAL_FILE ? '本地文件 ' + LOCAL_FILE : '上游 ' + UPSTREAM}`);
   console.log(`  宣称总长 ${DECLARED_SIZE || '（= 实际）'}`);
+  console.log(`  退化连接 every=${DEGENERATE_EVERY} mbps=${DEGENERATE_MBPS} after=${DEGENERATE_AFTER_SEC}s`);
   console.log(`  adb reverse tcp:${PORT} tcp:${PORT}`);
 });
 
 function flush() {
   fs.writeFileSync(LOG, lines.join('\n'));
-  console.log(`\n=== 统计 ===\n请求 ${reqCount} · 供出 ${(bytesServed / 1048576).toFixed(1)} MiB · 平均 ${(bytesServed / 1048576 / ((Date.now() - started) / 1000)).toFixed(3)} MB/s`);
+  console.log(`\n=== 统计 ===\n请求 ${reqCount} · 供出 ${(bytesServed / 1048576).toFixed(1)} MiB · 平均 ${(bytesServed / 1048576 / ((Date.now() - started) / 1000)).toFixed(3)} MB/s · 退化注入 ${degenerateCount} 次`);
 }
 process.on('SIGINT', () => { flush(); process.exit(0); });
 process.on('SIGTERM', () => { flush(); process.exit(0); });

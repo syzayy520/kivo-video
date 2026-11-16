@@ -109,7 +109,11 @@ internal class LocalRangeResponder(
      * 【为什么长连接不能断】分片每 2–4 秒一个，若每次重新 TLS 握手（1–2 s），
      * 转码会被播成幻灯片 ⇒ 不调 disconnect()，靠 JVM 的 KeepAliveCache 复用。
      */
-    fun respondForward(out: BufferedOutputStream, targetUrl: String) {
+    fun respondForward(
+        out: BufferedOutputStream,
+        targetUrl: String,
+        hls: com.kivo.cinema.hls.HlsForwardPolicy? = null,
+    ) {
         val conn = openPassthrough(targetUrl, "GET") ?: run {
             writeSimple(out, 503, "Service Unavailable"); return
         }
@@ -120,6 +124,30 @@ internal class LocalRangeResponder(
                 writeSimple(out, 503, "Service Unavailable"); return
             }
             val type = conn.contentType ?: "application/octet-stream"
+
+            // 310 · master 裁剪：只对 **playlist**（.m3u8）读全量，分片继续流式转发。
+            // 【为什么要读全量】判断是不是 master 必须看内容（含 `#EXT-X-STREAM-INF`），
+            // 而流式转发一旦开始就没法回头改。playlist 通常只有几 KB～几百 KB，可接受。
+            if (hls != null && isPlaylistUrl(targetUrl)) {
+                val raw = conn.inputStream.use { it.readBytes() }
+                val text = String(raw, Charsets.UTF_8)
+                val finalText = rewriteIfMaster(text, hls)
+                val bytes = finalText.toByteArray(Charsets.UTF_8)
+                val head = StringBuilder("HTTP/1.1 200 OK\r\n")
+                    .append("Content-Type: ").append(type).append("\r\n")
+                    // 裁剪后长度变了，**必须用新长度**（用上游的会截断或挂住）
+                    .append("Content-Length: ").append(bytes.size).append("\r\n")
+                    .append("Connection: close\r\n\r\n")
+                out.write(head.toString().toByteArray())
+                out.write(bytes)
+                out.flush()
+                NetDiag.log(
+                    "PROXY 直通 ok len=${bytes.size}（原 ${raw.size}）" +
+                        " ${targetUrl.substringBefore('?').substringAfterLast('/')}",
+                )
+                return
+            }
+
             val len = conn.contentLengthLong
             val head = StringBuilder("HTTP/1.1 200 OK\r\n")
                 .append("Content-Type: ").append(type).append("\r\n")
@@ -132,6 +160,33 @@ internal class LocalRangeResponder(
         } catch (e: Exception) {
             NetDiag.log("PROXY 直通 fail: ${e.javaClass.simpleName}: ${e.message}")
             runCatching { writeSimple(out, 503, "Service Unavailable") }
+        }
+    }
+
+    /** 只对 playlist 做全量读取；分片（.ts/.m4s/.mp4）保持流式。 */
+    private fun isPlaylistUrl(url: String): Boolean =
+        url.substringBefore('?').endsWith(".m3u8", ignoreCase = true)
+
+    /**
+     * 如果是 master，就按策略裁成单档；否则原样返回（variant playlist 不能裁）。
+     *
+     * 【为什么必须记日志】选档是**决策**，铁律要求可复算 ——
+     * 选了哪一档、为什么、排除了几档，全部要能事后查。
+     */
+    private fun rewriteIfMaster(
+        text: String,
+        hls: com.kivo.cinema.hls.HlsForwardPolicy,
+    ): String {
+        if (!com.kivo.cinema.hls.HlsMaster.isMaster(text)) return text
+        val variants = com.kivo.cinema.hls.HlsMaster.parse(text)
+        val choice = com.kivo.cinema.hls.HlsVariantPolicy.choose(
+            variants, hls.maxHeight, hls.maxBps, hls.canDecode,
+        )
+        NetDiag.log("[hls] 选档（maxHeight=${hls.maxHeight} maxBps=${hls.maxBps}）：${choice.reason}")
+        return if (choice.index >= 0) {
+            com.kivo.cinema.hls.HlsMaster.keepOnly(text, choice.index)
+        } else {
+            text
         }
     }
 

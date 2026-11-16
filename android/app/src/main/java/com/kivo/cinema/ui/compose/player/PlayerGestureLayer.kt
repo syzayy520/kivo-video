@@ -2,6 +2,7 @@ package com.kivo.cinema.ui.compose.player
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,17 @@ internal fun PlayerGestureLayer(
     onTap: () -> Unit,
     onDoubleTap: (DoubleTapZone) -> Unit,
     locked: Boolean = false,
+    /**
+     * 317：暂停**滑动**类手势（横滑 seek / 竖滑亮度音量）。
+     *
+     * 【为什么不能复用 [locked]】`locked` 是"屏幕锁定"，锁定态**仍要能点击**
+     * （点画面 = 解除锁定提示）。而长按快进激活时，点击也不能被吃 ——
+     * 所以两者必须分开：这里只压滑动，不动点击。
+     */
+    suppressSwipe: Boolean = false,
+    onHorizontalDragStart: () -> Unit = {},
+    onHorizontalDrag: (Float) -> Unit = {},
+    onHorizontalDragEnd: (Boolean) -> Unit = {},
     onVerticalDragStart: (Float) -> Unit = {},
     onVerticalDrag: (Float) -> Unit = {},
     onVerticalDragEnd: () -> Unit = {},
@@ -56,6 +68,10 @@ internal fun PlayerGestureLayer(
     val currentOnTap by rememberUpdatedState(onTap)
     val currentOnDoubleTap by rememberUpdatedState(onDoubleTap)
     val currentLocked by rememberUpdatedState(locked)
+    val currentSuppressSwipe by rememberUpdatedState(suppressSwipe)
+    val currentHDragStart by rememberUpdatedState(onHorizontalDragStart)
+    val currentHDrag by rememberUpdatedState(onHorizontalDrag)
+    val currentHDragEnd by rememberUpdatedState(onHorizontalDragEnd)
     val currentDragStart by rememberUpdatedState(onVerticalDragStart)
     val currentDrag by rememberUpdatedState(onVerticalDrag)
     val currentDragEnd by rememberUpdatedState(onVerticalDragEnd)
@@ -71,15 +87,36 @@ internal fun PlayerGestureLayer(
             // 拖动一旦发生就把事件消费掉，tap 检测器随之取消（不会误触发"点一下收起控制条"）。
             // 横向拖动（进度条 seek）不在这里处理 —— 进度条在**上层**，
             // 它会先拿到事件并消费，我们的竖向检测因此不会误触发。
+            // ★317 · 全屏横向拖动 = 快进/快退。
+            //
+            // 【为什么之前没有】旧实现只在**底部进度条**上处理横向 seek，
+            // 画面上横滑没有任何处理 ⇒ 用户左右滑时手难免带竖向分量，
+            // 被下面的竖向检测器抢走 ⇒ 变成调亮度/音量（真机反馈）。
+            // 现在补上：横向由本检测器接管，竖向仍归亮度/音量 —— 两者按**主方向**互斥。
+            //
+            // 【为什么松手才 seek】与进度条拖动同一口径（拖动中只算目标，松手才跳），
+            // 避免拖动过程中反复 seek 把内核打乱。
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragStart = { if (!currentLocked && !currentSuppressSwipe) currentHDragStart() },
+                    onDragEnd = { if (!currentLocked && !currentSuppressSwipe) currentHDragEnd(true) },
+                    onDragCancel = { if (!currentLocked && !currentSuppressSwipe) currentHDragEnd(false) },
+                    onHorizontalDrag = { change, dragAmount ->
+                        if (currentLocked || currentSuppressSwipe) return@detectHorizontalDragGestures
+                        change.consume()
+                        currentHDrag(dragAmount)
+                    },
+                )
+            }
             .pointerInput(Unit) {
                 detectVerticalDragGestures(
                     // 锁定态竖滑 = ❌（§二）：不消费、不上报，
                     // 但也不让它误变成 tap —— 滑动本来就不是 tap。
-                    onDragStart = { offset -> if (!currentLocked) currentDragStart(offset.x) },
-                    onDragEnd = { if (!currentLocked) currentDragEnd() },
-                    onDragCancel = { if (!currentLocked) currentDragEnd() },
+                    onDragStart = { offset -> if (!currentLocked && !currentSuppressSwipe) currentDragStart(offset.x) },
+                    onDragEnd = { if (!currentLocked && !currentSuppressSwipe) currentDragEnd() },
+                    onDragCancel = { if (!currentLocked && !currentSuppressSwipe) currentDragEnd() },
                     onVerticalDrag = { change, dragAmount ->
-                        if (currentLocked) return@detectVerticalDragGestures
+                        if (currentLocked || currentSuppressSwipe) return@detectVerticalDragGestures
                         change.consume()
                         currentDrag(dragAmount)
                     },

@@ -1,6 +1,7 @@
 package com.kivo.cinema.ui.compose
 
 import android.view.SurfaceHolder
+import com.kivo.cinema.playback.OriginSupplyPressure
 import com.kivo.cinema.smb.SmbAddress
 import com.kivo.cinema.smb.SmbByteSource
 import com.kivo.cinema.smb.SmbCredential
@@ -282,5 +283,8 @@ internal fun PlayerComposeActivity.mountNetworkThumbnails(source: com.kivo.cinem
 internal fun PlayerComposeActivity.prewarmThumbnails() {
     if (!pendingThumbPrewarm) return
     pendingThumbPrewarm = false
-    thumbnailReader?.prewarm()
+    val reader = thumbnailReader ?: return
+    // 291：预览内核会开**第二条**源站连接并读片源 20–35 MiB（真机 273-E）。
+    // 慢源站下它会把主链路饿死 ⇒ 按 275 §5.2「低优先级预取」经闸门延后。
+    OriginSupplyPressure.defer { reader.prewarm() }
 }

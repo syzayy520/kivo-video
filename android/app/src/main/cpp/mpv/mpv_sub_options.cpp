@@ -53,6 +53,15 @@ bool apply_sub_options(mpv_handle* handle,
     // 真正的失败在更上游 —— 上层保证目录存在（见 Kotlin 的 SubtitleFontSet）。
     // 但失败仍会进 failures ⇒ 不静默。
     options.push_back({"sub-fonts-dir", dir.c_str(), true});
+    // 【301 · 必须同时设 osd-fonts-dir】与下面 osd-font 同一个道理，但更隐蔽：
+    // mpv 的 `mp_ass_init()` 读的是 **osd_style_opts.fonts_dir**（OSD 层统一渲染字幕），
+    // 而不是 sub_style。只设 sub-fonts-dir 时：
+    //   · `options/sub-fonts-dir` 读回来是**正确的**（所以"看配置"看不出问题）；
+    //   · libass 的 `ass_set_fonts_dir` 却拿到空值 ⇒ 一条 `Loading font file` 都没有；
+    //   · 结果 PGS（位图，不走 fontselect）正常，**SRT/ASS 全空**。
+    // 真机 301 实测就是这个现象：`can't find selected font provider` +
+    // `fontselect: failed to find any fallback with glyph 0x0`。
+    options.push_back({"osd-fonts-dir", dir.c_str(), true});
     options.push_back({"osd-font", family.c_str(), true});
     options.push_back({"sub-font", family.c_str(), true});
     // 字号：mpv 默认按视频高度的比例算字号。

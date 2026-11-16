@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  310 · 自适应图标（API 26+）。
+
+  三层：
+  · background = 纯色 #0A0A0B；
+  · foreground = 钛金属播放三角（几何见 drawable/ic_launcher_foreground.xml）；
+  · monochrome = Android 13+ 主题图标用的单色剪影。
+
+  设计稿要求「前景位于 66dp 安全区内，三种系统蒙版下都不会被裁切」——
+  三角已按高 66dp 缩放，圆形/方形/圆角方形蒙版都不会切到尖端。
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_monochrome" />
+</adaptive-icon>

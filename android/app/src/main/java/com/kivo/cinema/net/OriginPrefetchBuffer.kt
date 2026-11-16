@@ -101,11 +101,21 @@ class OriginPrefetchBuffer(
         got
     }
 
-    /** 跳读：清空环，把读写游标都挪到 [offset]。 */
+    /**
+     * 跳读：清空环，把读写游标都挪到 [offset]。
+     *
+     * 291：同时清掉 [failure]。
+     * 【为什么】旧实现只清 `eof` 不清 `failure`，而
+     * [OriginPrefetchPump.produceLoop] 见到 `lastFailure != null` 会永久空转 ——
+     * 一次瞬时失败被 latch 住之后，即便 seek 换了新位置、源站早已恢复，
+     * 主链路也再不会生产一个字节（275 §5.2「有界恢复」）。
+     * 跳读本身就是一次明确的有界恢复：从新的准确 offset 重开，旧失败不再成立。
+     */
     fun resetTo(offset: Long) = synchronized(monitor) {
         readIdx = offset
         writeIdx = offset
         eof = false
+        failure = null
         monitor.notifyAll()
     }
 

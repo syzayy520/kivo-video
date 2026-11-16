@@ -1,0 +1,28 @@
+PASS 20 次乱序连续 seek
+PASS 暂停态 seek 不误启动
+2/2 PASS
+
+  #1 target=10s landing=10292ms err=292ms cost=102ms errMsg=
+  #2 target=150s landing=150500ms err=500ms cost=100ms errMsg=
+  #3 target=30s landing=30208ms err=208ms cost=100ms errMsg=
+  #4 target=170s landing=170542ms err=542ms cost=101ms errMsg=
+  #5 target=60s landing=60375ms err=375ms cost=101ms errMsg=
+  #6 target=5s landing=5000ms err=0ms cost=132ms errMsg=
+  #7 target=120s landing=120000ms err=0ms cost=118ms errMsg=
+  #8 target=90s landing=90375ms err=375ms cost=175ms errMsg=
+  #9 target=165s landing=165292ms err=292ms cost=101ms errMsg=
+  #10 target=45s landing=45208ms err=208ms cost=103ms errMsg=
+  #11 target=140s landing=140417ms err=417ms cost=101ms errMsg=
+  #12 target=20s landing=20291ms err=291ms cost=101ms errMsg=
+  #13 target=175s landing=175000ms err=0ms cost=113ms errMsg=
+  #14 target=75s landing=75000ms err=0ms cost=122ms errMsg=
+  #15 target=100s landing=100042ms err=42ms cost=114ms errMsg=
+  #16 target=15s landing=15208ms err=208ms cost=104ms errMsg=
+  #17 target=160s landing=160458ms err=458ms cost=103ms errMsg=
+  #18 target=55s landing=55083ms err=83ms cost=103ms errMsg=
+  #19 target=130s landing=130500ms err=500ms cost=111ms errMsg=
+  #20 target=110s landing=110500ms err=500ms cost=101ms errMsg=
+  最坏落点偏差=542ms 最坏耗时=175ms serial=true
+  最终 position=115083ms（最后目标 110s）drift=5083ms
+  暂停生效=true seek 后仍暂停=true position=60000ms
+

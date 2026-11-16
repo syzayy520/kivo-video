@@ -54,3 +54,8 @@ tools/reference/**/__pycache__/
 # `git add -A` 就会把 850 KB 二进制提交进版本库（实测 `git add -n` 会命中）。
 # 整个目录都是产物目录，用目录级规则一次覆盖，新增 .so 自动生效。
 android/app/src/main/jniLibs/
+
+# 测试片源与产物：单个 20MB~128MB，不进库（GitHub 单文件上限 100MB）
+docs/evidence/**/*.mp4
+docs/evidence/**/*.mkv
+docs/evidence/**/*.bin

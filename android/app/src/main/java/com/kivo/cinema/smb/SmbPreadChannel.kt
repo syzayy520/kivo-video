@@ -1,5 +1,6 @@
 package com.kivo.cinema.smb
 
+import com.kivo.cinema.net.NetDiag
 import java.io.IOException
 
 /**
@@ -61,6 +62,13 @@ internal class SmbPreadChannel(
             fresh.open()
         } catch (failed: Exception) {
             val reason = "SMB 连接已断开，重连失败：${failed.message?.take(80) ?: "未知原因"}"
+            // 301 · `detail`（NT status + libsmb2 原文）**只进日志**：
+            // 它是排障的关键（区分"认证错 / 共享不存在 / 网络不可达"），
+            // 但对用户是噪音。旧版直接丢掉了它 —— 305 实测里，
+            // "路由 SMB 服务挂了"和"账号错"在日志里长得一模一样，只能靠猜。
+            (failed as? SmbFailure)?.let { f ->
+                NetDiag.log("[smb] 重连失败 stage=${f.stage.label} detail=${f.detail}")
+            }
             gate.noteFailure(now, reason)
             throw IOException(reason, failed)
         }

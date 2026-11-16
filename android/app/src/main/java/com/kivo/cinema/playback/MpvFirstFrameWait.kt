@@ -26,6 +26,9 @@ internal object MpvFirstFrameWait {
     /** 轮询间隔（毫秒）。 */
     private const val POLL_MS = 50L
 
+    /** 317-C · 慢源提示的间隔：每 5 秒留一条"仍在等首帧"。 */
+    private const val NOTICE_MS = 5_000L
+
     /**
      * 起播判定结果。
      *
@@ -43,16 +46,50 @@ internal object MpvFirstFrameWait {
      * @throws IllegalStateException 超时且时钟也没起跳（内核真的没起来）。
      */
     fun await(native: MpvSession, isCancelled: () -> Boolean): Result {
-        val deadline = System.currentTimeMillis() + TIMEOUT_MS
+        val startedAt = System.currentTimeMillis()
+        val deadline = startedAt + TIMEOUT_MS
         var position = -1.0
+        var lastNoticeAt = startedAt
         while (System.currentTimeMillis() < deadline) {
             if (isCancelled()) throw IllegalStateException("播放已取消")
             Thread.sleep(POLL_MS)
             if (native.firstFrameRendered()) return Result(native.positionSeconds(), true)
             position = native.positionSeconds()
-            // 纯音频媒体永远等不到首帧 —— 那就只等时钟起跳，别把用户晾 30 秒。
+
+            // 317 · 区分「真的纯音频」与「vo 初始化失败」。
+            //
+            // 【为什么必须区分】两者在内核看来都是 `vid=no` + 时钟在走：
+            //   · 真的纯音频（.mp3）  —— 正常，片源就没有视频轨；
+            //   · vo 初始化失败       —— **故障**，片源有视频轨但内核放弃了出画。
+            // 之前一律当成前者放行 ⇒ 用户看到的是**黑屏有声 + 界面显示"正在播放"**，
+            // 只能一直干等（真机：Emby 4K 原盘、源站 330 KB/s、打开耗时 61 秒，
+            // Surface 在打开期间失效 ⇒ `Failed to create ANativeWindow` ⇒ `Video: no video`）。
+            //
+            // 判据：`video-codec` 非空 ⇒ 片源确实有视频轨 ⇒ 没有画面就是故障。
             if (position > 0.0 && native.property("vid")?.trim() == "no") {
+                val codec = native.property("video-codec")?.trim().orEmpty()
+                if (codec.isNotEmpty() && !codec.equals("no", ignoreCase = true)) {
+                    NetDiag.log(
+                        "[prep] ✗ 视频输出初始化失败：片源含 $codec 视频轨，但内核未建出视频输出" +
+                            "（position=$position，已等 ${(System.currentTimeMillis() - startedAt) / 1000}s）",
+                    )
+                    throw IllegalStateException(
+                        "视频输出初始化失败：片源有 ${codec} 视频轨，但内核没能出画。" +
+                            "常见于码率高的大文件 + 源站慢（打开期间画面输出失效），换低码率/转码版可播",
+                    )
+                }
+                // 真的纯音频媒体：只等时钟起跳，别把用户晾 30 秒。
                 return Result(position, false)
+            }
+
+            // 317-C · 慢源提示：每 5 秒留一条，让"为什么这么久"有据可查。
+            val now = System.currentTimeMillis()
+            if (now - lastNoticeAt >= NOTICE_MS) {
+                lastNoticeAt = now
+                NetDiag.log(
+                    "[prep] 仍在等首帧 … 已等 ${(now - startedAt) / 1000}s" +
+                        " position=$position vid=${native.property("vid")}",
+                )
             }
         }
         // 兜底：画面没确认但时钟在走 ⇒ 放行，但**说清楚**（不许静默降级）。

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  312h · 品牌播放三角 —— adaptive icon 前景层（★白底版）。
+
+  ## 为什么反色
+  钛金属是**浅色**渐变（#F7F4EF→#B9B4A9），只配深底成立。
+  换白底后浅色三角会糊进背景里 ⇒ 白底版把三角**反色成深墨**，
+  保留同样的"上浅下深"结构（金属在白底上是它的暗面）：
+      #2E2E33 → #1D1D1F → #0C0C0E
+  取色与 Kivo Music 的白底图标一致（设计稿 flat 版用的就是 #1d1d1f）。
+
+  ## 比例：53.6%（可见区高）
+  按用户指认的那张稿子实测（图标 70×69 px、三角 30×37 px）。
+  ⇒ 108dp 画布上 **三角 31.98 × 38.59 dp**，左上 (38.01, 34.70)。
+
+  ## 白底版去掉了辉光与描边
+  设计稿那圈 `drop-shadow(0 0 5px rgba(255,255,255,.07))` 是给**深底**的浮起感，
+  白底上画白描边等于没画 ⇒ 白底版保持干净：只有一层深墨渐变。
+  上缘高光/下缘暗影留给启动动画里的大标识。
+
+  ## 几何
+  上片 [[0,0],[69.6,39.5],[0,39.5]]、下片 [[0,44.5],[69.6,44.5],[0,84]]
+  ⇒ 中间细缝 5（39.5→44.5），即启动动画里那条光线的位置。
+  顶点二次贝塞尔圆角半径 [3,7,3]，与设计稿 `rp()` 一致。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 上片 -->
+    <path
+        android:pathData="M40.01,36.08Q40.01,34.70 41.21,35.38L69.19,51.26Q71.99,52.85 68.77,52.85L41.39,52.85Q40.01,52.85 40.01,51.47Z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="54" android:startY="34.70" android:endX="54" android:endY="73.30">
+                <item android:offset="0" android:color="#2E2E33" />
+                <item android:offset="0.55" android:color="#1D1D1F" />
+                <item android:offset="1" android:color="#0C0C0E" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- 下片：与上片共用同一段渐变坐标，两片拼起来才是一整块金属 -->
+    <path
+        android:pathData="M40.01,56.53Q40.01,55.15 41.39,55.15L68.77,55.15Q71.99,55.15 69.19,56.74L41.21,72.62Q40.01,73.30 40.01,71.92Z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="54" android:startY="34.70" android:endX="54" android:endY="73.30">
+                <item android:offset="0" android:color="#2E2E33" />
+                <item android:offset="0.55" android:color="#1D1D1F" />
+                <item android:offset="1" android:color="#0C0C0E" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

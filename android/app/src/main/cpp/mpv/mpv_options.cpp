@@ -95,6 +95,18 @@ bool apply_mpv_options(mpv_handle* handle,
         options.push_back({"msg-level", "all=debug", false});
     }
 
+    // ---- 317 · 关掉"seek 时自动弹出的 OSD 进度条" ----
+    //
+    // 【现象】真机拖动进度条松手后，画面上**多出一条更粗的进度条**，
+    // 与���制栏里的进度条并存、而且跟着播放一起走。
+    // 【根因】mpv 0.36+ 的 `osd-on-seek` 默认值是 `bar`（见 options/options.c 的
+    // OPT_CHOICE(osd_on_seek, {"no",0},{"bar",1},{"msg",2},{"msg-bar",3})）——
+    // seek 后**内核自己在视频画面上画一条进度条**。它在**视频渲染层**，
+    // 不是 Compose 组件，所以查遍 ui/compose/player 下的所有 drawRoundRect 都找不到。
+    // 【为什么不会影响字幕】`osd-on-seek` 只管"seek 时的 OSD"；字幕走 libass 渲染，互不相关。
+    // 【为什么现在才出现】mpv 0.36 起默认值从 `msg` 改成了 `bar`。
+    options.push_back({"osd-on-seek", "no", false});
+
     // ---- 2) 视频/音频通路 ----
     options.push_back({"vo", vo.c_str(), false});
     // gpu-next 模式：让 mpv 用 **Android 的 EGL context**
@@ -260,19 +272,27 @@ bool apply_mpv_options(mpv_handle* handle,
     //
     // 【零拷贝在我们这条渲染链上确实能用】vo=libmpv + 我们自己的 EGL/GLES3 上下文，
     // mpv 能把 MediaCodec 的帧映射进来：真机画面正常、渲染 23.5 fps 稳定、无映射报错。
-    // 【277 · 出画模式决定硬解驱动】
+    // 【286 · hwdec 必须是解码 API 名，不是 GPU interop 名】
     //
-    // · vo=libmpv（render API，我们自建 EGL context）：**mediacodec**（零拷贝）。
-    //   MediaCodec 的帧留在它自己的 Surface 上，mpv 把它映射进我们的 GL 管线
-    //   （真机：23.5 fps 稳定、native 278 MB / PSS 544 MB）。
+    // `hwdec` property 的合法值来自 mpv 的 vd_lavc.c hwdec 表：
+    //   mediacodec / mediacodec-copy / auto / no ...
+    // **`aimagereader` 不是 hwdec 值** —— 它是 GPU 侧 interop driver
+    // （video/out/gpu/hwdec.c 的 ra_hwdec_drivers[]，声明
+    //  .imgfmts={IMGFMT_MEDIACODEC} / .device_type=AV_HWDEVICE_TYPE_MEDIACODEC）。
     //
-    // · vo=gpu-next（mpv 自己的 VO + 完整 libplacebo）：**aimagereader**。
-    //   mpv 的 Android VO 要把帧读回自己的 GL 管线，零拷贝的 mediacodec
-    //   拿不到帧 ⇒ 日志实测："[vo/gpu-next/aimagereader] Waiting for frame
-    //   timed out! / acquireLatestImage failed: -30001"。
-    //   aimagereader 驱动我们这版 mpv 里是编进去的
-    //   （构建产物含 video_out_hwdec_hwdec_aimagereader.c.o）。
-    hwdec_out = (vo == "gpu-next") ? "aimagereader" : "mediacodec";
+    // 正确机制（mpv 源码 + 真机日志印证）：
+    //   hwdec=mediacodec（零拷贝解码）→ gpu-next 的 gpu-hwdec-interop=auto
+    //   → 按需加载 aimagereader driver → 把 IMGFMT_MEDIACODEC 帧映射进 libplacebo。
+    //   日志链：Set hwdec=mediacodec → "Loading hwdec driver 'aimagereader'"
+    //          → "Using hardware decoding (mediacodec)" → "aimagereader: Texture ..."。
+    //
+    // 【回归经过】277 把 gpu-next 分支写成 hwdec_out="aimagereader"（把 interop 名
+    //   误当 hwdec 值）⇒ mpv 报 "Unsupported hwdec: aimagereader" 并**静默回落软解**。
+    //   软解同样能正常出画 ⇒ 一直没被发现 ⇒ 此前所有 gpu-next 性能数据其实是软解口径。
+    //   286 在 DoVi 真机验证时抓到 "Unsupported hwdec" 才发现。
+    //   ⇒ 两条出画路径统一用 mediacodec；gpu-next 的 interop 由 mpv 自动加载。
+    //   ⇒ 277 记录的 -30001（"拿不到帧"）由本轮真机复验判定；若复现再评估 mediacodec-copy。
+    hwdec_out = "mediacodec";
     return true;
 }
 

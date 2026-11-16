@@ -34,8 +34,9 @@ import java.util.concurrent.atomic.AtomicLong
  * | `buffer_runway_ms` | mpv 属性 `demuxer-cache-time` | ✅ |
  * | `render_gap_ms` | **SurfaceFlinger latency 量具**（tools/p274_sf_latency.mjs） | ❌ 设备侧采，JSON 指向它 |
  * | `frames_dropped` | mpv 属性 `frame-drop-count` / `vo-drop-frame-count` | ✅ |
- * | `seek_total_ms` | 暂未埋点 | ❌ not_measured |
- * | `network_recovery_ms` | 暂未埋点 | ❌ not_measured |
+ * | `seek_total_ms` | 见 `seeks` 明细（p50/p95/max）；顶层字段仍留 not_measured | ⚠️ 看 seeks |
+ * | `network_recovery_ms` | `MpvCacheDiag` 每 2 s 喂 `NetworkRecoveryWatch`（位置停 + 离线 + 时钟再前进） | ✅ |
+ * | `thermal_context` | `ThermalSnapshot`：PowerManager 热状态 + sysfs 最高温 | ✅ |
  *
  * ⇒ **本文件不假装"全都有"**。它把能测的测准，测不到的写清原因，
  * 这样看报告的人一眼就知道哪条结论有数据支撑。
@@ -171,8 +172,13 @@ internal object PlaybackMetrics {
 
         val runway = prop("demuxer-cache-time")?.let { "${(it.toDoubleOrNull() ?: return@let null)?.times(1000)?.toLong()}" }
             ?: "not_measured: mpv 属性 demuxer-cache-time 读不到"
-        val dropVo = prop("vo-drop-frame-count") ?: "not_measured: mpv 属性读不到"
-        val dropTotal = prop("frame-drop-count") ?: "not_measured: mpv 属性读不到"
+        // 【属性名以 mpv 源码为准，不要凭印象写】
+        // `player/command.c:4020-4021`：
+        //   {"decoder-frame-drop-count", mp_property_frame_drop_dec}  ← 解码层丢帧
+        //   {"frame-drop-count",         mp_property_frame_drop_vo }  ← VO 丢帧
+        // 之前写的 `vo-drop-frame-count` **根本不存在** ⇒ 一直读不到（JSON 里恒为 not_measured）。
+        val dropVo = prop("frame-drop-count") ?: "not_measured: mpv 属性读不到"
+        val dropDec = prop("decoder-frame-drop-count") ?: "not_measured: mpv 属性读不到"
         val videoParams = prop("video-params") ?: "not_measured: mpv 属性读不到"
 
         val sb = StringBuilder()
@@ -199,12 +205,27 @@ internal object PlaybackMetrics {
         sb.append("  \"metrics\": {\n")
         sb.append("    \"buffer_runway_ms\": ").append(if (runway.startsWith("not_measured")) q(runway) else runway).append(",\n")
         sb.append("    \"frames_dropped_vo\": ").append(if (dropVo.startsWith("not_measured")) q(dropVo) else dropVo).append(",\n")
-        sb.append("    \"frames_dropped_total\": ").append(if (dropTotal.startsWith("not_measured")) q(dropTotal) else dropTotal).append(",\n")
+        sb.append("    \"frames_dropped_decoder\": ").append(if (dropDec.startsWith("not_measured")) q(dropDec) else dropDec).append(",\n")
         // render_gap 由设备侧量具采（SurfaceFlinger latency），这里不重复也不假装
         sb.append("    \"render_gap_ms\": ").append(q("not_measured: 由 tools/p274_sf_latency.mjs 采 SurfaceFlinger latency")).append(",\n")
         sb.append("    \"read_latency_ms\": ").append(q("not_measured: 见 OriginLatencyStats（取数层自带统计）")).append(",\n")
-        sb.append("    \"seek_total_ms\": ").append(q("not_measured: 尚未埋点")).append(",\n")
-        sb.append("    \"network_recovery_ms\": ").append(q("not_measured: 尚未埋点")).append("\n")
+        // 275 §6.1 的 seek_total_ms：取本次会话所有 seek 的 p50（代表性单值），
+        // 明细与 p95/max 见下面的 "seeks" 区。
+        // 【曾经这里写死 "尚未埋点"】但 recordSeek() 早已接入（280），字段没跟上
+        // ⇒ JSON 里明明有真数据却报"未测"，会误导读报告的人。
+        sb.append("    \"seek_total_ms\": ")
+        if (seeks.isEmpty()) sb.append(q("not_measured: 本次会话未发生 seek"))
+        else sb.append(seeks.map { it.totalMs }.sorted()[seeks.size / 2])
+        sb.append(",\n")
+        // 301：网络恢复 → 媒体时钟再次前进的耗时。
+        // 由 MpvCacheDiag 每 2 s 喂 NetworkRecoveryWatch（位置/暂停/在线三态状态机）。
+        val recovery = NetworkRecoveryWatch.lastRecoveryMs()
+        sb.append("    \"network_recovery_ms\": ")
+        if (recovery >= 0) sb.append(recovery)
+        else sb.append(q("not_measured: 本次会话未发生断网→恢复"))
+        sb.append(",\n")
+        // 301：热状态上下文（275 §6.1 用来解释长时间播放的性能衰减）。
+        sb.append("    \"thermal_context\": ").append(ThermalSnapshot.read(appContext)).append("\n")
         sb.append("  },\n")
 
         // seek：单次明细 + 汇总（275 §6.2 的验收项）

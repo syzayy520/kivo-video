@@ -45,6 +45,13 @@ internal fun PlayerComposeActivity.resolutionLabel(): String {
  *   只给"拖动/跳转到未缓存位置"用；双击快进/快退是小幅跳转，不需要等。
  */
 internal fun PlayerComposeActivity.seekTo(ms: Long, waitLandingFirstSlice: Boolean = false) {
+    // 317 · 统一在入口裁剪到 [0, durationMs]。
+    //
+    // 【为什么放在这里而不是各调用点】双击快进算的是 `positionMs + 15s`，
+    // 在片尾附近会超出片长；横滑 seek 已经自己 coerce 过，但长按/面板跳转等
+    // 还有别的调用点 —— 与其在每个调用点各写一遍（早晚漏一个），不如收口到唯一入口。
+    // 时长未知（0）时只保证非负，不瞎猜上限。
+    val clamped = if (durationMs > 0L) ms.coerceIn(0L, durationMs) else ms.coerceAtLeast(0L)
     // 274 · 实验开关：`--ei kivo.noWaitLanding 1` ⇒ 跳过"落点前置等待"（回到 v35 行为）。
     //
     // 【为什么要这个开关】在确定性本地源（0.6 MB/s = 1.9×码率）上实测：
@@ -147,7 +154,11 @@ private fun PlayerComposeActivity.performSeek(ms: Long) {
             positionMs = ms
         }
         mpvNetSession != null -> {
-            mpvNetSession?.seekTo(ms * 1000, exact = playbackPrefs.seekExact)
+            // 301 · 改**异步**：`seekTo` 要等落点（真机 300 实测每次 100–216 ms，
+            // 上限 1.5 s），在主线程调等于把 UI 占住。而且快速拖动会排队执行多次，
+            // 画面逐个跳过去。`seekToAsync` 由会话单线程串行 + 票据比大小：
+            // 只有**最后一个**目标会真的发到内核，中间目标直接跳过。
+            mpvNetSession?.seekToAsync(ms * 1000, exact = playbackPrefs.seekExact)
         }
         smbNetSession != null -> smbNetSession?.seekTo(ms * 1000)
         else -> playbackSession?.seekTo(ms * 1000)

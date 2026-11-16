@@ -3,6 +3,7 @@ package com.kivo.cinema.ui.compose
 import com.kivo.cinema.net.HttpOriginSource
 import com.kivo.cinema.net.NetDiag
 import com.kivo.cinema.net.OriginPrewarm
+import com.kivo.cinema.playback.OriginSupplyPressure
 import com.kivo.cinema.playback.PlaybackLoadGate
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -172,12 +173,16 @@ internal fun PlayerComposeActivity.prepareUrlSource(): PlayerUrlPrep? {
  * 首帧之后 1–2 s 才有用户能拖，那时保温的连接已经建好 ⇒ 不伤。
  */
 internal fun PlayerComposeActivity.startUrlWarmup() {
-    urlPrep?.source?.startWarmup()
-    // 273 v26：**同时**把 cues 索引读好（后台线程，两次小请求）。
-    // 【为什么趁现在】落点预取要"时间 → 字节偏移"这张表；
-    // 表没备好时拖动只能照常走网络（多付一次冷连接 + 一整段下载）。
-    // 首帧之后正是源站连接都建好、带宽空闲的时候 ⇒ 读表不抢起播。
-    urlPrep?.source?.warmCueIndex()
+    val source = urlPrep?.source ?: return
+    // 291 · 更正旧注释：原文断言「首帧之后正是源站连接都建好、带宽空闲的时候」，
+    // 被慢源站真机证据推翻 —— p290 夜间公网吞吐 417 KB/s < 片源 501 KB/s，
+    // 首帧后 warmup / cue / thumb 一起抢连接，主链路 4.5 s 无新块 ⇒
+    // A 臂起播 buffering 1.95 s。按 275 §5.2 优先级，这两项经闸门延后到
+    // cache runway 回到健康线再放行；压力持续不解除由闸门兜底放行，不会永不执行。
+    OriginSupplyPressure.defer {
+        source.startWarmup()
+        source.warmCueIndex()
+    }
 }
 
 /**

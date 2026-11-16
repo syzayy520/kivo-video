@@ -1,7 +1,10 @@
 package com.kivo.cinema.playback
 
+import android.content.Context
+import android.os.SystemClock
 import com.kivo.cinema.mpv.MpvSession
 import com.kivo.cinema.net.NetDiag
+import com.kivo.cinema.net.NetworkLinkMonitor
 import org.json.JSONObject
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -50,18 +53,26 @@ object MpvCacheDiag {
     /** 是否已经读到过一次（读不到 ≠ 会话没了 —— 媒体还没加载时属性根本不存在）。 */
     private var seenOnce = false
 
+    /** 查网络可达性用（`NetworkLinkMonitor` 是静态查询，见其文件头）。 */
+    private var appContext: Context? = null
+
     /**
      * 挂上会话，开始采样（幂等；换会话会重新开始计）。
      *
      * 只给**主播放**内核挂 —— 预览内核不挂，否则两套缓存的数字混在一起。
+     *
+     * @param context 用来查网络可达性（301 的 `network_recovery_ms`）；null 则跳过网络判定
      */
     @Synchronized
-    fun attach(target: MpvSession) {
+    fun attach(target: MpvSession, context: Context? = null) {
         if (session === target && worker != null) return
         stop()
         session = target
+        appContext = context?.applicationContext
         misses = 0
         seenOnce = false
+        // 301：新会话 ⇒ 网络恢复的状态清零，不跨会话残留。
+        NetworkRecoveryWatch.reset()
         val executor = Executors.newSingleThreadScheduledExecutor { r ->
             Thread(r, "KivoCacheDiag").apply { isDaemon = true }
         }
@@ -75,10 +86,21 @@ object MpvCacheDiag {
         worker?.shutdownNow()
         worker = null
         session = null
+        // 291：会话结束，闸门的待办与压力态也归零，不跨会话残留。
+        OriginSupplyPressure.reset()
+        // 292 · 注意：**不要**在这里 reset [RebufferPolicy]。
+        // attach() 开头会先调 stop()，而 beforeLoad() 发生在它之前
+        // （applyPlaybackPolicy → loadFile → attach）。若在此清零 armedAtMs，
+        // note() 会恒判「超时兜底」并在首帧同一毫秒写回默认 ⇒ 方案 C 退化成方案 B
+        // （292 第三轮真机取证）。rebuffer 的 armed/restored 由每次 beforeLoad() 重设，
+        // 本就不需要跨会话清理。
     }
 
     private fun sample() {
         val target = session ?: return stop()
+        // 301：网络恢复计时**独立于缓存采样** —— 断网时 demuxer-cache-state 仍可读，
+        // 但位置已经停了，正是要抓的时刻。放在前面，避免被下面的 early return 跳过。
+        feedRecoveryWatch(target)
         val raw = target.property("demuxer-cache-state")
         if (raw == null) {
             // 媒体还没加载时属性不存在 —— 那不是"会话没了"，继续等。
@@ -90,13 +112,35 @@ object MpvCacheDiag {
         seenOnce = true
         misses = 0
         val node = runCatching { JSONObject(raw) }.getOrNull() ?: return
+        val runwaySec = node.optDouble("cache-duration")
+        val underrun = node.optBoolean("underrun")
+        // 291：runway 是唯一能反映「主链路还够不够播」的信号
+        // （275 §6.1 buffer_runway_ms），喂给供数压力闸门决定低优先级预取让不让路。
+        OriginSupplyPressure.note(runwaySec, underrun)
+        // 292 · 方案 C：起播预缓冲是否攒够，复用同一份 runway 判定
+        // （达标或超时才把 cache-pause-initial/wait 写回默认，绝不绑首帧）。
+        RebufferPolicy.note(target, runwaySec, underrun)
         NetDiag.log(
             "[cache] fw=${mib(node.optLong("fw-bytes"))} " +
                 "total=${mib(node.optLong("total-bytes"))} " +
-                "dur=${"%.1f".format(node.optDouble("cache-duration"))}s " +
-                "underrun=${node.optBoolean("underrun")} " +
+                "dur=${"%.1f".format(runwaySec)}s " +
+                "underrun=$underrun " +
                 "rate=${mib(node.optLong("raw-input-rate"))}/s"
         )
+    }
+
+    /**
+     * 301：把这一拍的"位置 / 是否暂停 / 是否在线"喂给 [NetworkRecoveryWatch]。
+     *
+     * 每 2 s 一拍 ⇒ 恢复耗时的分辨率约 ±2 s（比 P253 手工测的 2.0–2.2 s 粗，
+     * 但那是人工操作，这个是常驻自动采集）。
+     */
+    private fun feedRecoveryWatch(target: MpvSession) {
+        val posSec = runCatching { target.positionSeconds() }.getOrDefault(-1.0)
+        val paused = runCatching { target.property("pause") }.getOrNull()
+            ?.trim()?.lowercase()?.let { it == "yes" || it == "true" } ?: false
+        val online = appContext?.let { NetworkLinkMonitor.isOnline(it) } ?: true
+        NetworkRecoveryWatch.note(posSec, paused, online, SystemClock.elapsedRealtime())
     }
 
     private fun mib(bytes: Long): String = "%.1fM".format(bytes / 1048576.0)
