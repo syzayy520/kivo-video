@@ -2,6 +2,7 @@ package com.kivo.cinema.ui.design
 
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
@@ -23,12 +24,10 @@ import kotlin.math.floor
 /** Paging, active artwork reporting, and the shared page indicator. */
 @Composable
 fun HeroCarousel(
-    candidates: List<TmdbHome.Item>,
+    cards: List<com.kivo.cinema.ui.design.home.HeroCard>,
     onAmbient: (Color) -> Unit,
     dotsColor: Color,
     scrimColor: State<Color>,
-    topPoster: (TmdbHome.Item) -> String?,
-    logoFor: (TmdbHome.Item) -> String?,
     pullDp: Float = 0f,
     scrollPx: () -> Float = { 0f },
     previewVisible: Boolean = true,
@@ -36,43 +35,77 @@ fun HeroCarousel(
     generation: Int = 0,
     trailerFor: (TmdbHome.Item) -> TrailerResult,
     proxyAddress: String?,
+    /**
+     * 317 · 把中立 [HeroCard] 还原成 TMDB 条目（只用于预告片）。
+     * 返回 null = 该来源没有预告能力（Emby 服务器首页）。
+     */
+    trailerItemFor: (com.kivo.cinema.ui.design.home.HeroCard) -> TmdbHome.Item? = { null },
+    /** 317 · 异步取片名艺术字；null = 用 card.logoUrl（Emby 侧）。 */
+    logoLoader: (suspend (com.kivo.cinema.ui.design.home.HeroCard) -> String?)? = null,
+    /**
+     * 317 · 点击海报打开详情。null = 不可点（保持旧行为）。
+     *
+     * 【为什么现在才有】改造前 hero 只是展示墙，点它没反应；
+     * Emby 服务器首页需要"点海报进详情"，所以把它做成可选回调而不是写死。
+     */
+    onClick: ((com.kivo.cinema.ui.design.home.HeroCard) -> Unit)? = null,
 ) {
-    if (candidates.isEmpty()) return
-    val pagerState = rememberPagerState(pageCount = { candidates.size })
-    val mediaKeys = candidates.map { it.isTv to it.id }
+    if (cards.isEmpty()) return
+    val pagerState = rememberPagerState(pageCount = { cards.size })
+    val mediaKeys = cards.map { it.id }
     val palettes = remember(generation, mediaKeys) { mutableStateMapOf<Int, Color>() }
     val report by rememberUpdatedState(onAmbient)
     LaunchedEffect(pagerState, generation, mediaKeys) {
         snapshotFlow {
             val position = (pagerState.currentPage + pagerState.currentPageOffsetFraction)
-                .coerceIn(0f, (candidates.size - 1).toFloat())
+                .coerceIn(0f, (cards.size - 1).toFloat())
             val left = floor(position).toInt()
-            val right = (left + 1).coerceAtMost(candidates.lastIndex)
+            val right = (left + 1).coerceAtMost(cards.lastIndex)
             val a = palettes[left] ?: palettes[right]
             val b = palettes[right] ?: a
             if (a != null && b != null) lerp(a, b, position - left) else null
         }.collect { color -> color?.let { report(it) } }
     }
     Box(Modifier.fillMaxWidth().height((HERO_HEIGHT_DP + pullDp).dp)) {
-        HorizontalPager(state = pagerState, key = { "$generation:${candidates[it].isTv}:${candidates[it].id}" },
+        HorizontalPager(state = pagerState, key = { "$generation:${cards[it].id}" },
             beyondViewportPageCount = 1,
             flingBehavior = PagerDefaults.flingBehavior(pagerState,
                 snapAnimationSpec = spring(dampingRatio = 1f, stiffness = 240f)),
             modifier = Modifier.fillMaxSize()) { index ->
-            HeroPage(candidates[index], index == pagerState.settledPage && !pagerState.isScrollInProgress && previewVisible,
-                scrimColor, topPoster, logoFor, { palettes[index] = it }, pullDp, trailerFor, proxyAddress, previewEnabled,
-                scrollPx, pageOffset = { pagerState.currentPage - index + pagerState.currentPageOffsetFraction })
+            Box(Modifier.fillMaxSize().then(
+                if (onClick != null) {
+                    Modifier.clickable(
+                        interactionSource = androidx.compose.foundation.interaction.MutableInteractionSource(),
+                        indication = null,
+                    ) { onClick(cards[index]) }
+                } else Modifier,
+            )) {
+            HeroPage(
+                card = cards[index],
+                active = index == pagerState.settledPage && !pagerState.isScrollInProgress && previewVisible,
+                scrimColor = scrimColor,
+                onAmbient = { palettes[index] = it },
+                pullDp = pullDp,
+                proxyAddress = proxyAddress,
+                previewEnabled = previewEnabled,
+                scrollPx = scrollPx,
+                pageOffset = { pagerState.currentPage - index + pagerState.currentPageOffsetFraction },
+                trailerItem = trailerItemFor(cards[index]),
+                trailerFor = trailerFor,
+                logoLoader = logoLoader?.let { loader -> suspend { loader(cards[index]) } },
+            )
+            }
         }
         Row(Modifier.align(Alignment.TopCenter).offset(y = (DOTS_CENTER_DP - 3.65f + pullDp).dp),
             verticalAlignment = Alignment.CenterVertically) {
-            candidates.forEachIndexed { index, _ ->
+            cards.forEachIndexed { index, _ ->
                 val position = pagerState.currentPage + pagerState.currentPageOffsetFraction
                 val weight = (1f - abs(index - position)).coerceIn(0f, 1f)
-                val left = floor(position).toInt().coerceIn(0, candidates.lastIndex)
-                val right = (left + 1).coerceAtMost(candidates.lastIndex)
+                val left = floor(position).toInt().coerceIn(0, cards.lastIndex)
+                val right = (left + 1).coerceAtMost(cards.lastIndex)
                 val fraction = (position - left).coerceIn(0f, 1f)
-                val diameter = dotDiameter(index, candidates.size, left) * (1f - fraction) +
-                    dotDiameter(index, candidates.size, right) * fraction
+                val diameter = dotDiameter(index, cards.size, left) * (1f - fraction) +
+                    dotDiameter(index, cards.size, right) * fraction
                 Box(Modifier.width(DOT_SPACING_DP.dp).height(7.3.dp), contentAlignment = Alignment.Center) {
                     Box(Modifier.size(diameter.dp).clip(CircleShape)
                         .background(dotsColor.copy(alpha = .35f + .65f * weight)))

@@ -28,37 +28,50 @@ import kotlin.math.abs
 /** A pager page owns its resources, including while a neighboring page is composed. */
 @Composable
 internal fun HeroPage(
-    item: TmdbHome.Item,
+    card: HeroCard,
     active: Boolean,
     scrimColor: State<Color>,
-    topPoster: (TmdbHome.Item) -> String?,
-    logoFor: (TmdbHome.Item) -> String?,
     onAmbient: (Color) -> Unit,
     pullDp: Float,
-    trailerFor: (TmdbHome.Item) -> TrailerResult,
     proxyAddress: String?,
     previewEnabled: Boolean,
     scrollPx: () -> Float,
     pageOffset: () -> Float,
+    /**
+     * 317 · TMDB 专有的预告片数据。null = 该来源没有预告能力（Emby 服务器首页）。
+     *
+     * 【为什么单独一个参数而不是塞进 [HeroCard]】预告片依赖一整套 TMDB 运行时
+     * （`HeroTrailer` / `TrailerResult` / proxy 地址），把它抽象进中立模型会把
+     * Emby 也拖进 TMDB 的依赖里 —— 那就不是"抽象"而是"绑死"。
+     */
+    trailerItem: TmdbHome.Item? = null,
+    trailerFor: (TmdbHome.Item) -> TrailerResult = { TrailerResult() },
+    /**
+     * 317 · 异步取片名艺术字。null = 直接用 [HeroCard.logoUrl]。
+     *
+     * 【为什么还要这个】TMDB 的 logo 是**按 id 异步查**的（不在列表接口里），
+     * 改成同步字段会让首页丢掉艺术字标题（回归）。Emby 侧图 URL 直接给得出 ⇒ 传 null。
+     */
+    logoLoader: (suspend () -> String?)? = null,
 ) {
-    var artwork by remember(item.isTv, item.id) { mutableStateOf<Bitmap?>(null) }
-    var logo by remember(item.isTv, item.id) { mutableStateOf<String?>(null) }
-    var finished by remember(item.isTv, item.id) { mutableStateOf(false) }
-    var ambient by remember(item.isTv, item.id) { mutableStateOf<Color?>(null) }
-    var imageAttempt by remember(item.isTv, item.id) { mutableIntStateOf(0) }
+    var artwork by remember(card.id) { mutableStateOf<Bitmap?>(null) }
+    var logo by remember(card.id) { mutableStateOf(card.logoUrl) }
+    var finished by remember(card.id) { mutableStateOf(false) }
+    var ambient by remember(card.id) { mutableStateOf<Color?>(null) }
+    var imageAttempt by remember(card.id) { mutableIntStateOf(0) }
     val report by rememberUpdatedState(onAmbient)
-    LaunchedEffect(item.isTv, item.id, imageAttempt) {
+    LaunchedEffect(card.id, imageAttempt) {
         finished = false
         val resolved = withContext(Dispatchers.IO) {
-            val art = topPoster(item) ?: item.posterHeroUrl
-            TmdbImageCache.load(art)
+            if (card.heroUrl.isBlank()) null else TmdbImageCache.load(card.heroUrl)
         }
         artwork = resolved
         ambient = resolved?.let { withContext(Dispatchers.Default) { PosterPalette.ambientOf(it) } }
         finished = true
     }
-    LaunchedEffect(item.isTv, item.id, imageAttempt) {
-        logo = withContext(Dispatchers.IO) { logoFor(item) }
+    LaunchedEffect(card.id, imageAttempt) {
+        val loader = logoLoader
+        logo = if (loader != null) withContext(Dispatchers.IO) { loader() } else card.logoUrl
     }
     LaunchedEffect(ambient) {
         ambient?.let { report(it) }
@@ -73,7 +86,7 @@ internal fun HeroPage(
             transformOrigin = TransformOrigin(.5f, 0f)
         }) {
             artwork?.let { bitmap ->
-                Image(bitmap.asImageBitmap(), item.title,
+                Image(bitmap.asImageBitmap(), card.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize().graphicsLayer {
                         val offset = pageOffset().coerceIn(-1f, 1f)
@@ -82,8 +95,11 @@ internal fun HeroPage(
                         translationX = size.width * .055f * offset
                     })
             }
-            if (previewEnabled) HeroTrailer(item, active, artwork != null, trailerFor, proxyAddress,
-                Modifier.fillMaxSize(), onPlayingChanged = {})
+            val ti = trailerItem
+            if (previewEnabled && ti != null) {
+                HeroTrailer(ti, active, artwork != null, trailerFor, proxyAddress,
+                    Modifier.fillMaxSize(), onPlayingChanged = {})
+            }
         }
         Box(Modifier.fillMaxSize().drawBehind {
             val c = scrimColor.value
@@ -110,24 +126,25 @@ internal fun HeroPage(
             if (logo != null) {
                 Box(Modifier.fillMaxWidth().offset(y = (LOGO_CENTER_DP - LOGO_MAX_H / 2 + pullDp).dp),
                     contentAlignment = Alignment.TopCenter) {
-                    TmdbImage(logo!!, item.title,
+                    TmdbImage(logo!!, card.title,
                         Modifier.padding(horizontal = 43.dp).height(LOGO_MAX_H.dp).fillMaxWidth(),
                         bg = Color.Transparent, fit = true, onLoaded = { if (!it) logo = null })
                 }
             } else {
-                Text(item.title, color = fg, fontSize = 34.sp, fontWeight = FontWeight.Bold,
+                Text(card.title, color = fg, fontSize = 34.sp, fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center, maxLines = 2,
                     modifier = Modifier.fillMaxWidth().offset(y = (368 + pullDp).dp).padding(horizontal = 16.dp))
             }
             Column(Modifier.fillMaxWidth().offset(y = (META_TOP_DP + pullDp).dp).padding(horizontal = 16.dp)) {
-                Text(item.metaLine, fontSize = 14.sp, lineHeight = 20.sp, color = fg,
+                Text(card.metaLine, fontSize = 14.sp, lineHeight = 20.sp, color = fg,
                     textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-                if (item.overview.isNotBlank()) Text("「${item.title}」${item.overview}", fontSize = 12.sp, lineHeight = 14.sp,
+                if (card.overview.isNotBlank()) Text("「${card.title}」${card.overview}", fontSize = 12.sp, lineHeight = 14.sp,
                     color = fg.copy(alpha = .92f), maxLines = 2, overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
             Box(Modifier.offset(y = (BADGE_TOP_DP + pullDp).dp).fillMaxWidth()) {
-                RatingBadges(listOf("TMDB" to item.rating), Modifier.fillMaxWidth(),
+                RatingBadges(
+                    listOf(card.ratingSource to (card.rating ?: 0f).toFloat()), Modifier.fillMaxWidth(),
                     alignCenter = true, valueColor = fg)
             }
         }

@@ -36,7 +36,7 @@ fun EmbyPosterCard(model: EmbySessionModel, item: EmbyItem, onClick: () -> Unit)
             else Text("暂无海报", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Text(item.name, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium,
-            maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis,
+            maxLines = 2, overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 9.dp))
         Text(item.year?.toString() ?: "年份未知", fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 3.dp))

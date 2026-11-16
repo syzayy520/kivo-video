@@ -109,6 +109,25 @@ class EmbySessionModel : ViewModel() {
     }
 
     /** 255：首页某分类横排的首屏（IO 调用方自备线程）。 */
+    /**
+     * 317 · 首页 hero 候选（最近入库，跨库混合）。
+     *
+     * 【为什么跨库】Rex 的服务器首页 hero 是整服精选，不是某个库的前几个 ——
+     * 用户进服务器第一眼是想看"最近有什么新的"，而不是"某个库的第一条"。
+     */
+    fun heroItems(): List<com.kivo.cinema.emby.EmbyHeroItem> {
+        val c = client ?: return emptyList(); val a = auth ?: return emptyList()
+        return runCatching { com.kivo.cinema.emby.EmbyHeroSource(c).recent(a, limit = 8) }
+            .getOrDefault(emptyList())
+    }
+
+    /** 317 · 继续观看（Emby 原生 Resume：自带位置与总时长）。 */
+    fun resumeItems(): List<com.kivo.cinema.emby.EmbyHeroItem> {
+        val c = client ?: return emptyList(); val a = auth ?: return emptyList()
+        return runCatching { com.kivo.cinema.emby.EmbyHeroSource(c).resume(a, limit = 12) }
+            .getOrDefault(emptyList())
+    }
+
     fun rowPage(view: EmbyCatalog.View): List<EmbyItem> {
         val c = client ?: return emptyList(); val a = auth ?: return emptyList()
         return runCatching {

@@ -59,5 +59,8 @@ private fun badgeColor(source: String): Color = when (source) {
     "IMDb" -> Color(0xFFF5C518)
     "TMDB" -> Color(0xFF00B8B8)   // 青绿（帧实证）
     "豆瓣" -> Color(0xFF6B52A0)
+    // 317 · Emby 服务器评分：用官方品牌绿，与 IMDb 黄 / TMDB 青 / 豆瓣紫 同一视觉层级。
+    // 之前没这个分支 ⇒ 落到灰色 0xFF666666，在深色海报上就是一个灰方块（真机反馈"很丑"）。
+    "Emby" -> Color(0xFF52B54B)
     else -> Color(0xFF666666)
 }

@@ -102,6 +102,24 @@ fun DiscoverPage(
     val chromeFg = if (chromeDark) Color.White else DesignTokens.textMain
     val chromeSub = if (chromeDark) Color.White.copy(alpha = .72f) else DesignTokens.textSub
 
+    // 317 · 适配成中立 HeroCard（HeroPage 不再依赖 TmdbHome.Item）。
+    // logoUrl 留空 —— TMDB 的 logo 是异步查的，由 logoLoader 处理（保持原行为，零回归）。
+    val heroCards = remember(heroCandidates) {
+        heroCandidates.map { it ->
+            com.kivo.cinema.ui.design.home.HeroCard(
+                id = it.id.toString(),
+                title = it.title,
+                heroUrl = topPoster(it) ?: it.posterHeroUrl,
+                metaLine = it.metaLine,
+                overview = it.overview,
+                rating = it.rating.toDouble(),
+                ratingSource = "TMDB",
+                trailerKey = it.id,
+                isSeries = it.isTv,
+            )
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
       Box(Modifier.fillMaxSize().drawBehind { drawRect(scrimColor.value) })
       CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
@@ -120,13 +138,23 @@ fun DiscoverPage(
                     if (tmdbError == null) Text("正在加载推荐影片…", color = chromeSub, fontSize = 14.sp)
                     else TmdbErrorCard(tmdbError, onRetryTmdb)
                 }
-                else HeroCarousel(heroCandidates, onAmbient = { heroFieldColor = it },
+                else HeroCarousel(
+                    // 317 · 适配成中立模型（HeroPage 已不认 TmdbHome.Item）
+                    cards = heroCards,
+                    onAmbient = { heroFieldColor = it },
                     dotsColor = chromeFg, scrimColor = scrimColor,
-                    topPoster = topPoster, logoFor = logoFor, pullDp = pullDp,
+                    pullDp = pullDp,
                     scrollPx = heroScrollPx,
                     previewVisible = listState.firstVisibleItemIndex == 0 &&
                         listState.firstVisibleItemScrollOffset < 350 * density.density,
-                    generation = generation, previewEnabled = previewEnabled, trailerFor = trailerFor, proxyAddress = proxyAddress)
+                    generation = generation, previewEnabled = previewEnabled,
+                    trailerFor = trailerFor, proxyAddress = proxyAddress,
+                    trailerItemFor = { card ->
+                        heroCandidates.firstOrNull { it.id.toString() == card.id }
+                    },
+                    logoLoader = { card ->
+                        heroCandidates.firstOrNull { it.id.toString() == card.id }?.let { logoFor(it) }
+                    })
             }
             // 继续观看
             if (continueItems.isNotEmpty()) {
