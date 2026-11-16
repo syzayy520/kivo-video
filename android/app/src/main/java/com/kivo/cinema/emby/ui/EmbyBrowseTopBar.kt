@@ -3,6 +3,7 @@ package com.kivo.cinema.emby.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,9 +58,9 @@ internal fun EmbyBrowseTopBar(
         Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // 返回键：白色圆形玻璃胶囊 + 深色箭头（对齐 Rex 左上角那枚圆钮）。
+        // 返回键：1:1 复刻 Apple Music 左上角圆钮——白底 + 细灰描边 + 纯黑 Chevron + 近零阴影。
         GlassPillSurface(onClick = onBack, circle = true) {
-            BackArrow(color = DesignTokens.textMain)
+            BackArrow(color = Color(0xFF111114))
         }
         Spacer(Modifier.weight(1f))
         var menuOpen by remember { mutableStateOf(false) }
@@ -105,11 +106,14 @@ internal fun EmbyBrowseTopBar(
 }
 
 /**
- * 玻璃胶囊容器：白底 + 圆角 + 轻阴影，是本页所有悬浮控件的统一外观。
+ * 悬浮胶囊容器。两种外观，各自对齐一个真机基准：
  *
- * · `circle=true`：正方形尺寸 + 正圆（返回键）；内容由调用方给定 size。
- * · 否则：按内容自适应宽高（服名牌）。
- * 后续「全局弹窗玻璃风」可直接复用这套外观常量，保证风格统一。
+ * · `circle=true`（返回键）：1:1 复刻 **Apple Music** 左上角圆钮——纯白底 +
+ *   一圈极细浅灰描边 + 近零阴影（靠描边勾勒，不靠投影），44dp 正圆。
+ * · 否则（服名牌）：浅玻璃胶囊——白底 .95 + 4dp 阴影（对齐 Rex 底部服名牌）。
+ *
+ * 两者共存于此仅为「返回键跟 Apple Music、服名牌跟 Rex」两个不同基准；
+ * 不是颜色漂移。后续全局玻璃风可复用 `circle` 分支的描边常量。
  */
 @Composable
 private fun GlassPillSurface(
@@ -117,12 +121,14 @@ private fun GlassPillSurface(
     circle: Boolean = false,
     content: @Composable () -> Unit,
 ) {
+    val shape = RoundedCornerShape(50)
     Surface(
-        shape = RoundedCornerShape(50),
-        color = Color.White.copy(alpha = .95f),
-        shadowElevation = 4.dp,
+        shape = shape,
+        color = Color.White,
+        // 返回键靠细描边勾边（Apple Music），服名牌靠阴影浮起（Rex）。
+        shadowElevation = if (circle) 0.dp else 4.dp,
         modifier = Modifier
-            .then(if (circle) Modifier.size(44.dp) else Modifier)
+            .then(if (circle) Modifier.size(44.dp).border(0.6.dp, Color(0xFFD6D6DB), shape) else Modifier)
             .clickable(onClick = onClick),
         content = content,
     )
@@ -141,7 +147,7 @@ private fun BackArrow(color: Color) {
         }
         drawPath(
             p, color = color,
-            style = Stroke(width = w * 0.10f, cap = StrokeCap.Round, join = StrokeJoin.Round),
+            style = Stroke(width = w * 0.13f, cap = StrokeCap.Round, join = StrokeJoin.Round),
         )
     }
 }
