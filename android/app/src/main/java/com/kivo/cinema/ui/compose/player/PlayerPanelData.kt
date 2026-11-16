@@ -215,6 +215,8 @@ internal data class PlayerOptionItem(
     val selected: Boolean = false,
     val tag: String = "",
     val icon: String? = null,
+    /** 317：选集卡片缩略图（Emby 图需 token，加载见 EpisodeThumb）。 */
+    val imageUrl: String? = null,
     val section: String = "",
     val control: PlayerRowControl = PlayerRowControl.NONE,
     val enabled: Boolean = true,

@@ -55,6 +55,32 @@ internal fun PlayerComposeActivity.onPanelSelect(item: PlayerOptionItem) {
         activePanel = item.tag
         return
     }
+    // 317 · 选集：季标签只切换面板展示的季；集卡才换集。
+    if (item.tag.startsWith("season:")) {
+        episodeSeasonPick = item.tag.removePrefix("season:").toIntOrNull() ?: -1
+        panelRevision++            // 重新枚举面板，刷新集卡与勾选
+        return
+    }
+    if (item.tag.startsWith("ep:")) {
+        // tag 形如 ep:<季下标>:<集下标>
+        val parts = item.tag.removePrefix("ep:").split(':')
+        val si = parts.getOrNull(0)?.toIntOrNull()
+        val ei = parts.getOrNull(1)?.toIntOrNull()
+        val blocks = com.kivo.cinema.playback.EpisodeListPayload.decode(
+            intent.getStringExtra(com.kivo.cinema.playback.EpisodeListPayload.KEY),
+        )
+        val entry = si?.let { blocks.getOrNull(it) }?.entries?.getOrNull(ei ?: -1)
+        if (entry == null) {
+            showToast("该集信息已失效，请返回详情页重进")
+            return
+        }
+        activePanel = ""
+        if (item.selected) return          // 点当前集 = 只关面板
+        showToast("正在切换到 ${entry.label}")
+        episodeSeasonPick = -1
+        switchEpisodeImmediately(entry.url, entry.label)
+        return
+    }
     when {
         item.tag == "reset" -> resetPanel(panel)
         item.tag == "sub-ass-override" -> writeSubtitleOverride(item.on)

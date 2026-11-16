@@ -1,5 +1,6 @@
 package com.kivo.cinema.ui.compose.player
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,10 +20,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -49,7 +54,10 @@ internal fun PlayerEpisodeStrip(
     onOrder: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val playable = items.filter { it.enabled }
+    // 317 · 面板项分两类：季标签（tag "season:"）与集卡（tag "ep:"）。
+    // 季标签只在多季时出现（单季剧不需要一行"只有一季"的噪音）。
+    val seasonTabs = items.filter { it.section == "season" }
+    val playable = items.filter { it.section == "episode" && it.enabled }
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -97,6 +105,42 @@ internal fun PlayerEpisodeStrip(
             }
         }
 
+        if (seasonTabs.size > 1) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                seasonTabs.forEach { tab ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.pointerInput(tab.tag) {
+                            detectTapGestures(onTap = { onSelect(tab) })
+                        },
+                    ) {
+                        if (tab.selected) {
+                            PlayerGlyph(
+                                kind = "check",
+                                color = PlayerTokens.textPrimary,
+                                modifier = Modifier.size(12.dp),
+                                strokeWidth = 2.2f,
+                            )
+                        }
+                        Text(
+                            text = tab.title,
+                            color = if (tab.selected) PlayerTokens.textPrimary else PlayerTokens.textSecondary,
+                            fontSize = PlayerTokens.episodeTitleSize.sp,
+                            fontWeight = if (tab.selected) FontWeight.Bold else FontWeight.Normal,
+                            maxLines = 1,
+                            modifier = Modifier.padding(start = if (tab.selected) 5.dp else 0.dp),
+                        )
+                    }
+                }
+            }
+        }
+
         if (playable.isEmpty()) {
             val reason = items.firstOrNull()
             Column(
@@ -131,7 +175,12 @@ internal fun PlayerEpisodeStrip(
                     (PlayerTokens.episodeThumbPitch - PlayerTokens.episodeThumbWidth).dp,
                 ),
             ) {
-                playable.forEach { item -> EpisodeThumb(item = item, onSelect = { onSelect(item) }) }
+                // Emby 剧集缩略图要鉴权 ⇒ 从 intent 取一次 token 传下去（TMDB 图不需要则传 null）。
+                val thumbToken = (androidx.compose.ui.platform.LocalContext.current as? android.app.Activity)
+                    ?.intent?.getStringExtra("kivo.embyToken")
+                playable.forEach { item ->
+                    EpisodeThumb(item = item, token = thumbToken, onSelect = { onSelect(item) })
+                }
             }
         }
     }
@@ -139,7 +188,7 @@ internal fun PlayerEpisodeStrip(
 
 /** 一集：缩略图 + 第N集 + 集名（当前集白描边 2pt、集名 bold）。 */
 @Composable
-private fun EpisodeThumb(item: PlayerOptionItem, onSelect: () -> Unit) {
+private fun EpisodeThumb(item: PlayerOptionItem, token: String?, onSelect: () -> Unit) {
     val shape = RoundedCornerShape(PlayerTokens.episodeThumbRadius.dp)
     Column(
         modifier = Modifier
@@ -163,11 +212,34 @@ private fun EpisodeThumb(item: PlayerOptionItem, onSelect: () -> Unit) {
                 ),
             contentAlignment = Alignment.Center,
         ) {
-            PlayerGlyph(
-                kind = "play",
-                color = PlayerTokens.textSecondary,
-                modifier = Modifier.size(18.dp),
-            )
+            // 317 · 真实缩略图（SenPlayer 的卡片是缩略图 + 两行文案）。
+            // 加载失败/无图时回落到 play 图标 —— 不留空白块，也不阻塞列表渲染。
+            val bmp by androidx.compose.runtime.produceState<android.graphics.Bitmap?>(
+                initialValue = null,
+                item.imageUrl,
+                token,
+            ) {
+                value = item.imageUrl?.let { url ->
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        com.kivo.cinema.ui.design.TmdbImageCache.load(url, token)
+                    }
+                }
+            }
+            val frame = bmp
+            if (frame != null) {
+                androidx.compose.foundation.Image(
+                    bitmap = frame.asImageBitmap(),
+                    contentDescription = item.title,
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                PlayerGlyph(
+                    kind = "play",
+                    color = PlayerTokens.textSecondary,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
         }
         Text(
             text = item.subtitle,

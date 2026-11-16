@@ -59,6 +59,17 @@ internal class EmbyResource private constructor(
      * 初始加载与换季加载都会刷新它，保证点哪一季就按哪一季算。
      */
     private var currentEpisodes: List<EmbyShows.Episode> = emptyList()
+
+    /**
+     * 317 · **所有季**的剧集（季标签行 + 多季选集）。
+     *
+     * 【为什么要全量】播放器选集面板要像 SenPlayer 那样先列季、再列集；
+     * 只带当前季的话，"清潭国际高中 2"这类第二季在播放器里根本切不到。
+     *
+     * 【为什么并行拉】串行会随季数线性变慢（3 季就多 2 个 RTT）。
+     * 这里 4 路并行，总耗时 ≈ 最慢一季（~300ms），同时不至于瞬时打爆服务器。
+     */
+    private var allSeasonEpisodes: List<Pair<EmbyShows.Season, List<EmbyShows.Episode>>> = emptyList()
     private var serverWatched by mutableStateOf(false)
     private var tmdbId by mutableStateOf(0)
     private var serverError by mutableStateOf<String?>(null)
@@ -173,8 +184,10 @@ internal class EmbyResource private constructor(
     private fun seriesContent(c: EmbyClient, a: EmbyClient.Auth, details: TmdbDetail.Details): DetailContent {
         val shows = EmbyShows(c)
         val seasons = shows.seasons(a, itemId)
-        val episodes = seasons.firstOrNull()
-            ?.let { stillsFirst(shows.episodes(a, itemId, it.id), it.index) } ?: emptyList()
+        // 317 · 并行拉所有季的剧集（限 4 并发）。任一季度失败不影响其它季 ——
+        // 单季读取失败只让那一季缺集，不把整页打成失败（详情页仍可用）。
+        allSeasonEpisodes = loadAllSeasons(shows, a, seasons)
+        val episodes = allSeasonEpisodes.firstOrNull()?.second ?: emptyList()
         currentEpisodes = episodes
         return DetailContent(
             details = details, media = null, quality = "",
@@ -198,6 +211,39 @@ internal class EmbyResource private constructor(
     }
 
     /** 集缩略图优先级：库图优先；服务器缺图才 TMDB 剧照兜底（与海报同口径）。 */
+    /**
+     * 并行拉全部季的剧集（限 4 并发）。
+     *
+     * 【为什么单季失败只丢那一季】剧集列表是"锦上添花"：某季请求超时不该让用户
+     * 连详情页都打不开。失败季在这里被过滤掉（空集），日志留痕。
+     */
+    private fun loadAllSeasons(
+        shows: EmbyShows,
+        a: EmbyClient.Auth,
+        seasons: List<EmbyShows.Season>,
+    ): List<Pair<EmbyShows.Season, List<EmbyShows.Episode>>> {
+        if (seasons.isEmpty()) return emptyList()
+        val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
+        return try {
+            val futures = seasons.map { s ->
+                pool.submit(
+                    java.util.concurrent.Callable {
+                        s to runCatching {
+                            stillsFirst(shows.episodes(a, itemId, s.id), s.index)
+                        }.onFailure {
+                            com.kivo.cinema.net.NetDiag.log(
+                                "[emby] 季 ${s.index} 剧集读取失败：${it.javaClass.simpleName}: ${it.message}",
+                            )
+                        }.getOrDefault(emptyList())
+                    },
+                )
+            }
+            futures.map { it.get() }.filter { it.second.isNotEmpty() }
+        } finally {
+            pool.shutdown()
+        }
+    }
+
     private fun stillsFirst(eps: List<EmbyShows.Episode>, seasonIndex: Int): List<EmbyShows.Episode> {
         if (tmdbId == 0 || eps.none { it.thumbUrl.isBlank() }) return eps
         val stills = runCatching { TmdbClient(context).seasonStills(tmdbId, seasonIndex) }
@@ -226,6 +272,31 @@ internal class EmbyResource private constructor(
                     putExtra(
                         "kivo.nextLabel",
                         "$name · " + "S%02dE%02d".format(next.seasonIndex, next.index) + " " + next.name,
+                    )
+                }
+                // 317 · 选集面板：把**整季列表**打包带走（零网络、与详情页必然一致）。
+                // 面板按 URL 判断当前集 ⇒ 换集后 intent.playurl 变了就自动指向新集。
+                // 多季打包：季名取 Emby 的 Name（"清潭国际高中 2"这种序号表达不了的）
+                allSeasonEpisodes.takeIf { it.sumOf { p -> p.second.size } > 1 }?.let { blocks ->
+                    putExtra(
+                        com.kivo.cinema.playback.EpisodeListPayload.KEY,
+                        com.kivo.cinema.playback.EpisodeListPayload.encode(
+                            blocks.map { (season, eps) ->
+                                com.kivo.cinema.playback.EpisodeListPayload.SeasonBlock(
+                                    index = season.index,
+                                    title = season.name.ifBlank { "第${season.index}季" },
+                                    entries = eps.map {
+                                        com.kivo.cinema.playback.EpisodeListPayload.Entry(
+                                            index = it.index,
+                                            label = "S%02dE%02d %s".format(it.seasonIndex, it.index, it.name),
+                                            name = it.name,
+                                            url = c.streamUrl(a, it.id),
+                                            thumbUrl = it.thumbUrl,
+                                        )
+                                    },
+                                )
+                            },
+                        ),
                     )
                 }
             }

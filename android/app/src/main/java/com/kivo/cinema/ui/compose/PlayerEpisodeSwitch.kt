@@ -33,6 +33,24 @@ internal fun PlayerComposeActivity.switchEpisodeImmediately(url: String, label: 
         // ① 改 intent，让所有"读 intent 拿 URL"的路径（prepareUrlSource / 指标 / 观看记录键）看到新片
         intent.putExtra("kivo.playurl", url)
         intent.putExtra("kivo.label", label)
+        // ①b 同步连播目标：换了集之后，"下一集"必须跟着变，
+        //     否则连播会播回旧链条里的下一集（真机表现为"跳集"）。
+        runCatching {
+            val blocks = com.kivo.cinema.playback.EpisodeListPayload.decode(
+                intent.getStringExtra(com.kivo.cinema.playback.EpisodeListPayload.KEY),
+            )
+            val (si, ei) = com.kivo.cinema.playback.EpisodeListPayload.locate(blocks, url)
+            // 下一集：同季内递增；季末**不跨季**（跨季要 UI 配合，见 319 §四）
+            val next = blocks.getOrNull(si)?.entries?.getOrNull(ei + 1)
+            if (next != null) {
+                intent.putExtra("kivo.nextUrl", next.url)
+                intent.putExtra("kivo.nextLabel", next.label)
+            } else {
+                intent.removeExtra("kivo.nextUrl")
+                intent.removeExtra("kivo.nextLabel")
+            }
+        }
+        nextPrewarmed = false          // 新的下一集要重新预加载
         // ② 关旧源（此时旧会话已停，读不到它了）
         runCatching { urlPrep?.source?.close() }
         urlPrep = null

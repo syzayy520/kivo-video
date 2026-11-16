@@ -85,7 +85,7 @@ private fun enumeratePanel(
     when (kind) {
         "skip" -> return forms.skip()
         "skipMode" -> return forms.skipMode()
-        "episodes" -> return forms.episodes()
+        "episodes" -> return episodesFromIntent(context) ?: forms.episodes()
         "danmakuOps" -> return forms.danmakuOps(danmakuOn, danmakuSettings.hasItems)
         "danmakuSettings" -> return PlayerPanelData.danmakuSettings(danmakuSettings)
     }
@@ -178,4 +178,51 @@ private fun resource(mpv: MpvPlaybackSession, origin: PlayerSourceOrigin, contex
     val size = if (bytes > 0) String.format("%.2f GB", bytes / 1e9) else "体积未知"
     val rate = if (bitrate > 0) String.format("%.2fMbps", bitrate / 1e6) else "码率未知"
     return PlayerPanelData.resource(badge, "$size · $rate", origin.resolve(context), chip)
+}
+
+/**
+ * 317 · 选集面板的真实数据（来自详情页打包的 intent 载荷）。
+ *
+ * @return null = 没有剧集载荷（单片片源 / 非剧集）⇒ 调用方退回占位说明行。
+ *
+ * 卡片两行文案按 SenPlayer 的形态排：**上「第N集」下「集名」**
+ * （[PlayerEpisodeStrip.EpisodeThumb] 里 subtitle 在上、title 在下）。
+ */
+private fun episodesFromIntent(context: Context): List<PlayerOptionItem>? {
+    val activity = context as? android.app.Activity ?: return null
+    val blocks = com.kivo.cinema.playback.EpisodeListPayload.decode(
+        activity.intent.getStringExtra(com.kivo.cinema.playback.EpisodeListPayload.KEY),
+    )
+    if (blocks.isEmpty()) return null
+    val playUrl = activity.intent.getStringExtra("kivo.playurl")
+    val (playingSeason, playingEpisode) = com.kivo.cinema.playback.EpisodeListPayload.locate(blocks, playUrl)
+    // 面板当前展示哪一季：-1 = 跟随正在播的那一季（用户点季标签后才有明确值）。
+    val override = (activity as? com.kivo.cinema.ui.compose.PlayerComposeActivity)?.episodeSeasonPick ?: -1
+    val shownSeason = if (override in blocks.indices) override else playingSeason
+
+    val items = mutableListOf<PlayerOptionItem>()
+    // ① 季标签行（SenPlayer 形态：当前季打勾，其余可点）
+    if (blocks.size > 1) {
+        blocks.forEachIndexed { si, b ->
+            items += PlayerOptionItem(
+                title = b.title,
+                selected = si == shownSeason,
+                tag = "season:$si",
+                section = "season",
+            )
+        }
+    }
+    // ② 当前展示季的集卡
+    blocks.getOrNull(shownSeason)?.entries?.forEachIndexed { ei, e ->
+        items += PlayerOptionItem(
+            title = e.name.ifBlank { "第${e.index}集" },
+            subtitle = "第${e.index}集",
+            selected = shownSeason == playingSeason && ei == playingEpisode,
+            enabled = true,
+            tag = "ep:$shownSeason:$ei",
+            section = "episode",
+            imageUrl = e.thumbUrl.ifBlank { null },
+        )
+    }
+    return items
 }

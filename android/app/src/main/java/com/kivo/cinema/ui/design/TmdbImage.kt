@@ -36,7 +36,8 @@ object TmdbImageCache {
     }
 
     /** Blocking; callers use Dispatchers.IO. Failed responses are never persisted. */
-    fun load(url: String): Bitmap? {
+    fun load(url: String, token: String? = null): Bitmap? {
+        // 缓存键不含 token：同一张图不因换 token 重复下载（URL 已含 itemId+tag）。
         get(url)?.let { return it }
         val disk = diskFile(url)
         if (disk?.isFile == true) {
@@ -50,6 +51,8 @@ object TmdbImageCache {
             try {
                 conn.connectTimeout = 8000
                 conn.readTimeout = 20000
+                // 317：Emby 的剧集缩略图要鉴权（TMDB 的不需要）⇒ 可选 header，不影响原有调用。
+                if (!token.isNullOrBlank()) conn.setRequestProperty("X-Emby-Token", token)
                 if (conn.responseCode !in 200..299) return null
                 val bytes = conn.inputStream.use { it.readBytes() }
                 val bitmap = decodeImageCapped(bytes) ?: return null

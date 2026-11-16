@@ -26,10 +26,15 @@ class EmbyShows(private val c: EmbyClient) {
             if (code !in 200..299) throw EmbyClient.HttpFailure(code)
             val arr = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
                 .getJSONArray("Items")
-            return (0 until arr.length()).map {
+            val list = (0 until arr.length()).map {
                 val o = arr.getJSONObject(it)
                 Season(o.getString("Id"), o.getString("Name"), o.optInt("IndexNumber"))
             }.sortedBy { it.index }
+            com.kivo.cinema.net.NetDiag.log(
+                "[emby] seasons series=$seriesId n=${list.size} " +
+                    list.take(4).joinToString { "S${it.index}:${it.name}#${it.id.take(8)}" },
+            )
+            return list
         } finally { conn.disconnect() }
     }
 
@@ -43,6 +48,9 @@ class EmbyShows(private val c: EmbyClient) {
             if (code !in 200..299) throw EmbyClient.HttpFailure(code)
             val arr = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
                 .getJSONArray("Items")
+            com.kivo.cinema.net.NetDiag.log(
+                "[emby] episodes series=$seriesId season=$seasonId n=${arr.length()} code=$code",
+            )
             return (0 until arr.length()).map {
                 val o = arr.getJSONObject(it)
                 val tag = o.optJSONObject("ImageTags")?.optString("Primary") ?: ""

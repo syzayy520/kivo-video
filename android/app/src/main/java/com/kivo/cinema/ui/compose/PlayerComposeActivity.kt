@@ -119,6 +119,8 @@ class PlayerComposeActivity : ComponentActivity() {
     internal var autoNextScheduled = false
     /** 317：下一集是否已发起预加载（幂等保护，避免每 tick 重复 offer）。 */
     internal var nextPrewarmed = false
+    /** 317：选集面板当前展示的季下标（-1 = 跟随正在播放的那一季）。 */
+    internal var episodeSeasonPick by mutableStateOf(-1)
     /** 竖滑 HUD 的延时淡出令牌：再次滑动前先撤销上一个，避免旧计时器提前收掉 HUD。 */
     internal var hudHideToken: Runnable? = null
     /** 顶栏实时网速，来自 mpv `cache-speed`（bytes/s、1s 窗口），不是自己估的。 */
