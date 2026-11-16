@@ -40,6 +40,14 @@ data class EmbyDetails(
     val isFavorite: Boolean,
     val played: Boolean,
     /**
+     * 317 · 服务器侧续播点（`UserData.PlaybackPositionTicks`）。
+     *
+     * 【为什么必须有】Emby 的观看进度是**服务器通用事实**：别的客户端/设备看到哪，
+     * 这里就存到哪。之前的续播点只读本地 `watch.json` ⇒ 换设备就不认。
+     * 优先用服务器值、本地兜底，见 `EmbyResource.resumeMsOf`。
+     */
+    val positionTicks: Long = 0L,
+    /**
      * 274：**播放时用哪个 MediaSource 版本**（null = 不带参数，保持旧行为）。
      *
      * 【为什么与展示解耦】同一个条目常有 1080p / 4K 多个版本，

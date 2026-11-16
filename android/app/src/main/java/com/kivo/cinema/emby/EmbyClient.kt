@@ -256,6 +256,7 @@ class EmbyClient(serverInput: String) {
                 logoUrl = image("Logo", o.optJSONObject("ImageTags")?.optString("Logo").orEmpty(), 1080),
                 isFavorite = ud?.optBoolean("IsFavorite") ?: false,
                 played = ud?.optBoolean("Played") ?: false,
+                positionTicks = ud?.optLong("PlaybackPositionTicks") ?: 0L,
                 // 274：播放走挑好的版本（展示仍用 MediaSources[0]，UI 不变）。
                 playMediaSourceId = pick.id,
                 playSizeBytes = pick.sizeBytes,
@@ -277,6 +278,55 @@ class EmbyClient(serverInput: String) {
             return c.responseCode in 200..299
         } finally { c.disconnect() }
     }
+
+    // ---- 317 · 播放会话上报（Emby 的 Sessions/Playing 三连） ----
+    //
+    // 【为什么必须有】这只是"别的播放器都能看到你在看什么、看到哪"的来源：
+    // Emby 的 `Sessions/Playing` / `Progress` / `Stopped` 会把 PositionTicks 写进
+    // 该 item 的 UserData ⇒ 换设备/换客户端打开同一部剧，续播点就是这里存的。
+    // 只标"已看/未看"（[setPlayed]）不写进度，所以之前的记录永远是 0。
+    //
+    // 【为什么 Stopped 必须带位置】服务器就是在 Stopped 里读 PositionTicks 落续播点；
+    // 只在 Progress 里报、Stopped 不带位置，退出时进度会回退到上一次 Progress。
+
+    /** 开始播放。 */
+    fun reportPlaying(auth: Auth, itemId: String, positionTicks: Long, playSessionId: String?): Boolean =
+        sessionPost(auth, "Playing", itemId, positionTicks, playSessionId)
+
+    /** 进度（应节流，如每 10 s 一次）。 */
+    fun reportProgress(auth: Auth, itemId: String, positionTicks: Long, playSessionId: String?): Boolean =
+        sessionPost(auth, "Playing/Progress", itemId, positionTicks, playSessionId)
+
+    /** 停止播放 —— **必须带最后位置**，服务器据此保存续播点。 */
+    fun reportStopped(auth: Auth, itemId: String, positionTicks: Long, playSessionId: String?): Boolean =
+        sessionPost(auth, "Playing/Stopped", itemId, positionTicks, playSessionId)
+
+    private fun sessionPost(
+        auth: Auth,
+        path: String,
+        itemId: String,
+        positionTicks: Long,
+        playSessionId: String?,
+    ): Boolean = runCatching {
+        val c = conn("$base$prefix/Sessions/$path", "POST")
+        try {
+            c.setRequestProperty("X-Emby-Token", auth.token)
+            c.setRequestProperty("Content-Type", "application/json")
+            c.doOutput = true
+            val body = org.json.JSONObject()
+                .put("ItemId", itemId)
+                .put("PositionTicks", positionTicks)
+                .put("CanSeek", true)
+                .put("IsPaused", false)
+                .put("IsMuted", false)
+                .put("PlayMethod", "DirectPlay")
+            if (!playSessionId.isNullOrBlank()) body.put("PlaySessionId", playSessionId)
+            c.outputStream.use { it.write(body.toString().toByteArray()) }
+            val code = c.responseCode
+            // 会话上报是"尽力而为"：失败不能影响播放本身（播放器不依赖它）。
+            code in 200..299
+        } finally { c.disconnect() }
+    }.getOrDefault(false)
 
     /** 254 D10：相似作品横排。 */
     fun similar(auth: Auth, itemId: String, limit: Int = 12): List<EmbyItem> {

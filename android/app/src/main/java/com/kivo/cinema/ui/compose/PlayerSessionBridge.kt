@@ -151,6 +151,12 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
             // 必须重新排期：提前 return 会跳过 postDelayed，位置恒 0（真机踩过）。
             // 自动隐藏：控制条常驻会盖住底部字幕（真机取证曾误判"字幕没渲染"）。
             if (System.currentTimeMillis() - a.lastTouchMs > 3000) a.controlsVisible = false
+            // 317 · Emby 播放会话上报（Playing 一次 + Progress 节流 10 s）。
+            // 这是"别的播放器能看到你在看什么/看到哪"的来源，也是续播点的写入路径。
+            if (a.isPlaying) {
+                com.kivo.cinema.playback.EmbyPlaybackReporter.onStarted(a)
+                com.kivo.cinema.playback.EmbyPlaybackReporter.tick(a)
+            }
             // 317 · 快到片尾时把下一集的片头预热好（幂等，内部只在剩余 ≤5 分钟时发一次）。
             com.kivo.cinema.playback.NextEpisodePrewarm.maybeOffer(a)
             a.sampleTelemetry()

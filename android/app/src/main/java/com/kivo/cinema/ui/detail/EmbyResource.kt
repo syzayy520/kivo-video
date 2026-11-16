@@ -84,6 +84,8 @@ internal class EmbyResource private constructor(
         val emby = c.details(a, itemId)
         serverFavorite = emby.isFavorite
         serverWatched = emby.played
+        // 317 · 服务器续播点（跨客户端通用）。剧集在 seriesContent 里会被"当前集"覆盖。
+        serverPositionTicks = emby.positionTicks
         val tmdb = TmdbClient(context)
         val hit = tmdb.searchId(emby.name.ifBlank { name }, emby.year ?: year, series)
         val filled = if (hit != null) {
@@ -144,7 +146,26 @@ internal class EmbyResource private constructor(
      */
     private fun resumeMsOf(url: String): Long {
         if (playbackPrefs.alwaysFromStart) return 0L
-        return watchStore.progressOf(url)?.positionMs?.takeIf { it > 0L } ?: 0L
+        // 317 · 服务器进度优先（Emby 的观看进度是跨客户端通用的），本地兜底。
+        // 【为什么服务器优先】我们在别的设备/网页看过的进度只有服务器有；
+        // 本地 watch.json 只覆盖"这台机器用我们自己的 app 看过的"。
+        val fromServer = serverResumeMs()
+        return fromServer ?: watchStore.progressOf(url)?.positionMs?.takeIf { it > 0L } ?: 0L
+    }
+
+    /** 服务器侧续播点（tick）；没有则 null。 */
+    private var serverPositionTicks: Long? = null
+
+    /**
+     * 服务器续播点（毫秒）；没有/太靠前（<5 s）返回 null。
+     *
+     * 【为什么过滤 5 s】刚点开就退出的记录会在服务器留下几百毫秒的位置，
+     * 拿它当续播点等于"从 0 开始但显示有进度"。Emby 官方客户端也是这个阈值思路。
+     */
+    private fun serverResumeMs(): Long? {
+        val ticks = serverPositionTicks ?: return null
+        val ms = ticks / 10_000L
+        return ms.takeIf { it >= 5_000L }
     }
 
     /** 详情页销毁：没人接手的预热要关掉（否则连接与片尾缓存泄漏）。 */
@@ -189,6 +210,12 @@ internal class EmbyResource private constructor(
         allSeasonEpisodes = loadAllSeasons(shows, a, seasons)
         val episodes = allSeasonEpisodes.firstOrNull()?.second ?: emptyList()
         currentEpisodes = episodes
+        // 317 · 剧集的续播点取"最近一集有进度的"（Emby 的 Series 级 UserData 不带位置）。
+        allSeasonEpisodes.asSequence()
+            .flatMap { it.second.asSequence() }
+            .filter { it.positionTicks > 0L }
+            .maxByOrNull { it.positionTicks }
+            ?.let { serverPositionTicks = it.positionTicks }
         return DetailContent(
             details = details, media = null, quality = "",
             playIntent = episodes.firstOrNull()
@@ -304,6 +331,10 @@ internal class EmbyResource private constructor(
             .putExtra("kivo.sourceName", serverName)
             .putExtra("kivo.sourceId", sourceId)
             .putExtra("kivo.embyToken", a.token)
+            // 317 · 同电影分支：会话上报要的条目 id / 服务器 / 用户。
+            .putExtra(com.kivo.cinema.playback.EmbyPlaybackReporter.EXTRA_ITEM, ep.id)
+            .putExtra(com.kivo.cinema.playback.EmbyPlaybackReporter.EXTRA_SERVER, c.base + c.prefix)
+            .putExtra("kivo.embyUserId", a.userId)
 
     /** Emby 图需 token（TmdbImageCache 不带）：按域路由——本服务器头鉴权，外域（TMDB）不带 token。 */
     private suspend fun loadImage(url: String): Bitmap? = withContext(Dispatchers.IO) {
@@ -376,6 +407,11 @@ internal class EmbyResource private constructor(
             .putExtra("kivo.sourceName", serverName)
             .putExtra("kivo.sourceId", sourceId)
             .putExtra("kivo.embyToken", a.token)
+            // 317 · 播放会话上报需要：条目 id + 服务器地址 + 用户 id。
+            // 没有这三样，播放页就写不了 UserData.PlaybackPositionTicks（续播点）。
+            .putExtra(com.kivo.cinema.playback.EmbyPlaybackReporter.EXTRA_ITEM, itemId)
+            .putExtra(com.kivo.cinema.playback.EmbyPlaybackReporter.EXTRA_SERVER, c.base + c.prefix)
+            .putExtra("kivo.embyUserId", a.userId)
             // 273 v15：片源总长（Emby 详情里就有，零额外请求）——
             // 起播时片尾预取要靠它算出窗口起点，才能在 t=0 就把请求发出去。
             .putExtra("kivo.playSize", sizeBytes)

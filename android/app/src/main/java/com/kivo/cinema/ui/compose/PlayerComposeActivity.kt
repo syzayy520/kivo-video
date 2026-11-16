@@ -121,6 +121,10 @@ class PlayerComposeActivity : ComponentActivity() {
     internal var nextPrewarmed = false
     /** 317：选集面板当前展示的季下标（-1 = 跟随正在播放的那一季）。 */
     internal var episodeSeasonPick by mutableStateOf(-1)
+    /** 317：Emby 会话是否已上报过 Playing（幂等）。 */
+    internal var embyPlayingReported = false
+    /** 317：上次 Progress 上报时刻（uptimeMillis，10 s 节流）。 */
+    internal var embyReportedAtMs = 0L
     /** 竖滑 HUD 的延时淡出令牌：再次滑动前先撤销上一个，避免旧计时器提前收掉 HUD。 */
     internal var hudHideToken: Runnable? = null
     /** 顶栏实时网速，来自 mpv `cache-speed`（bytes/s、1s 窗口），不是自己估的。 */
@@ -309,6 +313,12 @@ class PlayerComposeActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         onPlayerStop()
+        // 317 · 退出/切后台时上报 Stopped（带最后位置 ⇒ 服务器落续播点）。
+        // 【为什么判断 backgroundAudio】开着后台播放时 Activity 不可见但仍在播，
+        // 这时报 Stopped 会让服务器以为你退出了 —— 续播点也会停在原地。
+        if (!playbackPrefs.backgroundAudio) {
+            com.kivo.cinema.playback.EmbyPlaybackReporter.onStopped(this)
+        }
         // 280 · 指标：退出/切后台时**再落一次盘**。
         // 【为什么必须再写】首帧后 2 s 那次只够记起播阶段；seek 压测要到 8 s 后才开始、
         // 长稳数据更晚 ⇒ 只写一次的话这些永远是空的（踩过：seeks.count 恒为 0）。
