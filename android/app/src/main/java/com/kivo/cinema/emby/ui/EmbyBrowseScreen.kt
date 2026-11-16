@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -172,8 +173,7 @@ private fun EmbyBrowseBody(
             }
             if (resumed.isNotEmpty()) {
                 item(key = "resume") {
-                    ResumeRow(
-                        model = model,
+                    EmbyResumeRow(
                         items = resumed,
                         onOpen = { h -> onItem(EmbyItem(h.id, h.name, h.year, h.heroUrl, h.isSeries)) },
                     )
@@ -195,219 +195,20 @@ private fun EmbyBrowseBody(
                 }
             } else {
                 items(model.views, key = { it.id }) { view ->
-                    ViewRow(model, view, onOpenView, onItem)
+                    EmbyCategoryRow(model, view, onOpenView, onItem)
                 }
             }
         }
 
-        // 悬浮栏：压在 hero 上（不占布局高度，海报才能顶到状态栏）
-        //
-        // 317 · 对齐 Rex：**左上角只有一个箭头图标**（不套药丸、不带文字），
-        // **右上角是服务器名**，点它弹出服务器列表直接切 —— 不用退回资源库再选一次。
-        Row(
-            Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            androidx.compose.material3.IconButton(onClick = onBack) {
-                // 用字形画箭头（项目里 PlayerGlyph 有 chevron，但那是播放器命名空间；
-                // 这里只是一个返回箭头，直接画线更省依赖且能跟随前景色）。
-                androidx.compose.foundation.Canvas(Modifier.size(22.dp)) {
-                    val w = size.width
-                    val h = size.height
-                    val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
-                        width = w * 0.10f,
-                        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-                        join = androidx.compose.ui.graphics.StrokeJoin.Round,
-                    )
-                    val path = androidx.compose.ui.graphics.Path().apply {
-                        moveTo(w * 0.62f, h * 0.16f)
-                        lineTo(w * 0.30f, h * 0.50f)
-                        lineTo(w * 0.62f, h * 0.84f)
-                    }
-                    drawPath(path, color = chromeFg, style = stroke)
-                }
-            }
-            Spacer(Modifier.weight(1f))
-            var menuOpen by remember { mutableStateOf(false) }
-            Box {
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = Color.Black.copy(alpha = if (chromeDark) .28f else .10f),
-                ) {
-                    Row(
-                        Modifier.clickable { if (sources.size > 1) menuOpen = true }
-                            .padding(horizontal = 12.dp, vertical = 7.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            model.serverName, fontSize = 13.sp, color = chromeFg,
-                            maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                            modifier = Modifier.widthIn(max = 180.dp),
-                        )
-                        if (sources.size > 1) {
-                            Text(" ⌄", fontSize = 11.sp, color = chromeFg.copy(alpha = .8f))
-                        }
-                    }
-                }
-                // 317 · 切服弹层：**不依赖主题色**自己定色。
-                //
-                // 踩过：用 Material 的 DropdownMenu 时它取 surface 色，而 surface 被我们
-                // 设成了吸色后的浅色 ⇒ 白字落浅底，整块菜单看不清（真机截图确认）。
-                // 这里改成深色半透明卡片，配白字；每项"图标 + 粗体名称"，与 Rex 同构。
-                if (menuOpen) {
-                    androidx.compose.ui.window.Popup(
-                        alignment = Alignment.TopEnd,
-                        offset = androidx.compose.ui.unit.IntOffset(0, with(density) { 92.dp.roundToPx() }),
-                        onDismissRequest = { menuOpen = false },
-                        properties = androidx.compose.ui.window.PopupProperties(focusable = true),
-                    ) {
-                        Column(
-                            Modifier
-                                .width(210.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(Color(0xFF1B1B1E).copy(alpha = .96f))
-                                .padding(vertical = 6.dp),
-                        ) {
-                            sources.forEach { (id, name) ->
-                                val selected = id == currentSourceId
-                                Row(
-                                    Modifier.fillMaxWidth()
-                                        .clickable {
-                                            menuOpen = false
-                                            if (!selected) onSwitchSource(id)
-                                        }
-                                        .padding(horizontal = 18.dp, vertical = 15.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(
-                                        if (selected) "✓" else "",
-                                        color = Color.White,
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.width(22.dp),
-                                    )
-                                    Text(
-                                        name,
-                                        color = Color.White,
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        maxLines = 1,
-                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    }
-}
-
-/** 「继续观看」横排：缩略图 + 片名 + 看到哪里。 */
-@Composable
-private fun ResumeRow(
-    model: EmbySessionModel,
-    items: List<EmbyHeroItem>,
-    onOpen: (EmbyHeroItem) -> Unit,
-) {
-    Column(Modifier.fillMaxWidth().padding(top = 16.dp)) {
-        Text(
-            "继续观看", fontSize = 18.sp, fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp),
+        // 悬浮顶部栏（返回 + 服务器名 + 切服），压在 hero 上不占布局高度
+        EmbyBrowseTopBar(
+            serverName = model.serverName,
+            chromeFg = chromeFg,
+            currentSourceId = currentSourceId,
+            sources = sources,
+            onSwitchSource = onSwitchSource,
+            onBack = onBack,
         )
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            items(items, key = { it.id }) { h ->
-                Column(Modifier.width(208.dp)) {
-                    Box(
-                        Modifier.fillMaxWidth().aspectRatio(16f / 9f)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = .06f)),
-                    ) {
-                        EmbyHeroThumb(model, h.heroUrl, h.name)
-                        // 进度条压在缩略图底部（Rex 的样式）
-                        val frac = if (h.runtimeMs > 0) (h.resumeMs.toFloat() / h.runtimeMs).coerceIn(0f, 1f) else 0f
-                        if (frac > 0f) {
-                            Box(
-                                Modifier.align(Alignment.BottomStart).fillMaxWidth(frac)
-                                    .height(3.dp).background(MaterialTheme.colorScheme.primary),
-                            )
-                        }
-                    }
-                    Text(
-                        h.name, fontSize = 13.sp, maxLines = 1,
-                        modifier = Modifier.padding(top = 7.dp),
-                    )
-                    Text(
-                        "看到 " + com.kivo.cinema.ui.compose.player.formatPlayerTime(h.resumeMs),
-                        fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp),
-                    )
-                }
-            }
-        }
     }
-}
-
-@Composable
-private fun ViewRow(
-    model: EmbySessionModel, view: EmbyCatalog.View,
-    onOpenView: (EmbyCatalog.View) -> Unit, onItem: (EmbyItem) -> Unit,
-) {
-    var items by remember(view.id) { mutableStateOf<List<EmbyItem>?>(null) }
-    LaunchedEffect(view.id) { items = withContext(Dispatchers.IO) { model.rowPage(view) } }
-    // 317 · **空分类整行不渲染**（连标题一起）。
-    // 之前只把内容换成 Unit，标题「播放列表」还立在那里 ⇒ 一个空标题挂在页面上，
-    // 用户一眼就看出不对。加载中（null）仍保留标题 + 进度圈，避免闪一下又回来。
-    if (items?.isEmpty() == true) return
-    Column(Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(view.name, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            TextButton(onClick = { onOpenView(view) }) { Text("›", fontSize = 20.sp) }
-        }
-        Spacer(Modifier.height(10.dp))
-        val list = items
-        when {
-            list == null -> Box(Modifier.fillMaxWidth().height(210.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
-            }
-            else -> LazyRow(contentPadding = PaddingValues(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                items(list, key = { it.id }) { item ->
-                    Box(Modifier.width(128.dp)) { EmbyPosterCard(model, item) { onItem(item) } }
-                }
-            }
-        }
-    }
-}
-
-/**
- * 横排缩略图。
- *
- * 【为什么用通用 loader 而不是 model.image】hero 主图已经证明这些 Emby 图 URL
- * 不带 token 也能取到（[com.kivo.cinema.ui.design.TmdbImageCache] 走的就是无鉴权路径，
- * 上屏正常）。而 `model.image()` 那条路在这张卡上没出图 ⇒ 统一到已验证能用的那条，
- * 顺带复用它的内存 + 磁盘双缓存，滚动回来不用重下。
- */
-@Composable
-private fun EmbyHeroThumb(model: EmbySessionModel, url: String, name: String) {
-    var bmp by remember(url) { mutableStateOf<android.graphics.Bitmap?>(null) }
-    LaunchedEffect(url) {
-        bmp = withContext(Dispatchers.IO) {
-            if (url.isBlank()) null else com.kivo.cinema.ui.design.TmdbImageCache.load(url)
-        }
-    }
-    val frame = bmp
-    if (frame != null) {
-        androidx.compose.foundation.Image(
-            bitmap = frame.asImageBitmap(),
-            contentDescription = name,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
-        )
     }
 }
