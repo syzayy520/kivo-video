@@ -27,6 +27,7 @@ import com.kivo.cinema.ui.detail.MovieDetailActivity
 
 /** Emby host: navigation and theme only; session lives across configuration changes. */
 class EmbyActivity : ComponentActivity() {
+    private lateinit var model: EmbySessionModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         SourceAccessSession.install(application)
@@ -50,7 +51,7 @@ class EmbyActivity : ComponentActivity() {
             finish()
             return
         }
-        val model = ViewModelProvider(this)[EmbySessionModel::class.java]
+        model = ViewModelProvider(this)[EmbySessionModel::class.java]
         // 默认安全：读取结果出来前先挂 SECURE，隐藏源首帧不泄露；非隐藏源在读取后清除。
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
         setContent {
@@ -59,6 +60,8 @@ class EmbyActivity : ComponentActivity() {
             var gateError by remember { mutableStateOf<String?>(null) }
             var showUnlock by remember { mutableStateOf(false) }
             val unlocked = SourceAccessSession.unlocked
+            // 339 · 退出只 finish()：UI state 保持原样直到销毁，不让重组落到错误分支闪"连接未完成"。
+            fun exit() { finish() }
             LaunchedEffect(launchSourceId, unlocked) {
                 val result = withContext(Dispatchers.IO) { SourceStore(this@EmbyActivity).read() }
                 val records = result.getOrNull().orEmpty()
@@ -103,8 +106,9 @@ class EmbyActivity : ComponentActivity() {
                 background = Color(0xFFF5F4F8), surface = Color.White,
                 onSurface = Color(0xFF20222A), onSurfaceVariant = Color(0xFF70727F)
             )) {
-                BackHandler(enabled = model.inLibrary || model.connecting) {
-                    if (model.drilled != null) model.closeView() else { model.back(); finish() }
+                // 339 · 始终可用：此前 gate 阶段（读源/连接早期）返回键完全没反应。
+                BackHandler {
+                    if (model.drilled != null) model.closeView() else exit()
                 }
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
                     .safeDrawingPadding().imePadding()) {
@@ -113,7 +117,7 @@ class EmbyActivity : ComponentActivity() {
                             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
                             Text(gateError ?: if (checked) "资源库已锁定" else "正在读取资源库")
                             if (checked) Button(onClick = { showUnlock = true }) { Text("验证身份并解锁") }
-                            TextButton(onClick = { model.back(); finish() }) { Text("返回资源库") }
+                            TextButton(onClick = { exit() }) { Text("返回资源库") }
                         }
                     } else if (model.inLibrary) {
                         // 254 D1/D14：海报 → 复用详情页（TMDB 智能填充 + Emby 资源槽），不再直接播放。
@@ -126,7 +130,7 @@ class EmbyActivity : ComponentActivity() {
                         val drilled = model.drilled
                         if (drilled == null) EmbyBrowseScreen(
                             model,
-                            onBack = { model.back(); finish() },
+                            onBack = { exit() },
                             onOpenView = { model.openView(it) },
                             onItem = openDetail,
                             // 338 · 高亮跟数据真实所属服走：后台切服期间不提前变。
@@ -148,7 +152,7 @@ class EmbyActivity : ComponentActivity() {
                             Text(model.error ?: "连接未完成", color = MaterialTheme.colorScheme.error)
                             Button(onClick = { model.openSaved(this@EmbyActivity, launchSourceId, retry = true) }) { Text("重试") }
                         }
-                        TextButton(onClick = { model.cancel(); finish() }) { Text("返回资源库") }
+                        TextButton(onClick = { exit() }) { Text("返回资源库") }
                     }
                 }
                 if (showUnlock) PrivacyUnlockDialog(
@@ -157,5 +161,11 @@ class EmbyActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    /** 339 · 敏感态清理放到真正退出时；配置变更（isFinishing=false）不动会话。 */
+    override fun onDestroy() {
+        if (isFinishing && ::model.isInitialized) model.back()
+        super.onDestroy()
     }
 }
