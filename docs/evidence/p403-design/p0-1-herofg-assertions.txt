@@ -1,0 +1,8 @@
+HeroForeground P0-1 verify
+PASS  浅米海报文字带亮度高(0.891)
+PASS  浅底合成亮度高(0.891)
+PASS  浅底→深色前景(needsLight=false)
+PASS  深海报文字带亮度低(0.103)
+PASS  深底→白色前景(needsLight=true)
+PASS  深海报+浅米field→深色前景(0.655)
+==== 6/6 PASS ====

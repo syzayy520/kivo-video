@@ -1,0 +1,8 @@
+G2-A logic verify (D9 motion gate OR-semantics)
+PASS  app关+系统关 → 不减弱
+PASS  app关+系统开 → 减弱（系统无障碍优先，旧代码这里错）
+PASS  app开+系统关 → 减弱
+PASS  app开+系统开 → 减弱
+PASS  app未接+系统开 → 减弱
+PASS  app未接+系统关 → 不减弱
+==== 6/6 PASS ====

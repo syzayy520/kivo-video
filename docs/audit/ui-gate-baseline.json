@@ -1,0 +1,119 @@
+{
+  "generated_at": "2026-11-16T22:48:30+08:00",
+  "files_over_300": {
+    "limit": 300,
+    "count": 22,
+    "files": {
+      "ui/PlayerActivity.kt": 901,
+      "ui/detail/EmbyResource.kt": 454,
+      "mpv/LocalRangeResponder.kt": 427,
+      "ui/design/DiscoverPage.kt": 426,
+      "ui/compose/PlayerActionRouter.kt": 406,
+      "bridge/FfmpegPlaybackSession.kt": 403,
+      "net/OriginPrefetchKit.kt": 402,
+      "playback/NetworkPlaybackSession.kt": 387,
+      "ui/compose/PlayerComposeActivity.kt": 382,
+      "playback/PlaybackPrefs.kt": 381,
+      "playback/MpvPlaybackSession.kt": 380,
+      "net/HttpOriginSource.kt": 379,
+      "bridge/PlaybackSession.kt": 365,
+      "emby/EmbyClient.kt": 359,
+      "net/OriginConnectionLease.kt": 350,
+      "thumbnail/MpvThumbnailReader.kt": 343,
+      "net/HttpOriginClient.kt": 341,
+      "playback/MpvStartSequence.kt": 338,
+      "library/MediaLibraryActivity.kt": 334,
+      "bridge/NativePlayer.kt": 320,
+      "playback/PlaybackMetrics.kt": 312,
+      "net/OriginWindowCache.kt": 307
+    },
+    "whitelisted_pending_split": {
+      "ui/PlayerActivity.kt": {
+        "lines": 901,
+        "batch": "B5（治理）",
+        "note": "901 行，UI 主文件最大；B4 播放器先对齐帧，B5 拆到家族树节点"
+      },
+      "ui/detail/EmbyResource.kt": {
+        "lines": 454,
+        "batch": "B5（治理）",
+        "note": "454 行，Emby 详情资源块与页面杂糅，B5 拆分"
+      },
+      "ui/design/DiscoverPage.kt": {
+        "lines": 426,
+        "batch": "B3（发现）/ B5（治理）",
+        "note": "426 行；B3 补 6 个模块时先行内聚，B5 拆分"
+      },
+      "ui/compose/PlayerActionRouter.kt": {
+        "lines": 406,
+        "batch": "B4（播放器）/ B5（治理）",
+        "note": "406 行；B4 改手势与面板后由 B5 拆路由表"
+      },
+      "ui/compose/PlayerComposeActivity.kt": {
+        "lines": 382,
+        "batch": "B4（播放器）/ B5（治理）",
+        "note": "382 行；B4 播放器交互改动的宿主，B5 拆分"
+      }
+    },
+    "non_whitelisted": {
+      "mpv/LocalRangeResponder.kt": 427,
+      "bridge/FfmpegPlaybackSession.kt": 403,
+      "net/OriginPrefetchKit.kt": 402,
+      "playback/NetworkPlaybackSession.kt": 387,
+      "playback/PlaybackPrefs.kt": 381,
+      "playback/MpvPlaybackSession.kt": 380,
+      "net/HttpOriginSource.kt": 379,
+      "bridge/PlaybackSession.kt": 365,
+      "emby/EmbyClient.kt": 359,
+      "net/OriginConnectionLease.kt": 350,
+      "thumbnail/MpvThumbnailReader.kt": 343,
+      "net/HttpOriginClient.kt": 341,
+      "playback/MpvStartSequence.kt": 338,
+      "library/MediaLibraryActivity.kt": 334,
+      "bridge/NativePlayer.kt": 320,
+      "playback/PlaybackMetrics.kt": 312,
+      "net/OriginWindowCache.kt": 307
+    }
+  },
+  "bare_color_total": 326,
+  "page_preview_missing": 5,
+  "page_preview_missing_files": [
+    "ui/design/DiscoverPage.kt",
+    "ui/design/WatchingPage.kt",
+    "ui/design/home/HeroPage.kt",
+    "ui/design/settings/SettingsPage.kt",
+    "ui/detail/DetailPage.kt"
+  ],
+  "thresholds": {
+    "line_limit": 300,
+    "bare_color_total": "不得高于本文件记录的 bare_color_total",
+    "page_preview": "每个 *Page.kt 至少 1 个 @Preview；missing 数不得增加",
+    "whitelisted_pending_split": {
+      "ui/PlayerActivity.kt": {
+        "batch": "B5（治理）",
+        "note": "901 行，UI 主文件最大；B4 播放器先对齐帧，B5 拆到家族树节点"
+      },
+      "ui/detail/EmbyResource.kt": {
+        "batch": "B5（治理）",
+        "note": "454 行，Emby 详情资源块与页面杂糅，B5 拆分"
+      },
+      "ui/design/DiscoverPage.kt": {
+        "batch": "B3（发现）/ B5（治理）",
+        "note": "426 行；B3 补 6 个模块时先行内聚，B5 拆分"
+      },
+      "ui/compose/PlayerActionRouter.kt": {
+        "batch": "B4（播放器）/ B5（治理）",
+        "note": "406 行；B4 改手势与面板后由 B5 拆路由表"
+      },
+      "ui/compose/PlayerComposeActivity.kt": {
+        "batch": "B4（播放器）/ B5（治理）",
+        "note": "382 行；B4 播放器交互改动的宿主，B5 拆分"
+      },
+      "ui/MultiPlayerActivity.kt": {
+        "batch": "B5（治理）",
+        "note": "多实例播放宿主，当前已 ≤300 行；留白名单防回归时误报"
+      }
+    }
+  },
+  "source": "python tools/ui_gate.py --baseline",
+  "scope": "android/app/src/main/java/com/kivo/cinema/**/*.kt（tokens/ 目录不计裸色）"
+}
