@@ -105,10 +105,28 @@
 | `avsync_s` | `avsync` | `-0.003964` | **`not_measured`** ✅ |
 | `hwdec_current` | `hwdec-current` | `mediacodec` | `mediacodec` |
 
+> ⚠️ `mistimed_frame_count` **是累计值，且不等于卡顿次数** —— 见 §5.4 的 240 s 实测对照。
+
 **诚实性验证**：无音轨片 9/10 字段有值，唯一缺失的 `avsync_s` 写的是
 `not_measured: mpv 属性读不到` —— **没有补 0**。这是本契约最核心的约定。
 
-### 4.2 不可比项（写进 JSON 的 `incomparable` 数组）
+### 4.2 时间序列：`files/metrics/<label>-health.ndjson`
+
+单份 `<label>.json` 只回答"最后是什么样"，回答不了"是不是在持续累积"。
+`MpvHealthSoak` 每 **5 s** 追加一行（NDJSON，一行一个采样点）：
+
+```json
+{"t_ms":5598,"health":{ "clock_source": "mpv", "mistimed_frame_count": 6, ... }}
+{"t_ms":10683,"health":{ ... "mistimed_frame_count": 9, ... }}
+```
+
+- 每场播放重开文件（`PlaybackMetrics.begin` 转发），不跨场混；
+- 4 MB 上限，超限写 `{"truncated":"file_over_4194304_bytes"}` 一行再停 —— **截断留痕，不静默停**；
+- 只有主线程采得到值（同 §5.2），所以它挂在同一条 `sampleTelemetry()` 路径上，只是节奏不同。
+
+复算：`python tools/p345_soak_report.py <label>-health.ndjson [sf-raw.txt]`。
+
+### 4.3 不可比项（写进 JSON 的 `incomparable` 数组）
 
 ```
 pace.lateness_ns / pace.schedule_lead_ns / pace.drop_ratio
@@ -154,6 +172,29 @@ output_fps（上屏帧率，须 tools/p274_sf_latency 量）
 无音轨片起播后约 6 s 内 `container-fps` 读不到，一次早采样会把已有快照冲成半空
 （label `wa` 3/10）。加上"仅在有实质内容时覆盖"后，连续 7 次（`wb`/`wc`/`x1-x3`/`y1-y4`）稳定 9-10/10。
 
+### ④ `mistimed_frame_count` 不是卡顿次数
+
+240 s 长稳（25fps 源 + 插值开，K40，`label=soak`），soak 序列与 SurfaceFlinger 同步采：
+
+| 指标 | 240 s 内的值 |
+|---|---|
+| `mistimed_frame_count` | **6 → 145（+139，≈0.54 次/秒）** |
+| `vo_drop_count` | **恒 2**（只在起播时发生，稳态不增长） |
+| `decoder_drop_count` | 恒 0 |
+| `avsync_s` | −0.003 ~ −0.027（全程 <30 ms） |
+| `estimated_vf_fps` | 恒 25.0 |
+| **SF 帧间隔**（3007 个轮内样本） | p50 **16.52** / p99 **16.71** / max **16.94 ms** |
+| **SF >20 ms 次数** | **0** |
+| 等效上屏 | **60.55 fps** |
+
+⇒ 同一段时间里 mpv 记了 139 次 mistimed，而画面**没有任何一帧超过 20 ms**。
+`mistimed` 记的是"没落在理想 vsync 的次数"（约占总帧数 1%），
+**不是用户可见卡顿**；把它写成"卡了 139 次"是彻底误导。
+判断可见卡顿仍以 SF 的 `gap > 20 ms` 为准，`mistimed` 只能作为"vsync 对齐严格度"的相对指标。
+
+> 这也顺手回答了长稳判据：稳态 `vo_drop` 不增长 ⇒ 240 s 内无累积性丢帧。
+> 证据：`d12d-soak-health.ndjson`（51 点）、`d12d-sf-raw.txt`（24 轮）。
+
 ---
 
 ## 六、旧宿主退役门禁（修订）
@@ -186,8 +227,10 @@ D12-STATUS 原来写"31 个脚本会断 ⇒ 阻塞"。审计后强度大幅下�
 
 ## 七、未覆盖项（如实标注）
 
-1. **`soak` 周期快照未迁移**：新宿主只有单份覆盖写，没有中途时间序列 ⇒ "丢帧是否累积"仍无法判。
+1. ~~**`soak` 周期快照未迁移**~~ → ✅ 已完成，见 §4.2（`MpvHealthSoak`，5 s/点，240 s 实测 51 点）。
 2. **`kivo.case` 失败证据未迁移**：新宿主只写 `metrics.failure` 字符串，没有 `kivo.p12f.negative/1` 的结构化 stage/return_code。
 3. **C 类 6 探针在新宿主完全无法复现**，本文件只做到"声明不可比"，没有做到"提供替代实验"。
-4. **`mistimed_frame_count` 口径未与 SF 对齐**：实测 SF 0 次 >25ms 而 mistimed=3，两者阈值不同，尚未建立换算关系。
+4. ~~**`mistimed_frame_count` 口径未与 SF 对齐**~~ → ✅ 已判定：**它不是卡顿次数**，240 s 内 +139 而 SF 0 次 >20 ms，见 §5.4。
+   仍未建立的是**换算公式**（例如"1 次 mistimed ≈ 多少 ms 偏差"），因为 mpv 不暴露单次 mistimed 的偏差量。
 5. 采样线程约束（§五②）只验证了 K40 一台设备，未做跨 SoC 复验。
+6. 长稳只跑了 **1 场 240 s**，没有做多场景（4K / 高码率 / SMB）对照；`vo_drop` 恒 2 是否与片源无关尚未验证。

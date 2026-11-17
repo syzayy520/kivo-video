@@ -55,7 +55,11 @@ internal fun PlayerComposeActivity.sampleTelemetry() {
     // 345 · 内核健康度快照。**必须在这条主线程路径上采**：
     // 后台线程读 vo 类属性（estimated-vf-fps / mistimed-frame-count）恒 null，
     // 而 onStop 时内核已销毁又读不到 ⇒ 只有"主线程 + 内核活着"这个窗口有效。
-    mpvNetSession?.nativeOrNull()?.let { com.kivo.cinema.playback.MpvHealthProbe.sample(it) }
+    mpvNetSession?.nativeOrNull()?.let {
+        com.kivo.cinema.playback.MpvHealthProbe.sample(it)
+        // 同一窗口、不同节奏：单份快照用于收尾，soak 用于看趋势（内部 5 s 节流）。
+        com.kivo.cinema.playback.MpvHealthSoak.maybeAppend(it)
+    }
 }
 
 internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnable {

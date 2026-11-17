@@ -89,6 +89,8 @@ internal object PlaybackMetrics {
         writes.set(0L)
         this.label = label.ifBlank { "play" }
         this.renderMode = renderMode
+        // 345 · soak 时间序列：与单文件指标同场开、生命周期一致。
+        MpvHealthSoak.begin(appContext, this.label)
     }
 
     /** 打一个阶段点（同名重复调用保留**第一次**，避免被后来的覆盖）。 */

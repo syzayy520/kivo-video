@@ -84,6 +84,16 @@ internal object MpvHealthProbe {
     }
 
     /**
+     * 单行渲染（NDJSON 用）：把 [json] 的换行与缩进压掉。
+     *
+     * 本契约的 JSON 只有标量、字符串与一层字符串数组，压平不会破坏结构。
+     * 保留独立入口而不是给 [json] 加参数，是因为两者读者不同：
+     * 单文件 metrics 要人读（缩进），soak 序列要脚本读（一行一条）。
+     */
+    fun flat(native: MpvSession?): String =
+        json(native).replace(Regex("\\s*\\n\\s*"), " ")
+
+    /**
      * 播放中采到的最后一份快照。
      *
      * 【为什么要有快照】mpv property 是瞬时值：`onStop` 时 `onPlayerStop()` 已先销毁内核
