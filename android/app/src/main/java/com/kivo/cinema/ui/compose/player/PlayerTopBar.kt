@@ -76,14 +76,16 @@ internal fun PlayerTopBar(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 TopIconButton(
-                    kind = "close",
+                    action = "close",
+                    glyph = "close",
                     glyphSize = PlayerTokens.closeIconSize,
                     label = "关闭",
                     active = false,
                     onClick = onClose,
                 )
                 TopIconButton(
-                    kind = "home",
+                    action = "home",
+                    glyph = "home",
                     glyphSize = PlayerTokens.homeIconSize,
                     label = "主页",
                     active = false,
@@ -109,19 +111,21 @@ internal fun PlayerTopBar(
                 ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TOP_ACTIONS.forEach { (kind, label) ->
+                TOP_ACTIONS.forEach { slot ->
                     // 听视频态没有画面 ⇒ PiP 无意义，实测也隐掉它。
-                    if (audioOnly && kind == "pip") return@forEach
+                    if (audioOnly && slot.action == "pip") return@forEach
                     TopIconButton(
-                        kind = kind,
+                        action = slot.action,
+                        glyph = slot.glyph,
                         glyphSize = PlayerTokens.actionIconSize,
-                        label = label,
-                        active = activeAction == kind || (kind == "audioMode" && audioOnly),
+                        label = slot.label,
+                        active = activeAction == slot.action ||
+                            (slot.action == "audioMode" && audioOnly),
                         // 弹幕关掉时图标变暗：这是**真状态**，不是装饰。
-                        dimmed = kind == "danmaku" && !danmakuOn,
-                        onClick = { onAction(kind) },
+                        dimmed = slot.action == "danmaku" && !danmakuOn,
+                        onClick = { onAction(slot.action) },
                         // 圈弹长按 = 弹幕操作面板（形态8，◐ 待 iPhone 补证）。
-                        onLongClick = if (kind == "danmaku") {
+                        onLongClick = if (slot.action == "danmaku") {
                             { onAction("danmaku-panel") }
                         } else {
                             null
@@ -133,18 +137,45 @@ internal fun PlayerTopBar(
     }
 }
 
-/** 语义序与实测一致（投屏·弹幕·PiP·场记板·比例·**音轨**·字幕·**听视频**）。
- *  v3.1：首枚由 AirPlay 换成通用投屏符（DLNA）——Apple 专有协议在 Android 做不了，
- *  图标/面板行/文案全链路移除；槽位不动，其余图标锚点不变。 */
-private val TOP_ACTIONS = listOf(
-    "cast" to "投屏",
-    "danmaku" to "弹幕",
-    "pip" to "画中画",
-    "clapper" to "跳过片段",
-    "expand" to "画面比例",
-    "audio" to "音轨",
-    "captions" to "字幕",
-    "audioMode" to "听视频",
+/**
+ * 一个顶栏槽位：**图形（竞品这一格画什么）× 行为（点下去打开什么）**。
+ *
+ * 两者的 kind 不再共用一个字段 —— 竞品的图形与行为跟我们的历史 kind 名并不一一对应，
+ * 混用会让"第 4 格画场记板、点开却是跳过片段"这类错配重新出现（TOP-01）。
+ */
+internal data class TopActionSlot(
+    /** 送进 [PlayerActionRouter] 的 kind，决定打开哪个面板、也用于激活态判定。 */
+    val action: String,
+    /** 画在按钮上的图形，[PlayerGlyph] 的 kind。 */
+    val glyph: String,
+    /** 无障碍描述与日志用的语义名。 */
+    val label: String,
+)
+
+/**
+ * 语义序与实测一致：投屏·弹幕·PiP·**画面比例**·**跳过片段**·**音轨**·字幕·**听视频**。
+ * v3.1：首枚由 AirPlay 换成通用投屏符（DLNA）——Apple 专有协议在 Android 做不了，
+ * 图标/面板行/文案全链路移除；槽位不动，其余图标锚点不变。
+ *
+ * 第 4/5 格（TOP-01 已修）：
+ * · 第 4 ✅ `IMG_0173` —— 竞品该格是**场记板**，点开"填充模式 / 画面比例"，故
+ *   `glyph = "clapper"` + `action = "expand"`（后者沿用既有路由 `expand → quality`）；
+ * · 第 5 ✅ `IMG_0165` —— 竞品该格是**圈内对勾**，点开"跳过片段方式"，故
+ *   `action = "clapper"`（既有路由 `clapper → skip`）。
+ *
+ * ◐ 偏差（未覆盖，留待 `PlayerGlyph` 卡）：第 5 格目前借 `check`（对勾，无外圈），
+ * 竞品有外圈；补齐需在 `PlayerGlyphFeature` 新增 `skipMark`（圈 + 勾），本卡只动
+ * 顶栏/底栏两个文件，故不在此实现。图形命中外圈缺失不影响语义与命中区。
+ */
+internal val TOP_ACTIONS = listOf(
+    TopActionSlot(action = "cast", glyph = "cast", label = "投屏"),
+    TopActionSlot(action = "danmaku", glyph = "danmaku", label = "弹幕"),
+    TopActionSlot(action = "pip", glyph = "pip", label = "画中画"),
+    TopActionSlot(action = "expand", glyph = "clapper", label = "画面比例"),
+    TopActionSlot(action = "clapper", glyph = "check", label = "跳过片段"),
+    TopActionSlot(action = "audio", glyph = "audio", label = "音轨"),
+    TopActionSlot(action = "captions", glyph = "captions", label = "字幕"),
+    TopActionSlot(action = "audioMode", glyph = "audioMode", label = "听视频"),
 )
 
 /**
@@ -155,7 +186,8 @@ private val TOP_ACTIONS = listOf(
  */
 @Composable
 private fun TopIconButton(
-    kind: String,
+    action: String,
+    glyph: String,
     glyphSize: Float,
     label: String,
     active: Boolean,
@@ -179,7 +211,7 @@ private fun TopIconButton(
         contentAlignment = Alignment.Center,
     ) {
         // 听视频激活＝白圆底黑耳机（反白圆），不是通用绿色高亮。
-        val inverted = kind == "audioMode" && active
+        val inverted = action == "audioMode" && active
         Box(
             modifier = Modifier
                 .size((if (inverted) glyphSize + 6f else glyphSize).dp)
@@ -191,7 +223,7 @@ private fun TopIconButton(
             contentAlignment = Alignment.Center,
         ) {
             PlayerGlyph(
-                kind = kind,
+                kind = glyph,
                 color = when {
                     inverted -> Color.Black
                     active -> PlayerTokens.activeAccent

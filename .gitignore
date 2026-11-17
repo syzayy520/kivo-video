@@ -35,6 +35,11 @@ backend/tools/governance/redline_gate/artifacts/*
 .workbuddy/
 .workbuddy-ai/
 .codebuddy/
+# Agent 工具本机状态（clawMode 等），不属于项目源码。
+.arts/
+
+# P402 死代码删除的本机备份：只用于事后追溯，不入库（避免 grep/扫描把死代码当活代码）。
+archive/
 
 # Scratch scripts kept out of history.
 tmp_*.py

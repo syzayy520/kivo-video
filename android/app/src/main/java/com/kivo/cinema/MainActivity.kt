@@ -57,6 +57,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         com.kivo.cinema.net.NetDiag.attach(application)
         com.kivo.cinema.sources.access.SourceAccessSession.install(application)
+        // D10：模块开关在启动期读盘一次，进入「我的」页无闪烁、组合期无磁盘 IO。
+        com.kivo.cinema.ui.profile.modules.ProfileModulePrefs.bind(this)
         defaultHomeHandled = savedInstanceState?.getBoolean("source.defaultHandled") ?: false
         // edge-to-edge（239：hero 顶入状态栏下——windowFullscreen 已从主题移除）
         enableEdgeToEdge()

@@ -26,6 +26,13 @@ object AppearancePrefs {
     var hapticMode by mutableStateOf("auto")
         private set
 
+    /**
+     * App 内「减弱动画效果」开关（`MotionGate` 的 App 侧输入）。
+     * 存 SharedPreferences 键 `reduce_motion`，默认 `false`（＝不减弱，沿用系统值）。
+     */
+    var reduceMotion by mutableStateOf(false)
+        private set
+
     /** 幂等绑定：进程内首次读盘；此后所有写都经本对象，状态与盘一致。 */
     fun bind(context: Context) {
         if (sp != null) return
@@ -35,6 +42,7 @@ object AppearancePrefs {
         showContentNotes = p.getBoolean("show_content_notes", true)
         hideNavLabels = p.getBoolean("hide_nav_labels", false)
         hapticMode = p.getString("haptic_mode", "auto") ?: "auto"
+        reduceMotion = p.getBoolean("reduce_motion", false)
     }
 
     fun updateShowStills(value: Boolean) {
@@ -55,6 +63,11 @@ object AppearancePrefs {
     fun updateHapticMode(value: String) {
         hapticMode = value
         sp?.edit()?.putString("haptic_mode", value)?.apply()
+    }
+
+    fun updateReduceMotion(value: Boolean) {
+        reduceMotion = value
+        sp?.edit()?.putBoolean("reduce_motion", value)?.apply()
     }
 
     /** 触感可用性：禁用＝关；自动＝系统报低电量时关（不自设阈值）；始终＝开。 */

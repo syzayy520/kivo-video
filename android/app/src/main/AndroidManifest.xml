@@ -38,6 +38,12 @@
                 <activity android:name=".privatezone.PrivateActivity" android:exported="true"/>
                 <activity android:name=".ui.detail.DetailActivity" android:exported="true"/>
                 <activity android:name=".ui.detail.MovieDetailActivity"/>
+        <!-- C3 观影日历：从「我的」周历/日历入口进入，只读统计，不对外导出。
+             主题用应用默认的 Theme.KivoCinema（没有 Theme.Kivo 这个资源，写错会在安装时崩）。 -->
+        <activity
+            android:name=".ui.profile.calendar.CalendarActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KivoCinema" />
 <activity
             android:name=".ui.compose.PlayerComposeActivity"
             android:screenOrientation="landscape"

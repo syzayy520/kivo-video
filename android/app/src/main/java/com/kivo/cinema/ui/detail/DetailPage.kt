@@ -73,6 +73,8 @@ internal fun DetailPage(
     var fieldColor by remember {
         mutableStateOf(if (previewContent != null) Color(0xFF1A1A1F) else DesignTokens.pageBackground)
     }
+    // P0-1：海报文字带亮度采样。-1 = 无海报/未加载，退回原 sheet 判定。
+    var posterBandLum by remember { mutableStateOf(-1f) }
     var reload by remember { mutableStateOf(0) }
     var loading by remember { mutableStateOf(previewContent == null) }
     LaunchedEffect(reload) {
@@ -81,14 +83,16 @@ internal fun DetailPage(
         try {
             val c = withContext(Dispatchers.IO) { load() }
             if (c == null) {
-                // 有 preview 就保留它（内容仍在，只是次要字段缺），不展示"整页失败"。
-                if (content == null) error = "加载失败，请检查网络后重试"
+                // 有 preview 也置 error：DetailLoadFeedback 据此给出 Snackbar 重试。
+                // 文案不带"已保留当前内容"，由反馈组件统一追加，避免重复。
+                error = if (content == null) "加载失败，请检查网络后重试" else "详情加载失败"
             } else {
                 content = c
             }
         } catch (e: CancellationException) { throw e }
-        catch (_: Exception) { if (content == null) error = "无法获取影片详情，请检查网络后重试" }
-        finally { loading = false }
+        catch (_: Exception) {
+            error = if (content == null) "无法获取影片详情，请检查网络后重试" else "详情加载失败"
+        } finally { loading = false }
     }
     // 336 R2：吸色跟随当前幕布 URL —— preview 上屏当帧就采（图已在磁盘缓存，毫秒级），
     // 避免"海报已显示但底色还是 pageBackground"的浅灰块；完整详情替换后 URL 变了再采一次。
@@ -97,7 +101,10 @@ internal fun DetailPage(
     LaunchedEffect(artUrl, artLoader) {
         if (artUrl.isBlank()) return@LaunchedEffect
         val bmp = withContext(Dispatchers.IO) { artLoader?.invoke(artUrl) ?: TmdbImageCache.load(artUrl) }
-        bmp?.let { fieldColor = PosterPalette.ambientOf(it) }
+        if (bmp != null) {
+            fieldColor = PosterPalette.ambientOf(bmp)
+            posterBandLum = withContext(Dispatchers.IO) { HeroForeground.textBandLuminance(bmp) }
+        }
     }
     val listState = rememberLazyListState()
     val density = LocalDensity.current
@@ -117,10 +124,19 @@ internal fun DetailPage(
                 ((scrollDp() - DETAIL_SHEET_START_DP) / DETAIL_SHEET_RAMP_DP).coerceIn(0f, 1f))
         }
     }
-    val chromeDark by remember(sheetColor) { derivedStateOf { sheetColor.value.luminance() < .40f } }
-    LaunchedEffect(chromeDark) { onDarkStatusIcons(!chromeDark) }
-    val fg = if (chromeDark) Color.White else DesignTokens.textMain
-    val fgSub = if (chromeDark) Color.White.copy(alpha = .72f) else DesignTokens.textSub
+    // 状态图标口径不变（仍看 sheetColor），避免回归；仅 hero 文字改用合成背景判定。
+    val statusDark by remember(sheetColor) { derivedStateOf { sheetColor.value.luminance() < .40f } }
+    LaunchedEffect(statusDark) { onDarkStatusIcons(!statusDark) }
+    // P0-1：文字画在「海报 + field 渐变」合成层上，不能只看 sheetColor（海报环境色偏暗）。
+    // 未滚动时用文字带采样亮度，随滚动按同一斜坡过渡到 sheet 亮度；无采样时退回原判定。
+    val sheetRamp = ((scrollDp() - DETAIL_SHEET_START_DP) / DETAIL_SHEET_RAMP_DP).coerceIn(0f, 1f)
+    val sheetLum = sheetColor.value.luminance()
+    val effectiveLum = if (posterBandLum >= 0f) {
+        val heroLum = HeroForeground.heroBandLuminance(posterBandLum, fieldColor)
+        heroLum + (sheetLum - heroLum) * sheetRamp
+    } else sheetLum
+    val fg = if (HeroForeground.needsLight(effectiveLum)) Color.White else DesignTokens.textMain
+    val fgSub = if (HeroForeground.needsLight(effectiveLum)) Color.White.copy(alpha = .72f) else DesignTokens.textSub
     val d = content?.details
     val isPreview = content?.preview == true
     val media = content?.media

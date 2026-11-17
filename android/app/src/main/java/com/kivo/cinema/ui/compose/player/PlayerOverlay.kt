@@ -93,6 +93,8 @@ internal fun PlayerOverlay(
     /** 317：长按快进是否**正在生效**（拖动中或已锁定）—— 用于压掉横/竖滑。 */
     longPressActive: Boolean,
     screenLocked: Boolean,
+    /** B4-T3：双指缩放状态（组合根 `rememberPinchScale` 持有）；倍数作用于视频容器。 */
+    pinch: PinchScaleState,
     lockHintVisible: Boolean,
     audioOnly: Boolean,
     danmakuOn: Boolean,
@@ -128,7 +130,8 @@ internal fun PlayerOverlay(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val reduceMotion = rememberReduceMotion()
+    // 审查 P1-4：统一用 MotionGate（系统无障碍 + App 开关取或），删 PlayerPanelHost 第二套只查单 scale 的门。
+    val reduceMotion = com.kivo.cinema.ui.motion.MotionGate.rememberAppReduceMotion()
     val inline = PlayerPanelHost.isInline(activePanel)
     val panelOpen = activePanel.isNotBlank() && !inline
     // 内联形态（资源/选集）的内容住在底栏里 ⇒ 底栏必须跟着显形。
@@ -150,6 +153,7 @@ internal fun PlayerOverlay(
             },
             onDoubleTap = onDoubleTap,
             locked = screenLocked,
+            pinch = pinch,
             suppressSwipe = longPressActive,
             onHorizontalDragStart = onHorizontalDragStart,
             onHorizontalDrag = onHorizontalDrag,
@@ -210,6 +214,8 @@ internal fun PlayerOverlay(
         FloatingPanel(
             kind = activePanel,
             open = panelOpen && !screenLocked,
+            // B4-T1：面板锚在触发控件上（kind 反查；钻入子面板仍跟父面板的图标/按钮）。
+            anchor = PlayerPanelHost.anchorFor(activePanel),
             reduceMotion = reduceMotion,
             audioOnly = audioOnly,
             title = panelTitle,

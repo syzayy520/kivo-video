@@ -4,33 +4,22 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
-import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore as MS
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.ui.design.GlassCircleButton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,23 +29,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.layout.height
 
 /**
- * 本地媒体库（222 设计稿）：MediaStore 查询 + LazyVerticalGrid 海报墙。
- *
- * 设计稿 规格（§4）：卡片 2:3、3 列网格、标题 12sp 粗体 + 元信息 10sp 灰。
+ * 本地媒体库宿主：MediaStore 查询 + 权限 + 私密标记状态。
+ * 网格渲染（SU-01 2 列白卡）在 [com.kivo.cinema.library.PosterWall]（单职责拆分）。
  * D1 MediaStore 查询：content://media/external/video → [MediaItem] 列表。
- * D2 缩略图：MediaStore.Video.Thumbnails（系统缓存）。
- * 点击 → PlayerComposeActivity（213 管线）。
+ * 点击 → 详情页（详情内直接播放）。
  */
 class MediaLibraryActivity : ComponentActivity() {
 
@@ -250,83 +232,16 @@ class MediaLibraryActivity : ComponentActivity() {
     @Composable
     private fun PosterWall() {
         // privEpoch 参与取值：增删标记后强制重算过滤（231 即时隐藏）
-        // remember 必须在 LazyGridScope content 外（那里不是 composable 上下文）
         val visible = remember(privEpoch, items) { visibleItems() }
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            items(visible) { item ->
-                PosterCard(item, onLongClick = { menuFor = item }) { openPlayer(item) }
-            }
-        }
-    }
-
-    @OptIn(ExperimentalFoundationApi::class)
-    @Composable
-    private fun PosterCard(item: MediaItem, onLongClick: () -> Unit,
-                           onClick: () -> Unit) {
-        Column(
-            modifier = Modifier.combinedClickable(
-                onClick = onClick, onLongClick = onLongClick)
-        ) {
-            // 缩略图：MediaStore thumbnail
-            val bitmap = android.media.ThumbnailUtils.createVideoThumbnail(
-                item.path, MS.Video.Thumbnails.MINI_KIND
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(2f / 3f)   // 规格 §4: 2:3
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFE0E0E0))
-            ) {
-                if (bitmap != null) {
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = item.title,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("🎬", fontSize = 32.sp)
-                    }
-                }
-                // 时长角标
-                Text(
-                    item.formatDuration(),
-                    fontSize = 10.sp,
-                    color = Color.White,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(6.dp)
-                        .background(Color.Black.copy(alpha = 0.6f),
-                            RoundedCornerShape(4.dp))
-                        .padding(horizontal = 4.dp, vertical = 1.dp)
-                )
-            }
-            Spacer(Modifier.height(4.dp))
-            Text(
-                item.title,
-                fontSize = 15.sp, fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1A1A),
-                maxLines = 1, overflow = TextOverflow.Ellipsis,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Text(
-                formatDate(item.addedSec),
-                fontSize = 13.sp, color = Color(0xFF8A8A8E),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
+        com.kivo.cinema.library.PosterWall(
+            visible = visible,
+            onOpen = { openPlayer(it) },
+            onLongClick = { menuFor = it },
+        )
     }
 }
 
-private fun formatDate(addedSec: Long): String {
+internal fun formatDate(addedSec: Long): String {
     val d = java.util.Calendar.getInstance()
     d.timeInMillis = addedSec * 1000L
     return "%04d-%02d-%02d".format(d.get(java.util.Calendar.YEAR),

@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,8 +26,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kivo.cinema.evidence.IoTrace
 import com.kivo.cinema.library.MediaItem
 import com.kivo.cinema.ui.detail.DetailActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 256 全局搜索本地卡：系统缩略图 + 本地徽标 + 时长角标 + 标题。
@@ -34,12 +39,17 @@ import com.kivo.cinema.ui.detail.DetailActivity
 @Composable
 fun LocalResultCard(item: MediaItem) {
     val context = LocalContext.current
-    val bmp = remember(item.path) {
-        runCatching {
-            @Suppress("DEPRECATION")
-            ThumbnailUtils.createVideoThumbnail(item.path, MediaStore.Video.Thumbnails.MINI_KIND)
-        }.getOrNull()
+    val bmp by produceState<android.graphics.Bitmap?>(null, item.path) {
+        value = withContext(Dispatchers.IO) {
+            IoTrace.measure("search.localCard") {
+                runCatching {
+                    @Suppress("DEPRECATION")
+                    ThumbnailUtils.createVideoThumbnail(item.path, MediaStore.Video.Thumbnails.MINI_KIND)
+                }.getOrNull()
+            }
+        }
     }
+    val bmpValue = bmp
     Column(Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
         context.startActivity(Intent(context, DetailActivity::class.java)
             .putExtra("kivo.media", item.path)
@@ -47,8 +57,8 @@ fun LocalResultCard(item: MediaItem) {
     }) {
         Box(Modifier.fillMaxWidth().aspectRatio(2f / 3f)
             .clip(RoundedCornerShape(12.dp)).background(Color(0xFFE8E6EF))) {
-            if (bmp != null) {
-                Image(bmp.asImageBitmap(), item.title,
+            if (bmpValue != null) {
+                Image(bmpValue.asImageBitmap(), item.title,
                     contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             }
             Text("本地", fontSize = 10.sp, color = Color.White,

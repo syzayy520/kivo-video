@@ -1,6 +1,7 @@
 package com.kivo.cinema
 
 import androidx.lifecycle.lifecycleScope
+import com.kivo.cinema.library.ContinueWatching
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -54,22 +55,10 @@ internal fun MainActivity.refreshHomeFeed() {
     }
 }
 
-/** 继续观看：取最近 10 条观看记录，与本地片源按路径对齐后回填。 */
+/** 继续观看：与「我的」看板共用 [ContinueWatching] 的对齐规则，避免两处各算一份。 */
 internal fun MainActivity.refreshContinue() {
     Thread {
-        val pairs = watchStore.recentKeys(10).mapNotNull { key ->
-            val prog = watchStore.progressOf(key) ?: return@mapNotNull null
-            val nk = normPath(key)
-            val item = items.firstOrNull { normPath(it.path) == nk }
-                ?: return@mapNotNull null
-            item to prog
-        }
+        val pairs = ContinueWatching.aligned(items, watchStore)
         runOnUiThread { shellState.continueItems = pairs }
     }.start()
-}
-
-/** /sdcard 与 /storage/emulated/0 是同一文件的两个别名——统一后比较。 */
-private fun normPath(p: String): String = when {
-    p.startsWith("/sdcard/") -> "/storage/emulated/0/" + p.removePrefix("/sdcard/")
-    else -> p
 }

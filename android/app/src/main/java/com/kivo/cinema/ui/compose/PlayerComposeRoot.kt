@@ -13,10 +13,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import com.kivo.cinema.ui.compose.player.PlayerOverlay
 import com.kivo.cinema.ui.compose.player.PlayerSourceOrigin
 import com.kivo.cinema.ui.compose.player.panelTitle
 import com.kivo.cinema.ui.compose.player.rememberPanelItems
+import com.kivo.cinema.ui.compose.player.rememberPinchScale
 
 /**
  * 播放页的**层叠接线**（组合根的"线"，253-v3）。
@@ -40,6 +42,11 @@ internal fun PlayerComposeActivity.PlayerRoot() {
     // 落点那一跳反而从 2.5 s 变成 4.5 s）。
     // 改成"停下来 200 ms 之后再预取"：位置不变就不换窗口，也不新开连接。
     var pendingPrefetchMs by remember { mutableLongStateOf(-1L) }
+    // B4-T3：横滑 seek 的进行中状态**归组合所有**（旧版是 PlayerGestureRouter 的顶层 var ⇒
+    // 进程级，第二次进播放器会沿用上次起点）。组合销毁即丢弃；同一次会话内跨重组保留。
+    val handSeek = remember { HandSeekState() }
+    // B4-T3：双指缩放状态，锁定态由 rememberPinchScale 内部回正到 1.0（锁定矩阵：双指 ❌）。
+    val pinch = rememberPinchScale(screenLocked)
     LaunchedEffect(pendingPrefetchMs) {
         if (pendingPrefetchMs >= 0L) {
             kotlinx.coroutines.delay(SCRUB_SETTLE_MS)
@@ -60,6 +67,12 @@ internal fun PlayerComposeActivity.PlayerRoot() {
             PlayerScreen(
                 onSurfaceReady = { holder -> maybeStartPlayback(holder) },
                 onSurfaceLost = { onSurfaceLost() },
+                // B4-T3 双指缩放：倍数作用在**视频容器**上（AndroidView 的父 Box），
+                // 不动 SurfaceView / 零拷贝路径本身。
+                modifier = Modifier.graphicsLayer {
+                    scaleX = pinch.scale
+                    scaleY = pinch.scale
+                },
             )
             // 弹幕在控制层**之下**：弹幕只压画面，不压栏/面板/预览浮窗；
             // 拖动时整体让位（scrubbing），浮窗上不许飘字。
@@ -106,6 +119,7 @@ internal fun PlayerComposeActivity.PlayerRoot() {
                 longPressLocked = longPressLocked,
                 longPressActive = longPressActive,
                 screenLocked = screenLocked,
+                pinch = pinch,
                 lockHintVisible = lockHintVisible,
                 audioOnly = audioOnly,
                 danmakuOn = danmakuOn,
@@ -179,9 +193,9 @@ internal fun PlayerComposeActivity.PlayerRoot() {
                 onLockHint = { onLockHint() },
                 onUnlock = { onToggleLock() },
                 onDoubleTap = { zone -> onDoubleTap(zone) },
-                onHorizontalDragStart = { onHorizontalDragStart() },
-                onHorizontalDrag = { dx -> onHorizontalDrag(dx) },
-                onHorizontalDragEnd = { commit -> onHorizontalDragEnd(commit) },
+                onHorizontalDragStart = { onHorizontalDragStart(handSeek) },
+                onHorizontalDrag = { dx -> onHorizontalDrag(handSeek, dx) },
+                onHorizontalDragEnd = { commit -> onHorizontalDragEnd(handSeek, commit) },
                 onVerticalDragStart = { x -> onVerticalDragStart(x) },
                 onVerticalDrag = { dy -> onVerticalDrag(dy) },
                 onVerticalDragEnd = { onVerticalDragEnd() },

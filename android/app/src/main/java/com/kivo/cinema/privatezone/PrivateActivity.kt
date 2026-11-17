@@ -4,6 +4,7 @@ import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
 import android.provider.MediaStore as MS
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -32,15 +33,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kivo.cinema.evidence.IoTrace
 import com.kivo.cinema.privacy.PrivacyLockFlow
 import com.kivo.cinema.privacy.PrivacyLockMode
 import com.kivo.cinema.privacy.PrivacyPassword
 import com.kivo.cinema.sources.access.SourceAccessSession
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 私密区海报墙（39 卡重构）：应用内独立数字密码解锁后只渲染 private.json 里的条目。
  * 门在入口（读 SourceAccessSession，与隐藏源共用一次解锁），播放层无感知（kivo.media 照常）。
- * 网格规格 = 222 媒体库同款（2:3 卡 3 列）。已解锁挂 FLAG_SECURE，防截图 / 最近任务泄露。
+ * 网格规格 = 222 媒体库同款（2:3 卡 3 列）。
+ * 本 Activity 全程挂 FLAG_SECURE（onCreate 设、onDestroy 清），防截图 / 最近任务泄露；
+ * 不再依赖「已解锁」条件——未解锁的密码键盘同样属于私密内容。
  */
 class PrivateActivity : ComponentActivity() {
 
@@ -53,8 +59,15 @@ class PrivateActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         SourceAccessSession.install(application)
         setContent { PrivateScreen() }
+    }
+
+    override fun onDestroy() {
+        // 清掉窗口标志，避免窗口复用（配置变更/返回主界面）时把整个 App 一起禁截图。
+        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        super.onDestroy()
     }
 
     override fun onResume() {
@@ -101,10 +114,7 @@ class PrivateActivity : ComponentActivity() {
     @Composable
     private fun PrivateScreen() {
         val unlocked = SourceAccessSession.unlocked
-        SideEffect {
-            if (unlocked) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-            else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-        }
+
         MaterialTheme(colorScheme = darkColorScheme(
             primary = Color(0xFF34C759), background = Color(0xFF1C1C1E),
             surface = Color(0xFF2C2C2E), onSurface = Color.White, onSurfaceVariant = Color(0xFF98989E),
@@ -177,8 +187,17 @@ class PrivateActivity : ComponentActivity() {
         onClick: () -> Unit) {
         Column(modifier = Modifier.combinedClickable(
             onClick = onClick, onLongClick = onLongClick)) {
-            val bitmap = android.media.ThumbnailUtils.createVideoThumbnail(
-                item.path, MS.Video.Thumbnails.MINI_KIND)
+            val bitmap by produceState<android.graphics.Bitmap?>(null, item.path) {
+                value = withContext(Dispatchers.IO) {
+                    IoTrace.measure("private.posterCard") {
+                        runCatching {
+                            @Suppress("DEPRECATION")
+                            android.media.ThumbnailUtils.createVideoThumbnail(
+                                item.path, MS.Video.Thumbnails.MINI_KIND)
+                        }.getOrNull()
+                    }
+                }
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -186,9 +205,10 @@ class PrivateActivity : ComponentActivity() {
                     .clip(RoundedCornerShape(8.dp))
                     .background(Color(0xFF2C2C2E))
             ) {
-                if (bitmap != null) {
+                val bitmapValue = bitmap
+                if (bitmapValue != null) {
                     Image(
-                        bitmap = bitmap.asImageBitmap(),
+                        bitmap = bitmapValue.asImageBitmap(),
                         contentDescription = item.title,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()

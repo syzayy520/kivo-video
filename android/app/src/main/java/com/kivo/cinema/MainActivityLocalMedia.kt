@@ -9,13 +9,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.sp
+import com.kivo.cinema.evidence.IoTrace
 import com.kivo.cinema.library.MediaItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 本地媒体索引：MediaStore 扫描 + 缩略图缓存。
@@ -59,20 +63,27 @@ internal class LocalMediaIndex(private val context: Context) {
         return Scan(list, visible)
     }
 
-    /** 海报块：命中缓存直接给图，取不到就落占位方块（不静默留白）。 */
+    /** 缩略图缓存读写：并发 IO 下 @Synchronized 保护 HashMap（ConcurrentHashMap 不接受 null 值）。 */
+    @Synchronized
+    private fun thumbnail(id: Long, path: String): android.graphics.Bitmap? =
+        thumbCache.getOrPut(id) {
+            runCatching {
+                ThumbnailUtils.createVideoThumbnail(path, MS.Video.Thumbnails.MINI_KIND)
+            }.getOrNull()
+        }
+
+    /** 海报块：D11 解码切到 IO 线程；取不到就落占位方块（不静默留白）。 */
     @Composable
     fun posterBlock(item: MediaItem): @Composable () -> Unit {
-        val bmp = remember(item.id) {
-            thumbCache.getOrPut(item.id) {
-                runCatching {
-                    ThumbnailUtils.createVideoThumbnail(item.path,
-                        MS.Video.Thumbnails.MINI_KIND)
-                }.getOrNull()
+        val bmp by produceState<android.graphics.Bitmap?>(null, item.id, item.path) {
+            value = withContext(Dispatchers.IO) {
+                IoTrace.measure("home.posterBlock") { thumbnail(item.id, item.path) }
             }
         }
+        val bmpValue = bmp
         return {
-            if (bmp != null) {
-                Image(bmp.asImageBitmap(), item.title,
+            if (bmpValue != null) {
+                Image(bmpValue.asImageBitmap(), item.title,
                     contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

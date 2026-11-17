@@ -45,6 +45,13 @@ class TmdbHome(private val client: TmdbClient) {
         fun poster(path: String) = "$IMG/w500$path"
         fun backdrop(path: String) = "$IMG/w780$path"
 
+        /**
+         * 安全取图路径：TMDB 对缺失字段给 JSON `null`，而 `optString` 会把它串成字面量
+         * "null"（✅ 实测：直接拼会得到 `.../w500null`）。空串 / "null" 一律当无图 → null。
+         */
+        internal fun imgPath(o: JSONObject?, key: String): String? =
+            o?.optString(key)?.takeIf { it.isNotBlank() && it != "null" }
+
         /** TMDB genre_id → 中文名（/genre/movie/list&/tv/list zh-CN 全量，离线内嵌）。 */
         val GENRE_ZH = mapOf(
             28 to "动作", 12 to "冒险", 16 to "动画", 35 to "喜剧", 80 to "犯罪",
@@ -96,7 +103,8 @@ class TmdbHome(private val client: TmdbClient) {
         return chosen?.optString("file_path")?.let { "$IMG/w500$it" }
     }
 
-    private fun auth(url: String): String =
+    /** internal：TmdbPeople/Providers/Studios/Genres 复用同一份鉴权，不复制第二份。 */
+    internal fun auth(url: String): String =
         if (url.contains("?")) "$url&api_key=${client.apiKey()}"
         else "$url?api_key=${client.apiKey()}"
 
@@ -111,7 +119,8 @@ class TmdbHome(private val client: TmdbClient) {
         else -> "lost"
     }
 
-    private fun get(path: String): Pair<JSONObject?, String?> {
+    /** internal：供同包三个拉取器复用（8s/15s 超时 + 12h 列表缓存 + 错误分类）。 */
+    internal fun get(path: String): Pair<JSONObject?, String?> {
         if (client.apiKey().isEmpty()) return null to "offline"
         val url = auth("${TmdbClient.API_BASE}$path")
         // 336：首页列表缓存（12h TTL，热映/趋势更新快于详情）。失败不落盘，仍按原错误分类上报。
@@ -180,6 +189,9 @@ class TmdbHome(private val client: TmdbClient) {
     fun nowPlaying(): HomeData = items("/movie/now_playing?language=zh-CN")
     fun onTheAir(): HomeData = items("/tv/on_the_air?language=zh-CN")
     fun trendingWeek(): HomeData = items("/trending/all/week?language=zh-CN")
+
+    /** 高分剧集（首页「高分剧集」行；✅ 实测 /tv/top_rated 返回 20 条，首条 龙珠超：比鲁斯 9.629）。 */
+    fun topRatedTv(): HomeData = items("/tv/top_rated?language=zh-CN")
 
     /** 近一月·热门综艺（homeBuiltIn.popular.variety.past.month；真人秀 10764）。 */
     fun varietyPastMonth(): HomeData {

@@ -3,28 +3,12 @@
   "task_id": "P2-REDLINE-GATE-FOUNDATION",
   "scan_mode": "delivery",
   "classification": "FAIL",
-  "files_scanned": 2717,
-  "violations_count": 14,
+  "files_scanned": 3107,
+  "violations_count": 23,
   "violations_by_rule": {
-    "R4": 14
+    "R4": 23
   },
   "violations": [
-    {
-      "rule_id": "R4",
-      "severity": "FAIL",
-      "file": "C:\\kivo video\\.workbuddy-ai\\memory\\2026-11-08.md",
-      "field_path": "content",
-      "message": "credential matched: C:\\Users\\",
-      "evidence_excerpt_redacted": "[redacted]"
-    },
-    {
-      "rule_id": "R4",
-      "severity": "FAIL",
-      "file": "C:\\kivo video\\.workbuddy-ai\\memory\\2026-11-10.md",
-      "field_path": "content",
-      "message": "credential matched: C:\\Users\\",
-      "evidence_excerpt_redacted": "[redacted]"
-    },
     {
       "rule_id": "R4",
       "severity": "FAIL",
@@ -60,6 +44,22 @@
     {
       "rule_id": "R4",
       "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\backend-core\\253-mpv-kernel-p6-control-plane.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\backend-core\\254-emby-mpv-access.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
       "file": "C:\\kivo video\\docs\\design\\backend-core\\home\\2026-11-08-layered-scroll.md",
       "field_path": "content",
       "message": "credential matched: /home/",
@@ -76,6 +76,14 @@
     {
       "rule_id": "R4",
       "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\playback\\279-final-form-gap-table.md",
+      "field_path": "content",
+      "message": "credential matched: \\\\NAS\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
       "file": "C:\\kivo video\\docs\\design\\ui\\replica\\detail-media-motion.md",
       "field_path": "content",
       "message": "credential matched: C:\\Users\\",
@@ -84,7 +92,55 @@
     {
       "rule_id": "R4",
       "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\ui\\replica\\detail-popups-flat.md",
+      "field_path": "content",
+      "message": "credential matched: /home/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
       "file": "C:\\kivo video\\docs\\design\\ui\\replica\\hero-transition.md",
+      "field_path": "content",
+      "message": "credential matched: /home/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\ui\\replica\\nav-capsule-v3.md",
+      "field_path": "content",
+      "message": "credential matched: /home/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\ui\\replica\\playback\\player-ui-v2-implementation.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\ui\\replica\\playback\\player-ui-v2.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\ui\\replica\\playback\\player-ui-v3-rex-replication.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\ui\\replica\\privacy-numeric-lock.md",
       "field_path": "content",
       "message": "credential matched: /home/",
       "evidence_excerpt_redacted": "[redacted]"
@@ -100,6 +156,22 @@
     {
       "rule_id": "R4",
       "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\design\\ui\\replica\\settings-ui-redesign.md",
+      "field_path": "content",
+      "message": "credential matched: /Users/",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
+      "file": "C:\\kivo video\\docs\\handoff\\CURRENT.md",
+      "field_path": "content",
+      "message": "credential matched: C:\\Users\\",
+      "evidence_excerpt_redacted": "[redacted]"
+    },
+    {
+      "rule_id": "R4",
+      "severity": "FAIL",
       "file": "C:\\kivo video\\docs\\handoff\\HANDOFF-P3-detail.md",
       "field_path": "content",
       "message": "credential matched: /home/",
@@ -110,7 +182,7 @@
       "severity": "FAIL",
       "file": "C:\\kivo video\\docs\\handoff\\TASKS.md",
       "field_path": "content",
-      "message": "credential matched: /Users/",
+      "message": "credential matched: /home/",
       "evidence_excerpt_redacted": "[redacted]"
     },
     {
@@ -126,5 +198,5 @@
   "legacy_inventory": "backend/tools/governance/redline_gate/artifacts/legacy_evidence_violations.json",
   "allowed_claims": [],
   "forbidden_claims": [],
-  "timestamp_utc": "2026-11-11T11:05:26Z"
+  "timestamp_utc": "2026-11-17T20:30:03Z"
 }

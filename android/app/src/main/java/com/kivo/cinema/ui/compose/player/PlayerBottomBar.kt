@@ -32,10 +32,15 @@ import androidx.compose.ui.unit.dp
 /**
  * 播放页底部区（v3 §1.2 / §1.4 形态 11、12）。
  *
- * 三种形态共用一个文件，因为它们是**同一条底栏的三种内容**：
- * · 常态：`[时间] ─轨道─ [总长]` 一行 + 按钮行一行（实测轨道心 304.8 / 按钮心 345）；
- * · 资源态（点 4K）：轨道行上移、插入 chips+源卡、**按钮行消失**（实测）；
- * · 选集态（点选集）：整条换成横滑选集带（实测）。
+ * 三种形态共用一条底栏，结构固定为**两行**：
+ * · 轨道行：`[时间] ─轨道─ [总长]`（实测轨道心 304.8），**三种形态都常驻**；
+ * · 内容行：常态＝按钮行（按钮心 345）；资源态＝chips + 源卡；选集态＝横滑选集带。
+ *
+ * 【选集态为什么要留轨道行】参考 `IMG_0170` 里选集打开后 `06:51 / 轨道 / 45:28`
+ * 仍完整在（只是压暗），被换掉的只有按钮行。v3.1 之前这里对 episodes 提前
+ * `return@Box`，把整条 `Column`（含轨道与时间）摘掉 —— 用户进选集后想拖进度
+ * 做不到，也失去"当前播到哪"的就地指示（BOT-01）。
+ * 现在两行分开组合：轨道行永远在，选集带顶替**按钮行的位置与底部留白**。
  *
  * 文字件（TimeText / BarTextButton / formatPlayerTime）在 [PlayerBarText]。
  *
@@ -94,32 +99,20 @@ internal fun PlayerBottomBar(
                 ),
         )
 
-        if (expandedPanel == "episodes") {
-            PlayerEpisodeStrip(
-                title = title,
-                items = panelItems,
-                onSelect = onPanelSelect,
-                onOrder = onEpisodeOrder,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 60.dp),
-            )
-            return@Box
-        }
-
+        // 水平安全区与 sidePad 下放到每一行/每块内容：选集带自带
+        // `sidePad + playerSafeArea`（`PlayerEpisodeStrip`），若在 Column 上再套一层
+        // 会二次内缩，选集条的可视宽度就与实测不符。
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .playerSafeArea(WindowInsetsSides.Horizontal)
-                .padding(
-                    start = PlayerTokens.bottomSidePad.dp,
-                    end = PlayerTokens.bottomSidePad.dp,
-                    bottom = PlayerTokens.bottomPad.dp,
-                ),
+                .padding(bottom = PlayerTokens.bottomPad.dp),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .playerSafeArea(WindowInsetsSides.Horizontal)
+                    .padding(horizontal = PlayerTokens.bottomSidePad.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 TimeText(text = formatPlayerTime(dragTargetMs ?: positionMs))
@@ -148,21 +141,43 @@ internal fun PlayerBottomBar(
                 )
             }
 
-            if (expandedPanel == "resource") {
-                PlayerResourcePanel(items = panelItems, onSelect = onPanelSelect)
-            } else {
-                Spacer(Modifier.height(PlayerTokens.buttonRowGap.dp))
-                ButtonRow(
-                    isPlaying = isPlaying,
-                    resolutionLabel = resolutionLabel,
-                    activeAction = activeAction,
-                    panelRect = panelRect,
-                    showNextButton = showNextButton,
-                    onPlayPause = onPlayPause,
-                    onLongPressPlay = onLongPressPlay,
-                    onNext = onNext,
-                    onTextAction = onTextAction,
+            when (expandedPanel) {
+                // 选集态：**只在按钮行的位置换成选集带**，轨道行留在上面（BOT-01）。
+                "episodes" -> {
+                    Spacer(Modifier.height(PlayerTokens.buttonRowGap.dp))
+                    PlayerEpisodeStrip(
+                        title = title,
+                        items = panelItems,
+                        onSelect = onPanelSelect,
+                        onOrder = onEpisodeOrder,
+                    )
+                }
+
+                "resource" -> PlayerResourcePanel(
+                    items = panelItems,
+                    onSelect = onPanelSelect,
+                    modifier = Modifier
+                        .playerSafeArea(WindowInsetsSides.Horizontal)
+                        .padding(horizontal = PlayerTokens.bottomSidePad.dp),
                 )
+
+                else -> {
+                    Spacer(Modifier.height(PlayerTokens.buttonRowGap.dp))
+                    ButtonRow(
+                        isPlaying = isPlaying,
+                        resolutionLabel = resolutionLabel,
+                        activeAction = activeAction,
+                        panelRect = panelRect,
+                        showNextButton = showNextButton,
+                        onPlayPause = onPlayPause,
+                        onLongPressPlay = onLongPressPlay,
+                        onNext = onNext,
+                        onTextAction = onTextAction,
+                        modifier = Modifier
+                            .playerSafeArea(WindowInsetsSides.Horizontal)
+                            .padding(horizontal = PlayerTokens.bottomSidePad.dp),
+                    )
+                }
             }
         }
     }
@@ -179,9 +194,10 @@ private fun ButtonRow(
     onLongPressPlay: () -> Unit,
     onNext: () -> Unit,
     onTextAction: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             // 行高**封顶** 24pt：44pt 命中盒与文字 padding 都允许纵向溢出
             // （Row 不裁切），否则命中盒会把行撑到 44pt、轨道被顶高 20pt

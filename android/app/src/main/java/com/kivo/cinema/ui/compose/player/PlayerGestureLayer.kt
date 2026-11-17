@@ -30,6 +30,7 @@ import androidx.compose.ui.input.pointer.pointerInput
  * | 双击左 1/3 | 快退 | 双击热区 |
  * | 双击右 1/3 | 快进 | 双击热区 |
  * | 双击中 1/3 | 播放/暂停 | 双击热区 |
+ * | 双指捏合 | 缩放画面 1.0–2.0（锁定态 ❌） | `gestures.pinch`（见 [PlayerPinch]） |
  *
  * 【单击与双击怎么共存】`detectTapGestures` 自带**识别窗**：
  * 单击的回调会等到双击窗口（~300ms）结束才触发 ⇒ 不会"双击先关控制条又双击快进"。
@@ -40,6 +41,11 @@ internal fun PlayerGestureLayer(
     onTap: () -> Unit,
     onDoubleTap: (DoubleTapZone) -> Unit,
     locked: Boolean = false,
+    /**
+     * 双指缩放状态（B4-T3）：由派生方 `rememberPinchScale(locked)` 持有并传进来。
+     * 本层只负责**接收手势**，倍数作用在视频容器上（见 [PlayerPinch]）。
+     */
+    pinch: PinchScaleState,
     /**
      * 317：暂停**滑动**类手势（横滑 seek / 竖滑亮度音量）。
      *
@@ -79,8 +85,17 @@ internal fun PlayerGestureLayer(
     val currentLongPressDrag by rememberUpdatedState(onLongPressDrag)
     val currentLongPressEnd by rememberUpdatedState(onLongPressEnd)
 
+    // 审查 P1-3：单指检测器统一闸门——锁定 / 长按压滑动 / 双指缩放中，都不响应。
+    // 读 Compose State（current* 与 pinch.pinching）⇒ pointerInput 协程虽不重组也能取到最新值。
+    fun singleFingerBlocked(): Boolean = currentLocked || currentSuppressSwipe || pinch.pinching
+
     Box(
         modifier = modifier
+            // 【双指缩放：放最外层】Modifier 链上外层 = 事件树的祖先 ⇒ 祖先的
+            // `PointerEventPass.Initial` 早于下面四个单指检测器的主分发。
+            // 于是"双指成立"能先 consume，横滑/竖滑/长按看到 `isConsumed` 自行取消；
+            // 而单指（span=0）时它不消费，单击/双击/横滑/竖滑/长按一律照旧。
+            .pinchZoom(pinch, currentLocked)
             .fillMaxSize()
             // 【竖向拖动：亮度/音量】左半屏调亮度，右半屏调音量。
             // 这个 pointerInput **排在 tap 之前**：
@@ -98,11 +113,16 @@ internal fun PlayerGestureLayer(
             // 避免拖动过程中反复 seek 把内核打乱。
             .pointerInput(Unit) {
                 detectHorizontalDragGestures(
-                    onDragStart = { if (!currentLocked && !currentSuppressSwipe) currentHDragStart() },
+                    // 审查 P1-3：多指时显式排除，避免一边缩放一边跳进度
+                    // （Initial pass consume 跨不到这里的 Main pass）。
+                    onDragStart = { if (!singleFingerBlocked()) currentHDragStart() },
+                    // end/cancel 只排除 locked/suppressSwipe（与旧行为一致：锁定态不下发 seek），
+                    // 但不排除 pinching —— 多指介入时必须清理 HandSeekState，否则 active 残留；
+                    // 多指期间从没 drag ⇒ target=起点，commit 只是 seek 回原位（无害）。
                     onDragEnd = { if (!currentLocked && !currentSuppressSwipe) currentHDragEnd(true) },
                     onDragCancel = { if (!currentLocked && !currentSuppressSwipe) currentHDragEnd(false) },
                     onHorizontalDrag = { change, dragAmount ->
-                        if (currentLocked || currentSuppressSwipe) return@detectHorizontalDragGestures
+                        if (singleFingerBlocked()) return@detectHorizontalDragGestures
                         change.consume()
                         currentHDrag(dragAmount)
                     },
@@ -112,11 +132,11 @@ internal fun PlayerGestureLayer(
                 detectVerticalDragGestures(
                     // 锁定态竖滑 = ❌（§二）：不消费、不上报，
                     // 但也不让它误变成 tap —— 滑动本来就不是 tap。
-                    onDragStart = { offset -> if (!currentLocked && !currentSuppressSwipe) currentDragStart(offset.x) },
+                    onDragStart = { offset -> if (!singleFingerBlocked()) currentDragStart(offset.x) },
                     onDragEnd = { if (!currentLocked && !currentSuppressSwipe) currentDragEnd() },
                     onDragCancel = { if (!currentLocked && !currentSuppressSwipe) currentDragEnd() },
                     onVerticalDrag = { change, dragAmount ->
-                        if (currentLocked || currentSuppressSwipe) return@detectVerticalDragGestures
+                        if (singleFingerBlocked()) return@detectVerticalDragGestures
                         change.consume()
                         currentDrag(dragAmount)
                     },
@@ -143,12 +163,15 @@ internal fun PlayerGestureLayer(
             // 彼此互斥；单击/双击不消费移动，所以长按不会打断它们。
             .pointerInput(Unit) {
                 detectDragGesturesAfterLongPress(
+                    // 审查 P1-3：多指缩放时不进入长按快进（避免缩放同时改速度）。
                     onDragStart = { offset ->
+                        if (pinch.pinching) return@detectDragGesturesAfterLongPress
                         currentLongPressStart(offset.x, offset.y)
                     },
                     onDragEnd = { currentLongPressEnd() },
                     onDragCancel = { currentLongPressEnd() },
                     onDrag = { change, dragAmount ->
+                        if (pinch.pinching) return@detectDragGesturesAfterLongPress
                         change.consume()
                         currentLongPressDrag(change.position.x, change.position.y)
                     },

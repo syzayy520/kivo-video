@@ -89,6 +89,62 @@ target_compile_options(kivo_core_pace PRIVATE
     -Wall -Wextra -Wpedantic -Wshadow
 )
 
+# ---------------------------------------------------------------------------
+# kivo_core_subtitle_translation —— 字幕翻译核心（与桌面同一份源）
+# 桌面 backend/CMakeLists.txt 与这份清单**都要注册** ——
+# 漏一处的报应是本项目反复踩到的那个：桌面全绿，arm64 链接时
+# `undefined symbol: build_subtitle_translation_prompt`。
+#
+# NDK clang 默认按 UTF-8 读源码，不需要 /utf-8（MSVC 才需要）。
+# ---------------------------------------------------------------------------
+add_library(kivo_core_subtitle_translation STATIC
+    "${KIVO_BACKEND}/src/subtitle_translation_core/subtitle_translation_prompt.cpp"
+    "${KIVO_BACKEND}/src/subtitle_translation_core/translation_result_writer.cpp"
+)
+
+target_include_directories(kivo_core_subtitle_translation
+    PUBLIC "${KIVO_BACKEND}/include"
+)
+
+target_compile_options(kivo_core_subtitle_translation PRIVATE
+    -Wall -Wextra -Wpedantic -Wshadow
+)
+
+# ---------------------------------------------------------------------------
+# llama.cpp —— 端侧推理内核（仅翻译引擎用）
+#
+# 产物由 third_party/llama.cpp-android/build.sh 生成（默认
+# C:/re-tools/llama.cpp-android/dist），不进版本库；
+# 目录不存在时整个目标静默跳过，其余构建不受影响 ——
+# 与 ffmpeg-android / libass-android 的既有处理一致。
+#
+# 【GGML_BACKEND_DL=OFF 是 build.sh 里的硬开关，不是可选项】
+#   llama.cpp 默认开后端动态加载：静态链接进 App 后运行时找不到
+#   ggml-*-vulkan.so，Vulkan 会**静默不可用**（不报错，只是没有 GPU 加速）。
+#   静态嵌入必须关掉后端 DL，改为编译期注册。
+# ---------------------------------------------------------------------------
+set(KIVO_LLAMA_ANDROID_DIST "C:/re-tools/llama.cpp-android/dist" CACHE PATH
+    "llama.cpp Android 静态库产物目录（third_party/llama.cpp-android/build.sh 生成）")
+if(EXISTS "${KIVO_LLAMA_ANDROID_DIST}/lib/libllama.a")
+    add_library(llama_ext STATIC IMPORTED)
+    set_target_properties(llama_ext PROPERTIES
+        IMPORTED_LOCATION "${KIVO_LLAMA_ANDROID_DIST}/lib/libllama.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${KIVO_LLAMA_ANDROID_DIST}/include")
+    target_link_libraries(llama_ext INTERFACE
+        "${KIVO_LLAMA_ANDROID_DIST}/lib/libggml.a"
+        "${KIVO_LLAMA_ANDROID_DIST}/lib/libggml-base.a"
+        "${KIVO_LLAMA_ANDROID_DIST}/lib/libggml-cpu.a"
+    )
+    if(EXISTS "${KIVO_LLAMA_ANDROID_DIST}/lib/libggml-vulkan.a")
+        target_link_libraries(llama_ext INTERFACE
+            "${KIVO_LLAMA_ANDROID_DIST}/lib/libggml-vulkan.a")
+        target_link_libraries(llama_ext INTERFACE vulkan)
+    endif()
+    message(STATUS "llama.cpp Android dist found: ${KIVO_LLAMA_ANDROID_DIST}")
+else()
+    message(STATUS "llama.cpp Android dist not found at ${KIVO_LLAMA_ANDROID_DIST} -- translation engine target skipped")
+endif()
+
 # alloc_probe_hook.cxx 就在这个 target 里，编译定义只需下传到这里。
 if(NOT KIVO_ENABLE_GLOBAL_ALLOC_HOOK)
     target_compile_definitions(kivo_core_pace PRIVATE KIVO_DISABLE_GLOBAL_ALLOC_HOOK)

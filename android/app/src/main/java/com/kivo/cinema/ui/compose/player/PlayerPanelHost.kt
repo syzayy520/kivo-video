@@ -1,26 +1,26 @@
 package com.kivo.cinema.ui.compose.player
 
-import android.provider.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * 面板的**唯一决策点**（v3 §1.4）：kind → 壳 / 宽度 / 锚点 / 过渡。
+ * 面板的**唯一决策点**（v3 §1.4 / B4-T1）：kind → 壳 / 宽度 / 锚点 / 过渡。
  *
  * 【为什么要有这一个文件】13 种形态若各自在 Overlay 里写 if-else，
  * 锚点和壳的选择就会散在四处，改一个面板要翻三个文件。
  * 这里把"哪个 kind 用哪个壳、贴在哪"收成一张表，Overlay 只负责挂。
  *
- * 【锚点怎么算（K40 实测校准，2026-11-12）】规则＝面板右缘≈触发 icon 右缘+12pt。
- * 顶栏右排 icon 中心距右安全区 = iconRowPad(8) + 22 + 50·idx（idx 从右数），
- * 面板右缘 = 中心 + 22(半盒) + 12 ⇒ trailingPad = 50·idx − 4，**与设备安全区无关**。
- * idx：captions=1→46、audio=2→96、expand=3→146、danmaku=6→296。
- * （v3.1：投屏改直达 DLNA sheet，不再有 cast 面板；首枚图标换 cast 但槽位不变。）
- * 听视频态隐 PiP ⇒ 它左边的 danmaku 右移 50，trailing 减 50。
- * 底栏文字钮（倍速）右缘＝内容右缘 ⇒ trailing 16（实测面板右缘≈倍速右缘）。
- * 微调卡统一 trailing 16 / top 16（§1.4）。
+ * 【锚点（B4-T1 重写）】旧版按 kind 算 `trailingPad`/`topPad` —— 结果是**所有面板
+ * 都从右上角冒出**（`speed` 也贴在屏幕顶部 43pt），与触发控件完全脱钩。
+ * 现在改成「kind → 触发控件」反查，真实坐标由 [PlayerPanelGeometry] 按触发控件的
+ * 几何算：顶栏图标 → 图标下方、水平居中于图标；底栏文字钮 → 按钮行正上方、右缘对齐。
+ * 钻入子面板（如 audio → audioDelay）自动跟随父面板的图标，锚点不会跳走。
+ *
+ * 【为什么按 kind 反查而不是记住"最后一次点的是谁"】面板 kind 会因钻入而变
+ * （`audio` → `audioDelay`），若记住点击那一刻的控件，钻入后锚点就丢了；
+ * kind 本身已经携带"它属于哪个触发器"的信息，反查是幂等的。
  */
 internal object PlayerPanelHost {
 
@@ -29,24 +29,52 @@ internal object PlayerPanelHost {
 
     fun isDetail(kind: String): Boolean = kind in DETAIL_KINDS
 
-    fun trailingPad(kind: String, audioOnly: Boolean = false): Float = when (kind) {
-        // 字幕钻入页（内嵌/外挂）沿用字幕面板的锚点：原地换内容。
-        "subtitle", "subtitleTracks", "subtitleExternal" -> 46f
-        "audio" -> 96f
-        "quality" -> 146f
-        "speed" -> 16f
-        "danmakuOps" -> if (audioOnly) 246f else 296f
-        in DETAIL_KINDS -> 16f
-        else -> 64f
+    /**
+     * 壳宽（唯一来源，[PlayerPanelShell] 与锚点 clamp 共用）。
+     *
+     * ◐ `skip` 的 300dp 与 detail 卡的 357dp 都**没有**截图证据（PNL-02 待改，
+     * 不在 B4-T1 范围）；锚点计算必须用同一宽度，否则面板会贴边贴错。
+     */
+    fun panelWidth(kind: String): Dp = when {
+        !isDetail(kind) -> PlayerTokens.panelWidth.dp
+        kind == "skip" -> SKIP_CARD_WIDTH.dp
+        else -> PlayerTokens.detailCardWidth.dp
     }
 
-    fun topPad(kind: String): Float = if (isDetail(kind)) 16f else 43f
+    /**
+     * kind → 触发控件。
+     *
+     * 顶栏一侧按 `TOP_ACTIONS` 的 **action** 反查下标（顺序真相仍在
+     * `PlayerTopBar.kt`）；底栏一侧用 `onTextAction` 的 id。
+     * 找不到就 [PlayerPanelAnchor.Center] —— 不猜位置。
+     */
+    fun anchorFor(kind: String): PlayerPanelAnchor = when (kind) {
+        "speed" -> PlayerPanelAnchor.BottomAction("speed")
+        "resource" -> PlayerPanelAnchor.BottomAction("resource")
+        "episodes" -> PlayerPanelAnchor.BottomAction("episodes")
+        // 弹幕操作面板（长按圈弹）也属于弹幕图标。
+        "danmaku", "danmaku-panel", "danmakuOps", "danmakuSettings" -> topIcon("danmaku")
+        "pip" -> topIcon("pip")
+        // 第 4 格（场记板图形）的行为是 `expand → quality`（`PlayerActionRouter.kt:237`）。
+        "expand", "quality", "fill" -> topIcon("expand")
+        // 第 5 格（圈勾图形）的行为是 clapper；跳过相关微调卡都挂在它下面。
+        "clapper", "skip", "skipMode" -> topIcon("clapper")
+        "audio", "audioDelay" -> topIcon("audio")
+        "captions", "subtitle", "subtitleTracks", "subtitleExternal", "subtitleDisplay" ->
+            topIcon("captions")
+        "audioMode" -> topIcon("audioMode")
+        "cast" -> topIcon("cast")
+        else -> PlayerPanelAnchor.Center
+    }
 
+    private fun topIcon(action: String): PlayerPanelAnchor = PlayerPanelGeometry.topIconOf(action)
+
+    private const val SKIP_CARD_WIDTH = 300f
     private val DETAIL_KINDS = setOf("audioDelay", "subtitleDisplay", "skip", "danmakuSettings")
 }
 
 /**
- * 按 kind 选壳并渲染。调用方负责对齐与过渡（[PlayerOverlay]）。
+ * 按 kind 选壳并渲染。锚点与过渡由调用方负责（[FloatingPanel]）。
  */
 @Composable
 internal fun PlayerPanelShell(
@@ -65,7 +93,7 @@ internal fun PlayerPanelShell(
             onSelect = onSelect,
             onStep = onStep,
             onDismiss = onDismiss,
-            width = if (kind == "skip") 300.dp else PlayerTokens.detailCardWidth.dp,
+            width = PlayerPanelHost.panelWidth(kind),
             showReset = kind != "skip",
             modifier = modifier,
         )
@@ -74,22 +102,11 @@ internal fun PlayerPanelShell(
             title = title,
             items = items,
             onSelect = onSelect,
-            width = PlayerTokens.panelWidth.dp,
+            width = PlayerPanelHost.panelWidth(kind),
             modifier = modifier,
         )
     }
 }
 
-/**
- * G1 降级：系统"移除动画"（animator duration scale = 0）时，
- * 位移/缩放归零、只留 alpha 或瞬时 —— 触觉（G2）与视觉解耦，不受这里影响。
- */
-@Composable
-internal fun rememberReduceMotion(): Boolean {
-    val context = LocalContext.current
-    return Settings.Global.getFloat(
-        context.contentResolver,
-        Settings.Global.ANIMATOR_DURATION_SCALE,
-        1f,
-    ) == 0f
-}
+// 审查 P1-4：原先这里有一套只查 ANIMATOR_DURATION_SCALE 的 rememberReduceMotion，
+// 与 MotionGate 重复且漏掉另两个 scale + App 开关 ⇒ 已删除，调用方统一走 MotionGate。

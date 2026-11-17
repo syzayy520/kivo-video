@@ -1,20 +1,15 @@
 package com.kivo.cinema.ui.detail
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.animation.animateContentSize
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -26,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kivo.cinema.ui.components.KivoBackPill
 import com.kivo.cinema.tmdb.TmdbDetail
 import com.kivo.cinema.ui.design.TmdbImage
 
@@ -85,14 +81,10 @@ internal fun Overview(text: String, fg: Color) {
 
 @Composable
 internal fun BackCircle(onBack: () -> Unit) {
-    Box(
-        Modifier.padding(start = DETAIL_PAD_DP.dp, top = 42.dp)
-            .size(42.dp)
-            .clip(CircleShape)
-            .background(Color(0x8CFFFFFF))
-            .semantics { contentDescription = "返回" }
-            .clickable(role = Role.Button) { onBack() },
-        contentAlignment = Alignment.Center,
+    KivoBackPill(
+        onClick = onBack,
+        background = Color(0x8CFFFFFF),
+        modifier = Modifier.padding(start = DETAIL_PAD_DP.dp, top = 42.dp).size(42.dp),
     ) {
         Canvas(Modifier.size(11.dp, 17.dp)) {
             val p = Path().apply {

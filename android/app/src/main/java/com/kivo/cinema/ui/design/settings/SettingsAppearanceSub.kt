@@ -48,8 +48,9 @@ private fun AppearanceCoreCards(push: (AppearanceDrill) -> Unit) {
     PlainCard {
         ValueRow("外观模式", "浅色", subtitle = "深色色板 v2 未实现，当前固定浅色。", dim = true)
         ChipCardDivider()
-        SwitchRow("减弱动画效果", false, enabled = false,
-            subtitle = "未接全局动效门，各页动效参数独立。", onChange = {})
+        SwitchRow("减弱动画效果", AppearancePrefs.reduceMotion,
+            subtitle = "开启后位移/缩放归零，只保留 ≤100ms 淡入淡出；系统已关动画时同样生效。",
+            onChange = { AppearancePrefs.updateReduceMotion(it) })
         ChipCardDivider()
         SwitchRow("减弱视觉效果", false, enabled = false,
             subtitle = "未接全局视觉门，玻璃/模糊按宿主独立。", onChange = {})

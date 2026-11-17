@@ -1,5 +1,6 @@
 package com.kivo.cinema.ui.design.home
 
+
 import android.graphics.Bitmap
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
@@ -24,6 +25,10 @@ import com.kivo.cinema.ui.design.home.trailer.HeroTrailer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
+
+/** 片名艺术字（TMDB logo）：居中于 402dp、最大高 115dp、左右 43dp（首页原口径）。 */
+private val LOGO_CENTER_DP = 402f
+private val LOGO_MAX_H = 115f
 
 /** A pager page owns its resources, including while a neighboring page is composed. */
 @Composable
@@ -53,6 +58,8 @@ internal fun HeroPage(
      * 改成同步字段会让首页丢掉艺术字标题（回归）。Emby 侧图 URL 直接给得出 ⇒ 传 null。
      */
     logoLoader: (suspend () -> String?)? = null,
+    /** 整卡点击（DISC-08）：封面已加载时才挂，避免抢走「点击重试」的手势。 */
+    onOpen: ((HeroCard) -> Unit)? = null,
 ) {
     var artwork by remember(card.id) { mutableStateOf<Bitmap?>(null) }
     var logo by remember(card.id) { mutableStateOf(card.logoUrl) }
@@ -116,8 +123,12 @@ internal fun HeroPage(
         Box(Modifier.fillMaxSize().graphicsLayer {
             val offset = pageOffset().coerceIn(-1f, 1f)
             translationX = -size.width * .06f * offset
-            alpha = 1f - .65f * abs(offset)
-        }) {
+            // 相邻页必须完全隐藏：旧公式 `1 − .65·|offset|` 静态时仍有 35% 不透明度，
+            // 两页各带一个片名 ⇒ 屏幕上「一上一下两个片名」（2026-11-17 真机确认）。
+            alpha = (1f - 2f * abs(offset)).coerceIn(0f, 1f)
+        }.then(
+            if (onOpen != null && artwork != null) Modifier.clickable { onOpen(card) } else Modifier
+        )) {
             if (!finished && artwork == null) Text("封面加载中…", color = fg, fontSize = 12.sp,
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 90.dp))
             if (finished && artwork == null) Text("封面加载失败，点击重试", color = fg, fontSize = 12.sp,
@@ -133,19 +144,25 @@ internal fun HeroPage(
             } else {
                 Text(card.title, color = fg, fontSize = 34.sp, fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center, maxLines = 2,
+                    // P0-3：Emby 服务器名可能是「中文\n无空格长英文注音」，缺 overflow 会左右溢出屏幕。
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth().offset(y = (368 + pullDp).dp).padding(horizontal = 16.dp))
             }
             Column(Modifier.fillMaxWidth().offset(y = (META_TOP_DP + pullDp).dp).padding(horizontal = 16.dp)) {
                 Text(card.metaLine, fontSize = 14.sp, lineHeight = 20.sp, color = fg,
                     textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-                if (card.overview.isNotBlank()) Text("「${card.title}」${card.overview}", fontSize = 12.sp, lineHeight = 14.sp,
+                // REX 0454：简介为纯 overview 文本，不带「片名」前缀（1:1 对齐）。
+                if (card.overview.isNotBlank()) Text(card.overview, fontSize = 12.sp, lineHeight = 14.sp,
                     color = fg.copy(alpha = .92f), maxLines = 2, overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
-            Box(Modifier.offset(y = (BADGE_TOP_DP + pullDp).dp).fillMaxWidth()) {
-                RatingBadges(
-                    listOf(card.ratingSource to (card.rating ?: 0f).toFloat()), Modifier.fillMaxWidth(),
-                    alignCenter = true, valueColor = fg)
+            // P0-3：无评分时隐藏整块徽章，不再显示假的「Emby 0.0」。
+            card.rating?.takeIf { it > 0f }?.let { score ->
+                Box(Modifier.offset(y = (BADGE_TOP_DP + pullDp).dp).fillMaxWidth()) {
+                    RatingBadges(
+                        listOf(card.ratingSource to score.toFloat()), Modifier.fillMaxWidth(),
+                        alignCenter = true, valueColor = fg)
+                }
             }
         }
     }

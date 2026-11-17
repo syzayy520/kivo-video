@@ -7,10 +7,13 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.animation.fadeIn
@@ -23,6 +26,7 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import com.kivo.cinema.ui.motion.MotionGate
 
 /**
  * 顶栏 + 底栏的**显隐过渡宿主**（v3 §三）。
@@ -67,6 +71,9 @@ internal fun BoxScope.PlayerBarsSlot(
     onCapture: () -> Unit,
     onEpisodeOrder: () -> Unit,
 ) {
+    // G1 门有两个来源：面板宿主算出的系统值，以及 App 内「减弱动画效果」开关。
+    val gateReduce = MotionGate.rememberAppReduceMotion()
+    val reduced = reduceMotion || gateReduce
     // ★317：改成"常驻 + 动画"，不再用 AnimatedVisibility。
     //
     // 【为什么必须改】AnimatedVisibility 在 visible 快速切换时会**同时保留新旧两棵子树**
@@ -76,7 +83,7 @@ internal fun BoxScope.PlayerBarsSlot(
     // 进度条是常驻元素，本就不该反复进出组合 ⇒ 用常驻 + alpha/位移复刻同一套动效。
     BarSlot(
         visible = visible,
-        reduceMotion = reduceMotion,
+        reduceMotion = reduced,
         fromTop = true,
         modifier = Modifier.align(Alignment.TopCenter),
     ) {
@@ -93,7 +100,7 @@ internal fun BoxScope.PlayerBarsSlot(
     }
     BarSlot(
         visible = visible,
-        reduceMotion = reduceMotion,
+        reduceMotion = reduced,
         fromTop = false,
         modifier = Modifier.align(Alignment.BottomCenter),
     ) {
@@ -158,16 +165,32 @@ private fun BarSlot(
 ) {
     var heightPx by remember { mutableFloatStateOf(0f) }
     val durMs = if (visible) PlayerMotion.barEnterMs else PlayerMotion.barExitMs
+    val animMs = if (reduceMotion) PlayerMotion.reduceMotionMs else durMs
     val alpha by animateFloatAsState(
         targetValue = if (visible) 1f else 0f,
-        animationSpec = tween(if (reduceMotion) PlayerMotion.reduceMotionMs else durMs, easing = PlayerMotion.easing),
+        animationSpec = tween(animMs, easing = PlayerMotion.easing),
         label = "barAlpha",
     )
     val t by animateFloatAsState(
         targetValue = if (visible) 0f else 1f,
-        animationSpec = tween(if (reduceMotion) PlayerMotion.reduceMotionMs else durMs, easing = PlayerMotion.easing),
+        animationSpec = tween(animMs, easing = PlayerMotion.easing),
         label = "barShift",
     )
+
+    // 审查 P1-2：alpha=0 的常驻栏仍参与命中，透明进度条吞掉全屏横滑。
+    // 正解：退场动画结束后卸载内容（不再命中），入场时立即挂回。
+    // 不用 AnimatedVisibility —— 那会在切换瞬间同时保留两棵树，正是"双进度条"的根因；
+    // 这里在动画**结束后**才卸载，任何时刻都只有一棵内容树。
+    var mounted by remember { mutableStateOf(visible) }
+    LaunchedEffect(visible) {
+        if (visible) {
+            mounted = true
+        } else {
+            delay(animMs.toLong())
+            mounted = false
+        }
+    }
+
     // 位移方向：顶部栏向上退、底部栏向下退，各 1/6 自身高度。
     val sign = if (fromTop) -1f else 1f
     Box(
@@ -175,9 +198,10 @@ private fun BarSlot(
             .onSizeChanged { heightPx = it.height.toFloat() }
             .graphicsLayer {
                 this.alpha = alpha
-                translationY = sign * (heightPx / 6f) * t
+                // G1：减弱动画时位移归零，只留 α —— 否则 100ms 内仍有 height/6 的滑移。
+                translationY = if (reduceMotion) 0f else sign * (heightPx / 6f) * t
             },
     ) {
-        content()
+        if (mounted) content()
     }
 }

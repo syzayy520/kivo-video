@@ -463,6 +463,72 @@ target_link_libraries(kivo_subtitle_runtime_test PRIVATE kivo_cinema_engine)
 
 add_test(NAME kivo_subtitle_runtime_test COMMAND kivo_subtitle_runtime_test)
 
+# ─── 字幕翻译核心（AI 字幕）───
+# 职责：把「英文字幕行」变成「中文字幕行」。
+#   - prompt 契约：与桌面评测共用同一份模板（逐字节对拍，有单测锁着）
+#   - 译文写出：SRT
+# 零平台依赖：不含 Android 头，不含 llama.cpp 头。
+# 翻译引擎（llama.cpp）在这一层之下，不外泄到本层。
+#
+# 【为什么单独成 target 而不是并进 kivo_cinema_engine】
+#   kivo_cinema_engine 是大杂烩 target。这个家族有两条独立性质：
+#     一是它明确写了 /utf-8（见下），二是它是 AI 字幕的落点、可以单独测。
+#   单独成 target 才能只给它加 /utf-8，而不去动那个影响全仓库的编译口径。
+#
+# 【/utf-8 这条不是洁癖】
+#   根 CMakeLists.txt 第 7-9 行已有 `if(MSVC) add_compile_options(/utf-8) endif()`，
+#   全局生效，桌面构建本来是安全的。这里再显式写一遍，是因为：
+#     - 仓库既有 69 处 target 显式写了 /utf-8（同一口径）
+#     - 单独编译某个源文件做验证时若漏了它，MSVC 会按 CP936(GBK) 解读源码；
+#       GBK 是双字节编码，3 字节 UTF-8 字符（如「。」U+3002）的末字节是悬空的
+#       前导字节，会吃掉紧随的换行 —— 注释不断、下一行被并进注释、代码结构错乱，
+#       症状是「报错行号与源码对不上」。（2026-11-17 实测钉死）
+#
+# 【prompt 为什么是纯 ASCII 而不是中文】
+#   subtitle_translation_prompt.cpp 由工具链自动生成，非 ASCII 字节用 \xNN 转义。
+#   理由：prompt 必须逐字节精确，不能依赖任何编译配置。
+#   改动 prompt 的唯一入口是 <toolchain>/eval/subtitle_prompt.py，
+#   改完必须重跑 gen_cpp_header.py 并同步本文件里的三个 FNV 摘要常量。
+set(KIVO_CORE_SUBTITLE_TRANSLATION_SOURCES
+  src/subtitle_translation_core/subtitle_translation_prompt.cpp
+  src/subtitle_translation_core/translation_result_writer.cpp
+)
+
+add_library(kivo_core_subtitle_translation STATIC ${KIVO_CORE_SUBTITLE_TRANSLATION_SOURCES})
+target_include_directories(kivo_core_subtitle_translation PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+target_compile_features(kivo_core_subtitle_translation PUBLIC cxx_std_20)
+if(MSVC)
+  target_compile_options(kivo_core_subtitle_translation PRIVATE /utf-8 /W4)
+endif()
+
+add_executable(kivo_subtitle_translation_prompt_test
+  tests/subtitle_translation/subtitle_translation_prompt_test.cpp
+)
+target_link_libraries(kivo_subtitle_translation_prompt_test PRIVATE kivo_core_subtitle_translation)
+target_compile_features(kivo_subtitle_translation_prompt_test PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(kivo_subtitle_translation_prompt_test PRIVATE /utf-8 /W4)
+endif()
+add_test(NAME kivo_subtitle_translation_prompt_test COMMAND kivo_subtitle_translation_prompt_test)
+set_tests_properties(kivo_subtitle_translation_prompt_test PROPERTIES TIMEOUT 60)
+
+# 【为什么两个测试文件要拆成两个 target】
+#   每个测试文件各有自己的 main()，编到同一个可执行文件里会
+#   `error LNK2005: main 已经在 xxx.obj 中定义`。
+#   仓库既有惯例也是一个测试文件一个 target（kivo_subtitle_runtime_test 等 60+ 个都是）。
+add_executable(kivo_subtitle_translation_result_writer_test
+  tests/subtitle_translation/translation_result_writer_test.cpp
+)
+target_link_libraries(kivo_subtitle_translation_result_writer_test PRIVATE kivo_core_subtitle_translation)
+target_compile_features(kivo_subtitle_translation_result_writer_test PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(kivo_subtitle_translation_result_writer_test PRIVATE /utf-8 /W4)
+endif()
+add_test(NAME kivo_subtitle_translation_result_writer_test COMMAND kivo_subtitle_translation_result_writer_test)
+set_tests_properties(kivo_subtitle_translation_result_writer_test PROPERTIES TIMEOUT 60)
+
 add_executable(kivo_hdr_color_runtime_test
   tests/color_science_core/hdr_color_runtime_test.cpp
 )

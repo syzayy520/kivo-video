@@ -1,6 +1,7 @@
 package com.kivo.cinema
 
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,34 +9,51 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.kivo.cinema.emby.aggregate.ui.AggregateActivity
 import com.kivo.cinema.library.MediaItem
 import com.kivo.cinema.privatezone.PrivateActivity
 import com.kivo.cinema.sources.SourceOpen
-import com.kivo.cinema.sources.access.SourceAccessSession
+
 import com.kivo.cinema.sources.ui.SourcesScreen
 import com.kivo.cinema.stats.WatchStore
 import com.kivo.cinema.tmdb.TmdbHome
+import com.kivo.cinema.tmdb.TmdbGenre
+import com.kivo.cinema.tmdb.TmdbGenres
+import com.kivo.cinema.tmdb.TmdbPeople
+import com.kivo.cinema.tmdb.TmdbPerson
+import com.kivo.cinema.tmdb.TmdbProvider
+import com.kivo.cinema.tmdb.TmdbProviders
+import com.kivo.cinema.tmdb.TmdbStudio
+import com.kivo.cinema.tmdb.TmdbStudios
 import com.kivo.cinema.ui.design.AnimatedGradientBg
 import com.kivo.cinema.ui.design.CapsuleNavBar
 import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.ui.design.DiscoverPage
-import com.kivo.cinema.ui.design.ProfilePage
 import com.kivo.cinema.ui.design.WatchingPage
 import com.kivo.cinema.ui.design.home.HomeTitleSheet
 import com.kivo.cinema.ui.design.settings.SettingsPage
 import com.kivo.cinema.ui.detail.MovieDetailActivity
+import com.kivo.cinema.ui.profile.ProfilePage
+import com.kivo.cinema.ui.profile.ProfileStats
+import com.kivo.cinema.ui.profile.model.ProfileDashboard
+import com.kivo.cinema.ui.shell.ShellInsets
+import com.kivo.cinema.ui.shell.ShellTab
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 首页 Shell 的数据域：TMDB 分区 + 继续观看 + 环境暗底 + 本地可见数。
@@ -58,13 +76,20 @@ internal class HomeShellState {
     var localVideoCount by mutableStateOf<Int?>(null)
 }
 
+/** 首屏新增请求预算：只补前 4 个平台的拼贴海报、前 6 个类型的底图（失败项保持空，不造假）。 */
+private const val PROVIDER_TILE_COUNT = 4
+private const val GENRE_BACKDROP_COUNT = 6
+
 /**
  * App Shell 的路由编排（从 MainActivity 抽出，控行数）：4 页切换 + 胶囊导航 + 浮层。
  * 唯一职责 = 把 [HomeShellState] 与 Activity 的能力接成页面树；数据供给不在这里。
  */
 @Composable
 internal fun MainShell(activity: MainActivity, state: HomeShellState) {
-    var page by rememberSaveable { mutableStateOf(1) }
+    var page by rememberSaveable { mutableStateOf(ShellTab.Discover.page) }
+    // 「在看」是「我的」模块的二级页，不再是第 5 个 Tab 路由（B2 / SHELL-02）：
+    // 覆盖层状态独立于 page，返回即关闭，不改变底部 Tab 位置。
+    var showWatching by rememberSaveable { mutableStateOf(false) }
     var sourceNavigationGuard by remember { mutableStateOf<((() -> Unit) -> Unit)?>(null) }
     var showUnlock by remember { mutableStateOf(false) }
     var unlockAction by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -77,20 +102,17 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
             }
         }
     }
-    SideEffect {
-        if (SourceAccessSession.unlocked && activity.sources.records.any { it.hidden })
-            activity.window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-        else activity.window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-    }
+
     var previewEnabled by remember { mutableStateOf(activity.homePreferences.autoplay) }
     var selectedTitle by remember { mutableStateOf<TmdbHome.Item?>(null) }
     val shellNavigation: @Composable () -> Unit = {
         CapsuleNavBar(
-            tabs = listOf("发现" to "", "我的" to "", "资源库" to "", "设置" to ""),
-            // 「在看」是发现的子页：选中态归到"发现"，不留空选中的胶囊（272 审计 D5）。
-            selected = if (page == 2) 0 else listOf(1, 3, 0, 4).indexOf(page),
+            tabs = ShellTab.displayOrder.map { it.label to "" },
+            // 胶囊下标 = displayOrder 下标，不是 entries.ordinal（两者不同序）。
+            // 「在看」已迁出路由（B2 覆盖层），不再需要把选中态借给「发现」。
+            selected = ShellTab.displayOrder.indexOfFirst { it.page == page }.coerceAtLeast(0),
             onSelect = {
-                val next = listOf(1, 3, 0, 4)[it]
+                val next = ShellTab.displayOrder[it].page
                 if (next != page) {
                     if (page == 0 && sourceNavigationGuard != null) sourceNavigationGuard?.invoke { page = next }
                     else page = next
@@ -112,9 +134,18 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
             Box(
                 Modifier
                     .fillMaxSize()
-                    // 发现页不裁底：环境层要铺到导航后面（239 §3.2）；其余页留导航空间
-                    .padding(bottom = if (page == 0 || page == 1) 0.dp else 84.dp)
-                    .windowInsetsPadding(if (page == 0 || page == 1) WindowInsets(0, 0, 0, 0) else WindowInsets.statusBars)
+                    // 发现页/资源库页不裁底：环境层与资源库面板要铺到导航后面（239 §3.2）；
+                    // 「我的」页在 ProfilePage 内部按 ShellInsets 预留（避免双层空白）；
+                    // 其余页由 Shell 预留导航高度（不再写死 84.dp）。
+                    .padding(
+                        bottom = if (page == ShellTab.Discover.page || page == ShellTab.Library.page
+                            || page == ShellTab.Profile.page) 0.dp
+                        else ShellInsets.NavReservedHeight,
+                    )
+                    .windowInsetsPadding(
+                        if (page == ShellTab.Discover.page || page == ShellTab.Library.page) WindowInsets(0, 0, 0, 0)
+                        else WindowInsets.statusBars,
+                    )
             ) {
                 when (page) {
                     0 -> SourcesScreen(
@@ -132,35 +163,93 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                             Intent(activity, AggregateActivity::class.java)) },
                         videoCount = state.localVideoCount,
                     )
-                    1 -> DiscoverPage(
-                        previewEnabled = previewEnabled,
-                        continueItems = state.continueItems,
-                        heroCandidates = state.heroCandidates,
-                        nowPlaying = state.nowPlaying,
-                        onTheAir = state.onTheAir,
-                        trending = state.trending,
-                        variety = state.variety,
-                        todayAnime = state.todayAnime,
-                        topPoster = { activity.tmdbHome.topVotedPosterUrl(it) },
-                        logoFor = { activity.tmdbHome.logoUrlFor(it) },
-                        trailerFor = { activity.tmdbHome.trailerFor(it) },
-                        proxyAddress = activity.tmdb.proxyAddr(),
-                        generation = state.homeGeneration,
-                        posterOf = { activity.localMedia.posterBlock(it) },
-                        onOpenItem = { activity.openPlayer(it) },
-                        onOpenTmdbItem = { activity.startActivity(MovieDetailActivity.intent(activity, it)) },
-                        tmdbError = state.tmdbError,
-                        onRetryTmdb = { activity.refreshHomeFeed() },
-                        onAmbientDark = { state.ambientDark = it },
-                        onShowWatching = { page = 2 },
-                    )
-                    2 -> WatchingPage(
-                        continueItems = state.continueItems,
-                        posterOf = { activity.localMedia.posterBlock(it) },
-                        onOpenItem = { activity.openPlayer(it) },
-                        onBack = { page = 1 },
-                    )
-                    3 -> ProfilePage(activity.items.size)
+                    1 -> {
+                        // B3：6 个新模块的数据（无 key/无网 → 空列表 → 模块整段隐藏，不造假）。
+                        // TmdbHome.get 自带 12h 列表缓存，回页只是重建快照。
+                        val tmdbClient = activity.tmdb
+                        val tmdbHome = activity.tmdbHome
+                        val people by produceState(emptyList<TmdbPerson>(), tmdbClient) {
+                            value = withContext(Dispatchers.IO) { TmdbPeople.popular(tmdbClient) }
+                        }
+                        val providers by produceState(emptyList<TmdbProvider>(), tmdbClient) {
+                            // watch_region=CN 实测 0 条（TMDB 无大陆平台数据）；取 US 段（实测 296 条，
+                            // Netflix/Disney+ 等国际平台齐平竞品展示口径）。◐ 区域口径是取舍，不是事实断言。
+                            value = withContext(Dispatchers.IO) {
+                                TmdbProviders.movie(tmdbClient, region = "US").mapIndexed { i, p ->
+                                    if (i < PROVIDER_TILE_COUNT) p.copy(titles = TmdbProviders.titles(tmdbClient, p.id)) else p
+                                }
+                            }
+                        }
+                        val genres by produceState(emptyList<TmdbGenre>(), tmdbClient) {
+                            value = withContext(Dispatchers.IO) {
+                                TmdbGenres.fillBackdrops(tmdbClient, TmdbGenres.movie(tmdbClient), max = GENRE_BACKDROP_COUNT)
+                            }
+                        }
+                        // 分类海报墙：第一个类型的人气前 10 张；genres 未就绪时为空、不发请求（见 DiscoverPage genrePosterUrls）。
+                        val genrePosterUrls by produceState(emptyList<String>(), tmdbClient, genres) {
+                            value = withContext(Dispatchers.IO) {
+                                genres.firstOrNull()?.let { TmdbGenres.posters(tmdbClient, it.id) }.orEmpty()
+                            }
+                        }
+                        val topRatedTv by produceState(emptyList<TmdbHome.Item>(), tmdbClient) {
+                            value = withContext(Dispatchers.IO) { tmdbHome.topRatedTv().items }
+                        }
+                        val studios by produceState(emptyList<TmdbStudio>(), tmdbClient) {
+                            value = withContext(Dispatchers.IO) { TmdbStudios.featured(tmdbClient) }
+                        }
+                        DiscoverPage(
+                            previewEnabled = previewEnabled,
+                            continueItems = state.continueItems,
+                            heroCandidates = state.heroCandidates,
+                            nowPlaying = state.nowPlaying,
+                            onTheAir = state.onTheAir,
+                            trending = state.trending,
+                            variety = state.variety,
+                            todayAnime = state.todayAnime,
+                            topPoster = { activity.tmdbHome.topVotedPosterUrl(it) },
+                            logoFor = { activity.tmdbHome.logoUrlFor(it) },
+                            trailerFor = { activity.tmdbHome.trailerFor(it) },
+                            proxyAddress = activity.tmdb.proxyAddr(),
+                            generation = state.homeGeneration,
+                            posterOf = { activity.localMedia.posterBlock(it) },
+                            onOpenItem = { activity.openPlayer(it) },
+                            onOpenTmdbItem = { activity.startActivity(MovieDetailActivity.intent(activity, it)) },
+                            tmdbError = state.tmdbError,
+                            onRetryTmdb = { activity.refreshHomeFeed() },
+                            onAmbientDark = { state.ambientDark = it },
+                            onShowWatching = { showWatching = true },
+                            people = people,
+                            providers = providers,
+                            genres = genres,
+                            genrePosterUrls = genrePosterUrls,
+                            topRatedTv = topRatedTv,
+                            studios = studios,
+                        )
+                    }
+                    3 -> {
+                        // 看板读取磁盘 + MediaStore（阻塞），放 IO；「我的」页自身预留导航高度，
+                        // 所以这个分支不需要 Shell 兜底 padding。
+                        val context = androidx.compose.ui.platform.LocalContext.current
+                        // PROF-03：看板复用 Shell 已对齐的 continueItems（与发现页/在看覆盖层同源），
+                        // 不另算一份；它变化时（onResume 刷新）这里会重建快照。
+                        val dashboard by produceState<ProfileDashboard?>(
+                            initialValue = null, context, state.continueItems,
+                        ) {
+                            value = withContext(Dispatchers.IO) {
+                                ProfileStats.build(context, state.continueItems)
+                            }
+                        }
+                        val ready = dashboard
+                        if (ready == null) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("正在统计观看记录…", fontSize = 13.sp, color = DesignTokens.textSub)
+                        } else ProfilePage(
+                            dashboard = ready,
+                            onEditEnvironment = {}, // B5 接环境编辑
+                            onOpenWatching = { showWatching = true },
+                            onManageModules = {}, // 模块 sheet 由页面内底部按钮打开
+                            onOpenItem = {}, // B5 接详情
+                        )
+                    }
                     else -> SettingsPage(
                         previewEnabled = previewEnabled,
                         onPreviewChanged = { previewEnabled = it; activity.homePreferences.autoplay = it },
@@ -172,9 +261,26 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
             }
             // 距底 22pt（帧实测）；发现页深色环境时转暗扁平（E11，269）
             // 导航条要避让系统手势区：edge-to-edge 下不避让会被手势条压住（272 审计 D7）。
-            if (page != 0) Box(Modifier.align(Alignment.BottomCenter)
+            // 「在看」覆盖层是全屏二级页，期间不渲染胶囊（否则点击会穿透到 Tab 切换）。
+            if (page != 0 && !showWatching) Box(Modifier.align(Alignment.BottomCenter)
                 .navigationBarsPadding().padding(bottom = 22.dp)) {
                 shellNavigation()
+            }
+            // 「在看」二级页：不透明铺底盖住 Tab 内容，返回（导航条 / 系统返回键）关闭覆盖层。
+            if (showWatching) {
+                Box(
+                    Modifier.fillMaxSize()
+                        .background(DesignTokens.pageBackground)
+                        .padding(bottom = ShellInsets.NavReservedHeight)
+                        .windowInsetsPadding(WindowInsets.statusBars)
+                ) {
+                    WatchingPage(
+                        continueItems = state.continueItems,
+                        posterOf = { activity.localMedia.posterBlock(it) },
+                        onOpenItem = { activity.openPlayer(it) },
+                        onBack = { showWatching = false },
+                    )
+                }
             }
         }
     }

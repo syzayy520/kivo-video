@@ -7,11 +7,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.Rect
+
+/**
+ * 人像轮廓：头 + 肩。✅ 实拍 `docs/audit/golden/rex/2026_11_16_21_22_14_IMG_0366.jpg`
+ * 中「发现」项是头像轮廓（描边），不是指南针。
+ * 画布基准 28×28，坐标与其它字形同尺度。
+ */
+private fun DrawScope.drawAvatarOutline(color: Color, stroke: Stroke) {
+    drawCircle(color, 4.6f, Offset(14f, 9.4f), style = stroke)
+    val shoulders = Path().apply {
+        moveTo(5.2f, 23.6f)
+        cubicTo(5.2f, 18.4f, 9.2f, 15.6f, 14f, 15.6f)
+        cubicTo(18.8f, 15.6f, 22.8f, 18.4f, 22.8f, 23.6f)
+    }
+    drawPath(shoulders, color, style = stroke)
+}
 
 /** Monochrome symbols independent of the system emoji font. */
 @Composable
@@ -24,6 +40,7 @@ internal fun NavGlyph(kind: String, color: Color, modifier: Modifier) {
                     drawCircle(color, 8.5f, Offset(11.5f, 11.5f), style = stroke)
                     drawLine(color, Offset(18f, 18f), Offset(25f, 25f), 3f, StrokeCap.Round)
                 }
+                "发现" -> drawAvatarOutline(color, stroke)
                 "我的" -> {
                     val body = Path().apply { addOval(Rect(1.5f, 1.5f, 26.5f, 26.5f)) }
                     val holes = Path().apply {
@@ -60,13 +77,7 @@ internal fun NavGlyph(kind: String, color: Color, modifier: Modifier) {
                     }
                     drawPath(play, color)
                 }
-                else -> {
-                    drawCircle(color, 12f, Offset(14f, 14f), style = stroke)
-                    val needle = Path().apply {
-                        moveTo(19f, 7f); lineTo(16f, 16f); lineTo(7f, 20f); lineTo(11f, 11f); close()
-                    }
-                    drawPath(needle, color)
-                }
+                else -> drawAvatarOutline(color, stroke)
             }
         }
     }

@@ -8,20 +8,32 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.kivo.cinema.ui.design.DesignTokens
+import com.kivo.cinema.ui.shell.ShellInsets
+
+/**
+ * 资源库页面底：竞品实测的粉→蓝紫垂直渐变（`DesignPalette.PageGradient.Light`，0366 采样
+ * #F8EBEE→#E5E7F6）。深色态暂无 isSystemInDarkTheme 分支，先用 Light。
+ */
+private val LibraryBackdrop: Brush = Brush.verticalGradient(
+    listOf(DesignTokens.pageGradient.libraryStart, DesignTokens.pageGradient.libraryEnd),
+)
 
 /** Two full-height pages. Only the primary page owns application navigation. */
 @Composable
 internal fun SourceWorkspace(open: Boolean, navigation: @Composable () -> Unit,
     overview: @Composable () -> Unit, panel: @Composable (Boolean) -> Unit) {
-    BoxWithConstraints(Modifier.fillMaxSize()) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(LibraryBackdrop)) {
         val split = maxWidth >= 960.dp && LocalDensity.current.fontScale <= 1.3f && open
         Row(Modifier.fillMaxSize()) {
             Box(Modifier.weight(1f).fillMaxHeight()) {
-                Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(bottom = 94.dp)) {
+                Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
+                    .padding(bottom = ShellInsets.NavReservedHeight)) {
                     overview()
                 }
                 Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 22.dp)) {

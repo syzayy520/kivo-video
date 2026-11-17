@@ -177,7 +177,7 @@ private fun EmbyBrowseBody(
                         trailerItemFor = { null },   // 无 TMDB 依赖
                         logoLoader = null,
                         // 点海报进详情：走既有 onItem，与海报墙同一条路径
-                        onClick = { card ->
+                        onOpen = { card ->
                             heroes.orEmpty().firstOrNull { it.id == card.id }?.let {
                                 onItem(EmbyItem(it.id, it.name, it.year, it.heroUrl, it.isSeries))
                             }

@@ -1,26 +1,52 @@
 package com.kivo.cinema.ui.design.settings
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.kivo.cinema.evidence.IoTrace
 import com.kivo.cinema.sources.SourceRepository
 import com.kivo.cinema.sources.storage.SourceStore
-import com.kivo.cinema.ui.design.home.HomePreviewSetting
+import com.kivo.cinema.ui.design.DesignTokens
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 设置根页（268 IA 重排）：空间占用 hero → 播放体验 2×2 入口 → 资源库概览双卡 → 使用偏好/安全关于分组 → 版本脚注。
- * 只组合行原语与入口卡，不堆业务；每行绑定真实持久化/真实导航。原 10 个入口全部保留（hero=缓存，grid=播放/音画/操控/AI，
- * 分组=autoplay/外观/数据/私密/关于），无对应后端者不放。autoplay 跨页状态由 MainActivity 持有，经 onPreviewChanged 回写。
+ * 设置根页（B-3c 行式化）：REX `0374` 的「页面大标题 + 分组白卡 + 46 行」。
+ *
+ * 入口一个不少（改前 12 / 改后 12，逐一对应）：空间占用、播放、音画、操控、AI 字幕、
+ * Emby、SMB、首页预告片自动播放、外观与交互、数据与资源、应用内数字密码、版本信息。
+ * 路由与开关回调沿用 268 的既有实现，本卡只换呈现（宫格/hero 卡 → 分组行），不动跳转。
+ *
+ * 背景：`DesignPalette.PageGradient.Light.settings*`（0374 采样 `#F3EFF7 → #EFE5EC`）垂直渐变。
+ * 壳层 `AnimatedGradientBg` 铺的是扁平 `pageBackground`，本页自己铺满渐变盖住它；
+ * 深色态未接（全项目暂无 isSystemInDarkTheme 分支，`pageGradientDark.settings*` 已就绪）。
+ *
+ * 偏离：宫格（[SettingsEntryGrid]）/资源卡（[SettingsStatusTiles]）/存储 hero
+ * （[SettingsStorageHero]）不再被本页调用，文件保留不删（`SettingsEntryGrid` 按任务要求保留）；
+ * 其承载的信息改为行的 `subtitle`/`trailing`（真实缓存字节、Emby/SMB 已配置计数）。
+ * 「首页预告片自动播放」是开关而非子页，行式化后以 `trailing` 显示「开 / 关」、整行点击取反，
+ * 回调仍是 `onPreviewChanged` 同一个写入路径。
  */
 @Composable
 fun SettingsPage(
@@ -32,8 +58,12 @@ fun SettingsPage(
     val context = LocalContext.current
     val store = remember { SettingsStore(context) }
     val repo = remember { SourceRepository(SourceStore(context)) }
-    val imageBytes = remember { store.imageCacheBytes() }
-    val ratingBytes = remember { store.ratingCacheBytes() }
+    val imageBytes by produceState(0L, store) {
+        value = withContext(Dispatchers.IO) { IoTrace.measure("settings.imageBytes") { store.imageCacheBytes() } }
+    }
+    val ratingBytes by produceState(0L, store) {
+        value = withContext(Dispatchers.IO) { IoTrace.measure("settings.ratingBytes") { store.ratingCacheBytes() } }
+    }
     var embyCount by remember { mutableStateOf(0) }
     var smbCount by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
@@ -44,33 +74,16 @@ fun SettingsPage(
     }
     SettingsNavHost(
         root = { push ->
-            SettingsScaffold("设置") {
-                SettingsStorageHero(imageBytes, ratingBytes) { push(SettingsRoute.CACHE) }
-                Spacer(Modifier.height(SettingsVisuals.cardGap.dp))
-                SettingsEntryGrid { push(it) }
-                Spacer(Modifier.height(SettingsVisuals.cardGap.dp))
-                SettingsStatusTiles(embyCount, smbCount) { push(SettingsRoute.DATA) }
-                Spacer(Modifier.height(14.dp))
-                SectionCard("使用偏好") {
-                    HomePreviewSetting(previewEnabled, onPreviewChanged)
-                    ChipCardDivider()
-                    ChevronRow("外观与交互", "主题 · 封面 · 预告片 · 触感 · 图标",
-                        icon = SettingsIcons.brush, iconColor = SettingsVisuals.purple) { push(SettingsRoute.APPEARANCE) }
-                    ChipCardDivider()
-                    ChevronRow("数据与资源", "语言 · 聚合 · 来源 · TMDB · 排序",
-                        icon = SettingsIcons.drive, iconColor = SettingsVisuals.indigo) { push(SettingsRoute.DATA) }
-                }
-                Spacer(Modifier.height(SettingsVisuals.cardGap.dp))
-                SectionCard("安全与关于") {
-                    ChevronRow("应用内数字密码", "私密区 · 隐藏源 · 改密",
-                        icon = SettingsIcons.lock, iconColor = SettingsVisuals.green, onClick = onOpenPrivate)
-                    ChipCardDivider()
-                    ChevronRow("版本信息", "版本号 · 构建 · 私密安全",
-                        icon = SettingsIcons.info, iconColor = SettingsVisuals.gray) { push(SettingsRoute.ABOUT) }
-                }
-                Spacer(Modifier.height(8.dp))
-                VersionFootnote(store.versionLabel)
-            }
+            SettingsRootBody(
+                previewEnabled = previewEnabled,
+                onPreviewChanged = onPreviewChanged,
+                onOpenPrivate = onOpenPrivate,
+                cacheBytes = imageBytes + ratingBytes,
+                embyCount = embyCount,
+                smbCount = smbCount,
+                version = store.versionLabel,
+                push = push,
+            )
         },
         sub = { route, back ->
             when (route) {
@@ -84,5 +97,108 @@ fun SettingsPage(
                 SettingsRoute.ABOUT -> SettingsAboutSub(store, onOpenPrivate, back)
             }
         },
+    )
+}
+
+/** 根页正文：34sp 大标题 + 五组行式白卡 + 版本脚注。数据全由参数传入，本函数不读 IO。 */
+@Composable
+private fun SettingsRootBody(
+    previewEnabled: Boolean,
+    onPreviewChanged: (Boolean) -> Unit,
+    onOpenPrivate: () -> Unit,
+    cacheBytes: Long,
+    embyCount: Int,
+    smbCount: Int,
+    version: String,
+    push: (SettingsRoute) -> Unit,
+) {
+    Box(Modifier.fillMaxSize().background(SettingsPageBackdrop)) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = SettingsPageSidePad),
+        ) {
+            Spacer(Modifier.height(10.dp))
+            Text(
+                "设置", fontSize = DesignTokens.fontPageTitle.sp, fontWeight = FontWeight.Bold,
+                color = DesignTokens.textMain,
+            )
+            Spacer(Modifier.height(16.dp))
+            SettingsGroupList(
+                "播放体验",
+                listOf(
+                    SettingsRowSpec("播放", "缓冲 · 习惯 · 字幕") { push(SettingsRoute.PLAYBACK) },
+                    SettingsRowSpec("音画", "内核 · 画面 · 音频") { push(SettingsRoute.AV) },
+                    SettingsRowSpec("操控", "按钮 · 手势 · 双击") { push(SettingsRoute.CONTROLS) },
+                    SettingsRowSpec("AI 字幕", "语音转字幕 · 翻译") { push(SettingsRoute.AI) },
+                ),
+            )
+            Spacer(Modifier.height(SettingsGroupGap))
+            SettingsGroupList(
+                "资源库",
+                listOf(
+                    SettingsRowSpec("Emby", trailing = sourceLabel(embyCount)) { push(SettingsRoute.DATA) },
+                    SettingsRowSpec("SMB", trailing = sourceLabel(smbCount)) { push(SettingsRoute.DATA) },
+                ),
+            )
+            Spacer(Modifier.height(SettingsGroupGap))
+            SettingsGroupList(
+                "使用偏好",
+                listOf(
+                    SettingsRowSpec(
+                        title = "首页预告片自动播放",
+                        subtitle = "默认显示图片；开启后需要能连接 YouTube",
+                        trailing = if (previewEnabled) "开" else "关",
+                    ) { onPreviewChanged(!previewEnabled) },
+                    SettingsRowSpec("外观与交互", "主题 · 封面 · 预告片 · 触感 · 图标") {
+                        push(SettingsRoute.APPEARANCE)
+                    },
+                    SettingsRowSpec("数据与资源", "语言 · 聚合 · 来源 · TMDB · 排序") {
+                        push(SettingsRoute.DATA)
+                    },
+                ),
+            )
+            Spacer(Modifier.height(SettingsGroupGap))
+            SettingsGroupList(
+                "安全与关于",
+                listOf(
+                    SettingsRowSpec("应用内数字密码", "私密区 · 隐藏源 · 改密", onClick = onOpenPrivate),
+                    SettingsRowSpec("版本信息", "版本号 · 构建 · 私密安全") { push(SettingsRoute.ABOUT) },
+                ),
+            )
+            Spacer(Modifier.height(SettingsGroupGap))
+            SettingsGroupList(
+                "存储",
+                listOf(
+                    SettingsRowSpec("空间占用", "图片 + 评分缓存", trailing = formatBytes(cacheBytes)) {
+                        push(SettingsRoute.CACHE)
+                    },
+                ),
+            )
+            Spacer(Modifier.height(8.dp))
+            VersionFootnote(version)
+            Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+/** 源计数文案：与 268 概览卡同口径（只报「已配置」条数，不假装在线）。 */
+private fun sourceLabel(count: Int): String = if (count > 0) "$count 个已配置" else "未配置"
+
+private val SettingsPageBackdrop = Brush.verticalGradient(
+    listOf(DesignTokens.pageGradient.settingsStart, DesignTokens.pageGradient.settingsEnd),
+)
+private val SettingsPageSidePad = 14.dp
+private val SettingsGroupGap = 26.dp
+
+@Preview(name = "SettingsPage 分组行式", widthDp = 390, heightDp = 844)
+@Composable
+private fun SettingsPagePreview() {
+    SettingsPage(
+        previewEnabled = false,
+        onPreviewChanged = {},
+        onOpenSources = {},
+        onOpenPrivate = {},
     )
 }

@@ -3,9 +3,13 @@ package com.kivo.cinema.ui.design.settings
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.kivo.cinema.evidence.IoTrace
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 语音识别模型页（265，参考「语音识别模型」2 帧：统计卡 + 13 语言列表）。
@@ -19,7 +23,10 @@ private val asrLanguages = listOf(
 
 @Composable
 internal fun SettingsAsrModels(store: SettingsStore, onBack: () -> Unit) {
-    val (count, bytes) = remember { store.asrModelStats() }
+    val stats by produceState(Pair(0, 0L), store) {
+        value = withContext(Dispatchers.IO) { IoTrace.measure("settings.asrStats") { store.asrModelStats() } }
+    }
+    val (count, bytes) = stats
     SubPageScaffold("语音识别模型", onBack) {
         PlainCard {
             ValueRow("模型数量", "$count")

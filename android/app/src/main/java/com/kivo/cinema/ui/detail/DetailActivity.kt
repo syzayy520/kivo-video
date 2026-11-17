@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,15 +37,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.library.MediaItem
+import com.kivo.cinema.library.tech.MediaTechInfo
+import com.kivo.cinema.library.tech.MediaTechProbe
 import com.kivo.cinema.ui.design.AnimatedGradientBg
 import com.kivo.cinema.ui.design.GlassSurface
 import com.kivo.cinema.ui.design.RatingBadges
 import com.kivo.cinema.ui.design.DesignTokens
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
- * 影片详情页（237 方案 P3）：点海报先进详情再播放（参照产品 §6.4 结构）。
- * 22 张 detail/movie 帧未逐帧测量——本页取结构级对齐（海报 hero + 元信息 + 评分行 +
- * 主播放钮），参数级对位待测量任务。评分 = TMDB（无 key/无匹配则行隐藏）。
+ * 影片详情页：点海报先进详情再播放（结构参照参照产品的详情页）。
+ * 22 张 detail/movie 帧未逐帧测量——本页取结构级对齐（海报 hero + 元信息 + 技术徽章 +
+ * 评分行 + 主播放钮 + 文件信息卡），参数级对位待测量任务。
+ * 评分 = TMDB（无 key/无匹配则行隐藏）；简介未接入时给一行「暂无简介」真实空态，
+ * 页面上不出现任何开发备注。
  */
 class DetailActivity : ComponentActivity() {
 
@@ -100,6 +107,16 @@ class DetailActivity : ComponentActivity() {
     @Composable
     private fun DetailScreen() {
         val it0 = item ?: return
+        // 技术徽章：探测只在 IO 线程跑一次；null 表示探测中或失败，TechBadges 自身不渲染
+        val tech by produceState<MediaTechInfo?>(initialValue = null, it0.path) {
+            value = withContext(Dispatchers.IO) { MediaTechProbe.probe(it0.path) }
+        }
+        // 同目录推荐：IO 线程从 MediaStore 取与当前片源同父目录的其它视频（最多 6 条，查不到为空）
+        val related by produceState<List<MediaItem>>(emptyList(), it0.path) {
+            value = withContext(Dispatchers.IO) {
+                queryRelatedVideos(applicationContext, it0.path)
+            }
+        }
         AnimatedGradientBg {
             Column(Modifier.fillMaxSize()) {
                 // hero：缩略图全出血 + 底部渐变 + 左上返回
@@ -108,14 +125,20 @@ class DetailActivity : ComponentActivity() {
                         .fillMaxWidth()
                         .height(260.dp)
                 ) {
-                    val bmp = remember(it0.id) {
-                        runCatching {
-                            android.media.ThumbnailUtils.createVideoThumbnail(
-                                it0.path, MS.Video.Thumbnails.MINI_KIND)
-                        }.getOrNull()
+                    val bmp by produceState<android.graphics.Bitmap?>(null, it0.path) {
+                        value = withContext(Dispatchers.IO) {
+                            com.kivo.cinema.evidence.IoTrace.measure("detail.heroThumb") {
+                                runCatching {
+                                    @Suppress("DEPRECATION")
+                                    android.media.ThumbnailUtils.createVideoThumbnail(
+                                        it0.path, MS.Video.Thumbnails.MINI_KIND)
+                                }.getOrNull()
+                            }
+                        }
                     }
-                    if (bmp != null) {
-                        Image(bmp.asImageBitmap(), it0.title,
+                    val bmpValue = bmp
+                    if (bmpValue != null) {
+                        Image(bmpValue.asImageBitmap(), it0.title,
                             contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                     } else {
                         Box(Modifier.fillMaxSize().background(Color(0xFF24242A)))
@@ -149,12 +172,16 @@ class DetailActivity : ComponentActivity() {
                     // 元信息行（帧语义：类型·日期；本地数据 = 分辨率·日期）
                     Text("${it0.width}×${it0.height} · ${fmtDate(it0.addedSec)} · ${it0.formatDuration()}",
                         fontSize = 15.sp, color = DesignTokens.textSub)
+                    // 8dp 间距放进 if 内：探测失败时不留空洞，避免内容整体下沉再回弹
+                    if (tech != null) {
+                        Spacer(Modifier.height(8.dp))
+                        TechBadges(tech, fg = DesignTokens.textSub)
+                    }
                     Spacer(Modifier.height(8.dp))
                     RatingBadges(if (rating != null) listOf(rating!!) else emptyList())
                     Spacer(Modifier.height(8.dp))
-                    // 简介位（TMDB 简介 v2 接入——明示占位）
-                    Text("简介：接入 TMDB 数据源后自动补全（237 方案 F2 v2）。",
-                        fontSize = 14.sp, color = DesignTokens.textSub, lineHeight = 20.sp)
+                    // 简介位：TMDB 简介尚未接入，只给一行真实空态（不写开发者备注，也不再套一层标题）
+                    Text("暂无简介", fontSize = 13.sp, color = DesignTokens.textSub)
                     Spacer(Modifier.height(16.dp))
                     // 主操作：直接播放（全 app 唯一强 tint 处，参照规格语义）
                     Box(
@@ -191,9 +218,27 @@ class DetailActivity : ComponentActivity() {
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         )
                     }
-                    Spacer(Modifier.height(8.dp))
-                    Text("简介/演员/相似作品位随 TMDB 数据源扩展（237 §六）。",
-                        fontSize = DesignTokens.fontFootnote.sp, color = DesignTokens.textSub)
+                    Spacer(Modifier.height(12.dp))
+                    // 文件信息卡：真实探测到的分辨率/时长/格式/路径，缺项不画（补足按钮之下的半屏空白）
+                    DetailFileInfoCard(
+                        width = it0.width,
+                        height = it0.height,
+                        durationMs = it0.durationMs,
+                        path = it0.path,
+                    )
+                    // 技术明细：探测未完成/失败时整卡不渲染（含其 12dp 顶部外距）
+                    DetailTechRows(tech)
+                    // 同目录：空列表整段不渲染；点卡再起同页详情，传该条目的路径
+                    DetailRelatedVideos(
+                        items = related,
+                        onOpen = { target ->
+                            startActivity(
+                                android.content.Intent(this@DetailActivity, DetailActivity::class.java)
+                                    .putExtra("kivo.media", target.path)
+                            )
+                        },
+                    )
+                    Spacer(Modifier.height(DesignTokens.screenPad.dp))
                 }
             }
         }

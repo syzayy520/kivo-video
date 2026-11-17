@@ -20,20 +20,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.library.MediaItem
 import com.kivo.cinema.stats.WatchStore
+import com.kivo.cinema.ui.components.HitBox
 
 /**
  * 在看页（AppWatching 147 键语义；HomeEditor `viewing.progress.full.width` 契约）：
  * 整行卡 = 左缩略图 103pt 16:9 + 右标题 17pt 粗体/元信息 11pt 灰 + 黑进度条 3pt（05 §三）。
  * 弃剧/折叠记录/追剧日历 = v2。
  *
- * 「在看」是**发现的子页**（不是第五个标签）：顶部有返回条，系统返回键也回发现，
- * 空态给一个「去发现」按钮 —— 否则用户进来就出不去了（272 审计 D8）。
+ * B2 起「在看」不再是发现的子页：它是「我的」模块的二级页，由 Shell 覆盖层承载
+ * （`MainActivityShell` 的 `showWatching`），入口见 WATCH-01/SHELL-02。
+ * 顶部为标准导航条（左返回 + 中标题 + 右空），系统返回键同样回到调用方。
  */
 @Composable
 fun WatchingPage(
@@ -45,19 +50,7 @@ fun WatchingPage(
     BackHandler { onBack() }
     Column(Modifier.fillMaxSize()) {
         Spacer(Modifier.height(6.dp))
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = DesignTokens.screenPad.dp)
-                .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onBack)
-                .padding(vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("‹", fontSize = 20.sp, color = DesignTokens.textMain,
-                modifier = Modifier.padding(end = 6.dp))
-            Text("发现", fontSize = 15.sp, color = DesignTokens.textMain)
-        }
-        Text("在看", fontSize = 28.sp, fontWeight = FontWeight.Bold,
-            color = DesignTokens.textMain,
-            modifier = Modifier.padding(horizontal = DesignTokens.screenPad.dp))
+        WatchingNavBar(onBack)
         Spacer(Modifier.height(4.dp))
         Text("观看进度自动保存 · 上划管理", fontSize = 11.sp,
             color = DesignTokens.textSub,
@@ -140,3 +133,25 @@ fun WatchingPage(
         }
     }
 }
+/** 标准二级页导航条：左返回图标 + 中标题 + 右空（竞品 IMG_0429 的「我的」">" 下钻页同款）。 */
+@Composable
+private fun WatchingNavBar(onBack: () -> Unit) {
+    Box(
+        Modifier.fillMaxWidth().height(WatchingNavHeight)
+            .padding(horizontal = DesignTokens.screenPad.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            Modifier.align(Alignment.CenterStart)
+                .clickable(role = Role.Button, onClick = onBack)
+                .semantics { contentDescription = "返回" },
+        ) {
+            HitBox { Text("‹", fontSize = 20.sp, color = DesignTokens.textMain) }
+        }
+        Text("在看", fontSize = 17.sp, fontWeight = FontWeight.Bold,
+            color = DesignTokens.textMain)
+    }
+}
+
+// 44dp = 报告 §6.1 最小触控边长；DesignTokens 无对应项。
+private val WatchingNavHeight = 44.dp

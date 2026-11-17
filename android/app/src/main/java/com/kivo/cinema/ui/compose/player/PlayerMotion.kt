@@ -43,7 +43,8 @@ internal object PlayerMotion {
     const val hudEnterMs = 150
     const val hudExitMs = 300
     const val hudHoldMs = 1000
-    const val reduceMotionMs = 150
+    // G1 降级后的唯一残留动效：纯 α 淡入淡出，上限 100ms（位移/缩放一律归零）。
+    const val reduceMotionMs = 100
 
     val easing = FastOutSlowInEasing
 }

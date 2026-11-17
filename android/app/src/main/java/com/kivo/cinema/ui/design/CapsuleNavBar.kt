@@ -18,7 +18,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.ui.design.home.NavGlyph
 
-/** 悬浮导航胶囊与独立搜索钮（269 v3：扁平灰 pill + 蓝选中；暗态保留 E11 语义）。 */
+/** 选中项胶囊底：浅色态白色 60%（半透明，透出下层的灰 pill）。✅ 实拍 `docs/audit/golden/rex/2026_11_16_21_22_14_IMG_0366.jpg` */
+private val SelectedCapsuleLight = Color.White.copy(alpha = 0.60f)
+
+/** 选中项胶囊底：暗色态白色 14%（同一张实拍的半透明做法，压到暗底上等效可读）。✅ 同帧 + 暗态 alpha 为 ◐ 推断 */
+private val SelectedCapsuleDark = Color.White.copy(alpha = 0.14f)
+
+/**
+ * 悬浮导航胶囊与独立搜索钮。
+ *
+ * 选中口径（2026-11-16 B1 起）：**选中项 = 浅灰/白半透明胶囊底 + 原色前景**，不是蓝色 tint。
+ * - 浅色态前景 `DesignTokens.textMain`（近黑），暗色态 `Color.White`；
+ * - 未选中前景保持 `navIdle` / `navIdleDark`，搜索钮始终 `idle`（不参与选中）；
+ * - 证据：`docs/audit/golden/rex/2026_11_16_21_22_14_IMG_0366.jpg`（资源库页底部胶囊，
+ *   选中项为白胶囊 + 黑色图标与文字，safari 式语义）。
+ */
 @Composable
 fun CapsuleNavBar(
     tabs: List<Pair<String, String>>,
@@ -40,10 +54,13 @@ fun CapsuleNavBar(
             Row(Modifier.fillMaxSize().padding(horizontal = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                 tabs.forEachIndexed { index, (label, _) ->
                     val active = index == selected
-                    val fg = if (active) DesignTokens.navActive else idle
+                    val fg = if (active) (if (onDark) Color.White else DesignTokens.textMain) else idle
                     Column(Modifier.weight(1f).fillMaxHeight().padding(vertical = 3.dp)
                         .clip(RoundedCornerShape(22.dp))
-                        .background(if (active) (if (onDark) Color.White.copy(alpha = .14f) else Color.White) else Color.Transparent)
+                        .background(
+                            if (active) (if (onDark) SelectedCapsuleDark else SelectedCapsuleLight)
+                            else Color.Transparent
+                        )
                         .clickable { onSelect(index) },
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center) {

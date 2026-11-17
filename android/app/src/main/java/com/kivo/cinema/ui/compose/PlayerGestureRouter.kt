@@ -194,16 +194,12 @@ internal fun PlayerComposeActivity.audioManager(): android.media.AudioManager =
 /** 实时 seek 的节流间隔（毫秒）。 */
 private const val REALTIME_SEEK_INTERVAL_MS = 150L
 
-/** 横滑起点（毫秒）与累积位移（毫秒）。 */
-private var hSeekStartMs = 0L
-private var hSeekAccumMs = 0L
-private var hSeekTargetMs = 0L
-
-/** 实时 seek 的节流时间（`uptimeMillis`）：横滑时每 150ms 才真跳一次。 */
-private var hSeekLastAt = 0L
-
 /**
  * 横滑开始：记下起点，HUD 立刻接管。
+ *
+ * 【状态从哪来】[hSeek] 由调用方 `remember { HandSeekState() }` 持有（B4-T3）。
+ * 旧版这四个字段是**顶层 `private var`**（进程级），第二次进播放器会沿用上次的起点/目标
+ * ⇒ "第一次横滑没反应"或"一滑就跳到上次的位置"。状态随 Composition 生死，这里只做数学。
  *
  * 【为什么按"时长的 10%"定比例尺】固定秒数对短片太粗（一屏就过半）、对长片太慢
  * （两小时的片滑到手酸）。取时长 10% 并要求全屏宽走完，再夹在 [15s, 300s]：
@@ -211,12 +207,10 @@ private var hSeekLastAt = 0L
  * · 30 分钟     ⇒ 180s
  * · 2 小时      ⇒ 300s（上限，一屏 5 分钟）
  */
-internal fun PlayerComposeActivity.onHorizontalDragStart() {
+internal fun PlayerComposeActivity.onHorizontalDragStart(hSeek: HandSeekState) {
     if (!playbackPrefs.horizontalSeekEnabled) return
     if (durationMs <= 0) return
-    hSeekStartMs = positionMs
-    hSeekAccumMs = 0L
-    hSeekTargetMs = positionMs
+    hSeek.begin(positionMs)
     // 【必须显示控制栏】缩略图浮窗挂在底部进度条上（PlayerSeekTrack 的 AnimatedVisibility），
     // 控制栏隐藏时浮窗也跟着不在 ⇒ 横滑就看不到预览画面。这里强制拉起，
     // 松手后由 lastTouchMs 的 3s 自动隐藏逻辑收掉。
@@ -229,23 +223,24 @@ internal fun PlayerComposeActivity.onHorizontalDragStart() {
 }
 
 /** 横滑过程：只更新目标与 HUD，**不 seek**（与进度条拖动同口径）。 */
-internal fun PlayerComposeActivity.onHorizontalDrag(dx: Float) {
+internal fun PlayerComposeActivity.onHorizontalDrag(hSeek: HandSeekState, dx: Float) {
     if (!playbackPrefs.horizontalSeekEnabled) return
-    if (hSeekStartMs <= 0L || durationMs <= 0L) return
+    // D7-1：用 active 判是否进行中；startMs==0（片头）现在是合法起点，不再被吞。
+    if (!hSeek.active || durationMs <= 0L) return
     val w = resources.displayMetrics.widthPixels.toFloat().coerceAtLeast(1f)
     val spanMs = (durationMs * 0.1f).coerceIn(15_000f, 300_000f)
-    hSeekAccumMs += (dx / w * spanMs).toLong()
-    hSeekTargetMs = (hSeekStartMs + hSeekAccumMs).coerceIn(0L, durationMs)
-    hudKind = if (hSeekAccumMs >= 0) PlayerHudKind.SEEK_FORWARD else PlayerHudKind.SEEK_BACKWARD
-    hudFraction = (hSeekTargetMs.toFloat() / durationMs).coerceIn(0f, 1f)
-    hudSeekTargetMs = hSeekTargetMs
-    hudSeekDeltaMs = hSeekAccumMs
+    hSeek.accumMs += (dx / w * spanMs).toLong()
+    hSeek.targetMs = (hSeek.startMs + hSeek.accumMs).coerceIn(0L, durationMs)
+    hudKind = if (hSeek.accumMs >= 0) PlayerHudKind.SEEK_FORWARD else PlayerHudKind.SEEK_BACKWARD
+    hudFraction = (hSeek.targetMs.toFloat() / durationMs).coerceIn(0f, 1f)
+    hudSeekTargetMs = hSeek.targetMs
+    hudSeekDeltaMs = hSeek.accumMs
 
     // ★实时预览（对齐 SenPlayer）：复用进度条拖动那套缩略图浮窗。
     // `previewMs` 是 PlayerSeekTrack 里浮窗的显示条件（>=0 即显示），
     // 它同时决定浮窗比例位置 —— 所以横滑和拖进度条看到的是同一个浮窗。
-    previewMs = hSeekTargetMs
-    thumbnailReader?.seekTo(hSeekTargetMs * 1000)
+    previewMs = hSeek.targetMs
+    thumbnailReader?.seekTo(hSeek.targetMs * 1000)
 
     // ★实时跳转（对齐 SenPlayer 的"边滑边看"）。
     //
@@ -254,20 +249,18 @@ internal fun PlayerComposeActivity.onHorizontalDrag(dx: Float) {
     // 【为什么不等落点】实时跟手要的是"立刻有反应"，等落点那套（v42）会让
     // 每次跳都卡 100~1200ms ⇒ 拖动变成幻灯片。最终落点在松手时补一次精确 seek。
     val now = android.os.SystemClock.uptimeMillis()
-    if (now - hSeekLastAt >= REALTIME_SEEK_INTERVAL_MS) {
-        hSeekLastAt = now
-        seekTo(hSeekTargetMs, waitLandingFirstSlice = false)
+    if (now - hSeek.lastAt >= REALTIME_SEEK_INTERVAL_MS) {
+        hSeek.lastAt = now
+        seekTo(hSeek.targetMs, waitLandingFirstSlice = false)
     }
 }
 
 /** 横滑结束：commit=true 才真的跳；取消则什么都不做。 */
-internal fun PlayerComposeActivity.onHorizontalDragEnd(commit: Boolean) {
+internal fun PlayerComposeActivity.onHorizontalDragEnd(hSeek: HandSeekState, commit: Boolean) {
     if (!playbackPrefs.horizontalSeekEnabled) return
-    val target = hSeekTargetMs
-    val start = hSeekStartMs
-    hSeekStartMs = 0L
-    hSeekAccumMs = 0L
-    hSeekLastAt = 0L
+    val target = hSeek.targetMs
+    // 先归零再 seek：即使下面抛异常，状态也已回到"没有进行中的横滑"。
+    hSeek.clear()
     // 收起预览浮窗（与拖进度条松手同一口径）。
     previewMs = -1L
     if (commit && durationMs > 0L) {
