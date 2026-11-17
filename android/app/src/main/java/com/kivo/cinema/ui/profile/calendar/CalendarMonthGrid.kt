@@ -22,6 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -127,11 +133,24 @@ private fun DayCell(
             .clip(shape)
             .then(if (selected) Modifier.background(DesignTokens.canvasFill) else Modifier)
             .then(if (isToday) Modifier.border(TodayBorder, DesignTokens.canvasFill, shape) else Modifier)
-            .clickable(role = Role.Button) { onSelect(mark.date) },
+            .clickable(role = Role.Button) { onSelect(mark.date) }
+            // 必须 clear：Material 的 minimumInteractiveComponentSize 会在 44dp 格外套一层
+            // 无名称的可点节点（uiautomator 里父节点 desc 为空），TalkBack 就只念“按钮”。
+            .clearAndSetSemantics {
+                contentDescription = dayA11yLabel(mark.date, isToday)
+                stateDescription = when {
+                    selected -> "已选中"
+                    mark.minutes > 0 -> "已观看 ${mark.minutes} 分钟"
+                    else -> "无观看记录"
+                }
+                role = Role.Button
+                onClick { onSelect(mark.date); true }
+            },
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = dayNumber(mark.date),
+            modifier = Modifier.clearAndSetSemantics { },
             fontSize = DateTextSize,
             fontWeight = if (selected || mark.minutes > 0) FontWeight.Bold else FontWeight.Normal,
             color = if (selected) DesignTokens.textMain else DesignTokens.textSub,
@@ -147,6 +166,12 @@ private fun DayCell(
             )
         }
     }
+}
+
+private fun dayA11yLabel(date: String, isToday: Boolean): String {
+    val parts = date.split("-")
+    val base = if (parts.size == 3) "${parts[1].toInt()}月${parts[2].toInt()}日" else date
+    return if (isToday) "$base，今天" else base
 }
 
 /** 网格格子：`leadingBlanks` 个空位 + 当月每一天，总长固定 42（6×7），缺的补空。 */

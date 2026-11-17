@@ -27,6 +27,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
 /**
@@ -263,6 +268,11 @@ private fun BarIconButton(
     Box(
         modifier = Modifier
             .size(PlayerTokens.actionHitBox.dp)
+            .semantics {
+                contentDescription = barIconLabel(kind)
+                role = Role.Button
+                onClick { onClick(); true }
+            }
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = { pressed = true; tryAwaitRelease(); pressed = false },
@@ -281,3 +291,7 @@ private fun BarIconButton(
         )
     }
 }
+
+/** D14：底栏图标本身零语义，名字与 onClick 动作必须在这里注入（pointerInput 不产生动作）。 */
+private fun barIconLabel(kind: String): String =
+    if (kind == "play") "播放" else if (kind == "pause") "暂停" else if (kind == "next") "下一集" else kind

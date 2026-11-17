@@ -72,7 +72,7 @@ internal fun CalendarTopBar(onBack: () -> Unit, onToday: () -> Unit) {
             KivoBackPill(
                 onClick = onBack,
                 background = DesignTokens.canvasFill.copy(alpha = BackCapsuleAlpha),
-                modifier = Modifier.size(BackHit),
+                visualSize = BackHit,
             ) {
                 Chevron(pointsLeft = true, size = BackGlyph, color = DesignTokens.textMain)
             }
@@ -110,43 +110,22 @@ internal fun CalendarViewSwitch(yearView: Boolean, onSelectMonth: () -> Unit, on
     }
 }
 
+/** 期间行：左右各 48dp 命中，中间文字居中；月视图切月、年视图切年由调用方决定。 */
 @Composable
-private fun SwitchCapsule(label: String, selected: Boolean, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(SwitchCorner)
-    Box(
-        modifier = Modifier
-            .width(SwitchWidth)
-            .height(SwitchHeight)
-            .clip(shape)
-            .then(
-                if (selected) {
-                    Modifier.background(DesignTokens.canvasFill).border(1.dp, DesignTokens.hairline, shape)
-                } else {
-                    Modifier
-                }
-            )
-            .clickable(role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            fontSize = SwitchTextSize,
-            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
-            color = if (selected) DesignTokens.textMain else DesignTokens.textSub,
-        )
-    }
-}
-
-/** 期间行：左右各 44dp 命中，中间文字居中；月视图切月、年视图切年由调用方决定。 */
-@Composable
-internal fun CalendarPeriodRow(label: String, onPrev: () -> Unit, onNext: () -> Unit) {
+internal fun CalendarPeriodRow(
+    label: String,
+    onPrev: () -> Unit,
+    onNext: () -> Unit,
+    prevLabel: String = "上个月",
+    nextLabel: String = "下个月",
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = DesignTokens.screenPad.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        PeriodArrow(pointsLeft = true, onClick = onPrev)
+        PeriodArrow(pointsLeft = true, label = prevLabel, onClick = onPrev)
         Text(
             text = label,
             modifier = Modifier.weight(1f),
@@ -155,20 +134,7 @@ internal fun CalendarPeriodRow(label: String, onPrev: () -> Unit, onNext: () -> 
             color = DesignTokens.textMain,
             textAlign = TextAlign.Center,
         )
-        PeriodArrow(pointsLeft = false, onClick = onNext)
-    }
-}
-
-@Composable
-private fun PeriodArrow(pointsLeft: Boolean, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(ArrowHit)
-            .clip(CircleShape)
-            .clickable(role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Chevron(pointsLeft = pointsLeft, size = ArrowGlyph, color = DesignTokens.textSub)
+        PeriodArrow(pointsLeft = false, label = nextLabel, onClick = onNext)
     }
 }
 
@@ -233,30 +199,6 @@ private fun CalendarGlyph() {
     }
 }
 
-/** `‹` / `›` 用两笔折线画，避免字体差异导致箭头粗细不一致。 */
-@Composable
-private fun Chevron(pointsLeft: Boolean, size: Dp, color: Color) {
-    Canvas(modifier = Modifier.size(size)) {
-        val stroke = ChevronStroke.toPx()
-        val tipX = if (pointsLeft) this.size.width * 0.34f else this.size.width * 0.66f
-        val backX = if (pointsLeft) this.size.width * 0.64f else this.size.width * 0.36f
-        drawLine(
-            color = color,
-            start = Offset(backX, this.size.height * 0.18f),
-            end = Offset(tipX, this.size.height * 0.5f),
-            strokeWidth = stroke,
-            cap = StrokeCap.Round,
-        )
-        drawLine(
-            color = color,
-            start = Offset(tipX, this.size.height * 0.5f),
-            end = Offset(backX, this.size.height * 0.82f),
-            strokeWidth = stroke,
-            cap = StrokeCap.Round,
-        )
-    }
-}
-
 private val BackHit = 44.dp
 private val BackGlyph = 18.dp
 private val TitleTopGap = 6.dp
@@ -264,18 +206,11 @@ private val PageTitleSize = 28.sp
 private val TodayTextSize = 13.sp
 private val TodaySidePad = 8.dp
 private val TodayVerticalPad = 8.dp
-private val SwitchHeight = 30.dp
-private val SwitchWidth = 56.dp
-private val SwitchCorner = 15.dp
 private val SwitchGap = 6.dp
-private val SwitchTextSize = 13.sp
-private val ArrowHit = 44.dp
-private val ArrowGlyph = 16.dp
 private val PeriodTextSize = 16.sp
 private val GlyphSize = 40.dp
 private val GlyphStroke = 1.5.dp
 private val GlyphCorner = 7.dp
-private val ChevronStroke = 1.8.dp
 private val EmptyGlyphGap = 16.dp
 private val EmptySidePad = 40.dp
 private val EmptyHintSize = 13.sp

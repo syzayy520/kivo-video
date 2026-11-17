@@ -25,6 +25,11 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -120,6 +125,19 @@ internal fun PlayerSeekTrack(
         modifier = modifier
             .fillMaxWidth()
             .height(PlayerTokens.trackHitHeight.dp)
+            .semantics {
+                contentDescription = "播放进度"
+                if (durationMs > 0L) {
+                    progressBarRangeInfo = ProgressBarRangeInfo(
+                        current = (positionMs.toFloat() / durationMs).coerceIn(0f, 1f),
+                        range = 0f..1f,
+                    )
+                    setProgress { target ->
+                        onSeek((target * durationMs.toFloat()).toLong())
+                        true
+                    }
+                }
+            }
             // key 用 Unit 而非 durationMs：SMB 大文件的时长会在拖中途被内核
             // 修正，key 变化会重建 pointerInput ⇒ 进行中的拖动被 cancel
             // （真机：浮窗消失、标签跳回拖前位置）。时长经 durState 读最新值。

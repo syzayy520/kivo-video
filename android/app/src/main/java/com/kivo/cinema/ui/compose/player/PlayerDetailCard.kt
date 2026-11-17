@@ -19,6 +19,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
@@ -88,6 +95,11 @@ internal fun PlayerDetailCard(
                         .size(PlayerTokens.detailCloseSize.dp)
                         .clip(CircleShape)
                         .background(PlayerTokens.chipSurface)
+                        .semantics {
+                            contentDescription = "关闭$title"
+                            role = Role.Button
+                            onClick { onDismiss(); true }
+                        }
                         .pointerInput(Unit) { detectTapGestures(onTap = { onDismiss() }) },
                     contentAlignment = Alignment.Center,
                 ) {
@@ -151,6 +163,16 @@ private fun DetailPlainRow(item: PlayerOptionItem, onSelect: () -> Unit) {
             .alpha(if (item.enabled) 1f else 0.4f)
             .pointerInput(item.enabled) {
                 if (item.enabled) detectTapGestures(onTap = { onSelect() })
+            }
+            .clearAndSetSemantics {
+                contentDescription = listOfNotNull(
+                    item.title,
+                    item.subtitle.takeIf { it.isNotBlank() },
+                    item.value.takeIf { it.isNotBlank() },
+                ).joinToString("，")
+                role = if (item.control == PlayerRowControl.CHEVRON) Role.Button else Role.Tab
+                if (item.selected) stateDescription = "已选中"
+                if (item.enabled) onClick { onSelect(); true }
             }
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,

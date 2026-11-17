@@ -156,6 +156,8 @@ fun CalendarPage(context: Context, initialDate: String?, onBack: () -> Unit) {
                 Spacer(Modifier.height(DesignTokens.gap.dp))
                 CalendarPeriodRow(
                     label = if (yearView) "${year}年" else "${year}年${month}月",
+                    prevLabel = if (yearView) "上一年" else "上个月",
+                    nextLabel = if (yearView) "下一年" else "下个月",
                     onPrev = { shiftPeriod(-1) },
                     onNext = { shiftPeriod(1) },
                 )

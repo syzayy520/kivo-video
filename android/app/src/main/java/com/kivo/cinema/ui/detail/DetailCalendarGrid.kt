@@ -17,6 +17,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import com.kivo.cinema.ui.components.hit.hitTarget
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -65,7 +70,12 @@ internal fun DetailCalendarGrid(
 
 @Composable
 private fun MonthArrow(fg: Color, left: Boolean, onClick: () -> Unit) {
-    Box(Modifier.size(40.dp).clip(CircleShape).clickable(onClick = onClick),
+    Box(Modifier.hitTarget()
+        .semantics {
+            contentDescription = if (left) "上个月" else "下个月"
+            role = Role.Button
+        }
+        .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center) {
         Canvas(Modifier.size(11.dp, 18.dp)) {
             val w = 2.2.dp.toPx()

@@ -23,6 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
@@ -88,6 +95,11 @@ internal fun PlayerEpisodeStrip(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .pointerInput(Unit) { detectTapGestures(onTap = { onOrder() }) }
+                    .clearAndSetSemantics {
+                        contentDescription = "播放顺序：顺序播放"
+                        role = Role.Button
+                        onClick { onOrder(); true }
+                    }
                     .padding(start = 12.dp),
             ) {
                 PlayerGlyph(
@@ -116,9 +128,16 @@ internal fun PlayerEpisodeStrip(
                 seasonTabs.forEach { tab ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.pointerInput(tab.tag) {
-                            detectTapGestures(onTap = { onSelect(tab) })
-                        },
+                        modifier = Modifier
+                            .pointerInput(tab.tag) {
+                                detectTapGestures(onTap = { onSelect(tab) })
+                            }
+                            .clearAndSetSemantics {
+                                contentDescription = tab.title
+                                role = Role.Tab
+                                if (tab.selected) stateDescription = "已选中"
+                                onClick { onSelect(tab); true }
+                            },
                     ) {
                         if (tab.selected) {
                             PlayerGlyph(
@@ -193,7 +212,13 @@ private fun EpisodeThumb(item: PlayerOptionItem, token: String?, onSelect: () ->
     Column(
         modifier = Modifier
             .width(PlayerTokens.episodeThumbWidth.dp)
-            .pointerInput(item.tag) { detectTapGestures(onTap = { onSelect() }) },
+            .pointerInput(item.tag) { detectTapGestures(onTap = { onSelect() }) }
+            .clearAndSetSemantics {
+                contentDescription = item.title
+                role = Role.Tab
+                if (item.selected) stateDescription = "当前播放"
+                onClick { onSelect(); true }
+            },
     ) {
         Box(
             modifier = Modifier

@@ -84,7 +84,8 @@ internal fun BackCircle(onBack: () -> Unit) {
     KivoBackPill(
         onClick = onBack,
         background = Color(0x8CFFFFFF),
-        modifier = Modifier.padding(start = DETAIL_PAD_DP.dp, top = 42.dp).size(42.dp),
+        visualSize = 42.dp,
+        modifier = Modifier.padding(start = DETAIL_PAD_DP.dp, top = 42.dp),
     ) {
         Canvas(Modifier.size(11.dp, 17.dp)) {
             val p = Path().apply {

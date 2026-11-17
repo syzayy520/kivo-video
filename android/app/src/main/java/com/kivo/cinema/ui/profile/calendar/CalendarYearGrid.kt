@@ -19,6 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -74,6 +80,7 @@ fun CalendarYearGrid(
                 for (col in 0 until MonthColumns) {
                     val month = row * MonthColumns + col + 1
                     MonthCard(
+                        year = year,
                         month = month,
                         minutes = minutesByMonth.getOrElse(month - 1) { 0 },
                         modifier = Modifier.weight(1f),
@@ -88,6 +95,7 @@ fun CalendarYearGrid(
 /** 单月卡：月份名 + 12 根微热力条。整格可点（命中 ≥ 72dp 高 × 1/3 屏宽）。 */
 @Composable
 private fun MonthCard(
+    year: Int,
     month: Int,
     minutes: Int,
     modifier: Modifier = Modifier,
@@ -101,11 +109,19 @@ private fun MonthCard(
             .background(DesignTokens.canvasFill)
             .border(Hairline, DesignTokens.hairline, shape)
             .clickable(role = Role.Button) { onSelect(month) }
+            // clear：同 DayCell，避免外层无名可点节点遮住描述。
+            .clearAndSetSemantics {
+                contentDescription = "$year 年 ${monthLabel(month)}"
+                stateDescription = if (minutes > 0) "观看 $minutes 分钟" else "无观看记录"
+                role = Role.Button
+                onClick { onSelect(month); true }
+            }
             .padding(horizontal = CardSidePad, vertical = CardVerticalPad),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
             text = monthLabel(month),
+            modifier = Modifier.clearAndSetSemantics { },
             fontSize = MonthTextSize,
             fontWeight = if (minutes > 0) FontWeight.Bold else FontWeight.Medium,
             color = if (minutes > 0) DesignTokens.textMain else DesignTokens.textSub,

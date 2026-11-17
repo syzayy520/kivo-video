@@ -130,18 +130,22 @@ class TmdbHome(private val client: TmdbClient) {
             TmdbResponseCache.invalidate(url)
         }
         return try {
-            val conn = client.openConnection(url)
-            conn.connectTimeout = 8000
-            conn.readTimeout = 15000
-            try {
-                val code = conn.responseCode
-                val body = (if (code in 200..299) conn.inputStream else conn.errorStream)
-                    ?.bufferedReader()?.use { it.readText() } ?: ""
-                if (code !in 200..299) null to "server" else {
-                    TmdbResponseCache.put(url, body)
-                    JSONObject(body) to null
-                }
-            } finally { conn.disconnect() }
+            // D13：同 URL 并发调用只发一次网络，其余 JOIN 等同一份正文。
+            val body = TmdbInFlight.body(url, path, {
+                val conn = client.openConnection(url)
+                conn.connectTimeout = 8000
+                conn.readTimeout = 15000
+                try {
+                    val code = conn.responseCode
+                    val text = (if (code in 200..299) conn.inputStream else conn.errorStream)
+                        ?.bufferedReader()?.use { it.readText() } ?: ""
+                    if (code !in 200..299) null else {
+                        TmdbResponseCache.put(url, text)
+                        text
+                    }
+                } finally { conn.disconnect() }
+            })
+            if (body == null) null to "server" else JSONObject(body) to null
         } catch (e: Exception) {
             null to kindOf(e)
         }

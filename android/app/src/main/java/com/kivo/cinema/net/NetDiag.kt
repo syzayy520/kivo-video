@@ -32,7 +32,8 @@ object NetDiag {
         file = File(context.applicationContext.filesDir, "net-diag.log")
     }
 
-    /** 记一行（带时间戳，毫秒）。 */
+    /** 记一行（带时间戳，毫秒）。并发写同一文件时串行化，避免行交错导致计数失真。 */
+    @Synchronized
     fun log(message: String) {
         val target = file
         if (target == null) {

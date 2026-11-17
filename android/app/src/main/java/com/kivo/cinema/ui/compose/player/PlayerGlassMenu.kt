@@ -19,6 +19,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
@@ -167,6 +174,20 @@ private fun MenuRow(item: PlayerOptionItem, onSelect: () -> Unit) {
             .alpha(ink)
             .pointerInput(item.enabled) {
                 if (item.enabled) detectTapGestures(onTap = { onSelect() })
+            }
+            // clear：行内是 Text + 图标，直接 semantics 会裂成"外层无名可点 + 内层按钮"两层。
+            .clearAndSetSemantics {
+                contentDescription = listOfNotNull(
+                    item.title,
+                    item.value.takeIf { it.isNotBlank() },
+                    item.subtitle.takeIf { it.isNotBlank() },
+                ).joinToString("，")
+                role = Role.Button
+                when {
+                    item.selected -> stateDescription = "已选中"
+                    item.on -> stateDescription = "已开启"
+                }
+                if (item.enabled) onClick { onSelect(); true }
             }
             .padding(end = PlayerTokens.rowTrailingPad.dp),
         verticalAlignment = Alignment.CenterVertically,

@@ -1,0 +1,131 @@
+1794949374197 [tmdb-net] START /trending/all/week?language=zh-CN thread=DefaultDispatcher-worker-1
+1794949374198 [tmdb-net] START /tv/on_the_air?language=zh-CN thread=DefaultDispatcher-worker-3
+1794949374201 [tmdb-net] START /discover/tv?language=zh-CN&with_genres=10764&first_air_date.gte=2026-10-19&sort_by=popularity.desc thread=DefaultDispatcher-worker-4
+1794949374202 [tmdb-net] START /movie/now_playing?language=zh-CN thread=DefaultDispatcher-worker-2
+1794949374206 [tmdb-net] START /discover/tv?language=zh-CN&with_genres=16&with_original_language=ja&sort_by=popularity.desc thread=DefaultDispatcher-worker-5
+1794949374602 [tmdb-net] START /watch/providers/movie?watch_region=US&language=zh-CN thread=DefaultDispatcher-worker-8
+1794949374604 [tmdb-net] START /company/33 thread=DefaultDispatcher-worker-9
+1794949374605 [tmdb-net] START /genre/movie/list?language=zh-CN thread=DefaultDispatcher-worker-13
+1794949374608 [tmdb-net] START /person/popular?language=zh-CN&page=1 thread=DefaultDispatcher-worker-6
+1794949374608 [brand] 启动动画开始 plan=WARM end=0.8
+1794949374611 [tmdb-net] START /tv/top_rated?language=zh-CN thread=DefaultDispatcher-worker-12
+1794949374663 [brand] 音效 played=true（t=0.049461775s）
+1794949374777 [io] home.posterBlock thread=DefaultDispatcher-worker-16 cost=126ms
+1794949375242 [tmdb-cache] STORE trending/all/week?language=zh-CN
+1794949375243 [tmdb-net] DONE 1046ms /trending/all/week?language=zh-CN
+1794949375243 [tmdb-cache] STORE tv/on_the_air?language=zh-CN
+1794949375244 [tmdb-net] DONE 1047ms /tv/on_the_air?language=zh-CN
+1794949375244 [tmdb-cache] STORE discover/tv?language=zh-CN&with_genres=10764&first_air_date.
+1794949375245 [tmdb-net] DONE 1044ms /discover/tv?language=zh-CN&with_genres=10764&first_air_date.gte=2026-10-19&sort_by=popularity.desc
+1794949375248 [tmdb-cache] STORE movie/now_playing?language=zh-CN
+1794949375248 [tmdb-net] DONE 1047ms /movie/now_playing?language=zh-CN
+1794949375249 [tmdb-cache] STORE discover/tv?language=zh-CN&with_genres=16&with_original_lang
+1794949375249 [tmdb-net] DONE 1043ms /discover/tv?language=zh-CN&with_genres=16&with_original_language=ja&sort_by=popularity.desc
+1794949375386 [tmdb-net] START /movie/1368337/images thread=DefaultDispatcher-worker-5
+1794949375428 [tmdb-cache] STORE genre/movie/list?language=zh-CN
+1794949375429 [tmdb-net] DONE 824ms /genre/movie/list?language=zh-CN
+1794949375430 [tmdb-net] START /discover/movie?language=zh-CN&with_genres=28&sort_by=popularity.desc thread=DefaultDispatcher-worker-13
+1794949375433 [brand] 启动动画结束 elapsed=0.8088535 正常=true
+1794949375436 [tmdb-net] START /movie/1368337/videos thread=DefaultDispatcher-worker-22
+1794949375443 [tmdb-cache] STORE company/33
+1794949375443 [tmdb-net] DONE 839ms /company/33
+1794949375445 [tmdb-net] START /discover/movie?with_companies=33&sort_by=popularity.desc&language=zh-CN thread=DefaultDispatcher-worker-9
+1794949375454 [tmdb-cache] STORE tv/top_rated?language=zh-CN
+1794949375454 [tmdb-net] DONE 844ms /tv/top_rated?language=zh-CN
+1794949375478 [tmdb-cache] STORE watch/providers/movie?watch_region=US&language=zh-CN
+1794949375478 [tmdb-cache] STORE person/popular?language=zh-CN&page=1
+1794949375479 [tmdb-net] DONE 871ms /person/popular?language=zh-CN&page=1
+1794949375479 [tmdb-net] DONE 877ms /watch/providers/movie?watch_region=US&language=zh-CN
+1794949375502 [tmdb-net] START /discover/movie?with_watch_providers=8&watch_region=US&sort_by=popularity.desc&language=zh-CN thread=DefaultDispatcher-worker-8
+1794949375648 [tmdb-cache] STORE movie/1368337/videos
+1794949375649 [tmdb-net] DONE 213ms /movie/1368337/videos
+1794949375661 [tmdb-cache] STORE discover/movie?language=zh-CN&with_genres=28&sort_by=popular
+1794949375662 [tmdb-net] DONE 232ms /discover/movie?language=zh-CN&with_genres=28&sort_by=popularity.desc
+1794949375664 [tmdb-net] START /discover/movie?language=zh-CN&with_genres=12&sort_by=popularity.desc thread=DefaultDispatcher-worker-13
+1794949375673 [tmdb-cache] STORE discover/movie?with_companies=33&sort_by=popularity.desc&lan
+1794949375673 [tmdb-net] DONE 228ms /discover/movie?with_companies=33&sort_by=popularity.desc&language=zh-CN
+1794949375674 [tmdb-cache] STORE movie/1368337/images
+1794949375675 [tmdb-net] DONE 288ms /movie/1368337/images
+1794949375675 [tmdb-net] START /company/4 thread=DefaultDispatcher-worker-9
+1794949375688 [tmdb-net] START /tv/84773/images thread=DefaultDispatcher-worker-7
+1794949375712 [tmdb-cache] STORE discover/movie?with_watch_providers=8&watch_region=US&sort_b
+1794949375713 [tmdb-net] DONE 212ms /discover/movie?with_watch_providers=8&watch_region=US&sort_by=popularity.desc&language=zh-CN
+1794949375714 [tmdb-net] START /discover/movie?with_watch_providers=350&watch_region=US&sort_by=popularity.desc&language=zh-CN thread=DefaultDispatcher-worker-8
+1794949375880 [tmdb-cache] STORE company/4
+1794949375880 [tmdb-net] DONE 205ms /company/4
+1794949375881 [tmdb-net] START /discover/movie?with_companies=4&sort_by=popularity.desc&language=zh-CN thread=DefaultDispatcher-worker-9
+1794949375886 [tmdb-cache] STORE discover/movie?language=zh-CN&with_genres=12&sort_by=popular
+1794949375887 [tmdb-net] DONE 223ms /discover/movie?language=zh-CN&with_genres=12&sort_by=popularity.desc
+1794949375889 [tmdb-net] START /discover/movie?language=zh-CN&with_genres=16&sort_by=popularity.desc thread=DefaultDispatcher-worker-13
+1794949375949 [tmdb-cache] STORE discover/movie?with_watch_providers=350&watch_region=US&sort
+1794949375950 [tmdb-cache] STORE tv/84773/images
+1794949375950 [tmdb-net] DONE 236ms /discover/movie?with_watch_providers=350&watch_region=US&sort_by=popularity.desc&language=zh-CN
+1794949375951 [tmdb-net] DONE 264ms /tv/84773/images
+1794949375952 [tmdb-net] START /discover/movie?with_watch_providers=337&watch_region=US&sort_by=popularity.desc&language=zh-CN thread=DefaultDispatcher-worker-8
+1794949375965 [tmdb-net] START /movie/1300968/images thread=DefaultDispatcher-worker-5
+1794949376108 [tmdb-cache] STORE discover/movie?with_companies=4&sort_by=popularity.desc&lang
+1794949376109 [tmdb-net] DONE 228ms /discover/movie?with_companies=4&sort_by=popularity.desc&language=zh-CN
+1794949376110 [tmdb-net] START /company/2 thread=DefaultDispatcher-worker-9
+1794949376113 [tmdb-cache] STORE discover/movie?language=zh-CN&with_genres=16&sort_by=popular
+1794949376113 [tmdb-net] DONE 224ms /discover/movie?language=zh-CN&with_genres=16&sort_by=popularity.desc
+1794949376115 [tmdb-net] START /discover/movie?language=zh-CN&with_genres=35&sort_by=popularity.desc thread=DefaultDispatcher-worker-13
+1794949376163 [tmdb-cache] STORE discover/movie?with_watch_providers=337&watch_region=US&sort
+1794949376164 [tmdb-net] DONE 212ms /discover/movie?with_watch_providers=337&watch_region=US&sort_by=popularity.desc&language=zh-CN
+1794949376166 [tmdb-net] START /discover/movie?with_watch_providers=538&watch_region=US&sort_by=popularity.desc&language=zh-CN thread=DefaultDispatcher-worker-8
+1794949376209 [tmdb-cache] STORE movie/1300968/images
+1794949376210 [tmdb-net] DONE 245ms /movie/1300968/images
+1794949376217 [tmdb-net] START /tv/213375/images thread=DefaultDispatcher-worker-5
+1794949376316 [tmdb-cache] STORE company/2
+1794949376317 [tmdb-net] DONE 207ms /company/2
+1794949376319 [tmdb-net] START /discover/movie?with_companies=2&sort_by=popularity.desc&language=zh-CN thread=DefaultDispatcher-worker-9
+1794949376339 [tmdb-cache] STORE discover/movie?language=zh-CN&with_genres=35&sort_by=popular
+1794949376340 [tmdb-net] DONE 225ms /discover/movie?language=zh-CN&with_genres=35&sort_by=popularity.desc
+1794949376341 [tmdb-net] START /discover/movie?language=zh-CN&with_genres=80&sort_by=popularity.desc thread=DefaultDispatcher-worker-13
+1794949376373 [tmdb-cache] STORE discover/movie?with_watch_providers=538&watch_region=US&sort
+1794949376373 [tmdb-net] DONE 207ms /discover/movie?with_watch_providers=538&watch_region=US&sort_by=popularity.desc&language=zh-CN
+1794949376441 [tmdb-cache] STORE tv/213375/images
+1794949376442 [tmdb-net] DONE 225ms /tv/213375/images
+1794949376445 [tmdb-net] START /movie/1400837/images thread=DefaultDispatcher-worker-5
+1794949376550 [tmdb-cache] STORE discover/movie?with_companies=2&sort_by=popularity.desc&lang
+1794949376551 [tmdb-net] DONE 231ms /discover/movie?with_companies=2&sort_by=popularity.desc&language=zh-CN
+1794949376552 [tmdb-net] START /company/174 thread=DefaultDispatcher-worker-9
+1794949376563 [tmdb-cache] STORE discover/movie?language=zh-CN&with_genres=80&sort_by=popular
+1794949376564 [tmdb-net] DONE 223ms /discover/movie?language=zh-CN&with_genres=80&sort_by=popularity.desc
+1794949376566 [tmdb-net] START /discover/movie?language=zh-CN&with_genres=99&sort_by=popularity.desc thread=DefaultDispatcher-worker-13
+1794949376659 [tmdb-cache] STORE movie/1400837/images
+1794949376660 [tmdb-net] DONE 215ms /movie/1400837/images
+1794949376663 [tmdb-net] START /movie/1185344/images thread=DefaultDispatcher-worker-5
+1794949376757 [tmdb-cache] STORE company/174
+1794949376758 [tmdb-net] DONE 206ms /company/174
+1794949376759 [tmdb-net] START /discover/movie?with_companies=174&sort_by=popularity.desc&language=zh-CN thread=DefaultDispatcher-worker-9
+1794949376787 [tmdb-cache] STORE discover/movie?language=zh-CN&with_genres=99&sort_by=popular
+1794949376788 [tmdb-net] DONE 222ms /discover/movie?language=zh-CN&with_genres=99&sort_by=popularity.desc
+1794949376802 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=28&sort_by=popular
+1794949376864 [tmdb-cache] STORE movie/1185344/images
+1794949376865 [tmdb-net] DONE 202ms /movie/1185344/images
+1794949376866 [tmdb-net] START /tv/291507/images thread=DefaultDispatcher-worker-5
+1794949376993 [tmdb-cache] STORE discover/movie?with_companies=174&sort_by=popularity.desc&la
+1794949376994 [tmdb-net] DONE 234ms /discover/movie?with_companies=174&sort_by=popularity.desc&language=zh-CN
+1794949376995 [tmdb-net] START /company/41077 thread=DefaultDispatcher-worker-9
+1794949377091 [tmdb-cache] STORE tv/291507/images
+1794949377091 [tmdb-net] DONE 225ms /tv/291507/images
+1794949377093 [tmdb-net] START /movie/1567605/images thread=DefaultDispatcher-worker-5
+1794949377202 [tmdb-cache] STORE company/41077
+1794949377203 [tmdb-net] DONE 208ms /company/41077
+1794949377205 [tmdb-net] START /discover/movie?with_companies=41077&sort_by=popularity.desc&language=zh-CN thread=DefaultDispatcher-worker-9
+1794949377316 [tmdb-cache] STORE movie/1567605/images
+1794949377317 [tmdb-net] DONE 224ms /movie/1567605/images
+1794949377320 [tmdb-net] START /tv/254630/images thread=DefaultDispatcher-worker-5
+1794949377424 [tmdb-cache] STORE discover/movie?with_companies=41077&sort_by=popularity.desc&
+1794949377425 [tmdb-net] DONE 221ms /discover/movie?with_companies=41077&sort_by=popularity.desc&language=zh-CN
+1794949377427 [tmdb-net] START /company/5 thread=DefaultDispatcher-worker-9
+1794949377541 [tmdb-cache] STORE tv/254630/images
+1794949377542 [tmdb-net] DONE 223ms /tv/254630/images
+1794949377546 [tmdb-net] START /movie/1423191/images thread=DefaultDispatcher-worker-5
+1794949377642 [tmdb-cache] STORE company/5
+1794949377643 [tmdb-net] DONE 216ms /company/5
+1794949377644 [tmdb-net] START /discover/movie?with_companies=5&sort_by=popularity.desc&language=zh-CN thread=DefaultDispatcher-worker-9
+1794949377806 [tmdb-cache] STORE movie/1423191/images
+1794949377809 [tmdb-net] DONE 263ms /movie/1423191/images
+1794949377876 [tmdb-cache] STORE discover/movie?with_companies=5&sort_by=popularity.desc&lang
+1794949377877 [tmdb-net] DONE 234ms /discover/movie?with_companies=5&sort_by=popularity.desc&language=zh-CN

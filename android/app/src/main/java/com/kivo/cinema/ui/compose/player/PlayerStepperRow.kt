@@ -16,6 +16,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -67,24 +74,34 @@ internal fun PlayerStepperRow(
                 .background(PlayerTokens.chipSurface),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            StepperHalf(glyph = "minus", enabled = item.enabled) { onStep(-1) }
+            StepperHalf(glyph = "minus", label = "减少", enabled = item.enabled) { onStep(-1) }
             Box(
                 modifier = Modifier
                     .width(1.dp)
                     .height(16.dp)
                     .background(Color.White.copy(alpha = 0.2f)),
             )
-            StepperHalf(glyph = "plus", enabled = item.enabled) { onStep(1) }
+            StepperHalf(glyph = "plus", label = "增加", enabled = item.enabled) { onStep(1) }
         }
     }
 }
 
 @Composable
-private fun RowScope.StepperHalf(glyph: String, enabled: Boolean, onClick: () -> Unit) {
+private fun RowScope.StepperHalf(
+    glyph: String,
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
     Box(
         modifier = Modifier
             .weight(1f)
             .height(PlayerTokens.stepperHeight.dp)
+            .semantics {
+                contentDescription = label
+                role = Role.Button
+                if (enabled) onClick { onClick(); true }
+            }
             .pointerInput(enabled) {
                 // 按下即步进（iOS UIStepper 语义）：不等 tap 识别窗，
                 // 真机实测偶发"点了没反应"集中在 tap 判定上，press 通道无此问题。
@@ -115,6 +132,12 @@ internal fun PlayerToggleRow(
             .alpha(if (item.enabled) 1f else 0.4f)
             .pointerInput(item.enabled) {
                 if (item.enabled) detectTapGestures(onTap = { onToggle() })
+            }
+            .clearAndSetSemantics {
+                contentDescription = item.title
+                role = Role.Switch
+                stateDescription = if (item.on) "已开启" else "已关闭"
+                if (item.enabled) onClick { onToggle(); true }
             }
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -160,7 +183,12 @@ internal fun PlayerResetRow(onReset: () -> Unit, modifier: Modifier = Modifier) 
         modifier = modifier
             .fillMaxWidth()
             .height(PlayerTokens.minTouchTarget.dp)
-            .pointerInput(Unit) { detectTapGestures(onTap = { onReset() }) },
+            .pointerInput(Unit) { detectTapGestures(onTap = { onReset() }) }
+            .clearAndSetSemantics {
+                contentDescription = "重置"
+                role = Role.Button
+                onClick { onReset(); true }
+            },
         contentAlignment = Alignment.Center,
     ) {
         Text(

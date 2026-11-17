@@ -21,6 +21,10 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -59,7 +63,7 @@ internal fun EmbyBrowseTopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // 返回键：对齐 Apple Music 左上角圆钮——浅灰白底 + 极淡描边 + 小号纯黑 Chevron + 无阴影。
-        GlassPillSurface(onClick = onBack, circle = true) {
+        GlassPillSurface(onClick = onBack, circle = true, label = "返回") {
             BackArrow(color = Color(0xFF111114))
         }
         Spacer(Modifier.weight(1f))
@@ -119,6 +123,7 @@ internal fun EmbyBrowseTopBar(
 private fun GlassPillSurface(
     onClick: () -> Unit,
     circle: Boolean = false,
+    label: String? = null,
     content: @Composable () -> Unit,
 ) {
     val shape = RoundedCornerShape(50)
@@ -130,6 +135,12 @@ private fun GlassPillSurface(
         shadowElevation = if (circle) 0.dp else 4.dp,
         modifier = Modifier
             .then(if (circle) Modifier.size(44.dp).border(0.5.dp, Color(0xFFCFD4E0), shape) else Modifier)
+            .then(
+                if (label != null) Modifier.semantics {
+                    contentDescription = label
+                    role = Role.Button
+                } else Modifier,
+            )
             .clickable(onClick = onClick),
         content = content,
     )
