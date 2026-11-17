@@ -1,0 +1,749 @@
+1794955851283 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794955851289 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955851289 [local] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 走 mpv 内核（本地文件）
+1794955851318 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955851322 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794955851324 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794955851325 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794955851329 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794955851331 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794955851332 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794955851332 [prep] 内核创建完成 ms=13
+1794955851332 [prep] 闸门放行 ms=13
+1794955851334 PROXY REQ range=bytes=0- cap=0
+1794955851336 GET range=bytes=0- bytes=460933 cap=0 ms=1
+1794955851457 PROXY REQ range=bytes=309340- cap=0
+1794955851458 GET range=bytes=309340- bytes=151593 cap=0 ms=0
+1794955851623 [vo] 首帧后属性 vid=1 codec=H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 conf=true params={"pixelformat":"mediacodec","w":1280,"h":720,"dw":1280,"dh":720,"crop-x":0,"crop
+1794955851625 [color] 非 HDR（gamma=bt.1886 primaries=bt.709）⇒ 色彩参数不动
+1794955851638 MPV 首帧就绪
+1794955851641 [sub] 无同名外挂字幕：d12c-noaudio
+1794955853953 [345] sample 早于媒体就绪（container_fps 空）
+1794955855008 [345] sample 早于媒体就绪（container_fps 空）
+1794955856020 [345] sample 早于媒体就绪（container_fps 空）
+1794955857034 [345] sample 早于媒体就绪（container_fps 空）
+1794955858046 [345] sample 早于媒体就绪（container_fps 空）
+1794955859059 [345] sample 早于媒体就绪（container_fps 空）
+1794955860506 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794955860513 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955860514 [local] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 走 mpv 内核（本地文件）
+1794955860538 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955860542 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794955860545 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794955860545 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794955860548 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794955860551 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794955860551 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794955860551 [prep] 内核创建完成 ms=13
+1794955860552 [prep] 闸门放行 ms=14
+1794955860554 PROXY REQ range=bytes=0- cap=0
+1794955860555 GET range=bytes=0- bytes=460933 cap=0 ms=1
+1794955860692 PROXY REQ range=bytes=309340- cap=0
+1794955860694 GET range=bytes=309340- bytes=151593 cap=0 ms=1
+1794955860799 [vo] 首帧后属性 vid=1 codec=H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 conf=true params={"pixelformat":"mediacodec","w":1280,"h":720,"dw":1280,"dh":720,"crop-x":0,"crop
+1794955860802 [color] 非 HDR（gamma=bt.1886 primaries=bt.709）⇒ 色彩参数不动
+1794955860817 MPV 首帧就绪
+1794955860821 [sub] 无同名外挂字幕：d12c-noaudio
+1794955863055 [345] sample 早于媒体就绪（container_fps 空）
+1794955864072 [345] sample 早于媒体就绪（container_fps 空）
+1794955865080 [345] sample 早于媒体就绪（container_fps 空）
+1794955866093 [345] sample 早于媒体就绪（container_fps 空）
+1794955867101 [345] sample 早于媒体就绪（container_fps 空）
+1794955868113 [345] sample 早于媒体就绪（container_fps 空）
+1794955869127 [345] sample 早于媒体就绪（container_fps 空）
+1794955870385 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794955870391 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955870392 [local] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 走 mpv 内核（本地文件）
+1794955870413 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955870417 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794955870419 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794955870420 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794955870423 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794955870425 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794955870426 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794955870426 [prep] 内核创建完成 ms=12
+1794955870426 [prep] 闸门放行 ms=12
+1794955870429 PROXY REQ range=bytes=0- cap=0
+1794955870430 GET range=bytes=0- bytes=460933 cap=0 ms=1
+1794955870545 PROXY REQ range=bytes=309340- cap=0
+1794955870546 GET range=bytes=309340- bytes=151593 cap=0 ms=1
+1794955870669 [vo] 首帧后属性 vid=1 codec=H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 conf=true params={"pixelformat":"mediacodec","w":1280,"h":720,"dw":1280,"dh":720,"crop-x":0,"crop
+1794955870670 [color] 非 HDR（gamma=bt.1886 primaries=bt.709）⇒ 色彩参数不动
+1794955870680 MPV 首帧就绪
+1794955870687 [sub] 无同名外挂字幕：d12c-noaudio
+1794955872956 [345] sample 早于媒体就绪（container_fps 空）
+1794955873981 [345] sample 早于媒体就绪（container_fps 空）
+1794955874992 [345] sample 早于媒体就绪（container_fps 空）
+1794955876005 [345] sample 早于媒体就绪（container_fps 空）
+1794955877015 [345] sample 早于媒体就绪（container_fps 空）
+1794955878028 [345] sample 早于媒体就绪（container_fps 空）
+1794955920304 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794955920310 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955920310 [local] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 走 mpv 内核（本地文件）
+1794955920342 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955920351 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794955920355 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794955920360 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794955920369 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794955920372 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794955920372 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794955920372 [prep] 内核创建完成 ms=29
+1794955920372 [prep] 闸门放行 ms=29
+1794955920386 PROXY REQ range=bytes=0- cap=0
+1794955920391 GET range=bytes=0- bytes=460933 cap=0 ms=4
+1794955920550 PROXY REQ range=bytes=309340- cap=0
+1794955920551 GET range=bytes=309340- bytes=151593 cap=0 ms=1
+1794955920700 [vo] 首帧后属性 vid=1 codec=H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 conf=true params={"pixelformat":"mediacodec","w":1280,"h":720,"dw":1280,"dh":720,"crop-x":0,"crop
+1794955920701 [color] 非 HDR（gamma=bt.1886 primaries=bt.709）⇒ 色彩参数不动
+1794955920720 MPV 首帧就绪
+1794955920722 [sub] 无同名外挂字幕：d12c-noaudio
+1794955929718 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794955929724 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955929725 [local] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 走 mpv 内核（本地文件）
+1794955929748 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955929752 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794955929754 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794955929755 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794955929758 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794955929760 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794955929761 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794955929761 [prep] 内核创建完成 ms=13
+1794955929761 [prep] 闸门放行 ms=13
+1794955929764 PROXY REQ range=bytes=0- cap=0
+1794955929766 GET range=bytes=0- bytes=460933 cap=0 ms=1
+1794955929883 PROXY REQ range=bytes=309340- cap=0
+1794955929883 GET range=bytes=309340- bytes=151593 cap=0 ms=0
+1794955930072 [vo] 首帧后属性 vid=1 codec=H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 conf=true params={"pixelformat":"mediacodec","w":1280,"h":720,"dw":1280,"dh":720,"crop-x":0,"crop
+1794955930073 [color] 非 HDR（gamma=bt.1886 primaries=bt.709）⇒ 色彩参数不动
+1794955930080 MPV 首帧就绪
+1794955930083 [sub] 无同名外挂字幕：d12c-noaudio
+1794955939221 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794955939226 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955939227 [local] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 走 mpv 内核（本地文件）
+1794955939250 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955939255 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794955939256 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794955939257 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794955939260 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794955939262 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794955939262 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794955939263 [prep] 内核创建完成 ms=13
+1794955939263 [prep] 闸门放行 ms=13
+1794955939265 PROXY REQ range=bytes=0- cap=0
+1794955939267 GET range=bytes=0- bytes=460933 cap=0 ms=2
+1794955939375 PROXY REQ range=bytes=309340- cap=0
+1794955939376 GET range=bytes=309340- bytes=151593 cap=0 ms=0
+1794955939496 [vo] 首帧后属性 vid=1 codec=H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 conf=true params={"pixelformat":"mediacodec","w":1280,"h":720,"dw":1280,"dh":720,"crop-x":0,"crop
+1794955939498 [color] 非 HDR（gamma=bt.1886 primaries=bt.709）⇒ 色彩参数不动
+1794955939511 MPV 首帧就绪
+1794955939514 [sub] 无同名外挂字幕：d12c-noaudio
+1794955948774 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794955948780 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955948780 [local] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 走 mpv 内核（本地文件）
+1794955948802 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794955948806 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794955948808 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794955948808 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794955948811 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794955948814 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794955948814 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794955948814 [prep] 内核创建完成 ms=11
+1794955948814 [prep] 闸门放行 ms=11
+1794955948818 PROXY REQ range=bytes=0- cap=0
+1794955948820 GET range=bytes=0- bytes=460933 cap=0 ms=1
+1794955948943 PROXY REQ range=bytes=309340- cap=0
+1794955948944 GET range=bytes=309340- bytes=151593 cap=0 ms=0
+1794955949070 [vo] 首帧后属性 vid=1 codec=H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 conf=true params={"pixelformat":"mediacodec","w":1280,"h":720,"dw":1280,"dh":720,"crop-x":0,"crop
+1794955949071 [color] 非 HDR（gamma=bt.1886 primaries=bt.709）⇒ 色彩参数不动
+1794955949090 MPV 首帧就绪
+1794955949093 [sub] 无同名外挂字幕：d12c-noaudio
+1794956360597 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794956360604 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794956360604 [local] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 走 mpv 内核（本地文件）
+1794956360635 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794956360639 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794956360641 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794956360642 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794956360644 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794956360647 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794956360647 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794956360647 [prep] 内核创建完成 ms=12
+1794956360647 [prep] 闸门放行 ms=12
+1794956360650 PROXY REQ range=bytes=0- cap=0
+1794956360660 PROXY REQ range=bytes=16049427- cap=0
+1794956360660 PROXY conn fail: ConnectionResetException: Connection reset
+1794956360661 GET range=bytes=16049427- bytes=193567 cap=0 ms=1
+1794956360764 PROXY REQ range=bytes=48- cap=0
+1794956360783 GET range=bytes=48- bytes=16242946 cap=0 ms=18
+1794956360875 [vo] 首帧后属性 vid=1 codec=H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 conf=true params={"pixelformat":"mediacodec","w":1280,"h":720,"dw":1280,"dh":720,"crop-x":0,"crop
+1794956360903 [color] 非 HDR（gamma=bt.1886 primaries=bt.709）⇒ 色彩参数不动
+1794956360918 MPV 首帧就绪
+1794956360920 [sub] 无同名外挂字幕：d12d-soak300
+1794956362652 [cache] fw=1.6M total=1.8M dur=18.0s underrun=false rate=4.7M/s
+1794956364656 [cache] fw=1.4M total=1.8M dur=16.0s underrun=false rate=0.0M/s
+1794956366667 [cache] fw=1.3M total=1.8M dur=14.1s underrun=false rate=0.0M/s
+1794956368677 [cache] fw=1.1M total=1.8M dur=12.0s underrun=false rate=0.0M/s
+1794956370684 [cache] fw=0.9M total=1.8M dur=10.0s underrun=false rate=0.0M/s
+1794956372698 [cache] fw=1.6M total=2.6M dur=18.1s underrun=false rate=0.0M/s
+1794956374708 [cache] fw=1.4M total=2.6M dur=16.1s underrun=false rate=0.0M/s
+1794956376716 [cache] fw=1.3M total=2.6M dur=14.0s underrun=false rate=0.0M/s
+1794956378726 [cache] fw=1.1M total=2.6M dur=12.1s underrun=false rate=0.0M/s
+1794956380738 [cache] fw=0.9M total=2.6M dur=10.1s underrun=false rate=0.0M/s
+1794956382746 [cache] fw=1.6M total=3.5M dur=18.1s underrun=false rate=0.3M/s
+1794956384758 [cache] fw=1.4M total=3.5M dur=16.1s underrun=false rate=0.0M/s
+1794956386773 [cache] fw=1.3M total=3.5M dur=14.2s underrun=false rate=0.0M/s
+1794956388795 [cache] fw=1.1M total=3.5M dur=12.1s underrun=false rate=0.0M/s
+1794956390801 [cache] fw=1.7M total=4.3M dur=19.7s underrun=false rate=0.0M/s
+1794956392813 [cache] fw=1.6M total=4.4M dur=18.1s underrun=false rate=0.0M/s
+1794956394822 [supply] 供数压力 OFF：runway=16.1s 连续 3 次健康
+1794956394825 [cache] fw=1.4M total=4.4M dur=16.1s underrun=false rate=0.0M/s
+1794956396831 [cache] fw=1.3M total=4.4M dur=14.0s underrun=false rate=0.0M/s
+1794956398840 [cache] fw=1.1M total=4.4M dur=12.1s underrun=false rate=0.0M/s
+1794956400846 [cache] fw=0.9M total=4.4M dur=10.1s underrun=false rate=0.0M/s
+1794956402860 [cache] fw=1.6M total=5.3M dur=18.1s underrun=false rate=0.3M/s
+1794956404864 [cache] fw=1.4M total=5.3M dur=16.1s underrun=false rate=0.0M/s
+1794956406873 [cache] fw=1.3M total=5.3M dur=14.0s underrun=false rate=0.0M/s
+1794956408882 [cache] fw=1.1M total=5.3M dur=12.1s underrun=false rate=0.0M/s
+1794956410893 [cache] fw=0.9M total=5.3M dur=10.1s underrun=false rate=0.0M/s
+1794956412904 [cache] fw=1.6M total=6.1M dur=18.1s underrun=false rate=0.0M/s
+1794956414910 [cache] fw=1.4M total=6.1M dur=16.1s underrun=false rate=0.0M/s
+1794956416920 [cache] fw=1.3M total=6.1M dur=14.2s underrun=false rate=0.0M/s
+1794956418931 [cache] fw=1.1M total=6.1M dur=12.1s underrun=false rate=0.0M/s
+1794956420946 [cache] fw=1.1M total=6.4M dur=12.6s underrun=false rate=0.0M/s
+1794956422954 [cache] fw=1.6M total=7.0M dur=18.1s underrun=false rate=0.3M/s
+1794956424960 [cache] fw=1.4M total=7.0M dur=16.1s underrun=false rate=0.0M/s
+1794956426971 [cache] fw=1.3M total=7.0M dur=14.0s underrun=false rate=0.0M/s
+1794956428982 [cache] fw=1.1M total=7.0M dur=12.1s underrun=false rate=0.0M/s
+1794956430990 [cache] fw=0.9M total=7.0M dur=10.1s underrun=false rate=0.0M/s
+1794956432996 [cache] fw=1.6M total=7.9M dur=18.1s underrun=false rate=0.0M/s
+1794956435005 [cache] fw=1.4M total=7.9M dur=16.1s underrun=false rate=0.0M/s
+1794956437024 [cache] fw=1.2M total=7.9M dur=14.0s underrun=false rate=0.0M/s
+1794956439033 [cache] fw=1.1M total=7.9M dur=12.1s underrun=false rate=0.0M/s
+1794956441043 [cache] fw=0.9M total=7.9M dur=10.1s underrun=false rate=0.0M/s
+1794956443054 [cache] fw=1.6M total=8.7M dur=18.1s underrun=false rate=0.3M/s
+1794956445065 [cache] fw=1.4M total=8.7M dur=16.1s underrun=false rate=0.0M/s
+1794956447074 [cache] fw=1.3M total=8.7M dur=14.2s underrun=false rate=0.0M/s
+1794956449085 [cache] fw=1.1M total=8.7M dur=12.1s underrun=false rate=0.0M/s
+1794956451104 [cache] fw=1.1M total=8.9M dur=12.0s underrun=false rate=0.0M/s
+1794956453116 [cache] fw=1.6M total=9.6M dur=18.1s underrun=false rate=0.0M/s
+1794956455125 [cache] fw=1.4M total=9.6M dur=16.1s underrun=false rate=0.0M/s
+1794956457137 [cache] fw=1.2M total=9.6M dur=14.0s underrun=false rate=0.0M/s
+1794956459146 [cache] fw=1.1M total=9.6M dur=12.1s underrun=false rate=0.0M/s
+1794956461155 [cache] fw=0.9M total=9.6M dur=10.1s underrun=false rate=0.0M/s
+1794956463165 [cache] fw=1.6M total=10.5M dur=18.1s underrun=false rate=0.3M/s
+1794956465175 [cache] fw=1.4M total=10.5M dur=16.0s underrun=false rate=0.0M/s
+1794956467180 [cache] fw=1.2M total=10.5M dur=14.0s underrun=false rate=0.0M/s
+1794956469189 [cache] fw=1.1M total=10.5M dur=12.1s underrun=false rate=0.0M/s
+1794956471196 [cache] fw=1.5M total=11.1M dur=16.9s underrun=false rate=0.0M/s
+1794956473204 [cache] fw=1.6M total=11.4M dur=18.1s underrun=false rate=0.0M/s
+1794956475213 [cache] fw=1.4M total=11.4M dur=16.1s underrun=false rate=0.0M/s
+1794956477218 [cache] fw=1.2M total=11.4M dur=14.0s underrun=false rate=0.0M/s
+1794956479224 [cache] fw=1.1M total=11.4M dur=12.1s underrun=false rate=0.0M/s
+1794956481233 [cache] fw=0.9M total=11.4M dur=10.1s underrun=false rate=0.0M/s
+1794956483242 [cache] fw=1.6M total=12.2M dur=18.1s underrun=false rate=0.3M/s
+1794956485254 [cache] fw=1.4M total=12.2M dur=16.1s underrun=false rate=0.0M/s
+1794956487269 [cache] fw=1.2M total=12.2M dur=14.0s underrun=false rate=0.0M/s
+1794956489278 [cache] fw=1.1M total=12.2M dur=12.1s underrun=false rate=0.0M/s
+1794956491286 [cache] fw=0.9M total=12.2M dur=10.1s underrun=false rate=0.0M/s
+1794956493296 [cache] fw=1.6M total=13.1M dur=18.1s underrun=false rate=0.0M/s
+1794956495304 [cache] fw=1.4M total=13.1M dur=16.1s underrun=false rate=0.0M/s
+1794956497314 [cache] fw=1.2M total=13.1M dur=14.2s underrun=false rate=0.0M/s
+1794956499323 [cache] fw=1.1M total=13.1M dur=12.1s underrun=false rate=0.0M/s
+1794956501346 [cache] fw=1.0M total=13.3M dur=11.7s underrun=false rate=0.0M/s
+1794956503353 [cache] fw=1.6M total=14.0M dur=18.1s underrun=false rate=0.3M/s
+1794956505367 [cache] fw=1.4M total=14.0M dur=16.1s underrun=false rate=0.0M/s
+1794956507376 [cache] fw=1.2M total=14.0M dur=14.0s underrun=false rate=0.0M/s
+1794956509386 [cache] fw=1.1M total=14.0M dur=12.1s underrun=false rate=0.0M/s
+1794956511394 [cache] fw=0.9M total=14.0M dur=10.1s underrun=false rate=0.0M/s
+1794956513399 [cache] fw=1.6M total=14.8M dur=18.1s underrun=false rate=0.0M/s
+1794956515413 [cache] fw=1.4M total=14.8M dur=16.1s underrun=false rate=0.0M/s
+1794956517427 [cache] fw=1.2M total=14.8M dur=14.0s underrun=false rate=0.0M/s
+1794956519435 [cache] fw=1.1M total=14.8M dur=12.1s underrun=false rate=0.0M/s
+1794956521452 [cache] fw=0.9M total=14.8M dur=10.1s underrun=false rate=0.0M/s
+1794956523461 [cache] fw=1.6M total=15.7M dur=18.1s underrun=false rate=0.3M/s
+1794956525470 [cache] fw=1.4M total=15.7M dur=16.1s underrun=false rate=0.0M/s
+1794956527478 [cache] fw=1.2M total=15.7M dur=14.2s underrun=false rate=0.0M/s
+1794956529486 [cache] fw=1.1M total=15.7M dur=12.1s underrun=false rate=0.0M/s
+1794956531508 [cache] fw=1.4M total=16.2M dur=15.3s underrun=false rate=0.0M/s
+1794956533518 [cache] fw=1.6M total=16.6M dur=18.1s underrun=false rate=0.2M/s
+1794956535526 [cache] fw=1.4M total=16.6M dur=16.1s underrun=false rate=0.0M/s
+1794956537534 [cache] fw=1.2M total=16.6M dur=14.0s underrun=false rate=0.0M/s
+1794956539543 [cache] fw=1.1M total=16.6M dur=12.1s underrun=false rate=0.0M/s
+1794956541553 [cache] fw=0.9M total=16.6M dur=10.1s underrun=false rate=0.0M/s
+1794956543563 [cache] fw=1.6M total=17.5M dur=18.1s underrun=false rate=0.0M/s
+1794956545577 [cache] fw=1.4M total=17.5M dur=16.0s underrun=false rate=0.0M/s
+1794956547586 [cache] fw=1.2M total=17.5M dur=14.0s underrun=false rate=0.0M/s
+1794956549595 [cache] fw=1.1M total=17.5M dur=12.1s underrun=false rate=0.0M/s
+1794956551607 [cache] fw=0.9M total=17.5M dur=10.1s underrun=false rate=0.0M/s
+1794956553616 [cache] fw=1.6M total=18.3M dur=18.1s underrun=false rate=0.3M/s
+1794956555629 [cache] fw=1.4M total=18.3M dur=16.1s underrun=false rate=0.0M/s
+1794956557637 [cache] fw=1.2M total=18.3M dur=14.0s underrun=false rate=0.0M/s
+1794956559646 [cache] fw=1.1M total=18.3M dur=12.1s underrun=false rate=0.0M/s
+1794956561655 [cache] fw=0.9M total=18.3M dur=10.1s underrun=false rate=0.0M/s
+1794956563664 [cache] fw=1.6M total=19.2M dur=18.1s underrun=false rate=0.0M/s
+1794956565673 [cache] fw=1.4M total=19.2M dur=16.1s underrun=false rate=0.0M/s
+1794956567688 [cache] fw=1.2M total=19.2M dur=14.2s underrun=false rate=0.0M/s
+1794956569695 [cache] fw=1.1M total=19.2M dur=12.1s underrun=false rate=0.0M/s
+1794956571700 [cache] fw=1.3M total=19.6M dur=14.8s underrun=false rate=0.0M/s
+1794956573708 [cache] fw=1.6M total=20.1M dur=18.1s underrun=false rate=0.3M/s
+1794956575714 [cache] fw=1.4M total=20.1M dur=16.1s underrun=false rate=0.0M/s
+1794956577718 [cache] fw=1.2M total=20.1M dur=14.0s underrun=false rate=0.0M/s
+1794956579722 [cache] fw=1.1M total=20.1M dur=12.1s underrun=false rate=0.0M/s
+1794956581730 [cache] fw=0.9M total=20.1M dur=10.1s underrun=false rate=0.0M/s
+1794956583739 [cache] fw=1.6M total=21.0M dur=18.1s underrun=false rate=0.0M/s
+1794956585749 [cache] fw=1.4M total=21.0M dur=16.1s underrun=false rate=0.0M/s
+1794956587757 [cache] fw=1.3M total=21.0M dur=14.2s underrun=false rate=0.0M/s
+1794956589766 [cache] fw=1.1M total=21.0M dur=12.1s underrun=false rate=0.0M/s
+1794956591775 [cache] fw=0.9M total=21.0M dur=10.1s underrun=false rate=0.0M/s
+1794956593785 [cache] fw=1.6M total=21.8M dur=18.1s underrun=false rate=0.3M/s
+1794956595789 [cache] fw=1.4M total=21.8M dur=16.1s underrun=false rate=0.0M/s
+1794956597799 [cache] fw=1.2M total=21.8M dur=14.2s underrun=false rate=0.0M/s
+1794956599804 [cache] fw=1.1M total=21.8M dur=12.1s underrun=false rate=0.0M/s
+1794956601810 [cache] fw=0.9M total=21.8M dur=10.1s underrun=false rate=0.0M/s
+1794956603814 [cache] fw=1.6M total=22.7M dur=18.1s underrun=false rate=0.0M/s
+1794956605824 [cache] fw=1.4M total=22.7M dur=16.1s underrun=false rate=0.0M/s
+1794956607832 [cache] fw=1.2M total=22.7M dur=14.2s underrun=false rate=0.0M/s
+1794956609841 [cache] fw=1.1M total=22.7M dur=12.1s underrun=false rate=0.0M/s
+1794956611850 [cache] fw=0.9M total=22.7M dur=10.1s underrun=false rate=0.0M/s
+1794956613855 [cache] fw=1.6M total=23.6M dur=18.2s underrun=false rate=0.3M/s
+1794956615864 [cache] fw=1.4M total=23.6M dur=16.1s underrun=false rate=0.0M/s
+1794956617873 [cache] fw=1.2M total=23.6M dur=14.2s underrun=false rate=0.0M/s
+1794956619882 [cache] fw=1.1M total=23.6M dur=12.2s underrun=false rate=0.0M/s
+1794956621890 [cache] fw=0.9M total=23.6M dur=10.1s underrun=false rate=0.0M/s
+1794956623897 [cache] fw=1.6M total=24.4M dur=18.1s underrun=false rate=0.0M/s
+1794957067603 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794957067610 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794957067610 [local] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 走 mpv 内核（本地文件）
+1794957067637 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794957067641 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794957067645 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794957067646 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794957067649 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794957067651 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794957067651 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794957067651 [prep] 内核创建完成 ms=14
+1794957067652 [prep] 闸门放行 ms=14
+1794957067654 PROXY REQ range=bytes=0- cap=0
+1794957067662 PROXY REQ range=bytes=28781449- cap=0
+1794957067663 PROXY conn fail: ConnectionResetException: Connection reset
+1794957067664 GET range=bytes=28781449- bytes=116689 cap=0 ms=1
+1794957067796 PROXY REQ range=bytes=48- cap=0
+1794957067948 [vo] 首帧后属性 vid=1 codec=H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 conf=true params={"pixelformat":"mediacodec","w":3840,"h":2160,"dw":3840,"dh":2160,"crop-x":0,"cr
+1794957067949 [color] 非 HDR（gamma=bt.1886 primaries=bt.709）⇒ 色彩参数不动
+1794957067967 MPV 首帧就绪
+1794957067971 [sub] 无同名外挂字幕：d12e-4k180
+1794957069657 [cache] fw=3.5M total=3.8M dur=18.1s underrun=false rate=4.3M/s
+1794957071665 [cache] fw=3.1M total=3.8M dur=16.0s underrun=false rate=0.0M/s
+1794957073675 [cache] fw=2.8M total=3.8M dur=14.1s underrun=false rate=0.0M/s
+1794957075687 [cache] fw=2.4M total=3.8M dur=12.1s underrun=false rate=0.0M/s
+1794957077694 [cache] fw=2.0M total=3.8M dur=10.0s underrun=false rate=0.0M/s
+1794957079704 [cache] fw=3.5M total=5.7M dur=18.2s underrun=false rate=0.0M/s
+1794957081712 [cache] fw=3.1M total=5.7M dur=16.1s underrun=false rate=0.0M/s
+1794957083723 [cache] fw=2.8M total=5.7M dur=14.2s underrun=false rate=0.0M/s
+1794957085734 [cache] fw=2.4M total=5.7M dur=12.2s underrun=false rate=0.0M/s
+1794957087745 [cache] fw=2.0M total=5.7M dur=10.1s underrun=false rate=0.0M/s
+1794957089752 [cache] fw=3.5M total=7.6M dur=18.2s underrun=false rate=0.8M/s
+1794957091757 [cache] fw=3.1M total=7.6M dur=16.3s underrun=false rate=0.0M/s
+1794957093770 [cache] fw=2.8M total=7.6M dur=14.2s underrun=false rate=0.0M/s
+1794957095781 [cache] fw=2.4M total=7.6M dur=12.1s underrun=false rate=0.0M/s
+1794957097786 [cache] fw=2.0M total=7.6M dur=10.1s underrun=false rate=0.0M/s
+1794957099800 [cache] fw=3.5M total=9.5M dur=18.2s underrun=false rate=0.0M/s
+1794957101804 [cache] fw=3.0M total=9.5M dur=16.1s underrun=false rate=0.0M/s
+1794957103808 [cache] fw=2.8M total=9.5M dur=14.2s underrun=false rate=0.0M/s
+1794957105814 [cache] fw=2.4M total=9.5M dur=12.1s underrun=false rate=0.0M/s
+1794957107819 [cache] fw=1.9M total=9.5M dur=10.1s underrun=false rate=0.0M/s
+1794957107985 GET range=bytes=48- bytes=28898090 cap=0 ms=40188
+1794957109829 [cache] fw=3.5M total=11.4M dur=18.2s underrun=false rate=0.8M/s
+1794957111840 [cache] fw=3.2M total=11.4M dur=16.1s underrun=false rate=0.0M/s
+1794957113851 [cache] fw=2.8M total=11.4M dur=14.2s underrun=false rate=0.0M/s
+1794957115862 [cache] fw=2.4M total=11.4M dur=12.2s underrun=false rate=0.0M/s
+1794957117873 [cache] fw=2.0M total=11.4M dur=10.1s underrun=false rate=0.0M/s
+1794957119883 [cache] fw=3.5M total=13.3M dur=18.2s underrun=false rate=0.7M/s
+1794957121898 [cache] fw=3.2M total=13.3M dur=16.1s underrun=false rate=0.0M/s
+1794957123908 [cache] fw=2.8M total=13.3M dur=14.2s underrun=false rate=0.0M/s
+1794957125918 [cache] fw=2.4M total=13.3M dur=12.2s underrun=false rate=0.0M/s
+1794957127927 [cache] fw=2.0M total=13.3M dur=10.1s underrun=false rate=0.0M/s
+1794957129933 [cache] fw=3.4M total=15.2M dur=18.2s underrun=false rate=0.0M/s
+1794957131943 [cache] fw=3.1M total=15.2M dur=16.3s underrun=false rate=0.0M/s
+1794957133954 [cache] fw=2.8M total=15.2M dur=14.2s underrun=false rate=0.0M/s
+1794957135963 [cache] fw=2.4M total=15.2M dur=12.2s underrun=false rate=0.0M/s
+1794957137978 [cache] fw=2.0M total=15.2M dur=10.1s underrun=false rate=0.0M/s
+1794957139988 [cache] fw=3.5M total=17.1M dur=18.2s underrun=false rate=0.8M/s
+1794957141995 [cache] fw=3.1M total=17.1M dur=16.1s underrun=false rate=0.0M/s
+1794957144004 [cache] fw=2.8M total=17.1M dur=14.2s underrun=false rate=0.0M/s
+1794957146009 [cache] fw=2.3M total=17.1M dur=12.2s underrun=false rate=0.0M/s
+1794957148014 [cache] fw=1.9M total=17.1M dur=10.1s underrun=false rate=0.0M/s
+1794957150024 [cache] fw=3.5M total=19.0M dur=18.2s underrun=false rate=0.0M/s
+1794957152029 [cache] fw=3.2M total=19.0M dur=16.3s underrun=false rate=0.0M/s
+1794957154038 [cache] fw=2.7M total=19.0M dur=14.2s underrun=false rate=0.0M/s
+1794957156055 [cache] fw=2.3M total=19.0M dur=12.1s underrun=false rate=0.0M/s
+1794957158070 [cache] fw=1.9M total=19.0M dur=10.1s underrun=false rate=0.0M/s
+1794957160076 [cache] fw=3.5M total=20.9M dur=18.2s underrun=false rate=0.8M/s
+1794957162085 [cache] fw=3.1M total=20.9M dur=16.1s underrun=false rate=0.0M/s
+1794957164094 [cache] fw=2.7M total=20.9M dur=14.2s underrun=false rate=0.0M/s
+1794957166102 [cache] fw=2.3M total=20.9M dur=12.2s underrun=false rate=0.0M/s
+1794957168108 [cache] fw=1.9M total=20.9M dur=10.1s underrun=false rate=0.0M/s
+1794957170115 [cache] fw=3.5M total=22.8M dur=18.2s underrun=false rate=0.7M/s
+1794957172125 [cache] fw=3.1M total=22.8M dur=16.3s underrun=false rate=0.0M/s
+1794957174138 [cache] fw=2.7M total=22.8M dur=14.2s underrun=false rate=0.0M/s
+1794957176153 [cache] fw=2.3M total=22.8M dur=12.2s underrun=false rate=0.0M/s
+1794957178158 [cache] fw=1.9M total=22.8M dur=10.1s underrun=false rate=0.0M/s
+1794957180168 [cache] fw=3.5M total=24.7M dur=18.2s underrun=false rate=0.0M/s
+1794957182179 [cache] fw=3.1M total=24.7M dur=16.3s underrun=false rate=0.0M/s
+1794957184187 [cache] fw=2.7M total=24.7M dur=14.2s underrun=false rate=0.0M/s
+1794957186196 [cache] fw=2.3M total=24.7M dur=12.2s underrun=false rate=0.0M/s
+1794957188206 [cache] fw=2.0M total=24.7M dur=10.3s underrun=false rate=0.0M/s
+1794957190220 [cache] fw=3.4M total=26.5M dur=18.2s underrun=false rate=0.8M/s
+1794957192225 [cache] fw=3.1M total=26.5M dur=16.1s underrun=false rate=0.0M/s
+1794957194233 [cache] fw=2.7M total=26.5M dur=14.2s underrun=false rate=0.0M/s
+1794957196251 [cache] fw=2.3M total=26.5M dur=12.2s underrun=false rate=0.0M/s
+1794957198259 [cache] fw=2.0M total=26.5M dur=10.1s underrun=false rate=0.0M/s
+1794957200265 [cache] fw=3.5M total=28.4M dur=18.2s underrun=false rate=0.0M/s
+1794957202273 [cache] fw=3.1M total=28.4M dur=16.3s underrun=false rate=0.0M/s
+1794957204282 [cache] fw=2.7M total=28.4M dur=14.2s underrun=false rate=0.0M/s
+1794957206296 [cache] fw=2.3M total=28.4M dur=12.2s underrun=false rate=0.0M/s
+1794957208304 [cache] fw=2.0M total=28.4M dur=10.1s underrun=false rate=0.0M/s
+1794957210313 [cache] fw=3.5M total=30.3M dur=18.2s underrun=false rate=0.8M/s
+1794957212326 [cache] fw=3.1M total=30.3M dur=16.3s underrun=false rate=0.0M/s
+1794957214336 [cache] fw=2.7M total=30.3M dur=14.2s underrun=false rate=0.0M/s
+1794957216342 [cache] fw=2.3M total=30.3M dur=12.2s underrun=false rate=0.0M/s
+1794957218351 [cache] fw=2.0M total=30.3M dur=10.3s underrun=false rate=0.0M/s
+1794957220360 [cache] fw=3.5M total=32.2M dur=18.2s underrun=false rate=0.0M/s
+1794957222368 [cache] fw=3.1M total=32.2M dur=16.1s underrun=false rate=0.0M/s
+1794957224377 [cache] fw=2.7M total=32.2M dur=14.2s underrun=false rate=0.0M/s
+1794957226385 [cache] fw=2.4M total=32.2M dur=12.2s underrun=false rate=0.0M/s
+1794957228391 [cache] fw=2.0M total=32.2M dur=10.1s underrun=false rate=0.0M/s
+1794957230400 [cache] fw=3.3M total=33.9M dur=17.3s underrun=false rate=0.7M/s
+1794957232405 [cache] fw=2.9M total=33.9M dur=15.3s underrun=false rate=0.0M/s
+1794957234430 [cache] fw=2.5M total=33.9M dur=13.2s underrun=false rate=0.0M/s
+1794957236439 [cache] fw=2.1M total=33.9M dur=11.2s underrun=false rate=0.0M/s
+1794957238448 [cache] fw=1.7M total=33.9M dur=9.1s underrun=false rate=0.0M/s
+1794957240456 [cache] fw=1.4M total=33.9M dur=7.2s underrun=false rate=0.0M/s
+1794957242466 [cache] fw=1.0M total=33.9M dur=5.2s underrun=false rate=0.0M/s
+1794957244471 [cache] fw=0.6M total=33.9M dur=3.2s underrun=false rate=0.0M/s
+1794957246494 [cache] fw=0.2M total=33.9M dur=1.2s underrun=false rate=0.0M/s
+1794957478649 [tmdb-cache] HIT movie/now_playing?language=zh-CN
+1794957478650 [tmdb-cache] HIT discover/tv?language=zh-CN&with_genres=16&with_original_lang
+1794957478650 [tmdb-cache] HIT tv/on_the_air?language=zh-CN
+1794957478653 [tmdb-cache] HIT trending/all/week?language=zh-CN
+1794957478653 [tmdb-cache] HIT discover/tv?language=zh-CN&with_genres=10764&first_air_date.
+1794957478960 [tmdb-cache] HIT company/33
+1794957478960 [tmdb-cache] HIT tv/top_rated?language=zh-CN
+1794957478960 [tmdb-cache] HIT genre/movie/list?language=zh-CN
+1794957478963 [tmdb-cache] HIT discover/movie?with_companies=33&sort_by=popularity.desc&lan
+1794957478964 [tmdb-cache] HIT watch/providers/movie?watch_region=US&language=zh-CN
+1794957478965 [tmdb-cache] HIT person/popular?language=zh-CN&page=1
+1794957478966 [brand] 启动动画开始 plan=WARM end=0.8
+1794957478971 [tmdb-cache] HIT company/4
+1794957478972 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=28&sort_by=popular
+1794957478975 [tmdb-cache] HIT discover/movie?with_companies=4&sort_by=popularity.desc&lang
+1794957478977 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=12&sort_by=popular
+1794957478978 [tmdb-cache] HIT company/2
+1794957478981 [tmdb-cache] HIT discover/movie?with_companies=2&sort_by=popularity.desc&lang
+1794957478981 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=16&sort_by=popular
+1794957478985 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=35&sort_by=popular
+1794957478989 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=80&sort_by=popular
+1794957478989 [tmdb-cache] HIT discover/movie?with_watch_providers=8&watch_region=US&sort_b
+1794957478994 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=99&sort_by=popular
+1794957478994 [tmdb-cache] HIT discover/movie?with_watch_providers=350&watch_region=US&sort
+1794957478995 [tmdb-cache] HIT company/174
+1794957478998 [tmdb-cache] HIT discover/movie?with_watch_providers=337&watch_region=US&sort
+1794957478999 [tmdb-cache] HIT discover/movie?with_companies=174&sort_by=popularity.desc&la
+1794957479003 [tmdb-cache] HIT company/41077
+1794957479003 [tmdb-cache] HIT discover/movie?with_watch_providers=538&watch_region=US&sort
+1794957479006 [tmdb-cache] HIT discover/movie?with_companies=41077&sort_by=popularity.desc&
+1794957479010 [tmdb-cache] HIT company/5
+1794957479013 [tmdb-cache] HIT discover/movie?with_companies=5&sort_by=popularity.desc&lang
+1794957479135 [tmdb-cache] HIT movie/1368337/images
+1794957479159 [tmdb-cache] HIT tv/84773/images
+1794957479175 [tmdb-cache] HIT movie/1300968/images
+1794957479178 [brand] 音效 played=true（t=0.16518284s）
+1794957479184 [tmdb-cache] HIT tv/213375/images
+1794957479189 [tmdb-cache] HIT movie/1400837/images
+1794957479195 [tmdb-cache] HIT movie/1185344/images
+1794957479203 [tmdb-cache] HIT tv/291507/images
+1794957479208 [tmdb-cache] HIT movie/1567605/images
+1794957479214 [tmdb-cache] HIT tv/254630/images
+1794957479219 [tmdb-cache] HIT movie/1423191/images
+1794957479236 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=28&sort_by=popular
+1794957479279 [tmdb-cache] HIT movie/1368337/videos
+1794957479415 [io] home.posterBlock thread=DefaultDispatcher-worker-13 cost=283ms
+1794957479587 [io] home.posterBlock thread=DefaultDispatcher-worker-12 cost=456ms
+1794957479778 [brand] 启动动画结束 elapsed=0.809434 正常=true
+1794957537769 [tmdb-cache] HIT discover/tv?language=zh-CN&with_genres=16&with_original_lang
+1794957537770 [tmdb-cache] HIT trending/all/week?language=zh-CN
+1794957537772 [tmdb-cache] HIT discover/tv?language=zh-CN&with_genres=10764&first_air_date.
+1794957537773 [tmdb-cache] HIT movie/now_playing?language=zh-CN
+1794957537775 [tmdb-cache] HIT tv/on_the_air?language=zh-CN
+1794957544663 [tmdb-cache] HIT trending/all/week?language=zh-CN
+1794957544664 [tmdb-cache] HIT discover/tv?language=zh-CN&with_genres=16&with_original_lang
+1794957544665 [tmdb-cache] HIT discover/tv?language=zh-CN&with_genres=10764&first_air_date.
+1794957544667 [tmdb-cache] HIT tv/on_the_air?language=zh-CN
+1794957544667 [tmdb-cache] HIT movie/now_playing?language=zh-CN
+1794957544729 [brand] 启动动画开始 plan=WARM end=0.8
+1794957544730 [tmdb-cache] HIT company/33
+1794957544730 [tmdb-cache] HIT person/popular?language=zh-CN&page=1
+1794957544731 [tmdb-cache] HIT discover/movie?with_companies=33&sort_by=popularity.desc&lan
+1794957544732 [tmdb-cache] HIT tv/top_rated?language=zh-CN
+1794957544733 [tmdb-cache] HIT genre/movie/list?language=zh-CN
+1794957544734 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=28&sort_by=popular
+1794957544735 [tmdb-cache] HIT company/4
+1794957544743 [tmdb-cache] HIT discover/movie?with_companies=4&sort_by=popularity.desc&lang
+1794957544746 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=12&sort_by=popular
+1794957544746 [tmdb-cache] HIT watch/providers/movie?watch_region=US&language=zh-CN
+1794957544748 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=16&sort_by=popular
+1794957544749 [tmdb-cache] HIT company/2
+1794957544750 [tmdb-cache] HIT discover/movie?with_companies=2&sort_by=popularity.desc&lang
+1794957544750 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=35&sort_by=popular
+1794957544755 [tmdb-cache] HIT company/174
+1794957544756 [tmdb-cache] HIT discover/movie?with_companies=174&sort_by=popularity.desc&la
+1794957544757 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=80&sort_by=popular
+1794957544758 [tmdb-cache] HIT company/41077
+1794957544758 [tmdb-cache] HIT discover/movie?with_watch_providers=8&watch_region=US&sort_b
+1794957544760 [tmdb-cache] HIT discover/movie?with_companies=41077&sort_by=popularity.desc&
+1794957544760 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=99&sort_by=popular
+1794957544761 [tmdb-cache] HIT discover/movie?with_watch_providers=350&watch_region=US&sort
+1794957544762 [tmdb-cache] HIT company/5
+1794957544763 [tmdb-cache] HIT discover/movie?with_companies=5&sort_by=popularity.desc&lang
+1794957544763 [tmdb-cache] HIT discover/movie?with_watch_providers=337&watch_region=US&sort
+1794957544765 [tmdb-cache] HIT discover/movie?with_watch_providers=538&watch_region=US&sort
+1794957544810 [brand] 音效 played=false（t=0.082514815s）
+1794957544814 [tmdb-cache] HIT movie/1368337/images
+1794957544830 [tmdb-cache] HIT tv/84773/images
+1794957544846 [tmdb-cache] HIT movie/1300968/images
+1794957544855 [tmdb-cache] HIT tv/213375/images
+1794957544859 [tmdb-cache] HIT movie/1400837/images
+1794957544863 [tmdb-cache] HIT movie/1185344/images
+1794957544866 [tmdb-cache] HIT tv/291507/images
+1794957544870 [tmdb-cache] HIT movie/1567605/images
+1794957544873 [tmdb-cache] HIT movie/1368337/videos
+1794957544874 [tmdb-cache] HIT tv/254630/images
+1794957544875 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=28&sort_by=popular
+1794957544877 [tmdb-cache] HIT movie/1423191/images
+1794957544964 [io] home.posterBlock thread=DefaultDispatcher-worker-9 cost=154ms
+1794957545080 [io] home.posterBlock thread=DefaultDispatcher-worker-11 cost=270ms
+1794957545533 [brand] 启动动画结束 elapsed=0.80901057 正常=true
+1794957618164 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794957618170 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794957618172 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794957618414 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794957618415 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794957618416 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794957618426 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794957618429 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794957618429 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794957618430 [prep] 内核创建完成 ms=25
+1794957618430 [prep] 闸门放行 ms=25
+1794957618438 PROXY REQ range=bytes=0- cap=0
+1794957618732 PROXY REQ range=bytes=41260737373- cap=0
+1794957619001 PROXY conn fail: ConnectionResetException: Connection reset
+1794957619006 GET range=bytes=41260737373- bytes=379290 cap=0 ms=2
+1794957619029 PROXY REQ range=bytes=4385- cap=0
+1794957619106 PROXY REQ range=bytes=13601545593- cap=0
+1794957619551 PROXY conn fail: ConnectionResetException: Connection reset
+1794957620465 [vo] 首帧后属性 vid=1 codec=H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 conf=true params={"pixelformat":"mediacodec","w":1920,"h":1080,"dw":1920,"dh":1080,"crop-x":0,"cr
+1794957620467 [cache] fw=0.4M total=2.8M dur=0.2s underrun=false rate=2.5M/s
+1794957620471 [color] 非 HDR（gamma=bt.1886 primaries=bt.709）⇒ 色彩参数不动
+1794957620475 MPV 首帧就绪
+1794957622473 [cache] fw=9.0M total=17.8M dur=1.9s underrun=false rate=7.6M/s
+1794957624494 [cache] fw=18.3M total=35.0M dur=4.6s underrun=false rate=8.5M/s
+1794957626498 [cache] fw=27.3M total=52.1M dur=7.6s underrun=false rate=9.3M/s
+1794957628506 [cache] fw=35.8M total=67.1M dur=10.1s underrun=false rate=7.9M/s
+1794957630509 [cache] fw=44.5M total=71.3M dur=13.6s underrun=false rate=8.6M/s
+1794957632536 [cache] fw=53.5M total=72.0M dur=16.2s underrun=false rate=8.7M/s
+1794957634542 [cache] fw=63.4M total=71.3M dur=19.0s underrun=false rate=8.4M/s
+1794957636549 [supply] 供数压力 OFF：runway=17.7s 连续 3 次健康
+1794957636552 [cache] fw=59.2M total=72.0M dur=17.7s underrun=false rate=5.1M/s
+1794957638483 [supply] 放行 1 项延后预热（超时兜底 0 项）
+1794957638556 [cache] fw=52.8M total=72.0M dur=15.6s underrun=false rate=0.0M/s
+1794957639733 PROXY REQ range=bytes=0- cap=2097152
+1794957639981 GET range=bytes=0- bytes=2097152 cap=2097152 ms=4
+1794957639983 PROXY REQ range=bytes=41260737373- cap=2097152
+1794957640205 GET range=bytes=41260737373- bytes=379290 cap=2097152 ms=2
+1794957640221 PROXY REQ range=bytes=4385- cap=2097152
+1794957640276 GET range=bytes=4385- bytes=2097152 cap=2097152 ms=55
+1794957640314 PROXY REQ range=bytes=2101537- cap=2097152
+1794957640560 [cache] fw=46.5M total=72.0M dur=13.7s underrun=false rate=0.0M/s
+1794957640663 GET range=bytes=2101537- bytes=2097152 cap=2097152 ms=46
+1794957640677 PROXY REQ range=bytes=4198689- cap=2097152
+1794957641076 GET range=bytes=4198689- bytes=2097152 cap=2097152 ms=35
+1794957641080 PROXY REQ range=bytes=6295841- cap=2097152
+1794957641473 GET range=bytes=6295841- bytes=2097152 cap=2097152 ms=69
+1794957642563 [cache] fw=40.1M total=72.0M dur=11.7s underrun=false rate=0.0M/s
+1794957644567 [cache] fw=62.7M total=72.0M dur=17.4s underrun=false rate=0.0M/s
+1794957646571 [cache] fw=56.7M total=72.0M dur=15.4s underrun=false rate=14.2M/s
+1794957648579 [cache] fw=50.4M total=72.0M dur=13.5s underrun=false rate=0.0M/s
+1794957650587 [cache] fw=41.7M total=72.0M dur=11.4s underrun=false rate=0.0M/s
+1794957652591 [cache] fw=59.8M total=71.7M dur=16.5s underrun=false rate=0.0M/s
+1794957654606 [cache] fw=58.9M total=71.5M dur=16.1s underrun=false rate=14.1M/s
+1794957656612 [cache] fw=52.6M total=71.5M dur=14.3s underrun=false rate=0.0M/s
+1794957658621 [cache] fw=44.6M total=71.5M dur=12.3s underrun=false rate=0.0M/s
+1794957660625 [cache] fw=35.5M total=71.5M dur=10.1s underrun=false rate=0.0M/s
+1794957662634 [cache] fw=61.6M total=70.0M dur=17.2s underrun=false rate=14.8M/s
+1794957664637 [cache] fw=56.3M total=70.0M dur=15.3s underrun=false rate=0.9M/s
+1794957666641 [cache] fw=48.4M total=70.0M dur=13.0s underrun=false rate=0.0M/s
+1794957668649 [cache] fw=42.7M total=70.0M dur=11.2s underrun=false rate=0.0M/s
+1794957670653 [cache] fw=60.4M total=70.9M dur=16.3s underrun=false rate=0.0M/s
+1794957672658 [cache] fw=58.0M total=71.8M dur=15.5s underrun=false rate=14.1M/s
+1794957674663 [cache] fw=52.0M total=71.8M dur=13.7s underrun=false rate=0.0M/s
+1794957676706 [cache] fw=44.6M total=71.8M dur=11.4s underrun=false rate=0.0M/s
+1794957678710 [cache] fw=61.6M total=72.0M dur=17.7s underrun=false rate=0.0M/s
+1794957680714 [cache] fw=59.6M total=71.0M dur=17.2s underrun=false rate=15.4M/s
+1794957682720 [cache] fw=51.8M total=71.0M dur=14.9s underrun=false rate=0.0M/s
+1794957684729 [cache] fw=42.2M total=71.0M dur=13.0s underrun=false rate=0.0M/s
+1794957686737 [cache] fw=36.2M total=71.0M dur=11.2s underrun=false rate=0.0M/s
+1794957688741 [cache] fw=58.8M total=72.0M dur=17.9s underrun=false rate=0.0M/s
+1794957690745 [cache] fw=60.6M total=71.8M dur=18.2s underrun=false rate=15.6M/s
+1794957692793 [cache] fw=53.3M total=71.8M dur=16.1s underrun=false rate=0.0M/s
+1794957694801 [cache] fw=47.8M total=71.8M dur=14.1s underrun=false rate=0.0M/s
+1794957696807 [cache] fw=41.1M total=71.8M dur=12.2s underrun=false rate=0.0M/s
+1794957698815 [cache] fw=34.7M total=71.8M dur=10.1s underrun=false rate=0.0M/s
+1794957700825 [cache] fw=63.0M total=71.1M dur=18.1s underrun=false rate=15.9M/s
+1794957702844 [cache] fw=56.8M total=71.1M dur=16.0s underrun=false rate=1.7M/s
+1794957704848 [cache] fw=49.7M total=71.1M dur=14.1s underrun=false rate=0.0M/s
+1794957706855 [cache] fw=43.6M total=71.1M dur=12.1s underrun=false rate=0.0M/s
+1794957708861 [cache] fw=37.2M total=71.1M dur=10.0s underrun=false rate=0.0M/s
+1794957710872 [cache] fw=63.3M total=72.0M dur=17.1s underrun=false rate=12.3M/s
+1794957712878 [cache] fw=55.8M total=72.0M dur=15.2s underrun=false rate=1.3M/s
+1794957714882 [cache] fw=49.8M total=72.0M dur=13.1s underrun=false rate=0.0M/s
+1794957716890 [cache] fw=41.4M total=72.0M dur=11.1s underrun=false rate=0.0M/s
+1794957718896 [cache] fw=63.7M total=71.4M dur=16.3s underrun=false rate=0.0M/s
+1794957720901 [cache] fw=57.9M total=71.1M dur=14.5s underrun=false rate=15.9M/s
+1794957722909 [cache] fw=50.6M total=71.1M dur=12.6s underrun=false rate=0.0M/s
+1794957724934 [cache] fw=43.9M total=71.1M dur=10.5s underrun=false rate=0.0M/s
+1794957726937 [cache] fw=57.5M total=71.8M dur=14.2s underrun=false rate=11.2M/s
+1794957728944 [cache] fw=51.1M total=71.8M dur=12.1s underrun=false rate=0.0M/s
+1794957730952 [cache] fw=43.0M total=71.8M dur=10.1s underrun=false rate=0.0M/s
+1794957732962 [cache] fw=55.8M total=71.3M dur=14.5s underrun=false rate=11.4M/s
+1794957734969 [cache] fw=48.2M total=71.3M dur=12.4s underrun=false rate=0.0M/s
+1794957736977 [cache] fw=40.8M total=71.3M dur=10.4s underrun=false rate=0.0M/s
+1794957738981 [cache] fw=59.7M total=70.6M dur=16.4s underrun=false rate=0.0M/s
+1794957740985 [cache] fw=52.0M total=70.6M dur=14.3s underrun=false rate=8.3M/s
+1794957742994 [cache] fw=45.5M total=70.6M dur=12.4s underrun=false rate=0.0M/s
+1794957745013 [cache] fw=37.5M total=70.6M dur=10.3s underrun=false rate=0.0M/s
+1794957747020 [cache] fw=63.1M total=71.2M dur=17.5s underrun=false rate=15.4M/s
+1794957749029 [cache] fw=55.9M total=71.2M dur=15.5s underrun=false rate=1.1M/s
+1794957751034 [cache] fw=48.8M total=71.2M dur=13.4s underrun=false rate=0.0M/s
+1794957753041 [cache] fw=42.8M total=71.2M dur=11.5s underrun=false rate=0.0M/s
+1794957755046 [cache] fw=63.0M total=70.8M dur=17.9s underrun=false rate=0.0M/s
+1794957757050 [cache] fw=55.7M total=72.0M dur=16.1s underrun=false rate=8.7M/s
+1794957759058 [cache] fw=48.7M total=72.0M dur=14.2s underrun=false rate=0.0M/s
+1794957761065 [cache] fw=41.5M total=72.0M dur=12.2s underrun=false rate=0.0M/s
+1794957763073 [cache] fw=35.0M total=72.0M dur=10.1s underrun=false rate=0.0M/s
+1794957765082 [cache] fw=64.1M total=70.9M dur=16.8s underrun=false rate=16.0M/s
+1794957767109 [cache] fw=57.0M total=70.9M dur=14.6s underrun=false rate=1.5M/s
+1794957769113 [cache] fw=50.4M total=70.9M dur=12.8s underrun=false rate=0.0M/s
+1794957771120 [cache] fw=44.0M total=70.9M dur=10.8s underrun=false rate=0.0M/s
+1794957773125 [cache] fw=60.7M total=72.0M dur=15.0s underrun=false rate=11.6M/s
+1794957775133 [cache] fw=53.7M total=72.0M dur=13.2s underrun=false rate=0.0M/s
+1794957777142 [cache] fw=46.2M total=72.0M dur=11.2s underrun=false rate=0.0M/s
+1794957779146 [cache] fw=62.6M total=71.7M dur=16.9s underrun=false rate=0.0M/s
+1794957781149 [cache] fw=53.6M total=71.7M dur=15.1s underrun=false rate=8.8M/s
+1794957783185 [cache] fw=45.2M total=71.7M dur=12.8s underrun=false rate=0.0M/s
+1794957785193 [cache] fw=36.9M total=71.7M dur=10.9s underrun=false rate=0.0M/s
+1794957787197 [cache] fw=60.4M total=71.3M dur=17.0s underrun=false rate=14.5M/s
+1794957789200 [cache] fw=61.2M total=71.6M dur=16.6s underrun=false rate=18.3M/s
+1794957791204 [cache] fw=55.1M total=71.6M dur=14.6s underrun=false rate=0.8M/s
+1794957793211 [cache] fw=48.9M total=71.6M dur=12.8s underrun=false rate=0.0M/s
+1794957795219 [cache] fw=42.6M total=71.6M dur=10.6s underrun=false rate=0.0M/s
+1794957797222 [cache] fw=61.6M total=70.9M dur=15.4s underrun=false rate=0.0M/s
+1794957799226 [cache] fw=55.3M total=70.9M dur=13.6s underrun=false rate=7.7M/s
+1794957801234 [cache] fw=46.9M total=70.9M dur=11.3s underrun=false rate=0.0M/s
+1794957803240 [cache] fw=62.1M total=71.3M dur=15.7s underrun=false rate=0.0M/s
+1794957805252 [cache] fw=53.4M total=71.3M dur=13.6s underrun=false rate=0.0M/s
+1794957807259 [cache] fw=45.4M total=71.3M dur=11.6s underrun=false rate=0.0M/s
+1794957809264 [cache] fw=63.0M total=71.8M dur=16.8s underrun=false rate=1.9M/s
+1794957811267 [cache] fw=55.9M total=71.0M dur=15.0s underrun=false rate=11.5M/s
+1794957813272 [cache] fw=49.4M total=71.0M dur=13.0s underrun=false rate=0.0M/s
+1794957815280 [cache] fw=41.9M total=71.0M dur=11.1s underrun=false rate=0.0M/s
+1794957817283 [cache] fw=64.2M total=71.2M dur=17.3s underrun=false rate=0.0M/s
+1794957819300 [cache] fw=55.7M total=71.2M dur=15.3s underrun=false rate=7.9M/s
+1794957821334 [cache] fw=49.6M total=71.2M dur=13.2s underrun=false rate=0.0M/s
+1794957823356 [cache] fw=42.1M total=71.2M dur=11.3s underrun=false rate=0.0M/s
+1794957825360 [cache] fw=61.8M total=71.7M dur=16.8s underrun=false rate=0.0M/s
+1794957827363 [cache] fw=57.4M total=71.3M dur=15.3s underrun=false rate=15.2M/s
+1794957829376 [cache] fw=50.5M total=71.3M dur=13.4s underrun=false rate=0.0M/s
+1794957831384 [cache] fw=43.0M total=71.3M dur=11.4s underrun=false rate=0.0M/s
+1794957833388 [cache] fw=64.2M total=71.4M dur=16.6s underrun=false rate=0.0M/s
+1794957835391 [cache] fw=55.7M total=71.4M dur=14.6s underrun=false rate=9.4M/s
+1794957837408 [cache] fw=48.2M total=71.4M dur=12.5s underrun=false rate=0.0M/s
+1794957839413 [cache] fw=41.3M total=71.4M dur=10.6s underrun=false rate=0.0M/s
+1794957841416 [cache] fw=61.8M total=70.7M dur=15.8s underrun=false rate=0.0M/s
+1794957843422 [cache] fw=54.4M total=70.7M dur=13.7s underrun=false rate=8.2M/s
+1794957845425 [cache] fw=46.7M total=70.7M dur=11.8s underrun=false rate=0.0M/s
+1794957847428 [cache] fw=62.1M total=71.0M dur=15.2s underrun=false rate=0.0M/s
+1794957849435 [cache] fw=57.9M total=71.3M dur=13.7s underrun=false rate=9.0M/s
+1794957851440 [cache] fw=50.2M total=71.3M dur=11.7s underrun=false rate=0.0M/s
+1794957853443 [cache] fw=64.2M total=71.6M dur=15.5s underrun=false rate=0.0M/s
+1794957855446 [cache] fw=56.2M total=71.6M dur=13.4s underrun=false rate=11.1M/s
+1794958922709 [tmdb-cache] HIT discover/tv?language=zh-CN&with_genres=10764&first_air_date.
+1794958922709 [tmdb-cache] HIT trending/all/week?language=zh-CN
+1794958922709 [tmdb-cache] HIT tv/on_the_air?language=zh-CN
+1794958922711 [tmdb-cache] HIT movie/now_playing?language=zh-CN
+1794958922713 [tmdb-cache] HIT discover/tv?language=zh-CN&with_genres=16&with_original_lang
+1794958922986 [tmdb-cache] HIT genre/movie/list?language=zh-CN
+1794958922986 [tmdb-cache] HIT tv/top_rated?language=zh-CN
+1794958922987 [brand] 启动动画开始 plan=WARM end=0.8
+1794958922992 [tmdb-cache] HIT person/popular?language=zh-CN&page=1
+1794958922993 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=28&sort_by=popular
+1794958922994 [tmdb-cache] HIT company/33
+1794958922996 [tmdb-cache] HIT discover/movie?with_companies=33&sort_by=popularity.desc&lan
+1794958922996 [tmdb-cache] HIT watch/providers/movie?watch_region=US&language=zh-CN
+1794958922999 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=12&sort_by=popular
+1794958923003 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=16&sort_by=popular
+1794958923005 [tmdb-cache] HIT company/4
+1794958923006 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=35&sort_by=popular
+1794958923008 [tmdb-cache] HIT discover/movie?with_companies=4&sort_by=popularity.desc&lang
+1794958923013 [tmdb-cache] HIT company/2
+1794958923015 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=80&sort_by=popular
+1794958923015 [tmdb-cache] HIT discover/movie?with_companies=2&sort_by=popularity.desc&lang
+1794958923017 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=99&sort_by=popular
+1794958923018 [tmdb-cache] HIT company/174
+1794958923020 [tmdb-cache] HIT discover/movie?with_companies=174&sort_by=popularity.desc&la
+1794958923021 [tmdb-cache] HIT discover/movie?with_watch_providers=8&watch_region=US&sort_b
+1794958923023 [tmdb-cache] HIT company/41077
+1794958923024 [tmdb-cache] HIT discover/movie?with_watch_providers=350&watch_region=US&sort
+1794958923024 [tmdb-cache] HIT discover/movie?with_companies=41077&sort_by=popularity.desc&
+1794958923026 [tmdb-cache] HIT discover/movie?with_watch_providers=337&watch_region=US&sort
+1794958923026 [tmdb-cache] HIT company/5
+1794958923028 [tmdb-cache] HIT discover/movie?with_companies=5&sort_by=popularity.desc&lang
+1794958923028 [tmdb-cache] HIT discover/movie?with_watch_providers=538&watch_region=US&sort
+1794958923123 [tmdb-cache] HIT movie/1368337/images
+1794958923153 [tmdb-cache] HIT tv/84773/images
+1794958923168 [tmdb-cache] HIT movie/1300968/images
+1794958923175 [tmdb-cache] HIT tv/213375/images
+1794958923178 [tmdb-cache] HIT movie/1400837/images
+1794958923180 [brand] 音效 played=true（t=0.13215089s）
+1794958923182 [tmdb-cache] HIT movie/1185344/images
+1794958923185 [tmdb-cache] HIT tv/291507/images
+1794958923188 [tmdb-cache] HIT movie/1567605/images
+1794958923192 [tmdb-cache] HIT tv/254630/images
+1794958923195 [tmdb-cache] HIT movie/1423191/images
+1794958923238 [tmdb-cache] HIT discover/movie?language=zh-CN&with_genres=28&sort_by=popular
+1794958923270 [tmdb-cache] HIT movie/1368337/videos
+1794958923299 [io] home.posterBlock thread=DefaultDispatcher-worker-5 cost=177ms
+1794958923455 [io] home.posterBlock thread=DefaultDispatcher-worker-6 cost=331ms
+1794958923801 [brand] 启动动画结束 elapsed=0.8093189 正常=true
+1794959000528 [tmdb-cache] HIT trending/all/week?language=zh-CN
+1794959000531 [tmdb-cache] HIT movie/now_playing?language=zh-CN
+1794959000531 [tmdb-cache] HIT tv/on_the_air?language=zh-CN
+1794959000531 [tmdb-cache] HIT discover/tv?language=zh-CN&with_genres=10764&first_air_date.
+1794959000535 [tmdb-cache] HIT discover/tv?language=zh-CN&with_genres=16&with_original_lang
+1794959081986 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794959081990 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794959081992 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794959082181 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794959082182 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794959082183 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794959082192 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794959082194 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794959082195 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794959082195 [prep] 内核创建完成 ms=25
+1794959082195 [prep] 闸门放行 ms=25
+1794959082212 PROXY REQ range=bytes=0- cap=0
+1794959082535 PROXY conn fail: ConnectionResetException: Connection reset
+1794959087244 [prep] 仍在等首帧 … 已等 5s position=-1.0 vid=auto
+1794959092286 [prep] 仍在等首帧 … 已等 10s position=-1.0 vid=auto
+1794959097331 [prep] 仍在等首帧 … 已等 15s position=-1.0 vid=auto
+1794959102377 [prep] 仍在等首帧 … 已等 20s position=-1.0 vid=auto
+1794959107377 [prep] 仍在等首帧 … 已等 25s position=-1.0 vid=auto

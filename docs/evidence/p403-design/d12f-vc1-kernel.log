@@ -1,0 +1,85 @@
+[   0.000][d][global] user path: '/data/user/0/com.kivo.cinema/files/mpv-kernel.log' -> '/data/user/0/com.kivo.cinema/files/mpv-kernel.log'
+[   0.023][v][cplayer] mpv v0.39.0-dirty Copyright © 2000-2024 mpv/MPlayer/mplayer2 projects
+[   0.023][v][cplayer]  built on Nov 15 2026 06:42:24
+[   0.023][v][cplayer] libplacebo version: v7.391.0
+[   0.023][v][cplayer] FFmpeg version: 7.1
+[   0.023][v][cplayer] FFmpeg library versions:
+[   0.023][v][cplayer]    libavcodec      61.19.100
+[   0.023][v][cplayer]    libavfilter     10.4.100
+[   0.023][v][cplayer]    libavformat     61.7.100
+[   0.023][v][cplayer]    libavutil       59.39.100
+[   0.023][v][cplayer]    libswresample   5.3.100
+[   0.023][v][cplayer]    libswscale      8.3.100
+[   0.023][v][cplayer] Configuration: -Dlibmpv=true -Dcplayer=false -Dgpl=false -Ddefault_library=shared -Dgl=enabled -Dgl-x11=disabled -Dvulkan=disabled -Djavascript=disabled -Dlua=disabled -Dsdl2=disabled -Dlcms2=disabled -Dtests=false '--cross-file=C:/kivo video/android/app/buildscripts/mpv/cross-android-arm64.txt' '--native-file=C:/kivo video/android/app/buildscripts/mpv/native-windows.txt'
+[   0.023][v][cplayer] List of enabled features: android android-media-ndk build-date cplugins debug egl-android ffmpeg gl glibc-thread-name libass libdl libplacebo linux-fstatfs memrchr opensles posix ppoll pthread-condattr-setclock vector vt.h zlib
+[   0.023][v][cplayer] mpv v0.39.0-dirty Copyright © 2000-2024 mpv/MPlayer/mplayer2 projects
+[   0.023][v][cplayer]  built on Nov 15 2026 06:42:24
+[   0.023][v][cplayer] libplacebo version: v7.391.0
+[   0.023][v][cplayer] FFmpeg version: 7.1
+[   0.023][v][cplayer] FFmpeg library versions:
+[   0.023][v][cplayer]    libavcodec      61.19.100
+[   0.023][v][cplayer]    libavfilter     10.4.100
+[   0.023][v][cplayer]    libavformat     61.7.100
+[   0.023][v][cplayer]    libavutil       59.39.100
+[   0.023][v][cplayer]    libswresample   5.3.100
+[   0.023][v][cplayer]    libswscale      8.3.100
+[   0.023][v][cplayer] Configuration: -Dlibmpv=true -Dcplayer=false -Dgpl=false -Ddefault_library=shared -Dgl=enabled -Dgl-x11=disabled -Dvulkan=disabled -Djavascript=disabled -Dlua=disabled -Dsdl2=disabled -Dlcms2=disabled -Dtests=false '--cross-file=C:/kivo video/android/app/buildscripts/mpv/cross-android-arm64.txt' '--native-file=C:/kivo video/android/app/buildscripts/mpv/native-windows.txt'
+[   0.023][v][cplayer] List of enabled features: android android-media-ndk build-date cplugins debug egl-android ffmpeg gl glibc-thread-name libass libdl libplacebo linux-fstatfs memrchr opensles posix ppoll pthread-condattr-setclock vector vt.h zlib
+[   0.023][d][global] home path: '' -> '-'
+[   0.023][d][global] user path: '~~home/' -> ''
+[   0.023][d][global] user path: '~~old_home/' -> ''
+[   0.023][d][global] user path: '/data/user/0/com.kivo.cinema/files/mpv-kernel.log' -> '/data/user/0/com.kivo.cinema/files/mpv-kernel.log'
+[   0.023][v][cplayer] Set property: hwdec="mediacodec" -> 1
+[   0.023][v][cplayer] Set property: sub-ass-override="yes" -> 1
+[   0.023][v][cplayer] Set property: slang="zh,chi,zho" -> 1
+[   0.023][v][cplayer] Set property: alang="zh,chi,zho" -> 1
+[   0.023][v][cplayer] Set property: demuxer-max-bytes="64MiB" -> 1
+[   0.023][d][cplayer] Setting option 'wid' = 18830 (flags = 0) -> 0
+[   0.023][d][cplayer] Run command: loadfile, flags=64, args=[url="http://127.0.0.1:37587/1?reconnect=1&reconnect_at_eof=1&reconnect_streamed=1&reconnect_on_network_error=1&reconnect_on_http_error=503&reconnect_delay_max=5&rw_timeout=150", flags="replace", index="0", options="start=3574.582"]
+[   0.023][d][global] state path: 'watch_later' -> '-'
+[   0.023][d][global] state path: 'watch_later' -> '-'
+[   0.023][v][cplayer] Setting option 'start' = '3574.582' (flags = 16)
+[   0.023][v][stream_callback] Opening http://127.0.0.1:37587/1?reconnect=1&reconnect_at_eof=1&reconnect_streamed=1&reconnect_on_network_error=1&reconnect_on_http_error=503&reconnect_delay_max=5&rw_timeout=150
+[   0.023][v][ffmpeg] Opening http://127.0.0.1:37587/1?reconnect=1&reconnect_at_eof=1&reconnect_streamed=1&reconnect_on_network_error=1&reconnect_on_http_error=503&reconnect_delay_max=5&rw_timeout=150
+[   0.023][d][ffmpeg] tcp: Starting connection attempt to 127.0.0.1 port 37587
+[   0.023][d][ffmpeg] tcp: Successfully connected to 127.0.0.1 port 37587
+[   0.338][v][ffmpeg] Could not set AVOption tls_verify='0'
+[   0.338][d][ffmpeg] resize stream to 131072 bytes, drop 0 bytes
+[   0.338][v][ffmpeg] Mime-type: 'video/x-matroska'
+[   0.338][d][ffmpeg] Stream opened successfully.
+[   0.338][v][demux] Trying demuxers for level=normal.
+[   0.338][d][demux] Trying demuxer: directory (force-level: normal)
+[   0.343][d][demux] Trying demuxer: disc (force-level: normal)
+[   0.343][d][demux] Trying demuxer: edl (force-level: normal)
+[   0.343][d][demux] Trying demuxer: cue (force-level: normal)
+[   0.343][d][demux] Trying demuxer: rawaudio (force-level: normal)
+[   0.343][d][demux] Trying demuxer: rawvideo (force-level: normal)
+[   0.343][d][demux] Trying demuxer: mkv (force-level: normal)
+[   0.343][d][demux] Trying demuxer: lavf (force-level: normal)
+[   0.346][v][lavf] Found 'matroska,webm' at score=75 size=2048.
+[   0.346][e][ffmpeg/demuxer] matroska,webm: 0x00 at pos 2 (0x2) invalid as first byte of an EBML number
+[   0.346][e][ffmpeg/demuxer] matroska,webm: EBML header parsing failed
+[   0.347][e][lavf] avformat_open_input() failed
+[   0.347][d][demux] Trying demuxer: mf (force-level: normal)
+[   0.347][d][demux] Trying demuxer: playlist (force-level: normal)
+[   0.348][d][demux] Trying demuxer: null (force-level: normal)
+[   0.348][v][demux] Trying demuxers for level=unsafe.
+[   0.348][d][demux] Trying demuxer: directory (force-level: unsafe)
+[   0.349][d][demux] Trying demuxer: disc (force-level: unsafe)
+[   0.349][d][demux] Trying demuxer: edl (force-level: unsafe)
+[   0.349][d][demux] Trying demuxer: cue (force-level: unsafe)
+[   0.349][d][demux] Trying demuxer: rawaudio (force-level: unsafe)
+[   0.349][d][demux] Trying demuxer: rawvideo (force-level: unsafe)
+[   0.349][d][demux] Trying demuxer: mkv (force-level: unsafe)
+[   0.349][d][demux] Trying demuxer: lavf (force-level: unsafe)
+[   0.352][v][lavf] Found 'matroska,webm' at score=75 size=2048.
+[   0.352][e][ffmpeg/demuxer] matroska,webm: 0x00 at pos 2 (0x2) invalid as first byte of an EBML number
+[   0.352][e][ffmpeg/demuxer] matroska,webm: EBML header parsing failed
+[   0.352][e][lavf] avformat_open_input() failed
+[   0.352][d][demux] Trying demuxer: mf (force-level: unsafe)
+[   0.352][d][demux] Trying demuxer: playlist (force-level: unsafe)
+[   0.353][d][demux] Trying demuxer: null (force-level: unsafe)
+[   0.353][d][ffmpeg] AVIOContext: Statistics: 20480 bytes read, 0 seeks
+[   0.354][v][cplayer] Opening failed or was aborted: http://127.0.0.1:37587/1?reconnect=1&reconnect_at_eof=1&reconnect_streamed=1&reconnect_on_network_error=1&reconnect_on_http_error=503&reconnect_delay_max=5&rw_timeout=150
+[   0.354][v][cplayer] finished playback, unrecognized file format (reason 4)
+[   0.354][e][cplayer] Failed to recognize file format.
