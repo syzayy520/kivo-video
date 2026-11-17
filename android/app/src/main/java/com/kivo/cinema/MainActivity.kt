@@ -107,9 +107,7 @@ class MainActivity : ComponentActivity() {
     }
 
     internal fun openPlayer(item: MediaItem) {
-        startActivity(android.content.Intent(this,
-            com.kivo.cinema.ui.detail.DetailActivity::class.java)
-            .putExtra("kivo.media", item.path)
-            .putExtra("kivo.durationMs", item.durationMs))
+        // D12：本地文件也走统一详情页（path 即片源，TMDB 只做增强）。
+        startActivity(com.kivo.cinema.ui.detail.MovieDetailActivity.localIntent(this, item))
     }
 }

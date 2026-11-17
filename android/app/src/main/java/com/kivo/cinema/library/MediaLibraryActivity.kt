@@ -128,11 +128,8 @@ class MediaLibraryActivity : ComponentActivity() {
     }
 
     private fun openPlayer(item: MediaItem) {
-        // 237-C：海报点 → 详情页（详情内直接播放）
-        val intent = Intent(this, com.kivo.cinema.ui.detail.DetailActivity::class.java)
-            .putExtra("kivo.media", item.path)
-            .putExtra("kivo.durationMs", item.durationMs)
-        startActivity(intent)
+        // 237-C：海报点 → 详情页（详情内直接播放）；D12：与首页/搜索同一详情入口。
+        startActivity(com.kivo.cinema.ui.detail.MovieDetailActivity.localIntent(this, item))
     }
 
     // ---- 231 私密区 ----

@@ -30,7 +30,10 @@ import java.io.File
  * 证据：每条会话写一份 `kivo.p12c.decode/6`（复用既有渲染器，不新造 schema），
  * 文件名 `<prefix>-<index>.json`。跨会话的比较交给
  * `tools/verify_p12d_multi.py` —— 数字必须从证据里算，不许手填。
+ *
+ * D12-0：与 `PlayerActivity` 同族，纯取证宿主，不是产品入口；无 launcher。
  */
+@Deprecated("多路解码取证宿主，不是产品入口；退役计划见 D12-STATUS.md")
 class MultiPlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
 
     private var sessionCount = 3

@@ -28,13 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.evidence.IoTrace
 import com.kivo.cinema.library.MediaItem
-import com.kivo.cinema.ui.detail.DetailActivity
+import com.kivo.cinema.ui.detail.MovieDetailActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
  * 256 全局搜索本地卡：系统缩略图 + 本地徽标 + 时长角标 + 标题。
- * 点击复用本地库既有契约（DetailActivity kivo.media/kivo.durationMs），不新造播放入口。
+ * 点击复用本地库既有契约（`kivo.media` / `kivo.durationMs`），D12 起与首页/资源库
+ * 共用 `MovieDetailActivity.localIntent`，不再有第二套详情页。
  */
 @Composable
 fun LocalResultCard(item: MediaItem) {
@@ -51,9 +52,8 @@ fun LocalResultCard(item: MediaItem) {
     }
     val bmpValue = bmp
     Column(Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-        context.startActivity(Intent(context, DetailActivity::class.java)
-            .putExtra("kivo.media", item.path)
-            .putExtra("kivo.durationMs", item.durationMs))
+        // D12：本地结果与首页/资源库共用同一详情入口（不再走旧 DetailActivity）。
+        context.startActivity(MovieDetailActivity.localIntent(context, item))
     }) {
         Box(Modifier.fillMaxWidth().aspectRatio(2f / 3f)
             .clip(RoundedCornerShape(12.dp)).background(Color(0xFFE8E6EF))) {

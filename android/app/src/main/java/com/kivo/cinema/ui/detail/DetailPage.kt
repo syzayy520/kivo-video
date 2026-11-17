@@ -251,6 +251,12 @@ internal fun DetailPage(
             }
             if (d != null && !isPreview) {
                 detailLowerSections(d, fg, fgSub, tmdbIsTv, content?.loadImage, openPage)
+                // D12：本地文件来源的附加事实。这里在 LazyListScope 里（不是 @Composable 上下文），
+                // 必须用 item {} 才有 Composable 作用域。
+                val localFacts = content?.local
+                if (localFacts != null) item(key = "local-extra") {
+                    LocalDetailBlocks(localFacts, fg, fgSub, openPage)
+                }
             }
         }
         // 336 R2：有 preview 时首帧内容已在，不显示转圈；仅无 preview 的纯等待期转圈。

@@ -17,8 +17,7 @@ internal class DetailActions(
 )
 
 @Composable
-internal fun rememberDetailActions(key: FilmKey): DetailActions {
-    val context = LocalContext.current
+internal fun rememberDetailActions(key: FilmKey): DetailActions {    val context = LocalContext.current
     val store = remember { FilmMarksStore.get(context) }
     val snapshot by store.snapshots.collectAsState()
     val scope = rememberCoroutineScope()
@@ -50,8 +49,18 @@ internal fun rememberDetailActions(key: FilmKey): DetailActions {
                     } finally { saving = false }
                 }
             }
-        }, retry = {
+        },         retry = {
             writeError = null
             refresh()
         })
 }
+
+/**
+ * D12：本地文件没有 TMDB id 时的禁用态。
+ * `FilmKey` 的 `require(id > 0)` 决定了不能为本地文件伪造标记键；
+ * 同时 `FilmMarksStore` 只接受 `movie|tv:` 前缀，写 `local:` 会让整库读不出来。
+ * 所以这里诚实禁用，而不是静默把标记写到错的地方。
+ */
+internal fun localOnlyActions(): DetailActions = DetailActions(
+    marks = FilmMarks(), enabled = false, error = null, toggle = {}, retry = {},
+)

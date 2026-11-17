@@ -29,7 +29,15 @@ import java.io.File
  *
  * 职责：生命周期、Surface 挂载、把 native 统计投影到屏幕用于现场核对。
  * 明确不做：解码循环、渲染线程、A/V 同步 —— 这些全部在 C++ 核心。
+ *
+ * ## D12-0：这是**取证/度量宿主**，不是产品播放入口
+ * 产品播放全部走 `ui.compose.PlayerComposeActivity`（Kotlin 侧 0 处引用本类）。
+ * 本类独占 20 个 `kivo.*` 探针开关与 `files/evidence/` 三份证据 schema，
+ * `tools/` 下 31 个脚本仍在用，所以**不能删**；已在 Manifest 摘掉 MAIN/LAUNCHER。
+ * 退役前提（新宿主补齐探针契约 + 证据 schema + 本地软解/同名外挂字幕）见
+ * `docs/evidence/p403-design/D12-STATUS.md`。
  */
+@Deprecated("取证宿主，产品播放请用 PlayerComposeActivity；退役计划见 D12-STATUS.md")
 class PlayerActivity : AppCompatActivity(), PlayerSurfaceView.Listener {
 
     private lateinit var surfaceView: PlayerSurfaceView
