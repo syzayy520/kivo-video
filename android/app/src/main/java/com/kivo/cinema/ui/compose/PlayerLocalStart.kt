@@ -79,6 +79,6 @@ internal fun PlayerComposeActivity.startLocalPlayback(
     com.kivo.cinema.playback.PlaybackMetrics.mark(
         com.kivo.cinema.playback.PlaybackMetrics.T_SOURCE_READY
     )
-    startMpvPlayback(holder, source, isLocal = true)
+    startMpvPlayback(holder, source, isLocal = true, localMediaPath = media.absolutePath)
     return true
 }

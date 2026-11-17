@@ -154,6 +154,8 @@ internal fun PlayerComposeActivity.startMpvPlayback(
      * 它被投屏桥读作"时长未知"（-2）。本地文件有确定时长，不该被当成网络流。
      */
     isLocal: Boolean = false,
+    /** D12-B2：本地文件真实路径；非空时首帧后挂同名外挂字幕（代理 URL 看不到兄弟文件）。 */
+    localMediaPath: String? = null,
 ) {
     if (finishRequested || isDestroyed) return
     playbackStarted = true
@@ -192,6 +194,8 @@ internal fun PlayerComposeActivity.startMpvPlayback(
             android.os.Handler(mainLooper).post(positionPoll)
             applyProbeSubtitle(session)
             applyProbeMpvOptions(session)
+            // D12-B2：本地文件首帧后挂同目录同名文本字幕（旧宿主有这个行为）。
+            attachSiblingSubtitle(session, localMediaPath)
             // 273 v35：落点 seek 取证钩子（URL 与 SMB 两条链路共用本函数 ⇒ 挂这里两边都覆盖）。
             // 【为什么必须有它】见 PlayerProbeLandingSeek.kt 的文件头：
             // `input swipe` 与 `input motionevent` 都进不去 App 的手势层 ⇒

@@ -58,6 +58,18 @@ internal fun PlayerComposeActivity.maybeStartPlayback(holder: SurfaceHolder) {
     val routing = FfmpegRouting.probe(media)
     statusText = "route=${routing.decision} reason=${routing.reason}"
     Log.i(PlayerComposeActivity.TAG, "routing: ${routing.decision} (${routing.reason})")
+    // D12-B3：平台解码器解不了时必须走软解。legacy 链路（内核=legacy 或开了后台音频）
+    // 还没接 FfmpegPlaybackSession（需要同时接暂停/seek/进度/收尾四个控制点，见 D12B-STATUS）。
+    // 这里**不静默用硬解**：直接给出可读原因，否则用户只会看到黑屏或错误码。
+    if (routing.useFfmpeg) {
+        com.kivo.cinema.net.NetDiag.log("[local] 需要软解但 legacy 链路未接入：${routing.reason}")
+        phase = PlayerPhase.Failed(
+            "该片源需要软件解码，当前内核未接入（${routing.reason}）；" +
+                "可关闭「后台继续播放音频」或改用默认内核后重试"
+        )
+        controlsVisible = true
+        return
+    }
     val localSession = PlaybackSession(0, media, media.name)
     playbackSession = localSession
     statusText = "openVideo..."
