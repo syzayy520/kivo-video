@@ -1,0 +1,51 @@
+{
+  "label": "s2",
+  "render_mode": "gpu-next",
+  "device": {"model": "M2012K11AC", "soc": "kona", "android": 33},
+  "stages_ms": {
+    "startup_total": 283,
+    "source_ready": 24,
+    "kernel_created": 37,
+    "loadfile_to_first_frame": 239,
+    "first_decode": "not_measured: mpv 未对外暴露解码完成事件",
+    "first_present": "not_measured: 首帧回调本身已是\"已上屏\"，无法再分段"
+  },
+  "metrics": {
+    "buffer_runway_ms": "not_measured: mpv 属性 demuxer-cache-time 读不到",
+    "frames_dropped_vo": "not_measured: mpv 属性读不到",
+    "frames_dropped_decoder": "not_measured: mpv 属性读不到",
+    "render_gap_ms": "not_measured: 由 tools/p274_sf_latency.mjs 采 SurfaceFlinger latency",
+    "read_latency_ms": "not_measured: 见 OriginLatencyStats（取数层自带统计）",
+    "seek_total_ms": "not_measured: 本次会话未发生 seek",
+    "network_recovery_ms": "not_measured: 本次会话未发生断网→恢复",
+    "thermal_context": {"status":"NONE","code":0,"max_temp_c":78.0}
+  },
+  "seeks": {
+    "count": 0,
+    "total_ms_p50": "not_measured",
+    "total_ms_p95": "not_measured",
+    "total_ms_max": "not_measured",
+    "error_ms_p50": "not_measured",
+    "error_ms_max": "not_measured",
+    "failed": 0,
+    "items": []
+  },
+  "mpv_health": {
+    "clock_source": "mpv",
+    "video_sync": "display-tempo",
+    "container_fps": "not_measured: mpv 属性读不到",
+    "estimated_vf_fps": "not_measured: mpv 属性读不到",
+    "display_fps_override": "60.000004",
+    "mistimed_frame_count": "not_measured: mpv 属性读不到",
+    "vo_drop_count": "not_measured: mpv 属性读不到",
+    "decoder_drop_count": "not_measured: mpv 属性读不到",
+    "avsync_s": "not_measured: mpv 属性读不到",
+    "hwdec_current": "not_measured: mpv 属性读不到",
+    "incomparable": ["pace.lateness_ns", "pace.schedule_lead_ns", "pace.drop_ratio", "clock_injection.*", "drift_gate.*", "counters.frames_dropped_late", "output_fps（上屏帧率，须 tools/p274_sf_latency 量）"]
+  },
+  "video_params": "not_measured: mpv 属性读不到",
+  "failure": null,
+  "notes": {},
+  "writes": 1,
+  "wall_ms": {"begin": 1794953382751, "finish": 1794953385040}
+}

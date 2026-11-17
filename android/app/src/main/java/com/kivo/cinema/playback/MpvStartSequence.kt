@@ -143,6 +143,8 @@ internal class MpvStartSequence(
             displayFps = interp.displayFps,
         )
         applyPlaybackPolicy(native)
+        // 345：initialize 成功即可读 property ⇒ 在这里注册，避免早快照全 not_measured。
+        PlaybackMetrics.attachNative(native)
         native.attachSurface(surface)
 
         // 301 · 字幕字体诊断：**读回内核实际生效的字体选项**。

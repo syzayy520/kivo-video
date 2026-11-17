@@ -55,7 +55,7 @@ internal object PlaybackMetrics {
     private val notes = ConcurrentHashMap<String, String>()
 
     /** 一次 seek 的实测（275 §6.2 要求「连续 20 次 seek 无旧请求覆盖新目标」）。 */
-    private data class SeekRec(
+    internal data class SeekRec(
         val requestedUs: Long,
         val landingUs: Long,
         val totalMs: Long,
@@ -84,6 +84,8 @@ internal object PlaybackMetrics {
         marks.clear()
         notes.clear()
         seeks.clear()
+        // 345：快照归 [MpvHealthProbe] 持有，新一场播放清空避免串台。
+        MpvHealthProbe.reset()
         writes.set(0L)
         this.label = label.ifBlank { "play" }
         this.renderMode = renderMode
@@ -147,6 +149,13 @@ internal object PlaybackMetrics {
     fun isActive(): Boolean = beginMs.get() != 0L
 
     /**
+     * 起播即注册内核句柄（否则 `onStop` 传 null 时无法回落，见 [finish] 里的 `eff`）。
+     */
+    fun attachNative(native: MpvSession) {
+        lastNative = native
+    }
+
+    /**
      * 落盘成 JSON。
      *
      * @param native 活着的内核（可为 null：起播失败时也要落，记录失败在哪一步）。
@@ -157,6 +166,12 @@ internal object PlaybackMetrics {
         if (t0 == 0L) return
         if (context.applicationContext != null) appContext = context.applicationContext
         if (native != null) lastNative = native
+        // 345 · 参数为空时回落到已注册句柄。
+        // 【为什么必须有这条回落】`onStop` 传的是 `mpvNetSession?.nativeOrNull()`，
+        // 而本地 mpv 播放的会话不在 `mpvNetSession` 里 ⇒ 参数恒 null ⇒
+        // 整份 JSON 的 mpv_health/metrics 全变 not_measured（真机 r1/r2 复现两次）。
+        // 这条回落让"退出时补写"与"播放中 debounce 写"读到同一个内核。
+        val eff = native ?: lastNative
         val now = System.currentTimeMillis()
 
         fun since(stage: String): Long? = marks[stage]?.let { it - t0 }
@@ -168,7 +183,7 @@ internal object PlaybackMetrics {
 
         // mpv 属性：读不到就是 not_measured（**不是 0**）
         fun prop(name: String): String? =
-            runCatching { native?.property(name) }.getOrNull()?.takeIf { it.isNotBlank() }
+            runCatching { eff?.property(name) }.getOrNull()?.takeIf { it.isNotBlank() }
 
         val runway = prop("demuxer-cache-time")?.let { "${(it.toDoubleOrNull() ?: return@let null)?.times(1000)?.toLong()}" }
             ?: "not_measured: mpv 属性 demuxer-cache-time 读不到"
@@ -228,27 +243,12 @@ internal object PlaybackMetrics {
         sb.append("    \"thermal_context\": ").append(ThermalSnapshot.read(appContext)).append("\n")
         sb.append("  },\n")
 
-        // seek：单次明细 + 汇总（275 §6.2 的验收项）
-        sb.append("  \"seeks\": {\n")
-        sb.append("    \"count\": ").append(seeks.size).append(",\n")
-        val totals = seeks.map { it.totalMs }.sorted()
-        val errs = seeks.map { kotlin.math.abs(it.landingUs - it.requestedUs) / 1000 }
-            .filter { it >= 0 }.sorted()
-        fun pct(xs: List<Long>, p: Double): String =
-            if (xs.isEmpty()) q("not_measured") else xs[((xs.size - 1) * p).toInt()].toString()
-        sb.append("    \"total_ms_p50\": ").append(pct(totals, 0.50)).append(",\n")
-        sb.append("    \"total_ms_p95\": ").append(pct(totals, 0.95)).append(",\n")
-        sb.append("    \"total_ms_max\": ").append(pct(totals, 1.0)).append(",\n")
-        sb.append("    \"error_ms_p50\": ").append(pct(errs, 0.50)).append(",\n")
-        sb.append("    \"error_ms_max\": ").append(pct(errs, 1.0)).append(",\n")
-        sb.append("    \"failed\": ").append(seeks.count { it.error != null }).append(",\n")
-        sb.append("    \"items\": [")
-        sb.append(seeks.joinToString(", ") { r ->
-            "{\"req_ms\":${r.requestedUs / 1000},\"land_ms\":${r.landingUs / 1000}," +
-                "\"total_ms\":${r.totalMs}" +
-                (if (r.error != null) ",\"error\":${q(r.error)}" else "") + "}"
-        })
-        sb.append("]\n  },\n")
+        sb.append(renderSeekBlock(seeks))
+
+        // 345 · 新宿主自己的可比指标契约（mpv property 实采 + 不可比项声明）。
+        // 与上面 metrics 块并列而不合并：那一块是「本次会话的业务指标」，
+        // 这一块是「内核健康度」，两者的采集时机与读者都不同。
+        sb.append("  \"mpv_health\": ").append(MpvHealthProbe.cachedOrRead(eff)).append(",\n")
 
         sb.append("  \"video_params\": ").append(q(videoParams)).append(",\n")
         sb.append("  \"failure\": ").append(if (failure == null) "null" else q(failure)).append(",\n")
@@ -281,7 +281,7 @@ internal object PlaybackMetrics {
         writes.incrementAndGet()
     }
 
-    private fun num(v: Long?): String = v?.toString() ?: q("not_measured")
+    private fun num(v: Long?): String = v?.toString() ?: "\"not_measured\""
 
     /** 读 Android 系统属性（隐藏 API，用反射；拿不到返回 null，**不伪造**）。 */
     private fun sysProp(name: String): String? = try {
@@ -292,21 +292,6 @@ internal object PlaybackMetrics {
         null
     }
 
-    /** JSON 字符串转义（只处理必需字符，标签/属性值都是 ASCII 或中文）。 */
-    private fun q(s: String): String {
-        val sb = StringBuilder(s.length + 2)
-        sb.append('"')
-        for (c in s) {
-            when (c) {
-                '"' -> sb.append("\\\"")
-                '\\' -> sb.append("\\\\")
-                '\n' -> sb.append("\\n")
-                '\r' -> sb.append("\\r")
-                '\t' -> sb.append("\\t")
-                else -> if (c < ' ') sb.append("\\u").append(String.format("%04x", c.code)) else sb.append(c)
-            }
-        }
-        sb.append('"')
-        return sb.toString()
-    }
+    /** JSON 转义：实现见 [metricsJsonQuote]（拆走后避免本文件继续膨胀）。 */
+    private fun q(s: String): String = metricsJsonQuote(s)
 }

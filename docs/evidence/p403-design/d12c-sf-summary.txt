@@ -1,0 +1,11 @@
+# d12c SurfaceFlinger 上屏帧结算（25fps 源 + 帧插值开，K40 b6e950ee，2026-11-18）
+# 层: SurfaceView[...PlayerComposeActivity](BLAST)#4305
+refresh_period_ns = 16666666  => 60.000 Hz
+有效帧时间戳 = 99（5 轮采样去重）
+span_ms = 1618.6   间隔数 = 98
+实际上屏 fps = 60.54
+帧间隔 p50 = 16.52 ms   p95 = 16.53 ms   max = 16.56 ms
+>25ms 间隔数 = 0
+
+对照：同一场会话 files/metrics/n25b.json 的 mpv_health.estimated_vf_fps = 25.0（源帧率）
+结论：插值生效（上屏 60.54fps），但 estimated-vf-fps 不反映上屏帧率 ⇒ 不可用于插值验收。
