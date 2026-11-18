@@ -30,6 +30,8 @@ data class HomeEntry(
     val year: Int? = null,
     /** TMDB 兜底用的英文名（中文名搜不到时再试它）；null = 无。 */
     val searchAlias: String? = null,
+    /** 季集标记（`S01E01`），只用于卡片副标题区分同剧不同集；搜索时不含。 */
+    val episodeLabel: String? = null,
     val embyItemId: String? = null,
     val embySourceId: String? = null,
     /** 最近一次观看时刻（毫秒）；聚合排序用。0 = 未知，排在后面。 */

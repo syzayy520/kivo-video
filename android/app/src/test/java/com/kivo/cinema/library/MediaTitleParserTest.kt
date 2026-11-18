@@ -60,6 +60,16 @@ class MediaTitleParserTest {
     }
 
     @Test
+    fun `季集标记被保留并标准化供卡片区分`() {
+        assertEquals(
+            "S01E01",
+            MediaTitleParser.parse("69两头勾.6ixtynin9.The.Series.S01E01.2023.1080p.mkv").episode,
+        )
+        assertEquals("S02", MediaTitleParser.parse("Some.Show.Season.2.1080p.mkv").episode)
+        assertNull(MediaTitleParser.parse("A.Beautiful.Mind.2001.mkv").episode)
+    }
+
+    @Test
     fun `清洗后为空时退回原文件名，不产出空标题`() {
         val p = MediaTitleParser.parse("1080p.WEB-DL.mkv")
         assertEquals("1080p.WEB-DL", p.title)

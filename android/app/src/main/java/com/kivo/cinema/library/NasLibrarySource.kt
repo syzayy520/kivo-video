@@ -32,6 +32,7 @@ object NasLibrarySource {
                     smbPosterPath = v.posterPath,
                     year = parsed.year,
                     searchAlias = parsed.english,
+                    episodeLabel = parsed.episode,
                 )
             }
             .toList()

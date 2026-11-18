@@ -11,7 +11,13 @@ package com.kivo.cinema.library
  */
 object MediaTitleParser {
 
-    data class Parsed(val title: String, val year: Int?, val english: String? = null)
+    data class Parsed(
+        val title: String,
+        val year: Int?,
+        val english: String? = null,
+        /** 季集标记（如 `S01E01`），只用于 UI 区分同剧不同集；搜索时已被剥掉。 */
+        val episode: String? = null,
+    )
 
     /** 常见片源/编码/音轨标签，命中即从标题里剔除。 */
     private val TAGS = Regex(
@@ -31,6 +37,20 @@ object MediaTitleParser {
     /** 形如 `[犯罪都市4]` 的中文方括号前缀（括号内必须含中文，否则当发布组标签忽略）。 */
     private val CN_BRACKET = Regex("""^\[\s*([^\]]*[\u4e00-\u9fa5][^\]]*)\s*]""")
 
+    /** 提取季集标记并标准化：`S01E01` / `S1E1` → `S01E01` 风格；`Season 2` → `S02`；拿不到返回 null。 */
+    private fun episodeOf(raw: String): String? {
+        val rawHit = EPISODE.find(raw.replace('.', ' ').replace('_', ' ').replace('-', ' '))
+            ?.value ?: return null
+        val hit = rawHit.uppercase().replace(" ", "").replace("_", "").replace("-", "")
+        val se = Regex("""^S(\d{1,2})E(\d{1,3})$""").find(hit)
+        if (se != null) {
+            return "S%02dE%02d".format(se.groupValues[1].toInt(), se.groupValues[2].toInt())
+        }
+        val season = Regex("""^SEASON(\d{1,2})$""").find(hit)
+        if (season != null) return "S%02d".format(season.groupValues[1].toInt())
+        return hit
+    }
+
     fun parse(fileName: String): Parsed {
         val noExt = fileName.substringBeforeLast('.', fileName)
         val year = YEAR.find(noExt)?.value?.toIntOrNull()
@@ -45,7 +65,7 @@ object MediaTitleParser {
                     .replace('.', ' ').replace('_', ' ').replace('-', ' ')
                 val cut = YEAR.find(after)?.range?.first ?: after.length
                 val en = SPACES.replace(TAGS.replace(after.substring(0, cut), " "), " ").trim()
-                return Parsed(cn, year, en.ifBlank { null })
+                return Parsed(cn, year, en.ifBlank { null }, episodeOf(noExt))
             }
         }
 
@@ -58,6 +78,6 @@ object MediaTitleParser {
 
         // 清洗后可能空掉（例如文件名本身就只有标签）⇒ 退回原始（去扩展名）名字。
         val title = if (cleaned.isBlank()) noExt.trim() else cleaned
-        return Parsed(title, year)
+        return Parsed(title, year, episode = episodeOf(noExt))
     }
 }

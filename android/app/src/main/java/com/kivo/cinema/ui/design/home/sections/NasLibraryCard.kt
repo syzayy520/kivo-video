@@ -54,7 +54,10 @@ internal fun NasLibraryCard(
             entry.title, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = fg,
             maxLines = 1, overflow = TextOverflow.Ellipsis,
         )
-        Text(entry.sourceLabel, fontSize = 11.sp, color = sub)
+        Text(
+            entry.episodeLabel?.let { "${entry.sourceLabel} · $it" } ?: entry.sourceLabel,
+            fontSize = 11.sp, color = sub,
+        )
     }
 }
 
