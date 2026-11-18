@@ -81,7 +81,13 @@ internal fun NasPoster(
     }
 }
 
-private fun resolvePoster(context: Context, entry: HomeEntry): Bitmap? {
+/**
+ * 取 NAS 条目海报（库内同目录图 → TMDB → 空）。
+ *
+ * 详情页也要用同一套（否则首页有图、点进详情反而空），故不再 private。
+ * 阻塞（SMB 读图/网络），必须在 IO 线程调用。
+ */
+internal fun resolvePoster(context: Context, entry: HomeEntry): Bitmap? {
     NetDiag.log("nas-poster start ${entry.title} y=${entry.year} smb=${entry.smbPosterPath}")
     // ⓪ 磁盘缓存：TMDB 图片 CDN 在国内不稳，成功过一次就永久可用，避免下次又落占位
     val disk = diskCacheFile(context, entry.key)

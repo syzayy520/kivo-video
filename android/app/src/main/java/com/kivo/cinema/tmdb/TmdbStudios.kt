@@ -23,7 +23,7 @@ data class TmdbStudio(
  *
  * 两次请求口径（每家公司）：
  * 1. `GET /company/{id}` → `name` + `logo_path`（w300，公司 logo 横竖混合，取标准档）；
- * 2. `GET /discover/movie?with_companies={id}&sort_by=popularity.desc&language=zh-CN`
+ * 2. `GET /discover/movie?with_companies={id}&sort_by=popularity.desc&language=${TmdbLocale.tag()}`
  *    → 取**首条有 `backdrop_path`** 的结果 → `w780`，供卡片做剧照底。
  *    为什么要「首条有图」而不是「字面首条」：`results[0]` 常缺 `backdrop_path`（TMDB 允许为空），
  *    取字面首条会得到 null，与「该公司没有剧照」不可区分 ◐ 推断（与 `TmdbGenres.backdropFor` 同口径）。
@@ -65,7 +65,7 @@ object TmdbStudios {
     /** 该公司人气首位影片的剧照（w780）；取不到 → null（不造假）。 */
     private fun backdropFor(home: TmdbHome, companyId: Int): String? {
         val arr = home.get(
-            "/discover/movie?with_companies=$companyId&sort_by=popularity.desc&language=zh-CN"
+            "/discover/movie?with_companies=$companyId&sort_by=popularity.desc&language=${TmdbLocale.tag()}"
         ).first?.optJSONArray("results") ?: return null
         for (i in 0 until arr.length()) {
             val path = TmdbHome.imgPath(arr.optJSONObject(i), "backdrop_path") ?: continue

@@ -97,6 +97,7 @@ fun DiscoverPage(
     generation: Int,
     posterOf: @Composable (HomeEntry) -> (@Composable () -> Unit)?,
     onOpenItem: (HomeEntry) -> Unit,
+    onOpenNasItem: (HomeEntry) -> Unit = onOpenItem,   // 片库分类行：默认同 onOpenItem，Shell 传"进详情页"
     onOpenTmdbItem: (TmdbHome.Item) -> Unit,
     tmdbError: String? = null,
     onRetryTmdb: () -> Unit = {},
@@ -198,7 +199,8 @@ fun DiscoverPage(
             }
             item(key = "continue") {
                 ContinueRow(continueItems, chromeFg, chromeSub, posterOf, onOpenItem, onShowWatching)
-                nasSections.forEach { s -> NasLibraryRow(s.category.label, s.entries, chromeFg, chromeSub, posterOf, onOpenItem) }
+                // 片库分类行：点海报先进详情页（看简介/选集），不直接起播。
+                nasSections.forEach { s -> NasLibraryRow(s.category.label, s.entries, chromeFg, chromeSub, posterOf, onOpenNasItem) }
             }
             // 海报节（正在热映 / 正在播出）+ 宽卡节（本周趋势）
             listOf(

@@ -155,7 +155,10 @@ class TmdbHome(private val client: TmdbClient) {
         val out = mutableListOf<Item>()
         for (i in 0 until results.length()) {
             val o = results.getJSONObject(i)
-            val title = o.optString("title", o.optString("name", ""))
+            // 跟随系统语言后，某些条目没有该语言的译名（title 为空）⇒ 回落原名，不能出空卡片。
+            val title = o.optString("title").ifBlank { o.optString("name") }
+                .ifBlank { o.optString("original_title") }
+                .ifBlank { o.optString("original_name") }
             val date = o.optString("release_date", o.optString("first_air_date", ""))
             val poster = o.optString("poster_path", "")
             val backdrop = o.optString("backdrop_path", "")
@@ -190,12 +193,12 @@ class TmdbHome(private val client: TmdbClient) {
             HomeData(j?.optJSONArray("results")?.let { parseItems(it) } ?: emptyList(), err)
         }
 
-    fun nowPlaying(): HomeData = items("/movie/now_playing?language=zh-CN")
-    fun onTheAir(): HomeData = items("/tv/on_the_air?language=zh-CN")
-    fun trendingWeek(): HomeData = items("/trending/all/week?language=zh-CN")
+    fun nowPlaying(): HomeData = items("/movie/now_playing?language=${TmdbLocale.tag()}")
+    fun onTheAir(): HomeData = items("/tv/on_the_air?language=${TmdbLocale.tag()}")
+    fun trendingWeek(): HomeData = items("/trending/all/week?language=${TmdbLocale.tag()}")
 
     /** 高分剧集（首页「高分剧集」行；✅ 实测 /tv/top_rated 返回 20 条，首条 龙珠超：比鲁斯 9.629）。 */
-    fun topRatedTv(): HomeData = items("/tv/top_rated?language=zh-CN")
+    fun topRatedTv(): HomeData = items("/tv/top_rated?language=${TmdbLocale.tag()}")
 
     /** 近一月·热门综艺（homeBuiltIn.popular.variety.past.month；真人秀 10764）。 */
     fun varietyPastMonth(): HomeData {
@@ -205,13 +208,13 @@ class TmdbHome(private val client: TmdbClient) {
             cal.get(java.util.Calendar.YEAR),
             cal.get(java.util.Calendar.MONTH) + 1,
             cal.get(java.util.Calendar.DAY_OF_MONTH))
-        return items("/discover/tv?language=zh-CN&with_genres=10764" +
+        return items("/discover/tv?language=${TmdbLocale.tag()}&with_genres=10764" +
             "&first_air_date.gte=$from&sort_by=popularity.desc")
     }
 
     /** 今日动漫（homeBuiltIn.today.s.anime；动画 16 + 日语原声，按人气）。 */
     fun todayAnime(): HomeData =
-        items("/discover/tv?language=zh-CN&with_genres=16" +
+        items("/discover/tv?language=${TmdbLocale.tag()}&with_genres=16" +
             "&with_original_language=ja&sort_by=popularity.desc")
 
     /** hero 候选：本周趋势前 10 颗（t22/t18/0082 圆点实测均 10）。 */

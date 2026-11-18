@@ -197,8 +197,7 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                             value = withContext(Dispatchers.IO) { TmdbStudios.featured(tmdbClient) }
                         }
                         DiscoverPage(
-                            previewEnabled = previewEnabled,
-                            continueItems = state.homeEntries,
+                            previewEnabled = previewEnabled, continueItems = state.homeEntries,
                             nasSections = state.nasSections,
                             heroCandidates = state.heroCandidates,
                             nowPlaying = state.nowPlaying,
@@ -213,6 +212,7 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                             generation = state.homeGeneration,
                             posterOf = { activity.entryPoster(it) },
                             onOpenItem = { activity.openHomeEntry(it) },
+                            onOpenNasItem = { activity.openNasEntry(it) },
                             onOpenTmdbItem = { activity.startActivity(MovieDetailActivity.intent(activity, it)) },
                             tmdbError = state.tmdbError,
                             onRetryTmdb = { activity.refreshHomeFeed() },

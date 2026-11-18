@@ -74,4 +74,33 @@ class MediaTitleParserTest {
         val p = MediaTitleParser.parse("1080p.WEB-DL.mkv")
         assertEquals("1080p.WEB-DL", p.title)
     }
+
+    /** 真机 NAS 原文件名：平台名/声道/编码尾巴都要清掉，否则卡片标题被截断成看不懂的字符串。 */
+    @Test
+    fun `平台名与声道标签也从标题剔除`() {
+        assertEquals(
+            "Cold Case Gleen",
+            MediaTitleParser.parse("Cold.Case.Gleen.AMZN.DDP.2.0.H.264.CHDWEB.mkv").title,
+        )
+        assertEquals(
+            "A Murder at the End of the World Homme Fatal",
+            MediaTitleParser.parse(
+                "A.Murder.at.the.End.of.the.World.Homme.Fatal.Hulu.DDP.5.1.H.265.CHDWEB.mkv",
+            ).title,
+        )
+    }
+
+    /** 中文集号（NAS 中文剧集的主流命名）必须能认出来，聚合才分得清"一集"和"一部剧"。 */
+    @Test
+    fun `中文集号被识别并标准化`() {
+        assertEquals("E03", MediaTitleParser.parse("繁花.第03集.1080p.mkv").episode)
+        assertEquals(3, MediaTitleParser.cnEpisodeIndex("繁花.第03集.1080p.mkv"))
+        assertEquals(12, MediaTitleParser.cnEpisodeIndex("某综艺.第12期.mp4"))
+        assertNull(MediaTitleParser.cnEpisodeIndex("A.Beautiful.Mind.2001.mkv"))
+    }
+
+    @Test
+    fun `中文集号不留在标题里`() {
+        assertEquals("繁花", MediaTitleParser.parse("繁花.第03集.1080p.mkv").title)
+    }
 }

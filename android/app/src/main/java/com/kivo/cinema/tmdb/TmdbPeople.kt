@@ -10,7 +10,7 @@ data class TmdbPerson(val id: Int, val name: String, val profileUrl: String?, va
 /**
  * 人气演员拉取器（首页「热门演员」横排的数据源）。
  *
- * 端点：`GET /person/popular?language=zh-CN&page=1`（✅ 实测 2026-11-17 返回 20 条）。
+ * 端点：`GET /person/popular?language=${TmdbLocale.tag()}&page=1`（✅ 实测 2026-11-17 返回 20 条）。
  * 取图：`profile_path` → `w185`（横排头像卡宽度 ≤ 92dp，w185 在 xxhdpi 上刚好够，不浪费流量）。
  * 失败语义：无 key / 无网 / 非 2xx / 返回体不可解析 → **空列表**，不补假数据、不降级。
  *
@@ -31,7 +31,7 @@ object TmdbPeople {
 
     fun popular(client: TmdbClient, limit: Int = 12): List<TmdbPerson> {
         if (limit <= 0) return emptyList()
-        val results = TmdbHome(client).get("/person/popular?language=zh-CN&page=1").first
+        val results = TmdbHome(client).get("/person/popular?language=${TmdbLocale.tag()}&page=1").first
             ?.optJSONArray("results") ?: return emptyList()
         val out = ArrayList<TmdbPerson>(minOf(limit, results.length()))
         for (i in 0 until results.length()) {

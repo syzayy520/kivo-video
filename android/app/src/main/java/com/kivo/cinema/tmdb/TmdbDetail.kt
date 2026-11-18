@@ -47,10 +47,14 @@ class TmdbDetail(private val client: TmdbClient) {
 
     fun details(isTv: Boolean, id: Int): Details? {
         val kind = if (isTv) "tv" else "movie"
-        val json = get("/$kind/$id?language=zh-CN&" +
+        val json = get("/$kind/$id?language=${TmdbLocale.tag()}&" +
             "append_to_response=videos,credits,similar,images,release_dates" +
-            "&include_image_language=zh,en,null").first ?: return null
-        val title = json.optString("title", json.optString("name", ""))
+            "&include_image_language=${TmdbLocale.imageLanguages()}").first ?: return null
+        // 跟随系统语言后，个别条目没有该语言译名（title 为空）⇒ 回落原名，
+        // 否则整个详情会被判成"不存在"（下面的 title.isEmpty() 会 return null）。
+        val title = json.optString("title").ifBlank { json.optString("name") }
+            .ifBlank { json.optString("original_title") }
+            .ifBlank { json.optString("original_name") }
         if (title.isEmpty()) return null
         val genres = json.optJSONArray("genres")?.let { arr ->
             (0 until arr.length()).map { arr.getJSONObject(it).optString("name") }

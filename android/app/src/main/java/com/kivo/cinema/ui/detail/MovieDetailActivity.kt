@@ -36,6 +36,35 @@ class MovieDetailActivity : ComponentActivity() {
         /** D12：本地文件入口（沿用旧页关键字，调用方零迁移）。 */
         const val EXTRA_PATH = "kivo.media"
         const val EXTRA_DURATION = "kivo.durationMs"
+        /** NAS(SMB) 入口：path 是共享内文件路径（单片）或目录路径（剧集）。 */
+        const val EXTRA_SMB_SOURCE = "kivo.smbSourceId"
+        const val EXTRA_SMB_SHARE = "kivo.smbShare"
+        const val EXTRA_SMB_PATH = "kivo.smbDetailPath"
+        const val EXTRA_SMB_SERIES = "kivo.smbIsSeries"
+        const val EXTRA_SMB_TITLE = "kivo.smbTitle"
+
+        /**
+         * NAS 片库 → 详情。`isSeries=true` 时 [target] 是共享内**父目录**、[title] 是剧名——
+         * 一剧多季在 NAS 上是多个季目录，靠 `(父目录, 剧名)` 才能把各季合成一部剧。
+         *
+         * 【为什么要单独入口】片库卡片以前直接起播，绕过了详情页；点海报就看不了简介/选集，
+         * 和 Emby、本地片源的交互不一致。
+         */
+        fun smbIntent(
+            context: Context,
+            sourceId: String,
+            share: String,
+            target: String,
+            isSeries: Boolean,
+            title: String = "",
+        ): Intent = Intent(context, MovieDetailActivity::class.java)
+            .putExtra(EXTRA_SMB_SOURCE, sourceId)
+            .putExtra(EXTRA_SMB_SHARE, share)
+            .putExtra(EXTRA_SMB_PATH, target)
+            .putExtra(EXTRA_SMB_SERIES, isSeries)
+            .putExtra(EXTRA_SMB_TITLE, title)
+            .putExtra(DetailPreview.EXTRA_TITLE, title.ifBlank { target.substringAfterLast('/') })
+            .putExtra(DetailPreview.EXTRA_SOURCE, "smb")
 
         fun intent(context: Context, item: TmdbHome.Item): Intent =
             DetailPreview.fill(
@@ -114,7 +143,13 @@ class MovieDetailActivity : ComponentActivity() {
         val isTv = intent.getBooleanExtra(EXTRA_TV, false)
         val embyItemId = intent.getStringExtra(EXTRA_EMBY_ITEM)?.takeIf { it.isNotBlank() }
         val localPath = intent.getStringExtra(EXTRA_PATH)?.takeIf { it.isNotBlank() }
-        if (localPath == null && id <= 0 && embyItemId == null) {
+        // NAS 片库入口：source + target（单片=文件路径，剧集=目录路径）。
+        val smbSource = intent.getStringExtra(EXTRA_SMB_SOURCE)?.takeIf { it.isNotBlank() }
+        val smbShare = intent.getStringExtra(EXTRA_SMB_SHARE).orEmpty()
+        val smbTarget = intent.getStringExtra(EXTRA_SMB_PATH)?.takeIf { it.isNotBlank() }
+        val smbIsSeries = intent.getBooleanExtra(EXTRA_SMB_SERIES, false)
+        val smbReady = smbSource != null && smbTarget != null
+        if (localPath == null && id <= 0 && embyItemId == null && !smbReady) {
             Toast.makeText(this, "无法打开详情：影片 ID 无效", Toast.LENGTH_LONG).show()
             finish()
             return
@@ -125,6 +160,16 @@ class MovieDetailActivity : ComponentActivity() {
         val durationHint = intent.getLongExtra(EXTRA_DURATION, 0L)
         val load: () -> DetailContent? = when {
             embyRes != null -> embyRes::loadDetails
+            smbReady -> {
+                val src = smbSource!!
+                val target = smbTarget!!
+                val title = intent.getStringExtra(EXTRA_SMB_TITLE).orEmpty()
+                if (smbIsSeries) {
+                    { SmbDetail.series(this, src, smbShare, target, title) }
+                } else {
+                    { SmbDetail.single(this, src, smbShare, target) }
+                }
+            }
             localPath != null -> { { localFileContent(this, localPath, durationHint) } }
             else -> { { localDetailContent(this, tmdb, isTv, id) } }
         }

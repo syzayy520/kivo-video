@@ -101,7 +101,7 @@ class TmdbClient(context: Context) {
                 if (series) "&first_air_date_year=$it" else "&year=$it"
             } ?: ""
             val url = "$API_BASE/search/${if (series) "tv" else "movie"}?api_key=${apiKey()}" +
-                "&language=zh-CN&query=$q$yq"
+                "&language=${TmdbLocale.tag()}&query=$q$yq"
             // 336：命中磁盘缓存直接用；否则回源并落盘。解析失败删缓存重建（不静默降级）。
             val body = TmdbResponseCache.get(url, TmdbResponseCache.TTL_METADATA)
                 ?: fetchText(url)?.also { TmdbResponseCache.put(url, it) }
@@ -141,7 +141,7 @@ class TmdbClient(context: Context) {
         if (apiKey().isEmpty()) return emptyMap()
         return try {
             val conn = openConnection(
-                "$API_BASE/tv/$tvId/season/$season?api_key=${apiKey()}&language=zh-CN")
+                "$API_BASE/tv/$tvId/season/$season?api_key=${apiKey()}&language=${TmdbLocale.tag()}")
             conn.connectTimeout = 8000
             conn.readTimeout = 15000
             if (conn.responseCode !in 200..299) return emptyMap()

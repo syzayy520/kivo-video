@@ -20,6 +20,12 @@ data class NasVideo(
     /** 展示用文件名（路径最后一段）。 */
     val fileName: String get() = path.substringAfterLast('/')
 
+    /** 共享内目录路径（无尾斜杠）；直接放在共享根下时为空串。聚合按它分"一部剧"。 */
+    val dirPath: String get() = path.substringBeforeLast('/', "")
+
+    /** 目录名（无目录时退回文件名去扩展名），用于标题兜底。 */
+    val dirName: String get() = dirPath.substringAfterLast('/').ifBlank { fileName }
+
     /** 续播/播放键：与 `PlayerSessionBridge.watchKey()` 同格式，天然对齐。 */
     val watchKey: String get() = "smb://$sourceId/$share/$path"
 }

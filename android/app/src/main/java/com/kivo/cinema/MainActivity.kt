@@ -111,6 +111,32 @@ class MainActivity : ComponentActivity() {
         sources.refresh()
     }
 
+    /**
+     * 片库分类行的卡片 → **详情页**（不是直接起播）。
+     *
+     * 【为什么与 [openHomeEntry] 分开】「继续观看」点卡片应该是"接着看"，直接播是对的；
+     * 而片库分类行是"浏览片库"，用户点海报要先看简介/选集再决定播不播。
+     * 剧集键（`smb-series://`）带目录，单片键带文件，两者都进详情页、由详情页决定形态。
+     */
+    internal fun openNasEntry(entry: com.kivo.cinema.library.HomeEntry) {
+        val coords = com.kivo.cinema.library.NasSeries.parseKey(entry.key)
+        if (coords != null) {
+            startActivity(
+                com.kivo.cinema.ui.detail.MovieDetailActivity.smbIntent(
+                    this, coords.sourceId, coords.share, coords.rootDir,
+                    isSeries = true, title = coords.title,
+                ),
+            )
+            return
+        }
+        val p = com.kivo.cinema.library.SmbContinueKey.parse(entry.key) ?: return
+        startActivity(
+            com.kivo.cinema.ui.detail.MovieDetailActivity.smbIntent(
+                this, p.sourceId, p.share, p.path, isSeries = false,
+            ),
+        )
+    }
+
     internal fun openLibrary() {
         startActivity(android.content.Intent(this,
             com.kivo.cinema.library.MediaLibraryActivity::class.java))
