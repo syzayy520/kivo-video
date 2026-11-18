@@ -63,6 +63,14 @@ class MainActivity : ComponentActivity() {
         defaultHomeHandled = savedInstanceState?.getBoolean("source.defaultHandled") ?: false
         // edge-to-edge（239：hero 顶入状态栏下——windowFullscreen 已从主题移除）
         enableEdgeToEdge()
+        // D376b：手机端主界面锁竖屏。
+        // 【为什么】播放器 PlayerComposeActivity 是 `screenOrientation="landscape"`，本页是 unspecified，
+        // 退出播放器后系统要等传感器稳定才转回竖屏 —— 真机实测**残留横屏 5–6 秒**，
+        // 期间首页按横屏布局（hero 占满、内容行被挤出视口），用户看到的就是"内容不见了"。
+        // 【为什么只锁手机】平板（sw600dp+）横屏读海报墙更合理，不强锁。
+        if (resources.configuration.smallestScreenWidthDp < 600) {
+            requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
         if (android.os.Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false
         window.navigationBarColor = android.graphics.Color.TRANSPARENT
         com.kivo.cinema.ui.design.TmdbImageCache.diskDir = cacheDir
