@@ -300,6 +300,16 @@ internal class EmbyResource private constructor(
         seasons: List<EmbyShows.Season>,
     ): List<Pair<EmbyShows.Season, List<EmbyShows.Episode>>> {
         if (seasons.isEmpty()) return emptyList()
+        // D366：先用**一次**全量请求（不带 SeasonId），按 ParentIndexNumber 分季。
+        // 只有"每季都拿到了集"才算成功；否则（服务器分页/截断/异常）退回逐季请求，
+        // 避免静默少集 —— 少一集用户是看不出来的，但选集面板会缺。
+        runCatching { shows.allEpisodes(a, itemId) }.getOrNull()?.let { all ->
+            val grouped = com.kivo.cinema.emby.EmbyEpisodeGrouping.group(seasons, all)
+            if (grouped != null) {
+                return grouped.map { (s, eps) -> s to stillsFirst(eps, s.index) }
+            }
+            NetDiag.log("[emby] all-episodes 覆盖不全，退回逐季 series=$itemId")
+        }
         val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
         return try {
             val futures = seasons.map { s ->

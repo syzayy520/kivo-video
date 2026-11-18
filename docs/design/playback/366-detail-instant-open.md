@@ -112,6 +112,19 @@ ui/detail/DetailPage.kt / MovieDetailActivity.kt [改] detail-perf 常驻计时�
 - 服务器已刮削 `ProviderIds.Tmdb` 时**免掉一次 TMDB 搜索**（更准，且少一跳）；
 - 图片尺寸表只用于"库图 vs TMDB 图谁更清晰"，**上限 800 ms**，超时按空表走（库图兜底），不拖整页。
 
+### 3.4 拉集从 N 次压到 1 次
+
+`/Shows/{id}/Episodes` **不带 `SeasonId`** 时返回整剧的集（`ParentIndexNumber` = 季号），
+所以 N 季不再需要 N 次往返（真机 47 集单季剧实测 0.4–2.4 s，主要花在这条链上）。
+
+- 覆盖判定抽成纯函数 `EmbyEpisodeGrouping.group()`：**每一季都至少有一集**才采用，
+  否则返回 null 让调用方退回逐季请求。
+- 为什么必须有这层判定：服务器若分页截断，少的集在 UI 上看不出来，但**选集面板会缺集** ——
+  这种"静默少数据"必须靠逻辑挡住，不能靠肉眼。
+- 单测 5 例覆盖：多季分组顺序、某季为空 → null、全空 → null、季表为空 → 空、多余季号不影响判定。
+- 真机：`[emby] all-episodes series=255945 n=47 seasons=[1]`，页面 `47集 / 47-47` 一致；
+  冷路径 **2383 ms → 1663 ms（−30%）**，热路径 82 ms 不变。
+
 ---
 
 ## 四、已知边界（如实）
