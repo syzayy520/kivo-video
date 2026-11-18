@@ -1,0 +1,8 @@
+# 354 · 本地直连下的 seek 落点（K40 b6e950ee，421MB mp4）
+# 来源：files/net-diag.log 的 [metrics] recordSeek 行，原型为
+#   400ms 横滑 → 连续三次 seek，检查 req 与 land 的差值
+[metrics] recordSeek active=true req=109889ms land=109889ms t=164ms ok
+[metrics] recordSeek active=true req=107591ms land=107634ms t=100ms ok
+[metrics] recordSeek active=true req=103336ms land=103336ms t=107ms ok
+# 结论：落点误差 0/43/0 ms（判据 ≤200ms），seek 耗时 100–164ms，seek 后正常出画。
+# 走代理时同样能 seek，但每次要一次 Range 往返；直连是 ffmpeg 直接对文件 seek。

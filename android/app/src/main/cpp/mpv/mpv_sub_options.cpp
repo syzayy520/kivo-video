@@ -69,7 +69,20 @@ bool apply_sub_options(mpv_handle* handle,
     // 只对纯文本字幕的默认字号生效。52 px 在 1080 高的画面上约等于 5%。
     options.push_back({"sub-font-size", "52", true});
     // 自动加载同名字幕文件（外挂 .srt/.ass 放在媒体旁边）。
-    options.push_back({"sub-auto", "fuzzy", true});
+    //
+    // 【354 · 为什么是 exact 而不是 fuzzy】
+    // fuzzy 会把**名字相近**的字幕也挂上。在 354 之前这件事没被暴露，
+    // 因为本地文件走 loopback 代理，代理 URL 是 `/v/<id>` —— mpv 那个"目录"里
+    // 一个兄弟文件都没有，fuzzy 等于空转（为此 Kotlin 侧另写了 PlayerSiblingSubtitle
+    // 扫目录补挂，该补丁已在 354 删除）。
+    //
+    // 本地文件改成直连 `loadfile <path>` 后 mpv 能看到真实目录，fuzzy 就会把
+    // 同目录**别的影片**的字幕也挂上（例如 `Alita.ass` 挂到 `3 Idiots`），
+    // 这对用户是错误内容而不只是噪音。exact = 只认文件名（除扩展名）完全相同。
+    //
+    // 对 SMB / WebDAV / HTTP 无影响：它们的 URL 目录同样看不到兄弟文件，
+    // exact 与 fuzzy 都不会挂任何东西。
+    options.push_back({"sub-auto", "exact", true});
     // ---- 位图字幕（PGS）的显示时长 ----
     //
     // 【为什么必须开】PGS 是**渐进式位图字幕**：一句对白被拆成一串"更新包"，

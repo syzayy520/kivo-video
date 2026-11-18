@@ -1,0 +1,4 @@
+mp4 | mode=direct（本地文件默认直连） | Detected file format: mov,mp4,m4a,3gp,3g2,mj2 | url="/storage/emulated/0/Movies/s.mp4"
+mkv | mode=direct（本地文件默认直连） | 未识别 | url="/storage/emulated/0/Movies/s.mkv"
+ts | mode=direct（本地文件默认直连） | Detected file format: mpegts | url="/storage/emulated/0/Movies/s.ts"
+special | mode=direct（本地文件默认直连） | Detected file format: mov,mp4,m4a,3gp,3g2,mj2 | url="/storage/emulated/0/Movies/测试 视频 100%.mp4"

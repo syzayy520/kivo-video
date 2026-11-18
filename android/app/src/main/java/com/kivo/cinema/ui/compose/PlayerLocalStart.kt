@@ -1,7 +1,6 @@
 package com.kivo.cinema.ui.compose
 
 import android.view.SurfaceHolder
-import com.kivo.cinema.net.FileByteSource
 import com.kivo.cinema.net.NetDiag
 import com.kivo.cinema.playback.PlaybackStack
 
@@ -64,8 +63,18 @@ internal fun PlayerComposeActivity.startLocalPlayback(
         return false
     }
 
-    // 3) 默认：走 mpv。本地文件也通过 [FileByteSource] 喂给本地代理，
-    //    与 SMB/HTTP 完全同一条链路（只是读源换成本地文件）。
+    // 3) 默认：走 mpv。本地文件**直接交给内核读**（354 `loadfile <path>`），
+    //    不再经过 loopback HTTP 代理。
+    //
+    //    【为什么这对本地是纯收益】代理是给"需要协议转换"的源（SMB/WebDAV/HTTP）准备的；
+    //    本地文件没有协议要转，套一层代理换来三个损失：
+    //    · `sub-auto` 只看得到代理 URL 所在目录 ⇒ 同名字幕失效（旧补丁已删）
+    //    · 格式识别受响应头支配 ⇒ D12I 写死 matroska 时全部 .ts 播不了
+    //    · 多一次 socket + 一次全量字节拷贝
+    //
+    //    【通道决策在哪】不在这里判断 —— [com.kivo.cinema.playback.PlaybackInputMode]
+    //    是唯一决策点，预检在 [com.kivo.cinema.playback.DirectFileMedia]。
+    //    预检失败会自动回退代理并留痕（不许静默降级，也不许直接黑屏）。
     NetDiag.log("[local] ${stack.describe()} ⇒ 走 mpv 内核（本地文件）")
 
     // 弹幕要在起播前挂（旧本地路径同样在起播前调）。
@@ -73,12 +82,12 @@ internal fun PlayerComposeActivity.startLocalPlayback(
     // 本地片源能直接探时长，不必等内核报（进度条从一开始就是对的）。
     durationMs = probeDurationUs(media.absolutePath) / 1000
 
-    val source = FileByteSource(media.absolutePath)
-    // 本地文件的"源就绪"= 打开文件句柄，几乎瞬时（网络源这里要付 TLS 握手）。
-    // 打这个点是为了让 JSON 里的 source_ready 有意义，而不是 not_measured。
+    // 本地文件的"源就绪"= 路径已在手上，**不需要等任何 IO 握手**
+    // （网络源要付 TLS 握手，SMB 要建会话）。打这个点是为了让 JSON 里的
+    // source_ready 有真值，而不是 not_measured。
     com.kivo.cinema.playback.PlaybackMetrics.mark(
         com.kivo.cinema.playback.PlaybackMetrics.T_SOURCE_READY
     )
-    startMpvPlayback(holder, source, isLocal = true, localMediaPath = media.absolutePath)
+    startMpvPlayback(holder, source = null, isLocal = true, localPath = media.absolutePath)
     return true
 }

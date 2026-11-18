@@ -27,7 +27,11 @@ import java.io.File
  */
 internal class MpvStartSequence(
     private val app: Context,
-    private val input: ByteSource,
+    /**
+     * 需要代理的源（SMB / WebDAV / HTTP）。本地文件直连时为 null ——
+     * 见 [directPath] 与 [PlaybackInputMode]。
+     */
+    private val input: ByteSource?,
     private val prefs: PlaybackPrefs,
     /**
      * **宿主 Activity 的 intent**（可为空）。
@@ -35,7 +39,7 @@ internal class MpvStartSequence(
      * 【为什么必须显式传】`app` 是 `applicationContext`，**不是 Activity**
      * ⇒ `(app as? Activity)` 恒为 null ⇒ intent 里的实验开关
      * （`kivo.renderMode` / `kivo.gpuNext` / `kivo.demuxerMb` /
-     * `kivo.maxRangeMb` / `kivo.hdrProbe` …）**从来就读不到**。
+     * `kivo.maxRangeMb` / `kivo.hdrProbe` / `kivo.inputMode` …）**从来就读不到**。
      * （这个坑之前在 `MpvPlaybackSession` 已经犯过一次：那里加了 `host`，
      * 这里却又用 `app` 重犯了一遍 ⇒ 改成显式参数，从根上断掉这条路。）
      */
@@ -50,21 +54,31 @@ internal class MpvStartSequence(
      * 调用方如果已经算过，传进来复用即可，避免重复读系统属性。
      */
     private val stack: PlaybackStack.Decision = PlaybackStack.resolve(app, intent),
+    /**
+     * 354 · 本地文件绝对路径。**非空 = 有资格直连**（是否真的直连由 [PlaybackInputMode] 决定，
+     * 是否真的能读由 [DirectFileMedia] 预检决定）。
+     *
+     * 三者互斥关系：`directPath != null` 时 [input] 可以为 null；
+     * `directPath == null` 时 [input] 必须非空（否则无处取数据）。
+     */
+    private val directPath: String? = null,
 ) {
 
     /**
      * 起播成功的产物。
      *
      * @param native 活着的内核会话。
-     * @param proxy 本地 HTTP 代理（mpv 通过它读源）。
-     * @param registeredId 代理里的源 id（释放时要还给代理）。
+     * @param proxy 本地 HTTP 代理；**本地文件直连时为 null**（没有代理可释放）。
+     * @param registeredId 代理里的源 id（释放时要还给代理）；直连时同样为 null。
+     * @param directUri 直连时交给 mpv 的路径；走代理时为 null。
      * @param positionSeconds 起播时刻的播放位置（秒）。
      * @param durationSeconds 片源总时长（秒）；0 = 内核还没报上来。
      */
     class Prepared(
         val native: MpvSession,
-        val proxy: LocalRangeServer,
-        val registeredId: String,
+        val proxy: LocalRangeServer?,
+        val registeredId: String?,
+        val directUri: String?,
         val positionSeconds: Double,
         val durationSeconds: Double,
     )
@@ -88,22 +102,23 @@ internal class MpvStartSequence(
         check(!isCancelled()) { "播放已取消" }
         val t0 = System.currentTimeMillis()
 
-        // 1) 起本地代理，把源变成 mpv 能读的 HTTP URL。
-        //    【为什么不需要 open()】ByteSource 的语义是"打开即已就绪"
-        //    （SmbByteSource.open() 里已经建好连接并拿到了大小），
-        //    而 RangeSource 那种"分阶段 open"的形态是给 fd 路径用的。
+        // 1) 准备输入通道（354）：本地文件直连 `loadfile <path>`，其余起 loopback 代理。
         //
-        //    【274 · 单次响应上限（实验开关）】播放主链路默认**不限**（0），
-        //    而 273 v12 给预览设了上限（PREVIEW_MAX_RANGE_BYTES）。
-        //    播放主链路不限 ⇒ 内核拿到第一帧就 seek 走时，代理还在往一个
-        //    没人读的 socket 里灌数据（真机 v18：预览取 1 帧顺序拉了 24 MiB）
-        //    ⇒ 这是"超买"的一大半。
-        //    ⇒ 实验用 `--ei kivo.maxRangeMb N` 覆盖，0 = 不限（保持旧行为）。
-        val proxy = LocalRangeServer.start(
-            maxRangeBytes = intentMaxRangeBytes(),
-        )
-        val registeredId = proxy.register(input)
-        val url = proxy.urlFor(registeredId)
+        //    【为什么本地不再走代理】代理是给"需要协议转换"的源准备的；本地文件没有
+        //    协议要转，套一层换来的是三个损失：`sub-auto` 看不到兄弟文件（同名字幕失效）、
+        //    格式识别受响应头支配（D12I：写死 matroska ⇒ 全部 .ts 播不了）、
+        //    多一次 socket + 全量拷贝。
+        //
+        //    【决策在哪】决策（[PlaybackInputMode]）、预检（[DirectFileMedia]）、
+        //    资源创建（代理/源）全在 [MpvInputPreparation] —— 这里只取结果，
+        //    不判断走哪条路（否则又回到"两个地方各算一遍"）。
+        //
+        //    【274 · 单次响应上限】只对代理路径有意义（本地文件不经过它）。
+        val inputPlan = MpvInputPreparation(app, input, directPath, intent)
+            .prepare(maxRangeBytes = intentMaxRangeBytes())
+        val proxy = inputPlan.proxy
+        val registeredId = inputPlan.registeredId
+        val url = inputPlan.url
 
         // 2) 起内核。
         //    【字体目录要先备好】内核初始化时就要设 sub-fonts-dir，
@@ -232,6 +247,7 @@ internal class MpvStartSequence(
             native = native,
             proxy = proxy,
             registeredId = registeredId,
+            directUri = inputPlan.directUri,
             positionSeconds = first.positionSeconds,
             durationSeconds = native.durationSeconds(),
         )

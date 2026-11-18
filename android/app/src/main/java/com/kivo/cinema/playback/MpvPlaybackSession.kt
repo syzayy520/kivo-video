@@ -9,6 +9,7 @@ import com.kivo.cinema.mpv.MpvSession
 import com.kivo.cinema.mpv.MpvSpeedController
 import com.kivo.cinema.mpv.MpvTrackCatalog
 import com.kivo.cinema.net.ByteSource
+import com.kivo.cinema.net.LazyFileByteSource
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ScheduledThreadPoolExecutor
@@ -48,12 +49,35 @@ import java.util.concurrent.atomic.AtomicLong
  * mpv ← http://127.0.0.1:port/<id> ← 代理 ← readAt ← RangeSource ← NAS
  * ```
  */
-class MpvPlaybackSession(context: Context, private val input: ByteSource) {
+class MpvPlaybackSession(
+    context: Context,
+    /**
+     * 需要代理的源（SMB / WebDAV / HTTP）。本地文件直连时为 null ——
+     * 见 [directPath]。两者至少有一个非空（起播序列会校验）。
+     */
+    private val input: ByteSource?,
+    /**
+     * 354 · 本地文件绝对路径。非空即有资格直连（是否真的直连由 [PlaybackInputMode] 定，
+     * 能否真的读由预检定）。直连成立时 [input] 可以为 null —— 那条路不需要 ByteSource。
+     */
+    private val directPath: String? = null,
+) {
 
     /** 与旧内核同名，便于播放页统一处理。 */
     enum class State { IDLE, PREPARING, PLAYING, PAUSED, ENDED, FAILED, CLOSED }
 
+    /**
+     * 354 · 本地文件**回退代理**时按需打开的源（直连成立则永不打开）。
+     *
+     * 会话自己创建 ⇒ 自己关闭（[releaseNative]）。调用方只传路径，不必判断走哪条通道 ——
+     * 通道决策集中在 [PlaybackInputMode]，避免"两个地方各算一遍"。
+     */
+    private val localFallback: ByteSource? =
+        if (input == null && directPath != null) LazyFileByteSource(directPath) else null
+
+    /** 设置读取用（applicationContext 就够）。 */
     private val app = context.applicationContext
+
 
     /**
      * **宿主 Activity**（不是 applicationContext）。
@@ -162,8 +186,10 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
                 // （渲染通路 / HDR / 各个实验开关）—— `app` 是 applicationContext，
                 // 不是 Activity ⇒ 在里面 cast 是拿不到的（见 MpvStartSequence 的说明）。
                 val prepared = MpvStartSequence(
-                    host, input, prefs,
-                    (host as? android.app.Activity)?.intent
+                    // 直连时 StartSequence 不会碰这个源；回退代理时才真的读它。
+                    host, input ?: localFallback, prefs,
+                    (host as? android.app.Activity)?.intent,
+                    directPath = directPath,
                 ).prepare(
                     surface = surface,
                     startSeconds = startSeconds,
@@ -371,6 +397,9 @@ class MpvPlaybackSession(context: Context, private val input: ByteSource) {
         server = null
         // ByteSource 的 close() 会关掉底层 SMB 会话；由持有它的调用方决定何时关，
         // 这里不关 —— 播放页还要用它做别的（比如投屏）。
+        // 【例外】354 的 localFallback 是**本类自己创建**的（只在回退代理时被打开）
+        // ⇒ 本类就是持有者，必须在这里关，否则回退路径会漏一个 fd。
+        runCatching { localFallback?.close() }
     }
 
     private fun fail(reason: String) {

@@ -146,7 +146,8 @@ internal fun PlayerComposeActivity.startSmbPlayback(
  */
 internal fun PlayerComposeActivity.startMpvPlayback(
     holder: SurfaceHolder,
-    source: com.kivo.cinema.net.ByteSource,
+    /** 需要代理的源。354 起可为 null —— 本地文件直连时不需要它（mpv 自己读文件）。 */
+    source: com.kivo.cinema.net.ByteSource? = null,
     /** 起播放行闸门（null = 不设）：URL 起播用它挡第一跳，SMB/本地不用。 */
     gate: com.kivo.cinema.playback.PlaybackLoadGate? = null,
     /**
@@ -154,8 +155,8 @@ internal fun PlayerComposeActivity.startMpvPlayback(
      * 它被投屏桥读作"时长未知"（-2）。本地文件有确定时长，不该被当成网络流。
      */
     isLocal: Boolean = false,
-    /** D12-B2：本地文件真实路径；非空时首帧后挂同名外挂字幕（代理 URL 看不到兄弟文件）。 */
-    localMediaPath: String? = null,
+    /** 354 · 本地文件绝对路径。非空即有资格直连（`loadfile <path>`），此时不需要 [source]。 */
+    localPath: String? = null,
 ) {
     if (finishRequested || isDestroyed) return
     playbackStarted = true
@@ -164,7 +165,7 @@ internal fun PlayerComposeActivity.startMpvPlayback(
     // 起点统一由 maybeStartPlayback 打 —— 那里比本函数早，且覆盖全部路径。
     phase = PlayerPhase.Buffering
     statusText = "正在准备内核播放…"
-    val session = com.kivo.cinema.playback.MpvPlaybackSession(this, source)
+    val session = com.kivo.cinema.playback.MpvPlaybackSession(this, source, localPath)
     mpvNetSession = session
     // 续播位在**起播前**取：交给内核的每文件选项 `start=`，
     // 内核打开即落到该位置（否则要等首帧出来再补一条 seek，白等 0.5–0.8 秒）。
@@ -194,8 +195,7 @@ internal fun PlayerComposeActivity.startMpvPlayback(
             android.os.Handler(mainLooper).post(positionPoll)
             applyProbeSubtitle(session)
             applyProbeMpvOptions(session)
-            // D12-B2：本地文件首帧后挂同目录同名文本字幕（旧宿主有这个行为）。
-            attachSiblingSubtitle(session, localMediaPath)
+            // 354：同名外挂字幕交还内核原生 `sub-auto=exact`（支持全部文本格式与编码探测）。
             // 273 v35：落点 seek 取证钩子（URL 与 SMB 两条链路共用本函数 ⇒ 挂这里两边都覆盖）。
             // 【为什么必须有它】见 PlayerProbeLandingSeek.kt 的文件头：
             // `input swipe` 与 `input motionevent` 都进不去 App 的手势层 ⇒
