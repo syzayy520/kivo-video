@@ -92,13 +92,16 @@ private fun resolvePoster(context: Context, entry: HomeEntry): Bitmap? {
     }
     // ② TMDB 兜底：先当电影搜，查不到再当剧集搜（NAS 分类不一定准，两种都试一次）
     val tmdb = TmdbClient(context.applicationContext)
-    // 中文→英文 × 电影→剧集：剧集类 NAS 目录的中文名常搜不到（如"69两头勾"），英文名更可靠。
-    val url = listOf(
-        Triple(entry.title, entry.year, false),
-        Triple(entry.searchAlias, entry.year, false),
-        Triple(entry.title, entry.year, true),
-        Triple(entry.searchAlias, entry.year, true),
-    ).firstNotNullOfOrNull { (q, y, tv) -> q?.let { tmdb.posterUrlFor(it, y, tv) } }
+    // 候选顺序：完整名 → 纯中文段 → 英文名，各试电影/剧集（剧集目录名常是"中文 英文 S01E01"混排）
+    val cn = chineseOnly(entry.title)
+    val url = buildList {
+        add(Triple(entry.title, entry.year, false))
+        cn?.let { add(Triple(it, entry.year, false)) }
+        add(Triple(entry.searchAlias, entry.year, false))
+        add(Triple(entry.title, entry.year, true))
+        cn?.let { add(Triple(it, entry.year, true)) }
+        add(Triple(entry.searchAlias, entry.year, true))
+    }.firstNotNullOfOrNull { (q, y, tv) -> q?.let { tmdb.posterUrlFor(it, y, tv) } }
     NetDiag.log("nas-poster tmdb ${entry.title} url=$url")
     if (url == null) return null
     // ③ 网络图也失败 → null，外层落渐变占位
@@ -106,6 +109,12 @@ private fun resolvePoster(context: Context, entry: HomeEntry): Bitmap? {
         saveDisk(disk, it)
         NetDiag.log("nas-poster done ${entry.title} bmp=${it.width}x${it.height}")
     }.also { if (it == null) NetDiag.log("nas-poster fail ${entry.title}") }
+}
+
+/** 从混排名里抠出中文段（`69两头勾 6ixtynin9 The Series` → `69两头勾`）；与原名相同则视为无。 */
+private fun chineseOnly(s: String): String? {
+    val m = Regex("""[A-Za-z0-9]*[一-龥][一-龥A-Za-z0-9]*""").find(s) ?: return null
+    return m.value.trim().takeIf { it.length >= 2 && it != s }
 }
 
 private fun diskCacheFile(context: Context, key: String): File =
@@ -152,8 +161,8 @@ private fun fetchRemoteImage(tmdb: TmdbClient, url: String): Bitmap? {
     repeat(3) {
         try {
             val conn = tmdb.openConnection(url)
-            conn.connectTimeout = 10000
-            conn.readTimeout = 12000
+            conn.connectTimeout = 8000
+            conn.readTimeout = 8000
             val bytes = conn.inputStream.use { it.readBytes() }
             return decodeImageCapped(bytes)
         } catch (e: Throwable) {

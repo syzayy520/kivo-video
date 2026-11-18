@@ -23,6 +23,11 @@ object MediaTitleParser {
     private val YEAR = Regex("""\b(19\d{2}|20\d{2})\b""")
     private val SPACES = Regex("""\s+""")
 
+    /** 季集标记（S01E01 / E05 / Season 2 / 1x03）：剧集搜索必须剥掉，否则 TMDB 一定搜不到。 */
+    private val EPISODE = Regex(
+        """(?i)(s\d{1,2}(?:[ ._-]?e\d{1,3})?|e\d{1,3}|season[ ._-]?\d{1,2}|episode[ ._-]?\d{1,3}|\d{1,2}x\d{1,3})""",
+    )
+
     /** 形如 `[犯罪都市4]` 的中文方括号前缀（括号内必须含中文，否则当发布组标签忽略）。 */
     private val CN_BRACKET = Regex("""^\[\s*([^\]]*[\u4e00-\u9fa5][^\]]*)\s*]""")
 
@@ -48,7 +53,7 @@ object MediaTitleParser {
         // 年份之后基本都是标签区，直接截掉，避免把 "2024 1080p WEB-DL" 全留在标题里。
         val cut = YEAR.find(flat)?.range?.first ?: flat.length
         val head = flat.substring(0, cut)
-        val stripped = TAGS.replace(head, " ")
+        val stripped = EPISODE.replace(TAGS.replace(head, " "), " ")
         val cleaned = SPACES.replace(stripped, " ").trim()
 
         // 清洗后可能空掉（例如文件名本身就只有标签）⇒ 退回原始（去扩展名）名字。
