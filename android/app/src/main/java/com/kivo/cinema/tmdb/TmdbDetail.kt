@@ -114,7 +114,7 @@ class TmdbDetail(private val client: TmdbClient) {
         json.optJSONObject("images")?.optJSONArray("backdrops")?.let { arr ->
             for (i in 0 until arr.length().coerceAtMost(10)) {
                 val p = arr.getJSONObject(i).optString("file_path")
-                if (p.isNotEmpty()) stills.add("${TmdbHome.IMG}/w780$p")
+                if (p.isNotEmpty()) stills.add("${TmdbHome.IMG}/w500$p")  // w500：w780 真机加载不出来
             }
         }
         val images = json.optJSONObject("images")

@@ -39,7 +39,8 @@ internal object SmbDetail {
         val video = findVideo(context, sourceId, share, path)
         val facts = onlyDetails(parsed.title.ifBlank { fileName }, parsed.year)
         // 限时增强：拿得到就补简介/评分/演员；拿不到（无 key/无网/超时）仍是可读可播的文件事实页。
-        val details = enrich(context, parsed.title, parsed.year, preferTv = false) ?: facts
+        val details = (enrich(context, parsed.title, parsed.year, preferTv = false) ?: facts)
+            .withLocalHero()
         // 码率用「文件体积 ÷ TMDB 时长」估算：能算就填，算不出（缺时长）给 0 让 UI 不显示。
         val runSec = ((details.runtimeMin ?: 0) * 60).toLong()
         val bps = video?.size?.takeIf { it > 0L && runSec > 0L }?.let { it * 8L / runSec } ?: 0L
@@ -61,11 +62,12 @@ internal object SmbDetail {
             tmdbIsTv = false,
             noPlayReason = "",
             serverName = "NAS",
-            // 幕布图与首页卡片同一套（库内图 → TMDB → 空），并**裁掉底部片名区**。
-            // 【为什么裁】TMDB 竖版海报把片名烧在底部，而 TitleLayer 还要再画一次片名 ⇒ 真机上两个片名叠成重影。
-            // Emby 详情之所以干净，是因为它的幕布本来就是无字剧照。这里用裁剪达到同样效果，不改任何 UI 布局。
-            loadImage = { _ ->
-                loadPoster(context, sourceId, share, path, video?.posterPath, parsed.title, parsed.year)
+            // 幕布专用：只有 [NAS_HERO_SCHEME] 才走本地海报（并裁掉底部烧死的片名）。
+            // 其余 URL（演员头像/剧照/相似海报）**必须返回 null**，交给各自的默认加载器 ——
+            // 否则所有头像都会变成同一张图（真机上就是这么出错的）。
+            loadImage = { url ->
+                if (!url.startsWith(NAS_HERO_SCHEME)) null
+                else loadPoster(context, sourceId, share, path, video?.posterPath, parsed.title, parsed.year)
                     ?.trimTitleBand()
             },
         )
@@ -106,7 +108,8 @@ internal object SmbDetail {
         val defaultIntent = first.path.takeIf { it.isNotBlank() }
             ?.let { playIntent(context, sourceId, share, it, first.label) }
         val facts = onlyDetails(series.title, series.year)
-        val details = enrich(context, series.title, series.year, preferTv = true) ?: facts
+        val details = (enrich(context, series.title, series.year, preferTv = true) ?: facts)
+            .withLocalHero()
         return DetailContent(
             details = details,
             media = null,
@@ -123,12 +126,26 @@ internal object SmbDetail {
             },
             playEpisode = { ep -> playIntent(context, sourceId, share, ep.id, ep.name) },
             serverName = "NAS",
-            loadImage = { _ ->
-                loadPoster(context, sourceId, share, first.path, series.posterPath, series.title, series.year)
+            loadImage = { url ->
+                if (!url.startsWith(NAS_HERO_SCHEME)) null
+                else loadPoster(context, sourceId, share, first.path, series.posterPath, series.title, series.year)
                     ?.trimTitleBand()
             },
         )
     }
+
+    /** 幕布专用 scheme：只用于让 [loadImage] 认出"这一张该用本地海报"。 */
+    private const val NAS_HERO_SCHEME = "kivo-nas-hero://"
+
+    /**
+     * 把幕布地址改成 [NAS_HERO_SCHEME]。
+     *
+     * 【为什么要改】`loadImage` 是**一个**回调，既服务幕布（页级大图）又服务演员头像/剧照/相似海报。
+     * 只要它"忽略参数一律返回本地海报"，那些小图就全变成同一张 —— 真机表现为所有演员同一张头像、剧照全灰。
+     * 给幕布一个专属 scheme 后，[loadImage] 只认它，其它 URL 返回 null 交回默认加载器，各取各图。
+     */
+    private fun TmdbDetail.Details.withLocalHero(): TmdbDetail.Details =
+        copy(heroArtworkUrl = NAS_HERO_SCHEME + "hero")
 
     /** 增强预算：超过就用文件事实（详情页不能被网络拖住）。 */
     private const val TMDB_BUDGET_MS = 2_500L
@@ -150,7 +167,15 @@ internal object SmbDetail {
                 val detail = TmdbDetail(client)
                 // 先按首选类型搜，搜不到再换另一种（NAS 分类不一定准，两种都试一次）。
                 listOf(preferTv, !preferTv).firstNotNullOfOrNull { asTv ->
-                    client.searchId(title, year, asTv)?.let { id -> detail.details(asTv, id) }
+                    client.searchId(title, year, asTv)?.let { id ->
+                        detail.details(asTv, id)?.also { d ->
+                            com.kivo.cinema.net.NetDiag.log(
+                                "[smb-detail] tmdb ok id=$id cast=${d.cast.size} genres=${d.genres.size} " +
+                                    "stills=${d.stills.size} similar=${d.similar.size} logo=${d.logoUrl != null} " +
+                                    "studio=${d.studioLogo != null} certs=${d.certifications.size}",
+                            )
+                        }
+                    }
                 }
             }.getOrNull()
         }
