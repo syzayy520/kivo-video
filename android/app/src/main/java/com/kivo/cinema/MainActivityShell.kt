@@ -276,8 +276,8 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                 ) {
                     WatchingPage(
                         continueItems = state.continueItems,
-                        posterOf = { activity.entryPoster(it) },
-                        onOpenItem = { activity.openHomeEntry(it) },
+                        posterOf = { activity.entryPoster(it) }, onOpenItem = { activity.openHomeEntry(it) },
+                        onRemove = { activity.removeWatching(it) },
                         onBack = { showWatching = false },
                     )
                 }

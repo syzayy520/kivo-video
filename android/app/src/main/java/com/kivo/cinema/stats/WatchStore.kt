@@ -114,6 +114,18 @@ class WatchStore(context: Context, fileName: String = "watch.json") {
         persist()
     }
 
+    /**
+     * 手动删除一条在看记录（「在看」页的"移除"）。
+     *
+     * 只动 `progress`，**不动 `dailyMs`**：每日观看时长是既成事实的统计，
+     * 用户删的是"这一条不想再看到"，不是"我没看过"。
+     */
+    @Synchronized
+    fun remove(key: String) {
+        load()
+        if (progress.remove(key) != null) persist()
+    }
+
     /** 续播位（无记录/接近片尾 95% → null）。 */
     @Synchronized
     fun progressOf(key: String): Progress? {

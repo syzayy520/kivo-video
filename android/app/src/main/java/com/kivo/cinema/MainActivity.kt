@@ -137,6 +137,19 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    /**
+     * 「在看」长按移除：删进度 + 同步把条目从首页/在看列表里摘掉。
+     *
+     * 立即从内存状态移除（不等下一次 refreshContinue 的网络往返），用户点"移除"就该马上消失；
+     * `WatchStore.remove` 只删续播位，**不动每日观看统计**——那是对"我看过多久"的事实记录。
+     */
+    internal fun removeWatching(row: com.kivo.cinema.library.WatchingRow) {
+        val keys = row.episodes.map { it.key }.toSet()
+        keys.forEach { watchStore.remove(it) }
+        shellState.continueItems = shellState.continueItems.filterNot { it.key in keys }
+        shellState.homeEntries = shellState.homeEntries.filterNot { it.key in keys }
+    }
+
     internal fun openLibrary() {
         startActivity(android.content.Intent(this,
             com.kivo.cinema.library.MediaLibraryActivity::class.java))
