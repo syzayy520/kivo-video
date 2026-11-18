@@ -1,0 +1,92 @@
+[9.8s] REQ#1 GET range=bytes=0-1023 hdrDelay=0ms
+[9.8s]   DONE#1 bytes=1024 (0.00 MiB) in 7ms ⇒ 0.140 MB/s
+[20.5s] REQ#2 GET range=bytes=0-0 hdrDelay=0ms
+[20.5s]   DONE#2 bytes=1 (0.00 MiB) in 2ms ⇒ 0.000 MB/s
+[20.5s] REQ#3 GET range=bytes=6428467-6494002 hdrDelay=0ms
+[20.7s]   DONE#3 bytes=65536 (0.06 MiB) in 113ms ⇒ 0.553 MB/s
+[21.0s] REQ#4 GET range=bytes=0-4194303 hdrDelay=0ms
+[21.1s] REQ#5 GET range=bytes=6415756-10610059 hdrDelay=0ms
+[21.3s]   DONE#5 bytes=78247 (0.07 MiB) in 141ms ⇒ 0.529 MB/s
+[21.4s]   DONE#4 bytes=262144 (0.25 MiB) in 425ms ⇒ 0.588 MB/s
+[21.4s] REQ#6 GET range=bytes=48-4194351 hdrDelay=0ms
+[28.1s]   DONE#6 bytes=4194304 (4.00 MiB) in 6674ms ⇒ 0.599 MB/s
+[28.1s] REQ#7 GET range=bytes=4194352-8388655 hdrDelay=0ms
+[31.8s]   DONE#7 bytes=2299651 (2.19 MiB) in 3663ms ⇒ 0.599 MB/s
+[67.7s] REQ#8 GET range=bytes=0-65535 hdrDelay=0ms
+[67.8s]   DONE#8 bytes=65536 (0.06 MiB) in 105ms ⇒ 0.595 MB/s
+[68.9s] REQ#9 GET range=bytes=0-1048575 hdrDelay=0ms
+[69.2s] REQ#10 GET range=bytes=6415756-7464331 hdrDelay=0ms
+[69.3s]   DONE#10 bytes=78247 (0.07 MiB) in 138ms ⇒ 0.541 MB/s
+[69.4s] REQ#11 GET range=bytes=306-1048881 hdrDelay=0ms
+[69.5s]   DONE#9 bytes=327680 (0.31 MiB) in 526ms ⇒ 0.594 MB/s
+[71.1s]   DONE#11 bytes=1048576 (1.00 MiB) in 1672ms ⇒ 0.598 MB/s
+[71.1s] REQ#12 GET range=bytes=1048882-2097457 hdrDelay=0ms
+[72.8s]   DONE#12 bytes=1048576 (1.00 MiB) in 1679ms ⇒ 0.596 MB/s
+[92.4s] REQ#13 GET range=bytes=0-0 hdrDelay=0ms
+[92.4s]   DONE#13 bytes=1 (0.00 MiB) in 1ms ⇒ 0.001 MB/s
+[92.4s] REQ#14 GET range=bytes=6428467-6494002 hdrDelay=0ms
+[92.6s]   DONE#14 bytes=65536 (0.06 MiB) in 107ms ⇒ 0.584 MB/s
+[92.9s] REQ#15 GET range=bytes=0-4194303 hdrDelay=0ms
+[93.0s] REQ#16 GET range=bytes=6415756-10610059 hdrDelay=0ms
+[93.1s]   DONE#16 bytes=78247 (0.07 MiB) in 126ms ⇒ 0.592 MB/s
+[93.3s] REQ#17 GET range=bytes=3313839-7508142 hdrDelay=0ms
+[93.3s]   DONE#15 bytes=262144 (0.25 MiB) in 423ms ⇒ 0.591 MB/s
+[98.3s]   DONE#17 bytes=3180164 (3.03 MiB) in 5057ms ⇒ 0.600 MB/s
+[99.6s] REQ#18 GET range=bytes=0-0 hdrDelay=0ms
+[99.6s]   DONE#18 bytes=1 (0.00 MiB) in 1ms ⇒ 0.001 MB/s
+[99.6s] REQ#19 GET range=bytes=0-0 hdrDelay=0ms
+[99.6s] REQ#20 GET range=bytes=0-65535 hdrDelay=0ms
+[99.6s]   DONE#19 bytes=1 (0.00 MiB) in 2ms ⇒ 0.000 MB/s
+[99.7s]   DONE#20 bytes=65536 (0.06 MiB) in 113ms ⇒ 0.553 MB/s
+[100.8s] REQ#21 GET range=bytes=0-1048575 hdrDelay=0ms
+[101.0s] REQ#22 GET range=bytes=6415756-7464331 hdrDelay=0ms
+[101.2s]   DONE#22 bytes=78247 (0.07 MiB) in 139ms ⇒ 0.537 MB/s
+[101.2s] REQ#23 GET range=bytes=306-1048881 hdrDelay=0ms
+[101.4s]   DONE#21 bytes=327680 (0.31 MiB) in 531ms ⇒ 0.589 MB/s
+[102.9s]   DONE#23 bytes=1048576 (1.00 MiB) in 1670ms ⇒ 0.599 MB/s
+[102.9s] REQ#24 GET range=bytes=1048882-2097457 hdrDelay=0ms
+[104.6s]   DONE#24 bytes=1048576 (1.00 MiB) in 1682ms ⇒ 0.595 MB/s
+[107.6s] REQ#25 GET range=bytes=0-0 hdrDelay=0ms
+[107.6s]   DONE#25 bytes=1 (0.00 MiB) in 1ms ⇒ 0.001 MB/s
+[107.6s] REQ#26 GET range=bytes=0-0 hdrDelay=0ms
+[107.6s]   DONE#26 bytes=1 (0.00 MiB) in 0ms ⇒ Infinity MB/s
+[112.4s] REQ#27 GET range=bytes=0-0 hdrDelay=0ms
+[112.4s] REQ#28 GET range=bytes=0-0 hdrDelay=0ms
+[112.4s]   DONE#27 bytes=1 (0.00 MiB) in 2ms ⇒ 0.000 MB/s
+[112.4s]   DONE#28 bytes=1 (0.00 MiB) in 1ms ⇒ 0.001 MB/s
+[112.4s] REQ#29 GET range=bytes=0-0 hdrDelay=0ms
+[112.4s]   DONE#29 bytes=1 (0.00 MiB) in 0ms ⇒ Infinity MB/s
+[112.4s] REQ#30 GET range=bytes=0-0 hdrDelay=0ms
+[112.4s]   DONE#30 bytes=1 (0.00 MiB) in 0ms ⇒ Infinity MB/s
+[115.6s] REQ#31 GET range=bytes=0-0 hdrDelay=0ms
+[115.6s] REQ#32 GET range=bytes=0-0 hdrDelay=0ms
+[115.6s]   DONE#31 bytes=1 (0.00 MiB) in 2ms ⇒ 0.000 MB/s
+[115.6s]   DONE#32 bytes=1 (0.00 MiB) in 1ms ⇒ 0.001 MB/s
+[123.6s] REQ#33 GET range=bytes=0-0 hdrDelay=0ms
+[123.6s] REQ#34 GET range=bytes=0-0 hdrDelay=0ms
+[123.6s]   DONE#33 bytes=1 (0.00 MiB) in 1ms ⇒ 0.001 MB/s
+[123.6s]   DONE#34 bytes=1 (0.00 MiB) in 1ms ⇒ 0.001 MB/s
+[127.4s] REQ#35 GET range=bytes=0-0 hdrDelay=0ms
+[127.4s]   DONE#35 bytes=1 (0.00 MiB) in 1ms ⇒ 0.001 MB/s
+[127.4s] REQ#36 GET range=bytes=0-0 hdrDelay=0ms
+[127.4s]   DONE#36 bytes=1 (0.00 MiB) in 1ms ⇒ 0.001 MB/s
+[127.4s] REQ#37 GET range=bytes=0-0 hdrDelay=0ms
+[127.4s] REQ#38 GET range=bytes=0-0 hdrDelay=0ms
+[127.4s]   DONE#37 bytes=1 (0.00 MiB) in 1ms ⇒ 0.001 MB/s
+[127.4s]   DONE#38 bytes=1 (0.00 MiB) in 0ms ⇒ Infinity MB/s
+[131.6s] REQ#39 GET range=bytes=0-0 hdrDelay=0ms
+[131.6s] REQ#40 GET range=bytes=0-0 hdrDelay=0ms
+[131.6s]   DONE#39 bytes=1 (0.00 MiB) in 4ms ⇒ 0.000 MB/s
+[131.6s]   DONE#40 bytes=1 (0.00 MiB) in 2ms ⇒ 0.000 MB/s
+[139.6s] REQ#41 GET range=bytes=0-0 hdrDelay=0ms
+[139.6s] REQ#42 GET range=bytes=0-0 hdrDelay=0ms
+[139.6s]   DONE#41 bytes=1 (0.00 MiB) in 3ms ⇒ 0.000 MB/s
+[139.6s]   DONE#42 bytes=1 (0.00 MiB) in 2ms ⇒ 0.000 MB/s
+[142.4s] REQ#43 GET range=bytes=0-0 hdrDelay=0ms
+[142.4s]   DONE#43 bytes=1 (0.00 MiB) in 1ms ⇒ 0.001 MB/s
+[142.4s] REQ#44 GET range=bytes=0-0 hdrDelay=0ms
+[142.4s]   DONE#44 bytes=1 (0.00 MiB) in 6ms ⇒ 0.000 MB/s
+[142.5s] REQ#45 GET range=bytes=0-0 hdrDelay=0ms
+[142.5s]   DONE#45 bytes=1 (0.00 MiB) in 2ms ⇒ 0.000 MB/s
+[142.5s] REQ#46 GET range=bytes=0-0 hdrDelay=0ms
+[142.5s]   DONE#46 bytes=1 (0.00 MiB) in 6ms ⇒ 0.000 MB/s
