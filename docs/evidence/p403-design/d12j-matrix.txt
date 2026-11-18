@@ -1,0 +1,8 @@
+mp4 | Detected file format: mov,mp4,m4a,3gp,3g2,mj2 (libavformat) | (0, 0) 1280x720 -> (240, 0) 1920x1080
+mkv | Detected file format: Matroska | (0, 0) 1280x720 -> (240, 0) 1920x1080
+ts | Detected file format: mpegts (libavformat) | (0, 0) 1280x720 -> (240, 0) 1920x1080
+m2ts | Detected file format: mpegts (libavformat) | (0, 0) 1280x720 -> (240, 0) 1920x1080
+mov | Detected file format: mov,mp4,m4a,3gp,3g2,mj2 (libavformat) | (0, 0) 1280x720 -> (240, 0) 1920x1080
+avi | Detected file format: avi (libavformat) | (0, 0) 1280x720 -> (240, 0) 1920x1080
+flv | Detected file format: flv (libavformat) | (0, 0) 1280x720 -> (240, 0) 1920x1080
+webm | Detected file format: Matroska | (0, 0) 1280x720 -> (240, 0) 1920x1080
