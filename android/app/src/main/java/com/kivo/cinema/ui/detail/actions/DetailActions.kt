@@ -29,6 +29,11 @@ internal fun rememberDetailActions(key: FilmKey): DetailActions {    val context
     LaunchedEffect(store) { withContext(Dispatchers.IO) { store.refresh() } }
     return DetailActions(snapshot[key], snapshot.ready && !saving,
         writeError ?: snapshot.error, toggle = { mark ->
+            // 静默 return 是取证黑洞（用户点了没反应却查不到原因），只在"被跳过"时留证。
+            if (!(snapshot.ready && !saving)) {
+                com.kivo.cinema.net.NetDiag.log(
+                    "[marks] toggle skipped $mark ready=${snapshot.ready} saving=$saving")
+            }
             if (snapshot.ready && !saving) {
                 saving = true
                 writeError = null

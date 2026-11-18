@@ -76,20 +76,25 @@ internal fun DetailActionRow(
             Row(Modifier.width(101.dp).height(45.dp).clip(RoundedCornerShape(50))
                 .background(Color.White.copy(alpha = .147f))
                 .border(1.dp, hair, RoundedCornerShape(50))) {
-                Box(Modifier.weight(1f).fillMaxHeight()
-                    .semantics {
-                        contentDescription = "影片标记"
-                        stateDescription = listOfNotNull(
-                            "待看".takeIf { actions.marks.watchlist },
-                            "已观看".takeIf { actions.marks.watched }).joinToString("、")
-                            .ifEmpty { "未标记" }
-                    }.clickable(enabled = actions.enabled, role = Role.Button) { marksOpen = true },
-                    contentAlignment = Alignment.Center) {
-                    CollectionPlusIcon(glyph, Modifier.size(22.dp))
-                    if (actions.marks.watchlist || actions.marks.watched)
-                        Canvas(Modifier.align(Alignment.TopEnd).padding(7.dp).size(5.dp)) {
-                            drawCircle(glyph)
-                        }
+                // 锚点容器：影片标记菜单挂在**这个 Box 里**，DropdownMenu 会自动锚到它，
+                // 于是点图标就在图标下方展开（用户要求"哪里点击往哪里展开"），不再从屏幕底部弹层。
+                Box(Modifier.weight(1f).fillMaxHeight()) {
+                    Box(Modifier.fillMaxSize()
+                        .semantics {
+                            contentDescription = "影片标记"
+                            stateDescription = listOfNotNull(
+                                "待看".takeIf { actions.marks.watchlist },
+                                "已观看".takeIf { actions.marks.watched }).joinToString("、")
+                                .ifEmpty { "未标记" }
+                        }.clickable(enabled = actions.enabled, role = Role.Button) { marksOpen = true },
+                        contentAlignment = Alignment.Center) {
+                        CollectionPlusIcon(glyph, Modifier.size(22.dp))
+                        if (actions.marks.watchlist || actions.marks.watched)
+                            Canvas(Modifier.align(Alignment.TopEnd).padding(7.dp).size(5.dp)) {
+                                drawCircle(glyph)
+                            }
+                    }
+                    DetailActionMenu(actions, marksOpen, onDismiss = { marksOpen = false })
                 }
                 val heartScale by animateFloatAsState(
                     if (actions.marks.favorite) 1.08f else 1f, label = "favorite")
@@ -124,5 +129,4 @@ internal fun DetailActionRow(
                     .clickable(role = Role.Button, onClick = actions.retry).padding(vertical = 12.dp))
         }
     }
-    if (marksOpen) DetailActionSheet(actions, onDismiss = { marksOpen = false })
 }
