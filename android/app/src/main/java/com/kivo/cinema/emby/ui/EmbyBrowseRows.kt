@@ -27,6 +27,8 @@ import com.kivo.cinema.ui.compose.player.formatPlayerTime
 import com.kivo.cinema.ui.design.TmdbImageCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.Role
 
 /**
  * 317 · 服务器首页的两条横排：**继续观看** 与 **分类行**。
@@ -48,7 +50,15 @@ internal fun EmbyResumeRow(items: List<EmbyHeroItem>, onOpen: (EmbyHeroItem) -> 
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             items(items, key = { it.id }) { h ->
-                Column(Modifier.width(208.dp)) {
+                // 【354 修】这里原先没有 `.clickable` —— `onOpen` 参数传进来了却从未调用，
+                // 于是整排「继续观看」卡片点了没反应（真机实测：点图片/文字都无动作，
+                // uiautomator 里该区域也没有 clickable 节点）。
+                // clip 是给 ripple 用的（图片本身已是圆角），不改变视觉。
+                Column(
+                    Modifier.width(208.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable(role = Role.Button) { onOpen(h) },
+                ) {
                     Box(
                         Modifier.fillMaxWidth().aspectRatio(16f / 9f)
                             .clip(RoundedCornerShape(10.dp))

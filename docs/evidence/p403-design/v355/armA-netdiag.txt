@@ -1,0 +1,362 @@
+1794963788574 [prep] URL 预备开始
+1794963788621 [play] origin probe total=421350893 hdrMs=31 thread=KivoUrlVerdict
+1794963788622 [prep] URL 预备完成 ms=49 verdict=无
+1794963788714 [play-tail] origin chunk from=421285357 code=206 hdrMs=91 len=65536 thread=KivoWindowPrefetch
+1794963788715 [tail] prefetch window=421285357..421350893 bytes=65536 parts=1 ok=true ms=92
+1794963788946 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794963788962 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794963788963 [prep] URL 起播开始
+1794963788964 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794963789023 [input] mode=proxy（无本地路径（SMB/HTTP 源））
+1794963789031 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794963789037 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794963789037 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794963789046 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794963789048 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794963789049 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794963789049 [prep] 内核创建完成 ms=27
+1794963789049 [prep] 闸门放行 ms=27
+1794963789056 PROXY REQ range=bytes=0- cap=0
+1794963789056 [ring] openReader offset=0 capacity=8MiB
+1794963789059 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794963789151 [play] origin chunk from=0 code=206 hdrMs=90 len=4194304 thread=KivoOriginPrefetch
+1794963789631 PROXY REQ range=bytes=419906397- cap=0
+1794963789631 [ring] openReader offset=419906397 capacity=8MiB
+1794963789632 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794963789730 [play] origin chunk from=419906397 code=206 hdrMs=97 len=1444496 thread=KivoOriginPrefetch
+1794963789732 PROXY REQ range=bytes=421108349- cap=0
+1794963789733 [ring] openReader offset=421108349 capacity=8MiB
+1794963789733 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794963789777 PROXY conn fail: ConnectionResetException: Connection reset
+1794963789823 [play] origin chunk from=421108349 code=206 hdrMs=90 len=242544 thread=KivoOriginPrefetch
+1794963789890 PROXY conn fail: ConnectionResetException: Connection reset
+1794963790041 [play] origin 到达片源末尾 @421350893（总长 421350893），不再向源站请求
+1794963790042 GET range=bytes=421108349- bytes=242544 cap=0 ms=216
+1794963790220 PROXY REQ range=bytes=175626574- cap=0
+1794963790221 [ring] openReader offset=175626574 capacity=8MiB
+1794963790221 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794963790322 [play] origin chunk from=175626574 code=206 hdrMs=101 len=4194304 thread=KivoOriginPrefetch
+1794963791056 [cache] fw=0.0M total=0.0M dur=0.4s underrun=true rate=0.1M/s
+1794963793063 [cache] fw=0.1M total=0.6M dur=0.0s underrun=true rate=0.5M/s
+1794963793395 [vo] 首帧后属性 vid=1 codec=H.265 / HEVC (High Efficiency Video Coding) conf=true params={"pixelformat":"mediacodec","w":1920,"h":1080,"dw":1920,"dh":1080,"crop-x":0,"cr
+1794963793409 [color] 非 HDR（gamma=bt.1886 primaries=bt.601-625）⇒ 色彩参数不动
+1794963793410 MPV 首帧就绪
+1794963795068 [cache] fw=1.3M total=2.1M dur=0.7s underrun=false rate=0.8M/s
+1794963795326 [play] origin chunk from=179820878 code=206 hdrMs=92 len=4194304 thread=KivoOriginPrefetch
+1794963797074 [cache] fw=0.3M total=3.7M dur=0.1s underrun=false rate=0.8M/s
+1794963799086 [cache] fw=1.1M total=5.3M dur=0.5s underrun=false rate=0.8M/s
+1794963800439 [play] origin chunk from=184015182 code=206 hdrMs=168 len=4194304 thread=KivoOriginPrefetch
+1794963801094 [cache] fw=1.2M total=6.9M dur=0.7s underrun=false rate=0.8M/s
+1794963803105 [cache] fw=0.8M total=8.6M dur=0.4s underrun=false rate=0.8M/s
+1794963805111 [cache] fw=1.3M total=10.2M dur=0.6s underrun=false rate=0.8M/s
+1794963805471 [play] origin chunk from=188209486 code=206 hdrMs=106 len=4194304 thread=KivoOriginPrefetch
+1794963807122 [cache] fw=0.2M total=11.9M dur=0.1s underrun=false rate=0.8M/s
+1794963808216 PROXY REQ range=bytes=190384610- cap=0
+1794963808217 [ring] openReader offset=190384610 capacity=8MiB
+1794963808218 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794963808351 [play] origin chunk from=190384610 code=206 hdrMs=132 len=4194304 thread=KivoOriginPrefetch
+1794963808357 PROXY conn fail: ConnectionResetException: Connection reset
+1794963809129 [cache] fw=1.6M total=13.2M dur=0.9s underrun=false rate=0.7M/s
+1794963811139 [cache] fw=0.0M total=14.9M dur=0.0s underrun=true rate=0.8M/s
+1794963813152 [cache] fw=1.7M total=16.6M dur=0.8s underrun=false rate=0.8M/s
+1794963813348 [play] origin chunk from=194578914 code=206 hdrMs=103 len=4194304 thread=KivoOriginPrefetch
+1794963815162 [cache] fw=0.1M total=18.3M dur=0.0s underrun=false rate=0.8M/s
+1794963817173 [cache] fw=1.7M total=19.8M dur=0.8s underrun=false rate=0.8M/s
+1794963818376 [play] origin chunk from=198773218 code=206 hdrMs=103 len=4194304 thread=KivoOriginPrefetch
+1794963819190 [cache] fw=0.5M total=21.5M dur=0.2s underrun=false rate=0.8M/s
+1794963821199 [cache] fw=1.2M total=23.2M dur=0.6s underrun=false rate=0.8M/s
+1794963823211 [cache] fw=0.9M total=24.7M dur=0.5s underrun=false rate=0.8M/s
+1794963823411 [play] origin chunk from=202967522 code=206 hdrMs=106 len=4194304 thread=KivoOriginPrefetch
+1794963825222 [cache] fw=0.7M total=26.4M dur=0.5s underrun=false rate=0.8M/s
+1794963827227 [cache] fw=0.4M total=28.1M dur=0.3s underrun=false rate=0.8M/s
+1794963828437 [play] origin chunk from=207161826 code=206 hdrMs=110 len=4194304 thread=KivoOriginPrefetch
+1794963829239 [cache] fw=0.4M total=29.7M dur=0.2s underrun=false rate=0.8M/s
+1794963831244 [cache] fw=1.1M total=31.4M dur=0.8s underrun=false rate=0.8M/s
+1794963833254 [cache] fw=0.4M total=33.0M dur=0.3s underrun=false rate=0.8M/s
+1794963833511 [play] origin chunk from=211356130 code=206 hdrMs=115 len=4194304 thread=KivoOriginPrefetch
+1794963835262 [cache] fw=1.3M total=34.6M dur=0.9s underrun=false rate=0.8M/s
+1794963837270 [cache] fw=0.0M total=36.2M dur=0.0s underrun=true rate=0.8M/s
+1794963838545 [play] origin chunk from=215550434 code=206 hdrMs=108 len=4194304 thread=KivoOriginPrefetch
+1794963839276 [cache] fw=1.5M total=37.8M dur=0.9s underrun=false rate=0.8M/s
+1794963839427 [supply] 放行 2 项延后预热（超时兜底 2 项）
+1794963839544 [play-cue] origin chunk from=0 code=206 hdrMs=112 len=65536 thread=KivoCueIndex
+1794963839545 [cue] 片头自己取 bytes=65536
+1794963839547 [cue] 片头里没有 SeekHead/Info ⇒ 放弃（不预取）
+1794963840679 PROXY REQ range=bytes=0- cap=2097152
+1794963840680 [ring] openReader offset=0 capacity=2MiB
+1794963840680 [thumb] prefetch 默认关闭（opt-in）：不预开任何块
+1794963840769 [thumb] origin chunk from=0 code=206 hdrMs=87 len=1048576 thread=KivoOriginPrefetch
+1794963841240 PROXY REQ range=bytes=419906397- cap=2097152
+1794963841240 [ring] openReader offset=419906397 capacity=2MiB
+1794963841241 [thumb] prefetch 默认关闭（opt-in）：不预开任何块
+1794963841281 [cache] fw=0.4M total=39.6M dur=0.2s underrun=false rate=0.8M/s
+1794963841332 [thumb] origin chunk from=419906397 code=206 hdrMs=91 len=1048576 thread=KivoOriginPrefetch
+1794963841337 PROXY REQ range=bytes=421108349- cap=2097152
+1794963841337 [ring] openReader offset=421108349 capacity=2MiB
+1794963841338 [thumb] prefetch 默认关闭（opt-in）：不预开任何块
+1794963841408 PROXY conn fail: ConnectionResetException: Connection reset
+1794963841438 [thumb] origin chunk from=421108349 code=206 hdrMs=100 len=242544 thread=KivoOriginPrefetch
+1794963841505 PROXY conn fail: ConnectionResetException: Connection reset
+1794963841662 [thumb] origin 到达片源末尾 @421350893（总长 421350893），不再向源站请求
+1794963841663 GET range=bytes=421108349- bytes=242544 cap=2097152 ms=223
+1794963841763 PROXY REQ range=bytes=487260- cap=2097152
+1794963841764 [ring] openReader offset=487260 capacity=2MiB
+1794963841764 [thumb] prefetch 默认关闭（opt-in）：不预开任何块
+1794963841874 [thumb] origin chunk from=487260 code=206 hdrMs=110 len=1048576 thread=KivoOriginPrefetch
+1794963843155 [thumb] origin chunk from=1535836 code=206 hdrMs=108 len=1048576 thread=KivoOriginPrefetch
+1794963843290 [cache] fw=1.9M total=41.1M dur=1.0s underrun=false rate=0.8M/s
+1794963843570 [play] origin chunk from=219744738 code=206 hdrMs=104 len=4194304 thread=KivoOriginPrefetch
+1794963844042 PROXY REQ range=bytes=220057170- cap=0
+1794963844043 [ring] openReader offset=220057170 capacity=8MiB
+1794963844044 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794963844145 [play] origin chunk from=220057170 code=206 hdrMs=99 len=4194304 thread=KivoOriginPrefetch
+1794963844192 PROXY conn fail: ConnectionResetException: Connection reset
+1794963844317 GET range=bytes=487260- bytes=2097152 cap=2097152 ms=2442
+1794963844324 PROXY REQ range=bytes=2584412- cap=2097152
+1794963844325 [ring] openReader offset=2584412 capacity=2MiB
+1794963844325 [thumb] prefetch 默认关闭（opt-in）：不预开任何块
+1794963844326 [thumb] origin open fail @2584412: thread interrupted
+1794963844425 [thumb] origin chunk from=2584412 code=206 hdrMs=99 len=1048576 thread=KivoOriginPrefetch
+1794963845295 [cache] fw=0.6M total=42.6M dur=0.3s underrun=false rate=0.8M/s
+1794963845685 [thumb] origin chunk from=3632988 code=206 hdrMs=91 len=1048576 thread=KivoOriginPrefetch
+1794963846907 GET range=bytes=2584412- bytes=2097152 cap=2097152 ms=2479
+1794963846915 PROXY REQ range=bytes=4681564- cap=2097152
+1794963846915 [ring] openReader offset=4681564 capacity=2MiB
+1794963846917 [thumb] prefetch 默认关闭（opt-in）：不预开任何块
+1794963846919 [thumb] origin open fail @4681564: thread interrupted
+1794963847242 [thumb] origin chunk from=4681564 code=206 hdrMs=324 len=1048576 thread=KivoOriginPrefetch
+1794963847300 [cache] fw=0.8M total=44.2M dur=0.6s underrun=false rate=0.8M/s
+1794963848518 [thumb] origin chunk from=5730140 code=206 hdrMs=104 len=1048576 thread=KivoOriginPrefetch
+1794963849159 [play] origin chunk from=224251474 code=206 hdrMs=92 len=4194304 thread=KivoOriginPrefetch
+1794963849307 [cache] fw=0.9M total=45.9M dur=0.6s underrun=false rate=0.8M/s
+1794963849692 GET range=bytes=4681564- bytes=2097152 cap=2097152 ms=2449
+1794963849695 [thumb] origin open fail @6778716: thread interrupted
+1794963851318 [cache] fw=0.4M total=47.5M dur=0.2s underrun=false rate=0.8M/s
+1794963853325 [cache] fw=0.9M total=49.2M dur=0.6s underrun=false rate=0.8M/s
+1794963854176 [play] origin chunk from=228445778 code=206 hdrMs=92 len=4194304 thread=KivoOriginPrefetch
+1794963855336 [cache] fw=0.2M total=50.8M dur=0.1s underrun=false rate=0.8M/s
+1794963857344 [cache] fw=1.8M total=52.5M dur=0.9s underrun=false rate=0.8M/s
+1794963859213 [play] origin chunk from=232640082 code=206 hdrMs=112 len=4194304 thread=KivoOriginPrefetch
+1794963859354 [cache] fw=0.2M total=54.1M dur=0.1s underrun=false rate=0.8M/s
+1794963861360 [cache] fw=1.9M total=55.7M dur=0.8s underrun=false rate=0.8M/s
+1794963861938 PROXY REQ range=bytes=234559567- cap=0
+1794963861939 [ring] openReader offset=234559567 capacity=8MiB
+1794963861940 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794963862038 [play] origin chunk from=234559567 code=206 hdrMs=95 len=4194304 thread=KivoOriginPrefetch
+1794963862087 PROXY conn fail: ConnectionResetException: Connection reset
+1794963863370 [cache] fw=1.2M total=56.8M dur=0.5s underrun=false rate=0.8M/s
+1794963865380 [cache] fw=1.0M total=58.5M dur=0.4s underrun=false rate=0.8M/s
+1794963867070 [play] origin chunk from=238753871 code=206 hdrMs=98 len=4194304 thread=KivoOriginPrefetch
+1794963867385 [cache] fw=0.8M total=60.1M dur=0.4s underrun=false rate=0.8M/s
+1794963869397 [cache] fw=0.9M total=61.8M dur=0.4s underrun=false rate=0.8M/s
+1794963871402 [cache] fw=1.2M total=63.5M dur=0.6s underrun=false rate=0.8M/s
+1794963872111 [play] origin chunk from=242948175 code=206 hdrMs=105 len=4194304 thread=KivoOriginPrefetch
+1794963873412 [cache] fw=0.5M total=65.0M dur=0.3s underrun=false rate=0.8M/s
+1794963875419 [cache] fw=1.1M total=66.6M dur=0.5s underrun=false rate=0.8M/s
+1794963877145 [play] origin chunk from=247142479 code=206 hdrMs=105 len=4194304 thread=KivoOriginPrefetch
+1794963877430 [cache] fw=0.6M total=68.2M dur=0.3s underrun=false rate=0.8M/s
+1794963879435 [cache] fw=0.8M total=70.0M dur=0.4s underrun=false rate=0.8M/s
+1794963881445 [cache] fw=0.8M total=71.5M dur=0.5s underrun=false rate=0.8M/s
+1794963882183 [play] origin chunk from=251336783 code=206 hdrMs=109 len=4194304 thread=KivoOriginPrefetch
+1794963883454 [cache] fw=1.1M total=71.5M dur=0.6s underrun=false rate=0.8M/s
+1794963885464 [cache] fw=0.9M total=71.4M dur=0.3s underrun=false rate=0.8M/s
+1794963887209 [play] origin chunk from=255531087 code=206 hdrMs=105 len=4194304 thread=KivoOriginPrefetch
+1794963887473 [cache] fw=2.6M total=70.8M dur=0.9s underrun=false rate=0.8M/s
+1794963889481 [cache] fw=0.1M total=70.7M dur=0.0s underrun=false rate=0.8M/s
+1794963891491 [cache] fw=1.7M total=70.3M dur=0.9s underrun=false rate=0.8M/s
+1794963892228 [play] origin chunk from=259725391 code=206 hdrMs=105 len=4194304 thread=KivoOriginPrefetch
+1794963893496 [cache] fw=0.1M total=71.9M dur=0.1s underrun=false rate=0.8M/s
+1794963895501 [cache] fw=1.4M total=71.7M dur=0.8s underrun=false rate=0.8M/s
+1794963897259 [play] origin chunk from=263919695 code=206 hdrMs=110 len=4194304 thread=KivoOriginPrefetch
+1794963897509 [cache] fw=0.1M total=71.6M dur=0.1s underrun=false rate=0.8M/s
+1794963897732 PROXY REQ range=bytes=264255567- cap=0
+1794963897733 [ring] openReader offset=264255567 capacity=8MiB
+1794963897734 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794963897833 [play] origin chunk from=264255567 code=206 hdrMs=96 len=4194304 thread=KivoOriginPrefetch
+1794963897879 PROXY conn fail: ConnectionResetException: Connection reset
+1794963899519 [cache] fw=0.7M total=71.2M dur=0.8s underrun=false rate=0.7M/s
+1794963901532 [cache] fw=0.5M total=71.0M dur=0.4s underrun=false rate=0.8M/s
+1794963902872 [play] origin chunk from=268449871 code=206 hdrMs=106 len=4194304 thread=KivoOriginPrefetch
+1794963903540 [cache] fw=0.5M total=70.8M dur=0.4s underrun=false rate=0.8M/s
+1794963905550 [cache] fw=0.6M total=70.5M dur=0.4s underrun=false rate=0.8M/s
+1794963907560 [cache] fw=0.2M total=70.3M dur=0.2s underrun=false rate=0.8M/s
+1794963907901 [play] origin chunk from=272644175 code=206 hdrMs=103 len=4194304 thread=KivoOriginPrefetch
+1794963909571 [cache] fw=0.2M total=72.0M dur=0.3s underrun=false rate=0.8M/s
+1794963911579 [cache] fw=1.1M total=70.8M dur=1.2s underrun=false rate=0.8M/s
+1794963912923 [play] origin chunk from=276838479 code=206 hdrMs=104 len=4194304 thread=KivoOriginPrefetch
+1794963913585 [cache] fw=1.0M total=71.0M dur=1.1s underrun=false rate=0.8M/s
+1794963915594 [cache] fw=1.0M total=71.6M dur=1.1s underrun=false rate=0.8M/s
+1794963915663 PROXY REQ range=bytes=278902273- cap=0
+1794963915664 [ring] openReader offset=278902273 capacity=8MiB
+1794963915665 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794963915774 [play] origin chunk from=278902273 code=206 hdrMs=107 len=4194304 thread=KivoOriginPrefetch
+1794963915807 PROXY conn fail: ConnectionResetException: Connection reset
+1794963917598 [cache] fw=0.7M total=71.7M dur=0.6s underrun=false rate=0.8M/s
+1794963919611 [cache] fw=0.4M total=70.7M dur=0.3s underrun=false rate=0.8M/s
+1794963920800 [play] origin chunk from=283096577 code=206 hdrMs=104 len=4194304 thread=KivoOriginPrefetch
+1794963921621 [cache] fw=1.3M total=71.0M dur=1.5s underrun=false rate=0.8M/s
+1794963923630 [cache] fw=1.3M total=71.3M dur=1.3s underrun=false rate=0.8M/s
+1794963925640 [cache] fw=0.8M total=71.5M dur=0.6s underrun=false rate=0.8M/s
+1794963925830 [play] origin chunk from=287290881 code=206 hdrMs=107 len=4194304 thread=KivoOriginPrefetch
+1794963927649 [cache] fw=0.2M total=71.7M dur=0.1s underrun=false rate=0.8M/s
+1794963929659 [cache] fw=0.8M total=71.4M dur=0.6s underrun=false rate=0.8M/s
+1794963930856 [play] origin chunk from=291485185 code=206 hdrMs=103 len=4194304 thread=KivoOriginPrefetch
+1794963931669 [cache] fw=0.1M total=71.2M dur=0.1s underrun=false rate=0.8M/s
+1794963933590 PROXY REQ range=bytes=293566775- cap=0
+1794963933591 [ring] openReader offset=293566775 capacity=8MiB
+1794963933591 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794963933673 [cache] fw=0.5M total=71.2M dur=0.3s underrun=false rate=0.8M/s
+1794963933692 [play] origin chunk from=293566775 code=206 hdrMs=100 len=4194304 thread=KivoOriginPrefetch
+1794963933743 PROXY conn fail: ConnectionResetException: Connection reset
+1794963933747 [play] origin open fail @293942785: thread interrupted
+1794963935683 [cache] fw=0.6M total=71.3M dur=0.5s underrun=false rate=0.8M/s
+1794963937694 [cache] fw=0.9M total=71.4M dur=0.9s underrun=false rate=0.8M/s
+1794963938717 [play] origin chunk from=297761079 code=206 hdrMs=108 len=4194304 thread=KivoOriginPrefetch
+1794963939704 [cache] fw=0.5M total=71.6M dur=0.5s underrun=false rate=0.8M/s
+1794963941713 [cache] fw=0.3M total=71.8M dur=0.3s underrun=false rate=0.8M/s
+1794963943726 [cache] fw=0.2M total=72.0M dur=0.1s underrun=false rate=0.8M/s
+1794963943753 [play] origin chunk from=301955383 code=206 hdrMs=103 len=4194304 thread=KivoOriginPrefetch
+1794963945733 [cache] fw=0.6M total=71.8M dur=0.7s underrun=false rate=0.8M/s
+1794963947742 [cache] fw=0.9M total=71.7M dur=1.4s underrun=false rate=0.8M/s
+1794963948781 [play] origin chunk from=306149687 code=206 hdrMs=107 len=4194304 thread=KivoOriginPrefetch
+1794963949767 [cache] fw=1.3M total=71.0M dur=1.9s underrun=false rate=0.8M/s
+1794963951524 PROXY REQ range=bytes=308287645- cap=0
+1794963951525 [ring] openReader offset=308287645 capacity=8MiB
+1794963951526 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794963951639 [play] origin chunk from=308287645 code=206 hdrMs=111 len=4194304 thread=KivoOriginPrefetch
+1794963951669 PROXY conn fail: ConnectionResetException: Connection reset
+1794963951772 [cache] fw=1.4M total=70.2M dur=1.2s underrun=false rate=0.8M/s
+1794963953786 [cache] fw=0.5M total=71.7M dur=0.3s underrun=false rate=0.8M/s
+1794963955795 [cache] fw=0.7M total=71.4M dur=0.4s underrun=false rate=0.8M/s
+1794963956664 [play] origin chunk from=312481949 code=206 hdrMs=105 len=4194304 thread=KivoOriginPrefetch
+1794963957817 [cache] fw=0.6M total=71.2M dur=0.4s underrun=false rate=0.8M/s
+1794963959826 [cache] fw=0.8M total=71.1M dur=0.5s underrun=false rate=0.8M/s
+1794963961703 [play] origin chunk from=316676253 code=206 hdrMs=115 len=4194304 thread=KivoOriginPrefetch
+1794963961836 [cache] fw=0.8M total=70.7M dur=0.5s underrun=false rate=0.8M/s
+1794963963845 [cache] fw=0.7M total=70.5M dur=0.4s underrun=false rate=0.8M/s
+1794963965852 [cache] fw=0.9M total=70.6M dur=0.7s underrun=false rate=0.8M/s
+1794963966734 [play] origin chunk from=320870557 code=206 hdrMs=106 len=4194304 thread=KivoOriginPrefetch
+1794963967861 [cache] fw=0.2M total=70.5M dur=0.1s underrun=false rate=0.8M/s
+1794963969869 [cache] fw=0.9M total=70.5M dur=1.3s underrun=false rate=0.8M/s
+1794963971774 [play] origin chunk from=325064861 code=206 hdrMs=113 len=4194304 thread=KivoOriginPrefetch
+1794963971878 [cache] fw=1.0M total=69.3M dur=1.2s underrun=false rate=0.8M/s
+1794963973882 [cache] fw=0.6M total=71.0M dur=0.7s underrun=false rate=0.8M/s
+1794963975887 [cache] fw=0.8M total=70.2M dur=0.7s underrun=false rate=0.8M/s
+1794963976808 [play] origin chunk from=329259165 code=206 hdrMs=105 len=4194304 thread=KivoOriginPrefetch
+1794963977891 [cache] fw=0.1M total=71.8M dur=0.0s underrun=false rate=0.8M/s
+1794963979959 [cache] fw=1.5M total=71.9M dur=1.2s underrun=false rate=0.8M/s
+1794963981845 [play] origin chunk from=333453469 code=206 hdrMs=106 len=4194304 thread=KivoOriginPrefetch
+1794963981967 [cache] fw=0.8M total=71.7M dur=1.5s underrun=false rate=0.8M/s
+1794963983976 [cache] fw=1.4M total=71.9M dur=2.2s underrun=false rate=0.8M/s
+1794963985984 [cache] fw=1.9M total=71.4M dur=2.5s underrun=false rate=0.8M/s
+1794963986880 [play] origin chunk from=337647773 code=206 hdrMs=110 len=4194304 thread=KivoOriginPrefetch
+1794963987434 PROXY REQ range=bytes=337626530- cap=0
+1794963987435 [ring] openReader offset=337626530 capacity=8MiB
+1794963987437 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794963987534 [play] origin chunk from=337626530 code=206 hdrMs=96 len=4194304 thread=KivoOriginPrefetch
+1794963987582 PROXY conn fail: ConnectionResetException: Connection reset
+1794963987989 [cache] fw=1.8M total=71.7M dur=2.2s underrun=false rate=0.8M/s
+1794963989995 [cache] fw=1.9M total=71.2M dur=2.6s underrun=false rate=0.8M/s
+1794963992002 [cache] fw=2.1M total=71.8M dur=2.8s underrun=false rate=0.8M/s
+1794963992547 [play] origin chunk from=341820834 code=206 hdrMs=96 len=4194304 thread=KivoOriginPrefetch
+1794963994010 [cache] fw=2.2M total=71.2M dur=2.0s underrun=false rate=0.8M/s
+1794963996019 [cache] fw=1.7M total=71.2M dur=1.3s underrun=false rate=0.8M/s
+1794963997585 [play] origin chunk from=346015138 code=206 hdrMs=105 len=4194304 thread=KivoOriginPrefetch
+1794963998027 [cache] fw=0.7M total=72.0M dur=0.6s underrun=false rate=0.8M/s
+1794964000036 [cache] fw=0.5M total=72.0M dur=0.3s underrun=false rate=0.8M/s
+1794964002045 [cache] fw=0.7M total=71.2M dur=0.5s underrun=false rate=0.8M/s
+1794964002619 [play] origin chunk from=350209442 code=206 hdrMs=105 len=4194304 thread=KivoOriginPrefetch
+1794964004051 [cache] fw=0.3M total=71.3M dur=0.3s underrun=false rate=0.8M/s
+1794964006059 [cache] fw=0.5M total=71.9M dur=0.4s underrun=false rate=0.8M/s
+1794964007642 [play] origin chunk from=354403746 code=206 hdrMs=105 len=4194304 thread=KivoOriginPrefetch
+1794964008064 [cache] fw=0.7M total=71.5M dur=0.4s underrun=false rate=0.8M/s
+1794964010074 [cache] fw=0.8M total=71.7M dur=0.5s underrun=false rate=0.8M/s
+1794964012083 [cache] fw=1.0M total=71.2M dur=0.7s underrun=false rate=0.8M/s
+1794964012673 [play] origin chunk from=358598050 code=206 hdrMs=110 len=4194304 thread=KivoOriginPrefetch
+1794964014092 [cache] fw=0.5M total=71.6M dur=0.2s underrun=false rate=0.8M/s
+1794964016097 [cache] fw=0.9M total=71.9M dur=0.5s underrun=false rate=0.8M/s
+1794964017687 [play] origin chunk from=362792354 code=206 hdrMs=92 len=4194304 thread=KivoOriginPrefetch
+1794964018101 [cache] fw=0.8M total=71.6M dur=0.5s underrun=false rate=0.8M/s
+1794964020105 [cache] fw=0.7M total=71.0M dur=0.5s underrun=false rate=0.8M/s
+1794964022109 [cache] fw=0.2M total=71.5M dur=0.1s underrun=false rate=0.8M/s
+1794964022704 [play] origin chunk from=366986658 code=206 hdrMs=92 len=4194304 thread=KivoOriginPrefetch
+1794964023097 PROXY REQ range=bytes=366691475- cap=0
+1794964023098 [ring] openReader offset=366691475 capacity=8MiB
+1794964023098 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794964023202 [play] origin chunk from=366691475 code=206 hdrMs=103 len=4194304 thread=KivoOriginPrefetch
+1794964023250 PROXY conn fail: ConnectionResetException: Connection reset
+1794964024113 [cache] fw=0.4M total=71.1M dur=0.6s underrun=false rate=0.8M/s
+1794964026121 [cache] fw=1.3M total=71.3M dur=2.8s underrun=false rate=0.8M/s
+1794964028130 [cache] fw=2.2M total=72.0M dur=4.2s underrun=false rate=0.8M/s
+1794964028224 [play] origin chunk from=370885779 code=206 hdrMs=102 len=4194304 thread=KivoOriginPrefetch
+1794964030138 [cache] fw=3.0M total=71.9M dur=5.8s underrun=false rate=0.8M/s
+1794964032142 [cache] fw=3.4M total=71.9M dur=7.2s underrun=false rate=0.8M/s
+1794964033253 [play] origin chunk from=375080083 code=206 hdrMs=103 len=4194304 thread=KivoOriginPrefetch
+1794964034150 [cache] fw=4.4M total=71.8M dur=8.1s underrun=false rate=0.8M/s
+1794964036157 [cache] fw=5.2M total=71.8M dur=8.8s underrun=false rate=0.8M/s
+1794964038181 [cache] fw=6.0M total=71.2M dur=10.3s underrun=false rate=0.8M/s
+1794964038279 [play] origin chunk from=379274387 code=206 hdrMs=101 len=4194304 thread=KivoOriginPrefetch
+1794964040187 [cache] fw=6.5M total=71.6M dur=11.7s underrun=false rate=0.8M/s
+1794964041021 PROXY REQ range=bytes=381492771- cap=0
+1794964041022 [ring] openReader offset=381492771 capacity=8MiB
+1794964041022 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794964041120 [play] origin chunk from=381492771 code=206 hdrMs=97 len=4194304 thread=KivoOriginPrefetch
+1794964041170 PROXY conn fail: ConnectionResetException: Connection reset
+1794964042197 [cache] fw=6.7M total=71.7M dur=13.4s underrun=false rate=0.8M/s
+1794964044207 [cache] fw=7.1M total=71.8M dur=15.4s underrun=false rate=0.8M/s
+1794964046155 [play] origin chunk from=385687075 code=206 hdrMs=101 len=4194304 thread=KivoOriginPrefetch
+1794964046211 [cache] fw=7.9M total=72.0M dur=15.4s underrun=false rate=0.8M/s
+1794964048219 [cache] fw=8.5M total=72.0M dur=14.3s underrun=false rate=0.8M/s
+1794964050227 [cache] fw=9.4M total=70.9M dur=14.6s underrun=false rate=0.8M/s
+1794964051185 [play] origin chunk from=389881379 code=206 hdrMs=106 len=4194304 thread=KivoOriginPrefetch
+1794964052235 [cache] fw=9.9M total=71.2M dur=16.3s underrun=false rate=0.8M/s
+1794964054242 [cache] fw=10.8M total=71.8M dur=17.1s underrun=false rate=0.8M/s
+1794964056194 [play] origin chunk from=394075683 code=206 hdrMs=93 len=4194304 thread=KivoOriginPrefetch
+1794964056245 [supply] 供数压力 OFF：runway=18.2s 连续 3 次健康
+1794964056246 [cache] fw=11.7M total=71.8M dur=18.2s underrun=false rate=0.8M/s
+1794964058260 [cache] fw=12.5M total=71.9M dur=18.1s underrun=false rate=0.8M/s
+1794964058867 PROXY REQ range=bytes=396318186- cap=0
+1794964058867 [ring] openReader offset=396318186 capacity=8MiB
+1794964058868 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794964058969 [play] origin chunk from=396318186 code=206 hdrMs=99 len=4194304 thread=KivoOriginPrefetch
+1794964059017 PROXY conn fail: ConnectionResetException: Connection reset
+1794964060264 [cache] fw=13.3M total=71.8M dur=18.6s underrun=false rate=0.8M/s
+1794964062270 [cache] fw=12.2M total=71.8M dur=19.1s underrun=false rate=0.8M/s
+1794964063453 [play] origin warmup hdrMs=14 thread=kivo-origin-warmup-1
+1794964063454 [play] origin warmup hdrMs=15 thread=kivo-origin-warmup-0
+1794964063599 [play-seek] origin warmup hdrMs=17 thread=kivo-origin-warmup-0
+1794964063599 [play-seek] origin warmup hdrMs=18 thread=kivo-origin-warmup-3
+1794964063601 [play-seek] origin warmup hdrMs=20 thread=kivo-origin-warmup-2
+1794964063601 [play-seek] origin warmup hdrMs=20 thread=kivo-origin-warmup-1
+1794964063990 [play] origin chunk from=400512490 code=206 hdrMs=105 len=4194304 thread=KivoOriginPrefetch
+1794964064274 [cache] fw=12.3M total=71.2M dur=18.9s underrun=false rate=0.8M/s
+1794964066281 [cache] fw=13.0M total=71.7M dur=18.3s underrun=false rate=0.8M/s
+1794964068290 [cache] fw=13.6M total=71.6M dur=17.0s underrun=false rate=0.8M/s
+1794964069022 [play] origin chunk from=404706794 code=206 hdrMs=106 len=4194304 thread=KivoOriginPrefetch
+1794964070298 [cache] fw=13.9M total=71.6M dur=16.0s underrun=false rate=0.8M/s
+1794964071468 [play] origin warmup hdrMs=13 thread=kivo-origin-warmup-0
+1794964071469 [play] origin warmup hdrMs=15 thread=kivo-origin-warmup-1
+1794964072306 [cache] fw=14.4M total=72.0M dur=15.2s underrun=false rate=0.8M/s
+1794964074052 [play] origin chunk from=408901098 code=206 hdrMs=106 len=4194304 thread=KivoOriginPrefetch
+1794964074316 [cache] fw=15.0M total=71.6M dur=15.2s underrun=false rate=0.8M/s
+1794964076323 [cache] fw=15.1M total=71.9M dur=15.1s underrun=false rate=0.8M/s
+1794964078331 [cache] fw=15.2M total=72.0M dur=14.1s underrun=false rate=0.8M/s
+1794964078611 [play-seek] origin warmup hdrMs=11 thread=kivo-origin-warmup-0
+1794964078612 [play-seek] origin warmup hdrMs=11 thread=kivo-origin-warmup-2
+1794964078613 [play-seek] origin warmup hdrMs=12 thread=kivo-origin-warmup-1
+1794964078614 [play-seek] origin warmup hdrMs=14 thread=kivo-origin-warmup-3
+1794964079066 [play] origin chunk from=413095402 code=206 hdrMs=93 len=4194304 thread=KivoOriginPrefetch
+1794964079480 [play] origin warmup hdrMs=10 thread=kivo-origin-warmup-0
+1794964079480 [play] origin warmup hdrMs=9 thread=kivo-origin-warmup-1
+1794964080336 [cache] fw=15.5M total=71.4M dur=12.8s underrun=false rate=0.8M/s
+1794964082340 [cache] fw=15.8M total=71.8M dur=11.3s underrun=false rate=0.8M/s
+1794964084100 [play] origin chunk from=417289706 code=206 hdrMs=101 len=4061187 thread=KivoOriginPrefetch
+1794964084348 [cache] fw=15.0M total=70.9M dur=9.4s underrun=false rate=0.8M/s
+1794964086356 [supply] 供数压力 ON：runway=8.0s underrun=false
+1794964086358 [cache] fw=12.9M total=71.3M dur=8.0s underrun=false rate=0.8M/s
+1794964088365 [cache] fw=11.3M total=72.0M dur=6.1s underrun=false rate=0.5M/s
+1794964088872 [play] origin 到达片源末尾 @421350893（总长 421350893），不再向源站请求
+1794964088873 GET range=bytes=396318186- bytes=25032707 cap=0 ms=29903
+1794964090374 [cache] fw=9.7M total=72.0M dur=3.9s underrun=false rate=0.0M/s
+1794964092381 [cache] fw=7.6M total=72.0M dur=2.0s underrun=false rate=0.0M/s
+1794964094387 [cache] fw=0.6M total=72.0M dur=0.1s underrun=false rate=0.0M/s

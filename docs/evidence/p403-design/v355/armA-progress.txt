@@ -1,0 +1,10 @@
+t=30s 异常=0 chunk请求=6
+t=60s 异常=0 chunk请求=12
+t=90s 异常=3 chunk请求=29
+t=120s 异常=3 chunk请求=36
+t=150s 异常=3 chunk请求=43
+t=180s 异常=4 chunk请求=50
+t=210s 异常=4 chunk请求=56
+t=240s 异常=4 chunk请求=63
+t=270s 异常=4 chunk请求=71
+t=300s 异常=4 chunk请求=77
