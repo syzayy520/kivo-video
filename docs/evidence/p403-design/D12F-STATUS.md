@@ -119,7 +119,10 @@ PROXY conn fail: ConnectionResetException: Connection reset
 
 ## 六、未覆盖
 
-1. **真 VC-1 未测**（ffmpeg 无 VC-1 编码器）。§三 的 `.ts` 恰好是 VC-1，但它死在 demuxer，
-   没进解码器，无法反证解码能力。
-2. §三 的根因三个候选**都未验证**，本批只做到"定位到 demuxer 之前 + 连接被重置"。
-3. 软解性能未测（WMV8 720p 30 s 太短，`vo_drop=0` 只说明没崩，不说明软解性能足够播 1080p VC-1）。
+1. ~~**真 VC-1 未测**~~ → ✅ **已补**（`D12H-STATUS.md`）：NAS 真 VC-1 片源
+   `[眩晕].Vertige...VC-1...mkv` 正常播放，`Opening decoder vc1` /
+   `Not trying to use hardware decoding`，91.5 s 内零丢帧、SF 0 次 >20ms。
+2. §三 的根因候选 —— **已定论**：同目录另一个 VC-1 片源是 `.mkv`、能播；
+   那个失败的是 `.ts` ⇒ **问题在 `.ts` 容器或该文件本身，与 VC-1 无关**（见 D12H §四）。
+3. ~~软解性能未测~~ → ✅ **已补**：VC-1 1080p 软解 24 fps 源插值到 60.54 fps 上屏，
+   `vo_drop` 恒 0、`avsync` <25 ms（D12H §二）。
