@@ -264,7 +264,22 @@ internal class PlayerWatchPoll(private val a: PlayerComposeActivity) : Runnable 
  * 【本地片源不受影响】`kivo.playurl` 为空 ⇒ 键仍是本地路径。
  */
 internal fun PlayerComposeActivity.watchKey(): String =
-    playUrlOverride.ifBlank { currentMediaPath() }
+    playUrlOverride.ifBlank {
+        // 345 · SMB 片源必须用「源 + 共享 + 路径」组合键。
+        // 【踩过的坑】旧写法直接回落到 currentMediaPath()，而 SMB 播放既没有
+        // `kivo.playurl` 也没有 `kivo.media` ⇒ currentMediaPath() 落到
+        // locateTestMedia()（files/media 下按名字排序的第一个文件）。
+        // 结果：**所有 SMB 影片共用一个续播键** —— 播 A 把进度记到 B 上。
+        // 真机复现：3 Idiots 的 59 分钟进度被 A Beautiful Mind 读走当起播点，
+        // 33.8 GB 的 .ts 直接 seek 到 59:34 后起播失败（D12G）。
+        val sourceId = intent.getStringExtra("kivo.sourceId")
+        val smbPath = intent.getStringExtra("kivo.smbPath")
+        if (!sourceId.isNullOrBlank() && !smbPath.isNullOrBlank()) {
+            "smb://$sourceId/" + intent.getStringExtra("kivo.smbShare").orEmpty() + "/$smbPath"
+        } else {
+            currentMediaPath()
+        }
+    }
 
 internal fun PlayerComposeActivity.flushWatch() {
     if (watchLastPosMs > 0 && durationMs > 0) {

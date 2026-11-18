@@ -97,10 +97,14 @@ class WatchStore(context: Context, fileName: String = "watch.json") {
     @Synchronized
     fun report(key: String, positionMs: Long, durationMs: Long, watchedDeltaMs: Long) {
         load()
-        if (positionMs > 0) {
-            progress[key] = Progress(positionMs, durationMs, System.currentTimeMillis())
-        } else {
-            progress.remove(key)   // 看完/重置：清除续播位
+        // 345 · 空键不写：否则所有"拿不到路径"的播放会共用 `""` 这一个键，
+        // 与 SMB 串台（D12G）是同一类错误。宁可这条进度记不下，也不能写串。
+        if (key.isNotBlank()) {
+            if (positionMs > 0) {
+                progress[key] = Progress(positionMs, durationMs, System.currentTimeMillis())
+            } else {
+                progress.remove(key)   // 看完/重置：清除续播位
+            }
         }
         if (watchedDeltaMs > 0) {
             val day = java.text.SimpleDateFormat("yyyy-MM-dd",
