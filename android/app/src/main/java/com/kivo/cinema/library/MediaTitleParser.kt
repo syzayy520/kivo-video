@@ -15,7 +15,7 @@ object MediaTitleParser {
 
     /** 常见片源/编码/音轨标签，命中即从标题里剔除。 */
     private val TAGS = Regex(
-        """(?i)\b(blu-?ray|remux|web-?dl|webrip|hdtv|dvdrip|bdrip|brrip|hdr10\+?|dolby.?vision|\bdv\b|""".trimIndent() +
+        """(?i)\b(blu-?ray|remux|web[ .-]?dl|webrip|hdtv|dvdrip|bdrip|brrip|hdr10\+?|dolby.?vision|\bdv\b|""".trimIndent() +
             """h\.?264|h\.?265|hevc|x\.?264|x\.?265|avc|aac|ac3|eac3|dts(-hd)?|truehd|atmos|""".trimIndent() +
             """10\s?bit|8\s?bit|4k|2160p|1080p|720p|480p|repack|proper|extended|unrated|remastered)\b""",
     )
@@ -25,7 +25,7 @@ object MediaTitleParser {
 
     /** 季集标记（S01E01 / E05 / Season 2 / 1x03）：剧集搜索必须剥掉，否则 TMDB 一定搜不到。 */
     private val EPISODE = Regex(
-        """(?i)(s\d{1,2}(?:[ ._-]?e\d{1,3})?|e\d{1,3}|season[ ._-]?\d{1,2}|episode[ ._-]?\d{1,3}|\d{1,2}x\d{1,3})""",
+        """(?i)\b(s\d{1,2}(?:[ ._-]?e\d{1,3})?|e\d{1,3}|season[ ._-]?\d{1,2}|episode[ ._-]?\d{1,3}|\d{1,2}x\d{1,3})\b""",
     )
 
     /** 形如 `[犯罪都市4]` 的中文方括号前缀（括号内必须含中文，否则当发布组标签忽略）。 */
