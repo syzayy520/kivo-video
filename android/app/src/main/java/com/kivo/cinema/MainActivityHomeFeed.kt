@@ -70,16 +70,24 @@ internal fun MainActivity.refreshHomeFeed() {
  * 两段式取数，避免网络往返拖住本地：本地先算先出；SMB 读续播键、Emby 后台补拉，
  * 到了再刷新首页。任何一源失败静默降级——首页不因某源不可达而报错或白屏。
  */
+private val continueBusy = java.util.concurrent.atomic.AtomicBoolean(false)
+
 internal fun MainActivity.refreshContinue() {
+    // onResume 在冷启动期可能被连续触发多次；不防重入会重复登录 Emby、重复拉续播（真机实测 3 次）。
+    if (!continueBusy.compareAndSet(false, true)) return
     Thread {
+        try {
         // 本地手机视频：只喂「在看」页，不进首页（用户裁决：不可刮削，会拉丑首页）。
         val local = ContinueWatching.aligned(items, watchStore)
         runOnUiThread { shellState.continueItems = HomeFeedAggregator.merge(local, emptyList()) }
         // 首页：只聚合 NAS(SMB) + Emby。
         val smb = SmbContinueSource.recent(watchStore)
         val emby = EmbyHomeResume.load(this)
-        val home = HomeFeedAggregator.merge(emptyList(), smb + emby)
-        runOnUiThread { shellState.homeEntries = home }
+            val home = HomeFeedAggregator.merge(emptyList(), smb + emby)
+            runOnUiThread { shellState.homeEntries = home }
+        } finally {
+            continueBusy.set(false)
+        }
     }.start()
 }
 

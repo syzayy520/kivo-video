@@ -19,6 +19,10 @@ object EmbyResumeSession {
         sessions[sourceId] = Session(client, auth)
     }
 
+    /** 复用已登录会话（首屏 refreshContinue 可能被多次触发，不复用就会反复 login）。 */
+    fun session(sourceId: String): Pair<EmbyClient, EmbyClient.Auth>? =
+        sessions[sourceId]?.let { it.client to it.auth }
+
     /** 拉海报字节；会话缺失或任何失败返回 null（组件显示中性占位，不崩不白屏）。 */
     fun fetchBytes(sourceId: String?, url: String): ByteArray? {
         val s = sourceId?.let { sessions[it] } ?: return null
