@@ -41,10 +41,26 @@ fun AggregatePoster(
 ) {
     var bitmap by remember(url) { mutableStateOf(posterCache.get(url)) }
     LaunchedEffect(url) {
-        if (bitmap != null || url.isBlank()) return@LaunchedEffect
+        // D371 取证：区分「源本来没有海报」与「取图失败」—— 这两种都是灰块，但责任方不同。
+        if (url.isBlank()) {
+            com.kivo.cinema.net.NetDiag.log("[agg-poster] blank ${source.record.name}")
+            return@LaunchedEffect
+        }
+        if (bitmap != null) return@LaunchedEffect
         bitmap = withContext(Dispatchers.IO) {
             posterCache.get(url) ?: runCatching {
-                decodeImageCapped(source.client.fetchBytes(url, source.auth.token))
+                val bytes = source.client.fetchBytes(url, source.auth.token)
+                decodeImageCapped(bytes) ?: run {
+                    // 拿到了字节却解不出图：格式异常/被网关替换成 HTML 等，必须留痕（不静默）。
+                    com.kivo.cinema.net.NetDiag.log(
+                        "[agg-poster] decode-null bytes=${bytes.size} ${url.takeLast(24)}",
+                    )
+                    null
+                }
+            }.onFailure {
+                com.kivo.cinema.net.NetDiag.log(
+                    "[agg-poster] fail ${it.javaClass.simpleName}: ${it.message} ${url.takeLast(24)}",
+                )
             }.getOrNull()?.also { posterCache.put(url, it) }
         }
     }
