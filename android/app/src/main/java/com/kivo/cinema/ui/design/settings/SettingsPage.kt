@@ -55,6 +55,8 @@ fun SettingsPage(
     onPreviewChanged: (Boolean) -> Unit,
     onOpenSources: () -> Unit,
     onOpenPrivate: () -> Unit,
+    /** 分类显示开关变更后通知宿重新算首页片库行（设置与首页同 Activity，不触发 onResume）。 */
+    onCategoryChanged: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val store = remember { SettingsStore(context) }
@@ -84,6 +86,7 @@ fun SettingsPage(
                 smbCount = smbCount,
                 version = store.versionLabel,
                 push = push,
+                onCategoryChanged = onCategoryChanged,
             )
         },
         sub = { route, back ->
@@ -112,6 +115,7 @@ private fun SettingsRootBody(
     smbCount: Int,
     version: String,
     push: (SettingsRoute) -> Unit,
+    onCategoryChanged: () -> Unit,
 ) {
     val context = LocalContext.current
     val homePrefs = remember { HomePreferences(context) }
@@ -194,6 +198,7 @@ private fun SettingsRootBody(
                         val next = !(visibleCats[cat] ?: false)
                         homePrefs.setCategoryVisible(cat, next)
                         visibleCats = visibleCats + (cat to next)
+                        onCategoryChanged()
                     }
                 },
                 footer = "控制首页显示哪些分类；没有内容的分类自动不显示。",

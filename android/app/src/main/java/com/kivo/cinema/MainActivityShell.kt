@@ -254,8 +254,8 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                         previewEnabled = previewEnabled,
                         onPreviewChanged = { previewEnabled = it; activity.homePreferences.autoplay = it },
                         onOpenSources = { page = 0 },
-                        onOpenPrivate = { activity.startActivity(
-                            Intent(activity, PrivateActivity::class.java)) },
+                        onOpenPrivate = { activity.startActivity(Intent(activity, PrivateActivity::class.java)) },
+                        onCategoryChanged = { activity.refreshNasLibrary() },
                     )
                 }
             }
