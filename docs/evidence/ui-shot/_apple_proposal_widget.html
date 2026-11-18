@@ -1,0 +1,79 @@
+<h2 class="sr-only">Kivo 设置页当前版与对齐 Apple 设置页排版规范的提案对比</h2>
+<style>
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.ph{width:270px;flex:0 0 270px;border-radius:26px;overflow:hidden;border:1px solid rgba(0,0,0,.07);background:#F2F2F7;font-family:var(--font-sans);color:#1a1a1a}
+.st{height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:11px;color:#333}
+.hd{padding:14px 20px 20px}
+.hd b{font-size:28px;font-weight:700;letter-spacing:-.6px}
+.sec{padding:0 20px 8px;font-size:13px;color:#6D6D72}
+.cd{margin:0 16px 8px;background:#fff;border-radius:12px;overflow:hidden}
+.cd.big{border-radius:12px}
+.rw{display:flex;align-items:center;gap:12px;padding:11px 16px;min-height:48px}
+.rw+.rw{border-top:1px solid #E5E5EA;margin-left:16px;padding-left:0}
+.tt{flex:1;min-width:0}
+.tt b{display:block;font-size:15px;font-weight:400}
+.tt s{display:block;font-size:12px;color:#8E8E93;text-decoration:none;margin-top:2px}
+.val{font-size:15px;color:#8E8E93;white-space:nowrap}
+.ar{color:#C7C7CC;font-size:16px;line-height:1}
+.ft{padding:6px 20px 14px;font-size:12px;color:#8E8E93;line-height:1.5}
+.nav{margin:10px 16px 12px;height:54px;border-radius:26px;background:rgba(255,255,255,.82);display:flex;align-items:center;justify-content:space-around;font-size:11px;color:#777}
+.nav i{font-style:normal;text-align:center}
+.nav i.on{color:#111;font-weight:500}
+.lbl{font-size:13px;font-weight:500;margin-bottom:12px;color:var(--color-text-primary)}
+.lbl span{font-size:11px;font-weight:400;color:var(--color-text-secondary);margin-left:6px}
+.ico{width:26px;height:26px;border-radius:6px;flex:0 0 26px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px}
+.b1{background:#0A84FF}.b2{background:#5E5CE6}.b3{background:#FF9F0A}.b4{background:#30B0C7}.b5{background:#34C759}
+</style>
+<div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start">
+<div>
+<div class="lbl">现在 <span>REX 式：卡内标题 + 行内副标题</span></div>
+<div class="ph" style="border-radius:20px">
+<div class="st"><span>14:40</span><span>▮▮▮ ᯤ ▰</span></div>
+<div class="hd" style="padding-bottom:8px"><b style="font-size:25px">设置</b></div>
+<div class="sec" style="padding-bottom:6px">播放体验</div>
+<div class="cd" style="border-radius:15px">
+<div class="rw"><div class="tt"><b>播放</b><s>缓冲 · 习惯 · 字幕</s></div><div class="ar">›</div></div>
+<div class="rw"><div class="tt"><b>音画</b><s>内核 · 画面 · 音频</s></div><div class="ar">›</div></div>
+<div class="rw"><div class="tt"><b>操控</b><s>按钮 · 手势 · 双击</s></div><div class="ar">›</div></div>
+<div class="rw"><div class="tt"><b>AI 字幕</b><s>语音转字幕 · 翻译</s></div><div class="ar">›</div></div>
+</div>
+<div class="sec" style="padding-top:14px">资源库</div>
+<div class="cd" style="border-radius:15px">
+<div class="rw"><div class="tt"><b>Emby</b></div><div class="val" style="color:#1a1a1a">3 个已配置</div><div class="ar">›</div></div>
+<div class="rw"><div class="tt"><b>SMB</b></div><div class="val" style="color:#1a1a1a">2 个已配置</div><div class="ar">›</div></div>
+</div>
+<div class="sec" style="padding-top:14px">使用偏好</div>
+<div class="cd" style="border-radius:15px">
+<div class="rw"><div class="tt"><b>首页预告片自动播放</b><s>默认显示图片；开启后需要能连接 YouTube</s></div><div class="val">开</div><div class="ar">›</div></div>
+</div>
+<div class="nav"><i>发现</i><i>我的</i><i>资源库</i><i class="on">设置</i><i>⌕</i></div>
+</div>
+</div>
+<div>
+<div class="lbl">Apple 提案 <span>组外标题 · 灰值 · 方卡</span></div>
+<div class="ph">
+<div class="st"><span>14:40</span><span>▮▮▮ ᯤ ▰</span></div>
+<div class="hd"><b>设置</b></div>
+<div class="sec">播放体验</div>
+<div class="cd">
+<div class="rw"><div class="ico b1">▷</div><div class="tt"><b>播放</b></div><div class="ar">›</div></div>
+<div class="rw"><div class="ico b2">◐</div><div class="tt"><b>音画</b></div><div class="ar">›</div></div>
+<div class="rw"><div class="ico b3">✥</div><div class="tt"><b>操控</b></div><div class="ar">›</div></div>
+<div class="rw"><div class="ico b4">◫</div><div class="tt"><b>AI 字幕</b></div><div class="ar">›</div></div>
+</div>
+<div class="ft">调整缓冲、画质、音效与字幕偏好。</div>
+<div class="sec">资源库</div>
+<div class="cd">
+<div class="rw"><div class="ico b5">▤</div><div class="tt"><b>Emby</b></div><div class="val">3 个</div><div class="ar">›</div></div>
+<div class="rw"><div class="ico b3">▣</div><div class="tt"><b>SMB</b></div><div class="val">2 个</div><div class="ar">›</div></div>
+</div>
+<div class="ft">管理已保存的连接与账号。</div>
+<div class="sec">使用偏好</div>
+<div class="cd">
+<div class="rw"><div class="ico b1">▷</div><div class="tt"><b>首页预告片自动播放</b></div><div class="ar">›</div></div>
+</div>
+<div class="ft">开启后需要连接 YouTube，否则默认显示封面图。</div>
+<div class="nav"><i>发现</i><i>我的</i><i>资源库</i><i class="on">设置</i><i>⌕</i></div>
+</div>
+</div>
+</div>

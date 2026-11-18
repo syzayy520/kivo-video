@@ -27,8 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kivo.cinema.library.MediaItem
-import com.kivo.cinema.stats.WatchStore
+import com.kivo.cinema.library.HomeEntry
 import com.kivo.cinema.ui.components.HitBox
 
 /**
@@ -42,9 +41,9 @@ import com.kivo.cinema.ui.components.HitBox
  */
 @Composable
 fun WatchingPage(
-    continueItems: List<Pair<MediaItem, WatchStore.Progress>>,
-    posterOf: @Composable (MediaItem) -> (@Composable () -> Unit)?,
-    onOpenItem: (MediaItem) -> Unit,
+    continueItems: List<HomeEntry>,
+    posterOf: @Composable (HomeEntry) -> (@Composable () -> Unit)?,
+    onOpenItem: (HomeEntry) -> Unit,
     onBack: () -> Unit,
 ) {
     BackHandler { onBack() }
@@ -77,9 +76,8 @@ fun WatchingPage(
             }
             return
         }
-        continueItems.forEach { (item, prog) ->
-            val frac = if (prog.durationMs > 0)
-                (prog.positionMs.toFloat() / prog.durationMs).coerceIn(0f, 1f) else 0f
+        continueItems.forEach { entry ->
+            val frac = entry.progress
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -87,7 +85,7 @@ fun WatchingPage(
                         vertical = DesignTokens.gap.dp)
                     .clip(RoundedCornerShape(DesignTokens.radiusCard.dp))
                     .background(Color.White.copy(alpha = 0.92f))
-                    .clickable { onOpenItem(item) }
+                    .clickable { onOpenItem(entry) }
             ) {
                 Box(
                     Modifier
@@ -96,18 +94,18 @@ fun WatchingPage(
                         .clip(RoundedCornerShape(8.dp))
                         .background(Color(0xFF24242A))
                 ) {
-                    posterOf(item)?.invoke()
+                    posterOf(entry)?.invoke()
                 }
                 Column(
                     Modifier
                         .weight(1f)
                         .padding(horizontal = 12.dp, vertical = 10.dp)
                 ) {
-                    Text(item.title, fontSize = DesignTokens.fontRowTitle.sp,
+                    Text(entry.title, fontSize = DesignTokens.fontRowTitle.sp,
                         fontWeight = FontWeight.Bold, color = DesignTokens.textMain,
                         maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Spacer(Modifier.height(2.dp))
-                    Text(relDays(item.addedSec), fontSize = 11.sp,
+                    Text(entryMeta(entry), fontSize = 11.sp,
                         color = DesignTokens.textSub)
                     Spacer(Modifier.height(8.dp))
                     // 黑进度条 3pt（05 §三：整行玻璃卡规格）
@@ -125,8 +123,8 @@ fun WatchingPage(
                         )
                     }
                     Spacer(Modifier.height(4.dp))
-                    Text("看到 " + fmtSeen(prog.positionMs) + " / " +
-                        item.formatDuration(), fontSize = 10.sp,
+                    Text("看到 " + fmtSeen(entry.positionMs) + " / " +
+                        fmtDuration(entry.durationMs), fontSize = 10.sp,
                         color = DesignTokens.textSub)
                 }
             }
@@ -155,3 +153,12 @@ private fun WatchingNavBar(onBack: () -> Unit) {
 
 // 44dp = 报告 §6.1 最小触控边长；DesignTokens 无对应项。
 private val WatchingNavHeight = 44.dp
+
+/** 入库时间未知时退回来源标签，不硬编假时间。 */
+private fun entryMeta(e: HomeEntry): String =
+    if (e.addedSec > 0) relDays(e.addedSec) else e.sourceLabel
+
+private fun fmtDuration(ms: Long): String {
+    val s = ms / 1000
+    return "%d:%02d:%02d".format(s / 3600, s / 60 % 60, s % 60)
+}

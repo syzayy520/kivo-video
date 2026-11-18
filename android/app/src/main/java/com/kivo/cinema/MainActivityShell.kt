@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.emby.aggregate.ui.AggregateActivity
+import com.kivo.cinema.library.HomeEntry
 import com.kivo.cinema.library.MediaItem
 import com.kivo.cinema.privatezone.PrivateActivity
 import com.kivo.cinema.sources.SourceOpen
@@ -69,7 +70,8 @@ internal class HomeShellState {
     /** home.error.network.* 键尾。 */
     var tmdbError by mutableStateOf<String?>(null)
     var homeGeneration by mutableStateOf(0)
-    var continueItems by mutableStateOf(listOf<Pair<MediaItem, WatchStore.Progress>>())
+    var continueItems by mutableStateOf(listOf<HomeEntry>())
+    var homeEntries by mutableStateOf(listOf<HomeEntry>())   // 首页=NAS+Emby（排除手机本地视频）
     /** 首页环境暗底（导航玻璃/状态栏联动）。 */
     var ambientDark by mutableStateOf(false)
     /** 本地可见视频数；媒体库不可读时为 null。 */
@@ -159,8 +161,6 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                         onOpenLibrary = { activity.openLibrary() },
                         onOpenPrivate = { activity.startActivity(
                             Intent(activity, PrivateActivity::class.java)) },
-                        onOpenAggregate = { activity.startActivity(
-                            Intent(activity, AggregateActivity::class.java)) },
                         videoCount = state.localVideoCount,
                     )
                     1 -> {
@@ -199,7 +199,7 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                         }
                         DiscoverPage(
                             previewEnabled = previewEnabled,
-                            continueItems = state.continueItems,
+                            continueItems = state.homeEntries,
                             heroCandidates = state.heroCandidates,
                             nowPlaying = state.nowPlaying,
                             onTheAir = state.onTheAir,
@@ -211,8 +211,8 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                             trailerFor = { activity.tmdbHome.trailerFor(it) },
                             proxyAddress = activity.tmdb.proxyAddr(),
                             generation = state.homeGeneration,
-                            posterOf = { activity.localMedia.posterBlock(it) },
-                            onOpenItem = { activity.openPlayer(it) },
+                            posterOf = { activity.entryPoster(it) },
+                            onOpenItem = { activity.openHomeEntry(it) },
                             onOpenTmdbItem = { activity.startActivity(MovieDetailActivity.intent(activity, it)) },
                             tmdbError = state.tmdbError,
                             onRetryTmdb = { activity.refreshHomeFeed() },
@@ -276,8 +276,8 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                 ) {
                     WatchingPage(
                         continueItems = state.continueItems,
-                        posterOf = { activity.localMedia.posterBlock(it) },
-                        onOpenItem = { activity.openPlayer(it) },
+                        posterOf = { activity.entryPoster(it) },
+                        onOpenItem = { activity.openHomeEntry(it) },
                         onBack = { showWatching = false },
                     )
                 }

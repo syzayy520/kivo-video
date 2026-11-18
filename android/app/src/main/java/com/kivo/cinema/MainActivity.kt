@@ -110,4 +110,32 @@ class MainActivity : ComponentActivity() {
         // D12：本地文件也走统一详情页（path 即片源，TMDB 只做增强）。
         startActivity(com.kivo.cinema.ui.detail.MovieDetailActivity.localIntent(this, item))
     }
+
+    /**
+     * 首页「继续观看」跨源条目打开：本地/SMB 走统一详情，Emby 进对应服务器页。
+     *
+     * Emby 深链详情需要 token（`MovieDetailActivity.embyIntent` 要 token/userId），
+     * 而凭据刻意不进 [com.kivo.cinema.library.HomeEntry] ⇒ P1 先落到 Emby 页，
+     * 用户在服务器页里再点具体片；后续要直达详情时补一条"按 sourceId 取会话"的入口。
+     */
+    internal fun openHomeEntry(entry: com.kivo.cinema.library.HomeEntry) {
+        when (entry.kind) {
+            com.kivo.cinema.library.HomeEntry.Kind.Emby -> startActivity(
+                android.content.Intent(this, com.kivo.cinema.emby.EmbyActivity::class.java)
+                    .putExtra("kivo.sourceId", entry.embySourceId),
+            )
+            com.kivo.cinema.library.HomeEntry.Kind.Smb -> {
+                val p = com.kivo.cinema.library.SmbContinueKey.parse(entry.key) ?: return
+                startActivity(
+                    android.content.Intent(this,
+                        com.kivo.cinema.ui.compose.PlayerComposeActivity::class.java)
+                        .putExtra("kivo.sourceId", p.sourceId)
+                        .putExtra("kivo.smbShare", p.share)
+                        .putExtra("kivo.smbPath", p.path)
+                        .putExtra("kivo.label", p.fileName),
+                )
+            }
+            else -> entry.mediaItem?.let { openPlayer(it) }
+        }
+    }
 }

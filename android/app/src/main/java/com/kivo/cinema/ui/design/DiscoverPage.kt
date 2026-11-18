@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kivo.cinema.library.HomeEntry
 import com.kivo.cinema.library.MediaItem
 import com.kivo.cinema.stats.WatchStore
 import com.kivo.cinema.tmdb.TmdbGenre
@@ -80,7 +81,7 @@ import com.kivo.cinema.ui.design.home.sections.WideSection
 @OptIn(ExperimentalFoundationApi::class)
 fun DiscoverPage(
     previewEnabled: Boolean = false,
-    continueItems: List<Pair<MediaItem, WatchStore.Progress>>,
+    continueItems: List<HomeEntry>,
     heroCandidates: List<TmdbHome.Item>,
     nowPlaying: List<TmdbHome.Item>,
     onTheAir: List<TmdbHome.Item>,
@@ -92,8 +93,8 @@ fun DiscoverPage(
     trailerFor: (TmdbHome.Item) -> TrailerResult,
     proxyAddress: String?,
     generation: Int,
-    posterOf: @Composable (MediaItem) -> (@Composable () -> Unit)?,
-    onOpenItem: (MediaItem) -> Unit,
+    posterOf: @Composable (HomeEntry) -> (@Composable () -> Unit)?,
+    onOpenItem: (HomeEntry) -> Unit,
     onOpenTmdbItem: (TmdbHome.Item) -> Unit,
     tmdbError: String? = null,
     onRetryTmdb: () -> Unit = {},

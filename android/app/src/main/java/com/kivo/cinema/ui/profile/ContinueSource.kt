@@ -2,7 +2,8 @@ package com.kivo.cinema.ui.profile
 
 import android.content.Context
 import com.kivo.cinema.library.ContinueWatching
-import com.kivo.cinema.library.MediaItem
+import com.kivo.cinema.library.HomeEntry
+import com.kivo.cinema.library.HomeFeedAggregator
 import com.kivo.cinema.stats.WatchStore
 import com.kivo.cinema.ui.profile.model.WatchEntry
 import com.kivo.cinema.ui.profile.thumbs.VideoThumbnails
@@ -32,29 +33,28 @@ object ContinueSource {
      */
     fun continueEntries(
         context: Context,
-        aligned: List<Pair<MediaItem, WatchStore.Progress>>? = null,
+        aligned: List<HomeEntry>? = null,
     ): List<WatchEntry> {
         val app = context.applicationContext
-        val pairs = aligned ?: ContinueWatching.aligned(
-            app,
-            WatchStore(app),
-            ContinueWatching.DEFAULT_LIMIT,
+        val entries = aligned ?: HomeFeedAggregator.merge(
+            ContinueWatching.aligned(app, WatchStore(app), ContinueWatching.DEFAULT_LIMIT),
+            emptyList(),
         )
-        return pairs.mapIndexed { index, (item, progress) ->
+        return entries.mapIndexed { index, entry ->
             WatchEntry(
-                title = ProfileNames.display(item.path, item.title),
-                subtitle = WATCHED_PREFIX + seenText(progress.positionMs),
+                title = ProfileNames.display(entry.mediaItem?.path ?: "", entry.title),
+                subtitle = WATCHED_PREFIX + seenText(entry.positionMs),
                 posterPath = if (index < THUMB_BUDGET) {
-                    VideoThumbnails.framePath(app, item.path)
+                    entry.mediaItem?.let { VideoThumbnails.framePath(app, it.path) }
                 } else null,
-                progressPercent = percentOf(progress),
+                progressPercent = percentOf(entry),
             )
         }
     }
 
-    private fun percentOf(progress: WatchStore.Progress): Int? {
-        if (progress.durationMs <= 0L) return null
-        return ((progress.positionMs * FULL_PROGRESS_PERCENT) / progress.durationMs)
+    private fun percentOf(entry: HomeEntry): Int? {
+        if (entry.durationMs <= 0L) return null
+        return ((entry.positionMs * FULL_PROGRESS_PERCENT) / entry.durationMs)
             .toInt().coerceIn(0, FULL_PROGRESS_PERCENT)
     }
 

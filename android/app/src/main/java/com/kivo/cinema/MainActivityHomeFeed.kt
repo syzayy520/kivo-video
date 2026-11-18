@@ -1,7 +1,13 @@
 package com.kivo.cinema
 
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.lifecycleScope
+import com.kivo.cinema.emby.EmbyHomeResume
 import com.kivo.cinema.library.ContinueWatching
+import com.kivo.cinema.library.HomeEntry
+import com.kivo.cinema.library.HomeFeedAggregator
+import com.kivo.cinema.library.SmbContinueSource
+import com.kivo.cinema.ui.design.home.sections.EmbyResumePoster
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -55,10 +61,38 @@ internal fun MainActivity.refreshHomeFeed() {
     }
 }
 
-/** 继续观看：与「我的」看板共用 [ContinueWatching] 的对齐规则，避免两处各算一份。 */
+/**
+ * 继续观看：**首页与「在看」是两份数据，不是同源**（用户裁决）。
+ *
+ * - 首页 `homeEntries` = NAS(SMB) + Emby：手机本地视频不可刮削，混进首页会把版面拉丑，**必须排除**；
+ * - 在看页 `continueItems` = 本地 MediaStore 续播：那边本来就是本地进度管理。
+ *
+ * 两段式取数，避免网络往返拖住本地：本地先算先出；SMB 读续播键、Emby 后台补拉，
+ * 到了再刷新首页。任何一源失败静默降级——首页不因某源不可达而报错或白屏。
+ */
 internal fun MainActivity.refreshContinue() {
     Thread {
-        val pairs = ContinueWatching.aligned(items, watchStore)
-        runOnUiThread { shellState.continueItems = pairs }
+        // 本地手机视频：只喂「在看」页，不进首页（用户裁决：不可刮削，会拉丑首页）。
+        val local = ContinueWatching.aligned(items, watchStore)
+        runOnUiThread { shellState.continueItems = HomeFeedAggregator.merge(local, emptyList()) }
+        // 首页：只聚合 NAS(SMB) + Emby。
+        val smb = SmbContinueSource.recent(watchStore)
+        val emby = EmbyHomeResume.load(this)
+        val home = HomeFeedAggregator.merge(emptyList(), smb + emby)
+        runOnUiThread { shellState.homeEntries = home }
     }.start()
+}
+
+/**
+ * 首页条目海报块：Emby 走服务器远程图，本地/SMB 走 MediaStore 抽帧。
+ * 抽成扩展是为了让 `MainActivityShell` 的两处调用各只占一行（该文件卡 300 行硬线）。
+ */
+@Composable
+internal fun MainActivity.entryPoster(entry: HomeEntry): (@Composable () -> Unit)? {
+    val media = entry.mediaItem
+    return when {
+        entry.posterUrl != null -> { { EmbyResumePoster(entry) } }
+        media != null -> localMedia.posterBlock(media)
+        else -> null
+    }
 }

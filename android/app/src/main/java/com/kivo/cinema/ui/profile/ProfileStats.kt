@@ -1,7 +1,7 @@
 package com.kivo.cinema.ui.profile
 
 import android.content.Context
-import com.kivo.cinema.library.MediaItem
+import com.kivo.cinema.library.HomeEntry
 import com.kivo.cinema.sources.storage.SourceStore
 import com.kivo.cinema.stats.WatchStore
 import com.kivo.cinema.ui.profile.model.CalendarDay
@@ -81,7 +81,7 @@ object ProfileStats {
      */
     fun build(
         context: Context,
-        continueItems: List<Pair<MediaItem, WatchStore.Progress>>? = null,
+        continueItems: List<HomeEntry>? = null,
     ): ProfileDashboard {
         val app = context.applicationContext
         val watch = WatchStore(app)

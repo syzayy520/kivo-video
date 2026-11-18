@@ -11,27 +11,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.kivo.cinema.library.MediaItem
-import com.kivo.cinema.stats.WatchStore
+import com.kivo.cinema.library.HomeEntry
 import com.kivo.cinema.ui.design.ContinueCard
 import com.kivo.cinema.ui.design.fmtSeen
 import com.kivo.cinema.ui.design.relDays
-import com.kivo.cinema.ui.design.sourceOf
 
 /**
- * 继续观看横排 —— ✅ 从 `DiscoverPage.kt` 等值搬迁（标题 13dp、列表 12dp、
- * 卡间距 10dp、水平 13dp 不变）。
+ * 继续观看横排 —— 多源版（本地 / SMB / Emby）。标题 13dp、列表 12dp、卡间距 10dp、
+ * 水平 13dp 与旧版完全同距，只把入参从「本地 MediaItem+Progress」换成跨源 [HomeEntry]。
  *
- * 【为什么把 `sourceOf` 留在 DiscoverPage】它是 Shell/其它页面也会用到的来源判定，
- * 迁移到 sections 会让「来源解析」这条职责跟着视图文件走；这里只调用，不拥有。
+ * 来源与时间文案在**本层**拼（数据层只给 [HomeEntry.addedSec]/[HomeEntry.sourceLabel] 原始值），
+ * 这样 `library` 不依赖任何 UI 格式化函数。
  */
 @Composable
 internal fun ContinueRow(
-    items: List<Pair<MediaItem, WatchStore.Progress>>,
+    entries: List<HomeEntry>,
     fg: Color,
     sub: Color,
-    posterOf: @Composable (MediaItem) -> (@Composable () -> Unit)?,
-    onOpenItem: (MediaItem) -> Unit,
+    posterOf: @Composable (HomeEntry) -> (@Composable () -> Unit)?,
+    onOpenItem: (HomeEntry) -> Unit,
     onShowWatching: (() -> Unit)? = null,
 ) {
     Column {
@@ -42,16 +40,14 @@ internal fun ContinueRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(horizontal = 13.dp),
         ) {
-            itemsIndexed(items) { _, pair ->
-                val (item, prog) = pair
+            itemsIndexed(entries) { _, entry ->
                 ContinueCard(
-                    title = item.title,
-                    meta = "${relDays(item.addedSec)} · ${sourceOf(item)}",
-                    seenText = "看到 " + fmtSeen(prog.positionMs),
-                    progress = if (prog.durationMs > 0)
-                        prog.positionMs.toFloat() / prog.durationMs else 0f,
-                    posterBlock = { posterOf(item)?.invoke() },
-                    onClick = { onOpenItem(item) },
+                    title = entry.title,
+                    meta = metaOf(entry),
+                    seenText = "看到 " + fmtSeen(entry.positionMs),
+                    progress = entry.progress,
+                    posterBlock = { posterOf(entry)?.invoke() },
+                    onClick = { onOpenItem(entry) },
                     titleColor = fg,
                     metaColor = sub,
                 )
@@ -59,3 +55,8 @@ internal fun ContinueRow(
         }
     }
 }
+
+/** "3 天前 · Emby"；入库时间未知时只给来源，不硬编一个假时间。 */
+private fun metaOf(entry: HomeEntry): String =
+    if (entry.addedSec > 0) "${relDays(entry.addedSec)} · ${entry.sourceLabel}"
+    else entry.sourceLabel
