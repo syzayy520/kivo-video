@@ -12,13 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.kivo.cinema.library.HomeEntry
-import com.kivo.cinema.ui.design.ContinueCard
 
 /**
- * 首页「本地片库」横排：展示 NAS 扫描索引里的影片（P3）。
+ * 首页「本地片库」某一分类的横排。
  *
- * 与「继续观看」的区别：这里**没有播放进度**（progress=0），表达的是"库里有什么"。
- * 空列表时整行不渲染（返回空），调用方可以直接无条件放一个 item。
+ * 规格**与 TMDB 的 [PosterSection] 完全一致**（用户要求）：标题上留 13dp、标题下 16dp、
+ * 卡间距 12dp、水平内边距 13dp、竖版 104×156 卡。空列表整行不渲染。
  */
 @Composable
 internal fun NasLibraryRow(
@@ -33,21 +32,18 @@ internal fun NasLibraryRow(
     Column {
         Spacer(Modifier.height(13.dp))
         HomeSectionHeader(title, fg)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(16.dp))
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(horizontal = 13.dp),
         ) {
             itemsIndexed(entries) { _, entry ->
-                ContinueCard(
-                    title = entry.title,
-                    meta = entry.sourceLabel,
-                    seenText = null,
-                    progress = 0f,
-                    posterBlock = { posterOf(entry)?.invoke() },
+                NasLibraryCard(
+                    entry = entry,
+                    fg = fg,
+                    sub = sub,
+                    posterBlock = posterOf(entry),
                     onClick = { onOpenItem(entry) },
-                    titleColor = fg,
-                    metaColor = sub,
                 )
             }
         }
