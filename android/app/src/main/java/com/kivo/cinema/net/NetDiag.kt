@@ -37,7 +37,9 @@ object NetDiag {
     fun log(message: String) {
         val target = file
         if (target == null) {
-            Log.i(TAG, message)
+            // 未 attach（如 JVM 单测）时退回 Logcat；但日志永远不能把业务搞崩：
+            // 纯 JVM 环境没有 android.util.Log 实现，直接调会抛 "not mocked"。
+            runCatching { Log.i(TAG, message) }
             return
         }
         runCatching {

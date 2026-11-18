@@ -87,4 +87,20 @@ object EmbyAuthCache {
     fun invalidate(sourceId: String) {
         idToCred.remove(sourceId)?.let { byCred.remove(it) }
     }
+
+    /**
+     * 按 token 反查并清除（401 兜底）。
+     *
+     * 【为什么需要】服务器侧吊销 token（改密踢下线、重启清会话）后，我们手里这个 token 已废，
+     * 但缓存仍会把它当有效用到 TTL 到期 —— 期间所有请求都 401，用户看到的是"一直加载失败"。
+     * 任何请求拿到 401 就调这里，下一次使用自动重新登录。
+     */
+    fun invalidateByToken(token: String) {
+        if (token.isBlank()) return
+        val dead = byCred.entries.filter { it.value.auth.token == token }.map { it.key }
+        if (dead.isEmpty()) return
+        dead.forEach { byCred.remove(it) }
+        idToCred.entries.removeAll { it.value in dead }
+        com.kivo.cinema.net.NetDiag.log("[emby-auth] 401 清除会话 n=${dead.size}")
+    }
 }

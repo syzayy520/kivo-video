@@ -296,6 +296,8 @@ class EmbyClient(serverInput: String) {
         try {
             c.setRequestProperty("X-Emby-Token", token)
             val code = c.responseCode
+            // D370：401 = token 已被服务器吊销 ⇒ 立刻清会话，下次自动重新登录（否则要错到 TTL 到期）。
+            if (code == 401) EmbyAuthCache.invalidateByToken(token)
             if (code !in 200..299) throw HttpFailure(code)
             val body = c.inputStream.bufferedReader().use { it.readText() }
             EmbyResponseCache.put(url, body)
