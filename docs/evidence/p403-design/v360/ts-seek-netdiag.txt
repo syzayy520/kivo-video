@@ -1,0 +1,107 @@
+1794972369631 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794972369648 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794972369650 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794972369820 [input] mode=proxy（无本地路径（SMB/HTTP 源））
+1794972369824 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794972369826 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794972369827 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794972369832 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794972369834 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794972369834 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794972369834 [prep] 内核创建完成 ms=14
+1794972369835 [prep] 闸门放行 ms=15
+1794972369838 PROXY REQ range=bytes=0- cap=0
+1794972370612 PROXY REQ range=bytes=36282456560- cap=0
+1794972371029 PROXY conn fail: ConnectionResetException: Connection reset
+1794972371029 GET range=bytes=36282456560- bytes=250000 cap=0 ms=191
+1794972371030 PROXY REQ range=bytes=0- cap=0
+1794972371060 PROXY REQ range=bytes=36282705620- cap=0
+1794972371060 GET range=bytes=36282705620- bytes=940 cap=0 ms=0
+1794972371061 PROXY conn fail: ConnectionResetException: Connection reset
+1794972371061 PROXY REQ range=bytes=36282703552- cap=0
+1794972371062 GET range=bytes=36282703552- bytes=3008 cap=0 ms=0
+1794972371063 PROXY REQ range=bytes=36282699416- cap=0
+1794972371063 GET range=bytes=36282699416- bytes=7144 cap=0 ms=0
+1794972371064 PROXY REQ range=bytes=36282691332- cap=0
+1794972371064 GET range=bytes=36282691332- bytes=15228 cap=0 ms=0
+1794972371065 PROXY REQ range=bytes=36282674976- cap=0
+1794972371065 GET range=bytes=36282674976- bytes=31584 cap=0 ms=0
+1794972371066 PROXY REQ range=bytes=36282642076- cap=0
+1794972371066 GET range=bytes=36282642076- bytes=64484 cap=0 ms=0
+1794972371067 PROXY REQ range=bytes=287227904- cap=0
+1794972371567 PROXY REQ range=bytes=195220892- cap=0
+1794972371840 [cache] fw=0.0M total=0.0M dur=0.0s underrun=true rate=2.3M/s
+1794972371879 PROXY conn fail: ConnectionResetException: Connection reset
+1794972371885 PROXY REQ range=bytes=228985692- cap=0
+1794972372379 PROXY conn fail: ConnectionResetException: Connection reset
+1794972372678 PROXY REQ range=bytes=231417848- cap=0
+1794972372937 PROXY conn fail: ConnectionResetException: Connection reset
+1794972372939 PROXY REQ range=bytes=231416156- cap=0
+1794972372973 PROXY conn fail: ConnectionResetException: Connection reset
+1794972372975 PROXY REQ range=bytes=231415968- cap=0
+1794972372999 PROXY conn fail: ConnectionResetException: Connection reset
+1794972373238 [vo] 首帧后属性 vid=1 codec=SMPTE VC-1 conf=true params={"pixelformat":"yuv420p","average-bpp":12,"w":1920,"h":1080,"dw":1920,"dh":1080,
+1794972373245 [color] 非 HDR（gamma=bt.1886 primaries=bt.709）⇒ 色彩参数不动
+1794972373245 MPV 首帧就绪
+1794972373843 [cache] fw=3.2M total=3.8M dur=6.4s underrun=false rate=2.9M/s
+1794972375846 [cache] fw=10.3M total=12.0M dur=17.1s underrun=false rate=9.3M/s
+1794972375976 PROXY REQ range=bytes=15895147140- cap=0
+1794972376048 [metrics] recordSeek active=true req=3574000ms land=3574000ms t=101ms ok
+1794972376385 PROXY conn fail: ConnectionResetException: Connection reset
+1794972376391 PROXY REQ range=bytes=16281332416- cap=0
+1794972376847 PROXY conn fail: ConnectionResetException: Connection reset
+1794972376849 PROXY REQ range=bytes=16291528220- cap=0
+1794972377270 PROXY conn fail: ConnectionResetException: Connection reset
+1794972377274 PROXY REQ range=bytes=16290883380- cap=0
+1794972377497 PROXY conn fail: ConnectionResetException: Connection reset
+1794972377500 PROXY REQ range=bytes=16291034908- cap=0
+1794972377538 PROXY conn fail: ConnectionResetException: Connection reset
+1794972377541 PROXY REQ range=bytes=16291034720- cap=0
+1794972377572 PROXY conn fail: ConnectionResetException: Connection reset
+1794972377848 [cache] fw=1.9M total=15.8M dur=0.0s underrun=true rate=6.7M/s
+1794972379862 [cache] fw=9.8M total=31.2M dur=2.0s underrun=false rate=9.3M/s
+1794972381863 [cache] fw=18.4M total=46.9M dur=4.3s underrun=false rate=8.7M/s
+1794972383865 [cache] fw=27.4M total=62.8M dur=6.4s underrun=false rate=8.9M/s
+1794972385868 [cache] fw=35.3M total=71.9M dur=8.5s underrun=false rate=8.6M/s
+1794972387870 [cache] fw=41.4M total=70.7M dur=10.3s underrun=false rate=8.8M/s
+1794972389873 [cache] fw=49.2M total=70.3M dur=12.7s underrun=false rate=9.1M/s
+1794972391875 [cache] fw=57.5M total=69.6M dur=14.8s underrun=false rate=8.7M/s
+1794972393878 [cache] fw=63.3M total=71.6M dur=16.4s underrun=false rate=8.6M/s
+1794972395879 [cache] fw=55.4M total=71.6M dur=14.5s underrun=false rate=1.2M/s
+1794972397881 [cache] fw=47.5M total=71.6M dur=12.3s underrun=false rate=0.0M/s
+1794972399883 [cache] fw=40.5M total=71.6M dur=10.4s underrun=false rate=0.0M/s
+1794972401885 [cache] fw=60.6M total=69.1M dur=15.8s underrun=false rate=11.8M/s
+1794972403887 [cache] fw=60.0M total=72.0M dur=15.5s underrun=false rate=5.9M/s
+1794972405889 [cache] fw=52.3M total=72.0M dur=13.6s underrun=false rate=0.0M/s
+1794972407892 [cache] fw=45.0M total=72.0M dur=11.6s underrun=false rate=0.0M/s
+1794972409894 [cache] fw=57.0M total=70.0M dur=14.8s underrun=false rate=0.0M/s
+1794972411901 [cache] fw=63.5M total=69.2M dur=16.4s underrun=false rate=15.8M/s
+1794972413903 [cache] fw=55.8M total=69.2M dur=14.5s underrun=false rate=0.7M/s
+1794972415904 [cache] fw=47.7M total=69.2M dur=12.4s underrun=false rate=0.0M/s
+1794972417906 [cache] fw=40.9M total=69.2M dur=10.4s underrun=false rate=0.0M/s
+1794972419251 [supply] 放行 1 项延后预热（超时兜底 1 项）
+1794972419908 [cache] fw=62.4M total=71.5M dur=15.9s underrun=false rate=13.0M/s
+1794972420469 PROXY REQ range=bytes=0- cap=2097152
+1794972421573 GET range=bytes=0- bytes=2097152 cap=2097152 ms=2
+1794972421593 PROXY REQ range=bytes=2097152- cap=2097152
+1794972421910 [cache] fw=54.5M total=71.5M dur=13.8s underrun=false rate=0.9M/s
+1794972422503 GET range=bytes=2097152- bytes=2097152 cap=2097152 ms=2
+1794972422511 PROXY REQ range=bytes=4194304- cap=2097152
+1794972423042 GET range=bytes=4194304- bytes=2097152 cap=2097152 ms=3
+1794972423048 PROXY REQ range=bytes=36282456560- cap=2097152
+1794972423390 GET range=bytes=36282456560- bytes=250000 cap=2097152 ms=1
+1794972423394 PROXY REQ range=bytes=0- cap=2097152
+1794972423396 GET range=bytes=0- bytes=2097152 cap=2097152 ms=1
+1794972423400 PROXY REQ range=bytes=2097152- cap=2097152
+1794972423403 GET range=bytes=2097152- bytes=2097152 cap=2097152 ms=3
+1794972423916 [cache] fw=47.0M total=71.5M dur=11.8s underrun=false rate=0.0M/s
+1794972425918 [cache] fw=60.5M total=71.3M dur=15.6s underrun=false rate=0.0M/s
+1794972427920 [cache] fw=63.4M total=70.7M dur=16.1s underrun=false rate=14.1M/s
+1794972429921 [cache] fw=55.9M total=70.7M dur=14.2s underrun=false rate=1.9M/s
+1794972431944 [cache] fw=47.7M total=70.7M dur=11.9s underrun=false rate=0.0M/s
+1794972433958 [cache] fw=39.7M total=70.7M dur=10.1s underrun=false rate=0.0M/s
+1794972435960 [cache] fw=63.8M total=69.8M dur=16.5s underrun=false rate=13.2M/s
+1794972437963 [cache] fw=57.1M total=69.8M dur=14.3s underrun=false rate=1.6M/s
+1794972439965 [cache] fw=49.3M total=69.8M dur=12.5s underrun=false rate=0.0M/s
+1794972441979 [cache] fw=41.8M total=69.8M dur=10.5s underrun=false rate=0.0M/s
+1794972443980 [cache] fw=63.8M total=71.0M dur=16.1s underrun=false rate=13.0M/s
