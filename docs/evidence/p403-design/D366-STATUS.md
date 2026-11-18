@@ -1,0 +1,52 @@
+# D366 STATUS · 详情页对标 Rex 的秒开改造
+
+## 一、结论
+
+| 项 | 结果 |
+|---|---|
+| 用户诉求 | 「rex 进去就已经加载好了，咱们的要加载好一会儿」+ 要求拆包分析 Rex 实现 |
+| Rex 实现（静态实证） | **详情/数据/图片分域持久化缓存 + 详情缓存时长可配 + 模块级独立异步 + 元数据多源补全**；FairPlay 加密，无法拿到源码级实现 |
+| 我方真凶 | 不是网络慢，是 **Emby 侧零缓存**：详情/季/集每次进详情全重打源站（剧集四季拉集 1.6 s） |
+| 改造结果 | **二次进入 2383 ms → 74 ms**（剧集）、**1332 ms → 67 ms**（电影），日志全链路 `[emby-cache] HIT` |
+| 首进 | 仍需网络（Rex 亦然），差别是只付一次 |
+
+## 二、验证强度
+
+| 级别 | 内容 |
+|---|---|
+| ✅ 真机实测 | K40 `b6e950ee`，Emby `nyamedia`；`detail-perf` 埋点逐跳耗时，冷/热各测电影与剧集 |
+| ✅ 页面完整性 | 截图确认电影（1080P / 1920×1080 / 简介 / 评分）与剧集（47 集 / 季 / 播出日历）均完整渲染，无空白/转圈/错误 |
+| ✅ 防串台 | 新开未缓存条目（`emby=255840`「假发票猖獗警税联合抓人」）标题与简介正确，未命中他人缓存 |
+| ✅ 构建 | `assembleDebug` BUILD SUCCESSFUL；`ui_gate` PASS（无新增超限文件） |
+| ✅ 单测 | 106 用例 0 失败 |
+| ⚠️ 未验证 | 播放停止后剧集缓存失效链路（代码就位，需播一段再停才能看到 `INVALIDATE` 日志）；缓存跨进程重启命中（同进程已验证，跨进程依赖文件，未单独测） |
+
+## 三、真机时序（原文）
+
+热进入（剧集，全 HIT）：
+
+```
++  0 ms  detail-perf activity-create
++ 44 ms  detail-perf load-start reload=0 preview=true
++ 56 ms  detail-perf begin emby=255945 series=true
++ 58 ms  detail-perf 1-emby-details
++ 62 ms  detail-perf 2-tmdb hit=282326
++ 62 ms  detail-perf 3-quality
++ 74 ms  detail-perf end series
++ 74 ms  detail-perf load-done ok=true
+```
+
+冷进入（剧集，缓存已清）：2716 ms，其中 Emby 详情 1016 ms（源站抖动区间 290–1800 ms）、图片尺寸上限 611 ms、季集 965 ms。
+
+## 四、本轮踩到的真 bug（已修）
+
+缓存目录被删（系统清 cacheDir / 手工清理）后，`put()` 里 `createTempFile` 抛异常被 `runCatching` 吞掉
+⇒ **静默写失败、缓存永远 MISS**，表现为"第二次进还是慢"。修法：写入前 `parentFile.mkdirs()`。
+这个坑在低存储设备上会真实发生，不是测试假象。
+
+## 五、已知边界
+
+1. 首进仍需网络；冷路径受 Emby 源站抖动支配（实测 290 ms–1.8 s/请求）。
+2. 首页「继续观看」进详情时 `preview=false`（无列表快照）⇒ 冷路径仍转圈；骨架属 UI 改动，未做。
+3. 未做"用户可配缓存时长"（Rex 有，属设置项/UI 变更）。
+4. 进度类数据最多陈旧 6 h（依赖写事件失效；第三方客户端写入我们收不到）。

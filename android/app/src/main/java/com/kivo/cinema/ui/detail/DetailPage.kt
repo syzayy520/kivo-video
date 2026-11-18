@@ -81,7 +81,9 @@ internal fun DetailPage(
         loading = true
         error = null
         try {
+            com.kivo.cinema.net.NetDiag.log("detail-perf load-start reload=$reload preview=${previewContent != null}")
             val c = withContext(Dispatchers.IO) { load() }
+            com.kivo.cinema.net.NetDiag.log("detail-perf load-done ok=${c != null}")
             if (c == null) {
                 // 有 preview 也置 error：DetailLoadFeedback 据此给出 Snackbar 重试。
                 // 文案不带"已保留当前内容"，由反馈组件统一追加，避免重复。

@@ -105,6 +105,9 @@ class MovieDetailActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.kivo.cinema.net.NetDiag.log("detail-perf activity-create")
+        // D366：Emby 慢变元数据缓存（详情/季集/图片尺寸）。幂等，应用内首个入口调一次即可。
+        com.kivo.cinema.emby.EmbyResponseCache.init(cacheDir)
         enableEdgeToEdge()
         setDarkStatusIcons(false)
         val id = intent.getIntExtra(EXTRA_ID, 0)

@@ -15,6 +15,7 @@ import com.kivo.cinema.emby.EmbyDetails
 import com.kivo.cinema.emby.EmbyShows
 import com.kivo.cinema.media.marks.FilmKey
 import com.kivo.cinema.media.marks.FilmMark
+import com.kivo.cinema.net.NetDiag
 import com.kivo.cinema.net.OriginPrewarm
 import com.kivo.cinema.playback.PlaybackPrefs
 import com.kivo.cinema.sources.SourceRepository
@@ -81,38 +82,79 @@ internal class EmbyResource private constructor(
     fun loadDetails(): DetailContent? {
         if (!ensureClient()) return null
         val c = client!!; val a = auth!!
-        val emby = c.details(a, itemId)
-        serverFavorite = emby.isFavorite
-        serverWatched = emby.played
-        // 317 · 服务器续播点（跨客户端通用）。剧集在 seriesContent 里会被"当前集"覆盖。
-        serverPositionTicks = emby.positionTicks
+        NetDiag.log("detail-perf begin emby=$itemId series=$series")
+        // D366：两路**并行** —— ① Emby 详情；② TMDB 元数据（先用列表快照的片名/年份搜，
+        // 不必等 Emby 返回）。真机基线里这两段是"一跳等一跳"串起来的（电影 1.33s / 剧集 2.38s）。
         val tmdb = TmdbClient(context)
-        val hit = tmdb.searchId(emby.name.ifBlank { name }, emby.year ?: year, series)
-        val filled = if (hit != null) {
-            tmdbId = hit
-            TmdbDetail(tmdb).details(series, hit) ?: EmbyFallback.map(emby, series)
-        } else {
-            tmdbId = 0
-            EmbyFallback.map(emby, series)
+        // 4 路：Emby 详情、TMDB、图片尺寸、季表 —— 每个任务各自要等网络，串行就是累加。
+        val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
+        try {
+            val embyTask = pool.submit(java.util.concurrent.Callable { c.details(a, itemId) })
+            val tmdbTask = pool.submit(java.util.concurrent.Callable { tmdbFill(tmdb, name, year) })
+            val emby = embyTask.get()
+            NetDiag.log("detail-perf 1-emby-details")
+            serverFavorite = emby.isFavorite
+            serverWatched = emby.played
+            // 317 · 服务器续播点（跨客户端通用）。剧集在 seriesContent 里会被"当前集"覆盖。
+            serverPositionTicks = emby.positionTicks
+            // 图片尺寸表与 TMDB 互不依赖，同批并行。
+            // 上限 800ms：它只影响"库图 vs TMDB 图谁更清晰"的择优，真机偶发 1.7s ⇒
+            // 超时就按空表走（pickHigher 本来就以库图兜底），不能让它拖住整页。
+            val widthTask = pool.submit(
+                java.util.concurrent.Callable { runCatching { c.imageWidths(a, itemId) }.getOrDefault(emptyMap()) },
+            )
+            // 剧集的季表也立刻并行取（季集是剧集详情最大的那块，不能等 TMDB/尺寸表）。
+            val seasonsTask = if (series) {
+                pool.submit(java.util.concurrent.Callable { EmbyShows(c).seasons(a, itemId) })
+            } else null
+            var filled = tmdbTask.get()
+            // 快照片名落空 ⇒ 用服务器权威名 + 服务器已刮削的 TMDB id 再补一次（只在落空时多一跳）。
+            if (filled.second == null) {
+                filled = tmdbFill(tmdb, emby.name.ifBlank { name }, emby.year ?: year, emby.tmdbId)
+            }
+            NetDiag.log("detail-perf 2-tmdb hit=${filled.first}")
+            tmdbId = filled.first ?: 0
+            val widths = runCatching {
+                widthTask.get(IMAGE_WIDTHS_BUDGET_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+            }.getOrElse { emptyMap() }
+            val details = qualityFirst(filled.second ?: EmbyFallback.map(emby, series), emby, widths)
+            NetDiag.log("detail-perf 3-quality")
+            if (series) {
+                return seriesContent(c, a, details, runCatching { seasonsTask!!.get() }.getOrNull())
+                    .also { NetDiag.log("detail-perf end series") }
+            }
+            val media = emby.media?.let {
+                val res = if (it.width > 0 && it.height > 0) "${it.width} × ${it.height}" else "媒体信息未提供"
+                ResourceMedia(res, it.sizeBytes, it.bitrate, serverName,
+                    ResourceStreams(it.container, it.video, it.audio, it.subtitles))
+            }
+            val quality = emby.media?.takeIf { it.width > 0 }
+                ?.let { resolutionTier(it.width, it.height).ifEmpty { "SD" } } ?: "未知"
+            // 274：片源总长要**跟着选中的版本**（4K 57.5GB / 1080p 4.3GB），
+            // 否则片尾预取窗口会算到片外。
+            val playSize = if (emby.playSizeBytes > 0) emby.playSizeBytes
+            else (emby.media?.sizeBytes ?: -1L)
+            val play = playIntent(c, a, playSize, emby.playMediaSourceId)
+            // 273 v16：详情页就把源站连接与片尾窗口预热好（用户点播放时直接复用）。
+            prewarm(play, a.token)
+            NetDiag.log("detail-perf end movie")
+            return DetailContent(details, media, quality, play, tmdbId, false,
+                loadImage = ::loadImage, serverName = serverName)
+        } finally {
+            pool.shutdown()
         }
-        val details = qualityFirst(filled, emby, c, a)
-        if (series) return seriesContent(c, a, details)
-        val media = emby.media?.let {
-            val res = if (it.width > 0 && it.height > 0) "${it.width} × ${it.height}" else "媒体信息未提供"
-            ResourceMedia(res, it.sizeBytes, it.bitrate, serverName,
-                ResourceStreams(it.container, it.video, it.audio, it.subtitles))
-        }
-        val quality = emby.media?.takeIf { it.width > 0 }
-            ?.let { resolutionTier(it.width, it.height).ifEmpty { "SD" } } ?: "未知"
-        // 274：片源总长要**跟着选中的版本**（4K 57.5GB / 1080p 4.3GB），
-        // 否则片尾预取窗口会算到片外。
-        val playSize = if (emby.playSizeBytes > 0) emby.playSizeBytes
-        else (emby.media?.sizeBytes ?: -1L)
-        val play = playIntent(c, a, playSize, emby.playMediaSourceId)
-        // 273 v16：详情页就把源站连接与片尾窗口预热好（用户点播放时直接复用）。
-        prewarm(play, a.token)
-        return DetailContent(details, media, quality, play, tmdbId, false,
-            loadImage = ::loadImage, serverName = serverName)
+    }
+
+    /**
+     * 片名+年份（或服务器已刮削的 [knownId]）→ TMDB 详情。
+     *
+     * 命中返回 `(tmdbId, Details)`；落空返回 `(null, null)` 由调用方走文本兜底。
+     * 单独抽出来是为了让它在后台线程里跑（与 Emby 详情并行），不依赖实例的 UI 状态。
+     */
+    private fun tmdbFill(tmdb: TmdbClient, title: String, movieYear: Int?, knownId: Int? = null):
+        Pair<Int?, TmdbDetail.Details?> {
+        val id = knownId ?: tmdb.searchId(title, movieYear, series) ?: return null to null
+        return id to TmdbDetail(tmdb).details(series, id)
     }
 
     /** 273 v16：预热出去的 URL（详情页销毁时要关掉没人接手的那份）。 */
@@ -176,8 +218,9 @@ internal class EmbyResource private constructor(
 
     /** 255 #30 图择优：海报/幕布按像素宽选更清者（同级库优先，与海报墙同源）；logo 走中文规则。 */
     private fun qualityFirst(d: TmdbDetail.Details, e: EmbyDetails,
-                             c: EmbyClient, a: EmbyClient.Auth): TmdbDetail.Details {
-        val w = runCatching { c.imageWidths(a, itemId) }.getOrDefault(emptyMap())
+                             widths: Map<String, Int>): TmdbDetail.Details {
+        // D366：尺寸表由调用方并行取好传进来 —— 这里不再发请求，避免把并行又串回串行。
+        val w = widths
         val poster = pickHigher(e.posterUrl, w["Primary"] ?: 0, d.posterUrl, d.posterWidth)
         val backdrop = pickHigher(e.backdropUrl, w["Backdrop"] ?: 0, d.backdropUrl.orEmpty(), d.backdropWidth)
         val libLogo = e.logoUrl.takeIf { it.isNotBlank() }
@@ -202,9 +245,16 @@ internal class EmbyResource private constructor(
 
     /** 剧集（255）：季 + 首季集预载；播放钮 = 首集；图走 token 加载。
      *  季/集拉取失败直接抛出 → 页面错误态 + 重试（不静默兜底）。 */
-    private fun seriesContent(c: EmbyClient, a: EmbyClient.Auth, details: TmdbDetail.Details): DetailContent {
+    private fun seriesContent(
+        c: EmbyClient,
+        a: EmbyClient.Auth,
+        details: TmdbDetail.Details,
+        preloadedSeasons: List<EmbyShows.Season>? = null,
+    ): DetailContent {
         val shows = EmbyShows(c)
-        val seasons = shows.seasons(a, itemId)
+        // D366：季表可能已在 Emby 详情返回后立刻并行取好（与图片尺寸/TMDB 同时跑），
+        // 这里优先用预取结果，避免又串回"等完 TMDB 才去问季"。
+        val seasons = preloadedSeasons ?: shows.seasons(a, itemId)
         // 317 · 并行拉所有季的剧集（限 4 并发）。任一季度失败不影响其它季 ——
         // 单季读取失败只让那一季缺集，不把整页打成失败（详情页仍可用）。
         allSeasonEpisodes = loadAllSeasons(shows, a, seasons)
@@ -328,6 +378,8 @@ internal class EmbyResource private constructor(
                 }
             }
             .putExtra("kivo.label", "$name · " + "S%02dE%02d".format(ep.seasonIndex, ep.index) + " " + ep.name)
+            // D366：把所属剧集 id 带过去，停止播放后据此失效剧集详情缓存（按单集 id 命不中）。
+            .putExtra(com.kivo.cinema.playback.EmbyPlaybackReporter.EXTRA_SERIES, itemId)
             .putExtra("kivo.sourceName", serverName)
             .putExtra("kivo.sourceId", sourceId)
             .putExtra("kivo.embyToken", a.token)
@@ -453,3 +505,5 @@ internal class EmbyResource private constructor(
         )
     }
 }
+/** D366：图片尺寸表的等待上限；超时按"无尺寸表"处理（库图兜底），不拖住详情整页。 */
+private const val IMAGE_WIDTHS_BUDGET_MS = 800L

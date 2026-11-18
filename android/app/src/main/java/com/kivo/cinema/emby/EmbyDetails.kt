@@ -63,4 +63,12 @@ data class EmbyDetails(
      * 若用 4K 的总长（57.5 GB）去算 1080p（4.3 GB）的窗口，预取会落到片外。
      */
     val playSizeBytes: Long = 0L,
+    /**
+     * D366：服务器刮削的 TMDB id（`ProviderIds.Tmdb`）。
+     *
+     * 【为什么值得多要这个字段】详情页原来必须先用「片名+年份」去 TMDB 猜搜一次
+     * （真机 300 ms–1 s，冷缓存更久），搜不到还得降级成文本兜底。服务器既然已经刮削过，
+     * 直接用它就是**准确且零额外往返**。null = 服务器没刮削或不带该字段，仍走搜索。
+     */
+    val tmdbId: Int? = null,
 )

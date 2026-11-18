@@ -158,16 +158,27 @@ class EmbyClient(serverInput: String) {
 
     /** 255 #30：每类图的像素宽（Primary/Backdrop/Logo…），供库图 vs TMDB 清晰度择优。失败返回空表。 */
     fun imageWidths(auth: Auth, itemId: String): Map<String, Int> {
-        val c = conn("$base$prefix/Items/$itemId/Images", "GET")
+        // D366：图片尺寸表是慢变数据（30 天 TTL），进详情页时不必每次都问源站。
+        val url = "$base$prefix/Items/$itemId/Images"
+        EmbyResponseCache.get(url, EmbyResponseCache.TTL_IMAGE_WIDTHS)?.let { cached ->
+            return runCatching { parseImageWidths(cached) }.getOrNull() ?: emptyMap()
+        }
+        val c = conn(url, "GET")
         return try {
             c.setRequestProperty("X-Emby-Token", auth.token)
             if (c.responseCode !in 200..299) return emptyMap()
-            val arr = org.json.JSONArray(c.inputStream.bufferedReader().use { it.readText() })
-            (0 until arr.length()).associate {
-                val o = arr.getJSONObject(it)
-                o.optString("ImageType") to o.optInt("Width")
-            }
+            val body = c.inputStream.bufferedReader().use { it.readText() }
+            EmbyResponseCache.put(url, body)
+            parseImageWidths(body)
         } catch (_: Exception) { emptyMap() } finally { c.disconnect() }
+    }
+
+    private fun parseImageWidths(body: String): Map<String, Int> {
+        val arr = org.json.JSONArray(body)
+        return (0 until arr.length()).associate {
+            val o = arr.getJSONObject(it)
+            o.optString("ImageType") to o.optInt("Width")
+        }
     }
 
     internal fun parseItem(o: JSONObject): EmbyItem {
@@ -192,14 +203,15 @@ class EmbyClient(serverInput: String) {
 
     /** 254 D2：详情单请求。字段集经服务器 4.8 实测（设计稿 §二），UserData 随带。 */
     fun details(auth: Auth, itemId: String): EmbyDetails {
+        // D366：带上 ProviderIds —— 服务器已刮削出的 TMDB id 比"片名+年份猜搜索"更准，
+        // 且省掉一次独立 TMDB 搜索往返（真机详情关键路径上的一跳）。
         val fields = "Overview,People,Genres,Studios,MediaSources,MediaStreams," +
-            "ProductionLocations,PremiereDate,CommunityRating,RunTimeTicks,ImageTags"
-        val c = conn("$base$prefix/Users/${auth.userId}/Items/$itemId?Fields=$fields", "GET")
-        try {
-            c.setRequestProperty("X-Emby-Token", auth.token)
-            val code = c.responseCode
-            if (code !in 200..299) throw HttpFailure(code)
-            val o = JSONObject(c.inputStream.bufferedReader().use { it.readText() })
+            "ProductionLocations,PremiereDate,CommunityRating,RunTimeTicks,ImageTags,ProviderIds"
+        run {
+            val o = JSONObject(
+                cachedBody("$base$prefix/Users/${auth.userId}/Items/$itemId?Fields=$fields",
+                    auth.token, EmbyResponseCache.TTL_DETAILS),
+            )
             fun image(type: String, tag: String, width: Int) = if (tag.isNotBlank())
                 "$base$prefix/Items/$itemId/Images/$type?maxWidth=$width&quality=90&tag=$tag" else ""
             fun strings(key: String): List<String> {
@@ -260,7 +272,24 @@ class EmbyClient(serverInput: String) {
                 // 274：播放走挑好的版本（展示仍用 MediaSources[0]，UI 不变）。
                 playMediaSourceId = pick.id,
                 playSizeBytes = pick.sizeBytes,
+                // D366：服务器刮削出的 TMDB id（有则免掉详情页那一次搜索往返）。
+                tmdbId = o.optJSONObject("ProviderIds")
+                    ?.optString("Tmdb")?.trim()?.toIntOrNull()?.takeIf { it > 0 },
             )
+        }
+    }
+
+    /** D366：慢变元数据 GET（带缓存）。失败按原有语义抛出，不做静默降级。 */
+    internal fun cachedBody(url: String, token: String, ttlMs: Long): String {
+        EmbyResponseCache.get(url, ttlMs)?.let { return it }
+        val c = conn(url, "GET")
+        try {
+            c.setRequestProperty("X-Emby-Token", token)
+            val code = c.responseCode
+            if (code !in 200..299) throw HttpFailure(code)
+            val body = c.inputStream.bufferedReader().use { it.readText() }
+            EmbyResponseCache.put(url, body)
+            return body
         } finally { c.disconnect() }
     }
 
@@ -275,7 +304,10 @@ class EmbyClient(serverInput: String) {
         val c = conn("$base$prefix/Users/${auth.userId}/$kind/$itemId", if (on) "POST" else "DELETE")
         try {
             c.setRequestProperty("X-Emby-Token", auth.token)
-            return c.responseCode in 200..299
+            val ok = c.responseCode in 200..299
+            // D366：写成功即让该条缓存失效 —— 否则收藏/已看/续播位会读到写前快照。
+            if (ok) EmbyResponseCache.invalidateItem(itemId)
+            return ok
         } finally { c.disconnect() }
     }
 
@@ -315,8 +347,13 @@ class EmbyClient(serverInput: String) {
         sessionPost(auth, "Playing/Progress", itemId, positionTicks, playSessionId)
 
     /** 停止播放 —— **必须带最后位置**，服务器据此保存续播点。 */
-    fun reportStopped(auth: Auth, itemId: String, positionTicks: Long, playSessionId: String?): Boolean =
-        sessionPost(auth, "Playing/Stopped", itemId, positionTicks, playSessionId)
+    fun reportStopped(auth: Auth, itemId: String, positionTicks: Long, playSessionId: String?): Boolean {
+        val ok = sessionPost(auth, "Playing/Stopped", itemId, positionTicks, playSessionId)
+        // D366：停止后服务器已写入新续播位 ⇒ 详情缓存必须作废，否则再进详情显示的是旧进度。
+        // 只在 Stopped 失效、不在每次 Progress 失效：播放中详情页不可见，避免高频删文件。
+        if (ok) EmbyResponseCache.invalidateItem(itemId)
+        return ok
+    }
 
     private fun sessionPost(
         auth: Auth,

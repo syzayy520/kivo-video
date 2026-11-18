@@ -19,51 +19,44 @@ class EmbyShows(private val c: EmbyClient) {
     )
 
     fun seasons(auth: EmbyClient.Auth, seriesId: String): List<Season> {
-        val conn = c.conn("${c.base}${c.prefix}/Shows/$seriesId/Seasons?UserId=${auth.userId}", "GET")
-        try {
-            conn.setRequestProperty("X-Emby-Token", auth.token)
-            val code = conn.responseCode
-            if (code !in 200..299) throw EmbyClient.HttpFailure(code)
-            val arr = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
-                .getJSONArray("Items")
-            val list = (0 until arr.length()).map {
-                val o = arr.getJSONObject(it)
-                Season(o.getString("Id"), o.getString("Name"), o.optInt("IndexNumber"))
-            }.sortedBy { it.index }
-            com.kivo.cinema.net.NetDiag.log(
-                "[emby] seasons series=$seriesId n=${list.size} " +
-                    list.take(4).joinToString { "S${it.index}:${it.name}#${it.id.take(8)}" },
-            )
-            return list
-        } finally { conn.disconnect() }
+        // D366：季表 6h 缓存（写操作会让该 series 失效），二次进详情不再重打源站。
+        val body = c.cachedBody(
+            "${c.base}${c.prefix}/Shows/$seriesId/Seasons?UserId=${auth.userId}",
+            auth.token, EmbyResponseCache.TTL_EPISODES,
+        )
+        val arr = JSONObject(body).getJSONArray("Items")
+        val list = (0 until arr.length()).map {
+            val o = arr.getJSONObject(it)
+            Season(o.getString("Id"), o.getString("Name"), o.optInt("IndexNumber"))
+        }.sortedBy { it.index }
+        com.kivo.cinema.net.NetDiag.log(
+            "[emby] seasons series=$seriesId n=${list.size} " +
+                list.take(4).joinToString { "S${it.index}:${it.name}#${it.id.take(8)}" },
+        )
+        return list
     }
 
     fun episodes(auth: EmbyClient.Auth, seriesId: String, seasonId: String): List<Episode> {
+        // D366：集表同样 6h 缓存 —— 剧集详情 2.38s 里 1.59s 花在四季并发拉集上。
         val url = "${c.base}${c.prefix}/Shows/$seriesId/Episodes?UserId=${auth.userId}" +
             "&SeasonId=$seasonId&Fields=RunTimeTicks,Overview,PremiereDate&EnableTotalRecordCount=false"
-        val conn = c.conn(url, "GET")
-        try {
-            conn.setRequestProperty("X-Emby-Token", auth.token)
-            val code = conn.responseCode
-            if (code !in 200..299) throw EmbyClient.HttpFailure(code)
-            val arr = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
-                .getJSONArray("Items")
-            com.kivo.cinema.net.NetDiag.log(
-                "[emby] episodes series=$seriesId season=$seasonId n=${arr.length()} code=$code",
+        val body = c.cachedBody(url, auth.token, EmbyResponseCache.TTL_EPISODES)
+        val arr = JSONObject(body).getJSONArray("Items")
+        com.kivo.cinema.net.NetDiag.log(
+            "[emby] episodes series=$seriesId season=$seasonId n=${arr.length()}",
+        )
+        return (0 until arr.length()).map {
+            val o = arr.getJSONObject(it)
+            val tag = o.optJSONObject("ImageTags")?.optString("Primary") ?: ""
+            val ud = o.optJSONObject("UserData")
+            Episode(
+                o.getString("Id"), o.getString("Name"), o.optInt("IndexNumber"),
+                o.optInt("ParentIndexNumber"), o.optLong("RunTimeTicks") / 600_000_000L,
+                if (tag.isNotBlank()) "${c.base}${c.prefix}/Items/${o.getString("Id")}" +
+                    "/Images/Primary?maxWidth=780&quality=90&tag=$tag" else "",
+                ud?.optBoolean("Played") ?: false, ud?.optLong("PlaybackPositionTicks") ?: 0L,
+                o.optString("PremiereDate").take(10), o.optString("Overview"),
             )
-            return (0 until arr.length()).map {
-                val o = arr.getJSONObject(it)
-                val tag = o.optJSONObject("ImageTags")?.optString("Primary") ?: ""
-                val ud = o.optJSONObject("UserData")
-                Episode(
-                    o.getString("Id"), o.getString("Name"), o.optInt("IndexNumber"),
-                    o.optInt("ParentIndexNumber"), o.optLong("RunTimeTicks") / 600_000_000L,
-                    if (tag.isNotBlank()) "${c.base}${c.prefix}/Items/${o.getString("Id")}" +
-                        "/Images/Primary?maxWidth=780&quality=90&tag=$tag" else "",
-                    ud?.optBoolean("Played") ?: false, ud?.optLong("PlaybackPositionTicks") ?: 0L,
-                    o.optString("PremiereDate").take(10), o.optString("Overview"),
-                )
-            }.sortedBy { it.index }
-        } finally { conn.disconnect() }
+        }.sortedBy { it.index }
     }
 }

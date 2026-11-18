@@ -40,6 +40,8 @@ internal object EmbyPlaybackReporter {
         val auth: EmbyClient.Auth,
         val itemId: String,
         val playSessionId: String?,
+        /** 所属剧集 id（D366 缓存失效用）；电影 = itemId 本身，null = 未知。 */
+        val seriesId: String?,
     )
 
     /** 从 intent 还原会话；任一必需项缺失就返回 null（非 Emby 片源）。 */
@@ -54,6 +56,7 @@ internal object EmbyPlaybackReporter {
             EmbyClient.Auth(token, userId),
             itemId,
             i.getStringExtra("kivo.playSessionId"),
+            i.getStringExtra(EXTRA_SERIES)?.takeIf { it.isNotBlank() },
         )
     }
 
@@ -99,11 +102,16 @@ internal object EmbyPlaybackReporter {
         Thread({
             val ok = s.client.reportStopped(s.auth, s.itemId, ticks, s.playSessionId)
             NetDiag.log("[emby] Stopped 上报 ${if (ok) "ok" else "失败"} pos=${ticks / 10_000}ms")
+            // D366：剧集详情缓存的是**整季的每集进度**，按单集 id 失效命不中 ⇒ 用所属剧集 id 失效。
+            s.seriesId?.let { if (it != s.itemId) com.kivo.cinema.emby.EmbyResponseCache.invalidateItem(it) }
         }, "KivoEmbyReport").start()
     }
 
     /** intent key：当前播放条目的 Emby item id。 */
     const val EXTRA_ITEM = "kivo.embyItemId"
+
+    /** intent key：所属剧集 id（D366，供停止后失效剧集详情缓存）。 */
+    const val EXTRA_SERIES = "kivo.embySeriesId"
 
     /** intent key：服务器地址（含 `/emby` 前缀，[EmbyClient] 会自动拆）。 */
     const val EXTRA_SERVER = "kivo.embyServer"
