@@ -1,7 +1,5 @@
 package com.kivo.cinema.ui.design.home.sections
 
-import android.graphics.Bitmap
-import android.util.LruCache
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,16 +19,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.kivo.cinema.emby.EmbyAuthCache
+import com.kivo.cinema.ui.design.TmdbImageCache
 import com.kivo.cinema.library.HomeEntry
-import com.kivo.cinema.ui.design.decodeImageCapped
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /** 首页 Emby 续播海报的有界缓存（跨卡片复用，按字节限，不无界堆位图）。 */
-private val embyResumeCache = object : LruCache<String, Bitmap>(16 * 1024 * 1024) {
-    override fun sizeOf(key: String, value: Bitmap) = value.allocationByteCount
-}
-
 /**
  * 首页「继续观看」里的 Emby 海报。
  *
@@ -45,14 +39,11 @@ internal fun EmbyResumePoster(
     shape: Shape = RoundedCornerShape(12.dp),
 ) {
     val url = entry.posterUrl
-    var bitmap by remember(url) { mutableStateOf(url?.let { embyResumeCache.get(it) }) }
+    var bitmap by remember(url) { mutableStateOf(url?.let { TmdbImageCache.get(it) }) }
     LaunchedEffect(url) {
         if (bitmap != null || url.isNullOrBlank()) return@LaunchedEffect
-        bitmap = withContext(Dispatchers.IO) {
-            embyResumeCache.get(url) ?: runCatching {
-                EmbyAuthCache.fetchBytes(entry.embySourceId, url)?.let { decodeImageCapped(it) }
-            }.getOrNull()?.also { embyResumeCache.put(url, it) }
-        }
+        val token = EmbyAuthCache.session(entry.embySourceId ?: "")?.second?.token
+        bitmap = withContext(Dispatchers.IO) { TmdbImageCache.load(url, token) }
     }
     Box(modifier.clip(shape).background(Color(0xFFE8E6EF))) {
         val bmp = bitmap

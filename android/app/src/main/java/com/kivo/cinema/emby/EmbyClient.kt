@@ -131,16 +131,15 @@ class EmbyClient(serverInput: String) {
 
     /** Counts visible to this user; SeriesCount counts shows, not individual episodes. */
     fun counts(auth: Auth): Counts {
-        val c = conn("$base$prefix/Items/Counts?UserId=${URLEncoder.encode(auth.userId, "UTF-8")}", "GET")
-        try {
-            c.setRequestProperty("X-Emby-Token", auth.token)
-            val code = c.responseCode
-            if (code !in 200..299) throw HttpFailure(code)
-            val json = JSONObject(c.inputStream.bufferedReader().use { it.readText() })
-            return Counts(json.getInt("MovieCount"), json.getInt("SeriesCount")).also {
-                require(it.movies >= 0 && it.series >= 0)
-            }
-        } finally { c.disconnect() }
+        // D369：5 分钟缓存（与 SourceSummaries 既有的 300 秒内存节流同口径）。
+        val body = cachedBody(
+            "$base$prefix/Items/Counts?UserId=${URLEncoder.encode(auth.userId, "UTF-8")}",
+            auth.token, EmbyResponseCache.TTL_COUNTS,
+        )
+        val json = JSONObject(body)
+        return Counts(json.getInt("MovieCount"), json.getInt("SeriesCount")).also {
+            require(it.movies >= 0 && it.series >= 0)
+        }
     }
 
     /**

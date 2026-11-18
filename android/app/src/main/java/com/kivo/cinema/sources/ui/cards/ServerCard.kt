@@ -78,7 +78,7 @@ internal fun ServerCard(record: SourceRecord, summary: Summary?,
             val posters = summary?.posters.orEmpty()
             if (posters.isNotEmpty()) {
                 Spacer(Modifier.height(10.dp))
-                SourcePosterStrip(record.address, summary?.imageToken, posters)
+                SourcePosterStrip(summary?.imageToken, posters)
             }
         }
     }

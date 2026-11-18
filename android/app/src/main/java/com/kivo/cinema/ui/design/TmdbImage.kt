@@ -41,7 +41,12 @@ object TmdbImageCache {
         get(url)?.let { return it }
         val disk = diskFile(url)
         if (disk?.isFile == true) {
-            decodeImageFileCapped(disk.absolutePath)?.let { put(url, it); return it }
+            decodeImageFileCapped(disk.absolutePath)?.let {
+                put(url, it)
+                // D369：只给**带 token 的图**（Emby 海报/缩略图）记一行，量冷/热用，不淹没日志。
+                if (token != null) com.kivo.cinema.net.NetDiag.log("[img] disk-hit ${url.takeLast(28)}")
+                return it
+            }
         }
         // A transient socket reset must not leave a visible poster empty for the whole visit.
         // Retry transport failures once; a missing image or invalid bytes are not transport failures.
@@ -57,6 +62,7 @@ object TmdbImageCache {
                 val bytes = conn.inputStream.use { it.readBytes() }
                 val bitmap = decodeImageCapped(bytes) ?: return null
                 put(url, bitmap)
+                if (token != null) com.kivo.cinema.net.NetDiag.log("[img] net ${url.takeLast(28)}")
                 if (disk != null) runCatching {
                     val temporary = File.createTempFile("image-", ".tmp", disk.parentFile)
                     try { temporary.writeBytes(bytes); temporary.renameTo(disk) }

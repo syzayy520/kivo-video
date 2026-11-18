@@ -50,6 +50,16 @@ object EmbyResponseCache {
      */
     const val TTL_RESUME = 60L * 1000
 
+    /**
+     * 计数（`Items/Counts`）：5 分钟。
+     *
+     * 【为什么从"不缓存"改成缓存】D367 当时担心它兼作"服务器是否在线"的依据，缓存会让挂掉的
+     * 服务器继续显示在线。但 `SourceSummaries` **本来就有 300 秒内存节流**——同一会话内
+     * 5 分钟不重新探测，这个陈旧度是已被接受的行为。落盘缓存用同一 TTL 不改变语义，
+     * 只是把"重启后又要重探"这一层补上（真机 counts 单次 679–858 ms，是资源库首屏的最大项）。
+     */
+    const val TTL_COUNTS = 5L * 60 * 1000
+
     private var dir: File? = null
 
     /** 幂等；由持有 Context 的入口调用（Activity onCreate 或详情取数前）。 */

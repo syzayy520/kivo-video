@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.kivo.cinema.emby.EmbyAuthCache
 import com.kivo.cinema.emby.EmbyClient
 import com.kivo.cinema.emby.EmbyItem
 import com.kivo.cinema.sources.SourceRecord
@@ -44,14 +45,25 @@ class SourceSummaries(private val scope: CoroutineScope, private val current: ()
                         return@withContext Fetch(Result.failure<EmbyClient.Counts>(IllegalStateException()),
                             emptyList(), null, false)
                     val client = EmbyClient(record.address)
-                    // 一次 login 供 counts 与海报共用；海报失败不拖累 counts/online 判定。
-                    val auth = runCatching { client.login(record.username, record.password) }
+                    val t0 = SystemClock.elapsedRealtime()
+                    // 一次登录供 counts 与海报共用；D369 起复用 [EmbyAuthCache]（真机 login 一次约 1.2s）。
+                    val cachedAuth = EmbyAuthCache.get(record)?.second
+                    val auth = runCatching {
+                        cachedAuth ?: client.login(record.username, record.password)
+                            .also { EmbyAuthCache.remember(record, client, it) }
+                    }
+                    val t1 = SystemClock.elapsedRealtime()
                     val counts = auth.mapCatching { client.counts(it) }
+                    val t2 = SystemClock.elapsedRealtime()
                     val posters = auth.getOrNull()?.let { a ->
                         runCatching { client.items(a, limit = 6).items.filter { it.posterUrl.isNotBlank() } }
                             .onFailure { Log.w("SourceSummaries", "海报读取失败 ${record.address}: ${it.message}") }
                             .getOrDefault(emptyList())
                     } ?: emptyList()
+                    com.kivo.cinema.net.NetDiag.log(
+                        "[src-sum] ${record.name} auth=${if (cachedAuth != null) "复用" else "登录"}${t1 - t0}ms " +
+                            "counts=${t2 - t1}ms posters=${SystemClock.elapsedRealtime() - t2}ms n=${posters.size}",
+                    )
                     val failure = counts.exceptionOrNull() as? EmbyClient.HttpFailure
                     Fetch(counts, posters, auth.getOrNull()?.token,
                         counts.isSuccess || failure?.code in listOf(401, 403) || client.isReachable())

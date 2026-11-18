@@ -87,10 +87,4 @@ object EmbyAuthCache {
     fun invalidate(sourceId: String) {
         idToCred.remove(sourceId)?.let { byCred.remove(it) }
     }
-
-    /** 拉海报字节；会话缺失或任何失败返回 null（组件显示中性占位，不崩不白屏）。 */
-    fun fetchBytes(sourceId: String?, url: String): ByteArray? {
-        val s = session(sourceId ?: return null) ?: return null
-        return runCatching { s.first.fetchBytes(url, s.second.token) }.getOrNull()
-    }
 }
