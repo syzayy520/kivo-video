@@ -93,19 +93,30 @@ class EmbyClient(serverInput: String) {
             "&Limit=$limit&Fields=$fields&ImageTypeLimit=1&EnableTotalRecordCount=true" +
             "&SearchTerm=${URLEncoder.encode(search.trim(), "UTF-8")}"
         val url = "$base$prefix/Users/${auth.userId}/Items$q"
-        val c = conn(url, "GET")
-        try {
-            c.setRequestProperty("X-Emby-Token", auth.token)
-            val code = c.responseCode
-            if (code !in 200..299) throw HttpFailure(code)
-            val body = c.inputStream.bufferedReader().use { it.readText() }
-            val json = JSONObject(body)
-            val arr = json.getJSONArray("Items")
-            val out = mutableListOf<EmbyItem>()
-            for (i in 0 until arr.length()) out += parseItem(arr.getJSONObject(i))
-            return Page(out, if (json.has("TotalRecordCount") && !json.isNull("TotalRecordCount"))
-                json.getInt("TotalRecordCount").coerceAtLeast(0) else null)
-        } finally { c.disconnect() }
+        val t0 = android.os.SystemClock.elapsedRealtime()
+        // D367：列表 10 分钟缓存 —— 浏览页每个分类行一次请求（真机 0.4–0.9 s），
+        // 滚动/返回/二次进入都重打，缓存后这些全部变本地读。
+        val body = EmbyResponseCache.get(url, EmbyResponseCache.TTL_LIST) ?: run {
+            val c = conn(url, "GET")
+            try {
+                c.setRequestProperty("X-Emby-Token", auth.token)
+                val code = c.responseCode
+                if (code !in 200..299) throw HttpFailure(code)
+                c.inputStream.bufferedReader().use { it.readText() }.also {
+                    EmbyResponseCache.put(url, it)
+                }
+            } finally { c.disconnect() }
+        }
+        val json = JSONObject(body)
+        val arr = json.getJSONArray("Items")
+        val out = mutableListOf<EmbyItem>()
+        for (i in 0 until arr.length()) out += parseItem(arr.getJSONObject(i))
+        com.kivo.cinema.net.NetDiag.log(
+            "[emby-items] type=$types parent=${parentId?.take(6)} n=${out.size} " +
+                "ms=${android.os.SystemClock.elapsedRealtime() - t0}",
+        )
+        return Page(out, if (json.has("TotalRecordCount") && !json.isNull("TotalRecordCount"))
+            json.getInt("TotalRecordCount").coerceAtLeast(0) else null)
     }
 
     data class Counts(val movies: Int, val series: Int)

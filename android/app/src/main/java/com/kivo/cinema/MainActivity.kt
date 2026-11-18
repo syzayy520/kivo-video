@@ -56,6 +56,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         com.kivo.cinema.net.NetDiag.attach(application)
+        com.kivo.cinema.emby.EmbyResponseCache.init(cacheDir)
         com.kivo.cinema.sources.access.SourceAccessSession.install(application)
         // D10：模块开关在启动期读盘一次，进入「我的」页无闪烁、组合期无磁盘 IO。
         com.kivo.cinema.ui.profile.modules.ProfileModulePrefs.bind(this)

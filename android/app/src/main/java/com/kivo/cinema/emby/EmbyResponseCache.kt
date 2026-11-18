@@ -33,6 +33,14 @@ object EmbyResponseCache {
     const val TTL_EPISODES = 6L * 3600 * 1000
     /** 图片尺寸表：30 天（图片换了 tag 才会变，与本表无关）。 */
     const val TTL_IMAGE_WIDTHS = 30L * 24 * 3600 * 1000
+    /**
+     * 列表/计数：10 分钟。
+     *
+     * 【为什么短】列表会因服务器新增影片而变；真机实测 Emby 浏览页**每个分类行一次请求**，
+     * 每次 0.4–0.9 s，滚动/返回都会重打。10 分钟内复用足够覆盖"来回浏览"，又不至于
+     * 新片入库后长时间看不到。
+     */
+    const val TTL_LIST = 10L * 60 * 1000
 
     private var dir: File? = null
 

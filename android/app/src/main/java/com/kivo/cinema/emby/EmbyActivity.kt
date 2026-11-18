@@ -31,6 +31,9 @@ class EmbyActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         SourceAccessSession.install(application)
+        // D367：Emby 元数据缓存（列表/详情/季集/图片尺寸）。浏览页每个分类行都要取数，
+        // 不初始化这里的话缓存是空转（真机踩：热进仍每行 0.4–1.4 s）。
+        EmbyResponseCache.init(cacheDir)
         @Suppress("DEPRECATION")
         window.statusBarColor = android.graphics.Color.rgb(245, 244, 248)
         @Suppress("DEPRECATION")
