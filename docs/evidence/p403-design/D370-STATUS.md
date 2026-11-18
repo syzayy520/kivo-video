@@ -104,3 +104,17 @@
   实测 3 轮冷启 3/3 立即显示，首次增量 **828–1582ms**（修复前 6s 仍全黑）。
   详见 `D376-STATUS.md`；提交 `dcfd6dcf` 已推送。
 - **D373 的教训补充**：性能指标漂亮 ≠ 该显示的东西显示了。冷启动审计必须同时验"渲染完整性"。
+
+## 九、D377 端到端冒烟续篇（详情页/Emby 浏览/起播 + 修"返回横屏"）
+
+- **D366–D368 优化真机全部生效（无回归）**：详情页冷进 1068ms / 热进 **34ms**（全 HIT）、
+  `all-episodes n=47 seasons=[1]` 单请求拉集；Emby 浏览首次 346–724ms / 二次 **1–3ms**；
+  Emby 起播 `gpu-next` 出画、首帧 762ms、underrun=false。
+- **抓到并修掉真缺陷**：退出播放器后主界面**横屏残留 5–6 秒**（`screencap` PNG 头实测 2400×1080），
+  期间 hero 占满、内容行被挤出视口 ⇒ 看起来"内容全不见"。
+  根因=`PlayerComposeActivity` landscape + `MainActivity` unspecified + 全项目无 `setRequestedOrientation`。
+  修法：`MainActivity.onCreate` 手机端（sw<600dp）锁竖屏，平板保留自由。**修后返回 1s 内竖屏**。
+- **证伪一个误判**：继续观看点进去"没续播"是假象——实测进度 8:32→10:50（播 2 分 18 秒），续播正确；
+  只是没走更快的 `start=` 预置快路径（`PlayerSmbStart.kt:173` 漏传第 3 参），记为**遗留性能项**（约省 0.5–0.8s）。
+- 验证：编译 SUCCESSFUL、单测 115 例 0 失败、门禁 PASS（MainActivity 151 行）。提交 `458c68c2` 已推送。
+  详见 `D377-STATUS.md`。
