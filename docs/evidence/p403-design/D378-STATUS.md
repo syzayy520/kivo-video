@@ -256,3 +256,30 @@ SMB 详情页 hero 上出现**两个片名**：橙色 TMDB logo + 海报底部�
 ### 诚实说明
 不是真·毛玻璃（Popup 内模糊背景需要捕获下层内容，Compose 跨窗口做不到）。
 用的是"近白不透明 + 高光边 + 柔和阴影"的近似方案；若要做真毛玻璃需换自定义 Popup + RenderEffect，风险与收益不成正比。
+
+## 十二、继续观看链路打通
+
+### 现状排查（三段分开验，不猜）
+| 环节 | 结果 |
+|---|---|
+| 播放→记录 | ✅ `files/watch.json` 的 `progress` 里有 7 条 `smb://源/共享/路径`，`pos/dur` 正常 |
+| 记录→首页 | ✅ 卡片显示「看到 0:34」，进度环按 `pos/dur` 渲染 |
+| 点击→续播 | ✅ 点卡片进播放器，控制栏 `01:02`（上次 0:53 + 8s） |
+
+续播位置**不需要 intent 传**：播放器 `PlayerStartPolicy.resumePositionMs()` 用同一个 `watchKey()`
+从 `WatchStore` 读，存哪取哪天然一致；`≥95%` 由 `WatchStore.progressOf` 判 null 从头播。
+
+### 真断链（已修）
+**Emby 条目点击只跳浏览页**，用户得自己再找一遍——「继续观看」语义被破坏。
+改为：`EmbyAuthCache.session(sourceId)` 命中就直接起播（带 itemId / server / userId，
+让 `EmbyPlaybackReporter` 能写回服务端续播点）；未命中（冷启/TTL 过期）才退回浏览页，
+并留 `[continue] emby 会话未命中` 日志，不静默装没反应。
+
+### 顺带修
+控制栏标题原来显示**完整文件名**（`69两头勾...S01E02.2023.1080p.NF.WEB-DL.H264.DDP5.1-OurTV.mkv`），
+改为 `MediaTitleParser` 解析后的片名。真机确认显示 `69两头勾 6ixtynin9 The Series`。
+
+### 边界
+- **Emby 分支未真机验证**：当前首页没有在线 Emby 续播条目（源站可达性不稳定），
+  只做了代码路径审查 + 编译验证。等有 Emby 条目时需补一次真机确认。
+- 「继续观看」点击仍直接起播（不走详情页）——这是语义差异，不是遗漏。

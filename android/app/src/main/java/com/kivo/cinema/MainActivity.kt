@@ -156,10 +156,37 @@ class MainActivity : ComponentActivity() {
      */
     internal fun openHomeEntry(entry: com.kivo.cinema.library.HomeEntry) {
         when (entry.kind) {
-            com.kivo.cinema.library.HomeEntry.Kind.Emby -> startActivity(
-                android.content.Intent(this, com.kivo.cinema.emby.EmbyActivity::class.java)
-                    .putExtra("kivo.sourceId", entry.embySourceId),
-            )
+            com.kivo.cinema.library.HomeEntry.Kind.Emby -> {
+                // 「继续观看」点 Emby 条目应该**直接续播**，不是跳回浏览页让用户再找一遍。
+                // 会话在内存缓存里（首页续播数据本就是登录后拉到的）⇒ 正常命中；
+                // 冷启/TTL 过期时退回浏览页并留日志 —— 不静默装作点了没反应。
+                val sourceId = entry.embySourceId
+                val itemId = entry.embyItemId
+                val session = sourceId?.let { com.kivo.cinema.emby.EmbyAuthCache.session(it) }
+                if (session != null && itemId != null) {
+                    val (client, auth) = session
+                    startActivity(
+                        android.content.Intent(this,
+                            com.kivo.cinema.ui.compose.PlayerComposeActivity::class.java)
+                            .putExtra("kivo.playurl", client.streamUrl(auth, itemId, null))
+                            .putExtra("kivo.label", entry.title)
+                            .putExtra("kivo.sourceName", entry.sourceLabel)
+                            .putExtra("kivo.sourceId", sourceId)
+                            .putExtra("kivo.embyToken", auth.token)
+                            .putExtra("kivo.embyUserId", auth.userId)
+                            .putExtra(com.kivo.cinema.playback.EmbyPlaybackReporter.EXTRA_ITEM, itemId)
+                            .putExtra(com.kivo.cinema.playback.EmbyPlaybackReporter.EXTRA_SERVER,
+                                client.base + client.prefix),
+                    )
+                } else {
+                    com.kivo.cinema.net.NetDiag.log(
+                        "[continue] emby 会话未命中，退回浏览页 source=$sourceId item=$itemId")
+                    startActivity(
+                        android.content.Intent(this, com.kivo.cinema.emby.EmbyActivity::class.java)
+                            .putExtra("kivo.sourceId", sourceId),
+                    )
+                }
+            }
             com.kivo.cinema.library.HomeEntry.Kind.Smb -> {
                 val p = com.kivo.cinema.library.SmbContinueKey.parse(entry.key) ?: return
                 startActivity(
@@ -168,7 +195,9 @@ class MainActivity : ComponentActivity() {
                         .putExtra("kivo.sourceId", p.sourceId)
                         .putExtra("kivo.smbShare", p.share)
                         .putExtra("kivo.smbPath", p.path)
-                        .putExtra("kivo.label", p.fileName),
+                        // 控制栏标题：用解析后的片名，别把 `片名.S01E02.1080p.NF.WEB-DL...mkv` 整条甩上去。
+                        .putExtra("kivo.label",
+                            com.kivo.cinema.library.MediaTitleParser.parse(p.fileName).title),
                 )
             }
             else -> entry.mediaItem?.let { openPlayer(it) }
