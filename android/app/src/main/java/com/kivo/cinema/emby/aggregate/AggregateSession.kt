@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.kivo.cinema.emby.EmbyAuthCache
 import com.kivo.cinema.emby.EmbyClient
 import com.kivo.cinema.emby.EmbyErrors
 import com.kivo.cinema.sources.SourceRecord
@@ -66,8 +67,14 @@ class AggregateSession(private val scope: CoroutineScope) {
     }
 
     private fun login(record: SourceRecord): AggregateSource {
+        // D367：复用已登录会话 —— 真机每次 login 约 1.2s，进聚合搜索要为每个源各付一次。
+        EmbyAuthCache.get(record)?.let { (cachedClient, cachedAuth) ->
+            return AggregateSource(record, cachedClient, cachedAuth)
+        }
         val client = EmbyClient(record.address)
-        return AggregateSource(record, client, client.login(record.username, record.password))
+        val auth = client.login(record.username, record.password)
+        EmbyAuthCache.remember(record, client, auth)
+        return AggregateSource(record, client, auth)
     }
 
     fun cancel() { job?.cancel(); connecting = false }

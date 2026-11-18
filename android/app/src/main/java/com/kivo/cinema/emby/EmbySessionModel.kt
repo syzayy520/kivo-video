@@ -89,9 +89,9 @@ class EmbySessionModel : ViewModel() {
                             val resumed: List<EmbyHeroItem>)
 
     private fun connectCore(address: String, user: String, secret: String): Connected {
-        val c = EmbyClient(address)
+        // D367：会话复用（真机 login 一次 1221ms，不能每次进浏览页都重付）。
         val t0 = System.currentTimeMillis()
-        val a = c.login(user, secret)
+        val (c, a) = EmbyAuthCache.connect(address, user, secret)
         val t1 = System.currentTimeMillis()
         com.kivo.cinema.net.NetDiag.log("[emby-connect] login ${t1 - t0}ms")
         // login 拿到 token 后立即并发预取 hero/resume：与 items 重叠，首屏空白期大幅缩短。

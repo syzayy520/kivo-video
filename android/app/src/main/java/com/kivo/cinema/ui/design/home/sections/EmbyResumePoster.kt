@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.kivo.cinema.emby.EmbyResumeSession
+import com.kivo.cinema.emby.EmbyAuthCache
 import com.kivo.cinema.library.HomeEntry
 import com.kivo.cinema.ui.design.decodeImageCapped
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +34,7 @@ private val embyResumeCache = object : LruCache<String, Bitmap>(16 * 1024 * 1024
 /**
  * 首页「继续观看」里的 Emby 海报。
  *
- * 单一职责：只负责"把 Emby 条目的一张海报取来显示"。token 由 [EmbyResumeSession]
+ * 单一职责：只负责"把 Emby 条目的一张海报取来显示"。token 由 [EmbyAuthCache]
  * 按 sourceId 复用（取数时已登录），本组件不碰凭据细节。
  * 加载中/失败给中性占位 —— 不放假图、不白块、不抛异常。
  */
@@ -50,7 +50,7 @@ internal fun EmbyResumePoster(
         if (bitmap != null || url.isNullOrBlank()) return@LaunchedEffect
         bitmap = withContext(Dispatchers.IO) {
             embyResumeCache.get(url) ?: runCatching {
-                EmbyResumeSession.fetchBytes(entry.embySourceId, url)?.let { decodeImageCapped(it) }
+                EmbyAuthCache.fetchBytes(entry.embySourceId, url)?.let { decodeImageCapped(it) }
             }.getOrNull()?.also { embyResumeCache.put(url, it) }
         }
     }

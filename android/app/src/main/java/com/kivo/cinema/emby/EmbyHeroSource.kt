@@ -38,7 +38,8 @@ class EmbyHeroSource(private val c: EmbyClient) {
         val q = "?IncludeItemTypes=Movie,Series&Recursive=true$parent" +
             "&SortBy=DateCreated&SortOrder=Descending&Limit=$limit&Fields=$fields" +
             "&ImageTypeLimit=1&EnableImageTypes=Primary,Backdrop"
-        return fetch("${c.base}${c.prefix}/Users/${auth.userId}/Items$q", auth)
+        return fetch("${c.base}${c.prefix}/Users/${auth.userId}/Items$q", auth,
+            EmbyResponseCache.TTL_LIST)
     }
 
     /**
@@ -50,28 +51,24 @@ class EmbyHeroSource(private val c: EmbyClient) {
     fun resume(auth: EmbyClient.Auth, limit: Int = 12): List<EmbyHeroItem> {
         val q = "?Limit=$limit&MediaTypes=Video&Fields=$fields" +
             "&ImageTypeLimit=1&EnableImageTypes=Primary,Backdrop"
-        return fetch("${c.base}${c.prefix}/Users/${auth.userId}/Items/Resume$q", auth)
+        return fetch("${c.base}${c.prefix}/Users/${auth.userId}/Items/Resume$q", auth,
+            EmbyResponseCache.TTL_RESUME)
     }
 
-    private fun fetch(url: String, auth: EmbyClient.Auth): List<EmbyHeroItem> {
+    private fun fetch(url: String, auth: EmbyClient.Auth, ttlMs: Long): List<EmbyHeroItem> {
         // 337：分段计时——请求发起 / 响应完成，定位首屏 hero 慢是网络还是解析。
+        // D367：正文走 [EmbyResponseCache]（命中时耗时≈0，日志会有 [emby-cache] HIT）。
         val tag = url.substringAfterLast("Items")
         val t0 = System.currentTimeMillis()
         com.kivo.cinema.net.NetDiag.log("[emby-hero] 发起 $tag")
-        val conn = c.conn(url, "GET")
-        try {
-            conn.setRequestProperty("X-Emby-Token", auth.token)
-            val code = conn.responseCode
-            if (code !in 200..299) throw EmbyClient.HttpFailure(code)
-            val body = conn.inputStream.bufferedReader().use { it.readText() }
-            val t1 = System.currentTimeMillis()
-            val arr = JSONObject(body).optJSONArray("Items") ?: return emptyList()
-            val out = (0 until arr.length()).mapNotNull { i ->
-                runCatching { parse(arr.getJSONObject(i)) }.getOrNull()
-            }
-            com.kivo.cinema.net.NetDiag.log("[emby-hero] 完成 n=${out.size} 耗时=${t1 - t0}ms $tag")
-            return out
-        } finally { conn.disconnect() }
+        val body = c.cachedBody(url, auth.token, ttlMs)
+        val t1 = System.currentTimeMillis()
+        val arr = JSONObject(body).optJSONArray("Items") ?: return emptyList()
+        val out = (0 until arr.length()).mapNotNull { i ->
+            runCatching { parse(arr.getJSONObject(i)) }.getOrNull()
+        }
+        com.kivo.cinema.net.NetDiag.log("[emby-hero] 完成 n=${out.size} 耗时=${t1 - t0}ms $tag")
+        return out
     }
 
     private fun parse(o: JSONObject): EmbyHeroItem {

@@ -41,11 +41,11 @@ object EmbyHomeResume {
 
     private fun fetchOne(rec: SourceRecord, limitPerSource: Int): List<HomeEntry> =
         runCatching {
-            // 优先复用已登录会话，避免每轮刷新都重新 login。
-            val cached = EmbyResumeSession.session(rec.id)
+            // 优先复用已登录会话（D367：登录一次真机 1.2s，不能每轮都付）。
+            val cached = EmbyAuthCache.get(rec)
             val client = cached?.first ?: EmbyClient(rec.address)
             val auth = cached?.second ?: client.login(rec.username, rec.password)
-            if (cached == null) EmbyResumeSession.remember(rec.id, client, auth)
+            if (cached == null) EmbyAuthCache.remember(rec, client, auth)
             EmbyHeroSource(client).resume(auth, limit = limitPerSource)
                 .map { it.toHomeEntry(rec.id, rec.name) }
         }.getOrElse { emptyList() }

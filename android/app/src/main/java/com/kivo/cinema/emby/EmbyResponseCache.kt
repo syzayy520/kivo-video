@@ -42,6 +42,14 @@ object EmbyResponseCache {
      */
     const val TTL_LIST = 10L * 60 * 1000
 
+    /**
+     * 「继续观看」：60 秒。
+     *
+     * 【为什么比列表短得多】它带每条的 `PlaybackPositionTicks` —— 刚看完一集再回首页，
+     * 缓存 10 分钟就会显示旧进度。60 秒足够覆盖"来回点开再返回"，又不会明显过期。
+     */
+    const val TTL_RESUME = 60L * 1000
+
     private var dir: File? = null
 
     /** 幂等；由持有 Context 的入口调用（Activity onCreate 或详情取数前）。 */
