@@ -32,10 +32,14 @@ import com.kivo.cinema.sources.storage.SourceStore
 import com.kivo.cinema.tmdb.TmdbClient
 import com.kivo.cinema.ui.design.decodeImageCapped
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+
+/** 同时最多处理 3 张封面：12 张卡 × 6 路候选会瞬间打 70+ 次 TMDB 搜索，容易被限流。 */
+private val posterPermits = kotlinx.coroutines.sync.Semaphore(3)
 
 /** 首页 NAS 封面缓存：跨卡片/跨滚动复用，按字节限。 */
 private val nasPosterCache = object : LruCache<String, Bitmap>(24 * 1024 * 1024) {
@@ -59,7 +63,9 @@ internal fun NasPoster(
     LaunchedEffect(entry.key) {
         if (bitmap != null) return@LaunchedEffect
         bitmap = withContext(Dispatchers.IO) {
-            resolvePoster(context, entry)?.also { nasPosterCache.put(entry.key, it) }
+            posterPermits.withPermit {
+                resolvePoster(context, entry)?.also { nasPosterCache.put(entry.key, it) }
+            }
         }
     }
     val bmp = bitmap
