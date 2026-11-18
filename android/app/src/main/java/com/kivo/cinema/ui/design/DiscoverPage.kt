@@ -83,7 +83,7 @@ import com.kivo.cinema.ui.design.home.sections.WideSection
 fun DiscoverPage(
     previewEnabled: Boolean = false,
     continueItems: List<HomeEntry>,
-    nasEntries: List<HomeEntry>,
+    nasSections: List<com.kivo.cinema.library.NasLibrarySource.Section>,
     heroCandidates: List<TmdbHome.Item>,
     nowPlaying: List<TmdbHome.Item>,
     onTheAir: List<TmdbHome.Item>,
@@ -198,7 +198,7 @@ fun DiscoverPage(
             }
             item(key = "continue") {
                 ContinueRow(continueItems, chromeFg, chromeSub, posterOf, onOpenItem, onShowWatching)
-                NasLibraryRow(nasEntries, chromeFg, chromeSub, posterOf, onOpenItem)
+                nasSections.forEach { s -> NasLibraryRow(s.category.label, s.entries, chromeFg, chromeSub, posterOf, onOpenItem) }
             }
             // 海报节（正在热映 / 正在播出）+ 宽卡节（本周趋势）
             listOf(

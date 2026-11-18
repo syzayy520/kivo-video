@@ -130,6 +130,12 @@ class TmdbClient(context: Context) {
     fun searchId(title: String, year: Int?, series: Boolean = false): Int? =
         searchFirst(title, year, series)?.optInt("id")?.takeIf { it > 0 }
 
+    /** 首页 NAS 片库兜底：片名+年份 → w500 海报 URL；无 key/无网/无匹配 → null。 */
+    fun posterUrlFor(title: String, year: Int?, series: Boolean = false): String? =
+        searchFirst(title, year, series)?.optString("poster_path")
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { "${TmdbHome.IMG}/w500$it" }
+
     /** 255：集剧照兜底（库缩略图优先）。episode_number → still URL；无 key/无网/无图 → 空 map。 */
     fun seasonStills(tvId: Int, season: Int): Map<Int, String> {
         if (apiKey().isEmpty()) return emptyMap()

@@ -11,7 +11,7 @@ package com.kivo.cinema.library
  */
 object MediaTitleParser {
 
-    data class Parsed(val title: String, val year: Int?)
+    data class Parsed(val title: String, val year: Int?, val english: String? = null)
 
     /** 常见片源/编码/音轨标签，命中即从标题里剔除。 */
     private val TAGS = Regex(
@@ -32,8 +32,16 @@ object MediaTitleParser {
 
         // 中文名优先：`[犯罪都市4].The.Roundup…` ⇒ `犯罪都市4`。
         // 中文用户记的是中文名，把英文发行名一起摆出来只会把卡片标题撑到截断。
-        CN_BRACKET.find(noExt)?.groupValues?.getOrNull(1)?.trim()?.let { cn ->
-            if (cn.isNotBlank()) return Parsed(cn, year)
+        CN_BRACKET.find(noExt)?.let { m ->
+            val cn = m.groupValues[1].trim()
+            if (cn.isNotBlank()) {
+                // 括号后到年份前是英文发行名：TMDB 中文搜不到时用它兜底（剧集尤其常见）。
+                val after = noExt.substring(m.range.last + 1)
+                    .replace('.', ' ').replace('_', ' ').replace('-', ' ')
+                val cut = YEAR.find(after)?.range?.first ?: after.length
+                val en = SPACES.replace(TAGS.replace(after.substring(0, cut), " "), " ").trim()
+                return Parsed(cn, year, en.ifBlank { null })
+            }
         }
 
         val flat = noExt.replace('.', ' ').replace('_', ' ').replace('-', ' ')

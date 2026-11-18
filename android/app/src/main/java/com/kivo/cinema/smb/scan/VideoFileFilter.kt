@@ -35,4 +35,24 @@ object VideoFileFilter {
 
     fun skipDir(name: String): Boolean =
         name in SKIP_DIRS || name.startsWith(".") || name.startsWith("#") || name.startsWith("@")
+
+    /** 能当封面用的图片。 */
+    fun isImage(name: String): Boolean =
+        name.substringAfterLast('.', "").lowercase() in setOf("jpg", "jpeg", "png", "webp")
+
+    /** 图片优先级：海报类文件排在前面，其次才轮到 fanart/backdrop/任意图。 */
+    private val POSTER_ORDER = listOf("poster", "folder", "cover", "movie", "show", "fanart", "backdrop", "thumb")
+
+    /**
+     * 从同目录的图片里挑封面：海报类优先，其余取最大一张。
+     * @param images (文件名, 字节) —— 用字节排“最大”，不依赖名字。
+     */
+    fun pickPoster(images: List<Pair<String, Long>>): String? {
+        if (images.isEmpty()) return null
+        val ranked = images.sortedWith(compareByDescending<Pair<String, Long>> { (name, _) ->
+            val lower = name.lowercase()
+            POSTER_ORDER.indexOfFirst { lower.contains(it) }.let { if (it < 0) -1 else POSTER_ORDER.size - it }
+        }.thenByDescending { it.second })
+        return ranked.first().first
+    }
 }

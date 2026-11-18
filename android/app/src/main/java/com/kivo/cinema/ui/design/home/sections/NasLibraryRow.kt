@@ -22,6 +22,7 @@ import com.kivo.cinema.ui.design.ContinueCard
  */
 @Composable
 internal fun NasLibraryRow(
+    title: String,
     entries: List<HomeEntry>,
     fg: Color,
     sub: Color,
@@ -31,7 +32,7 @@ internal fun NasLibraryRow(
     if (entries.isEmpty()) return
     Column {
         Spacer(Modifier.height(13.dp))
-        HomeSectionHeader("本地片库", fg)
+        HomeSectionHeader(title, fg)
         Spacer(Modifier.height(12.dp))
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),

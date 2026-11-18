@@ -28,7 +28,12 @@ class NasIndexStore(context: Context) {
                 val share = o.optString("share")
                 val sourceId = o.optString("sourceId")
                 if (path.isBlank() || share.isBlank() || sourceId.isBlank()) return@mapNotNull null
-                NasVideo(sourceId, share, path, o.optLong("size"), o.optLong("addedMs"))
+                val category = runCatching { NasCategory.valueOf(o.optString("category")) }
+                    .getOrElse { return@mapNotNull null }
+                NasVideo(
+                    sourceId, share, path, o.optLong("size"), o.optLong("addedMs"),
+                    category, o.optString("posterPath").ifBlank { null },
+                )
             }
         }.getOrElse { emptyList() }
     }
@@ -40,7 +45,8 @@ class NasIndexStore(context: Context) {
             videos.forEach { v ->
                 arr.put(
                     JSONObject().put("sourceId", v.sourceId).put("share", v.share)
-                        .put("path", v.path).put("size", v.size).put("addedMs", v.addedMs),
+                        .put("path", v.path).put("size", v.size).put("addedMs", v.addedMs)
+                        .put("category", v.category.name).put("posterPath", v.posterPath ?: ""),
                 )
             }
             file.writeText(

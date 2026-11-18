@@ -24,6 +24,12 @@ data class HomeEntry(
     val kind: Kind,
     val mediaItem: MediaItem? = null,
     val posterUrl: String? = null,
+    /** 库内封面（共享内路径）；非空时优先于 [posterUrl]。读图需配合 [key] 解析出的 sourceId/share。 */
+    val smbPosterPath: String? = null,
+    /** 发行年（TMDB 兜底匹配用）；0/null = 未知。 */
+    val year: Int? = null,
+    /** TMDB 兜底用的英文名（中文名搜不到时再试它）；null = 无。 */
+    val searchAlias: String? = null,
     val embyItemId: String? = null,
     val embySourceId: String? = null,
     /** 最近一次观看时刻（毫秒）；聚合排序用。0 = 未知，排在后面。 */

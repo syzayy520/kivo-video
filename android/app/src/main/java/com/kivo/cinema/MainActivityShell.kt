@@ -72,7 +72,7 @@ internal class HomeShellState {
     var homeGeneration by mutableStateOf(0)
     var continueItems by mutableStateOf(listOf<HomeEntry>())
     var homeEntries by mutableStateOf(listOf<HomeEntry>())   // 首页=NAS+Emby（排除手机本地视频）
-    var nasEntries by mutableStateOf(listOf<HomeEntry>())    // 首页「本地片库」（NAS 扫描索引）
+    var nasSections by mutableStateOf(listOf<com.kivo.cinema.library.NasLibrarySource.Section>())  // 首页本地片库分类行
     var ambientDark by mutableStateOf(false)                 // 首页环境暗底（导航玻璃/状态栏联动）
     var localVideoCount by mutableStateOf<Int?>(null)        // 本地可见视频数；不可读为 null
 }
@@ -199,7 +199,7 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                         DiscoverPage(
                             previewEnabled = previewEnabled,
                             continueItems = state.homeEntries,
-                            nasEntries = state.nasEntries,
+                            nasSections = state.nasSections,
                             heroCandidates = state.heroCandidates,
                             nowPlaying = state.nowPlaying,
                             onTheAir = state.onTheAir,

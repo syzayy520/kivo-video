@@ -26,7 +26,9 @@ import androidx.compose.ui.unit.sp
 import com.kivo.cinema.evidence.IoTrace
 import com.kivo.cinema.sources.SourceRepository
 import com.kivo.cinema.sources.storage.SourceStore
+import com.kivo.cinema.library.NasCategory
 import com.kivo.cinema.ui.design.DesignTokens
+import com.kivo.cinema.ui.design.home.HomePreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -111,6 +113,11 @@ private fun SettingsRootBody(
     version: String,
     push: (SettingsRoute) -> Unit,
 ) {
+    val context = LocalContext.current
+    val homePrefs = remember { HomePreferences(context) }
+    var visibleCats by remember {
+        mutableStateOf(NasCategory.ordered.associateWith { homePrefs.categoryVisible(it) })
+    }
     Box(Modifier.fillMaxSize().background(DesignTokens.pageBackground)) {
         Column(
             Modifier
@@ -175,6 +182,21 @@ private fun SettingsRootBody(
                     },
                 ),
                 footer = "图片与评分缓存占用，可一键清理。",
+            )
+            Spacer(Modifier.height(SettingsGroupGap))
+            SettingsGroupList(
+                "首页本地片库",
+                NasCategory.ordered.map { cat ->
+                    SettingsRowSpec(
+                        title = cat.label,
+                        trailing = if (visibleCats[cat] == true) "开" else "关",
+                    ) {
+                        val next = !(visibleCats[cat] ?: false)
+                        homePrefs.setCategoryVisible(cat, next)
+                        visibleCats = visibleCats + (cat to next)
+                    }
+                },
+                footer = "控制首页显示哪些分类；没有内容的分类自动不显示。",
             )
             Spacer(Modifier.height(8.dp))
             VersionFootnote(version)

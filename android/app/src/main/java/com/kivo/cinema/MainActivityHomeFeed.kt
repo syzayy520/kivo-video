@@ -93,7 +93,7 @@ internal fun MainActivity.entryPoster(entry: HomeEntry): (@Composable () -> Unit
     return when {
         entry.posterUrl != null -> { { EmbyResumePoster(entry) } }
         media != null -> localMedia.posterBlock(media)
-        else -> { { com.kivo.cinema.ui.design.home.sections.NasPosterPlaceholder(entry) } }
+        else -> { { com.kivo.cinema.ui.design.home.sections.NasPoster(entry) } }
     }
 }
 
@@ -118,7 +118,8 @@ internal fun MainActivity.refreshNasLibrary() {
                 videos = scanned
             }
         }
-        val entries = com.kivo.cinema.library.NasLibrarySource.entries(videos)
-        runOnUiThread { shellState.nasEntries = entries }
+        val prefs = com.kivo.cinema.ui.design.home.HomePreferences(this)
+        val sections = com.kivo.cinema.library.NasLibrarySource.sections(videos) { prefs.categoryVisible(it) }
+        runOnUiThread { shellState.nasSections = sections }
     }.start()
 }
