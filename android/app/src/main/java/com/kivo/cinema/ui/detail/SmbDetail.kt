@@ -9,6 +9,7 @@ import com.kivo.cinema.library.MediaTitleParser
 import com.kivo.cinema.library.NasIndexStore
 import com.kivo.cinema.library.NasLibraryGrouping
 import com.kivo.cinema.library.NasVideo
+import com.kivo.cinema.tmdb.TmdbClient
 import com.kivo.cinema.tmdb.TmdbDetail
 import com.kivo.cinema.ui.compose.PlayerComposeActivity
 import com.kivo.cinema.ui.design.home.sections.resolvePoster
@@ -36,14 +37,20 @@ internal object SmbDetail {
         val fileName = path.substringAfterLast('/')
         val parsed = MediaTitleParser.parse(fileName)
         val video = findVideo(context, sourceId, share, path)
+        val facts = onlyDetails(parsed.title.ifBlank { fileName }, parsed.year)
+        // 限时增强：拿得到就补简介/评分/演员；拿不到（无 key/无网/超时）仍是可读可播的文件事实页。
+        val details = enrich(context, parsed.title, parsed.year, preferTv = false) ?: facts
+        // 码率用「文件体积 ÷ TMDB 时长」估算：能算就填，算不出（缺时长）给 0 让 UI 不显示。
+        val runSec = ((details.runtimeMin ?: 0) * 60).toLong()
+        val bps = video?.size?.takeIf { it > 0L && runSec > 0L }?.let { it * 8L / runSec } ?: 0L
         return DetailContent(
-            details = onlyDetails(parsed.title.ifBlank { fileName }, parsed.year),
+            details = details,
             // 片源就是入口那个文件：给出真实体积，别让页面显示"暂无可用资源"（文件明明在）。
             media = video?.let {
                 ResourceMedia(
                     resolution = "",   // 不探测分辨率：要读远端文件头，不值得为一行胶囊付网络
                     sizeBytes = it.size,
-                    bitrateBps = 0L,
+                    bitrateBps = bps,
                     sourceLabel = "NAS",
                     streams = null,
                 )
@@ -94,8 +101,10 @@ internal object SmbDetail {
         // 剧集走 playEpisode（DetailPage 在 loadEpisodes != null 时忽略 playIntent 的默认跳转）。
         val defaultIntent = first.path.takeIf { it.isNotBlank() }
             ?.let { playIntent(context, sourceId, share, it, first.label) }
+        val facts = onlyDetails(series.title, series.year)
+        val details = enrich(context, series.title, series.year, preferTv = true) ?: facts
         return DetailContent(
-            details = onlyDetails(series.title, series.year),
+            details = details,
             media = null,
             quality = "",
             playIntent = defaultIntent,
@@ -114,6 +123,40 @@ internal object SmbDetail {
                 loadPoster(context, sourceId, share, first.path, series.posterPath, series.title, series.year)
             },
         )
+    }
+
+    /** 增强预算：超过就用文件事实（详情页不能被网络拖住）。 */
+    private const val TMDB_BUDGET_MS = 2_500L
+
+    /**
+     * 用 TMDB 增强（简介/评分/类型/演员/相似）：**限时 2.5s**，超时即用文件事实。
+     *
+     * 【为什么限时】`TmdbClient` 的 connect/read 超时是 8s/15s，若源站慢，详情页会卡十几秒才出内容。
+     * 详情页已有 preview 快照先显示标题，所以这里宁可放弃增强也不能拖住首屏（D376 教训：Future.get 必带超时）。
+     * 两次请求（search → details）都有 12h 磁盘缓存，二次进秒回。
+     */
+    private fun enrich(context: Context, title: String, year: Int?, preferTv: Boolean): TmdbDetail.Details? {
+        if (title.isBlank()) return null
+        val pool = java.util.concurrent.Executors.newSingleThreadExecutor()
+        val task = java.util.concurrent.Callable {
+            runCatching {
+                val client = TmdbClient(context.applicationContext)
+                if (client.apiKey().isEmpty()) return@runCatching null
+                val detail = TmdbDetail(client)
+                // 先按首选类型搜，搜不到再换另一种（NAS 分类不一定准，两种都试一次）。
+                listOf(preferTv, !preferTv).firstNotNullOfOrNull { asTv ->
+                    client.searchId(title, year, asTv)?.let { id -> detail.details(asTv, id) }
+                }
+            }.getOrNull()
+        }
+        return try {
+            pool.submit(task).get(TMDB_BUDGET_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+        } catch (e: Exception) {
+            com.kivo.cinema.net.NetDiag.log("[smb-detail] tmdb 增强放弃 ${e::class.java.simpleName}")
+            null
+        } finally {
+            pool.shutdownNow()
+        }
     }
 
     /** 索引不可用：页面能看标题，但明确告知不能播（不假装可播再报错）。 */
