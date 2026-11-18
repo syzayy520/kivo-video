@@ -51,7 +51,7 @@ internal fun NasLibraryCard(
         }
         Spacer(Modifier.height(6.dp))
         Text(
-            entry.title, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = fg,
+            rememberNasTitle(entry), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = fg,
             maxLines = 1, overflow = TextOverflow.Ellipsis,
         )
         Text(

@@ -136,6 +136,20 @@ class TmdbClient(context: Context) {
             ?.takeIf { it.isNotEmpty() }
             ?.let { "${TmdbHome.IMG}/w500$it" }
 
+    /**
+     * 片名 → **当前语言**的标题（NAS 文件名多是英文，中文系统下要换成 TMDB 的中文名）。
+     *
+     * 返回 null 的三种情况都要让调用方保持原文件名：无 key、无匹配、**译文与原片名相同**（换了个寂寞）。
+     * 搜索走 `searchFirst`，与海报兜底共用 12h 磁盘缓存 ⇒ 同一部片只付一次网络。
+     */
+    fun localizedTitle(title: String, year: Int?, series: Boolean = false): String? {
+        val o = searchFirst(title, year, series) ?: return null
+        val localized = o.optString("title").ifBlank { o.optString("name") }
+            .ifBlank { o.optString("original_title") }
+            .ifBlank { o.optString("original_name") }
+        return localized.trim().takeIf { it.isNotEmpty() && it != title.trim() }
+    }
+
     /** 255：集剧照兜底（库缩略图优先）。episode_number → still URL；无 key/无网/无图 → 空 map。 */
     fun seasonStills(tvId: Int, season: Int): Map<Int, String> {
         if (apiKey().isEmpty()) return emptyMap()

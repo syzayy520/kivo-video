@@ -139,3 +139,36 @@ SMB 详情页 hero 上出现**两个片名**：橙色 TMDB logo + 海报底部�
 ### 结果（真机 K40）
 `smb-detail-trimmed.png`：hero 显示人物画面，**片名只出现一次**（TMDB 的橙色 logo），
 下方日期/播放/简介/TMDB 7.2 版式与其它详情页一致。
+
+## 八、补三：片库片名本地化（中文系统显示中文片名）
+
+### 问题
+用户反馈"很多电影名还是英文的，我手机系统是中文"。此前的 `TmdbLocale` 只解决了 **TMDB 行**（正在热映/本周趋势），
+**本地片库完全没被覆盖** —— 片库标题来自 `MediaTitleParser` 解析文件名，文件名是英文就是英文，与系统语言无关。
+
+### 修复
+新增 `library/NasTitleStore`（内存 + 磁盘缓存）与 `ui/design/home/sections/NasDisplayTitle`：
+
+- **数据**：`TmdbClient.localizedTitle(片名, 年份)` → 走 `searchFirst`（与海报兜底共用 12h 磁盘缓存），
+  先按电影搜、搜不到再按剧集搜（片库目录名不一定准）；
+- **渲染**：`rememberNasTitle` 首帧同步读缓存（命中即中文），未命中丢 IO 线程解析后重组；
+- **限流**：`Semaphore(3)`，首页一次可见几十张卡，不限流会打爆 TMDB 配额；
+- **不空转**：换不到中文就保持原文件名，绝不显示空白；
+- **缓存落盘** `files/nas/nas-titles.json`，第二次冷启动起全部命中，不再发网络。
+
+覆盖两处标题：片库分类卡（`NasLibraryCard`）与「继续观看」（`ContinueRow`）。Emby 条目不参与（服务端已按用户语言返回）。
+
+### 真机结果（中文系统）
+| 原名 | 显示 |
+|---|---|
+| A Murder at the End of the World H | **世界尽头的一场谋杀** |
+| American Horror Story | **美国恐怖故事** |
+| BANSHEE | **丧妖集聚** |
+| Caged | **笼困** |
+| Dangerous Encounters of the First Kind | **第一类型危险** |
+| 69两头勾 6ixtynin9 The Series | **69两头勾** |
+| Cold Case Gleen | 保持原名（TMDB 无中文译名，属数据限制，不编造） |
+
+### 边界
+- TMDB 没有中文译名的条目（冷门片）仍显示原名 —— 这是数据现实，**不伪造翻译**。
+- 首次冷启动每张新卡会发一次搜索（有 12h 缓存与 3 并发限制），表现为标题在 1–2s 内由英文变为中文。

@@ -43,7 +43,7 @@ internal fun ContinueRow(
         ) {
             itemsIndexed(entries) { _, entry ->
                 ContinueCard(
-                    title = entry.title,
+                    title = rememberNasTitle(entry),
                     meta = metaOf(entry),
                     seenText = "看到 " + fmtSeen(entry.positionMs),
                     progress = entry.progress,
