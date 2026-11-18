@@ -87,6 +87,63 @@ REA 解出的字符串可见 `hwdec`、`hwdecCurrent`、`mediacodec`、`hwdec-so
 
 APK 的 `classes.dex`/ELF 只能提供组件定位线索。第三方版本若无 ELF build-id、版本字符串、依赖元数据或可验证符号，必须保持未知。[S14]
 
+### 1.6 补充（2026-11-18）：SMB 读取层与"本地缓存文件"通路
+
+> **本节修正两处**：① 2026-11-15 的会话笔记里写过"SenPlayer 的 mpv 静态链含 libsmb2"
+> ——**不准确**，实际是 Rust 的 SMBKit；② 本次初次分析时我用了 `strings`，
+> 而本机 Git Bash **没有 strings**（命令静默失败），据此得出的"so 里没有 smb"
+> 是**假结论**。改用 Python 直接对二进制做字节计数与可打印字符串提取后重做，结果如下。
+
+**字节计数（`open(p,'rb').read().count(b'...')`）**
+
+| 关键词 | `libFFmpegKit.so`（52.8 MB） | `libMLibKit.so`（15.8 MB） |
+|---|---:|---:|
+| `smb` | 124 | 142 |
+| `SMB` | 560 | 580 |
+| `mpv` | 17 | 1 |
+| `libass` | 32 | 0 |
+| `gpu-next` | 1 | 0 |
+
+**字符串证据（去重后 583 / 615 条含 smb）**
+
+```
+../../SMBKit/client/mod.rs
+../../SMBKit/client/operations.rs
+../../SMBKit/client/transfer.rs
+../../SMBKit/reader.rs
+../../SMBKit/rules.rs
+Cannot flush local SMB download
+Cannot open local SMB transfer file
+Cannot seek SMB file
+Invalid SMB cursor
+Failed to open smb2 socket. Errno:%s(%d).
+```
+
+**判读（证据等级：强推断，未做运行时跟踪）**
+
+- `../../SMBKit/*.rs` 是 **Rust 源码路径** ⇒ SMB 客户端是 Rust 实现的 `SMBKit`，
+  不是 libsmb2 的 Kotlin/Java 绑定；`Failed to open smb2 socket` 这类 libsmb2 文案
+  说明它**参考或内联**了 libsmb2 的部分实现。
+- `local SMB download` / `local SMB transfer file` / `Invalid SMB cursor` 三条合起来，
+  配合 §1.3 已记录的 `cache-dir` / `cache-capacity` / `cacheRanges` / `cacheEnd` / `cacheEOF`，
+  指向一个具体形态：**SMB 数据被下载进本地缓存文件（稀疏、按区间填充），
+  mpv 读的是这个本地文件，而不是 SMB URL、也不是 loopback HTTP。**
+- 两条通道的含义完全不同：
+
+| | SenPlayer（据上述证据） | Kivo（现状，见 §3.1） |
+|---|---|---|
+| mpv 读什么 | 磁盘上的缓存文件路径 | `http://127.0.0.1:<port>/…` |
+| 格式识别由谁做 | ffmpeg 嗅探 + 真实扩展名 | ffmpeg 嗅探，但**受响应头 `Content-Type` 影响** |
+| 代价 | 需要磁盘空间与稀疏文件管理 | 多一层 socket，且**必须把 content-type 答对** |
+
+这解释了 2026-11-18 在 Kivo 侧定位的那个缺陷（`D12I`）：我们把
+`Content-Type` 写死成 `video/x-matroska`，导致所有 `.ts` 播不了；
+SenPlayer 的通道里**根本没有这条契约**，所以它不会踩。
+
+**边界**：以上是静态字符串 + 既有字段名的一致性推断，**没有做运行时跟踪**，
+不能确认稀疏文件的具体写入策略、补块粒度、cache 上限行为，也不能确认它是否
+对所有源都走同一条通路（本地文件、HTTP、WebDAV 可能各有分支）。
+
 ## 二、Kivo 现状与复刻判断
 
 ### 2.1 Kivo 已有的可复用播放骨架
