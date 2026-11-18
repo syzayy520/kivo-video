@@ -32,6 +32,7 @@ internal fun ContinueRow(
     onOpenItem: (HomeEntry) -> Unit,
     onShowWatching: (() -> Unit)? = null,
 ) {
+    if (entries.isEmpty()) return
     Column {
         Spacer(Modifier.height(13.dp))
         HomeSectionHeader("继续观看", fg, onShowWatching)

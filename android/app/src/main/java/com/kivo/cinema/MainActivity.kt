@@ -97,6 +97,7 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         scanLocalVideos()
         refreshContinue()
+        refreshNasLibrary()
         refreshHomeFeed()
         sources.refresh()
     }

@@ -23,14 +23,23 @@ object MediaTitleParser {
     private val YEAR = Regex("""\b(19\d{2}|20\d{2})\b""")
     private val SPACES = Regex("""\s+""")
 
+    /** 形如 `[犯罪都市4]` 的中文方括号前缀（括号内必须含中文，否则当发布组标签忽略）。 */
+    private val CN_BRACKET = Regex("""^\[\s*([^\]]*[\u4e00-\u9fa5][^\]]*)\s*]""")
+
     fun parse(fileName: String): Parsed {
         val noExt = fileName.substringBeforeLast('.', fileName)
-        val flat = noExt.replace('.', ' ').replace('_', ' ').replace('-', ' ')
+        val year = YEAR.find(noExt)?.value?.toIntOrNull()
 
-        val yearMatch = YEAR.find(flat)
-        val year = yearMatch?.value?.toIntOrNull()
+        // 中文名优先：`[犯罪都市4].The.Roundup…` ⇒ `犯罪都市4`。
+        // 中文用户记的是中文名，把英文发行名一起摆出来只会把卡片标题撑到截断。
+        CN_BRACKET.find(noExt)?.groupValues?.getOrNull(1)?.trim()?.let { cn ->
+            if (cn.isNotBlank()) return Parsed(cn, year)
+        }
+
+        val flat = noExt.replace('.', ' ').replace('_', ' ').replace('-', ' ')
         // 年份之后基本都是标签区，直接截掉，避免把 "2024 1080p WEB-DL" 全留在标题里。
-        val head = if (yearMatch != null) flat.substring(0, yearMatch.range.first) else flat
+        val cut = YEAR.find(flat)?.range?.first ?: flat.length
+        val head = flat.substring(0, cut)
         val stripped = TAGS.replace(head, " ")
         val cleaned = SPACES.replace(stripped, " ").trim()
 

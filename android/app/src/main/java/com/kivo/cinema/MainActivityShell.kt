@@ -72,10 +72,9 @@ internal class HomeShellState {
     var homeGeneration by mutableStateOf(0)
     var continueItems by mutableStateOf(listOf<HomeEntry>())
     var homeEntries by mutableStateOf(listOf<HomeEntry>())   // 首页=NAS+Emby（排除手机本地视频）
-    /** 首页环境暗底（导航玻璃/状态栏联动）。 */
-    var ambientDark by mutableStateOf(false)
-    /** 本地可见视频数；媒体库不可读时为 null。 */
-    var localVideoCount by mutableStateOf<Int?>(null)
+    var nasEntries by mutableStateOf(listOf<HomeEntry>())    // 首页「本地片库」（NAS 扫描索引）
+    var ambientDark by mutableStateOf(false)                 // 首页环境暗底（导航玻璃/状态栏联动）
+    var localVideoCount by mutableStateOf<Int?>(null)        // 本地可见视频数；不可读为 null
 }
 
 /** 首屏新增请求预算：只补前 4 个平台的拼贴海报、前 6 个类型的底图（失败项保持空，不造假）。 */
@@ -200,6 +199,7 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                         DiscoverPage(
                             previewEnabled = previewEnabled,
                             continueItems = state.homeEntries,
+                            nasEntries = state.nasEntries,
                             heroCandidates = state.heroCandidates,
                             nowPlaying = state.nowPlaying,
                             onTheAir = state.onTheAir,

@@ -93,6 +93,32 @@ internal fun MainActivity.entryPoster(entry: HomeEntry): (@Composable () -> Unit
     return when {
         entry.posterUrl != null -> { { EmbyResumePoster(entry) } }
         media != null -> localMedia.posterBlock(media)
-        else -> null
+        else -> { { com.kivo.cinema.ui.design.home.sections.NasPosterPlaceholder(entry) } }
     }
+}
+
+/** NAS 索引有效期：一天。过期才重扫，避免每次进首页都爬 12T。 */
+private const val NAS_INDEX_TTL_MS = 24L * 60 * 60 * 1000
+
+/**
+ * 首页「本地片库」：**读索引为主**，索引缺失或过期才后台全扫。
+ *
+ * 为什么不一进来就扫：12T 上千个目录，SMB 逐层列目录是分钟级；挂在首屏上就是把首页拖死。
+ * 首次（无索引）会扫一次，之后一天内直接读索引。
+ */
+internal fun MainActivity.refreshNasLibrary() {
+    Thread {
+        val store = com.kivo.cinema.library.NasIndexStore(this)
+        var videos = store.read()
+        val stale = System.currentTimeMillis() - store.scannedAtMs() > NAS_INDEX_TTL_MS
+        if (videos.isEmpty() || stale) {
+            val scanned = com.kivo.cinema.library.NasScanService.scanAll(this)
+            if (scanned.isNotEmpty()) {
+                store.write(scanned)
+                videos = scanned
+            }
+        }
+        val entries = com.kivo.cinema.library.NasLibrarySource.entries(videos)
+        runOnUiThread { shellState.nasEntries = entries }
+    }.start()
 }
