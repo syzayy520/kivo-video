@@ -12,6 +12,8 @@ import androidx.core.view.WindowCompat
 import androidx.compose.runtime.remember
 import com.kivo.cinema.emby.EmbyItem
 import com.kivo.cinema.library.MediaItem
+import com.kivo.cinema.library.MediaTitleParser
+import com.kivo.cinema.library.NasTmdbIdStore
 import com.kivo.cinema.media.marks.FilmKey
 import com.kivo.cinema.tmdb.TmdbClient
 import com.kivo.cinema.tmdb.TmdbDetail
@@ -156,6 +158,14 @@ class MovieDetailActivity : ComponentActivity() {
         }
         val embyRes = embyItemId?.let { EmbyResource.from(this, intent, it) }
         emby = embyRes
+        // NAS 片源没有 TMDB id（收藏/已看按 id 记）⇒ 读上次详情页解析时缓存的 id。
+        // 首次进入必然为空（那一刻还没搜过），此时保持禁用态，不假装可用。
+        val smbYear: Int? = smbTarget?.substringAfterLast('/')
+            ?.let { MediaTitleParser.parse(it).year }
+        val smbTitleKey = intent.getStringExtra(EXTRA_SMB_TITLE).orEmpty().ifBlank {
+            smbTarget?.substringAfterLast('/')?.let { MediaTitleParser.parse(it).title }.orEmpty()
+        }
+        val smbTmdbId = if (smbReady) NasTmdbIdStore.get(this, smbTitleKey, smbYear) else null
         val tmdb = TmdbDetail(TmdbClient(this))
         val durationHint = intent.getLongExtra(EXTRA_DURATION, 0L)
         val load: () -> DetailContent? = when {
@@ -185,7 +195,10 @@ class MovieDetailActivity : ComponentActivity() {
             val actions = when {
                 embyRes != null -> embyRes.actions()
                 id > 0 -> rememberDetailActions(FilmKey(id, isTv))
-                // 本地文件无 TMDB id：FilmKey 要求 id>0，不能构造；给禁用态（不伪造标记键）。
+                // NAS 片源：用上次解析缓存的 TMDB id，让收藏/已看真正可用。
+                smbTmdbId != null && smbTmdbId > 0 ->
+                    rememberDetailActions(FilmKey(smbTmdbId, smbIsSeries))
+                // 本地文件 / 首次进入的 NAS 片源：FilmKey 要求 id>0，不能构造；给禁用态（不伪造标记键）。
                 else -> remember { localOnlyActions() }
             }
             DetailPage(actions, load, previewContent,

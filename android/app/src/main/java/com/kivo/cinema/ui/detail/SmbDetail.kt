@@ -169,6 +169,7 @@ internal object SmbDetail {
                 listOf(preferTv, !preferTv).firstNotNullOfOrNull { asTv ->
                     client.searchId(title, year, asTv)?.let { id ->
                         detail.details(asTv, id)?.also { d ->
+                            com.kivo.cinema.library.NasTmdbIdStore.put(context, title, year, id)  // 收藏按 TMDB id 记
                             com.kivo.cinema.net.NetDiag.log(
                                 "[smb-detail] tmdb ok id=$id cast=${d.cast.size} genres=${d.genres.size} " +
                                     "stills=${d.stills.size} similar=${d.similar.size} logo=${d.logoUrl != null} " +
