@@ -40,7 +40,7 @@ internal object SettingsVisuals {
     const val fontSection = 13f
     const val fontRow = 16f
     const val fontSub = 12f
-    const val cardRadius = 20f
+    const val cardRadius = 12f
     const val cardGap = 12f
     const val hInset = 16f
     const val dividerInsetChip = 42f

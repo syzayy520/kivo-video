@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,7 +44,7 @@ import com.kivo.cinema.ui.design.DesignTokens
  * `title = null` 时不出组标题（无头分组）。
  */
 @Composable
-fun SettingsGroupList(title: String?, rows: List<SettingsRowSpec>) {
+fun SettingsGroupList(title: String?, rows: List<SettingsRowSpec>, footer: String? = null) {
     Column(Modifier.fillMaxWidth()) {
         if (title != null) {
             Text(
@@ -72,10 +73,17 @@ fun SettingsGroupList(title: String?, rows: List<SettingsRowSpec>) {
                         Modifier
                             .fillMaxWidth()
                             .height(GroupDividerHeight)
-                            .background(DesignTokens.hairline),
+                            .background(GroupDividerColor),
                     )
                 }
             }
+        }
+        if (footer != null) {
+            Text(
+                footer, fontSize = GroupFooterSize.sp, color = DesignTokens.textSub,
+                lineHeight = GroupFooterLine.sp,
+                modifier = Modifier.padding(start = GroupTitleStartPad, end = GroupTitleStartPad, top = GroupFooterTop),
+            )
         }
     }
 }
@@ -89,12 +97,18 @@ data class SettingsRowSpec(
     val onClick: () -> Unit,
 )
 
-private val GroupCardRadius = 16.dp
+private val GroupCardRadius = 12.dp
 private val GroupCardStroke = 0.5.dp
+/** REX 分隔线：全宽 hairline（不内缩、不横穿图标），0.5dp 极细。 */
 private val GroupDividerHeight = 0.5.dp
+/** iOS separator 真值 #C6C6C8，细而看得见，不刺眼。 */
+private val GroupDividerColor = Color(0xFFC6C6C8)
 private val GroupTitleStartPad = 14.dp
 private val GroupTitleBottomGap = 6.dp
 private const val GroupTitleSize = 13f
+private val GroupFooterTop = 6.dp
+private const val GroupFooterSize = 12f
+private const val GroupFooterLine = 17f
 
 @Preview(name = "SettingsGroupList 有标题 / 无标题", widthDp = 360, showBackground = true)
 @Composable

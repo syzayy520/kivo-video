@@ -1,7 +1,6 @@
 package com.kivo.cinema.sources.ui
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -15,7 +14,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,7 +34,6 @@ import com.kivo.cinema.sources.ui.workspace.*
 fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: () -> Unit,
     onOpenPrivate: () -> Unit, onOpenSource: (SourceRecord) -> Unit,
     onUnlock: (() -> Unit) -> Unit,
-    onOpenAggregate: () -> Unit = {},
     navigation: @Composable () -> Unit = {},
     onNavigationGuard: (((() -> Unit) -> Unit)?) -> Unit = {}) {
     val workspace = rememberSaveable(saver = SourceWorkspaceState.Saver) { SourceWorkspaceState() }
@@ -99,21 +96,6 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: ()
                     SourceCard(source, { navigate { onOpenSource(source) } },
                         { navigate { workspace.sourceId = source.id; workspace.choosingType = false } })
                 }
-                item(span = { GridItemSpan(maxLineSpan) }, key = "aggregate-entry") {
-                    Surface(shape = RoundedCornerShape(20.dp), color = Color(0xFF238A59),
-                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
-                            .clickable { navigate(onOpenAggregate) }) {
-                        Row(Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text("聚合搜索", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                                Text("跨所有开启聚合搜索的服务器搜片 · 类型墙", fontSize = 12.sp,
-                                    color = Color.White.copy(alpha = 0.85f), modifier = Modifier.padding(top = 2.dp))
-                            }
-                            Text("›", fontSize = 22.sp, color = Color.White)
-                        }
-                    }
-                }
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Row(Modifier.padding(top = 12.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("媒体服务器", Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Medium,
@@ -142,7 +124,7 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: ()
                         }
                     }
                 }
-                items(visible.filter { !it.isSmb }, key = { it.id }) { source ->
+                items(visible.filter { !it.isSmb }, key = { it.id }, span = { GridItemSpan(maxLineSpan) }) { source ->
                     LaunchedEffect(source.id, source.revision, lifecycle) {
                         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                             while (true) {
@@ -151,8 +133,10 @@ fun SourcesScreen(model: SourceManagerModel, videoCount: Int?, onOpenLibrary: ()
                             }
                         }
                     }
-                    SourceCard(source, { navigate { onOpenSource(source) } }, { navigate { workspace.sourceId = source.id; workspace.choosingType = false } },
-                        model.summaries.values[source.id]?.takeIf { it.revision == source.revision })
+                    ServerCard(source,
+                        model.summaries.values[source.id]?.takeIf { it.revision == source.revision },
+                        { navigate { onOpenSource(source) } },
+                        { navigate { workspace.sourceId = source.id; workspace.choosingType = false } })
                 }
                 if (!model.editing && model.error != null) item(span = { GridItemSpan(maxLineSpan) }) {
                     Text(model.error!!, color = MaterialTheme.colorScheme.error)

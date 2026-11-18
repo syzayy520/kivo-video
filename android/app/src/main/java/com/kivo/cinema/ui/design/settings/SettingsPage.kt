@@ -18,7 +18,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,9 +37,9 @@ import kotlinx.coroutines.withContext
  * Emby、SMB、首页预告片自动播放、外观与交互、数据与资源、应用内数字密码、版本信息。
  * 路由与开关回调沿用 268 的既有实现，本卡只换呈现（宫格/hero 卡 → 分组行），不动跳转。
  *
- * 背景：`DesignPalette.PageGradient.Light.settings*`（0374 采样 `#F3EFF7 → #EFE5EC`）垂直渐变。
- * 壳层 `AnimatedGradientBg` 铺的是扁平 `pageBackground`，本页自己铺满渐变盖住它；
- * 深色态未接（全项目暂无 isSystemInDarkTheme 分支，`pageGradientDark.settings*` 已就绪）。
+ * 背景：统一冷灰画布 [DesignTokens.pageBackground]（#F2F2F7），与「我的」页同款。
+ * 曾采样 REX 铺过粉紫渐变，但那与 [SettingsVisuals] 的「拒粉紫脏底」v3 裁决冲突，已撤除。
+ * 深色态未接（全项目暂无 isSystemInDarkTheme 分支）。
  *
  * 偏离：宫格（[SettingsEntryGrid]）/资源卡（[SettingsStatusTiles]）/存储 hero
  * （[SettingsStorageHero]）不再被本页调用，文件保留不删（`SettingsEntryGrid` 按任务要求保留）；
@@ -112,7 +111,7 @@ private fun SettingsRootBody(
     version: String,
     push: (SettingsRoute) -> Unit,
 ) {
-    Box(Modifier.fillMaxSize().background(SettingsPageBackdrop)) {
+    Box(Modifier.fillMaxSize().background(DesignTokens.pageBackground)) {
         Column(
             Modifier
                 .fillMaxSize()
@@ -128,11 +127,12 @@ private fun SettingsRootBody(
             SettingsGroupList(
                 "播放体验",
                 listOf(
-                    SettingsRowSpec("播放", "缓冲 · 习惯 · 字幕") { push(SettingsRoute.PLAYBACK) },
-                    SettingsRowSpec("音画", "内核 · 画面 · 音频") { push(SettingsRoute.AV) },
-                    SettingsRowSpec("操控", "按钮 · 手势 · 双击") { push(SettingsRoute.CONTROLS) },
-                    SettingsRowSpec("AI 字幕", "语音转字幕 · 翻译") { push(SettingsRoute.AI) },
+                    SettingsRowSpec("播放") { push(SettingsRoute.PLAYBACK) },
+                    SettingsRowSpec("音画") { push(SettingsRoute.AV) },
+                    SettingsRowSpec("操控") { push(SettingsRoute.CONTROLS) },
+                    SettingsRowSpec("AI 字幕") { push(SettingsRoute.AI) },
                 ),
+                footer = "调整缓冲、画质、音效与字幕偏好。",
             )
             Spacer(Modifier.height(SettingsGroupGap))
             SettingsGroupList(
@@ -141,6 +141,7 @@ private fun SettingsRootBody(
                     SettingsRowSpec("Emby", trailing = sourceLabel(embyCount)) { push(SettingsRoute.DATA) },
                     SettingsRowSpec("SMB", trailing = sourceLabel(smbCount)) { push(SettingsRoute.DATA) },
                 ),
+                footer = "管理已保存的连接与账号。",
             )
             Spacer(Modifier.height(SettingsGroupGap))
             SettingsGroupList(
@@ -151,30 +152,29 @@ private fun SettingsRootBody(
                         subtitle = "默认显示图片；开启后需要能连接 YouTube",
                         trailing = if (previewEnabled) "开" else "关",
                     ) { onPreviewChanged(!previewEnabled) },
-                    SettingsRowSpec("外观与交互", "主题 · 封面 · 预告片 · 触感 · 图标") {
-                        push(SettingsRoute.APPEARANCE)
-                    },
-                    SettingsRowSpec("数据与资源", "语言 · 聚合 · 来源 · TMDB · 排序") {
-                        push(SettingsRoute.DATA)
-                    },
+                    SettingsRowSpec("外观与交互") { push(SettingsRoute.APPEARANCE) },
+                    SettingsRowSpec("数据与资源") { push(SettingsRoute.DATA) },
                 ),
+                footer = "开启预告片需连接 YouTube，否则默认显示封面图。",
             )
             Spacer(Modifier.height(SettingsGroupGap))
             SettingsGroupList(
                 "安全与关于",
                 listOf(
-                    SettingsRowSpec("应用内数字密码", "私密区 · 隐藏源 · 改密", onClick = onOpenPrivate),
-                    SettingsRowSpec("版本信息", "版本号 · 构建 · 私密安全") { push(SettingsRoute.ABOUT) },
+                    SettingsRowSpec("应用内数字密码", onClick = onOpenPrivate),
+                    SettingsRowSpec("版本信息") { push(SettingsRoute.ABOUT) },
                 ),
+                footer = "私密区 · 隐藏源 · 应用安全。",
             )
             Spacer(Modifier.height(SettingsGroupGap))
             SettingsGroupList(
                 "存储",
                 listOf(
-                    SettingsRowSpec("空间占用", "图片 + 评分缓存", trailing = formatBytes(cacheBytes)) {
+                    SettingsRowSpec("空间占用", trailing = formatBytes(cacheBytes)) {
                         push(SettingsRoute.CACHE)
                     },
                 ),
+                footer = "图片与评分缓存占用，可一键清理。",
             )
             Spacer(Modifier.height(8.dp))
             VersionFootnote(version)
@@ -186,11 +186,8 @@ private fun SettingsRootBody(
 /** 源计数文案：与 268 概览卡同口径（只报「已配置」条数，不假装在线）。 */
 private fun sourceLabel(count: Int): String = if (count > 0) "$count 个已配置" else "未配置"
 
-private val SettingsPageBackdrop = Brush.verticalGradient(
-    listOf(DesignTokens.pageGradient.settingsStart, DesignTokens.pageGradient.settingsEnd),
-)
 private val SettingsPageSidePad = 14.dp
-private val SettingsGroupGap = 26.dp
+private val SettingsGroupGap = 32.dp
 
 @Preview(name = "SettingsPage 分组行式", widthDp = 390, heightDp = 844)
 @Composable
