@@ -6,7 +6,9 @@ import com.kivo.cinema.sources.SourceRecord
 import com.kivo.cinema.sources.SourceRepository
 import com.kivo.cinema.sources.storage.SourceStore
 import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * 首页「继续观看」的 Emby 侧取数。
@@ -22,25 +24,60 @@ import java.util.concurrent.Executors
  */
 object EmbyHomeResume {
 
-    fun load(context: Context, limitPerSource: Int = 6): List<HomeEntry> {
+    /**
+     * @param onPartial 每有**一个源**返回就回调一次（已合并的部分结果），用于首页先到先显示；
+     *        传 null 则只在全部结束时返回一次。回调在后台线程执行，调用方自行切主线程。
+     */
+    fun load(
+        context: Context,
+        limitPerSource: Int = 6,
+        onPartial: ((List<HomeEntry>) -> Unit)? = null,
+    ): List<HomeEntry> {
         val records = runCatching {
             SourceRepository(SourceStore(context)).read().getOrElse { emptyList() }
         }.getOrElse { emptyList() }
             .filter { !it.hidden && !it.isSmb && it.aggregateEnabled }
         if (records.isEmpty()) return emptyList()
 
+        com.kivo.cinema.net.NetDiag.log("[home] emby 源数=${records.size} 地址=${records.joinToString { it.address }}")
         val pool = Executors.newFixedThreadPool(minOf(records.size, MAX_PARALLEL))
-        return try {
-            records
-                .map { rec -> pool.submit(Callable { fetchOne(rec, limitPerSource) }) }
-                .flatMap { future -> runCatching { future.get() }.getOrElse { emptyList() } }
+        val ecs = ExecutorCompletionService<Pair<String, List<HomeEntry>>>(pool)
+        records.forEach { rec -> ecs.submit(Callable { fetchOne(rec, limitPerSource) }) }
+
+        val out = mutableListOf<HomeEntry>()
+        var okSources = 0
+        val deadline = System.currentTimeMillis() + FETCH_TIMEOUT_MS
+        try {
+            // 先到先显示：**共享一个总预算**，而不是每源串行各付一次超时。
+            // 坏源（真机 hohai login 卡死）只占住自己的线程，不影响已到源的渲染。
+            for (i in records.indices) {
+                val remain = deadline - System.currentTimeMillis()
+                if (remain <= 0) {
+                    com.kivo.cinema.net.NetDiag.log("[home] emby 预算耗尽，剩 ${records.size - i} 源未回")
+                    break
+                }
+                val done = ecs.poll(remain, TimeUnit.MILLISECONDS) ?: break
+                val res = runCatching { done.get() }.getOrNull()
+                val name = res?.first ?: "?"
+                val got = res?.second.orEmpty()
+                com.kivo.cinema.net.NetDiag.log("[home] 源完成 $name n=${got.size}")
+                if (got.isEmpty()) continue
+                okSources++
+                out += got
+                val snapshot = out.toList()
+                runCatching { onPartial?.invoke(snapshot) }
+            }
+            com.kivo.cinema.net.NetDiag.log("[home] emby 完成 成功源=$okSources/${records.size} 条=${out.size}")
         } finally {
-            pool.shutdown()
+            // 不等待卡住的线程：shutdownNow 让坏源尽快让路，主流程立即返回已有结果。
+            pool.shutdownNow()
         }
+        return out
     }
 
-    private fun fetchOne(rec: SourceRecord, limitPerSource: Int): List<HomeEntry> =
-        runCatching {
+    /** 返回 (源名, 条目)：源名只为诊断定位坏源，不影响业务。 */
+    private fun fetchOne(rec: SourceRecord, limitPerSource: Int): Pair<String, List<HomeEntry>> =
+        rec.name to runCatching {
             // 优先复用已登录会话（D367：登录一次真机 1.2s，不能每轮都付）。
             val cached = EmbyAuthCache.get(rec)
             val client = cached?.first ?: EmbyClient(rec.address)
@@ -67,4 +104,10 @@ object EmbyHomeResume {
 
     /** 同时最多连 4 个源；再多对首屏没收益，只把源站并发撑高。 */
     private const val MAX_PARALLEL = 4
+
+    /**
+     * 单源预算：login + Resume 真机正常 0.6–1.5s；给 6s 是"慢但能成"的上限，
+     * 超过即视为不可达，直接降级——首页继续观看绝不能为等一个坏源而整行不显示。
+     */
+    private const val FETCH_TIMEOUT_MS = 6_000L
 }

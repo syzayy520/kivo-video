@@ -75,6 +75,7 @@ private val continueBusy = java.util.concurrent.atomic.AtomicBoolean(false)
 internal fun MainActivity.refreshContinue() {
     // onResume 在冷启动期可能被连续触发多次；不防重入会重复登录 Emby、重复拉续播（真机实测 3 次）。
     if (!continueBusy.compareAndSet(false, true)) return
+    com.kivo.cinema.net.NetDiag.log("[home] continue 进入")
     Thread {
         try {
         // 本地手机视频：只喂「在看」页，不进首页（用户裁决：不可刮削，会拉丑首页）。
@@ -82,9 +83,29 @@ internal fun MainActivity.refreshContinue() {
         runOnUiThread { shellState.continueItems = HomeFeedAggregator.merge(local, emptyList()) }
         // 首页：只聚合 NAS(SMB) + Emby。
         val smb = SmbContinueSource.recent(watchStore)
-        val emby = EmbyHomeResume.load(this)
+        com.kivo.cinema.net.NetDiag.log("[home] smb=${smb.size}")
+        // SMB 先到先显示：别为等 Emby 网络把整行憋着不渲染。
+        if (smb.isNotEmpty()) {
+            val onlySmb = HomeFeedAggregator.merge(emptyList(), smb)
+            runOnUiThread { shellState.homeEntries = onlySmb }
+        }
+        // Emby 先到先显示：一个源回来就刷新一次，不等最慢/卡死的源。
+        var last: List<HomeEntry> = emptyList()
+        val emby = EmbyHomeResume.load(this) { partial ->
+            val home = HomeFeedAggregator.merge(emptyList(), smb + partial)
+            if (home != last) {
+                last = home
+                com.kivo.cinema.net.NetDiag.log("[home] 增量 homeEntries=${home.size}")
+                runOnUiThread { shellState.homeEntries = home }
+            }
+        }
+        com.kivo.cinema.net.NetDiag.log("[home] emby=${emby.size}")
             val home = HomeFeedAggregator.merge(emptyList(), smb + emby)
+            com.kivo.cinema.net.NetDiag.log("[home] homeEntries=${home.size}")
             runOnUiThread { shellState.homeEntries = home }
+        } catch (t: Throwable) {
+            // 静默早退曾让「继续观看」整行消失且零线索；任何异常都必须留痕，然后仍降级为空。
+            com.kivo.cinema.net.NetDiag.log("[home] continue 异常 ${t::class.java.simpleName}: ${t.message}")
         } finally {
             continueBusy.set(false)
         }
