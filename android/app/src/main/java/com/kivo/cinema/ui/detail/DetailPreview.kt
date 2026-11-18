@@ -40,11 +40,17 @@ internal object DetailPreview {
         putExtra(EXTRA_SOURCE, "tmdb")
     }
 
-    /** 从 intent 还原预览详情体；字段缺失（如深链只带 id）时返回 null，调用方退回原加载流程。 */
+    /**
+     * 从 intent 还原预览详情体；**标题缺失**（如深链只带 id）时返回 null，调用方退回原加载流程。
+     *
+     * 【D366 为什么放宽幕布要求】原来要求「有幕布图」才给预览，于是**没有 Primary 图的条目**
+     * （如「继续观看」里的单集）点进来就是纯转圈等 2 秒。而页面本来就有"暂无封面"的既有态
+     * （`DetailBackdrop` 在 `heroArtworkUrl` 为空时用 field 色 + 一行"暂无封面"），
+     * 所以只要有标题就先上屏 —— 用户先看到片名/简介/评分，完整详情后台替换，不再白屏。
+     */
     fun from(i: Intent): TmdbDetail.Details? {
         val title = i.getStringExtra(EXTRA_TITLE)?.takeIf { it.isNotBlank() } ?: return null
         val hero = i.getStringExtra(EXTRA_HERO).orEmpty()
-        if (hero.isBlank()) return null
         val poster = i.getStringExtra(EXTRA_POSTER).orEmpty().ifBlank { hero }
         val date = i.getStringExtra(EXTRA_DATE).orEmpty()
         val genres = i.getStringArrayListExtra(EXTRA_GENRES) ?: emptyList()
