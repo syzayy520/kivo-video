@@ -63,7 +63,11 @@ Selected decoder: vc1 - SMPTE VC-1
 
 ---
 
-## 四、`.ts` 问题的新边界（仍未解，但范围缩小了）
+## 四、`.ts` 问题的新边界（**已由 D12I 定论**）
+
+> **后续结论（D12I）**：根因是本地代理把 `Content-Type` 写死成 `video/x-matroska`，
+> 导致 ffmpeg 只挑 matroska 探测器 ⇒ **所有 `.ts` 播不了**，与 NAS、文件、SMB 都无关。
+> 下面的推理过程保留作记录，但"剩两种可能"的判断是错的。
 
 现在可以确定排除的：**VC-1 编码**（§一）、**文件大小**（3 Idiots 38.4 GB 能播）、
 **续播远 seek**（D12G 已修，`options=""` 仍失败）。

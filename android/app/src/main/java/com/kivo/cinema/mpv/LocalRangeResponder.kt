@@ -306,7 +306,13 @@ internal class LocalRangeResponder(
         if (partial) {
             header.append("Content-Range: bytes ").append(start).append('-').append(end).append('/').append(size).append("\r\n")
         }
-        header.append("Content-Type: video/x-matroska\r\n")
+        // 【不能写死 video/x-matroska】ffmpeg 会采信 Content-Type 并**只挑对应探测器**，
+        // 于是所有非 matroska 片源（.ts / .mp4 / .avi）在探测阶段就撞
+        // `matroska,webm: EBML header parsing failed` → `Failed to recognize file format`。
+        // 真机实证（D12I，2026-11-18）：同一个 40 s `.ts` 走本地与走 SMB **都失败**，
+        // 而同目录 `.mkv` 正常；换成通用二进制类型后 `.ts` 立刻能播。
+        // ByteSource 不提供 mime ⇒ 用 octet-stream 让 ffmpeg 自己做完整嗅探。
+        header.append("Content-Type: application/octet-stream\r\n")
         header.append("Connection: close\r\n\r\n")
         out.write(header.toString().toByteArray())
         out.flush()
