@@ -375,7 +375,7 @@ Activity/View 生命周期只拥有 Surface 引用；播放服务/Session 持有
 - libmpv 是音视频同步和媒体时钟唯一 owner；普通含音频媒体优先跟随引擎的音频播放时钟，纯视频由引擎 monotonic clock 管理。Kotlin UI 只读取快照。
 - audio/subtitle language preference 在 `loadfile` 前应用；媒体打开后从真实 `track-list` 构建 catalog，切换后回读 selected 状态。无法取得语言标签时显示“未知”，不可假设为系统语言。
 - 轨道 ID 限定在 `generation` 内。切换媒体、重新打开或 seek 导致轨道重建时重新枚举，避免旧 ID 命中新轨。
-- 外挂字幕由字幕控制层挂载并校验格式/编码/路径；位图字幕、ASS 特效和渲染成功须按真实画面验证。Kivo P253 记录 PGS 字幕尚未上屏闭环，不能把字幕链路写成已完成。[K7]
+- 外挂字幕由字幕控制层挂载并校验格式/编码/路径；位图字幕、ASS 特效和渲染成功须按真实画面验证。PGS 位图 / SRT 文本 / ASS 特效三类字幕链路已在 D303 按真实画面闭环（K40 gpu-next 路径），本条不再是未完成项；但新增字幕能力仍须按真实画面验证，不得仅凭配置声称可用。[K7]（`docs/evidence/p303-subtitle-close/status.md`）
 - 恢复点以稳定内容标识（规范化源 ID + 媒体标识）为键，保存媒体时间而非 byte offset；按固定间隔、暂停、seek 成功、后台离开和播放结束落盘，写入节流且原子替换。读取恢复点后由引擎按索引定位，不能自行假设目标恰好在关键帧。
 
 ### 5.5 错误与用户可见降级
@@ -442,7 +442,7 @@ Activity/View 生命周期只拥有 Surface 引用；播放服务/Session 持有
 | 硬解行为要记录实际选择，而不能只记配置 | SenPlayer 仅有 hwdec/mediacodec 字符串，无法证明运行时结果 [S12][S13] | Kivo 日志实见 `mediacodec-copy` [K1] | decoder/配置结果/回退原因成为必采字段 |
 | 不卡顿优先按数据定位供数、解码、呈现 | 静态 APK 无性能因果证据 [S12][S13] | P274 测得网络吞吐不足、低 CPU、低帧率 [K2] | 每层独立采样；禁止把所有停顿归为解码器 |
 | HLS/DASH 和 ABR 不能靠库名认定 | APK 仅可定位 FFmpeg 命名 ELF，版本和运行时路径未知 [S14] | Kivo P253 范围未覆盖 HLS/DASH [K1] | 先验证协议能力，再做 ABR；单文件 MP4 不做虚构 ABR |
-| 字幕能力按格式与画面结果验收 | 只确认 subtitle 控制字符串与 track command [S1][S13] | Kivo PGS 未闭环 [K7] | 每种字幕格式独立验证解码/渲染/同步，不把轨道存在当成显示成功 |
+| 字幕能力按格式与画面结果验收 | 只确认 subtitle 控制字符串与 track command [S1][S13] | Kivo PGS/SRT/ASS 已在 D303 按画面闭环 [K7] | 每种字幕格式独立验证解码/渲染/同步，不把轨道存在当成显示成功 |
 | 诊断与用户错误必须非空且可复算 | SenPlayer 当前静态证据未还原完整错误码 [S12][S13] | 仓库铁律“不许静默降级”、P12 证据体系 [K6] | 使用稳定错误域与 reason，未知状态保留 unknown |
 
 ## 八、实施顺序与退出条件
@@ -486,5 +486,5 @@ Activity/View 生命周期只拥有 Surface 引用；播放服务/Session 持有
 - [K4 · Range 代理与 mpv native 文件](../../../android/app/src/main/java/com/kivo/cinema/mpv/LocalRangeServer.kt)、`android/app/src/main/cpp/mpv/`。
 - [K5 · P12-D1 Surface 重建状态](../backend-core/27-p12d1-status.md)。该证据是 MediaCodec 后端事实，不能直接替代 mpv EGL 验证。
 - [K6 · Kivo 核心验收目标与“不静默降级”约束](../backend-core/03-goals.md)、[P12 计划](../backend-core/07-p12-plan.md)、[铁律门闸](../../../.codex/memory/kivo-video-iron-gate.md)。
-- [K7 · PGS 字幕未上屏诊断](../../evidence/p253/mpv-kernel/p6-2-subtitle-diagnosis.md)。
+- [K7 · PGS 字幕未上屏诊断（历史，问题已由 D303 闭环）](../../evidence/p253/mpv-kernel/p6-2-subtitle-diagnosis.md)；闭环证据见 [D303 字幕闭环](../../evidence/p303-subtitle-close/status.md)。
 

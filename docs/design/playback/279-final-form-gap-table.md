@@ -1021,7 +1021,7 @@ w4 `[cache]` 时间线显示每块 4 MiB 前 `hdrMs≈3620ms` 表头空窗，
 ② 只测起播 + 9000 s 两点，**无 30 分钟长稳**；
 ③ 日志 `can't find selected font provider` / `fontselect: failed … Noto Sans CJK JP`
 ⇒ **ASS/文本字幕缺字体**；PGS 位图不依赖字体，但本轮**未开字幕，PGS 上屏仍未验证**
-（与 275 §5.4 / 253 P6-2 的未闭环一致）；
+（此为 p299 当轮边界；字幕三类已在 §二十一 / D303 全部闭环，缺字体根因 `osd-fonts-dir` 已修）；
 ④ 供片恒定 4 Mbps（真实 1.4 倍），低带宽下未测。
 
 证据：`docs/evidence/p299-av1-real-movie/status.md`。
