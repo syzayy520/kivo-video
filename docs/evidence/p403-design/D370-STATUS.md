@@ -92,3 +92,15 @@
 - 3 轮 `am start -W TotalTime` = 672/687/719ms，启动动画固定 0.8s，首屏数据 0.2–1.2s 就绪；
   尾部 2.6–4.2s 加载全是缓存 HIT 的延迟重复刷新，不阻塞首屏。**无新瓶颈，性能审计线 D366–D373 闭合**。
 - REX 真实启动耗时标 `not_measured`（FairPlay 加密，只有 300ms 设计预算）；不声称追平。详见 `D373-STATUS.md`。
+
+## 八、D375 终局回归 + D376 真回归修复
+
+- **D375**：当前 HEAD 门禁 PASS / 编译 SUCCESSFUL / 单测 115 例 0 失败（`--rerun-tasks` 强制重跑），
+  确认 D366–D374 无回归。**但只验了编译级，没做真机端到端**。
+- **D376（真回归）**：补真机冷启动冒烟即抓到——**首页「继续观看」整行消失**。
+  根因：`EmbyHomeResume` 的 `future.get()` 无超时（`9ecb5df4` 并发优化引入），
+  3 个 Emby 源中 `hohai` 卡死即永久阻塞 → `homeEntries` 永不赋值 → `ContinueRow` 整行 return。
+  修法：`CompletionService` + 共享 6s 总预算 + `onPartial` 先到先显示 + `catch (Throwable)` 留痕。
+  实测 3 轮冷启 3/3 立即显示，首次增量 **828–1582ms**（修复前 6s 仍全黑）。
+  详见 `D376-STATUS.md`；提交 `dcfd6dcf` 已推送。
+- **D373 的教训补充**：性能指标漂亮 ≠ 该显示的东西显示了。冷启动审计必须同时验"渲染完整性"。
