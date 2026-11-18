@@ -61,8 +61,12 @@ internal object SmbDetail {
             tmdbIsTv = false,
             noPlayReason = "",
             serverName = "NAS",
+            // 幕布图与首页卡片同一套（库内图 → TMDB → 空），并**裁掉底部片名区**。
+            // 【为什么裁】TMDB 竖版海报把片名烧在底部，而 TitleLayer 还要再画一次片名 ⇒ 真机上两个片名叠成重影。
+            // Emby 详情之所以干净，是因为它的幕布本来就是无字剧照。这里用裁剪达到同样效果，不改任何 UI 布局。
             loadImage = { _ ->
                 loadPoster(context, sourceId, share, path, video?.posterPath, parsed.title, parsed.year)
+                    ?.trimTitleBand()
             },
         )
     }
@@ -121,6 +125,7 @@ internal object SmbDetail {
             serverName = "NAS",
             loadImage = { _ ->
                 loadPoster(context, sourceId, share, first.path, series.posterPath, series.title, series.year)
+                    ?.trimTitleBand()
             },
         )
     }
@@ -228,6 +233,17 @@ internal object SmbDetail {
                 year = year,
             ),
         )
+    }
+
+    /**
+     * 裁掉海报底部 15%：那里通常烧着片名，会和 TitleLayer 的片名/logo 叠成重影。
+     *
+     * 只裁底部、不缩放，尽量不破坏人物构图；裁失败（OOM/异常）就用原图，宁可重影也不能空着。
+     */
+    private fun Bitmap.trimTitleBand(): Bitmap {
+        val keep = (height * 0.85f).toInt().coerceAtLeast(1)
+        if (keep >= height) return this
+        return runCatching { Bitmap.createBitmap(this, 0, 0, width, keep) }.getOrDefault(this)
     }
 
     /** 文件事实最小详情：没有 TMDB 匹配也照常可读（不显示伪造的评分/简介）。 */
