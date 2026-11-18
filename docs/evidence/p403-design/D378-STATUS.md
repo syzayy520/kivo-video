@@ -283,3 +283,43 @@ SMB 详情页 hero 上出现**两个片名**：橙色 TMDB logo + 海报底部�
 - **Emby 分支未真机验证**：当前首页没有在线 Emby 续播条目（源站可达性不稳定），
   只做了代码路径审查 + 编译验证。等有 Emby 条目时需补一次真机确认。
 - 「继续观看」点击仍直接起播（不走详情页）——这是语义差异，不是遗漏。
+
+## 十三、修：「在看」页没有 NAS 播放记录
+
+### 现象
+NAS 片播过后，首页「继续观看」有，**「在看」页却没有**。
+
+### 根因
+`MainActivityHomeFeed.refreshContinue()` 里两份数据来源不同，且「在看」被写死成"只有本地"：
+
+```kotlin
+// 旧代码
+val local = ContinueWatching.aligned(items, watchStore)
+shellState.continueItems = merge(local, emptyList())        // ← SMB/Emby 传的是空列表
+...
+shellState.homeEntries = merge(emptyList(), smb)            // 首页有 SMB
+```
+
+注释当时写的是"在看页 = 本地 MediaStore 续播"，但用户预期是「在看」为**全部进度的总账**。
+
+### 修复
+SMB / Emby 每到达一次，**同时**刷新 `continueItems`（本地 + 全量远程）：
+
+| 时机 | continueItems |
+|---|---|
+| 本地算完（首帧） | 本地 only（先出内容，不等网络） |
+| SMB 到达 | 本地 + SMB |
+| Emby 增量到达 | 本地 + SMB + Emby(partial) |
+| Emby 全部完成 | 本地 + SMB + Emby |
+
+首页 `homeEntries` 保持"只 SMB + Emby"不变（本地视频混进首页会拉丑版面，这条裁决仍然有效）。
+
+### 真机结果（「在看」页）
+```
+69两头勾 6ixtynin9 The Series   NAS   看到 4:28 / 0:45:14
+Cold Case Gleen                 NAS   看到 2:06 / 0:44:55
+```
+含 SMB 条目，且显示完整时长。
+
+### 边界
+Emby 条目同样走这条合并逻辑，但当前无在线 Emby 续播条目，**未经真机确认**。

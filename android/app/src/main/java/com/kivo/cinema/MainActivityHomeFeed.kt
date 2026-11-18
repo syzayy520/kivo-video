@@ -62,10 +62,11 @@ internal fun MainActivity.refreshHomeFeed() {
 }
 
 /**
- * 继续观看：**首页与「在看」是两份数据，不是同源**（用户裁决）。
+ * 继续观看：首页与「在看」的范围**不同**，但「在看」必须是全量。
  *
  * - 首页 `homeEntries` = NAS(SMB) + Emby：手机本地视频不可刮削，混进首页会把版面拉丑，**必须排除**；
- * - 在看页 `continueItems` = 本地 MediaStore 续播：那边本来就是本地进度管理。
+ * - 在看页 `continueItems` = **本地 + NAS(SMB) + Emby**：它是"我的进度"总账，
+ *   播过的片（尤其 NAS）必须在这里看得到。早先只填本地，导致"首页有、在看没有"。
  *
  * 两段式取数，避免网络往返拖住本地：本地先算先出；SMB 读续播键、Emby 后台补拉，
  * 到了再刷新首页。任何一源失败静默降级——首页不因某源不可达而报错或白屏。
@@ -87,7 +88,11 @@ internal fun MainActivity.refreshContinue() {
         // SMB 先到先显示：别为等 Emby 网络把整行憋着不渲染。
         if (smb.isNotEmpty()) {
             val onlySmb = HomeFeedAggregator.merge(emptyList(), smb)
-            runOnUiThread { shellState.homeEntries = onlySmb }
+            runOnUiThread {
+                shellState.homeEntries = onlySmb
+                // 在看页是全量账本：SMB 到达即补进去，否则"首页有、在看没有"。
+                shellState.continueItems = HomeFeedAggregator.merge(local, smb)
+            }
         }
         // Emby 先到先显示：一个源回来就刷新一次，不等最慢/卡死的源。
         var last: List<HomeEntry> = emptyList()
@@ -96,13 +101,19 @@ internal fun MainActivity.refreshContinue() {
             if (home != last) {
                 last = home
                 com.kivo.cinema.net.NetDiag.log("[home] 增量 homeEntries=${home.size}")
-                runOnUiThread { shellState.homeEntries = home }
+                runOnUiThread {
+                    shellState.homeEntries = home
+                    shellState.continueItems = HomeFeedAggregator.merge(local, smb + partial)
+                }
             }
         }
         com.kivo.cinema.net.NetDiag.log("[home] emby=${emby.size}")
             val home = HomeFeedAggregator.merge(emptyList(), smb + emby)
             com.kivo.cinema.net.NetDiag.log("[home] homeEntries=${home.size}")
-            runOnUiThread { shellState.homeEntries = home }
+            runOnUiThread {
+                shellState.homeEntries = home
+                shellState.continueItems = HomeFeedAggregator.merge(local, smb + emby)
+            }
         } catch (t: Throwable) {
             // 静默早退曾让「继续观看」整行消失且零线索；任何异常都必须留痕，然后仍降级为空。
             com.kivo.cinema.net.NetDiag.log("[home] continue 异常 ${t::class.java.simpleName}: ${t.message}")
