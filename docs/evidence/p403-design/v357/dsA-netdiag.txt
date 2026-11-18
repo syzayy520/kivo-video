@@ -1,0 +1,302 @@
+1794966002035 [prep] 接管详情页预热的源（连接与片尾窗口已就绪）
+1794966002121 [hdr] 真 HDR 输出不可用：设备的 gralloc 不支持 10bit buffer（10bit 是 PQ 的必要条件）⇒ 留在 SDR 路径
+1794966002129 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794966002131 [prep] URL 起播开始
+1794966002131 [hdr] 内核=mpv 出画=gpu-next 真HDR=关 ⇒ 已退回 8bit + SRGB（dataspace=ok）
+1794966002161 [input] mode=proxy（无本地路径（SMB/HTTP 源））
+1794966002164 [subfonts] 字体目录=/data/user/0/com.kivo.cinema/files/subfonts 族名=Noto Sans CJK JP 链接=[NotoSansCJK-Regular.ttc, NotoColorEmoji.ttf]
+1794966002166 [hdr] 内核=mpv 出画=gpu-next 真HDR=关
+1794966002166 [interp] 帧插值=开 ⇒ video-sync=display-resample interpolation=yes tscale=oversample display-fps=60.000（设备 60.0Hz）
+1794966002170 [color] 出画模式 = gpu-next（mpv 自己的 VO + 完整 libplacebo）
+1794966002173 [rebuffer] 默认关闭（opt-in）：不下发任何起播缓冲选项
+1794966002173 [subfonts] 内核 sub-fonts-dir=/data/user/0/com.kivo.cinema/files/subfonts 期望=/data/user/0/com.kivo.cinema/files/subfonts 匹配
+1794966002173 [prep] 内核创建完成 ms=12
+1794966002173 [prep] 闸门放行 ms=12
+1794966002176 PROXY REQ range=bytes=0- cap=0
+1794966002176 [ring] openReader offset=0 capacity=8MiB
+1794966002177 [head] cache hit offset=0 bytes=65536
+1794966002178 [head] cache hit offset=65536 bytes=262144
+1794966002178 [head] cache hit offset=327680 bytes=262144
+1794966002178 [head] cache hit offset=589824 bytes=262144
+1794966002179 [head] cache hit offset=851968 bytes=262144
+1794966002179 [head] cache hit offset=1114112 bytes=262144
+1794966002179 PROXY REQ range=bytes=1097760982- cap=0
+1794966002179 [head] cache hit offset=1376256 bytes=262144
+1794966002179 [ring] openReader offset=1097760982 capacity=8MiB
+1794966002179 [head] cache hit offset=1638400 bytes=262144
+1794966002179 [tail] cache hit offset=1097760982 bytes=35549
+1794966002180 [head] cache hit offset=1900544 bytes=262144
+1794966002180 [head] cache hit offset=2162688 bytes=262144
+1794966002180 GET range=bytes=1097760982- bytes=35549 cap=0 ms=0
+1794966002180 [head] cache hit offset=2424832 bytes=262144
+1794966002180 PROXY conn fail: ConnectionResetException: Connection reset
+1794966002182 PROXY REQ range=bytes=5893- cap=0
+1794966002183 [ring] openReader offset=5893 capacity=8MiB
+1794966002183 [head] cache hit offset=5893 bytes=65536
+1794966002183 [head] cache hit offset=71429 bytes=262144
+1794966002184 [head] cache hit offset=333573 bytes=262144
+1794966002184 [head] cache hit offset=595717 bytes=262144
+1794966002185 [head] cache hit offset=857861 bytes=262144
+1794966002185 [head] cache hit offset=1120005 bytes=262144
+1794966002185 [head] cache hit offset=1382149 bytes=262144
+1794966002186 [head] cache hit offset=1644293 bytes=262144
+1794966002186 [head] cache hit offset=1906437 bytes=262144
+1794966002186 [head] cache hit offset=2168581 bytes=262144
+1794966002186 [head] cache hit offset=2430725 bytes=262144
+1794966002187 [head] cache hit offset=2692869 bytes=262144
+1794966002187 [head] cache hit offset=2955013 bytes=262144
+1794966002187 [head] cache hit offset=3217157 bytes=262144
+1794966002224 [head] cache hit offset=3479301 bytes=262144
+1794966002225 [head] cache hit offset=3741445 bytes=262144
+1794966002225 [head] cache hit offset=4003589 bytes=190715
+1794966002227 [play] prefetch 默认关闭（opt-in）：不预开任何块
+1794966002511 [vo] 首帧后属性 vid=1 codec=H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 conf=true params={"pixelformat":"mediacodec","w":1920,"h":1080,"dw":1920,"dh":1080,"crop-x":0,"cr
+1794966002511 [color] 非 HDR（gamma=bt.1886 primaries=bt.709）⇒ 色彩参数不动
+1794966002512 MPV 首帧就绪
+1794966002540 [play] origin chunk from=4194304 code=206 hdrMs=312 len=4194304 thread=KivoOriginPrefetch
+1794966003640 [emby] Playing 上报 ok item=232935 pos=66ms
+1794966004101 [play] origin chunk from=8388608 code=206 hdrMs=363 len=4194304 thread=KivoOriginPrefetch
+1794966004180 [cache] fw=6.5M total=7.5M dur=19.5s underrun=false rate=10.5M/s
+1794966005844 [play] origin chunk from=12582912 code=206 hdrMs=334 len=4194304 thread=KivoOriginPrefetch
+1794966006185 [cache] fw=5.8M total=7.5M dur=17.5s underrun=false rate=0.7M/s
+1794966008195 [cache] fw=5.3M total=7.5M dur=15.5s underrun=false rate=0.0M/s
+1794966008531 [play] origin chunk from=16777216 code=206 hdrMs=1197 len=4194304 thread=KivoOriginPrefetch
+1794966010200 [cache] fw=4.9M total=7.5M dur=13.5s underrun=false rate=0.0M/s
+1794966011266 [play] origin chunk from=20971520 code=206 hdrMs=1254 len=4194304 thread=KivoOriginPrefetch
+1794966012208 [cache] fw=4.2M total=7.5M dur=11.4s underrun=false rate=0.0M/s
+1794966013838 [play] origin chunk from=25165824 code=206 hdrMs=1089 len=4194304 thread=KivoOriginPrefetch
+1794966014211 [cache] fw=8.3M total=12.3M dur=19.6s underrun=false rate=0.0M/s
+1794966015624 [play] origin chunk from=29360128 code=206 hdrMs=321 len=4194304 thread=KivoOriginPrefetch
+1794966016226 [cache] fw=7.8M total=12.3M dur=17.5s underrun=false rate=0.0M/s
+1794966018232 [cache] fw=7.2M total=12.3M dur=15.5s underrun=false rate=0.0M/s
+1794966018367 [play] origin chunk from=33554432 code=206 hdrMs=1294 len=4194304 thread=KivoOriginPrefetch
+1794966020234 [cache] fw=6.5M total=12.3M dur=13.5s underrun=false rate=0.0M/s
+1794966022242 [cache] fw=5.5M total=12.3M dur=11.5s underrun=false rate=0.0M/s
+1794966024246 [cache] fw=8.6M total=16.2M dur=19.6s underrun=false rate=0.2M/s
+1794966025441 [play] origin chunk from=37748736 code=206 hdrMs=323 len=4194304 thread=KivoOriginPrefetch
+1794966026274 [cache] fw=7.9M total=16.2M dur=17.5s underrun=false rate=1.7M/s
+1794966028284 [cache] fw=6.6M total=16.2M dur=15.5s underrun=false rate=0.0M/s
+1794966030294 [cache] fw=5.6M total=16.2M dur=13.5s underrun=false rate=0.0M/s
+1794966032303 [cache] fw=4.6M total=16.2M dur=11.5s underrun=false rate=0.0M/s
+1794966034308 [cache] fw=7.2M total=19.7M dur=19.5s underrun=false rate=0.0M/s
+1794966035050 [play] origin chunk from=41943040 code=206 hdrMs=1242 len=4194304 thread=KivoOriginPrefetch
+1794966036313 [cache] fw=6.5M total=19.7M dur=17.6s underrun=false rate=0.0M/s
+1794966038319 [cache] fw=5.7M total=19.7M dur=15.5s underrun=false rate=0.0M/s
+1794966040349 [cache] fw=5.0M total=19.7M dur=13.4s underrun=false rate=0.0M/s
+1794966042356 [cache] fw=4.2M total=19.7M dur=11.4s underrun=false rate=0.0M/s
+1794966044360 [cache] fw=7.4M total=23.8M dur=19.6s underrun=false rate=0.2M/s
+1794966044490 [play] origin chunk from=46137344 code=206 hdrMs=326 len=4194304 thread=KivoOriginPrefetch
+1794966046367 [cache] fw=6.8M total=23.8M dur=17.5s underrun=false rate=1.8M/s
+1794966048385 [cache] fw=6.0M total=23.8M dur=15.5s underrun=false rate=0.0M/s
+1794966048528 [supply] 放行 2 项延后预热（超时兜底 2 项）
+1794966049789 PROXY REQ range=bytes=0- cap=2097152
+1794966049789 [ring] openReader offset=0 capacity=2MiB
+1794966049789 [thumb] prefetch 默认关闭（opt-in）：不预开任何块
+1794966050390 [cache] fw=5.3M total=23.8M dur=13.5s underrun=false rate=0.0M/s
+1794966051241 [thumb] origin chunk from=0 code=206 hdrMs=1450 len=1048576 thread=KivoOriginPrefetch
+1794966051293 [head] cache hit offset=0 bytes=65536
+1794966051298 [head] cache hit offset=65536 bytes=262144
+1794966051302 PROXY REQ range=bytes=1097760982- cap=2097152
+1794966051302 [ring] openReader offset=1097760982 capacity=2MiB
+1794966051303 [tail] cache hit offset=1097760982 bytes=35549
+1794966051304 [head] cache hit offset=327680 bytes=262144
+1794966051305 GET range=bytes=1097760982- bytes=35549 cap=2097152 ms=0
+1794966051307 PROXY conn fail: ConnectionResetException: Connection reset
+1794966051310 PROXY REQ range=bytes=5893- cap=2097152
+1794966051310 [ring] openReader offset=5893 capacity=2MiB
+1794966051311 [head] cache hit offset=5893 bytes=65536
+1794966051312 [head] cache hit offset=71429 bytes=262144
+1794966051313 [head] cache hit offset=333573 bytes=262144
+1794966051314 [head] cache hit offset=595717 bytes=262144
+1794966051314 [head] cache hit offset=857861 bytes=262144
+1794966051315 [head] cache hit offset=1120005 bytes=262144
+1794966051315 [head] cache hit offset=1382149 bytes=262144
+1794966051316 [head] cache hit offset=1644293 bytes=262144
+1794966051316 [head] cache hit offset=1906437 bytes=196608
+1794966051316 GET range=bytes=5893- bytes=2097152 cap=2097152 ms=5
+1794966051421 PROXY REQ range=bytes=5893- cap=2097152
+1794966051421 [ring] openReader offset=5893 capacity=2MiB
+1794966051421 [head] cache hit offset=5893 bytes=65536
+1794966051422 [head] cache hit offset=71429 bytes=262144
+1794966051423 [head] cache hit offset=333573 bytes=262144
+1794966051423 [head] cache hit offset=595717 bytes=262144
+1794966051424 [head] cache hit offset=857861 bytes=262144
+1794966051425 [head] cache hit offset=1120005 bytes=262144
+1794966051425 [head] cache hit offset=1382149 bytes=262144
+1794966051426 [head] cache hit offset=1644293 bytes=262144
+1794966051426 [head] cache hit offset=1906437 bytes=196608
+1794966051426 GET range=bytes=5893- bytes=2097152 cap=2097152 ms=5
+1794966052394 [cache] fw=4.7M total=23.8M dur=11.4s underrun=false rate=0.0M/s
+1794966053845 [play] origin 连接退化：9354ms 仅读到 119KiB (12KB/s < 80KB/s)，第 1 次换连接重开
+1794966054402 [cache] fw=9.5M total=29.5M dur=19.6s underrun=false rate=0.0M/s
+1794966054913 [play] origin chunk from=46255576 code=206 hdrMs=1066 len=4194304 thread=KivoOriginPrefetch
+1794966056406 [cache] fw=8.9M total=29.5M dur=17.5s underrun=false rate=0.0M/s
+1794966056703 [play] origin chunk from=50449880 code=206 hdrMs=336 len=4194304 thread=KivoOriginPrefetch
+1794966058409 [cache] fw=8.3M total=29.5M dur=15.5s underrun=false rate=0.0M/s
+1794966060414 [cache] fw=7.5M total=29.5M dur=13.5s underrun=false rate=0.0M/s
+1794966062430 [cache] fw=6.5M total=29.5M dur=11.4s underrun=false rate=0.0M/s
+1794966064307 [play] origin chunk from=54644184 code=206 hdrMs=332 len=4194304 thread=KivoOriginPrefetch
+1794966064435 [cache] fw=11.9M total=35.9M dur=19.6s underrun=false rate=0.3M/s
+1794966066440 [cache] fw=10.8M total=35.9M dur=17.6s underrun=false rate=2.9M/s
+1794966066923 [play] origin chunk from=58838488 code=206 hdrMs=1207 len=4194304 thread=KivoOriginPrefetch
+1794966068444 [cache] fw=9.6M total=35.9M dur=15.5s underrun=false rate=0.0M/s
+1794966070464 [cache] fw=8.5M total=35.9M dur=13.5s underrun=false rate=0.0M/s
+1794966072469 [cache] fw=7.4M total=35.9M dur=11.4s underrun=false rate=0.0M/s
+1794966074353 [play] origin chunk from=63032792 code=206 hdrMs=340 len=4194304 thread=KivoOriginPrefetch
+1794966074473 [cache] fw=13.2M total=42.7M dur=19.5s underrun=false rate=0.0M/s
+1794966076479 [cache] fw=12.0M total=42.7M dur=17.6s underrun=false rate=0.0M/s
+1794966076972 [play] origin chunk from=67227096 code=206 hdrMs=1176 len=4194304 thread=KivoOriginPrefetch
+1794966078484 [cache] fw=11.2M total=42.7M dur=15.5s underrun=false rate=0.0M/s
+1794966080506 [cache] fw=9.0M total=42.7M dur=13.5s underrun=false rate=0.0M/s
+1794966082514 [cache] fw=7.8M total=42.7M dur=11.6s underrun=false rate=0.0M/s
+1794966084521 [cache] fw=12.7M total=48.7M dur=19.6s underrun=false rate=0.3M/s
+1794966085134 [play] origin chunk from=71421400 code=206 hdrMs=1116 len=4194304 thread=KivoOriginPrefetch
+1794966086532 [cache] fw=10.8M total=48.7M dur=17.5s underrun=false rate=2.7M/s
+1794966088546 [cache] fw=9.3M total=48.7M dur=15.5s underrun=false rate=0.0M/s
+1794966090557 [cache] fw=8.3M total=48.7M dur=13.5s underrun=false rate=0.0M/s
+1794966092564 [cache] fw=7.1M total=48.7M dur=11.5s underrun=false rate=0.0M/s
+1794966094437 [play] origin chunk from=75615704 code=206 hdrMs=335 len=4194304 thread=KivoOriginPrefetch
+1794966094569 [cache] fw=9.7M total=52.7M dur=19.6s underrun=false rate=0.0M/s
+1794966096572 [cache] fw=8.1M total=52.7M dur=17.6s underrun=false rate=0.0M/s
+1794966098580 [cache] fw=7.5M total=52.7M dur=15.5s underrun=false rate=0.0M/s
+1794966100587 [cache] fw=6.8M total=52.7M dur=13.5s underrun=false rate=0.0M/s
+1794966102596 [cache] fw=5.0M total=52.7M dur=11.6s underrun=false rate=0.0M/s
+1794966104599 [cache] fw=6.3M total=55.2M dur=19.6s underrun=false rate=0.2M/s
+1794966105171 [play] origin chunk from=79810008 code=206 hdrMs=981 len=4194304 thread=KivoOriginPrefetch
+1794966106607 [cache] fw=5.2M total=55.2M dur=17.6s underrun=false rate=1.0M/s
+1794966108628 [cache] fw=4.2M total=55.2M dur=15.5s underrun=false rate=0.0M/s
+1794966110633 [cache] fw=3.4M total=55.2M dur=13.5s underrun=false rate=0.0M/s
+1794966112642 [cache] fw=2.7M total=55.2M dur=11.6s underrun=false rate=0.0M/s
+1794966114646 [cache] fw=6.4M total=59.3M dur=19.6s underrun=false rate=0.0M/s
+1794966116654 [cache] fw=6.0M total=59.3M dur=17.6s underrun=false rate=0.0M/s
+1794966118659 [cache] fw=5.5M total=59.3M dur=15.7s underrun=false rate=0.0M/s
+1794966120666 [cache] fw=5.0M total=59.3M dur=13.5s underrun=false rate=0.0M/s
+1794966122676 [cache] fw=4.5M total=59.3M dur=11.6s underrun=false rate=0.0M/s
+1794966124534 [play] origin chunk from=84004312 code=206 hdrMs=290 len=4194304 thread=KivoOriginPrefetch
+1794966124680 [cache] fw=9.3M total=64.5M dur=19.7s underrun=false rate=0.2M/s
+1794966126684 [cache] fw=8.3M total=64.5M dur=17.6s underrun=false rate=2.3M/s
+1794966126896 [play] origin chunk from=88198616 code=206 hdrMs=1089 len=4194304 thread=KivoOriginPrefetch
+1794966128710 [cache] fw=7.5M total=64.5M dur=15.5s underrun=false rate=0.0M/s
+1794966130715 [cache] fw=6.8M total=64.5M dur=13.3s underrun=false rate=0.0M/s
+1794966132720 [cache] fw=6.1M total=64.5M dur=11.6s underrun=false rate=0.0M/s
+1794966134727 [cache] fw=9.3M total=68.8M dur=19.5s underrun=false rate=0.0M/s
+1794966136737 [cache] fw=8.6M total=68.8M dur=17.6s underrun=false rate=1.9M/s
+1794966138749 [cache] fw=7.3M total=68.8M dur=15.6s underrun=false rate=0.0M/s
+1794966140757 [cache] fw=5.8M total=68.8M dur=13.5s underrun=false rate=0.0M/s
+1794966142789 [cache] fw=4.8M total=68.8M dur=11.4s underrun=false rate=0.0M/s
+1794966144641 [play] origin chunk from=92392920 code=206 hdrMs=331 len=4194304 thread=KivoOriginPrefetch
+1794966144793 [cache] fw=8.4M total=70.2M dur=19.6s underrun=false rate=0.0M/s
+1794966146801 [cache] fw=8.0M total=70.2M dur=17.6s underrun=false rate=0.0M/s
+1794966148807 [cache] fw=6.9M total=70.2M dur=15.5s underrun=false rate=0.0M/s
+1794966150813 [cache] fw=6.0M total=70.2M dur=13.5s underrun=false rate=0.0M/s
+1794966152820 [cache] fw=5.1M total=70.2M dur=11.6s underrun=false rate=0.0M/s
+1794966154825 [cache] fw=8.2M total=70.7M dur=19.6s underrun=false rate=0.2M/s
+1794966155546 [play] origin chunk from=96587224 code=206 hdrMs=1134 len=4194304 thread=KivoOriginPrefetch
+1794966156829 [cache] fw=7.2M total=70.7M dur=17.6s underrun=false rate=1.7M/s
+1794966157107 [play] origin chunk from=100781528 code=206 hdrMs=283 len=4194304 thread=KivoOriginPrefetch
+1794966158836 [cache] fw=5.8M total=70.7M dur=15.7s underrun=false rate=0.0M/s
+1794966160842 [cache] fw=5.0M total=70.7M dur=13.5s underrun=false rate=0.0M/s
+1794966162845 [cache] fw=4.3M total=70.7M dur=11.6s underrun=false rate=0.0M/s
+1794966164860 [cache] fw=8.5M total=70.6M dur=19.6s underrun=false rate=0.0M/s
+1794966165044 [play] origin chunk from=104975832 code=206 hdrMs=307 len=4194304 thread=KivoOriginPrefetch
+1794966166877 [cache] fw=7.9M total=70.6M dur=17.6s underrun=false rate=0.0M/s
+1794966168885 [cache] fw=7.4M total=70.6M dur=15.7s underrun=false rate=0.0M/s
+1794966170892 [cache] fw=6.5M total=70.6M dur=13.5s underrun=false rate=0.0M/s
+1794966172899 [cache] fw=5.4M total=70.6M dur=11.6s underrun=false rate=0.0M/s
+1794966174468 [play] origin 连接退化：9424ms 仅读到 520KiB (55KB/s < 80KB/s)，第 2 次换连接重开
+1794966174906 [cache] fw=11.5M total=69.9M dur=19.7s underrun=false rate=0.2M/s
+1794966175369 [play] origin chunk from=105500715 code=206 hdrMs=896 len=4194304 thread=KivoOriginPrefetch
+1794966176910 [cache] fw=10.6M total=69.9M dur=17.6s underrun=false rate=3.1M/s
+1794966176977 [play] origin chunk from=109695019 code=206 hdrMs=326 len=4194304 thread=KivoOriginPrefetch
+1794966178919 [cache] fw=9.9M total=69.9M dur=15.6s underrun=false rate=0.0M/s
+1794966180951 [cache] fw=9.2M total=69.9M dur=13.5s underrun=false rate=0.0M/s
+1794966182960 [cache] fw=7.9M total=69.9M dur=11.6s underrun=false rate=0.0M/s
+1794966184964 [cache] fw=12.1M total=72.0M dur=19.6s underrun=false rate=0.0M/s
+1794966185586 [play] origin chunk from=113889323 code=206 hdrMs=1011 len=4194304 thread=KivoOriginPrefetch
+1794966186968 [cache] fw=10.2M total=72.0M dur=17.6s underrun=false rate=0.0M/s
+1794966187728 [play] origin chunk from=118083627 code=206 hdrMs=302 len=4194304 thread=KivoOriginPrefetch
+1794966188975 [cache] fw=8.7M total=72.0M dur=15.6s underrun=false rate=0.0M/s
+1794966190981 [cache] fw=7.7M total=72.0M dur=13.5s underrun=false rate=0.0M/s
+1794966192990 [cache] fw=6.9M total=72.0M dur=11.6s underrun=false rate=0.0M/s
+1794966194534 [play] origin 连接退化：6806ms 仅读到 518KiB (76KB/s < 80KB/s)，第 3 次换连接重开
+1794966194845 [play] origin chunk from=118606820 code=206 hdrMs=307 len=4194304 thread=KivoOriginPrefetch
+1794966194994 [cache] fw=10.7M total=71.4M dur=19.7s underrun=false rate=0.3M/s
+1794966196999 [cache] fw=9.5M total=71.4M dur=17.6s underrun=false rate=2.2M/s
+1794966199002 [cache] fw=8.4M total=71.4M dur=15.6s underrun=false rate=0.0M/s
+1794966201037 [cache] fw=6.9M total=71.4M dur=13.5s underrun=false rate=0.0M/s
+1794966203045 [cache] fw=5.6M total=71.4M dur=11.6s underrun=false rate=0.0M/s
+1794966205049 [cache] fw=9.6M total=69.9M dur=19.6s underrun=false rate=0.0M/s
+1794966205755 [play] origin chunk from=122801124 code=206 hdrMs=1110 len=4194304 thread=KivoOriginPrefetch
+1794966207054 [cache] fw=8.6M total=69.9M dur=17.5s underrun=false rate=0.0M/s
+1794966209063 [cache] fw=7.8M total=69.9M dur=15.6s underrun=false rate=0.0M/s
+1794966211072 [cache] fw=7.0M total=69.9M dur=13.7s underrun=false rate=0.0M/s
+1794966213081 [cache] fw=6.2M total=69.9M dur=11.6s underrun=false rate=0.0M/s
+1794966215090 [cache] fw=10.1M total=68.6M dur=19.6s underrun=false rate=0.2M/s
+1794966215184 [play] origin chunk from=126995428 code=206 hdrMs=453 len=4194304 thread=KivoOriginPrefetch
+1794966217100 [cache] fw=9.2M total=68.6M dur=17.6s underrun=false rate=2.4M/s
+1794966219108 [cache] fw=8.3M total=68.6M dur=15.7s underrun=false rate=0.0M/s
+1794966219654 [play] origin chunk from=131189732 code=206 hdrMs=1093 len=4194304 thread=KivoOriginPrefetch
+1794966221112 [cache] fw=7.3M total=68.6M dur=13.5s underrun=false rate=0.0M/s
+1794966223118 [cache] fw=6.1M total=68.6M dur=11.6s underrun=false rate=0.0M/s
+1794966225092 [play] origin chunk from=135384036 code=206 hdrMs=331 len=4194304 thread=KivoOriginPrefetch
+1794966225122 [cache] fw=9.9M total=67.2M dur=19.7s underrun=false rate=0.0M/s
+1794966227125 [cache] fw=8.8M total=67.2M dur=17.6s underrun=false rate=0.0M/s
+1794966229129 [cache] fw=7.9M total=67.2M dur=15.7s underrun=false rate=0.0M/s
+1794966231136 [cache] fw=6.6M total=67.2M dur=13.7s underrun=false rate=0.0M/s
+1794966233144 [cache] fw=5.3M total=67.2M dur=11.6s underrun=false rate=0.0M/s
+1794966235146 [cache] fw=8.4M total=71.1M dur=19.5s underrun=false rate=0.2M/s
+1794966237151 [cache] fw=7.3M total=71.1M dur=17.8s underrun=false rate=1.7M/s
+1794966239159 [cache] fw=6.5M total=71.1M dur=15.7s underrun=false rate=0.0M/s
+1794966241190 [cache] fw=5.6M total=71.1M dur=13.5s underrun=false rate=0.0M/s
+1794966243201 [cache] fw=4.4M total=71.1M dur=11.6s underrun=false rate=0.0M/s
+1794966245163 [play] origin chunk from=139578340 code=206 hdrMs=353 len=4194304 thread=KivoOriginPrefetch
+1794966245205 [cache] fw=10.6M total=70.8M dur=19.7s underrun=false rate=0.0M/s
+1794966247208 [cache] fw=9.8M total=70.8M dur=17.6s underrun=false rate=3.1M/s
+1794966248987 [play] origin chunk from=143772644 code=206 hdrMs=1421 len=4194304 thread=KivoOriginPrefetch
+1794966249212 [cache] fw=9.1M total=70.8M dur=15.7s underrun=false rate=0.0M/s
+1794966251221 [cache] fw=8.2M total=70.8M dur=13.7s underrun=false rate=0.0M/s
+1794966253226 [cache] fw=7.1M total=70.8M dur=11.6s underrun=false rate=0.0M/s
+1794966255229 [cache] fw=14.3M total=69.3M dur=19.7s underrun=false rate=0.0M/s
+1794966256269 [play] origin chunk from=147966948 code=206 hdrMs=1401 len=4194304 thread=KivoOriginPrefetch
+1794966257237 [cache] fw=13.6M total=69.3M dur=17.7s underrun=false rate=0.0M/s
+1794966259243 [cache] fw=12.9M total=69.3M dur=15.6s underrun=false rate=0.0M/s
+1794966260484 [play] origin chunk from=152161252 code=206 hdrMs=849 len=4194304 thread=KivoOriginPrefetch
+1794966261249 [cache] fw=11.3M total=69.3M dur=13.7s underrun=false rate=0.0M/s
+1794966263258 [cache] fw=9.3M total=69.3M dur=11.6s underrun=false rate=0.0M/s
+1794966265261 [cache] fw=14.9M total=68.2M dur=19.7s underrun=false rate=0.4M/s
+1794966266113 [play] origin chunk from=156355556 code=206 hdrMs=1139 len=4194304 thread=KivoOriginPrefetch
+1794966267265 [cache] fw=13.2M total=68.2M dur=17.7s underrun=false rate=3.5M/s
+1794966268772 [play] origin chunk from=160549860 code=206 hdrMs=300 len=4194304 thread=KivoOriginPrefetch
+1794966269269 [cache] fw=12.2M total=68.2M dur=15.6s underrun=false rate=0.0M/s
+1794966271277 [cache] fw=11.0M total=68.2M dur=13.7s underrun=false rate=0.0M/s
+1794966273286 [cache] fw=8.8M total=68.2M dur=11.7s underrun=false rate=0.0M/s
+1794966275289 [cache] fw=15.5M total=68.9M dur=19.8s underrun=false rate=0.0M/s
+1794966277297 [cache] fw=13.5M total=68.9M dur=17.8s underrun=false rate=0.0M/s
+1794966279302 [cache] fw=12.4M total=68.9M dur=15.9s underrun=false rate=0.0M/s
+1794966279386 [play] origin chunk from=164744164 code=206 hdrMs=325 len=4194304 thread=KivoOriginPrefetch
+1794966281313 [cache] fw=10.9M total=68.9M dur=13.8s underrun=false rate=0.0M/s
+1794966283316 [cache] fw=9.5M total=68.9M dur=11.8s underrun=false rate=0.0M/s
+1794966285320 [cache] fw=15.7M total=69.2M dur=19.9s underrun=false rate=0.4M/s
+1794966285603 [play] origin chunk from=168938468 code=206 hdrMs=291 len=4194304 thread=KivoOriginPrefetch
+1794966287324 [cache] fw=14.2M total=69.2M dur=17.9s underrun=false rate=3.5M/s
+1794966289328 [cache] fw=12.5M total=69.2M dur=16.0s underrun=false rate=0.0M/s
+1794966289909 [play] origin chunk from=173132772 code=206 hdrMs=1385 len=4194304 thread=KivoOriginPrefetch
+1794966291332 [cache] fw=10.9M total=69.2M dur=13.8s underrun=false rate=0.0M/s
+1794966293336 [cache] fw=9.4M total=69.2M dur=11.9s underrun=false rate=0.0M/s
+1794966294425 [play] origin chunk from=177327076 code=206 hdrMs=1124 len=4194304 thread=KivoOriginPrefetch
+1794966295339 [cache] fw=13.6M total=69.1M dur=20.0s underrun=false rate=0.0M/s
+1794966297345 [cache] fw=12.1M total=69.1M dur=17.9s underrun=false rate=0.0M/s
+1794966297772 [play] origin chunk from=181521380 code=206 hdrMs=345 len=4194304 thread=KivoOriginPrefetch
+1794966299348 [cache] fw=10.7M total=69.1M dur=16.0s underrun=false rate=0.0M/s
+1794966301354 [cache] fw=9.1M total=69.1M dur=13.8s underrun=false rate=0.0M/s
+1794966303361 [cache] fw=7.5M total=69.1M dur=11.9s underrun=false rate=0.0M/s
+1794966305365 [cache] fw=10.8M total=69.5M dur=20.0s underrun=false rate=0.3M/s
+1794966305582 [play] origin chunk from=185715684 code=206 hdrMs=275 len=4194304 thread=KivoOriginPrefetch
+1794966307368 [cache] fw=9.5M total=69.5M dur=17.9s underrun=false rate=2.2M/s
+1794966309375 [cache] fw=8.8M total=69.5M dur=16.0s underrun=false rate=0.0M/s
+1794966309389 [play] origin chunk from=189909988 code=206 hdrMs=1714 len=4194304 thread=KivoOriginPrefetch
+1794966311380 [cache] fw=7.2M total=69.5M dur=14.0s underrun=false rate=0.0M/s
+1794966313387 [cache] fw=6.0M total=69.5M dur=11.9s underrun=false rate=0.0M/s
+1794966315389 [cache] fw=9.2M total=68.6M dur=20.0s underrun=false rate=0.0M/s
+1794966315711 [play] origin chunk from=194104292 code=206 hdrMs=318 len=4194304 thread=KivoOriginPrefetch
+1794966317397 [cache] fw=8.0M total=68.6M dur=18.0s underrun=false rate=0.0M/s

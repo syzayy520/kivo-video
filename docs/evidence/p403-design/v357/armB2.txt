@@ -1,0 +1,10 @@
+t=30s 异常=14 chunk=24 fw=0.0M total=51.6M dur=0.0s underrun=true
+t=60s 异常=15 chunk=24 fw=0.0M total=51.6M dur=0.0s underrun=true
+t=90s 异常=16 chunk=25 fw=0.0M total=51.6M dur=0.0s underrun=true
+t=120s 异常=19 chunk=26 fw=0.0M total=51.6M dur=0.0s underrun=true
+t=150s 异常=22 chunk=26 fw=2.1M total=5.2M dur=12.4s underrun=false
+t=180s 异常=24 chunk=27 fw=1.3M total=9.3M dur=10.2s underrun=false
+t=210s 异常=27 chunk=28 fw=4.4M total=16.2M dur=11.9s underrun=false
+t=240s 异常=30 chunk=28 fw=0.0M total=24.3M dur=0.0s underrun=true
+t=270s 异常=31 chunk=29 fw=0.0M total=28.4M dur=0.0s underrun=true
+t=300s 异常=32 chunk=29 fw=0.0M total=28.4M dur=0.0s underrun=true
