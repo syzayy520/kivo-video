@@ -1,7 +1,9 @@
 package com.kivo.cinema.ui.compose
 
 import com.kivo.cinema.playback.MpvPlaybackSession
+import com.kivo.cinema.playback.subtitle.SubtitleImportStore
 import com.kivo.cinema.subtitle.AiSubtitleController
+import com.kivo.cinema.ui.compose.attachImported
 import com.kivo.cinema.ui.compose.player.subtitle.applySubtitleProbeWrites
 
 /**
@@ -208,21 +210,28 @@ internal fun PlayerComposeActivity.applyProbeAiSmoke() {
                 "2" + "\n" + "00:00:04,000 --> 00:00:06,000" + "\n" +
                 "Stop right there." + "\n"
             enSrt.writeText(enSrtText, Charsets.UTF_8)
+            // 英文字幕走**产品导入通道**（importFile → attachImported：登记 +
+            // sub-add + 去重 + panelRevision 全套——评审「产品正确性优先」：
+            // 探针裸调 loadExternalSubtitle 的「挂载 vs 面板渲染不同步」层被绕开，
+            // 2026-11-21；attachImported 的 mpv 挂载失败不阻断 mount-only 登记）。
+            val store = SubtitleImportStore(this) { aiTrace(it) }
+            val imported = store.importFile(enSrt, "e2e-test-en")
+            if (imported == null) {
+                aiTrace("ai-smoke mount import FAILED")
+                statusText = "AI 冒烟：英文字幕导入失败"
+                return@Thread
+            }
             val mpv = mpvNetSession
             if (mpv != null) {
-                val added = mpv.loadExternalSubtitle(enSrt)
-                val newId = mpv.tracksOrNull()?.subtitleTracks()
-                    ?.filter { it.external }?.lastOrNull()?.id
-                if (newId != null) { mpv.selectSubtitle(newId) }
-                aiTrace("ai-smoke en-srt added=$added id=$newId")
-                if (mode == "mount") {
-                    // mount-only：英文字幕已挂，面板行点击走 Controller.startTranslation
-                    //（探针不自动翻译——单任务互斥不再与面板行点击冲突，AI-DEVICE §10）。
-                    aiTrace("ai-smoke mount-only done")
-                    statusText = "AI 冒烟：英文字幕已挂载，可在面板点击 AI 中文字幕"
-                    return@Thread
-                }
+                val failure = attachImported(imported, mpv)
+                aiTrace("ai-smoke mount product-channel failure=$failure")
+                runOnUiThread { panelRevision++ }
+            } else {
+                aiTrace("ai-smoke mount mpv-missing (import registered only)")
             }
+            aiTrace("ai-smoke mount-only done")
+            statusText = "AI 冒烟：英文字幕已挂载，可在面板点击 AI 中文字幕"
+            if (mode == "mount") { return@Thread }
             statusText = "AI 冒烟：翻译中"
             aiTrace("ai-smoke pre-start")
             // 内置测试 SRT：对白 + [Music]（规则映射零 token）+ 对白。

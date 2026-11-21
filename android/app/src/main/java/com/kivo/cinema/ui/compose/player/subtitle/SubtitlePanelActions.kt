@@ -300,6 +300,7 @@ private fun PlayerComposeActivity.writeSubtitleOff() {
  */
 internal fun PlayerComposeActivity.handleAiSubtitleRow() {
     lastTouchMs = System.currentTimeMillis()
+    smbTrace("ai-row tap begin panel=$activePanel")
     val controller = aiSubtitleController()
     if (!controller.isNativeAvailable()) {
         showToast("AI 引擎库不可用")

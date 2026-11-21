@@ -172,3 +172,16 @@
 - **下轮验证**：tap AI 行正确位置（操作组内 y≈920——**先截图确认行位置再 tap**，
   不再凭估算）→ 同会话英文 SRT 已挂 → Controller.startTranslation → 翻译 →
   译文挂载 → 面板副行更新（panelRevision 时序修复生效验证）。
+
+
+## 13. 传导层排查结论 + 面板行 trace（2026-11-21 追加）
+
+- **tc12/tc13/tc14 的面板是 subtitleExternal**（外挂字幕钻入面板）——**AI 行已显示**
+  （noExternalSubtitles() 的 AI 行生效 ✓——T-C 入口行显示达成，面板行清单分派
+  PlayerPanelItems:111 `"subtitle" -> entry(mpv)` / `"subtitleExternal" -> catalog
+  过滤（空态含 AI 行）`——panelRevision 重组机制在（PlayerPanelPress:38））；
+- **未决收窄**：tap AI 行 → handleAiSubtitleRow **有没有执行**不可判定（面板行
+  点击无 trace）+ toast 时序（tap 后 0.8s 截图 vs 5s）——本轮 handleAiSubtitleRow
+  加 smbTrace（"ai-row tap begin"）——下轮 tap 后 **0.8s** 截图，trace 判定执行链；
+- **下轮完整链**：handleAiSubtitleRow trace → 执行链判定 → 翻译启动 → 译文
+  挂载 → 面板副行更新（panelRevision 时序修复生效验证）。
