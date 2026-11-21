@@ -1,6 +1,7 @@
 package com.kivo.cinema.ui.compose
 
 import com.kivo.cinema.playback.MpvPlaybackSession
+import com.kivo.cinema.subtitle.AiSubtitleController
 import com.kivo.cinema.ui.compose.player.subtitle.applySubtitleProbeWrites
 
 /**
@@ -20,6 +21,20 @@ import com.kivo.cinema.ui.compose.player.subtitle.applySubtitleProbeWrites
  *   --ei kivo.subtitleId 2 --ei kivo.seekMs 14014 --ez kivo.freeze true
  * ```
  */
+
+// ---- AI 冒烟的 Controller 单例（Activity 级）----
+// 两次首帧就绪 = 两个探针 Thread 各 new 一个 Controller = 两个
+// LocalAiEngineClient = 第二个的 loadModel 会销毁第一个正在用的 C++ 引擎
+//（g_engine.reset()）→ 第一个 run 死在 JOB_CREATED 后（2026-11-21 冒烟
+// journal 实测 JOB_CREATED ×2 且 seq 均=1）。单例消除双实例竞态。
+private var aiControllerInstance: AiSubtitleController? = null
+private val aiControllerLock = Any()
+
+internal fun PlayerComposeActivity.aiSubtitleController(): AiSubtitleController =
+    synchronized(aiControllerLock) {
+        aiControllerInstance ?: AiSubtitleController(this).also { aiControllerInstance = it }
+    }
+
 internal fun PlayerComposeActivity.applyProbeSubtitle(session: MpvPlaybackSession) {
     val subtitleId = intent.getIntExtra("kivo.subtitleId", -1)
     val seekSec = intent.getIntExtra("kivo.seekSec", -1)
@@ -148,25 +163,36 @@ internal fun PlayerComposeActivity.applyProbeSubtitleUrl() {
 // UI 正式入口行（T-C）落地前，这是端到端链路的唯一触发通道 —— 与既有探针
 // 架构一致（intent 驱动、取证时跑，不是用户功能）。
 internal fun PlayerComposeActivity.applyProbeAiSmoke() {
-    if (!intent.getBooleanExtra("kivo.aiSmoke", false)) return
+    // 【进入即打】区分「函数未被调用」与「extra 未传到」——首帧就绪链路的
+    // 执行与否本身就是要验证的事实（2026-11-21 冒烟 trace 无行排查）。
+    val smokeExtra = intent.getBooleanExtra("kivo.aiSmoke", false)
+    smbTrace("ai-smoke probe-enter extra=$smokeExtra")
+    if (!smokeExtra) return
     val delayMs = intent.getIntExtra("kivo.aiSmokeDelayMs", 5_000).coerceAtLeast(0).toLong()
     android.os.Handler(mainLooper).postDelayed({
         Thread {
-            val controller = com.kivo.cinema.subtitle.AiSubtitleController(this)
+            // 【可读性】外部目录日志 —— adb shell cat 直接可读，不绕 run-as
+            //（SELinux 拒了 run-as 跨目录拷贝，2026-11-21 冒烟排查实测）。
+            val smokeLog = java.io.File(getExternalFilesDir(null), "ai-smoke.log")
+            fun aiTrace(msg: String) {
+                smbTrace(msg)
+                runCatching { smokeLog.appendText("${System.currentTimeMillis()} $msg\n") }
+            }
+            val controller = aiSubtitleController()
             if (!controller.isNativeAvailable()) {
-                smbTrace("ai-smoke FAIL libkivo_ai.so not available")
+                aiTrace("ai-smoke FAIL libkivo_ai.so not available")
                 statusText = "AI 冒烟：引擎库不可用"
                 return@Thread
             }
             val model = com.kivo.cinema.subtitle.AiSubtitleModelStore.findModel(this)
-            smbTrace("ai-smoke model=${model?.absolutePath ?: "MISSING"}")
+            aiTrace("ai-smoke model=${model?.absolutePath ?: "MISSING"}")
             if (model == null) {
-                smbTrace("ai-smoke guidance=${controller.modelGuidance()}")
+                aiTrace("ai-smoke guidance=${controller.modelGuidance()}")
                 statusText = "AI 冒烟：未找到模型"
                 return@Thread
             }
             val loaded = controller.ensureModelLoaded()
-            smbTrace("ai-smoke loaded=$loaded err=${if (loaded) "" else controller.modelGuidance()}")
+            aiTrace("ai-smoke loaded=$loaded err=${if (loaded) "" else controller.modelGuidance()}")
             if (!loaded) {
                 statusText = "AI 冒烟：模型加载失败"
                 return@Thread
@@ -182,7 +208,7 @@ internal fun PlayerComposeActivity.applyProbeAiSmoke() {
                 srt,
                 playheadMs = 0,
                 onProgress = { progress ->
-                    smbTrace("ai-smoke ${progress.state} ${progress.processedCues}/${progress.totalCues}")
+                    aiTrace("ai-smoke ${progress.state} ${progress.processedCues}/${progress.totalCues}")
                 },
                 onDone = { result ->
                     smbTrace(

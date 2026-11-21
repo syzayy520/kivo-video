@@ -102,6 +102,9 @@ class TranslationJob(
         var output = reduceTranslation(TranslationStateMachineState(), TranslationEvent.StartRequested)
         var state = output.state
         val journal = TranslationJournal(translationDir(), cacheKey)
+        // 续译场景：seq 从既有 journal 最大值接续（否则重跑的 append 从 1 起，
+        // 与旧记录 seq 重叠 —— 回放的截断语义会把新记录丢掉）。
+        journal.primeSeqFromDisk()
         journal.appendEvent(output.journalEvent ?: TranslationJournalEvents.JOB_CREATED)
 
         output = reduceTranslation(state, TranslationEvent.PreparationDone(cues.size))
