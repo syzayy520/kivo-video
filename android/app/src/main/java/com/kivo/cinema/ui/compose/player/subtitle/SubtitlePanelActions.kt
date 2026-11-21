@@ -120,6 +120,7 @@ internal fun PlayerComposeActivity.handleSubtitleStep(item: PlayerOptionItem, de
     val spec = SUBTITLE_STEPS[item.tag] ?: return false
     val mpv = mpvNetSession
     val native = mpv?.nativeOrNull()
+
     if (mpv == null || native == null) {
         showToast("内核尚未就绪，暂时无法调整")
         return true
@@ -302,11 +303,16 @@ internal fun PlayerComposeActivity.handleAiSubtitleRow() {
     lastTouchMs = System.currentTimeMillis()
     smbTrace("ai-row tap begin panel=$activePanel")
     val controller = aiSubtitleController()
+    smbTrace("ai-row ch1 native=${controller.isNativeAvailable()}")
     if (!controller.isNativeAvailable()) {
         showToast("AI 引擎库不可用")
         return
     }
-    if (controller.isEngineReady() && !controller.ensureModelLoaded()) {
+    smbTrace("ai-row ch2 ready=${controller.isEngineReady()}")
+    // 原条件 `isEngineReady() && !ensureModelLoaded()` 短路语义反了：未就绪时
+    // 反而跳过模型检查，失败被推迟到 worker 线程静默化。修正为：已就绪短路
+    // 通过（ensureModelLoaded 幂等 O(1)）；未就绪才尝试加载，失败给明确原因。
+    if (!controller.isEngineReady() && !controller.ensureModelLoaded()) {
         showToast("未找到模型：${controller.modelGuidance()}")
         return
     }
@@ -314,38 +320,51 @@ internal fun PlayerComposeActivity.handleAiSubtitleRow() {
     // 翻译源：当前选中的外挂字幕轨（sid 读内核真值；v1 只收 SRT）。
     val mpv = mpvNetSession
     val native = mpv?.nativeOrNull()
+    smbTrace("ai-row ch3 mpv=${mpv != null} native=${native != null}")
     if (mpv == null || native == null) {
         showToast("内核尚未就绪")
         return
     }
     val sid = mpv.readProperty("sid")?.trim()?.toIntOrNull() ?: -1
-    val track = mpv.tracksOrNull()?.subtitleTracks()?.firstOrNull { it.id == sid }
+    val subTracks = mpv.tracksOrNull()?.subtitleTracks().orEmpty()
+    val track = subTracks.firstOrNull { it.id == sid }
+    // ch4 打印全轨明细——探针 mount select id=1 不代表点击瞬间 sid 仍是它。
+    smbTrace("ai-row ch4 sid=$sid tracks=" + subTracks.joinToString(";") { "${it.id}/ext=${it.external}/file=${it.externalFilename}" })
     if (track == null || !track.external) {
         showToast("请先挂载英文外挂字幕（SRT）")
         return
     }
     val sourcePath = track.externalFilename
-    if (!sourcePath.endsWith(".srt", ignoreCase = true)) {
-        showToast("当前版本仅支持 SRT 字幕翻译")
-        return
-    }
+    val sourceFile = java.io.File(sourcePath)
+    smbTrace("ai-row ch5 path=$sourcePath exists=${sourceFile.exists()} readable=${sourceFile.canRead()} len=${sourceFile.length()}")
+    // 不凭扩展名拒收（2026-11-22 真机根因）：导入通道登记文件名是
+    // <内容哈希>-<显示名>（无 .srt 后缀），endsWith(".srt") 把 exists/readable
+    // 均为 true 的合法 SRT 拒在这里——此前所有轮次的「无 worker 无产物」
+    // 全是这个 return。文件类型由内容判定：nativeParseCues 装配失败走
+    // no cues parsed 失败路径（非空 reason，G9），SRT-only 边界由解析器保证。
     val sourceText = try {
         java.io.File(sourcePath).readText(Charsets.UTF_8)
     } catch (error: Exception) {
         showToast("读取字幕失败：${error.message}")
         return
     }
+    smbTrace("ai-row ch6 textLen=${sourceText.length}")
 
     statusText = "AI 中文字幕：翻译中"
     val started = controller.startTranslation(
         sourceText,
-        playheadMs = durationMs,
+        // 原 `playheadMs = durationMs` 把总时长当播放头——领先窗口失效（从片头
+        // 开始译）。orderBlocksForPlayhead 只排序不裁剪（containing+after+before
+        // 全量返回），所以它不是不翻译的根因，但语义必须修。
+        playheadMs = positionMs,
         onProgress = { progress ->
             // 状态可见性走 statusText（既有通道）——toast 每块弹太吵。
+            if (progress.state == "FAILED") smbTrace("ai-row progress FAILED")
             statusText = "AI 中文字幕：${progress.state} ${progress.processedCues}/${progress.totalCues}"
         },
         onDone = { result ->
             val path = result.translationPath
+            smbTrace("ai-row onDone path=${path ?: "null"} llm=${result.llmTranslated} failed=${result.failedFallbacks} total=${result.totalCues}")
             if (path == null) {
                 runOnUiThread { showToast("AI 翻译失败") }
             } else {
@@ -353,20 +372,34 @@ internal fun PlayerComposeActivity.handleAiSubtitleRow() {
                 // TrackManager fake 化列后续——v1 偏差登记）。
                 Thread {
                     val mpv = mpvNetSession ?: return@Thread
+                    smbTrace("ai-row mount-pre eof=${mpv.readProperty("eof-reached")} idle=${mpv.readProperty("idle-active")} pos=${mpv.readProperty("time-pos")} dur=${mpv.readProperty("duration")} fileExists=${java.io.File(path).isFile}")
                     val added = mpv.loadExternalSubtitle(java.io.File(path))
                     val newId = mpv.tracksOrNull()?.subtitleTracks()
                         ?.filter { it.external }?.lastOrNull()?.id
                     if (newId != null) { mpv.selectSubtitle(newId) }
+                    smbTrace("ai-row mounted added=$added newId=$newId err=${mpv.lastError} cmdErr=${com.kivo.cinema.mpv.MpvNative.lastCommandError}")
                     runOnUiThread {
                         // panelRevision++ 在挂载完成**之后**（修时序：挂载前 ++
                         // 会让副行读到旧状态——上轮 tc7 实测副行未变，AI-DEVICE §8）。
                         panelRevision++
-                        statusText = "AI 中文字幕已就绪"
-                        showToast("AI 中文字幕已就绪（挂载 " + (if (added) "成功" else "失败") + "）")
+                        if (added) {
+                            statusText = "AI 中文字幕已就绪"
+                            showToast("AI 中文字幕已就绪")
+                        } else {
+                            // 挂载失败的主场景是视频已 EOS（2026-11-22 实测：续播
+                            // 近片尾 + 翻译 23.79s 超过剩余片长，会话 teardown 后
+                            // command/property 全失效）。译文已持久化，缓存命中路径
+                            //（同日实测 total=0 秒回 + added=true）保证下次观看自动
+                            // 挂载——如实告知去向，不静默也不报假失败（G9）。
+                            statusText = "AI 中文字幕已保存"
+                            showToast("译文已保存，下次播放自动加载")
+                        }
                     }
                 }.start()
             }
         },
     )
+    smbTrace("ai-row ch7 started=$started")
     if (!started) showToast("AI 翻译已在进行中")
 }
+

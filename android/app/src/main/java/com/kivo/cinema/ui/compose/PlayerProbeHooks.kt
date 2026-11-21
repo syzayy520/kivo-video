@@ -5,6 +5,7 @@ import com.kivo.cinema.playback.subtitle.SubtitleImportStore
 import com.kivo.cinema.subtitle.AiSubtitleController
 import com.kivo.cinema.ui.compose.attachImported
 import com.kivo.cinema.ui.compose.player.subtitle.applySubtitleProbeWrites
+import com.kivo.cinema.ui.compose.player.subtitle.handleAiSubtitleRow
 
 /**
  * 取证钩子（253-P6-2 字幕 / mpv 选项 A/B / 缩略图探针）。p215 压测在 PlayerProbeStress.kt。
@@ -183,6 +184,7 @@ internal fun PlayerComposeActivity.applyProbeAiSmoke() {
                 smbTrace(msg)
                 runCatching { smokeLog.appendText("${System.currentTimeMillis()} $msg\n") }
             }
+            aiTrace("ai-smoke build-stamp tc-diag-20261122")
             val controller = aiSubtitleController()
             if (!controller.isNativeAvailable()) {
                 aiTrace("ai-smoke FAIL libkivo_ai.so not available")
@@ -238,6 +240,14 @@ internal fun PlayerComposeActivity.applyProbeAiSmoke() {
             aiTrace("ai-smoke mount-only done")
             statusText = "AI 冒烟：英文字幕已挂载，可在面板点击 AI 中文字幕"
             if (mode == "mount") { return@Thread }
+            if (mode == "mountrow") {
+                // mount+row：挂载完成后直接调产品 handler——tap 坐标/面板布局/
+                // toast 时序全部不再是变量（外部评审建议：一次实验区分 UI 分派
+                // 问题与函数内问题）。handler 内部全程 smbTrace（ch1~ch7）。
+                aiTrace("ai-smoke mountrow invoking-handler")
+                runOnUiThread { handleAiSubtitleRow() }
+                return@Thread
+            }
             statusText = "AI 冒烟：翻译中"
             aiTrace("ai-smoke pre-start")
             // 内置测试 SRT：对白 + [Music]（规则映射零 token）+ 对白。

@@ -259,3 +259,43 @@
 - **下轮定位方案**：① handleAiSubtitleRow **每分支加 smbTrace**（trace 判定
   走到哪一分支 + 提前 return 的原因）；② tap AI 行**前先截图确认 AI 行位置**
   （mount 挂载后操作组内 AI 行 y 坐标实拍）；③ 两者一起定位后修复。
+
+## 18. T-C 收口：两个根因定位与全链验证（2026-11-22）
+
+- **根因 1（ch5 扩展名误拒——所有历史轮次的共同根因）**：导入通道登记文件名 =
+  `<内容哈希>-<显示名>`（**无 .srt 后缀**），`endsWith(".srt")` 把 exists/readable
+  均为 true 的合法 SRT 拒在 ch5。mountrow 直调 + ch1~ch7 插桩一次定位：
+  `ch5 path=.../subtitles/0c82da5413b1-e2e-test-en exists=true readable=true len=111`
+  之后 ch6/ch7 无行（ch1~ch4 全过：native=true ready=true sid=1 ext=true）。
+  修复：**删除扩展名检查，文件类型由内容解析器判定**（nativeParseCues 装配
+  失败走 no cues parsed 非空 reason 路径，SRT-only 边界由解析器保证）。
+- **根因 2（onDone 挂载失败 = EOS 会话 teardown，非线程问题）**：续播近片尾
+  + 翻译 23.79s 超剩余片长 → onDone 时视频已 EOS，mpv command/property 全失效
+  （added=false newId=null）。对照轮（缓存命中 6ms 秒回、onDone 时
+  `mount-pre eof=no idle=no pos=57.633 dur=60.0` 在播）**同一后台 Thread 代码
+  added=true newId=2**——证明是会话生命周期而非线程。修复：挂载失败时如实
+  告知「译文已保存，下次播放自动加载」（缓存命中路径已实测兜底，G9）。
+- **全链验证（三轮真机）**：① 翻译轮 `ch6 textLen=111 → ch7 started=true →
+  ai-ctrl worker-started/ensure-loaded=true/before-job-run → after-job-run
+  （23.79s）→ onDone llm=2 failed=0` → 中文 SRT（我以为你要走了 / 站住那里，
+  **时间轴逐位不变**）+ journal/manifest 三件套落盘；②③ 缓存轮
+  `onDone total=0 秒回 → mount-pre eof=no pos=57.633/60.0 →
+  mounted added=true newId=2 err= cmdErr=null` **两轮稳定复现**。
+- **本轮加固**：catch 完整堆栈双写（原「G9 非空 reason」注释空转，异常被静默
+  吞掉）、ensureModelLoaded 返回值检查（false 明确终止，不再带病进 job.run）、
+  ch2 短路语义修正（原 `isEngineReady() && !ensureModelLoaded()` 条件反了，
+  未就绪时反而跳过模型检查）、playheadMs=durationMs→positionMs（领先窗口语义）、
+  worker/onDone/mounted 全链 trace 进 ai-smoke.log（消除「面板路径无 done 行」
+  盲区）、mountrow 直调 handler（消 tap 坐标/布局/toast 时序变量）、
+  build stamp tc-diag-20261122（证据版本可溯，杜绝旧 APK 误判）。
+- **外部评审（GLM 及另一模型）贡献与纠偏**：ch5 路径形态预判命中；H4
+  （playheadMs 致空窗口）**不成立**——orderBlocksForPlayhead 只排序不裁剪
+  （containing+after+before 全量返回）；H2（ensureModelLoaded 二次调用失败）
+  在 mount-only 会话**排除**——有 `if (client.isReady()) return true` 短路幂等；
+  「TranslationJob 构造含磁盘 IO」指控**不实**（构造只存三参，Journal 在 run()
+  内 107 行才创建）；logcat 不可靠再获实证（实验数分钟后 kivo-mpv/kivo-ai
+  全部轮转，grep 空）。
+- **方法论（本次排查的核心教训）**：观测可靠性优先于根因猜测——build stamp
+  证明新 APK、统一文件日志替代 logcat、等待 ≥40s（sleep 8 曾把正常翻译误判
+  为未启动）、直调 handler 消 UI 变量、每分支 trace 替代 toast 时序赌博、
+  每次只改一个有证据支持的问题。

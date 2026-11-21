@@ -68,6 +68,17 @@ class AiSubtitleController(private val context: Context) {
         return client.loadModel(model.absolutePath)
     }
 
+    /// 诊断双写：logcat + 外部 ai-smoke.log。此前「ai-smoke.log 无 done 行」的
+    /// 盲区源于面板路径不写外部日志（只有探针写）；logcat 主缓冲在 mpv 日志
+    /// 冲刷下不可靠（AI-DEVICE §7 前科），诊断以文件为准。
+    private fun diag(msg: String) {
+        android.util.Log.i("kivo-ai", msg)
+        runCatching {
+            java.io.File(context.getExternalFilesDir(null), "ai-smoke.log")
+                .appendText("${System.currentTimeMillis()} $msg\n")
+        }
+    }
+
     /// 模型缺失时的路径指引（入口态副行文案，评审 G 入口四态）。
     fun modelGuidance(): String = AiSubtitleModelStore.guidance(context)
 
@@ -95,17 +106,30 @@ class AiSubtitleController(private val context: Context) {
         }
         runningJob.set(job)
         Thread {
+            diag("ai-ctrl worker-started")
             val result = try {
-                ensureModelLoaded()
-                job.run(sourceSrt, playheadMs)
-            } catch (throwable: Throwable) {
-                TranslationJobResult(null, 0, 0, 0, 0, 0, cancelled = false).also {
-                    // 异常路径也要给非空 reason（G9），然后回 job 的失败态。
+                val loaded = ensureModelLoaded()
+                diag("ai-ctrl ensure-loaded=$loaded")
+                if (!loaded) {
+                    // 模型加载失败必须明确终止——此前返回值被丢弃，job.run 会在
+                    // 引擎未就绪下继续跑，真正的失败原因被推迟且掩埋。
+                    TranslationJobResult(null, 0, 0, 0, 0, 0, cancelled = false)
+                } else {
+                    diag("ai-ctrl before-job-run")
+                    job.run(sourceSrt, playheadMs).also {
+                        diag("ai-ctrl after-job-run path=${it.translationPath ?: "null"}")
+                    }
                 }
+            } catch (throwable: Throwable) {
+                // 完整堆栈双写——此前 catch 静默吞掉（G9 注释空转），worker 内
+                // 任何异常都只剩 2 秒 toast，根因无从取证。
+                diag("ai-ctrl worker-catch ${throwable.javaClass.name}: ${throwable.message}\n${android.util.Log.getStackTraceString(throwable)}")
+                TranslationJobResult(null, 0, 0, 0, 0, 0, cancelled = false)
             } finally {
                 runningJob.set(null)
             }
             lastTranslationPath = result.translationPath ?: lastTranslationPath
+            diag("ai-ctrl onDone-enter path=${result.translationPath ?: "null"}")
             onDone?.invoke(result)
         }.start()
         return true
