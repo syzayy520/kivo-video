@@ -185,3 +185,21 @@
   加 smbTrace（"ai-row tap begin"）——下轮 tap 后 **0.8s** 截图，trace 判定执行链；
 - **下轮完整链**：handleAiSubtitleRow trace → 执行链判定 → 翻译启动 → 译文
   挂载 → 面板副行更新（panelRevision 时序修复生效验证）。
+
+
+## 14. 面板行点击的翻译链 native crash 实锤（2026-11-21 收口状态）
+
+- **证据链**：trace `ai-row tap begin`（handleAiSubtitleRow 执行 ✓）→ 显式 select
+  修复生效（mount select id=1 ✓）→ tap 后 27s **ai_subs 目录空**（journal/SRT/manifest
+  均未落盘）+ ai-smoke.log 无 done 行 + **App 进程死**（kill -3 报 No such process，
+  pid 24613 已死重启为 19938）→ **面板行点击触发的翻译链 native 崩溃实锤**
+  （探针 full 模式的同源翻译成功过三轮 23.3~23.5s——**面板行路径的翻译链差异
+  是崩点**：handleAiSubtitleRow → Controller.startTranslation → job.run →
+  nativeParseCues / nativeTranslateBlock——**与探针 full 模式的差异 = 调用上下文**）；
+- **tombstone 符号栈被权限挡**：/data/tombstones/ shell 组读不到、/data/anr/ 只有
+  11-17 的旧 ANR——**下轮取证**：① crash 复现 + `logcat -b crash` 实时抓（未 strip
+  libkivo_ai.so 有符号）；② `ndk-symbolize` 处理 tombstone（拷出后本地符号化）；
+  ③ `debuggerd -b <pid>` 复现时抓 backtrace；
+- **已验证与本节前一致**：探针 full 模式端到端 ✓（三轮稳定）、mount-only 探针链 ✓
+  （四段）、面板 AI 行显示与空态可点 ✓（tc4/tc5/tc6）、显式 select ✓（mount select id=1）、
+  panelRevision 时序修复编译 ✓。

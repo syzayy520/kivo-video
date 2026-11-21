@@ -224,7 +224,13 @@ internal fun PlayerComposeActivity.applyProbeAiSmoke() {
             val mpv = mpvNetSession
             if (mpv != null) {
                 val failure = attachImported(imported, mpv)
-                aiTrace("ai-smoke mount product-channel failure=$failure")
+                // 挂载后**显式选中英文轨**——attachImported 的 addExternalSubtitle
+                // 不保证 auto-select，sid 不选中会让面板行点击的 sid 检查落空
+                //（tc13 实测 toast「请先挂载英文外挂字幕（SRT）」= sid 检查没过）。
+                val enTrack = mpv.tracksOrNull()?.subtitleTracks()
+                    ?.filter { it.external }?.lastOrNull()
+                if (enTrack != null) { mpv.selectSubtitle(enTrack.id) }
+                aiTrace("ai-smoke mount select id=${enTrack?.id ?: -1}")
                 runOnUiThread { panelRevision++ }
             } else {
                 aiTrace("ai-smoke mount mpv-missing (import registered only)")
