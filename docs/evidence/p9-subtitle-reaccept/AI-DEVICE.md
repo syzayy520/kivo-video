@@ -223,3 +223,23 @@
   ctx 在 mount 会话的重复初始化）；
 - **最小输入防御不适用**：translate 的输入已防御（n_ctx 预算、行数上限）——
   crash 点在 llama 封装内部，需 tombstone 定位后修。
+
+
+## 16. 认知修正：App 从未崩溃（tombstone 是 T-0 spike 的）（2026-11-21 追加）
+
+- **bugreport 的 tombstone_22/21 都是 `kivo_ai_spike`**（pid 24884/24664，
+  signal 6 SIGABRT，backtrace 指向 libc abort —— **T-0 spike 进程的崩溃，
+  不是 App**）；
+- **App「进程死」的判断是错的**：pid 链（24613→19229→19938→32191）实为
+  **每轮验证前的 `am force-stop` 正常产物**（force-stop 杀旧进程、am start
+  起新进程）——**logcat 无 Fatal signal、crash 缓冲空、App 从未崩溃**；
+- **「面板行点击的翻译卡住」的真因待查**（不是崩溃）：tap AI 行 → trace
+  `ai-row tap begin` ✓ → handleAiSubtitleRow → sid=1（探针显式 select 后）→
+  startTranslation true → job.run——**ai_subs 空且无 progress 行**：job.run
+  卡在 nativeParseCues / translateBlock / 或 hasTranslation 的某一步——
+  **job.run 分段 trace（Log.i kivo-ai 五段）已落盘未读**（上轮 BUILD FAILED
+  后装的旧 APK 无分段 trace——**重装新 APK 后重跑读分段 trace 即可定位**）；
+- **T-0 spike 的 SIGABRT**：T-0 长跑/矩阵的 spike 进程 abort（backtrace
+  pc 0343380/03432ec in /data/local/tmp/kivo_ai_spike）——与 AI-DEVICE §15
+  记录的「符号栈取证手段穷尽」相接：pc offset 需 ndk-symbolize 定位函数
+  （llama 内部的 GGML_ABORT 嫌疑）——**与面板行点击的翻译无关**。
