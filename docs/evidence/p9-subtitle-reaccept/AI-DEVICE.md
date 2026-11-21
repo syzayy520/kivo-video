@@ -243,3 +243,19 @@
   pc 0343380/03432ec in /data/local/tmp/kivo_ai_spike）——与 AI-DEVICE §15
   记录的「符号栈取证手段穷尽」相接：pc offset 需 ndk-symbolize 定位函数
   （llama 内部的 GGML_ABORT 嫌疑）——**与面板行点击的翻译无关**。
+
+
+## 17. 面板行点击的 Job.run 分段 trace 无行（2026-11-21 追加）
+
+- **本轮读数**：tap AI 行（handleAiSubtitleRow 执行 ✓ trace）→ sleep 8 →
+  **logcat 的 `Log.i("kivo-ai")` 五段一条没打**——**job.run 从未被调用**——
+  handleAiSubtitleRow 的执行链在 `startTranslation` **之前**提前 return
+  （前置分支：isNativeAvailable / isEngineReady / 模型路径 / mpv null /
+  sid 检查 / sourcePath / SRT 门槛 / sourceText 读——**每分支都 toast 或
+  状态更新**，但截图时机（tap 后 8s）toast 已消失，无法判定走到哪一分支）；
+- **同时**：mount 挂载英文字幕轨后**外挂面板显示操作组**（非空态）——**AI 行
+  位置从空态 y≈675 移到操作组内（y 待确认）**——本轮 tap 1735,690 的命中
+  目标未知（可能命中「粘贴字幕链接」等邻近行——非 AI 行）；
+- **下轮定位方案**：① handleAiSubtitleRow **每分支加 smbTrace**（trace 判定
+  走到哪一分支 + 提前 return 的原因）；② tap AI 行**前先截图确认 AI 行位置**
+  （mount 挂载后操作组内 AI 行 y 坐标实拍）；③ 两者一起定位后修复。
