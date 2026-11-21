@@ -197,6 +197,22 @@ internal fun PlayerComposeActivity.applyProbeAiSmoke() {
                 statusText = "AI 冒烟：模型加载失败"
                 return@Thread
             }
+            // 【英文字幕就位】内置测试 SRT 写入 files/ 并挂载（面板行点击路径
+            // 需要 sid 有值——T-C 真机验证补全，2026-11-21）。
+            val enSrt = java.io.File(filesDir, "e2e-test-en.srt")
+            val enSrtText = "1" + "\n" + "00:00:01,000 --> 00:00:03,000" + "\n" +
+                "I thought you were leaving." + "\n\n" +
+                "2" + "\n" + "00:00:04,000 --> 00:00:06,000" + "\n" +
+                "Stop right there." + "\n"
+            enSrt.writeText(enSrtText, Charsets.UTF_8)
+            val mpv = mpvNetSession
+            if (mpv != null) {
+                val added = mpv.loadExternalSubtitle(enSrt)
+                val newId = mpv.tracksOrNull()?.subtitleTracks()
+                    ?.filter { it.external }?.lastOrNull()?.id
+                if (newId != null) { mpv.selectSubtitle(newId) }
+                aiTrace("ai-smoke en-srt added=$added id=$newId")
+            }
             statusText = "AI 冒烟：翻译中"
             // 内置测试 SRT：对白 + [Music]（规则映射零 token）+ 对白。
             val srt = buildString {
