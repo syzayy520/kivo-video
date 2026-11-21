@@ -142,6 +142,66 @@ internal fun PlayerComposeActivity.applyProbeSubtitleUrl() {
     importSubtitleUrl(url)
 }
 
+// ---- AI 字幕翻译端到端冒烟（T-B，2026-11-21）：`--ez kivo.aiSmoke true` ----
+// 流程：ModelStore 发现模型 → 引擎加载 → 内置测试 SRT（3 条：对白/[Music]/对白）
+// → TranslationJob.run（装配→切块→逐块翻译→journal）→ trace 取证。
+// UI 正式入口行（T-C）落地前，这是端到端链路的唯一触发通道 —— 与既有探针
+// 架构一致（intent 驱动、取证时跑，不是用户功能）。
+internal fun PlayerComposeActivity.applyProbeAiSmoke() {
+    if (!intent.getBooleanExtra("kivo.aiSmoke", false)) return
+    val delayMs = intent.getIntExtra("kivo.aiSmokeDelayMs", 5_000).coerceAtLeast(0).toLong()
+    android.os.Handler(mainLooper).postDelayed({
+        Thread {
+            val controller = com.kivo.cinema.subtitle.AiSubtitleController(this)
+            if (!controller.isNativeAvailable()) {
+                smbTrace("ai-smoke FAIL libkivo_ai.so not available")
+                statusText = "AI 冒烟：引擎库不可用"
+                return@Thread
+            }
+            val model = com.kivo.cinema.subtitle.AiSubtitleModelStore.findModel(this)
+            smbTrace("ai-smoke model=${model?.absolutePath ?: "MISSING"}")
+            if (model == null) {
+                smbTrace("ai-smoke guidance=${controller.modelGuidance()}")
+                statusText = "AI 冒烟：未找到模型"
+                return@Thread
+            }
+            val loaded = controller.ensureModelLoaded()
+            smbTrace("ai-smoke loaded=$loaded err=${if (loaded) "" else controller.modelGuidance()}")
+            if (!loaded) {
+                statusText = "AI 冒烟：模型加载失败"
+                return@Thread
+            }
+            statusText = "AI 冒烟：翻译中"
+            // 内置测试 SRT：对白 + [Music]（规则映射零 token）+ 对白。
+            val srt = buildString {
+                append("1\n00:00:01,000 --> 00:00:03,000\nI thought you were leaving.\n\n")
+                append("2\n00:00:04,000 --> 00:00:06,000\n[Music]\n\n")
+                append("3\n00:00:07,000 --> 00:00:09,000\nStop right there.\n")
+            }
+            controller.startTranslation(
+                srt,
+                playheadMs = 0,
+                onProgress = { progress ->
+                    smbTrace("ai-smoke ${progress.state} ${progress.processedCues}/${progress.totalCues}")
+                },
+                onDone = { result ->
+                    smbTrace(
+                        "ai-smoke done path=${result.translationPath ?: "null"} " +
+                            "llm=${result.llmTranslated} rule=${result.ruleTranslated} " +
+                            "keep=${result.intentionalKeep} failed=${result.failedFallbacks} " +
+                            "total=${result.totalCues} cancelled=${result.cancelled}",
+                    )
+                    statusText = if (result.translationPath != null) {
+                        "AI 冒烟完成：${result.llmTranslated + result.ruleTranslated}/${result.totalCues} 条已译"
+                    } else {
+                        "AI 冒烟失败"
+                    }
+                },
+            )
+        }.start()
+    }, delayMs)
+}
+
 internal fun PlayerComposeActivity.applyProbeSubtitleWrites(session: MpvPlaybackSession) {
     val spec = intent.getStringExtra("kivo.subWrite")?.trim().orEmpty()
     if (spec.isEmpty()) return

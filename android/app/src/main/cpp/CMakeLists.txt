@@ -99,6 +99,9 @@ target_compile_options(kivo_core_pace PRIVATE
 # ---------------------------------------------------------------------------
 add_library(kivo_core_subtitle_translation STATIC
     "${KIVO_BACKEND}/src/subtitle_translation_core/subtitle_translation_prompt.cpp"
+    "${KIVO_BACKEND}/src/subtitle_translation_core/subtitle_translation_cue_assembler.cpp"
+    "${KIVO_BACKEND}/src/subtitle_translation_core/subtitle_translation_block_planner.cpp"
+    "${KIVO_BACKEND}/src/subtitle_translation_core/subtitle_translation_scheduler.cpp"
     "${KIVO_BACKEND}/src/subtitle_translation_core/translation_result_writer.cpp"
 )
 

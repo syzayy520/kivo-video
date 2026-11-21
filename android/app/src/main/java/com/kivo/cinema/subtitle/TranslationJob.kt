@@ -2,6 +2,8 @@ package com.kivo.cinema.subtitle
 
 import android.content.Context
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 // ============================================================================
@@ -138,7 +140,14 @@ class TranslationJob(
                 contextLines = prevContext,
             )
             var response: AiTranslateResponse? = null
-            client.translateBlock(request) { result -> response = result.getOrNull() }
+            // 【latch 同步】translateBlock 是异步回调（DEC-13 接口）——
+            // 不等待就读 response 是竞态（回调几乎必然未执行，实测恒 null）。
+            val latch = CountDownLatch(1)
+            client.translateBlock(request) { result ->
+                response = result.getOrNull()
+                latch.countDown()
+            }
+            latch.await(15, TimeUnit.MINUTES)
             val slots = response?.slots?.toMutableList()
             if (slots == null) {
                 // 引擎未就绪/整批失败 → 任务失败。
@@ -162,7 +171,12 @@ class TranslationJob(
                     contextLines = prevContext,
                 )
                 var retryResponse: AiTranslateResponse? = null
-                client.translateBlock(retryRequest) { result -> retryResponse = result.getOrNull() }
+                val retryLatch = CountDownLatch(1)
+                client.translateBlock(retryRequest) { result ->
+                    retryResponse = result.getOrNull()
+                    retryLatch.countDown()
+                }
+                retryLatch.await(15, TimeUnit.MINUTES)
                 val retrySlots = retryResponse?.slots
                 if (retrySlots != null) {
                     for ((offset, cueIndex) in missing.withIndex()) {

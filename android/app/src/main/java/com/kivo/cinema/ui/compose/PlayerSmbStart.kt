@@ -198,6 +198,7 @@ internal fun PlayerComposeActivity.startMpvPlayback(
             applyProbeSubtitleWrites(session)
             applyProbeSubtitleUrl()
             applyProbeSubtitleCodec()
+            applyProbeAiSmoke()
             // 354：同名外挂字幕交还内核原生 `sub-auto=exact`（支持全部文本格式与编码探测）。
             // 273 v35：落点 seek 取证钩子（URL 与 SMB 两条链路共用本函数 ⇒ 挂这里两边都覆盖）。
             // 【为什么必须有它】见 PlayerProbeLandingSeek.kt 的文件头：

@@ -70,8 +70,12 @@ public:
         std::size_t context_cues{2};  ///< 前块原文上下文条数（DEC-14，T-A 消融定去留）。
     };
 
+    // 【NDK clang 严格性】嵌套类 Config 的默认成员初始化器不能在外层类
+    // 定义内的默认参数（Config config = {}）里使用（MSVC 宽松放行、clang
+    // 报 error）—— 拆成两个重载，{} 初始化移出声明（2026-11-21 实测）。
+    explicit SubtitleTranslationScheduler(SubtitleTranslationEngine& engine) noexcept;
     explicit SubtitleTranslationScheduler(SubtitleTranslationEngine& engine,
-                                          Config config = {}) noexcept;
+                                          Config config) noexcept;
 
     /// 翻译一个**连续段** [first_cue, last_cue)（cue 列表的区间）。
     ///

@@ -98,6 +98,12 @@ std::string join_cue_lines(const SubtitleTranslationCue& cue,
 }  // namespace
 
 SubtitleTranslationScheduler::SubtitleTranslationScheduler(
+    SubtitleTranslationEngine& engine) noexcept
+    : engine_(engine), config_(Config())
+{
+}
+
+SubtitleTranslationScheduler::SubtitleTranslationScheduler(
     SubtitleTranslationEngine& engine, Config config) noexcept
     : engine_(engine), config_(config)
 {
