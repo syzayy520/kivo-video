@@ -31,6 +31,9 @@ internal object PlayerPanelForms {
             tag = "subtitleDisplay",
             control = PlayerRowControl.CHEVRON,
         ),
+        // AI 中文字幕（v1 静态行：状态投影在点击反馈，UX v3 §3 的行内实时
+        // 状态列 T-C 后续——需要 Controller 状态流接 Compose，评审已登记偏差）。
+        PlayerOptionItem(title = "AI 中文字幕", tag = "sub-ai"),
         PlayerOptionItem(title = "关闭字幕", tag = "sub-off"),
     )
 
@@ -106,9 +109,12 @@ internal object PlayerPanelForms {
         PlayerOptionItem(title = "无内嵌字幕", subtitle = "当前片源没有内封字幕轨", enabled = false),
     )
 
-    /** 外挂字幕钻入页为空：指一条真能走的路（导入），不静默。 */
+    /** 外挂字幕钻入页为空：指一条真能走的路（导入），不静默。
+     *  AI 行**空态常驻**（UX v3 §3 入口常驻，评审 F2/G5：入口行不消失）——
+     *  保持可点：点击走 handleAiSubtitleRow → 检测无英文 SRT → toast 给原因。 */
     fun noExternalSubtitles(): List<PlayerOptionItem> = listOf(
         PlayerOptionItem(title = "无外挂字幕", subtitle = "用「导入字幕」加载", enabled = false),
+        PlayerOptionItem(title = "AI 中文字幕", subtitle = "需先添加英文 SRT 字幕", tag = "sub-ai"),
     )
 
     /** 内核未就绪：**非空 reason 行**，不是空列表（空列表会被读成"没有音轨"）。 */

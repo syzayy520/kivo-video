@@ -6,6 +6,7 @@ import com.kivo.cinema.playback.subtitle.SubtitleStyle
 import com.kivo.cinema.playback.subtitle.SubtitleStyleStore
 import com.kivo.cinema.playback.subtitle.subtitlePathKey
 import com.kivo.cinema.ui.compose.PlayerComposeActivity
+import com.kivo.cinema.ui.compose.aiSubtitleController
 import com.kivo.cinema.ui.compose.applySubtitleEncoding
 import com.kivo.cinema.ui.compose.flashAction
 import com.kivo.cinema.ui.compose.importSubtitleFromClipboard
@@ -80,6 +81,7 @@ internal fun PlayerComposeActivity.handleSubtitleSelect(
     when {
         item.tag == "sub-import" -> launchSubtitleImport()
         item.tag == "sub-import-url" -> importSubtitleFromClipboard()
+        item.tag == "sub-ai" -> handleAiSubtitleRow()
         // 「字幕编码」是钻入行：只换面板，不碰内核（与 Router 的 CHEVRON 同口径）。
         item.tag == "subtitleEncoding" -> {
             activePanel = item.tag
@@ -283,4 +285,85 @@ private fun PlayerComposeActivity.writeSubtitleOff() {
             }
         }
     }.start()
+}
+
+
+/** 「AI 中文字幕」行（T-C，评审 E21 后的 T-C 第一件）。
+ *
+ *  流程（Controller 门面，DEC-13：面板不直接摸 Client/Native）：
+ *    引擎库可用性 → 模型加载（ModelStore 发现+校验）→ 翻译源（当前选中
+ *    外挂轨的 externalFilename，v1 只收 SRT）→ Controller.startTranslation
+ *    → onDone 挂载译文轨（sub-add + select，与 applyProbeSubtitle 同款）。
+ *
+ *  【v1 偏差如实登记】行内实时状态投影（UX v3 §3 四态副行）列 T-C 后续
+ *    —— 需要 Controller 状态流接 Compose；v1 的状态可见性走 statusText 与 toast。
+ */
+internal fun PlayerComposeActivity.handleAiSubtitleRow() {
+    lastTouchMs = System.currentTimeMillis()
+    val controller = aiSubtitleController()
+    if (!controller.isNativeAvailable()) {
+        showToast("AI 引擎库不可用")
+        return
+    }
+    if (controller.isEngineReady() && !controller.ensureModelLoaded()) {
+        showToast("未找到模型：${controller.modelGuidance()}")
+        return
+    }
+
+    // 翻译源：当前选中的外挂字幕轨（sid 读内核真值；v1 只收 SRT）。
+    val mpv = mpvNetSession
+    val native = mpv?.nativeOrNull()
+    if (mpv == null || native == null) {
+        showToast("内核尚未就绪")
+        return
+    }
+    val sid = mpv.readProperty("sid")?.trim()?.toIntOrNull() ?: -1
+    val track = mpv.tracksOrNull()?.subtitleTracks()?.firstOrNull { it.id == sid }
+    if (track == null || !track.external) {
+        showToast("请先挂载英文外挂字幕（SRT）")
+        return
+    }
+    val sourcePath = track.externalFilename
+    if (!sourcePath.endsWith(".srt", ignoreCase = true)) {
+        showToast("当前版本仅支持 SRT 字幕翻译")
+        return
+    }
+    val sourceText = try {
+        java.io.File(sourcePath).readText(Charsets.UTF_8)
+    } catch (error: Exception) {
+        showToast("读取字幕失败：${error.message}")
+        return
+    }
+
+    statusText = "AI 中文字幕：翻译中"
+    val started = controller.startTranslation(
+        sourceText,
+        playheadMs = durationMs,
+        onProgress = { progress ->
+            // 状态可见性走 statusText（既有通道）——toast 每块弹太吵。
+            statusText = "AI 中文字幕：${progress.state} ${progress.processedCues}/${progress.totalCues}"
+        },
+        onDone = { result ->
+            runOnUiThread { panelRevision++ }
+            val path = result.translationPath
+            if (path == null) {
+                runOnUiThread { showToast("AI 翻译失败") }
+            } else {
+                // 译文挂载：sub-add + select（与 applyProbeSubtitle 同款；
+                // TrackManager fake 化列后续——v1 偏差登记）。
+                Thread {
+                    val mpv = mpvNetSession ?: return@Thread
+                    val added = mpv.loadExternalSubtitle(java.io.File(path))
+                    val newId = mpv.tracksOrNull()?.subtitleTracks()
+                        ?.filter { it.external }?.lastOrNull()?.id
+                    if (newId != null) { mpv.selectSubtitle(newId) }
+                    runOnUiThread {
+                        statusText = "AI 中文字幕已就绪"
+                        showToast("AI 中文字幕已就绪（挂载 " + (if (added) "成功" else "失败") + "）")
+                    }
+                }.start()
+            }
+        },
+    )
+    if (!started) showToast("AI 翻译已在进行中")
 }

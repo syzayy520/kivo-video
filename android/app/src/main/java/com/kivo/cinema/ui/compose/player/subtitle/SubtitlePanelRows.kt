@@ -63,7 +63,14 @@ internal object SubtitlePanelRows {
                 tag = "subtitleSecondary",
                 control = PlayerRowControl.CHEVRON,
             ),
-        ) + withEncodingRow(PlayerPanelForms.subtitleActions())
+        ) + withAiRow(withEncodingRow(PlayerPanelForms.subtitleActions()))
+    }
+
+    /** 「AI 中文字幕」行紧跟「字幕编码」（v1 静态行；状态投影走点击反馈，见文件头偏差登记）。 */
+    private fun withAiRow(actions: List<PlayerOptionItem>): List<PlayerOptionItem> {
+        val row = PlayerOptionItem(title = "AI 中文字幕", tag = "sub-ai")
+        val index = actions.indexOfFirst { it.tag == "subtitleEncoding" }
+        return if (index < 0) actions + row else actions.toMutableList().apply { add(index + 1, row) }
     }
 
     /** 「字幕编码」钻入行紧跟「粘贴字幕链接」（R1 入口）。 */

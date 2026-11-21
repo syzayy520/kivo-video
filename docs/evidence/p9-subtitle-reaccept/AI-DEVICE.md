@@ -57,3 +57,21 @@
 - AI-DEVICE 后续批次：真实字幕工作负载（含 FAILED_FALLBACK/INTENTIONAL_KEEP 用例）、
   倍速/热稳态对照、发布门槛数值冻结；
 - 翻译参数调优（领先窗口实参/占空比）。
+
+## 6. T-C 第一批：字幕面板入口行（2026-11-21 追加）
+
+- **AI 行常驻**：PlayerPanelForms.subtitleActions() 加「AI 中文字幕」（tag=sub-ai）+
+  SubtitlePanelRows.withAiRow（紧跟字幕编码行，同款 indexOfFirst 插入模式）+
+  **空态常驻**（noExternalSubtitles() 加 AI 行，副行「需先添加英文 SRT 字幕」——
+  评审 F2/G5 入口行不消失）；
+- **真机验证**：tc4/tc5.png（AI 行显示 + 副行文案 + 空态灰显）→ tc6.png
+  （tap AI 行 → toast「请先挂载英文外挂字幕（SRT）」——**空态可点**，
+  走 handleAiSubtitleRow → 检测无英文 SRT → toast 给原因，指一条真能走的路）；
+- **Controller 接线**：handleAiSubtitleRow（SubtitlePanelActions）→
+  Controller.startTranslation——面板不直接摸 Client/Native（DEC-13）；
+  翻译源 = 当前选中外挂轨 externalFilename（sid 内核真值），v1 只收 SRT；
+  onDone 挂载译文轨（sub-add + select，TrackManager fake 化列后续）；
+- **验证错位教训**：run_kt.bat 只编译 Kotlin 不产 APK——三次截图验证的
+  APK 均为旧产物（T-C 代码从未装机），改走 run_apk.bat 后 AI 行立即显示；
+- **v1 偏差登记**：行内实时状态投影（UX v3 §3 四态副行）列 T-C 后续——
+  v1 状态可见性走 statusText 与 toast。
