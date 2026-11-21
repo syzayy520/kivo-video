@@ -344,7 +344,6 @@ internal fun PlayerComposeActivity.handleAiSubtitleRow() {
             statusText = "AI 中文字幕：${progress.state} ${progress.processedCues}/${progress.totalCues}"
         },
         onDone = { result ->
-            runOnUiThread { panelRevision++ }
             val path = result.translationPath
             if (path == null) {
                 runOnUiThread { showToast("AI 翻译失败") }
@@ -358,6 +357,9 @@ internal fun PlayerComposeActivity.handleAiSubtitleRow() {
                         ?.filter { it.external }?.lastOrNull()?.id
                     if (newId != null) { mpv.selectSubtitle(newId) }
                     runOnUiThread {
+                        // panelRevision++ 在挂载完成**之后**（修时序：挂载前 ++
+                        // 会让副行读到旧状态——上轮 tc7 实测副行未变，AI-DEVICE §8）。
+                        panelRevision++
                         statusText = "AI 中文字幕已就绪"
                         showToast("AI 中文字幕已就绪（挂载 " + (if (added) "成功" else "失败") + "）")
                     }

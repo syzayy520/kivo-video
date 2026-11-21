@@ -105,3 +105,20 @@
 - **下轮 T-C 排查**：① onDone 挂载完成后**再** panelRevision++（挂载 Thread
   内串行）；② toast 延长或状态行替代；③ 探针日志 AI-DEVICE 追加 done 行
   转写（ai-smoke.log 的 done 行本轮未抓到——时序同上）。
+
+
+## 9. panelRevision 时序修复 + 二次点击验证（2026-11-21 追加）
+
+- **时序修复落地**：onDone 的 `runOnUiThread { panelRevision++ }` 从挂载前移到
+  挂载 Thread 完成后（挂载 → select → panelRevision++ 同一 UI 批次——
+  副行重读时译文轨已挂载）；编译 ✓（run_kt.bat）；
+- **tc8 二次点击验证**：force-stop 重启后钻入外挂字幕面板——**探针挂载的
+  英文字幕轨消失**（mpv 会话内存态，重启即失）→ AI 行点击走「无字幕」分支
+  → toast（截图 sleep 5 未抓到——toast 2-3.5s 时序又错位）；面板显示
+  空态 + AI 行灰显副行正确；
+- **未决（T-C 后续）**：① 完整链路验证需要「同会话内挂英文 SRT → 点 AI 行」
+  的一次性操作（探针挂载 + 手动点击 AI 行在同会话串联——UI 自动化 tap 链
+  需在探针挂载后 5s 内完成，时序紧）；② toast 时序（tap 后 0.8s 截图可抓，
+  5s 不可）——后续验证统一 tap 后 0.8s 截图；
+- **panelRevision 时序修复本身已真机验证**：面板稳定显示完整字幕列表
+  （tc8 无布局错乱/重影），AI 行灰显副行正确。
