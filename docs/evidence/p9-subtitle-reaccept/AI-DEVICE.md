@@ -158,3 +158,17 @@
 - **已验证（本节前）**：探针 full 模式端到端 ✓（三轮 23.3~23.5s）、mount-only
   探针链 ✓（model/loaded/en-srt/mount-only done 四段）、面板 AI 行显示与
   空态文案 ✓（tc4/tc5）、空态可点 toast ✓（tc6）。
+
+
+## 12. 完整链路 tap 坐标命错行（2026-11-21 追加）
+
+- **第五轮探针（mount-only）完整结束**：model/loaded/en-srt added/mount-only done ×2
+  （两轮探针相隔 240s——第一轮 full 翻译 23.5s + 第二轮 mount-only）；
+- **tc9 面板行点击无翻译的根因**：mount 挂载英文字幕轨后，外挂面板显示**操作组**
+  （非空态）——**AI 行位置从空态 y≈690 移到操作组内（估算 y≈920，AI 行在字幕
+  编码行后）**——tap 1735,690 实际命中的是**「粘贴字幕链接」（y≈700）**——
+  走 importSubtitleFromClipboard（与 AI 无关），翻译从未启动（ai_subs 空 ✓、
+  缓存命中路径的 done 行无 ✓ 全部吻合）；
+- **下轮验证**：tap AI 行正确位置（操作组内 y≈920——**先截图确认行位置再 tap**，
+  不再凭估算）→ 同会话英文 SRT 已挂 → Controller.startTranslation → 翻译 →
+  译文挂载 → 面板副行更新（panelRevision 时序修复生效验证）。
