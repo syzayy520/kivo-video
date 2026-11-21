@@ -203,3 +203,23 @@
 - **已验证与本节前一致**：探针 full 模式端到端 ✓（三轮稳定）、mount-only 探针链 ✓
   （四段）、面板 AI 行显示与空态可点 ✓（tc4/tc5/tc6）、显式 select ✓（mount select id=1）、
   panelRevision 时序修复编译 ✓。
+
+
+## 15. 符号栈取证手段穷尽 + 最后可行路径（2026-11-21 收口状态）
+
+- **本轮穷尽的取证尝试**：① logcat -c 后复现 + logcat -d 全量——**无 Fatal signal**
+  （debuggerd 对该 crash 只写 tombstone 不写 logcat，或写入被轮转）；② /data/tombstones/
+  与 /data/anr/ —— shell 组**权限挡**（ls 静默拒绝）；③ `kill -3 <pid>` —— 对已死进程
+  报 No such process，对活进程报 Operation not permitted（shell 组无权限）；
+- **最后可行路径（下轮）**：`adb bugreport`（zip 内含 **FS/data/tombstones/** 与
+  /data/anr/——pull 后解包提取 tombstone → **ndk-symbolize 符号化**——符号文件 =
+  spike-build 未 strip 的 kivo_ai.so 或 ndk llvm-symbolizer）；
+- **crash 点候选（代码级收窄）**：mount-only 会话 → 面板行点击 → handleAiSubtitleRow
+  → Controller.startTranslation → job.run → nativeParseCues（C++ assemble——
+  纯逻辑、桌面 12 用例覆盖）/ **nativeTranslateBlock（C++ translate——llama 封装
+  decode 全流程，**探针 full 模式同源翻译成功过三轮**——面板行路径与探针路径的
+  **调用上下文差异 = 崩点方向**：mount-only 会话的 mpv.track-list 状态（探针挂载
+  英文轨后 addTrack 导入的轨）、Controller 单例跨探针 Thread 的状态、或 llama
+  ctx 在 mount 会话的重复初始化）；
+- **最小输入防御不适用**：translate 的输入已防御（n_ctx 预算、行数上限）——
+  crash 点在 llama 封装内部，需 tombstone 定位后修。
