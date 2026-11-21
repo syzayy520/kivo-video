@@ -491,6 +491,9 @@ add_test(NAME kivo_subtitle_runtime_test COMMAND kivo_subtitle_runtime_test)
 #   改完必须重跑 gen_cpp_header.py 并同步本文件里的三个 FNV 摘要常量。
 set(KIVO_CORE_SUBTITLE_TRANSLATION_SOURCES
   src/subtitle_translation_core/subtitle_translation_prompt.cpp
+  src/subtitle_translation_core/subtitle_translation_cue_assembler.cpp
+  src/subtitle_translation_core/subtitle_translation_block_planner.cpp
+  src/subtitle_translation_core/subtitle_translation_scheduler.cpp
   src/subtitle_translation_core/translation_result_writer.cpp
 )
 
@@ -528,6 +531,50 @@ if(MSVC)
 endif()
 add_test(NAME kivo_subtitle_translation_result_writer_test COMMAND kivo_subtitle_translation_result_writer_test)
 set_tests_properties(kivo_subtitle_translation_result_writer_test PROPERTIES TIMEOUT 60)
+
+add_executable(kivo_subtitle_translation_cue_assembler_test
+  tests/subtitle_translation/cue_assembler_test.cpp
+)
+target_link_libraries(kivo_subtitle_translation_cue_assembler_test PRIVATE kivo_core_subtitle_translation)
+target_compile_features(kivo_subtitle_translation_cue_assembler_test PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(kivo_subtitle_translation_cue_assembler_test PRIVATE /utf-8 /W4)
+endif()
+add_test(NAME kivo_subtitle_translation_cue_assembler_test COMMAND kivo_subtitle_translation_cue_assembler_test)
+set_tests_properties(kivo_subtitle_translation_cue_assembler_test PROPERTIES TIMEOUT 60)
+
+add_executable(kivo_subtitle_translation_block_planner_test
+  tests/subtitle_translation/block_planner_test.cpp
+)
+target_link_libraries(kivo_subtitle_translation_block_planner_test PRIVATE kivo_core_subtitle_translation)
+target_compile_features(kivo_subtitle_translation_block_planner_test PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(kivo_subtitle_translation_block_planner_test PRIVATE /utf-8 /W4)
+endif()
+add_test(NAME kivo_subtitle_translation_block_planner_test COMMAND kivo_subtitle_translation_block_planner_test)
+set_tests_properties(kivo_subtitle_translation_block_planner_test PROPERTIES TIMEOUT 60)
+
+add_executable(kivo_subtitle_translation_scheduler_test
+  tests/subtitle_translation/scheduler_test.cpp
+)
+target_link_libraries(kivo_subtitle_translation_scheduler_test PRIVATE kivo_core_subtitle_translation)
+target_compile_features(kivo_subtitle_translation_scheduler_test PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(kivo_subtitle_translation_scheduler_test PRIVATE /utf-8 /W4)
+endif()
+add_test(NAME kivo_subtitle_translation_scheduler_test COMMAND kivo_subtitle_translation_scheduler_test)
+set_tests_properties(kivo_subtitle_translation_scheduler_test PROPERTIES TIMEOUT 60)
+
+add_executable(kivo_subtitle_translation_integration_test
+  tests/subtitle_translation/integration_test.cpp
+)
+target_link_libraries(kivo_subtitle_translation_integration_test PRIVATE kivo_core_subtitle_translation)
+target_compile_features(kivo_subtitle_translation_integration_test PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(kivo_subtitle_translation_integration_test PRIVATE /utf-8 /W4)
+endif()
+add_test(NAME kivo_subtitle_translation_integration_test COMMAND kivo_subtitle_translation_integration_test)
+set_tests_properties(kivo_subtitle_translation_integration_test PROPERTIES TIMEOUT 60)
 
 add_executable(kivo_hdr_color_runtime_test
   tests/color_science_core/hdr_color_runtime_test.cpp

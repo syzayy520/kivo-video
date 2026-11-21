@@ -48,6 +48,17 @@ struct SubtitleTranslationUnit
     /// 是否在 prompt 里带上真实样例（few-shot）。
     /// 实测 1.7B 上它让 BLEU 从 8.02 涨到 13.77，**零训练成本**。
     bool use_fewshot{false};
+
+    /// 前块原文上下文（v3.2 DEC-19，2026-11-21）。
+    ///
+    /// 设计约束（自查 N1 / DEC-06）：**只能进 user 轮** —— system + few-shot
+    /// 组成的前缀区必须与源内容无关且逐字节恒定，否则前缀 KV 复用（红线③）失效。
+    /// 引擎实现须用 build_subtitle_translation_block_prompt 的 context 参数传入。
+    ///
+    /// 口径：前块**原文**末 N 条（DEC-14：不带前块译文 —— 上文只帮模型理解
+    /// 指代/人称，不参与前缀内容；带译文会破坏 KV 复用且引入顺序依赖）。
+    /// 空表 = 不启用上下文（与既有契约逐字节一致）。
+    std::vector<std::string> context_lines;
 };
 
 /// SubtitleTranslationOutcome —— 单行译文的结果。

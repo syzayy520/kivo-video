@@ -141,6 +141,28 @@ if(EXISTS "${KIVO_LLAMA_ANDROID_DIST}/lib/libllama.a")
         target_link_libraries(llama_ext INTERFACE vulkan)
     endif()
     message(STATUS "llama.cpp Android dist found: ${KIVO_LLAMA_ANDROID_DIST}")
+
+    # ---------------------------------------------------------------------------
+    # libkivo_ai.so —— AI 翻译引擎（独立故障域，评审 C1/E3：加载期隔离 +
+    # abort 静默）。llama_ext 静态库 + 契约库 + 引擎封装 + JNI 桥。
+    # dist 缺失时整个 target 跳过，其余构建不受影响（与 llama_ext 同口径）。
+    # ---------------------------------------------------------------------------
+    add_library(kivo_ai SHARED
+        "${CMAKE_CURRENT_SOURCE_DIR}/ai_subtitle_engine.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/AiTranslationNative.cpp"
+    )
+    target_include_directories(kivo_ai PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${KIVO_BACKEND}/include"
+    )
+    target_link_libraries(kivo_ai
+        llama_ext
+        kivo_core_subtitle_translation
+    )
+    target_compile_features(kivo_ai PRIVATE cxx_std_20)
+    if(MSVC)
+        target_compile_options(kivo_ai PRIVATE /utf-8 /W4)
+    endif()
 else()
     message(STATUS "llama.cpp Android dist not found at ${KIVO_LLAMA_ANDROID_DIST} -- translation engine target skipped")
 endif()

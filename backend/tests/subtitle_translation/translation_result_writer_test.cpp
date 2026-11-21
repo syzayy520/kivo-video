@@ -1,11 +1,30 @@
 #include <cassert>
+#include <crtdbg.h>
 #include <iostream>
+#include <stdlib.h>
 #include <string>
 #include <vector>
 
 #include "kivo/cinema_engine/subtitle_translation_core/translation_result_writer.hpp"
 
 using namespace kivo::cinema_engine;
+
+/// assert 失败不弹 Debug 对话框（弹窗会卡住 ctest 60s 超时并打扰同机使用）。
+/// 失败改写 stderr，ctest --output-on-failure 能完整捕获。
+void disable_assert_dialog() {
+#ifdef _MSC_VER
+    // 三类报告全部静默：_CRT_ASSERT（断言）、_CRT_ERROR（vector 越界等
+    // Debug 校验 —— 2026-11-21 两张弹窗截图的嫌疑根因）、_CRT_WARN。
+    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+    _set_error_mode(_OUT_TO_STDERR);
+    // Debug CRT 的 assert() 失败在报告之后还会调 abort() —— abort 本身在
+    // /MDd 下默认弹「abort() has been called」对话框（_CALL_REPORTFAULT），
+    // 关掉它让失败直接退进程、由 ctest 捕获（2026-11-21 弹窗截图第二轮）。
+    _set_abort_behavior(0, _CALL_REPORTFAULT);
+#endif
+}
 
 // ============================================================================
 // 译文写出（SRT）的契约测试。
@@ -127,6 +146,7 @@ void test_crlf_line_endings() {
 }
 
 int main() {
+    disable_assert_dialog();
     test_empty_input_writes_nothing();
     test_single_entry_shape();
     test_entries_are_separated_by_blank_line();

@@ -1,0 +1,36 @@
+{
+  "system_prompt_sha256": "f51fff798489e6fe87f9ad4cd09947badd95be89baff4e969b83679e712e3ca1",
+  "system_prompt_len": 207,
+  "fewshot_count": 8,
+  "output_prefixes": [
+    "翻译：",
+    "译文：",
+    "中文：",
+    "翻译:",
+    "译文:",
+    "中文:",
+    "字幕："
+  ],
+  "target_header": "backend/include/kivo/cinema_engine/subtitle_translation_core/subtitle_translation_prompt.hpp",
+  "target_source": "backend/src/subtitle_translation_core/subtitle_translation_prompt.cpp",
+  "python_reference_prompt_len": 293,
+  "python_reference_prompt_sha256": "61ba540876cfbbc10953bc50f9b5490933e5adee77699e3b0c6085ee251a2af2",
+  "source_encoding": "ascii (non-ASCII escaped as \\xNN)",
+  "fnv1a64": {
+    "_note": "drift-lock digests; embed these in the repo unit test",
+    "system_prompt": "fd02f9ebd70db0e1",
+    "prompt_single": "b4969d0b8e8f3a37",
+    "prompt_fewshot": "0f2b30ad34d46177",
+    "block_prompt_fewshot": "b357f821629c1581",
+    "block_prompt_plain": "aab8039bb600e117"
+  },
+  "block": {
+    "schema_version": "cinema_engine.subtitle_translation.prompt.block.v1",
+    "block_system_prompt_len": 281,
+    "block_fewshot_demo_count": 2,
+    "block_context_label_lines": 1,
+    "python_reference_block_prompt_len": 1029,
+    "python_reference_block_prompt_sha256": "e2a24916cfbf8ae84e8559876b13a8cc7f461f6c58a7e7190f994211c5abac97",
+    "_note": "block few-shot now carries a fixed demo context (评审 F5) so the model learns 'context is not translated'; context=None renders byte-identical to the pre-block contract"
+  }
+}

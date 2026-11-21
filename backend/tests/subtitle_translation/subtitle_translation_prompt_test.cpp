@@ -1,12 +1,31 @@
 #include <cassert>
+#include <crtdbg.h>
 #include <cstdint>
 #include <iostream>
+#include <stdlib.h>
 #include <string>
 #include <string_view>
 
 #include "kivo/cinema_engine/subtitle_translation_core/subtitle_translation_prompt.hpp"
 
 using namespace kivo::cinema_engine;
+
+/// assert 失败不弹 Debug 对话框（弹窗会卡住 ctest 60s 超时并打扰同机使用）。
+/// 失败改写 stderr，ctest --output-on-failure 能完整捕获。
+void disable_assert_dialog() {
+#ifdef _MSC_VER
+    // 三类报告全部静默：_CRT_ASSERT（断言）、_CRT_ERROR（vector 越界等
+    // Debug 校验 —— 2026-11-21 两张弹窗截图的嫌疑根因）、_CRT_WARN。
+    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+    _set_error_mode(_OUT_TO_STDERR);
+    // Debug CRT 的 assert() 失败在报告之后还会调 abort() —— abort 本身在
+    // /MDd 下默认弹「abort() has been called」对话框（_CALL_REPORTFAULT），
+    // 关掉它让失败直接退进程、由 ctest 捕获（2026-11-21 弹窗截图第二轮）。
+    _set_abort_behavior(0, _CALL_REPORTFAULT);
+#endif
+}
 
 // ============================================================================
 // 字幕翻译 prompt 契约的漂移锁。
@@ -61,6 +80,14 @@ std::string to_hex(std::uint64_t value) {
 constexpr const char* kExpectedSystemPrompt = "fd02f9ebd70db0e1";
 constexpr const char* kExpectedPromptSingle = "b4969d0b8e8f3a37";
 constexpr const char* kExpectedPromptFewshot = "0f2b30ad34d46177";
+
+// ---- 块契约（v3.2 DEC-03，2026-11-21 新增）----
+// 输入与 manifest 的 python_reference_block_prompt* 保持同一组探针。
+constexpr const char* kExpectedBlockPromptFewshot = "b357f821629c1581";
+constexpr const char* kExpectedBlockPromptPlain = "aab8039bb600e117";
+
+constexpr std::string_view kProbeBlockLines[] = {"Hello.", "How are you?", "See you tomorrow."};
+constexpr std::string_view kProbeBlockContext[] = {"Previously on this film.", "They left at dawn."};
 
 constexpr const char* kProbeLine = "I cannot hear you clearly.";
 
@@ -179,7 +206,137 @@ void test_fewshot_examples_present() {
     std::cout << "PASS: test_fewshot_examples_present" << std::endl;
 }
 
+// ---------------------------------------------------------------------------
+// 块契约（v3.2 DEC-03）。按号对齐语义必须与
+// <toolchain>/eval/subtitle_prompt.py::parse_block_output 逐条一致：
+//   - 空行跳过；只有 head 在第一个 '.' 前为纯数字的行才贡献槽位；
+//   - 编号 1-based 且必须落在 [1, expected]；
+//   - 全齐 -> count_matched=true；不齐 -> 只回填找到的槽位，缺失槽位保持空串
+//     （绝不就地凑数 —— 模型静默漏行时凑数比空更危险）；
+//   - 正文里的数字（"Version 2.0"）不构成新槽位。
+// ---------------------------------------------------------------------------
+
+void test_block_prompt_digests() {
+    // plain 探针 = 2 行、无上下文、无 few-shot（与 manifest 的 block_prompt_plain 同输入）。
+    const std::string_view plain_lines[] = {"Hello.", "How are you?"};
+    const std::string plain = build_subtitle_translation_block_prompt(
+        plain_lines, 2, nullptr, 0, false);
+    assert(to_hex(fnv1a64(plain)) == kExpectedBlockPromptPlain);
+
+    // fewshot 探针 = 3 行 + 2 条上下文（与 manifest 的 block_prompt_fewshot 同输入）。
+    const std::string with_context = build_subtitle_translation_block_prompt(
+        kProbeBlockLines, 3, kProbeBlockContext, 2, true);
+    assert(to_hex(fnv1a64(with_context)) == kExpectedBlockPromptFewshot);
+    std::cout << "PASS: test_block_prompt_digests" << std::endl;
+}
+
+void test_block_prompt_shape() {
+    const std::string prompt = build_subtitle_translation_block_prompt(
+        kProbeBlockLines, 3, kProbeBlockContext, 2, true);
+
+    // 块 system 段开头（含编号指令）。
+    assert(prompt.rfind("system\n", 0) == 0);
+
+    // 上下文标签只出现在 user 轮开头，且上文不编号（- 前缀）。
+    const std::size_t label = prompt.find(SubtitleTranslationBlockPrompt::block_context_label);
+    assert(label != std::string::npos);
+    assert(prompt.find("- Previously on this film.") != std::string::npos);
+    assert(prompt.find("- They left at dawn.") != std::string::npos);
+
+    // 正式块的编号行存在（3 行）。
+    assert(prompt.find("1. Hello.") != std::string::npos);
+    assert(prompt.find("2. How are you?") != std::string::npos);
+    assert(prompt.find("3. See you tomorrow.") != std::string::npos);
+
+    // few-shot 示范轮带上固定示范上文（教模型「上文不翻」）。
+    assert(prompt.find("- We need to hurry.") != std::string::npos);
+    assert(prompt.find("- The others are waiting for us.") != std::string::npos);
+
+    // 末尾是生成提示。
+    assert(prompt.compare(prompt.size() - SubtitleTranslationPrompt::think_block.size(),
+                           SubtitleTranslationPrompt::think_block.size(),
+                           SubtitleTranslationPrompt::think_block) == 0);
+    std::cout << "PASS: test_block_prompt_shape" << std::endl;
+}
+
+/// 上下文必须只进 user 段 —— system+few-shot 前缀区对**任意块内容**逐字节恒定
+/// （设计自查 N1：上下文若进前缀区，KV 复用红线直接失效）。
+void test_block_prompt_prefix_invariant() {
+    const std::string_view lines_a[] = {"Alpha one.", "Alpha two."};
+    const std::string_view lines_b[] = {"Beta one.", "Beta two.", "Beta three."};
+    const std::string a = build_subtitle_translation_block_prompt(
+        lines_a, 2, nullptr, 0, true);
+    const std::string b = build_subtitle_translation_block_prompt(
+        lines_b, 3, nullptr, 0, true);
+
+    // 两份 prompt 的公共前缀必须终止于第一个 "user\n" 之后紧跟的块前缀区结束 ——
+    // 即：前缀 = system 轮 + 全部 few-shot 轮，且不含任何正式块内容。
+    const std::size_t shortest = a.size() < b.size() ? a.size() : b.size();
+    std::size_t common = 0;
+    while (common < shortest && a[common] == b[common]) {
+        ++common;
+    }
+    // 前缀必须覆盖完整 system 轮 + 两个示范轮（演示轮内容两份相同）。
+    const std::string demo_tail = "- The others are waiting for us.";
+    const std::size_t demo_at = a.rfind(demo_tail);
+    assert(demo_at != std::string::npos);
+    const std::size_t demo_end = demo_at + demo_tail.size();
+    assert(common > demo_end);
+    // 前缀之后立即进入正式块：公共前缀里不得出现正式块内容（分叉从行内容开始 ——
+    // 编号 "1. " 是公共的，find 必须从内容起算）。
+    assert(a.find("Alpha one.") >= common);
+    assert(b.find("Beta one.") >= common);
+    std::cout << "PASS: test_block_prompt_prefix_invariant" << std::endl;
+}
+
+void test_block_parse_aligned() {
+    const std::string_view raw = "1. \xe4\xbd\xa0\xe5\xa5\xbd\n2. \xe4\xbd\xa0\xe5\xa5\xbd\xe5\x90\x97\n3. \xe5\x86\x8d\xe8\xa7\x81\n";
+    std::string lines[3];
+    const bool matched = parse_subtitle_translation_block_output(raw, 3, lines);
+    assert(matched);
+    assert(lines[0] == "\xe4\xbd\xa0\xe5\xa5\xbd");   // 你好（6 字节 UTF-8）
+    assert(!lines[1].empty());
+    assert(!lines[2].empty());
+    std::cout << "PASS: test_block_parse_aligned" << std::endl;
+}
+
+void test_block_parse_missing_slot() {
+    // 模型静默漏掉第 2 行：count_matched=false，第 2 槽位保持空串。
+    const std::string_view raw = "1. first\n3. third\n";
+    std::string lines[3];
+    const bool matched = parse_subtitle_translation_block_output(raw, 3, lines);
+    assert(!matched);
+    assert(lines[0] == "first");
+    assert(lines[1].empty());
+    assert(lines[2] == "third");
+    std::cout << "PASS: test_block_parse_missing_slot" << std::endl;
+}
+
+/// 评审 E30：正文里的数字/点号不得被误认成新编号。
+void test_block_parse_body_numbers_ignored() {
+    const std::string_view raw =
+        "1. Version 2.0 ships today\n2. Call 911. Now\n";
+    std::string lines[2];
+    const bool matched = parse_subtitle_translation_block_output(raw, 2, lines);
+    assert(matched);
+    assert(lines[0] == "Version 2.0 ships today");
+    assert(lines[1] == "Call 911. Now");
+    std::cout << "PASS: test_block_parse_body_numbers_ignored" << std::endl;
+}
+
+/// 乱序编号也能对齐（模型偶尔输出乱序；对齐语义与 Python 解析器一致）。
+void test_block_parse_out_of_order() {
+    const std::string_view raw = "2. second\n1. first\n";
+    std::string lines[2];
+    const bool matched = parse_subtitle_translation_block_output(raw, 2, lines);
+    assert(matched);
+    assert(lines[0] == "first");
+    assert(lines[1] == "second");
+    std::cout << "PASS: test_block_parse_out_of_order" << std::endl;
+}
+
 int main() {
+    disable_assert_dialog();
     test_system_prompt_digest();
     test_single_line_prompt_digest();
     test_fewshot_prompt_digest();
@@ -189,6 +346,13 @@ int main() {
     test_has_cjk_guard();
     test_output_prefixes_present();
     test_fewshot_examples_present();
+    test_block_prompt_digests();
+    test_block_prompt_shape();
+    test_block_prompt_prefix_invariant();
+    test_block_parse_aligned();
+    test_block_parse_missing_slot();
+    test_block_parse_body_numbers_ignored();
+    test_block_parse_out_of_order();
 
     std::cout << "All Subtitle Translation Prompt tests passed." << std::endl;
     return 0;

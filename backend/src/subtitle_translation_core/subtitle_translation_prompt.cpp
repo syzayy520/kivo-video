@@ -92,6 +92,126 @@ constexpr std::size_t kOutputPrefixCount = sizeof(kOutputPrefixes) / sizeof(kOut
 
 constexpr std::string_view kThinkClose{"</think>"};
 
+// ---- block mode (few-shot demo turns; grouping mirrors the Python truth) --
+struct SubtitleTranslationBlockDemo
+{
+    std::string_view english[4];
+    std::string_view chinese[4];
+};
+
+constexpr SubtitleTranslationBlockDemo kBlockFewshotDemos[] = {
+    {{{
+            "I cannot hear you clearly."
+        }, {
+            "- You want to call your daddy?"
+        }, {
+            "Look, I don't want any trouble."
+        }, {
+            "What are you doing here?"
+        }},
+     {{
+            "\xe6\x88\x91\xe5\x90\xac\xe4\xb8\x8d\xe6\xb8\x85\xe6\xa5\x9a \xe8\xaf\xb7\xe5\x86\x8d\xe8\xaf"
+            "\xb4\xe4\xb8\x80\xe9\x81\x8d"
+        }, {
+            "- \xe6\x83\xb3\xe7\xbb\x99\xe7\x88\xb8\xe7\x88\xb8\xe6\x89\x93\xe7\x94\xb5\xe8\xaf\x9d\xe5\x90"
+            "\x97?"
+        }, {
+            "\xe5\x90\xac\xe7\x9d\x80 \xe6\x88\x91\xe4\xb8\x8d\xe6\x83\xb3\xe6\x83\xb9\xe9\xba\xbb\xe7\x83"
+            "\xa6"
+        }, {
+            "\xe4\xbd\xa0\xe6\x9d\xa5\xe5\xb9\xb2\xe4\xbb\x80\xe4\xb9\x88?"
+        }}},
+    {{{
+            "We should go. It's getting late."
+        }, {
+            "That's not what I meant."
+        }, {
+            "Get out of my house!"
+        }, {
+            "I'll do it. I promise."
+        }},
+     {{
+            "\xe6\x88\x91\xe4\xbb\xac\xe8\xaf\xa5\xe8\xb5\xb0\xe4\xba\x86 \xe5\xa4\xa9\xe4\xb8\x8d\xe6\x97"
+            "\xa9\xe4\xba\x86"
+        }, {
+            "\xe6\x88\x91\xe4\xb8\x8d\xe6\x98\xaf\xe9\x82\xa3\xe4\xb8\xaa\xe6\x84\x8f\xe6\x80\x9d"
+        }, {
+            "\xe6\xbb\x9a\xe5\x87\xba\xe6\x88\x91\xe5\xae\xb6!"
+        }, {
+            "\xe6\x88\x91\xe6\x9d\xa5 \xe6\x88\x91\xe4\xbf\x9d\xe8\xaf\x81"
+        }}},
+};
+
+constexpr std::size_t kBlockFewshotDemoCount =
+    sizeof(kBlockFewshotDemos) / sizeof(kBlockFewshotDemos[0]);
+
+constexpr std::size_t kBlockFewshotGroupSize = 4;
+
+constexpr std::string_view kBlockDemoContext[] = {
+        {
+        "We need to hurry."
+    }, {
+        "The others are waiting for us."
+    }
+};
+
+constexpr std::size_t kBlockDemoContextCount =
+    sizeof(kBlockDemoContext) / sizeof(kBlockDemoContext[0]);
+
+void append_block_context(std::string& out,
+                          const std::string_view* context,
+                          std::size_t count)
+{
+    if (context == nullptr || count == 0) {
+        return;
+    }
+    out.append(SubtitleTranslationBlockPrompt::block_context_label);
+    for (std::size_t index = 0; index < count; ++index) {
+        out.append("- ");
+        out.append(context[index]);
+        out.push_back('\n');
+    }
+    out.push_back('\n');
+}
+
+void append_block_user_turn(std::string& out,
+                            const std::string_view* lines,
+                            std::size_t count,
+                            const std::string_view* context,
+                            std::size_t context_count)
+{
+    out.append("user\n");
+    append_block_context(out, context, context_count);
+    out.append(SubtitleTranslationBlockPrompt::block_user_prefix);
+    for (std::size_t index = 0; index < count; ++index) {
+        if (index > 0) {
+            out.push_back('\n');
+        }
+        out.append(std::to_string(index + 1));
+        out.append(". ");
+        out.append(lines[index]);
+    }
+    out.append(SubtitleTranslationBlockPrompt::block_user_suffix);
+    out.push_back('\n');
+}
+
+void append_block_assistant_turn(std::string& out,
+                                 const std::string_view* chinese,
+                                 std::size_t count)
+{
+    out.append("assistant\n");
+    out.append(SubtitleTranslationPrompt::think_block);
+    for (std::size_t index = 0; index < count; ++index) {
+        if (index > 0) {
+            out.push_back('\n');
+        }
+        out.append(std::to_string(index + 1));
+        out.append(". ");
+        out.append(chinese[index]);
+    }
+    out.push_back('\n');
+}
+
 void append_user_turn(std::string& out, std::string_view english)
 {
     out.append("user\n");
@@ -257,6 +377,99 @@ std::string build_subtitle_translation_prompt(std::string_view english,
     out.append("assistant\n");
     out.append(SubtitleTranslationPrompt::think_block);
     return out;
+}
+
+std::string build_subtitle_translation_block_prompt(
+    const std::string_view* english_lines, std::size_t line_count,
+    const std::string_view* context_lines, std::size_t context_count,
+    bool fewshot)
+{
+    std::string out;
+    out.append("system\n");
+    out.append(SubtitleTranslationBlockPrompt::block_system_text);
+    out.push_back('\n');
+
+    if (fewshot) {
+        const std::string_view demo_context[] =
+            {kBlockDemoContext[0], kBlockDemoContext[1]};
+        static_assert(kBlockDemoContextCount == 2, "demo context fixed size");
+        for (std::size_t group = 0; group < kBlockFewshotDemoCount; ++group) {
+            append_block_user_turn(out,
+                                   kBlockFewshotDemos[group].english,
+                                   kBlockFewshotGroupSize,
+                                   demo_context, kBlockDemoContextCount);
+            append_block_assistant_turn(out,
+                                        kBlockFewshotDemos[group].chinese,
+                                        kBlockFewshotGroupSize);
+        }
+    }
+
+    append_block_user_turn(out, english_lines, line_count,
+                           context_lines, context_count);
+    out.append("assistant\n");
+    out.append(SubtitleTranslationPrompt::think_block);
+    return out;
+}
+
+bool parse_subtitle_translation_block_output(
+    std::string_view raw, std::size_t expected,
+    std::string* out_lines) noexcept
+{
+    // Mirrors subtitle_prompt.py::parse_block_output:
+    //   skip blank lines; a line contributes only when the head before the
+    //   FIRST '.' is all digits; number is 1-based within [1, expected];
+    //   all slots found -> count_matched; otherwise fill only found slots
+    //   (missing slots stay EMPTY -- never fabricated).
+    for (std::size_t index = 0; index < expected; ++index) {
+        out_lines[index].clear();
+    }
+
+    std::string_view text = trim(raw);
+    std::size_t found = 0;
+
+    // Scan line by line; parse each non-blank line.
+    auto handle_line = [&](std::string_view line) {
+        line = trim(line);
+        if (line.empty()) {
+            return;
+        }
+        const std::size_t dot = line.find('.');
+        if (dot == std::string_view::npos) {
+            return;
+        }
+        std::string_view head = trim(line.substr(0, dot));
+        if (head.empty()) {
+            return;
+        }
+        std::size_t value = 0;
+        for (const char ch : head) {
+            if (ch < '0' || ch > '9') {
+                return;
+            }
+            value = value * 10u + static_cast<std::size_t>(ch - '0');
+        }
+        if (value == 0 || value > expected) {
+            return;
+        }
+        const std::size_t slot = value - 1;
+        if (out_lines[slot].empty()) {
+            ++found;
+        }
+        out_lines[slot] = std::string(trim(line.substr(dot + 1)));
+
+    };
+
+    std::size_t index = 0;
+    std::size_t line_start = 0;
+    while (index <= text.size()) {
+        if (index == text.size() || text[index] == '\n') {
+            handle_line(text.substr(line_start, index - line_start));
+            line_start = index + 1;
+        }
+        ++index;
+    }
+
+    return found == expected;
 }
 
 }  // namespace kivo::cinema_engine
