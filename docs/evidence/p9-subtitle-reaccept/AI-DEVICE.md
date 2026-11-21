@@ -122,3 +122,39 @@
   5s 不可）——后续验证统一 tap 后 0.8s 截图；
 - **panelRevision 时序修复本身已真机验证**：面板稳定显示完整字幕列表
   （tc8 无布局错乱/重影），AI 行灰显副行正确。
+
+
+## 10. 完整链路首验失败：探针翻译与面板行的单任务互斥（2026-11-21）
+
+- **场景**：探针挂英文 SRT（en-srt added=true id=1）→ sleep 14 → UI tap 链
+  （控制条→字幕图标→外挂字幕钻入→AI 行）→ 点击 AI 行（tc9.png，已入本目录）；
+- **结果**：面板仍空态（AI 行「需先添加英文 SRT」、外挂字幕「无外挂字幕」）、
+  无 toast——**翻译未触发**；
+- **根因分析**：探针的 aiSmoke 是 full 模式（挂英文 SRT 后**自动 startTranslation**，
+  翻译约 24s）——UI tap AI 行时探针翻译**仍在跑** → `Controller.startTranslation`
+  的单任务互斥拒绝（runningJob != null → return false）→ handleAiSubtitleRow 的
+  toast「AI 翻译已在进行中」在 tap 后 2~3.5s 消失（截图 sleep 5 未抓到）——
+  **探针自动翻译与面板行点击互斥**（评审 G8/B12 的单任务约束在这个链路上
+  是设计使然，不是 bug）；
+- **工程化解法**：探针加 `kivo.aiSmokeMode` 参数（**mount-only**：只挂英文 SRT
+  不自动翻译——面板行点击成为唯一翻译触发，互斥冲突消除）。
+
+
+## 11. T-C 面板行点击的 native crash 未决 + 取证方案（2026-11-21 追加）
+
+- **现象**：mount-only 探针挂英文 SRT 成功（en-srt added=true id=1）→ UI tap AI 行
+  （探针挂载后同会话）→ **App 进程死亡重启回首页**（pid 24613 → 19229 → 19938
+  重启链；tc10.png 是竖屏首页而非播放器横屏面板）——**面板行点击触发的翻译链
+  native crash 实锤**（进程死 + 重启回首页 + tombstone 符号栈待取）；
+- **crash 点候选（代码级）**：handleAiSubtitleRow → Controller.startTranslation →
+  job.run → nativeParseCues / nativeTranslateBlock（llama 封装的 translate 全流程）；
+- **取证方案（下轮）**：① `ndk-symbolize` 处理 tombstone（符号文件 =
+  spike-build 的未 strip kivo_ai.so 或 ndk 的 llvm-symbolizer）；② 或
+  `adb shell debuggerd -b <pid>` 临时 backtrace（复现时抓）；
+  ③ **加固先行**：handleAiSubtitleRow 的 translate 调用前加**最小输入防御**
+  （n_ctx 预算在引擎 translate 已有——**优先怀疑 unit 构造/BNF 差异**）；
+- **探针 mount-only 模式**（本轮落盘）：`kivo.aiSmokeMode=mount` 只挂英文 SRT
+  不自动翻译——面板行点击成为唯一翻译触发（消除探针翻译与面板行互斥，tc9 §10）；
+- **已验证（本节前）**：探针 full 模式端到端 ✓（三轮 23.3~23.5s）、mount-only
+  探针链 ✓（model/loaded/en-srt/mount-only done 四段）、面板 AI 行显示与
+  空态文案 ✓（tc4/tc5）、空态可点 toast ✓（tc6）。

@@ -169,6 +169,9 @@ internal fun PlayerComposeActivity.applyProbeAiSmoke() {
     smbTrace("ai-smoke probe-enter extra=$smokeExtra")
     if (!smokeExtra) return
     val delayMs = intent.getIntExtra("kivo.aiSmokeDelayMs", 5_000).coerceAtLeast(0).toLong()
+    // mode：full（默认，挂载+自动翻译）/ mount（只挂英文 SRT——面板行点击成为
+    // 唯一翻译触发，消除探针自动翻译与面板行单任务互斥的时序冲突，tc9 根因）。
+    val mode = intent.getStringExtra("kivo.aiSmokeMode")?.trim().orEmpty().ifBlank { "full" }
     android.os.Handler(mainLooper).postDelayed({
         Thread {
             // 【可读性】外部目录日志 —— adb shell cat 直接可读，不绕 run-as
@@ -212,6 +215,13 @@ internal fun PlayerComposeActivity.applyProbeAiSmoke() {
                     ?.filter { it.external }?.lastOrNull()?.id
                 if (newId != null) { mpv.selectSubtitle(newId) }
                 aiTrace("ai-smoke en-srt added=$added id=$newId")
+                if (mode == "mount") {
+                    // mount-only：英文字幕已挂，面板行点击走 Controller.startTranslation
+                    //（探针不自动翻译——单任务互斥不再与面板行点击冲突，AI-DEVICE §10）。
+                    aiTrace("ai-smoke mount-only done")
+                    statusText = "AI 冒烟：英文字幕已挂载，可在面板点击 AI 中文字幕"
+                    return@Thread
+                }
             }
             statusText = "AI 冒烟：翻译中"
             aiTrace("ai-smoke pre-start")
