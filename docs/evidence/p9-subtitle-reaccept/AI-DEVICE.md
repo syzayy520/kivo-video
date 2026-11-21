@@ -75,3 +75,17 @@
   APK 均为旧产物（T-C 代码从未装机），改走 run_apk.bat 后 AI 行立即显示；
 - **v1 偏差登记**：行内实时状态投影（UX v3 §3 四态副行）列 T-C 后续——
   v1 状态可见性走 statusText 与 toast。
+
+
+## 7. 翻译启动卡住的排查结论（分段 trace 定位，2026-11-21 追加）
+
+- **第四轮「翻译卡住」（日志停 en-srt 后无 progress）的定位**：App 进程残留实例
+  接收 intent 不重跑首帧链 → 探针未触发；force-stop 全新起播后**分段 trace 证实
+  探针 Thread 3ms 正常走完**（pre-start → calling-start → start-returned）、
+  **job Thread 23.4s 完成翻译**（TRANSLATING → COMPLETED）——**卡住是双实例竞态的
+  一次性事故，单例化修复已覆盖，非稳定复现**；
+- **端到端复现稳定**：三轮翻译耗时 23.5 / 23.3 / 23.4s（探针分段 trace 逐次采集）；
+- 分段 trace 通道：探针 aiTrace（外部日志）+ Job.run Log.i("kivo-ai")（logcat）——
+  后续 T-C 真机验收沿用；
+- logcat 的 job 分段本轮未抓到（grep 时机/过滤待查）——不影响核心结论（探针
+  分段已覆盖调用链全部三段）。

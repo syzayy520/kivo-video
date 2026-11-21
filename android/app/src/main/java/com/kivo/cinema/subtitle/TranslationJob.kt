@@ -71,9 +71,11 @@ class TranslationJob(
     /// 的 Thread{} 模式一致；单翻译线程由 AiEngineClient 的 executor 保证）。
     fun run(sourceSrt: String, playheadMs: Long): TranslationJobResult {
         val cacheKey = TranslationCache.cacheKey(sourceSrt)
+        android.util.Log.i("kivo-ai", "job: cacheKey computed")
         val sourceHash = TranslationCache.sha256Hex(sourceSrt)
 
         // ---- 缓存命中：秒级返回（二次观看，评审 E24/G11）----
+        android.util.Log.i("kivo-ai", "job: cache checking")
         if (TranslationCache.hasTranslation(context, cacheKey)) {
             return TranslationJobResult(
                 TranslationCache.translationFile(context, cacheKey).absolutePath,
@@ -82,6 +84,7 @@ class TranslationJob(
         }
 
         // ---- 装配（C++ cue_assembler 权威实现，JNI 平铺）----
+        android.util.Log.i("kivo-ai", "job: cache missed, parsing cues")
         val rows = if (AiTranslationNative.available) {
             AiTranslationNative.nativeParseCues(sourceSrt)
         } else {
@@ -126,6 +129,7 @@ class TranslationJob(
         // ---- 领先窗口逐块（播放头所在块起 → 后续块 → 回填；简化 pick）----
         val orderedBlocks = orderBlocksForPlayhead(blocks, cues, playheadMs)
 
+        android.util.Log.i("kivo-ai", "job: blocks=${blocks.size} cues=${cues.size}")
         val translations = arrayOfNulls<String>(cues.size)
         var llmCount = 0
         var failedCount = 0
@@ -145,12 +149,14 @@ class TranslationJob(
             var response: AiTranslateResponse? = null
             // 【latch 同步】translateBlock 是异步回调（DEC-13 接口）——
             // 不等待就读 response 是竞态（回调几乎必然未执行，实测恒 null）。
+            android.util.Log.i("kivo-ai", "job: block=${block.first} submitting")
             val latch = CountDownLatch(1)
             client.translateBlock(request) { result ->
                 response = result.getOrNull()
                 latch.countDown()
             }
             latch.await(15, TimeUnit.MINUTES)
+            android.util.Log.i("kivo-ai", "job: block=${block.first} latch released")
             val slots = response?.slots?.toMutableList()
             if (slots == null) {
                 // 引擎未就绪/整批失败 → 任务失败。

@@ -214,12 +214,14 @@ internal fun PlayerComposeActivity.applyProbeAiSmoke() {
                 aiTrace("ai-smoke en-srt added=$added id=$newId")
             }
             statusText = "AI 冒烟：翻译中"
+            aiTrace("ai-smoke pre-start")
             // 内置测试 SRT：对白 + [Music]（规则映射零 token）+ 对白。
             val srt = buildString {
                 append("1\n00:00:01,000 --> 00:00:03,000\nI thought you were leaving.\n\n")
                 append("2\n00:00:04,000 --> 00:00:06,000\n[Music]\n\n")
                 append("3\n00:00:07,000 --> 00:00:09,000\nStop right there.\n")
             }
+            aiTrace("ai-smoke calling-start")
             controller.startTranslation(
                 srt,
                 playheadMs = 0,
@@ -240,6 +242,7 @@ internal fun PlayerComposeActivity.applyProbeAiSmoke() {
                     }
                 },
             )
+            aiTrace("ai-smoke start-returned")
         }.start()
     }, delayMs)
 }
