@@ -1,0 +1,33 @@
+FAIL-3 · 修复前定性证据（b6e950ee · 含 wave-1 代码的构建）
+
+一、真机复现（2026-11-19 21:23-21:25）
+- 字幕入口面板已打开（router togglePanel->subtitle 有记录），点击「导入字幕」行：
+  1795094674995 touch probe x=2002 y=1012 consumed=true   ← 事件被消费
+  之后无任何 "sub-import: launching SAF picker" 追踪行；topResumedActivity
+  始终 PlayerComposeActivity；无 toast；SAF 未拉起。
+- 同样点击「关闭字幕」行也无任何动作（同一面板、同一根因）。
+
+二、根因（代码级，file:line）
+SubtitlePanelActions.kt（修复前）:
+    internal val SUBTITLE_PANELS = setOf(
+        "subtitleDisplay", "subtitleTracks", "subtitleExternal", "subtitleSecondary",
+    )
+    internal fun PlayerComposeActivity.handleSubtitleSelect(panel, item): Boolean {
+        if (panel !in SUBTITLE_PANELS) return false      // ← 入口面板被挡在这里
+        when {
+            item.tag == "sub-import" -> launchSubtitleImport()
+            item.tag == "sub-off" -> writeSubtitleOff()
+            ...
+PlayerPanelRouter.onPanelSelect:
+    if (item.control == CHEVRON && tag in DRILL_KINDS) → 钻入（正常）
+    if (handleSubtitleSelect(panel, item)) return        // 入口面板返回 false
+    ... → writeSelection(panel, item)                    // 对未知 tag 静默 no-op
+
+字幕入口面板的 kind 是 "subtitle"（PlayerPanelItems.kt:106），而入口面板里
+`导入字幕`(tag=sub-import) 与 `关闭字幕`(tag=sub-off) 只在这里出现 ⇒ 两行永远
+到不了 handleSubtitleSelect 的分支，点击被静默丢弃。这正是验收所见
+"点了没反应、无 toast、无选择器、前台 Activity 不变"的机制（并非环境问题）。
+
+三、修复
+SUBTITLE_PANELS 增加 "subtitle"（一行最小修复）。修复后真机证据：
+ui-fix3-saf-fixed.* / fail3-import-*.txt（见本目录其他文件）。

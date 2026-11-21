@@ -54,16 +54,25 @@ internal object SubtitleFontSet {
      * 族名 = 该文件 **0 号 face** 的族名 —— libass 加载 TTC 时只取 0 号 face
      * （libass 的 `ass_font.c`：`FT_Open_Face` 的 index 来自选中的那一张），
      * 而 Android 的 `NotoSansCJK-Regular.ttc` 0 号 face 是 JP。
-     * 字形层面无损失：CJK 全字集每个 face 都带，中文照样显示。
+     *
+     * ⚠️【2026-11-22 更正】这里原先写着"字形层面无损失：CJK 全字集每个 face 都带，中文照样显示" ——
+     * **这句话是错的**：字集确实都有，但 **face 决定字形**。JP face 下「直 / 骨 / 含 / 关」是日文写法，
+     * 简体用户一眼能看出"字幕字形怪"。而"改族名成 `Noto Sans CJK SC`"**也无效**（libass 只开 0 号 face，
+     * 见上一句）。所以只能**换文件**：MiSans（小米自研、简中字形）优先，Noto(JP) 降为回退。
      */
     private class Candidate(val path: String, val family: String)
 
     private val PRIMARY_CANDIDATES = listOf(
+        // ⚠️【2026-11-22 实测】"换成简中字体"这条路在现有 libass/FreeType 构建下**走不通**：
+        // · MiSansVF.ttf —— 可变字体（fvar），libass 打开后**字幕整段不渲染**（1921 → 0 亮像素）；
+        // · MiSansL3.otf —— CFF/OTTO，FreeType 无 CFF 驱动，同样整段不渲染（截图与上一条逐字节相同）；
+        // · DroidSansFallback.ttf —— 本机 /system/fonts 里**不存在**（候选行是历史遗留）。
+        // ⇒ 只能用 Noto CJK TTC 的 0 号 face（JP 字形）。要真出 SC 字形，必须重编 libass+FreeType（启用 CFF）
+        //    或把一份 TrueType 简中字体打进 assets（约 +10MB 包体）。见 255 勘察记录 §2。
         Candidate("/system/fonts/NotoSansCJK-Regular.ttc", "Noto Sans CJK JP"),
         Candidate("/system/fonts/NotoSerifCJK-Regular.ttc", "Noto Serif CJK JP"),
         Candidate("/system/fonts/DroidSansFallback.ttf", "Droid Sans Fallback"),
         Candidate("/system/fonts/DroidSansFallbackFull.ttf", "Droid Sans Fallback"),
-        Candidate("/system/fonts/MiSansVF.ttf", "MiSans"),
     )
 
     /**

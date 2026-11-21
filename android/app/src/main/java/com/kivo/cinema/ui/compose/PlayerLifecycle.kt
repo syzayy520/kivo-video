@@ -11,7 +11,15 @@ package com.kivo.cinema.ui.compose
  * 所以 isInPictureInPictureMode / pipActive 任一为真就不暂停。
  */
 
+internal fun PlayerComposeActivity.cancelPlayerGestures() {
+    gestureEpoch++
+    cancelScrub()
+    cancelLevelGesture()
+    onLongPressCancel()
+}
+
 internal fun PlayerComposeActivity.onPlayerStop() {
+    cancelPlayerGestures()
     if (isInPictureInPictureMode || pipActive) return
     if (playbackPrefs.backgroundAudio) return
     if (!isPlaying) return

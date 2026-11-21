@@ -3,15 +3,17 @@ package com.kivo.cinema.ui.compose.player
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,99 +22,102 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.abs
+import com.kivo.cinema.ui.compose.player.feedback.playerFeedbackSurface
 
-/**
- * 拖动进度时的**预览浮窗**（v3 §1.5）。
- *
- * 实测：缩略图 167×90pt、白描边 2pt、圆角 8pt、中心跟随拖点；
- * 浮窗**左侧**一个 48pt 毛玻璃圆钮＝拖动中一键截取当前帧为剧照。
- *
- * 【为什么必须向上偏移】浮窗与轨道同层，只 offset(x) 的话它会从轨道顶部
- * **往下铺 90pt**，把按钮行整个盖住（v2 实机：底部文字被水平切断且点不到）。
- * 现在底边贴轨道上沿，且用 offset 而非 padding ⇒ **不占布局高度**。
- *
- * 【没有缩略图时画什么】画一个深色空框，而不是返回不画 ——
- * 浮窗的几何是参考的一部分，缺帧时保持形状、内容留空，
- * 比"有时有浮窗有时没有"更容易让用户理解正在发生什么。
- */
+/** 预览卡几何唯一来源：卡本体与 Popup 落位共用，避免两处各算一遍。 */
+internal fun seekPreviewWidth(durationMs: Long, containerWidth: Dp): Dp =
+    minOf(if (durationMs >= 3_600_000L) 224.dp else 190.dp, containerWidth)
+
+internal fun seekPreviewHeight(width: Dp, showFrame: Boolean): Dp =
+    if (showFrame) (width - 12.dp) * 9f / 16f + 68.dp else 62.dp
+
 @Composable
 internal fun PlayerSeekPreview(
     bitmap: Bitmap?,
     unavailableReason: String,
-    fraction: Float,
     targetMs: Long,
+    originMs: Long,
+    durationMs: Long,
+    showFrame: Boolean,
     containerWidth: Dp,
     onCapture: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val popupWidth = PlayerTokens.previewWidth.dp
-    val popupHeight = PlayerTokens.previewHeight.dp
-    val camera = PlayerTokens.previewCameraSize.dp
-    val gap = 8.dp
-    val totalWidth = camera + gap + popupWidth
-    // 贴边保护：两端不让浮窗跑出屏幕。
-    val centerX = containerWidth * fraction.coerceIn(0f, 1f)
-    val x = (centerX - totalWidth / 2).coerceIn(0.dp, (containerWidth - totalWidth).coerceAtLeast(0.dp))
-    val shape = RoundedCornerShape(PlayerTokens.previewRadius.dp)
+    val width = seekPreviewWidth(durationMs, containerWidth)
+    val height = seekPreviewHeight(width, showFrame)
+    val frameHeight = (width - 12.dp) * 9f / 16f
+    val delta = targetMs - originMs
+    val direction = when { delta > 0 -> "向前"; delta < 0 -> "向后"; else -> "" }
+    val deltaText = when {
+        delta == 0L -> "保持当前位置"
+        abs(delta) < 1_000L -> "${direction}不足 1 秒"
+        else -> "$direction ${formatPlayerTime(abs(delta))}"
+    }
 
-    Row(
-        modifier = modifier
-            .offset(x = x, y = -(popupHeight + gap))
-            // 轨道宿主只有 trackHitHeight 高：不用 requiredHeight 的话
-            // 传入约束会把 90pt 浮窗压成一条扁条（真机实测 54px）。
-            .requiredHeight(popupHeight),
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
+        modifier = modifier.width(width)
+            .requiredHeight(height).playerFeedbackSurface(14.dp).padding(6.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(camera)
-                .clip(CircleShape)
-                .background(PlayerTokens.panelSurface)
-                .border(1.dp, PlayerTokens.panelBorder, CircleShape)
-                .pointerInput(Unit) { detectTapGestures(onTap = { onCapture() }) },
-            contentAlignment = Alignment.Center,
-        ) {
-            PlayerGlyph(
-                kind = "camera",
-                color = PlayerTokens.textPrimary,
-                modifier = Modifier.size(22.dp),
-            )
+        if (showFrame) {
+            Box(
+                modifier = Modifier.fillMaxWidth().height(frameHeight)
+                    .clip(RoundedCornerShape(8.dp)).background(Color(0xFF182321)),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (bitmap != null && !bitmap.isRecycled) {
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "目标 ${formatPlayerTime(targetMs)} 附近的预览画面",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxWidth().height(frameHeight),
+                    )
+                } else {
+                    Text(
+                        unavailableReason.ifBlank { "预览帧准备中…" },
+                        color = Color.White.copy(alpha = .65f), fontSize = 11.sp,
+                        textAlign = TextAlign.Center, maxLines = 3,
+                        overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(8.dp),
+                    )
+                }
+            }
         }
-        Box(
-            modifier = Modifier
-                .padding(start = gap)
-                .size(width = popupWidth, height = popupHeight)
-                .clip(shape)
-                .background(Color(0xFF101012))
-                .border(PlayerTokens.previewBorder.dp, Color.White, shape),
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 5.dp, top = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (bitmap != null) {
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = "拖动目标 ${formatPlayerTime(targetMs)} 的画面",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(width = popupWidth, height = popupHeight),
-                )
-            } else if (unavailableReason.isNotEmpty()) {
-                // 不许静默降级：产不出帧就把原因画进空框，而不是让用户对着黑框猜。
-                Text(
-                    text = unavailableReason,
-                    color = Color.White.copy(alpha = 0.6f),
-                    fontSize = 11.sp,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(6.dp),
-                )
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        formatPlayerTime(targetMs), color = Color(0xFFF2F5ED),
+                        fontSize = if (durationMs >= 3_600_000L) 20.sp else 22.sp,
+                        fontWeight = FontWeight.Medium, maxLines = 1,
+                        style = TextStyle(fontFeatureSettings = "tnum"),
+                    )
+                    Text(
+                        "/ ${formatPlayerTime(durationMs)}", color = Color.White.copy(alpha = .5f),
+                        fontSize = 10.sp, maxLines = 1, modifier = Modifier.padding(bottom = 3.dp),
+                    )
+                }
+                Text(deltaText, color = Color(0xFFBFCEB8), fontSize = 10.sp, maxLines = 1)
+            }
+            Box(
+                modifier = Modifier.size(32.dp).clickable(role = Role.Button, onClickLabel = "截取当前播放画面", onClick = onCapture),
+                contentAlignment = Alignment.Center,
+            ) {
+                PlayerGlyph("camera", color = PlayerTokens.textSecondary, modifier = Modifier.size(15.dp))
             }
         }
     }

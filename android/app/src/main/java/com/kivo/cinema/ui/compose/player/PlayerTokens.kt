@@ -46,7 +46,13 @@ object PlayerTokens {
     val bottomScrimTop = Color(0x00000000)
     val bottomScrimBottom = Color(0x8C000000)
 
-    /** 面板玻璃底（§1.3：黑 ≈75%）。 */
+    /**
+     * 面板玻璃底（§1.3 旧口径：黑 ≈75%）。
+     *
+     * **已废弃**：v2 起所有浮层/面板统一走 [playerPanelSurface]（[PlayerPanelStyle] 的
+     * 冷灰蓝渐变 + 边缘体系）。保留常量只为对齐历史证据文档里的行号，不要再新用。
+     */
+    @Deprecated("面板材质已统一到 playerPanelSurface() / PlayerPanelStyle，见 PlayerPanelSurface.kt")
     val panelSurface = Color(0xBF000000)
 
     /** 玻璃顶部高光（替代 Android 做不出的背景模糊）。 */

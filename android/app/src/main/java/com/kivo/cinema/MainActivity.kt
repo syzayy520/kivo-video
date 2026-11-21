@@ -11,6 +11,17 @@ import androidx.compose.runtime.setValue
 import com.kivo.cinema.library.MediaItem
 import com.kivo.cinema.stats.WatchStore
 import com.kivo.cinema.tmdb.TmdbClient
+import android.graphics.Bitmap
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import com.kivo.cinema.library.HomeEntry
+import com.kivo.cinema.thumbnail.ThumbnailReader
 import com.kivo.cinema.tmdb.TmdbHome
 import com.kivo.cinema.ui.design.home.HomePreferences
 
@@ -216,4 +227,47 @@ class MainActivity : ComponentActivity() {
             else -> entry.mediaItem?.let { openPlayer(it) }
         }
     }
+}
+
+
+/** 本地/NAS 海报：`ThumbnailReader` 抽 30s 帧；`onUnavailable` 必须写原因（铁律：不许静默降级）。 */
+@Composable
+internal fun MainActivity.posterForMedia(media: MediaItem): (@Composable () -> Unit) {
+    val path = media.path
+    return {
+        val reader = remember(path) { ThumbnailReader(path) }
+        val bmp by produceState<Bitmap?>(initialValue = null, path) {
+            reader.onThumbnailReady = { _, b -> value = b }
+            reader.onUnavailable = { _, reason ->
+                com.kivo.cinema.net.NetDiag.log("[home-poster] $path unavailable: $reason")
+            }
+            reader.seekTo(30_000_000L)
+        }
+        DisposableEffect(path) { onDispose { reader.release() } }
+        Box(Modifier.fillMaxSize()) {
+            bmp?.let {
+                Image(it.asImageBitmap(), contentDescription = media.title, modifier = Modifier.fillMaxSize())
+            }
+        }
+    }
+}
+
+/**
+ * `HomeEntry` → 旧 `Pair<MediaItem, Progress>` 的**无损**映射。
+ *
+ * Local/Smb 才有 `mediaItem`；Emby 条目没有 ⇒ 返回 null（看板/在看本就不消费它）。
+ */
+internal fun MainActivity.openMediaItem(m: MediaItem) {
+    // 「在看」点卡片 = 接着看：本地**直接续播**，与「继续观看」口径一致，
+    // 不走 openNasEntry 的详情页（那是"浏览片库"语义，不是续播）。
+    startActivity(
+        android.content.Intent(this, com.kivo.cinema.ui.compose.PlayerComposeActivity::class.java)
+            .putExtra("kivo.media", m.path)
+            .putExtra("kivo.label", m.title),
+    )
+}
+
+internal fun HomeEntry.toPair(): Pair<MediaItem, WatchStore.Progress>? {
+    val m = mediaItem ?: return null
+    return m to WatchStore.Progress(positionMs, durationMs, lastPlayedMs)
 }

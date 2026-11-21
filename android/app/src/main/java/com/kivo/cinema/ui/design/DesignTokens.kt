@@ -23,6 +23,8 @@ object DesignTokens {
 
     // 语义色板（浅色态实测硬参数；深色态见 DesignPalette.Dark）
     val canvasFill = DesignPalette.Light.canvasFill            // 卡片/内容画布
+    /** 海报加载中/失败时的占位底色（与画布同底）。 */
+    val posterPlaceholder = canvasFill
     val groupedFill = DesignPalette.Light.groupedFill          // 分组列表底
     val pageBackground = DesignPalette.Light.pageBackground    // 页面底色 = 统一扁平画布（首页 resting/资源库/我的/设置）
     val hairline = DesignPalette.Light.hairline                // 分隔线/描边（黑 5%）

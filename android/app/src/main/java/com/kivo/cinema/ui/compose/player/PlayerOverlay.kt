@@ -1,65 +1,34 @@
 package com.kivo.cinema.ui.compose.player
 
 import android.graphics.Bitmap
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.kivo.cinema.playback.MpvPlaybackSession
+import com.kivo.cinema.ui.compose.player.seek.PlayerScrubState
+import com.kivo.cinema.ui.compose.player.seek.PlayerSeekPreviewAnchor
+import com.kivo.cinema.ui.compose.player.seek.seekPreviewLeftTop
 
-/**
- * 播放页覆盖层编排（v3 §一/§二/§三）。
- *
- * ## 叠放顺序（从下到上）—— 功能正确性，不只是视觉
- * ```
- *   状态层（加载/失败）   ← 最上，压住一切
- *   手势闪示 / 轻提示 / HUD / 长按标签
- *   浮层面板（玻璃列表/微调卡）
- *   暂停态浮相机钮 / 顶栏 / 底栏（含内联资源槽与选集带）
- *   锁定态挂锁 / 听视频居中块
- *   手势层               ← 最下面（兜底点画面）
- * ```
- * 手势层必须在最下面：它是全屏 pointerInput，放上面会把所有按钮吃掉
- * （v1 实机：按钮全部点不动）。
- *
- * ## 整屏态
- * 听视频（形态13）**不替换控制条**：只把视频区换成黑底居中块，
- * 顶栏隐 PiP、耳机白圆亮。锁定态只画挂锁，但手势层的双击/长按通道保留
- * （锁定不是全禁）。字幕由 libmpv/libass 合成进视频帧（§1.6），
- * Compose 不再自绘字幕层。
- *
- * ## PiP 态（v3.1）
- * [pipActive] 时**整层不组合**：小窗里只有视频帧，任何 chrome/手势层
- * 都会在小窗上变成误触区。退出 PiP 后由 onPipModeChanged 恢复控制条。
- *
- * ## 过渡（§三，全部带 G1 降级）
- * 控制条 fade+位移 180/140ms；面板 fade+0.94 缩放 200/150ms；
- * Reduce Motion ⇒ 位移/缩放归零，只留 alpha。
- */
 @Composable
 internal fun PlayerOverlay(
     visible: Boolean,
+    mpvSession: MpvPlaybackSession? = null,
     title: String,
     speedText: String,
     isPlaying: Boolean,
@@ -72,7 +41,7 @@ internal fun PlayerOverlay(
     bufferedFraction: Float,
     thumbnailBitmap: Bitmap?,
     thumbUnavailable: String,
-    previewMs: Long,
+    scrub: PlayerScrubState,
     resolutionLabel: String,
     phase: PlayerPhase,
     activeAction: String,
@@ -80,20 +49,17 @@ internal fun PlayerOverlay(
     panelTitle: String,
     panelItems: List<PlayerOptionItem>,
     flashZone: DoubleTapZone?,
+    flashEventId: Long,
     toastText: String,
     hudKind: PlayerHudKind?,
     hudFraction: Float,
-    /** 317：横滑 seek HUD 的目标时刻（SEEK_* 时显示；其余 kind 不用）。 */
-    hudSeekTargetMs: Long,
-    /** 317：横滑的偏移量（负=后退）与总时长，用于两行 HUD。 */
-    hudSeekDeltaMs: Long,
-    hudTotalDurationMs: Long,
+    hudOriginFraction: Float,
+    hudDragging: Boolean,
     longPressSpeedLabel: String,
     longPressLocked: Boolean,
-    /** 317：长按快进是否**正在生效**（拖动中或已锁定）—— 用于压掉横/竖滑。 */
     longPressActive: Boolean,
     screenLocked: Boolean,
-    /** B4-T3：双指缩放状态（组合根 `rememberPinchScale` 持有）；倍数作用于视频容器。 */
+    gestureEpoch: Long,
     pinch: PinchScaleState,
     lockHintVisible: Boolean,
     audioOnly: Boolean,
@@ -112,6 +78,7 @@ internal fun PlayerOverlay(
     onTextAction: (String) -> Unit,
     onPanelSelect: (PlayerOptionItem) -> Unit,
     onPanelStep: (PlayerOptionItem, Int) -> Unit,
+    onPanelLongPress: (PlayerOptionItem) -> Unit,
     onCapture: () -> Unit,
     onEpisodeOrder: () -> Unit,
     onTap: () -> Unit,
@@ -127,51 +94,56 @@ internal fun PlayerOverlay(
     onLongPressStart: (Float, Float) -> Unit,
     onLongPressDrag: (Float, Float) -> Unit,
     onLongPressEnd: () -> Unit,
+    onLongPressCancel: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // 审查 P1-4：统一用 MotionGate（系统无障碍 + App 开关取或），删 PlayerPanelHost 第二套只查单 scale 的门。
     val reduceMotion = com.kivo.cinema.ui.motion.MotionGate.rememberAppReduceMotion()
     val inline = PlayerPanelHost.isInline(activePanel)
     val panelOpen = activePanel.isNotBlank() && !inline
-    // 内联形态（资源/选集）的内容住在底栏里 ⇒ 底栏必须跟着显形。
-    // 听视频态控制条保留 ⇒ 这里不再排除 audioOnly。
+    // 面板背后那层"当前帧模糊版"：只在面板真正打开（且未锁屏）时抓一次，
+    // 关闭立即回到 null ⇒ 面板退场动画期间仍用最后一张（§2.2 C-BACKDROP@1）。
+    val backdrop = rememberPanelBackdrop(mpvSession, open = panelOpen && !screenLocked)
     val barsVisible = (visible || inline) && !screenLocked
-    // 面板真实矩形（根坐标系）：FloatingPanel 实测发布，底栏据此隐去被盖住的文字。
     val panelRect = remember { mutableStateOf<Rect?>(null) }
+    val previewAnchor = remember { PlayerSeekPreviewAnchor() }
+    var lastHudKind by remember { mutableStateOf(PlayerHudKind.VOLUME) }
+    SideEffect { if (hudKind != null) lastHudKind = hudKind }
+    val levelSide = if ((hudKind ?: lastHudKind) == PlayerHudKind.BRIGHTNESS) Alignment.CenterStart else Alignment.CenterEnd
 
     Box(modifier = modifier.fillMaxSize()) {
-        // PiP 小窗：不画任何 chrome、不挂手势层（见文件头"PiP 态"）。
         if (pipActive) return@Box
-        PlayerGestureLayer(
-            onTap = {
-                when {
-                    panelOpen || inline -> onDismissPanel()
-                    screenLocked -> onLockHint()
-                    else -> onTap()
-                }
-            },
-            onDoubleTap = onDoubleTap,
-            locked = screenLocked,
-            pinch = pinch,
-            suppressSwipe = longPressActive,
-            onHorizontalDragStart = onHorizontalDragStart,
-            onHorizontalDrag = onHorizontalDrag,
-            onHorizontalDragEnd = onHorizontalDragEnd,
-            onVerticalDragStart = onVerticalDragStart,
-            onVerticalDrag = onVerticalDrag,
-            onVerticalDragEnd = onVerticalDragEnd,
-            onLongPressStart = onLongPressStart,
-            onLongPressDrag = onLongPressDrag,
-            onLongPressEnd = onLongPressEnd,
-        )
-
-        if (audioOnly) {
-            PlayerAudioOnly(modifier = Modifier.align(Alignment.Center))
+        // 兜底手势层必须低于控件；失焦或控件接管时撤销尚未派发的点击。
+        key(gestureEpoch) {
+            PlayerGestureLayer(
+                onTap = {
+                    when {
+                        panelOpen || inline -> onDismissPanel()
+                        screenLocked -> onLockHint()
+                        else -> onTap()
+                    }
+                },
+                onDoubleTap = onDoubleTap,
+                locked = screenLocked,
+                pinch = pinch,
+                suppressSwipe = longPressActive || longPressLocked,
+                onHorizontalDragStart = onHorizontalDragStart,
+                onHorizontalDrag = onHorizontalDrag,
+                onHorizontalDragEnd = onHorizontalDragEnd,
+                onVerticalDragStart = onVerticalDragStart,
+                onVerticalDrag = onVerticalDrag,
+                onVerticalDragEnd = onVerticalDragEnd,
+                onLongPressStart = onLongPressStart,
+                onLongPressDrag = onLongPressDrag,
+                onLongPressEnd = onLongPressEnd,
+                onLongPressCancel = onLongPressCancel,
+            )
         }
+        if (audioOnly) PlayerAudioOnly(modifier = Modifier.align(Alignment.Center))
         PlayerBarsSlot(
             visible = barsVisible,
             reduceMotion = reduceMotion,
+            panelOpen = panelOpen,
             title = title,
             speedText = speedText,
             activeAction = activeAction,
@@ -181,12 +153,10 @@ internal fun PlayerOverlay(
             positionMs = positionMs,
             durationMs = durationMs,
             showRemaining = showRemaining,
-            scrubPreview = scrubPreview,
             showNextButton = showNextButton,
             bufferedFraction = bufferedFraction,
-            thumbnailBitmap = thumbnailBitmap,
-            thumbUnavailable = thumbUnavailable,
-            previewMs = previewMs,
+            scrub = scrub,
+            previewAnchor = previewAnchor,
             resolutionLabel = resolutionLabel,
             expandedPanel = if (inline) activePanel else "",
             panelItems = panelItems,
@@ -202,20 +172,51 @@ internal fun PlayerOverlay(
             onScrubEnd = onScrubEnd,
             onTextAction = onTextAction,
             onPanelSelect = onPanelSelect,
-            onCapture = onCapture,
             onEpisodeOrder = onEpisodeOrder,
         )
-        if (barsVisible && !isPlaying && !audioOnly && showCaptureButton) {
-            PlayerCaptureButton(
-                onCapture = onCapture,
-                modifier = Modifier.align(Alignment.CenterStart),
+        // 预览卡挂根 Box：轨道盒内落位被祖先加偏（真机 25–32），根 Box align+padding 实测正确。
+        val previewTrack = previewAnchor.trackBounds
+        if (previewTrack != null) {
+            val cardAlpha by animateFloatAsState(
+                targetValue = if (scrub.visible) 1f else 0f,
+                animationSpec = tween(
+                    if (scrub.visible) (if (reduceMotion) 100 else 120)
+                    else (if (reduceMotion) 100 else 180),
+                ),
+                label = "seekPreviewAlpha",
             )
+            if (cardAlpha > 0f) {
+                val (left, top) = seekPreviewLeftTop(
+                    track = previewTrack,
+                    durationMs = durationMs,
+                    targetMs = scrub.targetMs,
+                    showFrame = scrubPreview,
+                    density = LocalDensity.current.density,
+                )
+                PlayerSeekPreview(
+                    bitmap = thumbnailBitmap,
+                    unavailableReason = thumbUnavailable,
+                    targetMs = scrub.targetMs,
+                    originMs = scrub.originMs,
+                    durationMs = durationMs,
+                    showFrame = scrubPreview,
+                    containerWidth = (previewTrack.width / LocalDensity.current.density).dp,
+                    onCapture = onCapture,
+                    modifier = Modifier.align(Alignment.TopStart)
+                        .padding(start = left, top = top)
+                        .graphicsLayer { alpha = cardAlpha },
+                )
+            }
         }
+        if (barsVisible && !isPlaying && !audioOnly && showCaptureButton) {
+            PlayerCaptureButton(onCapture = onCapture, modifier = Modifier.align(Alignment.CenterStart))
+        }
+        // 【稳定组合身份】前面 `if (previewTrack != null)` 这类块会让后面兄弟的 slot 移位，
+        // 面板的 remember（alpha/快照）会随之被重置 ⇒ 退场动画永远跑不出来。key() 钉住身份。
+        key("floating-panel") {
         FloatingPanel(
             kind = activePanel,
             open = panelOpen && !screenLocked,
-            // B4-T1：面板锚在触发控件上（kind 反查；钻入子面板仍跟父面板的图标/按钮）。
-            anchor = PlayerPanelHost.anchorFor(activePanel),
             reduceMotion = reduceMotion,
             audioOnly = audioOnly,
             title = panelTitle,
@@ -224,39 +225,37 @@ internal fun PlayerOverlay(
             onStep = onPanelStep,
             onDismiss = onDismissPanel,
             panelRect = panelRect,
+            onLongSelect = onPanelLongPress,
+            backdrop = backdrop,
         )
+        }
         PlayerLockLayer(
             visible = screenLocked && lockHintVisible,
             onUnlock = onUnlock,
             modifier = Modifier.align(Alignment.BottomStart),
         )
-
         PlayerLongPressHud(
             speedLabel = longPressSpeedLabel,
             locked = longPressLocked,
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier.align(Alignment.TopCenter)
+                .playerSafeArea(WindowInsetsSides.Top).padding(top = 12.dp),
         )
-        // 常挂 + visible 驱动：退出时整棵子树淡出 300ms，而不是被 if 直接摘掉。
         PlayerGestureHud(
-            seekTargetMs = hudSeekTargetMs,
-            seekDeltaMs = hudSeekDeltaMs,
-            totalDurationMs = hudTotalDurationMs,
             visible = hudKind != null && !screenLocked,
             kind = hudKind,
             fraction = hudFraction,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = PlayerTokens.topBarHeight.dp + 14.dp),
+            originFraction = hudOriginFraction,
+            dragging = hudDragging,
+            modifier = Modifier.align(levelSide)
+                .playerSafeArea(WindowInsetsSides.Horizontal).padding(horizontal = 30.dp),
         )
         PlayerToast(
             text = toastText,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = PlayerTokens.bottomScrimHeight.dp + 12.dp),
+            // P10 §11：Toast 距底 122 → 126（抬高 4dp，避开新面板的 28dp 阴影外溢边）。
+            modifier = Modifier.align(Alignment.BottomCenter)
+                .padding(bottom = PlayerTokens.bottomScrimHeight.dp + 16.dp),
         )
-        if (flashZone != null) {
-            PlayerGestureFlash(zone = flashZone, modifier = Modifier.align(Alignment.Center))
-        }
+        PlayerGestureFlash(zone = flashZone, eventId = flashEventId, isPlaying = isPlaying)
         PlayerStatusLayer(phase = phase, onRetry = onRetry)
     }
 }

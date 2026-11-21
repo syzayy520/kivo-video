@@ -2,6 +2,7 @@ package com.kivo.cinema.ui.compose.player
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -60,14 +61,26 @@ internal object PlayerPanelHost {
         // 第 5 格（圈勾图形）的行为是 clapper；跳过相关微调卡都挂在它下面。
         "clapper", "skip", "skipMode" -> topIcon("clapper")
         "audio", "audioDelay" -> topIcon("audio")
-        "captions", "subtitle", "subtitleTracks", "subtitleExternal", "subtitleDisplay" ->
-            topIcon("captions")
+        // 字幕卡的**全部**钻入子面板都归字幕图标（§6.7）：漏掉 subtitleSecondary 时
+        // 它会落进 else 的 Center，渲染到屏幕正中而不是图标下。
+        "captions", "subtitle", "subtitleTracks", "subtitleExternal", "subtitleDisplay",
+        "subtitleSecondary", "subtitleEncoding" -> topIcon("captions")
         "audioMode" -> topIcon("audioMode")
         "cast" -> topIcon("cast")
         else -> PlayerPanelAnchor.Center
     }
 
     private fun topIcon(action: String): PlayerPanelAnchor = PlayerPanelGeometry.topIconOf(action)
+
+    /**
+     * 密度档（P10 §5）：Compact 只给**档位列表**（倍速 / 画质比例）——
+     * 底栏锚点可用高度约 311dp，7 档 ×42 正好"一眼看全"；其余面板（含全部微调卡）Comfort。
+     * 只做档位映射，颜色/字号仍在 [PlayerPanelStyle]。
+     */
+    fun density(kind: String): PlayerPanelStyle.Density = when (kind) {
+        "speed", "quality" -> PlayerPanelStyle.Density.Compact
+        else -> PlayerPanelStyle.Density.Comfort
+    }
 
     private const val SKIP_CARD_WIDTH = 300f
     private val DETAIL_KINDS = setOf("audioDelay", "subtitleDisplay", "skip", "danmakuSettings")
@@ -85,6 +98,8 @@ internal fun PlayerPanelShell(
     onStep: (PlayerOptionItem, Int) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    onLongSelect: (PlayerOptionItem) -> Unit = {},
+    backdrop: ImageBitmap? = null,
 ) {
     if (PlayerPanelHost.isDetail(kind)) {
         PlayerDetailCard(
@@ -96,6 +111,7 @@ internal fun PlayerPanelShell(
             width = PlayerPanelHost.panelWidth(kind),
             showReset = kind != "skip",
             modifier = modifier,
+            backdrop = backdrop,
         )
     } else {
         PlayerGlassMenu(
@@ -103,7 +119,10 @@ internal fun PlayerPanelShell(
             items = items,
             onSelect = onSelect,
             width = PlayerPanelHost.panelWidth(kind),
+            density = PlayerPanelHost.density(kind),
             modifier = modifier,
+            onLongSelect = onLongSelect,
+            backdrop = backdrop,
         )
     }
 }

@@ -12,28 +12,10 @@ import com.kivo.cinema.net.ByteSource
 import java.io.File
 
 /**
- * 网络/无索引源的预览帧读取器（v3.1b）：**mpv 内核第二实例**。
- *
- * 【为什么不是 MediaExtractor】真机定论（2026-11-12，shelter.mkv 12GB 无索引）：
- * MediaExtractor 走 MKV Cues，缺 Cues 时 setDataSource 线性扫全片，单解码线程
- * 被首请求卡死（T+60 dump 仍 handler busy）⇒ 整段拖动空框。mpv 的 matroska
- * demux 无索引按字节插值定位（主播放 seek 真机 28–49ms 已证）⇒ 预览帧走内核。
- *
- * 【形态】vo=libmpv + 离屏 FBO 取帧（attachCapture 自起渲染线程）、
- * ao=null 不出声、pause=yes；seek 取**关键帧**（与主内核 seek 同口径：
- * 真机实测 exact 解码每帧 1.6–2.2s，超出拖动手感；关键帧 ≤1 GOP 偏差是
- * 预览浮窗的行业口径）→ 最新 RGBA 帧 → Bitmap。
- * 代理形态与主播放共用 [LocalRangeServer]，但实例独立 ⇒ 主链路零干扰。
- *
- * 【为什么 FBO+glReadPixels 而不是 ImageReader】真机红清屏二分定论：
- * Adreno 650 上 EGL window surface→ImageReader 的缓冲内容传输坏（swap 成功、
- * timestamp 推进但永远 gralloc 填充色，连自绘 glClear 都到不了）；去
- * EGL_RECORDABLE_ANDROID 亦无效。纹理 FBO 读回不走那条坏传输（真机已证可靠）。
- * 取帧走 worker 轮询 readCaptureFrame（native 按序号去重，只给新帧）。
- *
- * 【预热与常驻】挂载即 [prewarm]（延后 1.2s 让主内核先起播）；内核随会话常驻
- * （重初始化真机 ~8s，闲释放会让每次隔段拖动重新冷启），demux 缓存压到 8MiB
- * 控内存。latest-wins/秒级 LRU/取证计数：与 [ThumbnailReader] 同构。
+ * 网络/无索引源使用独立 mpv 实例：MediaExtractor 缺 MKV Cues 时会线性扫全片。
+ * vo=libmpv + 离屏 FBO 读回，关键帧 seek（不按 PTS 严格对齐）；Adreno 的
+ * ImageReader 传输曾实测损坏，因此保持 FBO 路径与 native 帧代数去重。
+ * 首帧后调用 [prewarm]，再延后 1.2s；内核随会话常驻，秒级 LRU 复用。
  */
 class MpvThumbnailReader(
     private val appContext: Context,
@@ -42,15 +24,7 @@ class MpvThumbnailReader(
     private val cacheSize: Int = DEFAULT_CACHE_SIZE,
     /** 取证用的追加 mpv 选项（生产路径为空）。见 [MpvThumbOptions.apply]。 */
     private val extraMpvOptions: List<Pair<String, String>> = emptyList(),
-    /**
-     * 274 · 实验用：预览实例的**单次响应上限**（字节）。
-     *
-     * 【为什么是构造参数而不是从 Context 里挖】
-     * `appContext` 是**应用 Context**，不是 Activity ⇒ 从它拿不到 intent
-     * ⇒ 实测开关传不进去（`thumb` 预读量纹丝不动）。
-     * ⇒ 由创建方（Activity）直接算好传进来。
-     * 【默认】0 = 用 [DEFAULT_PREVIEW_MAX_RANGE_BYTES]（4 MiB，旧行为）。
-     */
+    /** 274 实验响应上限（字节），由 Activity 传入；0 使用默认 2 MiB。 */
     private val maxRangeBytesOverride: Long = 0L,
 ) : PreviewFrameReader {
 
@@ -63,8 +37,8 @@ class MpvThumbnailReader(
     private val thread = HandlerThread("mpv-thumb").apply { start() }
     private val handler = Handler(thread.looper)
 
-    override var onThumbnailReady: ((positionUs: Long, bitmap: Bitmap) -> Unit)? = null
-    override var onUnavailable: ((reason: String) -> Unit)? = null
+    @Volatile override var onThumbnailReady: ((request: PreviewRequest, bitmap: Bitmap) -> Unit)? = null
+    @Volatile override var onUnavailable: ((request: PreviewRequest, reason: String) -> Unit)? = null
 
     private var server: LocalRangeServer? = null
     private var registeredId: String? = null
@@ -72,11 +46,10 @@ class MpvThumbnailReader(
     private var initialized = false
     private var initFailed = false
     private var initRetries = 0
-    private var closing = false
+    @Volatile private var closing = false
     private var unavailableReason = "预览帧不可用"
-
-    @Volatile private var latestUs = -1L
-    @Volatile private var latestRequestAtMs = 0L
+    private val requestGate = PreviewRequestGate()
+    private var decodeWorker: Runnable? = null // 仅在 requestGate 锁内访问。
 
     // ---- 取证计数（handler 线程读写）----
     private var requests = 0
@@ -91,12 +64,24 @@ class MpvThumbnailReader(
     private val grabLog = ArrayList<String>()
 
     override fun seekTo(positionUs: Long) {
-        if (closing) return
-        latestRequestAtMs = SystemClock.elapsedRealtime()
-        latestUs = positionUs
-        handler.removeCallbacks(decodeWorker)
-        handler.post(decodeWorker)
+        synchronized(requestGate) {
+            if (closing) return
+            val request = requestGate.next(positionUs)
+            val requestAt = SystemClock.elapsedRealtime()
+            decodeWorker?.let { handler.removeCallbacks(it) }
+            decodeWorker = Runnable { decode(request, requestAt) }.also { handler.post(it) }
+        }
     }
+
+    override fun invalidate() {
+        synchronized(requestGate) {
+            requestGate.invalidate()
+            decodeWorker?.let { handler.removeCallbacks(it) }
+            decodeWorker = null
+        }
+    }
+
+    override fun isCurrent(request: PreviewRequest): Boolean = !closing && requestGate.isCurrent(request)
 
     override fun prewarm() {
         if (closing) return
@@ -104,32 +89,31 @@ class MpvThumbnailReader(
         handler.postDelayed({ if (!closing) ensureInitialized() }, PREWARM_DELAY_MS)
     }
 
-    private val decodeWorker = Runnable {
-        if (closing) return@Runnable
-        val positionUs = latestUs
-        val requestAt = latestRequestAtMs
+    private fun decode(request: PreviewRequest, requestAt: Long) {
+        if (!isCurrent(request)) return
         requests += 1
-        val key = (positionUs / 1_000_000).toInt()
+        val key = (request.positionUs / 1_000_000).toInt()
         cache.get(key)?.let { cached ->
             cacheHits += 1
             recordLatency(requestAt)
-            onThumbnailReady?.invoke(positionUs, cached)
-            return@Runnable
+            if (isCurrent(request)) onThumbnailReady?.invoke(request, cached)
+            return
         }
-        // 冷失败一次自动重建：initFailed 不永久 latch，下一次拖动允许重 init 一次（有界防坏源堆 handler）。
+        // 冷失败一次自动重建：保留原有有界重试策略。
         if (initFailed && initRetries < MAX_INIT_RETRIES) {
             initFailed = false
             initRetries += 1
         }
         ensureInitialized()
-        val bitmap = if (initialized) grabFrameAt(positionUs) else null
+        if (!isCurrent(request)) return
+        val bitmap = if (initialized) grabFrameAt(request.positionUs) else null
         if (bitmap != null) {
             cache.put(key, bitmap)
             recordLatency(requestAt)
-            onThumbnailReady?.invoke(positionUs, bitmap)
+            if (isCurrent(request)) onThumbnailReady?.invoke(request, bitmap)
         } else {
             decodeFailures += 1
-            onUnavailable?.invoke(unavailableReason)
+            if (isCurrent(request)) onUnavailable?.invoke(request, unavailableReason)
         }
     }
 
@@ -277,10 +261,14 @@ class MpvThumbnailReader(
     }
 
     override fun release() {
-        closing = true
-        handler.post {
-            releaseKernel()
-            cache.evictAll()
+        synchronized(requestGate) {
+            if (closing) return
+            closing = true
+            invalidate()
+            handler.post {
+                releaseKernel()
+                cache.evictAll()
+            }
         }
     }
 
@@ -303,42 +291,10 @@ class MpvThumbnailReader(
         private const val WIDTH = 480
         private const val HEIGHT = 270
 
-        /**
-         * 预览实例的**单次响应上限**（字节）。
-         *
-         * 【为什么必须有上限】内核 seek 之后会**一路往前拉**：真机实测（273 v12）
-         * 取 475 秒那一帧，帧在 seek 后 1.1 秒就出来了，内核却继续往前读了
-         * 9 秒 / 约 24 MiB，一次预览会话下掉 32 MiB 只为显示一帧。
-         * mpv 侧的旋钮都拦不住它 ⇒ 只能在供给侧截（见 [LocalRangeResponder]）。
-         *
-         * 【为什么 4 MiB 够】实测簇间距 0.66–1.8 MB，装得下目标关键帧簇 + 余量。
-         */
+        // 273 历史响应上限；实际默认值见文件末尾的 274 实验值。
         private const val PREVIEW_MAX_RANGE_BYTES = 4L * 1024 * 1024
     }
 }
 
-/**
- * 预览单次响应上限的默认值（字节）。
- *
- * 【为什么从 4 MiB 收到 2 MiB —— 274 装置实验】
- *
- * 机制（装置上的决定性两行）：
- * ```
- * PROXY REQ range=bytes=1905- cap=4194304
- * GET range=bytes=1905- bytes=4194304 cap=4194304 ms=14605
- * ```
- * 预览**只要 1 帧**，而那一帧就在这个响应的**开头**；
- * 但 HTTP 响应必须**整个写完**内核才拿得到数据
- * ⇒ 4 MiB / 0.35 MB/s ≈ **12 秒**（实测 14.6 秒）。
- *
- * 装置 A/B（预览响应耗时 = 上限 ÷ 带宽，严格成反比）：
- * 4 MiB→14.1 s · 2 MiB→5.6 s · 1 MiB→2.7 s · 512 KiB→1.25 s
- *
- * 【为什么是 2 MiB 而不是更小】
- * ① **要装得下目标关键帧簇**：v13 记录本片源簇间距 0.66–1.8 MB
- *    ⇒ 2 MiB 装得下 + 余量；512 KiB 就可能装不下；
- * ② **U 型曲线**：上限太小 ⇒ 内核拿不到关键帧 ⇒ 反而拉更多
- *    （装置实测 128 KiB 时 thumb 从 3 MiB 涨到 10 MiB）；
- * ③ 装置实测 2 MiB 那一臂**帧率最高（20.43，全部臂里最高）**。
- */
+/** 274 装置实验：2 MiB 容纳 0.66–1.8 MB 关键帧簇，避免旧 4 MiB 响应的慢链路等待。 */
 private const val DEFAULT_PREVIEW_MAX_RANGE_BYTES = 2L * 1024 * 1024

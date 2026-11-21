@@ -1,6 +1,7 @@
 package com.kivo.cinema.ui.compose.player
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -9,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -60,7 +62,12 @@ internal fun TimeText(text: String, modifier: Modifier = Modifier) {
     )
 }
 
-/** 右排文字钮（1080P / 选集 / 倍速）：命中区随文字 + 内边距，被面板盖住时隐去。 */
+/**
+ * 右排文字钮（1080P / 选集 / 倍速）：命中区随文字 + 内边距，被面板盖住时隐去。
+ *
+ * P10 §10：激活白 100% / 未激活白 62%（绿色只留给源卡健康点）；
+ * 按压＝文字 alpha 0.6 + 背后 28dp 白 8% 圆（90ms 进 / 140ms 出），不引 ripple。
+ */
 @Composable
 internal fun BarTextButton(
     text: String,
@@ -69,20 +76,7 @@ internal fun BarTextButton(
     onClick: () -> Unit,
 ) {
     var pressed by remember { mutableStateOf(false) }
-    Text(
-        text = text,
-        color = if (active) PlayerTokens.activeAccent else PlayerTokens.textPrimary,
-        fontSize = PlayerTokens.textButtonSize.sp,
-        fontWeight = barTextWeight(text),
-        lineHeight = (PlayerTokens.textButtonSize * 1.25f).sp,
-        style = TextStyle(
-            lineHeightStyle = LineHeightStyle(
-                alignment = LineHeightStyle.Alignment.Center,
-                trim = LineHeightStyle.Trim.Both,
-            ),
-        ),
-        maxLines = 1,
-        overflow = TextOverflow.Visible,
+    Box(
         modifier = Modifier
             .semantics {
                 role = Role.Button
@@ -95,10 +89,31 @@ internal fun BarTextButton(
                     onTap = { onClick() },
                 )
             }
-            .alpha(if (pressed) PlayerTokens.pressAlpha else 1f)
-            .padding(horizontal = PlayerTokens.textButtonPad.dp, vertical = 5.dp)
             .hideWhenCoveredByPanel(panelRect),
-    )
+        contentAlignment = Alignment.Center,
+    ) {
+        PressIndicator(pressed = pressed, diameter = PlayerPanelStyle.barPressCircle)
+        Text(
+            text = text,
+            color = PlayerTokens.textPrimary.copy(
+                alpha = if (active) PlayerPanelStyle.barActiveAlpha else PlayerPanelStyle.barInactiveAlpha,
+            ),
+            fontSize = PlayerTokens.textButtonSize.sp,
+            fontWeight = barTextWeight(text),
+            lineHeight = (PlayerTokens.textButtonSize * 1.25f).sp,
+            style = TextStyle(
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim = LineHeightStyle.Trim.Both,
+                ),
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Visible,
+            modifier = Modifier
+                .alpha(if (pressed) PlayerTokens.pressAlpha else 1f)
+                .padding(horizontal = PlayerTokens.textButtonPad.dp, vertical = 5.dp),
+        )
+    }
 }
 
 /**

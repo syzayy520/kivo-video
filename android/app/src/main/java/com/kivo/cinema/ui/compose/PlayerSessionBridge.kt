@@ -122,7 +122,10 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
                 a.controlsVisible = true
                 return 200L
             }
-            if (System.currentTimeMillis() - a.lastTouchMs > 3000) a.controlsVisible = false
+            // P10：面板打开期间暂停自动隐藏（否则静置 3s 底栏连同面板锚点一起消失）。
+            if (a.activePanel.isEmpty() && System.currentTimeMillis() - a.lastTouchMs > 3000) {
+                a.controlsVisible = false
+            }
             return 200L
         }
         val mpvSession = a.mpvNetSession
@@ -158,7 +161,7 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
             }
             // 必须重新排期：提前 return 会跳过 postDelayed，位置恒 0（真机踩过）。
             // 自动隐藏：控制条常驻会盖住底部字幕（真机取证曾误判"字幕没渲染"）。
-            if (System.currentTimeMillis() - a.lastTouchMs > 3000) a.controlsVisible = false
+            if (a.activePanel.isEmpty() && System.currentTimeMillis() - a.lastTouchMs > 3000) a.controlsVisible = false
             // 317 · Emby 播放会话上报（Playing 一次 + Progress 节流 10 s）。
             // 这是"别的播放器能看到你在看什么/看到哪"的来源，也是续播点的写入路径。
             if (a.isPlaying) {
@@ -208,7 +211,7 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
                         if (a.statusText.startsWith("网络中断")) {
                             a.statusText = if (netSession.hasAudio) "正在播放" else "正在播放 · 片源没有音轨"
                         }
-                        if (System.currentTimeMillis() - a.lastTouchMs > 3000) a.controlsVisible = false
+                        if (a.activePanel.isEmpty() && System.currentTimeMillis() - a.lastTouchMs > 3000) a.controlsVisible = false
                     }
                 }
             }
@@ -224,7 +227,11 @@ internal class PlayerPositionPoll(private val a: PlayerComposeActivity) : Runnab
                 Log.i(PlayerComposeActivity.TAG, "summary: ${runCatching { session.summary() }.getOrElse { "n/a" }}")
             }
         }
-        if (a.previewMs < 0 && System.currentTimeMillis() - a.lastTouchMs > 3000) a.controlsVisible = false
+        if (a.activePanel.isEmpty() && a.previewMs < 0 &&
+            System.currentTimeMillis() - a.lastTouchMs > 3000
+        ) {
+            a.controlsVisible = false
+        }
         // 本地软解会话没有公开的 state 枚举，只能用两个真值判据：
         // 播完（isFinished）与明确报错（lastError 非空且已停）。
         when {

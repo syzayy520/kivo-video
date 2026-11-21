@@ -1,0 +1,66 @@
+P9 返工 · FAIL-3（导入字幕 SAF 选择器不拉起）真机证据汇总
+设备：dd137cf7（2400×1080 横屏）  构建：assembleDebug（含本次修复）
+时间：2026-11-19 22:0x–22:2x
+
+一、根因（修复前定性，见 fail3-rootcause-before.txt）
+  SubtitlePanelActions.kt: SUBTITLE_PANELS 漏掉入口面板 kind="subtitle"。
+  入口面板里两行 tag sub-import / sub-off 由 PlayerPanelForms.subtitleActions() 产生，
+  Router → handleSubtitleSelect 先判 `panel in SUBTITLE_PANELS`，不在集合内直接 false，
+  随后 writeSelection 对未知 tag 静默 no-op —— 表现为"点了没反应、无 toast、top activity 不变"。
+  证据：修复前 4 次点击 touch probe consumed=true，p220-status.log 无任何
+  "sub-import: launching SAF picker" 记录。
+
+二、修复
+  SubtitlePanelActions.kt: SUBTITLE_PANELS 增加 "subtitle"（入口面板）并写明原因注释。
+  （PlayerSubtitleImport.kt 增加 launch/落盘/失败埋点；MpvNative.lastCommandError 记录 JNI 原话。）
+
+三、修复后真机证据链
+  1) 拉起选择器（trace 与系统 Activity 双证）
+     p220-status.log:
+       1795097610866 sub-import: launching SAF picker
+       1795097610878 sub-import: launch() returned ok
+     topResumedActivity=com.google.android.documentsui/com.android.documentsui.picker.PickActivity
+     （OpenDocument 在任务内渲染，top 变为 DocumentsUI 只是它自己的窗口。）
+     截图：fix3-saf.png / fix3-saf-fixed.png / fix3-picker-open3.png
+  2) 导入落 filesDir/subtitles
+       1795097736684 sub-import ok: /data/user/0/com.kivo.cinema/files/subtitles/
+         95325a4e42e6-kivo-fix-main.srt deduped=false size=2082
+       run-as ls -l files/subtitles → 95325a4e42e6-kivo-fix-main.srt 2082 bytes
+  3) 重导去重（同一文件第二次导入）
+       1795097321688 sub-import ok: .../3114a0a7c547-kivo-fix-alt.srt deduped=true size=2082
+       磁盘仍只有一份（3114…-kivo-fix-alt.srt 2082 bytes），未产生第二份文件。
+  4) 重启后仍在（force-stop → 冷启同一片源）
+       force-stop 后与重启后：
+         files/subtitles/3114a0a7c547-kivo-fix-alt.srt（2082 bytes）仍在；
+         shared_prefs/subtitle_imports.xml 仍含
+           <set name="file:/data/local/tmp/kivo-import-test.mp4">
+             <string>/data/user/0/com.kivo.cinema/files/subtitles/3114a0a7c547-kivo-fix-alt.srt</string>
+           </set>
+       说明：mpv 轨道本身是会话级（设计如此，未做自动重挂），重启后入口面板显示
+       "外挂字幕，无"（ui-restart-entry.xml），文件与登记不丢，重导即命中 deduped=true。
+  5) 长按删除：清磁盘 + 清登记 + 主轨回落
+     片源 dovi-p81-60s.mkv，导入 main.srt 后设为主轨（kernel Set property: sid="38"）。
+     长按外挂行 → 确认框（ui-dovi-delete-dialog.xml：删除外挂字幕 / 取消 / 删除）→ 删除：
+       trace: 1795097936614 sub-remove ok id=38 title=kivo-fix-main.srt
+                file=95325a4e42e6-kivo-fix-main.srt disk=true
+       磁盘：95325a4e42e6-kivo-fix-main.srt 已删除（只剩另一片源的 alt 文件）
+       登记：subtitle_imports.xml 中 dovi 条目已摘除，mp4 条目保留
+       kernel: Run command: sub-remove, flags=73, args=[id="38"]
+               Set property: sid="1" -> 1   ← 主轨回落到内嵌轨，无悬空 sid
+       面板：外挂字幕 → "无外挂字幕，可在字幕面板用「导入字幕」加载"（ui-dovi-after-delete.xml）
+       截图：fix3-after-delete.png
+
+四、非字幕 stepper 共享组件回归（PlayerStepperRow 影响面）
+  入口：音轨 → 音频延迟（STEP_UNITS 0.05 / 2 位小数，走同一 PlayerStepperRow + 写回链路）
+  连点 "增加" 8 次：UI 0.0 s → 0.4 s；kernel 逐 tick：
+    audio-delay="0.05" / "0.10" / "0.15" / "0.20" / "0.25" / "0.30" / "0.35" / "0.40"
+  点 "重置"：UI 0.0 s，kernel audio-delay="0"。
+  结论：共享步进组件在非字幕面板同样逐次生效，无回退。
+  UI dump：ui-reg-audio3.xml / ui-reg-audio4.xml / ui-reg-audio5.xml
+
+五、未覆盖 / 风险
+  · 导入的字幕轨不随重启自动重挂（会话级；设计未承诺自动恢复，见设计文档 §3.4）。
+  · mpv 在片源 EOF 处 sub-add 会失败（内核约束）：若片源已播到结尾再导入，
+    toast 会提示"字幕加载失败"，本条与本次缺陷无关，属内核行为。
+  · 删除时的"主轨回落"目标是 mpv 默认选择（本片回落到 sid=1 内嵌轨），
+    不是回到删除前的内嵌选择（删除前内嵌为 sid=2）。行为正确（无悬空 sid），按实测记录。

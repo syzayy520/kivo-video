@@ -33,10 +33,10 @@ object TmdbGenres {
 
     /** 三条取图办法的同一份 discover URL —— 只有 URL 完全一致才能共享 12h 缓存。 */
     private fun discoverUrl(genreId: Int): String =
-        "/discover/movie?language=${TmdbLocale.tag()}&with_genres=$genreId&sort_by=popularity.desc"
+        "/discover/movie?language=zh-CN&with_genres=$genreId&sort_by=popularity.desc"
 
     fun movie(client: TmdbClient): List<TmdbGenre> {
-        val arr = TmdbHome(client).get("/genre/movie/list?language=${TmdbLocale.tag()}").first
+        val arr = TmdbHome(client).get("/genre/movie/list?language=zh-CN").first
             ?.optJSONArray("genres") ?: return emptyList()
         val out = ArrayList<TmdbGenre>(arr.length())
         for (i in 0 until arr.length()) {

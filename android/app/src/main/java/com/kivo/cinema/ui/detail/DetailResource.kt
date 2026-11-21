@@ -9,9 +9,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -40,6 +40,8 @@ internal data class ResourceMedia(
     val bitrateBps: Long,
     val sourceLabel: String,
     val streams: ResourceStreams?,
+    /** 卡片主标题（动态范围档，如 SDR / DOLBY VISION）；空则回落显示 resolution。 */
+    val qualityTitle: String = "",
 )
 
 internal data class ResourceStreams(
@@ -49,7 +51,7 @@ internal data class ResourceStreams(
     val subtitles: List<String>,
 )
 
-/** 播放资源行（240 §9.3）：标题 + 清晰度胶囊。 */
+/** 播放资源行（240 §9.3）：标题 + 清晰度胶囊；quality 为空时**不画胶囊**（消灭空圈）。 */
 @Composable
 internal fun PlaySourceHeader(quality: String, fg: Color) {
     Row(
@@ -57,44 +59,78 @@ internal fun PlaySourceHeader(quality: String, fg: Color) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text("播放资源:", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = fg)
-        Spacer(Modifier.width(12.dp))
-        Text(
-            quality, fontSize = 15.sp, fontWeight = FontWeight.Bold,
-            color = DesignTokens.textMain,
-            modifier = Modifier
-                .clip(RoundedCornerShape(50))
-                .background(DesignTokens.canvasFill)
-                .padding(horizontal = 18.dp, vertical = 6.dp),
-        )
+        if (quality.isNotBlank()) {
+            Spacer(Modifier.width(12.dp))
+            Text(
+                quality, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                color = DesignTokens.textMain,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(DesignTokens.canvasFill.copy(alpha = 0.92f))
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+            )
+        }
     }
 }
 
-/** 媒体信息卡（240 §9.3）：白卡 = 分辨率 / 容量·码率 / 来源名+绿勾。 */
+/**
+ * 媒体信息卡（对齐 REX 播放资源卡）：圆角白卡 = 画质主标题 / 图标化容量·码率 / 绿菱形来源 + 圆勾。
+ *
+ * 视觉层级（从上到下）：
+ * 1. 主标题 = 动态范围档（SDR / DOLBY VISION），18sp Bold —— REX 卡首行是 "SDR"/"Dolby" 大字。
+ * 2. 容量 + 码率：软盘/菱形矢量图标 + 13sp 灰字，图标与字基线对齐。
+ * 3. 来源：绿色实心菱形 + 来源名；行末绿色圆形对勾表示「文件可用」。
+ *
+ * 【为什么是"小豆腐块"而非通栏】REX 的卡宽只包住内容（约 240pt @430 屏），不铺满整行。
+ * 用固定 `CardWidth` 而非 `IntrinsicSize.Min`：后者与 softWrap=false 的文字配合会把码率
+ * 截成 "7.82M"（intrinsic 测量没把不换行文字的完整宽度计入）。固定宽度稳定且紧凑。
+ * 全部用 DesignTokens 语义色，不写死色值（UI 门禁裸色约束）。
+ */
 @Composable
 internal fun MediaCard(m: ResourceMedia) {
+    val title = m.qualityTitle.ifBlank { m.resolution }
     Column(
-        Modifier.padding(horizontal = DETAIL_PAD_DP.dp).fillMaxWidth()
+        Modifier.padding(horizontal = DETAIL_PAD_DP.dp).width(CardWidth)
             .clip(RoundedCornerShape(DesignTokens.radiusCard.dp))
             .background(DesignTokens.canvasFill)
-            .padding(horizontal = 14.dp, vertical = 14.dp),
+            .border(0.5.dp, DesignTokens.hairline, RoundedCornerShape(DesignTokens.radiusCard.dp))
+            .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
-        Text(m.resolution, fontSize = 17.sp, fontWeight = FontWeight.Bold,
-            color = DesignTokens.textMain)
+        // 1) 画质主标题（动态范围档）。分辨率已在页级胶囊显示，卡内不再重复第二个 1080P。
+        //    无文件名档位时（本地/Emby 有真实宽高）才回落到 resolution 当主标题。
+        if (title.isNotBlank()) {
+            Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold,
+                color = DesignTokens.textMain)
+        }
+        // 2) 容量 + 码率（图标化）—— 这一行决定卡片宽度
         if (m.sizeBytes > 0 || m.bitrateBps > 0) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(10.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(formatSize(m.sizeBytes), fontSize = 13.sp, color = DesignTokens.textSub)
-                Spacer(Modifier.width(14.dp))
-                Text(formatBitrate(m.bitrateBps), fontSize = 13.sp, color = DesignTokens.textSub)
+                if (m.sizeBytes > 0) {
+                    StorageIcon(DesignTokens.textSub, Modifier.size(14.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(formatSize(m.sizeBytes), fontSize = 13.sp, color = DesignTokens.textSub)
+                }
+                if (m.bitrateBps > 0) {
+                    Spacer(Modifier.width(12.dp))
+                    BitrateIcon(DesignTokens.textSub, Modifier.size(14.dp))
+                    Spacer(Modifier.width(5.dp))
+                    Text(formatBitrate(m.bitrateBps), fontSize = 13.sp, color = DesignTokens.textSub)
+                }
             }
         }
-        Spacer(Modifier.height(10.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(7.dp).clip(CircleShape).background(Color(0xFF34C759)))
-            Spacer(Modifier.width(6.dp))
-            Text(m.sourceLabel, fontSize = 13.sp, color = DesignTokens.textMain)
-            Spacer(Modifier.weight(1f))
-            Text("✓", fontSize = 15.sp, color = Color(0xFF34C759))
+        // 3) 来源 + 可用圆勾（fillMaxWidth 让绿勾落在卡右缘，与 REX 一致）
+        if (m.sourceLabel.isNotBlank()) {
+            Spacer(Modifier.height(11.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                SourceDiamond(DesignTokens.accentGreen, Modifier.size(11.dp))
+                Spacer(Modifier.width(7.dp))
+                Text(m.sourceLabel, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                    color = DesignTokens.textMain)
+                Spacer(Modifier.weight(1f))
+                AvailableCheck(DesignTokens.accentGreen, DesignTokens.canvasFill,
+                    Modifier.size(19.dp))
+            }
         }
     }
 }
@@ -189,3 +225,6 @@ internal fun formatSize(bytes: Long): String = when {
 internal fun formatBitrate(bps: Long): String =
     if (bps >= 1_000_000L) "%.2fMbps".format(bps / 1_000_000.0)
     else "%.0fkbps".format(bps / 1000.0)
+
+/** 资源小卡宽度（REX 约 240pt @430 屏 → 本屏 210dp）：紧凑豆腐块，且容得下码率整行。 */
+private val CardWidth = 210.dp

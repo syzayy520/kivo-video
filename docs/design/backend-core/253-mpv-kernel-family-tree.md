@@ -1,4 +1,7 @@
 # 253 自然家族树：libmpv 播放内核
+> **构建入口（Wave2 草案）**：libmpv 的重编开关与 minSdk 门槛见
+> [`254-wave2-minsdk28-iconv-family-tree.md`](254-wave2-minsdk28-iconv-family-tree.md)（iconv = API 28 硬门槛）。
+
 
 状态：**设计稿**（家族树已定，实施按 §四 的阶段推进）
 上游：252（5.1 下混 / 杂音 / seek 精确落位）

@@ -88,6 +88,7 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeInitialize(JNIEnv* env, jclass, jlong h
                                                    jstring log_file,
                                                    jstring sub_fonts_dir,
                                                    jstring sub_font_family,
+                                                   jstring sub_codepage,
                                                    jboolean hdr_surface,
                                                    jboolean interpolation,
                                                    jdouble display_fps) {
@@ -107,6 +108,7 @@ Java_com_kivo_cinema_mpv_MpvNative_nativeInitialize(JNIEnv* env, jclass, jlong h
         kivo::video::mpv::to_string(env, log_file),
         kivo::video::mpv::to_string(env, sub_fonts_dir),
         kivo::video::mpv::to_string(env, sub_font_family),
+        kivo::video::mpv::to_string(env, sub_codepage),
         hdr_surface == JNI_TRUE,
         interpolation == JNI_TRUE,
         static_cast<double>(display_fps),

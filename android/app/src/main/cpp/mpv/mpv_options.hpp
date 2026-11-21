@@ -59,6 +59,7 @@ namespace kivo::video::mpv {
                                       const std::string& log_file,
                                       const std::string& sub_fonts_dir,
                                       const std::string& sub_font_family,
+                                      const std::string& sub_codepage,
                                       bool hdr_surface,
                                       bool interpolation,
                                       double display_fps,

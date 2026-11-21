@@ -4,6 +4,9 @@ import com.kivo.cinema.playback.MpvPlaybackSession
 import com.kivo.cinema.ui.compose.player.PlayerOptionItem
 import com.kivo.cinema.ui.compose.player.PlayerPanelData
 import com.kivo.cinema.ui.compose.player.PlayerRowControl
+import com.kivo.cinema.ui.compose.player.subtitle.handleSubtitleSelect
+import com.kivo.cinema.ui.compose.player.subtitle.handleSubtitleStep
+import com.kivo.cinema.ui.compose.player.subtitle.resetSubtitlePanel
 
 /**
  * 面板选择 → 内核写入（v3 §1.4 十三形态的写侧）。
@@ -21,17 +24,13 @@ import com.kivo.cinema.ui.compose.player.PlayerRowControl
 
 /** 钻入关系：父面板里的行 tag = 子面板 kind（§1.4 的 1→内嵌/外挂/显示、4→5、6→7、8→9）。 */
 private val DRILL_KINDS = setOf(
-    "audioDelay", "subtitleDisplay", "subtitleTracks", "subtitleExternal",
+    "audioDelay", "subtitleDisplay", "subtitleTracks", "subtitleExternal", "subtitleSecondary",
     "skipMode", "danmakuSettings",
 )
 
-/** stepper 每格步长与小数位（mpv 属性语义，不是 UI 猜测）。 */
+/** stepper 每格步长与小数位（mpv 属性语义，不是 UI 猜测）。字幕步进见 SubtitlePanelActions。 */
 private val STEP_UNITS = mapOf(
     "audio-delay" to (0.05 to 2),
-    "sub-delay" to (0.1 to 2),
-    "sub-font-size" to (1.0 to 0),
-    "sub-pos" to (1.0 to 0),
-    "sub-border-size" to (0.5 to 1),
 )
 
 /**
@@ -46,15 +45,23 @@ private val LOCAL_STEPS = mapOf(
 )
 
 internal fun PlayerComposeActivity.onPanelSelect(item: PlayerOptionItem) {
+    // P10：面板内的一次选择也算"用户还在操作" —— 自动隐藏在面板关闭后
+    // 从最后一次交互重新计时 3s，而不是从打开面板那一刻计时。
+    lastTouchMs = System.currentTimeMillis()
+    val panel = activePanel
+    // 取证：面板选择的**第一站**。有这条 = 点击到了 Router；没有 = 点击被别处吞掉。
+    smbTrace("panelSelect tag=${item.tag} panel=$panel enabled=${item.enabled}")
     if (!item.enabled) {
         showToast(item.subtitle.ifBlank { "该功能暂不可用：${item.title}" })
         return
     }
-    val panel = activePanel
     if (item.control == PlayerRowControl.CHEVRON && item.tag in DRILL_KINDS) {
         activePanel = item.tag
+        smbTrace("panelDrill -> $activePanel")
         return
     }
+    // P9：字幕四条面板的写侧整体在 SubtitlePanelActions（Router 只减不增）。
+    if (handleSubtitleSelect(panel, item)) return
     // 317 · 选集：季标签只切换面板展示的季；集卡才换集。
     if (item.tag.startsWith("season:")) {
         episodeSeasonPick = item.tag.removePrefix("season:").toIntOrNull() ?: -1
@@ -83,9 +90,6 @@ internal fun PlayerComposeActivity.onPanelSelect(item: PlayerOptionItem) {
     }
     when {
         item.tag == "reset" -> resetPanel(panel)
-        item.tag == "sub-ass-override" -> writeSubtitleOverride(item.on)
-        item.tag == "sub-off" -> writeSubtitleOff()
-        item.tag == "sub-import" -> launchSubtitleImport()
         item.tag == "danmaku" -> {
             // 铁律：没有弹幕文件时不许"开了但什么都不显示"。
             if (!danmakuOn && !danmakuSettings.hasItems) {
@@ -116,11 +120,13 @@ internal fun PlayerComposeActivity.onPanelSelect(item: PlayerOptionItem) {
 
 /** stepper 的 −/+：当前值取自内核真值（item.step），不本地累加猜。 */
 internal fun PlayerComposeActivity.onPanelStep(item: PlayerOptionItem, delta: Int) {
+    lastTouchMs = System.currentTimeMillis()
     val local = LOCAL_STEPS[item.tag]
     if (local != null) {
         stepDanmaku(item.tag, item.step, delta, local)
         return
     }
+    if (handleSubtitleStep(item, delta)) return
     val mpv = mpvNetSession
     val unit = STEP_UNITS[item.tag]
     if (mpv == null || unit == null) {
@@ -161,6 +167,11 @@ private fun PlayerComposeActivity.resetPanel(panel: String) {
         panelRevision++
         return
     }
+    // P9：字幕重置回到同源出厂值（C++ 初值 / 模型默认 / 面板重置三处一致）。
+    if (panel.startsWith("subtitle")) {
+        resetSubtitlePanel()
+        return
+    }
     val mpv = mpvNetSession
     if (mpv == null) {
         showToast("内核尚未就绪，暂时无法重置")
@@ -169,10 +180,6 @@ private fun PlayerComposeActivity.resetPanel(panel: String) {
     Thread {
         val ok = when (panel) {
             "audioDelay" -> mpv.writeProperty("audio-delay", "0")
-            "subtitleDisplay" -> mpv.writeProperty("sub-font-size", "55") &&
-                mpv.writeProperty("sub-pos", "100") && mpv.writeProperty("sub-delay", "0") &&
-                mpv.writeProperty("sub-border-size", "3") &&
-                mpv.writeProperty("sub-ass-override", "no")
             else -> false
         }
         runOnUiThread {
@@ -197,44 +204,6 @@ internal fun PlayerComposeActivity.setAudioOnly(on: Boolean) {
                 panelRevision++
             } else {
                 showToast("听视频切换失败：${mpv.lastError}")
-            }
-        }
-    }.start()
-}
-
-/**
- * 标准统一样式开关（§1.6）：yes＝sub-* 统一样式压过 ASS 源样式，
- * no＝保留 ASS 源特效（默认）。面板留在原处，只重读。
- */
-private fun PlayerComposeActivity.writeSubtitleOverride(currentlyOn: Boolean) {
-    val mpv = mpvNetSession
-    if (mpv == null) {
-        showToast("内核尚未就绪，暂时无法切换字幕样式")
-        return
-    }
-    Thread {
-        val ok = mpv.writeProperty("sub-ass-override", if (currentlyOn) "no" else "yes")
-        runOnUiThread {
-            if (ok) panelRevision++ else showToast("字幕样式切换失败：${mpv.lastError}")
-        }
-    }.start()
-}
-
-/** 关闭字幕＝sid=no。面板不关：内嵌字幕行的副题会重读成"关闭"。 */
-private fun PlayerComposeActivity.writeSubtitleOff() {
-    val mpv = mpvNetSession
-    if (mpv == null) {
-        showToast("内核尚未就绪，暂时无法关闭字幕")
-        return
-    }
-    Thread {
-        val ok = mpv.writeProperty("sid", "no")
-        runOnUiThread {
-            if (ok) {
-                panelRevision++
-                showToast("字幕已关闭")
-            } else {
-                showToast("关闭字幕失败：${mpv.lastError}")
             }
         }
     }.start()
@@ -279,11 +248,6 @@ private fun applyPanelSelection(
             val id = item.tag.toIntOrNull() ?: return "音轨参数无效"
             val catalog = mpv.tracksOrNull() ?: return "内核尚未就绪"
             if (catalog.selectTrack("audio", id)) null else "音轨切换失败：${mpv.lastError}"
-        }
-        // 字幕轨道行住在两个钻入页里（内嵌/外挂），写法相同：sid=<id>。
-        "subtitleTracks", "subtitleExternal" -> {
-            val id = item.tag.toIntOrNull() ?: return "字幕参数无效"
-            if (mpv.selectSubtitle(id)) null else "字幕切换失败：${mpv.lastError}"
         }
         else -> null
     }

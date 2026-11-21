@@ -12,6 +12,16 @@ import android.content.Context
  * 旧内核见 `com.kivo.cinema.bridge.PlaybackSession`。
  */
 object MpvNative {
+    /**
+     * 最近一次命令失败时内核给出的原始原因（JNI 异常的 message）。
+     *
+     * 【为什么挂在 object 上】命令失败目前只回一个 false，上层拿不到原因；
+     * 现场取证（P9 导入字幕）需要把内核原话带出来。成功不覆盖旧值，
+     * 调用方按"先看返回值，再读这里"的顺序使用。
+     */
+    @Volatile
+    var lastCommandError: String? = null
+
     init {
         // libmpv 适配层是**独立的 .so**（kivo_mpv），不是 kivo_player 的一部分 ——
         // 家族边界见 docs/design/backend-core/253-mpv-kernel-family-tree.md。
@@ -32,6 +42,7 @@ object MpvNative {
      */
     @JvmStatic external fun nativeInitialize(handle: Long, vo: String, ao: String, logFile: String,
                                            subFontsDir: String, subFontFamily: String,
+                                           subCodepage: String,
                                            hdrSurface: Boolean, interpolation: Boolean,
                                            displayFps: Double): Int
     @JvmStatic external fun nativeAttachSurface(handle: Long, surface: Any): Int
@@ -123,14 +134,19 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
         logFile: String = "",
         subFontsDir: String = "",
         subFontFamily: String = "",
+        /**
+         * 字幕编码（mpv 的 `sub-codepage`）。空 / `auto` = 不设，保持上游默认。
+         * ⚠️ 它是 **demuxer 初始化选项**：只能在 initialize 前给，运行期改不了（见 W2-iconv-LANDED.md §5.1）。
+         */
+        subCodepage: String = "auto",
         hdrSurface: Boolean = false,
         interpolation: Boolean = false,
         displayFps: Double = 0.0,
     ) {
         try {
             MpvNative.nativeInitialize(
-                handle, vo, ao, logFile, subFontsDir, subFontFamily, hdrSurface,
-                interpolation, displayFps,
+                handle, vo, ao, logFile, subFontsDir, subFontFamily, subCodepage,
+                hdrSurface, interpolation, displayFps,
             )
         } catch (e: IllegalStateException) {
             throw IllegalStateException("mpv initialize failed: ${e.message}", e)
@@ -182,7 +198,13 @@ class MpvSession private constructor(private val handle: Long) : AutoCloseable {
      * @return true = 命令被内核接受。
      */
     fun command(name: String, args: String = ""): Boolean =
-        runCatching { MpvNative.nativeCommand(handle, name, args) == 0 }.getOrDefault(false)
+        runCatching { MpvNative.nativeCommand(handle, name, args) == 0 }
+            .onFailure {
+                // JNI 把内核原话放在异常 message 里；不落下来就只剩一个 false。
+                MpvNative.lastCommandError = "${it.javaClass.simpleName}: ${it.message}"
+                android.util.Log.w("kivo-mpv", "command '$name $args' failed: ${it.message}")
+            }
+            .getOrDefault(false)
 
     /** 当前播放位置（秒）；读不到返回 -1。 */
     fun positionSeconds(): Double = MpvNative.nativePositionSeconds(handle)

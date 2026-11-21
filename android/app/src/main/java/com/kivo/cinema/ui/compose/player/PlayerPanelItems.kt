@@ -9,6 +9,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.kivo.cinema.playback.MpvPlaybackSession
+import com.kivo.cinema.playback.subtitle.SubtitleCodecMemory
+import com.kivo.cinema.ui.compose.PlayerComposeActivity
+import com.kivo.cinema.ui.compose.currentSubtitleFileKey
+import com.kivo.cinema.ui.compose.player.subtitle.SubtitlePanelRows
 import com.kivo.cinema.ui.compose.readProperty
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -64,6 +68,8 @@ internal fun panelTitle(kind: String): String = when (kind) {
     "subtitleDisplay" -> "字幕显示设置"
     "subtitleTracks" -> "内嵌字幕"
     "subtitleExternal" -> "外挂字幕"
+    "subtitleSecondary" -> "次字幕"
+    "subtitleEncoding" -> "字幕编码"
     "skip" -> "跳过片段"
     "skipMode" -> "跳过片段方式"
     "danmakuOps" -> "弹幕"
@@ -88,6 +94,7 @@ private fun enumeratePanel(
         "episodes" -> return episodesFromIntent(context) ?: forms.episodes()
         "danmakuOps" -> return forms.danmakuOps(danmakuOn, danmakuSettings.hasItems)
         "danmakuSettings" -> return PlayerPanelData.danmakuSettings(danmakuSettings)
+        "subtitleEncoding" -> return subtitleEncoding(context)
     }
     if (mpv == null) return forms.notReady()
     val data = PlayerPanelData
@@ -95,24 +102,34 @@ private fun enumeratePanel(
         "speed" -> data.speed(data.currentSpeedLabel(mpv))
         "quality" -> data.qualities(mpv.readProperty("video-aspect-override").orEmpty())
         "audioDelay" -> data.audioDelay(mpv.readProperty("audio-delay")?.toDoubleOrNull() ?: 0.0)
-        "subtitleDisplay" -> subtitleDisplay(mpv)
+        "subtitleDisplay" -> SubtitlePanelRows.display(mpv)
         "audio" -> {
             val catalog = mpv.tracksOrNull() ?: return forms.notReady()
             data.audioTracks(catalog.audioTracks(), catalog.currentTrackId("audio")) +
                 forms.audioExtras(mpv.readProperty("audio-delay")?.toDoubleOrNull() ?: 0.0)
         }
-        "subtitle" -> subtitleEntry(mpv)
+        "subtitle" -> SubtitlePanelRows.entry(mpv)
         "subtitleTracks" -> {
             val catalog = mpv.tracksOrNull() ?: return forms.notReady()
             val embedded = catalog.subtitleTracks().filter { !it.external }
             if (embedded.isEmpty()) forms.noEmbeddedSubtitles()
-            else data.subtitleTracks(embedded, catalog.currentTrackId("sub"))
+            else SubtitlePanelRows.embedded(embedded, catalog.currentTrackId("sub"))
         }
         "subtitleExternal" -> {
             val catalog = mpv.tracksOrNull() ?: return forms.notReady()
             val external = catalog.subtitleTracks().filter { it.external }
             if (external.isEmpty()) forms.noExternalSubtitles()
-            else data.subtitleTracks(external, catalog.currentTrackId("sub"))
+            else SubtitlePanelRows.external(external, catalog.currentTrackId("sub"))
+        }
+        "subtitleSecondary" -> {
+            val catalog = mpv.tracksOrNull() ?: return forms.notReady()
+            val subs = catalog.subtitleTracks()
+            if (subs.isEmpty()) forms.noEmbeddedSubtitles()
+            else SubtitlePanelRows.secondary(
+                subs,
+                mpv.readProperty("secondary-sid")?.trim()?.toIntOrNull(),
+                catalog.currentTrackId("sub"),
+            )
         }
         "resource" -> resource(mpv, origin, context)
         else -> emptyList()
@@ -120,46 +137,39 @@ private fun enumeratePanel(
 }
 
 /**
- * 字幕面板入口（形态 1，iPhone 现屏行序）：
- * 内嵌字幕> / 外挂字幕> 两条钻入行 + 搜索/导入/显示设置/关闭。
- * 副题是内核当前真值：内嵌＝当前轨名或"关闭"，外挂＝当前轨名或"无"。
+ * 字幕编码面板（R1）：7 档，当前生效项打勾。
+ *
+ * 【打勾口径】与写侧同源（C-PLUMB-CODEC@1）：当前外挂字幕的 fileKey →
+ * [SubtitleCodecMemory] 记住的编码；没记过 / 没挂字幕 ⇒ `"auto"`（自动探测）。
+ * 自动探测出来的具体编码**不**回填成勾 —— 记忆里没有它，勾在「自动」才对得上写侧行为。
  */
-private fun subtitleEntry(mpv: MpvPlaybackSession): List<PlayerOptionItem> {
-    val catalog = mpv.tracksOrNull() ?: return PlayerPanelForms.notReady()
-    val tracks = catalog.subtitleTracks()
-    val current = tracks.firstOrNull { it.id == catalog.currentTrackId("sub") }
-    val embedded = current?.takeIf { !it.external }?.displayName(current.id) ?: "关闭"
-    val external = current?.takeIf { it.external }?.displayName(current.id) ?: "无"
-    return listOf(
+private fun subtitleEncoding(context: Context): List<PlayerOptionItem> {
+    val activity = context as? PlayerComposeActivity
+    val current = activity
+        ?.let { it.currentSubtitleFileKey()?.let { key -> SubtitleCodecMemory(it).load(key) } }
+        ?: SUBTITLE_ENCODING_AUTO
+    return SUBTITLE_ENCODINGS.map { codec ->
         PlayerOptionItem(
-            title = "内嵌字幕",
-            subtitle = embedded,
-            icon = "captions",
-            tag = "subtitleTracks",
-            control = PlayerRowControl.CHEVRON,
-        ),
-        PlayerOptionItem(
-            title = "外挂字幕",
-            subtitle = external,
-            icon = "doc",
-            tag = "subtitleExternal",
-            control = PlayerRowControl.CHEVRON,
-        ),
-    ) + PlayerPanelForms.subtitleActions()
+            title = if (codec == SUBTITLE_ENCODING_AUTO) "自动" else codec,
+            selected = codec.equals(current, ignoreCase = true),
+            tag = "sub-enc-$codec",
+            control = PlayerRowControl.CHECK,
+        )
+    }
 }
 
-/** 五个 sub-* 真值任一读不到 ⇒ 不编默认值，直接报"未就绪"。 */
-private fun subtitleDisplay(mpv: MpvPlaybackSession): List<PlayerOptionItem> {
-    val font = mpv.readProperty("sub-font-size")?.toDoubleOrNull()
-    val pos = mpv.readProperty("sub-pos")?.toDoubleOrNull()
-    val delay = mpv.readProperty("sub-delay")?.toDoubleOrNull()
-    val border = mpv.readProperty("sub-border-size")?.toDoubleOrNull()
-    if (font == null || pos == null || delay == null || border == null) {
-        return PlayerPanelForms.notReady()
-    }
-    val standard = mpv.readProperty("sub-ass-override") == "yes"
-    return PlayerPanelData.subtitleDisplay(font, pos, delay, border, standard)
-}
+/** 行序 = 面板展示顺序；除「自动」外全是 `Charset` 规范名（`Shift-JIS` 由解码侧换算）。 */
+private val SUBTITLE_ENCODINGS = listOf(
+    SUBTITLE_ENCODING_AUTO,
+    "UTF-8",
+    "GB18030",
+    "BIG5",
+    "Shift-JIS",
+    "UTF-16LE",
+    "UTF-16BE",
+)
+
+private const val SUBTITLE_ENCODING_AUTO = "auto"
 
 /** 资源卡：徽章/体积/码率来自内核，源名来自来源推导（路由器/NAS/Emby 名，不是文件名）。 */
 private fun resource(mpv: MpvPlaybackSession, origin: PlayerSourceOrigin, context: Context): List<PlayerOptionItem> {

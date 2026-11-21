@@ -3,7 +3,6 @@ package com.kivo.cinema.ui.design
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -15,10 +14,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.ui.design.home.NavGlyph
@@ -66,12 +61,7 @@ fun CapsuleNavBar(
                             if (active) (if (onDark) SelectedCapsuleDark else SelectedCapsuleLight)
                             else Color.Transparent
                         )
-                        // D14：tab 用 selectable 自带"已选中"；隐藏文字时补名字，否则 TalkBack 只剩空节点。
-                        .then(
-                            if (AppearancePrefs.hideNavLabels)
-                                Modifier.semantics { contentDescription = label } else Modifier,
-                        )
-                        .selectable(selected = active, role = Role.Tab) { onSelect(index) },
+                        .clickable { onSelect(index) },
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center) {
                         NavGlyph(label, fg, Modifier.size(25.dp))
@@ -83,9 +73,7 @@ fun CapsuleNavBar(
         }
         Box(Modifier.size(50.dp)
             .shadow(6.dp, CircleShape, ambientColor = shadowColor).clip(CircleShape)
-            .background(pill)
-            .semantics { contentDescription = "搜索"; role = Role.Button }
-            .clickable(role = Role.Button) { onSearch() },
+            .background(pill).clickable { onSearch() },
             contentAlignment = Alignment.Center) {
             NavGlyph("search", idle, Modifier.size(28.dp))
         }

@@ -1,0 +1,321 @@
+Activity Resolver Table:
+  Non-Data Actions:
+      android.intent.action.MAIN:
+        5900d4c com.kivo.cinema/.MainActivity filter 72b0195
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.LAUNCHER"
+
+Receiver Resolver Table:
+  Non-Data Actions:
+      androidx.profileinstaller.action.SAVE_PROFILE:
+        60942aa com.kivo.cinema/androidx.profileinstaller.ProfileInstallReceiver filter 5872211
+          Action: "androidx.profileinstaller.action.SAVE_PROFILE"
+      androidx.profileinstaller.action.INSTALL_PROFILE:
+        60942aa com.kivo.cinema/androidx.profileinstaller.ProfileInstallReceiver filter dbd5e9b
+          Action: "androidx.profileinstaller.action.INSTALL_PROFILE"
+      androidx.profileinstaller.action.SKIP_FILE:
+        60942aa com.kivo.cinema/androidx.profileinstaller.ProfileInstallReceiver filter 356b238
+          Action: "androidx.profileinstaller.action.SKIP_FILE"
+      androidx.profileinstaller.action.BENCHMARK_OPERATION:
+        60942aa com.kivo.cinema/androidx.profileinstaller.ProfileInstallReceiver filter 110df76
+          Action: "androidx.profileinstaller.action.BENCHMARK_OPERATION"
+
+Domain verification status:
+
+Permissions:
+  Permission [com.kivo.cinema.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION] (5149b5d):
+    sourcePackage=com.kivo.cinema
+    uid=10904 gids=[] type=0 prot=signature
+    perm=PermissionInfo{4abc533 com.kivo.cinema.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION}
+
+Registered ContentProviders:
+  com.kivo.cinema/androidx.startup.InitializationProvider:
+    Provider{baab0f0 com.kivo.cinema/androidx.startup.InitializationProvider}
+
+ContentProvider Authorities:
+  [com.kivo.cinema.androidx-startup]:
+    Provider{baab0f0 com.kivo.cinema/androidx.startup.InitializationProvider}
+      applicationInfo=ApplicationInfo{80aacd2 com.kivo.cinema}
+
+Key Set Manager:
+  [com.kivo.cinema]
+      Signing KeySets: 1672
+
+Packages:
+  Package [com.kivo.cinema] (edb7eb2):
+    userId=10904
+    pkg=Package{5d3818f com.kivo.cinema}
+    codePath=/data/app/~~ZdIEYQMReJX2Il3Is2Wukg==/com.kivo.cinema-7yT8axUgQQNu-cAM-ocigQ==
+    resourcePath=/data/app/~~ZdIEYQMReJX2Il3Is2Wukg==/com.kivo.cinema-7yT8axUgQQNu-cAM-ocigQ==
+    legacyNativeLibraryDir=/data/app/~~ZdIEYQMReJX2Il3Is2Wukg==/com.kivo.cinema-7yT8axUgQQNu-cAM-ocigQ==/lib
+    extractNativeLibs=false
+    primaryCpuAbi=arm64-v8a
+    secondaryCpuAbi=null
+    cpuAbiOverride=null
+    versionCode=1 minSdk=26 targetSdk=37
+    minExtensionVersions=[]
+    versionName=0.1.0-p12a
+    usesNonSdkApi=false
+    splits=[base]
+    apkSigningVersion=2
+    flags=[ DEBUGGABLE HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+    forceQueryable=false
+    dataDir=/data/user/0/com.kivo.cinema
+    supportsScreens=[small, medium, large, xlarge, resizeable, anyDensity]
+    timeStamp=2026-11-21 02:00:47
+    lastUpdateTime=2026-11-21 02:00:50
+    packageSource=0
+    signatures=PackageSignatures{bdff9d0 version:2, signatures:[5672a287], past signatures:[]}
+    installPermissionsFixed=true
+    pkgFlags=[ DEBUGGABLE HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    declared permissions:
+      com.kivo.cinema.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: prot=signature, INSTALLED
+    requested permissions:
+      android.permission.INTERNET
+      android.permission.ACCESS_NETWORK_STATE
+      android.permission.CHANGE_WIFI_MULTICAST_STATE
+      android.permission.FOREGROUND_SERVICE
+      android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK
+      android.permission.READ_MEDIA_VIDEO
+      android.permission.POST_NOTIFICATIONS
+      android.permission.VIBRATE
+      com.kivo.cinema.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+    install permissions:
+      android.permission.FOREGROUND_SERVICE: granted=true
+      android.permission.CHANGE_WIFI_MULTICAST_STATE: granted=true
+      android.permission.INTERNET: granted=true
+      com.kivo.cinema.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: granted=true
+      android.permission.ACCESS_NETWORK_STATE: granted=true
+      android.permission.VIBRATE: granted=true
+    User 0: ceDataInode=3919013 installed=true hidden=false suspended=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false
+      installReason=0
+      firstInstallTime=2026-11-10 18:25:08
+      uninstallReason=0
+      overlay paths:
+        /product/overlay/GestureLineOverlay.apk
+        /data/resource-cache/com.android.systemui-neutral-cipL.frro
+        /data/resource-cache/com.android.systemui-accent-9s3F.frro
+      legacy overlay paths:
+        /product/overlay/GestureLineOverlay.apk
+      gids=[3003]
+      runtime permissions:
+        android.permission.POST_NOTIFICATIONS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.READ_MEDIA_VIDEO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+    User 999: ceDataInode=0 installed=false hidden=false suspended=false distractionFlags=0 stopped=true notLaunched=true enabled=0 instant=false virtual=false
+      installReason=0
+      firstInstallTime=1970-01-01 08:00:00
+      uninstallReason=0
+      gids=[3003]
+      runtime permissions:
+        android.permission.POST_NOTIFICATIONS: granted=false
+        android.permission.READ_MEDIA_VIDEO: granted=false
+
+Queries:
+  system apps queryable: false
+  queries via forceQueryable:
+  queries via package name:
+  queries via component:
+    [com.miui.tsmclient,com.android.nfc]:
+      com.kivo.cinema
+    com.openai.chatgpt:
+      com.kivo.cinema
+    com.focusritual.android:
+      com.kivo.cinema
+    com.android.calendar:
+      com.kivo.cinema
+    com.miui.player:
+      com.kivo.cinema
+    com.miui.gallery:
+      com.kivo.cinema
+    com.miui.packageinstaller:
+      com.kivo.cinema
+    com.android.providers.downloads.ui:
+      com.kivo.cinema
+    com.android.browser:
+      com.kivo.cinema
+    com.android.settings.intelligence:
+      com.kivo.cinema
+    com.miui.video:
+      com.kivo.cinema
+    com.android.contacts:
+      com.kivo.cinema
+    com.xiaomi.gamecenter.sdk.service:
+      com.kivo.cinema
+    com.xiaomi.payment:
+      com.kivo.cinema
+    com.mipay.wallet:
+      com.kivo.cinema
+    com.miui.nextpay:
+      com.kivo.cinema
+    com.miui.hybrid:
+      com.kivo.cinema
+    com.miui.systemAdSolution:
+      com.kivo.cinema
+    com.miui.greenguard:
+      com.kivo.cinema
+    com.xiaomi.xmsf:
+      com.kivo.cinema
+    com.xiaomi.market:
+      com.kivo.cinema
+    com.xiaomi.account:
+      com.kivo.cinema
+    com.android.email:
+      com.kivo.cinema
+    com.mfashiongallery.emag:
+      com.kivo.cinema
+    com.duokan.phone.remotecontroller:
+      com.kivo.cinema
+    com.cib.cibmb:
+      com.kivo.cinema
+    com.autonavi.minimap:
+      com.kivo.cinema
+    com.mi.health:
+      com.kivo.cinema
+    cn.bd.dt:
+      com.kivo.cinema
+    com.xiaomi.smarthome:
+      com.kivo.cinema
+    com.iflytek.inputmethod.miui:
+      com.kivo.cinema
+    com.tencent.mm:
+      com.kivo.cinema
+    com.baidu.netdisk:
+      com.kivo.cinema
+    com.whatsapp:
+      com.kivo.cinema
+    com.jng.cad:
+      com.kivo.cinema
+    com.xiaomi.mico:
+      com.kivo.cinema
+    com.jianlei.magicplayer:
+      com.kivo.cinema
+    com.bitget.exchange:
+      com.kivo.cinema
+    com.cama.app.huge80sclockPro:
+      com.kivo.cinema
+    com.rocoplayer.app:
+      com.kivo.cinema
+    com.xiaomi.mis:
+      com.kivo.cinema
+    com.coolapk.market:
+      com.kivo.cinema
+    io.enpass.app:
+      com.kivo.cinema
+    todolist.futuredynamicapps.dailyplanner.todo.reminders:
+      com.kivo.cinema
+    com.chinaunicom.bol.cloudapp:
+      com.kivo.cinema
+    com.salt.music:
+      com.kivo.cinema
+    com.AKStudio.HighwayGame:
+      com.kivo.cinema
+    com.xiaomi.router:
+      com.kivo.cinema
+    com.okinc.okex.gp:
+      com.kivo.cinema
+    com.maxmpz.audioplayer:
+      com.kivo.cinema
+    uni.UNIE937D15:
+      com.kivo.cinema
+    com.binance.dev:
+      com.kivo.cinema
+    com.xunlei.downloadprovider:
+      com.kivo.cinema
+    com.douban.frodo:
+      com.kivo.cinema
+    com.xiaomi.minigame:
+      com.kivo.cinema
+    com.midea.ai.appliances:
+      com.kivo.cinema
+    com.weahunter.kantian:
+      com.kivo.cinema
+    com.baidu.homework:
+      com.kivo.cinema
+    com.aitutor.hippo:
+      com.kivo.cinema
+    com.youku.phone:
+      com.kivo.cinema
+    com.musewave.player.music:
+      com.kivo.cinema
+    com.tmri.app.main:
+      com.kivo.cinema
+    com.aomei.anyviewer:
+      com.kivo.cinema
+    com.chinamobile.mcloud:
+      com.kivo.cinema
+    com.xunmeng.pinduoduo:
+      com.kivo.cinema
+    com.baidu.drive.app:
+      com.kivo.cinema
+    com.ylmf.androidclient:
+      com.kivo.cinema
+    com.booster.gfxpro:
+      com.kivo.cinema
+    com.iccapp.lumishot.android.acts:
+      com.kivo.cinema
+    com.dedao.juvenile:
+      com.kivo.cinema
+    com.ct.client:
+      com.kivo.cinema
+    com.bruce.bestidiom:
+      com.kivo.cinema
+    ai.perplexity.app.android:
+      com.kivo.cinema
+    com.player.ku9py:
+      com.kivo.cinema
+    com.xiaoe.client:
+      com.kivo.cinema
+    com.zuoyebang.zybbook:
+      com.kivo.cinema
+    cn.taozhi.xuetang:
+      com.kivo.cinema
+    tkb.assistant.app:
+      com.kivo.cinema
+    com.taobao.taobao:
+      com.kivo.cinema
+    com.netease.filmlytv:
+      com.kivo.cinema
+    cn.mipplayer.app:
+      com.kivo.cinema
+    com.cloudflare.cloudflareoneagent:
+      com.kivo.cinema
+    com.moonshot.kimichat:
+      com.kivo.cinema
+    com.benew.ntt:
+      com.kivo.cinema
+    com.mfcloudcalculate.networkdisk:
+      com.kivo.cinema
+    com.xingin.xhs:
+      com.kivo.cinema
+    com.ss.android.ugc.aweme:
+      com.kivo.cinema
+    com.fuseplayer:
+      com.kivo.cinema
+  queryable via interaction:
+    User 0:
+      [com.xiaomi.touchservice,com.modemdebug,com.miui.miinput,com.xiaomi.misettings,com.miui.cit,com.android.networkstack.inprocess,com.xiaomi.trustservice,com.miui.freeform,com.miui.audiomonitor,com.xiaomi.location.fused,com.miui.thirdappassistant,com.android.settings,com.xiaomi.joyose,com.android.inputdevices,com.miui.notification,com.miui.securitycore,miui.systemui.plugin,com.miui.cleanmaster,com.android.provision,com.miui.contentcatcher,com.miui.aod,com.wapi.wapicertmanage,com.miui.wmsvc,com.miui.catcherpatch,com.xiaomi.gnss.polaris,com.xiaomi.mirror,com.xiaomi.mi_connect_service,com.miui.securitycenter,com.android.wallpaperbackup,com.xiaomi.aiasst.vision,com.miui.powerkeeper,com.xiaomi.devauth,com.miui.uireporter,com.xiaomi.mtb,com.miui.qr,com.android.localtransport,com.miui.face,com.android.location.fused,com.android.providers.settings,com.android.dynsystem,com.miui.daemon,com.android.networkstack.tethering.inprocess,com.xiaomi.aiasst.service,com.miui.maintenancemode,com.miui.bugreport,com.android.keychain,com.android.systemui,com.miui.screenrecorder,com.xiaomi.otrpbroker,com.xiaomi.digitalkey,com.miui.touchassistant,com.xiaomi.barrage,com.bsp.catchlog,com.android.server.telecom,android,com.qualcomm.qti.xrcb]:
+        com.kivo.cinema
+      [com.android.mtp,com.android.providers.media,com.android.providers.downloads]:
+        com.kivo.cinema
+      com.google.android.documentsui:
+        com.kivo.cinema
+      [com.google.android.gms,com.google.android.gsf]:
+        com.kivo.cinema
+      com.tencent.wetype:
+        com.kivo.cinema
+      com.kivo.cinema:
+        [com.android.mtp,com.android.providers.media,com.android.providers.downloads]
+        com.android.externalstorage
+    User 999:
+  queryable via uses-library:
+
+Dexopt state:
+  [com.kivo.cinema]
+    path: /data/app/~~ZdIEYQMReJX2Il3Is2Wukg==/com.kivo.cinema-7yT8axUgQQNu-cAM-ocigQ==/base.apk
+      arm64: [status=run-from-apk] [reason=unknown]
+      odex file size: null
+
+Compiler stats:
+  [com.kivo.cinema]
+     base.apk - 5005

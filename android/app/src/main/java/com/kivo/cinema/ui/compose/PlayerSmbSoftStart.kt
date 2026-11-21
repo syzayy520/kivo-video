@@ -76,9 +76,10 @@ internal fun PlayerComposeActivity.startSoftPlayback(
             softRateMarkMs = 0L; softRateMarkPosUs = -1L; softAudioMarkUs = -1L
             val dur = session.durationUs()
             durationMs = if (dur > 0) dur / 1000 else 0L
-            statusText = "正在播放 · 软解"
+            statusText = "正在播放 · 软解 · 无字幕"
             phase = PlayerPhase.Playing
             isPlaying = true
+            hintNoSubtitleSupport("SMB 软解")
             lastTouchMs = System.currentTimeMillis()
             android.os.Handler(mainLooper).post(positionPoll)
             Thread({ mountSoftAudio(label, address, credential, filePath, generation) }, "KivoSmbSoftAudio").start()

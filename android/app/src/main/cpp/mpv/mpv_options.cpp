@@ -42,6 +42,7 @@ bool apply_mpv_options(mpv_handle* handle,
                        const std::string& log_file,
                        const std::string& sub_fonts_dir,
                        const std::string& sub_font_family,
+                       const std::string& sub_codepage,
                        bool hdr_surface,
                        bool interpolation,
                        double display_fps,
@@ -106,6 +107,14 @@ bool apply_mpv_options(mpv_handle* handle,
     // 【为什么不会影响字幕】`osd-on-seek` 只管"seek 时的 OSD"；字幕走 libass 渲染，互不相关。
     // 【为什么现在才出现】mpv 0.36 起默认值从 `msg` 改成了 `bar`。
     options.push_back({"osd-on-seek", "no", false});
+
+    // ---- W2/W3-R1 · 字幕编码 ----
+    // `sub-codepage` 是 **demuxer 选项**（demux_lavf.c 的 OPT_STRING(sub_cp)，默认 "auto"）：
+    // 每个 demux 实例创建时读它 ⇒ **必须在 mpv_initialize 之前设**。
+    // 运行期写 `options/sub-codepage` 会返回成功但**不生效**（真机四次实测，见 W2-iconv-LANDED.md §5.1）。
+    if (!sub_codepage.empty()) {
+        options.push_back({"sub-codepage", sub_codepage.c_str(), false});
+    }
 
     // ---- 2) 视频/音频通路 ----
     options.push_back({"vo", vo.c_str(), false});

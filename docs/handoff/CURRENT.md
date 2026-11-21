@@ -1,3 +1,67 @@
+> 2026-11-21 **播放页手势全部失灵已修复（用户报告）**：根因=收尾手势重写批次里
+> `PlayerPinch.pinchZoom` 在 down 时无条件 `state.pinching = true`，而 `PlayerGestureLayer`
+> 把 `pinching` 当"双指进行中"打断信号 ⇒ 单指手势刚按下就被自己 cancel，tap/双击/横竖滑/长按全灭
+> （用户所见"唤醒不了任何控制面板"）。修复=按真实指数置位（一处）。二分定位用 Root 自带
+> `--ez kivo.touchLog` 探针（down 到达但 consumed=false ⇒ 判定被中途杀）；修复后 tap 唤控制条、
+> 竖滑音量 HUD 真机 PASS。证据 [GESTURE-DEVICE.md](../evidence/p9-subtitle-reaccept/GESTURE-DEVICE.md)。
+> ⚠️ 自动化验收竖滑注入用 ≥400ms 的 swipe（250ms 快滑会假阴性）。
+
+> 2026-11-22 **接手收口：两道阻塞全解除**。① 首页重构收尾——按家族树恢复 HEAD 数据供给
+> （`refreshContinue` 的 SMB+Emby 增量、`refreshNasLibrary` 的索引/全扫/分节、`entryPoster` 回
+> `MainActivityHomeFeed.kt`），`homeEntries` 语义裁定见家族树 §1.1（NAS 片库走 `nasSections`，不展平）；
+> 真机 `smb=2 / emby=13 / homeEntries=10`，首页 NAS 电影/剧集恢复（截图 `home-nas-restored2.png`）。
+> ② 位置保持达成判据——`pre-pos pos=30.1` → `pos_after=30.166667`（差 0.067 s ≤ 2 s），BIG5 显示复原；
+> 证据 [POS-DEVICE.md](../evidence/p9-subtitle-reaccept/POS-DEVICE.md)。
+> ⚠️→✅ `ui_gate` 裸色 +1 已处置（用户授权「按你的建议推进」）：删一处死代码裸色
+> （`PlayerPanelSurface.backdropWash`，定义后从未使用）；剩 +1 **无法精确归因**（旧 baseline 只存总数、
+> 脏区不可重建）——已明示刷 baseline（300），并**根治归因能力**：`ui_gate.py` 的 baseline 现在落盘
+> `bare_color_by_file` / `bare_color_exempt_by_file` 逐文件明细（72+3 文件），此后任何 ±n 都能对表定位。
+> 未 commit / 未 push。
+
+> 2026-11-22 **位置保持仍未能验证（第二道阻塞）**：他人在途的首页重构把全量编译打红 —— `refreshNasLibrary` / `entryPoster` 全仓无定义、`continueItems` 调用方类型不匹配。我做了**最小 unblock**（`CalendarPageChrome` 删重复定义+补 label+命中区 48dp；`HomeFeed` 改走 `HomeFeedAggregator.merge`），但**不替他人补那两个函数**（属功能设计）。证据 [CODEC-DEVICE.md](../evidence/p9-subtitle-reaccept/CODEC-DEVICE.md) §12。
+
+> 2026-11-22 **位置保持：测到 pos=0.000，根因是读的时机**。设备恢复后复测（不 freeze、播到 ~20s 切编码）：`reload pos=0.000` 而同期截图时间码 `00:04` ⇒ `time-pos` 可读，是在 `reencode` **之后**读、mpv 忙时读到 null。已把读取**前移+6 次重试**，但此刻全量编译被他人在途改动打红（`MainActivityHomeFeed` / `CalendarPageChrome`），**未能编译验证**，未动他人文件。判据与代码见 [CODEC-DEVICE.md](../evidence/p9-subtitle-reaccept/CODEC-DEVICE.md) §11。
+
+> 2026-11-22 **位置保持验证因设备掉线未做**：已加 `sub-enc reloaded pos_after=` trace（可客观判定位置是否保住），但主测试机 `b6e950ee` 掉线，设备列表只剩 `CFE6R21B12000179`（非主测试机）与 `dd137cf7`（禁碰）⇒ **不取证、不充数**。判据与重跑命令见 [CODEC-DEVICE.md](../evidence/p9-subtitle-reaccept/CODEC-DEVICE.md) §10。
+
+> 2026-11-22 **W3-R1 编码面板全部打通**：换编码改为 **`loadfile` 重开**（绕开 `sub-remove` 不被接受的怪癖），位置/暂停保持、挂回库内字幕。真机双向验证：点 GB18030 → `いゆ⿰錕 鏱砕代刚`、点 BIG5 → **「中文字幕 繁體測試」**，库内文件与 `subtitle_codec` 记忆同步。证据 [CODEC-DEVICE.md](../evidence/p9-subtitle-reaccept/CODEC-DEVICE.md) §9。
+
+> 2026-11-22 **编码面板追查到真因（第三轮）**：①`track-list/count` 与 `current-tracks/sub/<字段>` 在该会话**都读不到**，只有 `sid` 可读 ⇒ 改用 App 状态 `lastSubtitleFileKey`（挂载时自己记），真机 `memory=…` 生效；②`sub-remove <sid>` 在该会话不被接受（内核无 `Track removed`）⇒ 已加**安全闸**（摘轨失败即中止，不丢字幕，已验证）；③踩到 `/*` 在 KDoc 里开启嵌套注释的坑（吞代码）。下一批改用 `loadfile` 重开而非 remove+add。证据 [CODEC-DEVICE.md](../evidence/p9-subtitle-reaccept/CODEC-DEVICE.md)。
+
+> 2026-11-22 **手选字幕编码：功能 PASS、UI 入口 FAIL**。功能层（与面板同一函数）已验证：BIG5 字幕从乱码切到「中文字幕 繁體測試 BIG5」、`.orig` 保持 55B 原样、记忆 `748a873bd6b8-big5=BIG5`、重开仍正确。**但编码面板的 7 行点了无 trace**（首层与 subtitleSecondary 都能点）—— 疑为 AnimatedContent 换页期旧层拦触摸。顺带把 Store 从 323 行拆到 282（门禁 PASS）。证据 [CODEC-DEVICE.md](../evidence/p9-subtitle-reaccept/CODEC-DEVICE.md)。
+
+> 2026-11-22 **编码归一化补了单测，并删掉一个死分支**：`SubtitleEncodingTest` **9 tests / 0 failures**；其中 `big5BytesAreClaimedByGb18030` 证明 **BIG5 永远轮不到**（首/尾字节区间都被 GB18030 包含）⇒ 已从 `LEGACY_CODECS` 删除，不再假装支持。要真支持繁体需「手选编码」或 uchardet（独立一批）。证据 [ENC-UNIT.md](../evidence/p9-subtitle-reaccept/ENC-UNIT.md)。
+
+> 2026-11-22 **W3-R1 字幕编码已达成（GBK 正确显示）**：走 **Java `Charset` 归一化**（UTF-8 严格 → UTF-16 BOM → GB18030 → BIG5），在导入落盘前转 UTF-8 ⇒ 去重口径随之为 UTF-8 内容哈希。真机 5/5：`sub-enc converted codec=GB18030`、字幕「中文字幕 GBK 转码测试」、同内容 UTF-8 版 `deduped=true`（同一条文件）。**W2 的内核路线已全部回滚**（bionic iconv 不含中文，实测四种编码名全失败）。证据 [ENC-DEVICE.md](../evidence/p9-subtitle-reaccept/ENC-DEVICE.md)。
+
+> 2026-11-22 **W2 已落位（未真机验证）**：走 bionic libc iconv（不用 LGPL 的 GNU libiconv）—— 新增 `patch-mpv-iconv-android.py`（只在 Android 上做真实 GBK→UTF-8 链接测试）+ `-Diconv=enabled` + API 28（cross/env/minSdk）。二进制已验证：`iconv_open@LIBC_P` UND、NEEDED 无 libiconv。设备掉线后已恢复并完成装机（minSdk=28 生效）；**GBK 端到端未达成**：`sub-codepage` 是 demuxer 初始化选项，属性/per-file option/`options/` 三条路都试过（详见证据 §5.1），注入通道属 W3-R1；待验证清单与回滚命令见 [W2-iconv-LANDED.md](../evidence/p9-subtitle-reaccept/W2-iconv-LANDED.md)。
+
+> 2026-11-22 **W2 预演构建：iconv 路线被证伪**。真实 meson 日志：`Dependency "iconv" not found` / `ld.lld: error: unable to find library -liconv` —— Android 的 iconv 在 libc 里、没有独立 libiconv；且 cross 文件 API 硬编码 26。⇒ 抬 minSdk 28 **不够**，还需自带 libiconv 或给 mpv 打补丁。产品未改动（独立目录预演，`prebuilt/` 与 `build/` 未动）。证据 [W2-iconv-DEVICE.md](../evidence/p9-subtitle-reaccept/W2-iconv-DEVICE.md)。
+
+> 2026-11-22 **W3-R3 网络字幕已落地**（团队批次 `subtitle-remote-url`）：字幕卡「导入字幕」下新增「**粘贴字幕链接**」；下载 → 校验（http/https、8 MiB、HTML 拒收、中文失败原因）→ 内容哈希去重入库 → 复用 SAF 的挂载/复用链路。真机 5/5 PASS（字幕显示「网络字幕 已导入」）。证据 [URL-DEVICE.md](../evidence/p9-subtitle-reaccept/URL-DEVICE.md)。
+
+> 2026-11-21 06:00 **收尾（自主排期）**：① UI 门禁的**行数回归已修** —— 我的 backdrop 参数把 `PlayerGlassMenu` 顶到 302，已把 `MenuHeader` 移入 `PlayerGlassMenuParts`（257 / 138 行）；② 补上「投屏设备行」真实取证（小爱音箱-8245 / 192.168.5.145，卡片顶 82.2dp）；③ 门禁仍报**裸色 +33**，来源不是本轮改动（`DesignPalette`/`PlayerTokens` 只 +2，缺口在未跟踪的 `PlayerPanelStyle.kt` 令牌表）—— 属治理决策，**未擅自改门禁/刷 baseline**。证据 [DLNA-DEVICE.md](../evidence/p9-subtitle-reaccept/DLNA-DEVICE.md)。
+
+> 2026-11-21 05:45 **面板背景磨砂（抓帧+模糊）已落地**（团队批次 `panel-backdrop`，T1–T3）：mpv 截图抓帧 → 480×270 → 盒式模糊 → 玻璃之下铺图；暗场合成 **114**（SenPlayer 117–120）、亮场 234.7（对方等价 218–226）、平滑度 0.981/0.992。**亮场白字仍不可读 = 与 SenPlayer 同量级，持平未解决**。证据 [BD-DEVICE.md](../evidence/p9-subtitle-reaccept/BD-DEVICE.md)、spec §18。
+
+> 2026-11-21 05:15 **修复「关闭面板中间闪一下」**：根因是关闭时 `activePanel=""` ⇒ `anchorFor("")` 落 `else → Center`，淡出期面板瞬移到屏幕正中。已改为锚点由 `shownKind` 派生，并补 title/items 快照。60fps 逐帧：中间区跳变 **+37.15 → +0.01**。证据 [BUG-DEVICE.md](../evidence/p9-subtitle-reaccept/BUG-DEVICE.md)。**附带发现**：退场动画实测未执行（800ms 探针仍 1 帧硬切），已登记未修。
+
+> 2026-11-21 04:55 **投屏卡 v2**：全宽贴底 sheet → 248dp 浮动卡（锚投屏图标下方，顶边 82.18dp / 左缘 368.7dp），设备行改 cast 图标 + 左对齐 + chevron，footer 重扫/关闭，再点图标 toggle 关闭。参考结论：SenPlayer 无自绘投屏面板（点投屏即退系统）。证据 [C0-DEVICE.md](../evidence/p9-subtitle-reaccept/C0-DEVICE.md)、spec §17。
+
+> 2026-11-21 04:35 **行控件拆分落地 + 投屏 sheet 贴底**：`PlayerStepperRow.kt`(450) → `player/row/` 5 文件（167/185/76/47/46）；`CastSheet` 改由调用方 `align(BottomCenter)`，真机从左上角改为贴底（顶边 y≈756）。证据 [S0-DEVICE.md](../evidence/p9-subtitle-reaccept/S0-DEVICE.md)。
+
+> 2026-11-21 04:15 **面板低项 4 项已销（团队批次 panel-polish-v3）**：描边真机 1.09dp、内容/滚动条/按压裁进圆角、滚动监听不再每帧重启、CastSheet token 化、规范 §16.2 与代码对齐。证据 [R0-DEVICE.md](../evidence/p9-subtitle-reaccept/R0-DEVICE.md)。新登记：投屏 sheet 实际弹在左上角（既有布局，待查）。
+
+> 2026-11-21 04:00 **SUB-M5 已销项**：次字幕延迟行（0.1 s 步进）+ 按片源记忆（键前缀 `s:`，与主 `d:` 并列）；真机验证 行可见/回读/重启复播/换片归零/重置双清 全 PASS。证据 [M5-DEVICE.md](../evidence/p9-subtitle-reaccept/M5-DEVICE.md)，设计 p9 家族树 §6.8。
+
+> 2026-11-21 03:45 **面板材质 v3（SenPlayer 对齐）+ O3 销项**：底改白 40%→37%、圆角 13.5dp、面板内控件反相为黑；真机深底 116–126 / 浅底 221–227，与 SenPlayer 117–120 / 218–237 同量级（唯一缺口：背景模糊做不到，SurfaceView 限制）。顶栏按压圆按 SenPlayer 实测删除（它按住与没按完全一致），O3 消解。证据 [V3-DEVICE.md](../evidence/p9-subtitle-reaccept/V3-DEVICE.md)、spec §16。
+
+> 2026-11-21 03:35 **O2 已销项 + KivoSub 埋点迁移完成**：`MpvSubtitleControl` 的 `Log.i` 删除，改由 `SubtitlePanelActions` 的 `sub-remove ok` trace 输出 `sid=`/`sec=`；实测主 A+次 B 时删 A ⇒ 内核自选到 B 且 `secondary-sid=no`，**不扩展兜底**。证据 [O2-DEVICE.md](../evidence/p9-subtitle-reaccept/O2-DEVICE.md)。
+
+> 2026-11-21 03:10 **O1 已销项**：次字幕面板锚点补 `subtitleSecondary` → captions（真机 PASS，顶边 82.18dp / 左缘 608.73dp / 宽 248dp，与「字幕」卡同锚点）。证据 [O1-DEVICE.md](../evidence/p9-subtitle-reaccept/O1-DEVICE.md)，判据见 [p9 家族树 §6.7](../design/subtitle-plane/p9-subtitle-perfection-family-tree.md)。
+
+> 2026-11-21 02:40 **面板材质 v2 + 字幕修复轮已收口（真机全绿），本线交接**：11 项字幕/审查修复 + 4 项返工（R1 复用主/次互斥、R2 重置同锁、R3 导入登记类级锁、R4 canonical 路径比较）全部落地并在 b6e950ee 复验 PASS；M4 裁定不扩展兜底；面板 v2 按用户修订判据 6/6。**接手先读** [HANDOFF-2026-11-21-subtitle-panel-closeout.md](HANDOFF-2026-11-21-subtitle-panel-closeout.md)（自足：铁律、契约速查、构建/装机/取证手册、待办优先级），权威状态在 [p9 家族树 §6.5/§6.6](../design/subtitle-plane/p9-subtitle-perfection-family-tree.md)，证据 [ROUND2-DEVICE.md](../evidence/p9-subtitle-reaccept/ROUND2-DEVICE.md)。工作区 127 项未提交改动保持原样，未 commit/push。下一棒建议从 O1（次字幕面板锚点缺失）开始，先与用户确认。
+
 > 2026-11-10 07:52 **平板真实 UI「播不了」已修好**：症状是点片后黑屏播放器 +「这个资源库还没有选择共享」+ 时间恒 `0:00:00`（同文件走 instrumentation 是 4/4 PASS，故与协议/解码无关）。根因：平板的源是**枚举共享**形态（记录里 `share` 为空），用户在页内选完共享后，选择只留在 `Activity` 内存——既没写回源记录，也没随 Intent 传给播放器，播放器回源解析必然 `needsShare == true` 而拒绝；K40 的源手填了 `XiaoMi` 所以一直能播。修复：`SmbBrowserActivity` 记录 `activeShare` 并随 `kivo.smbShare` 传入，`PlayerComposeActivity.startSmbPlayback` 增 `shareOverride` 覆盖地址（凭据仍只走加密存储，D5 未变）。真机复验（平板）：`local-seek.mkv` 出彩条画面并推进到 `0:00:13 / 0:01:00`；`mkv-audio.mkv` 播到结尾；播放中拖进度条秒表 `4 → 30`、续播到 `0:00:59`。顺带把 `SmbError` 的 CONNECT 按 `smb2_get_error()` 原文细分（未授权共享现明确说"没有对本机开放"，不再一律提示填账号密码），已授权共享零回归。[证据](../evidence/p243/smb-rebuild/s3-tablet-playback-fix.txt)。
 
 > 2026-11-10 07:30 **SMB 线全部打通（两台设备都验过）**：之前"K40 连不上小米路由"是**我的参数错**——小米路由**按设备下发不同的共享列表**：平板看到 `TDDOWNLOAD/下载/共享/图片/文档/视频/音乐`（7 个），K40 只看到 `XiaoMi`（整盘）。被授权的共享能连，未授权的回 `Tree Connect failed 0xc0000022`（会话其实是通的）。按各自入口复测：K40 走 `XiaoMi` + 路径 `视频/…`，SMB 播放+seek **4/4 PASS**（`POSITION 0→2922 ms`、`SEEK 30000/25000/27006`、`RESUME 27006→30006`）；平板走 `视频`，同文件 **4/4 PASS**。更下层枚举→列目录→随机读头尾各 1 MiB，**两台 3/3 PASS**。243 的 **S5（`_smb._tcp` 自动发现）真机验收同时结清**：K40 与平板均 2/2 PASS，只发现 NAS `N1`，小米路由不广播该服务。基于误判的 245 卡与其证据目录已删除。[244 卡关闭记录](../evidence/p244/status.md)、[243 证据](../evidence/p243/smb-rebuild/status.md)。

@@ -349,6 +349,10 @@ class MpvPlaybackSession(
     /** 关闭字幕。 */
     fun disableSubtitles(): Boolean = kernel.disableSubtitles()
 
+    /** 卸载一条外挂字幕（轨道 id 来自 [MpvTrackCatalog.tracks]）。 */
+    fun removeExternalSubtitle(trackId: Int): MpvSubtitleControl.RemovalResult =
+        kernel.removeExternalSubtitle(trackId)
+
     /** 当前字幕轨是否在**显示**（挂了 ≠ 选了 ≠ 可见，三态分开）。 */
     fun isSubtitleVisible(): Boolean = kernel.isSubtitleVisible()
 

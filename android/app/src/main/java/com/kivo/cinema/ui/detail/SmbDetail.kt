@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import com.kivo.cinema.emby.EmbyShows
 import com.kivo.cinema.library.HomeEntry
+import com.kivo.cinema.library.MediaQualityInfo
 import com.kivo.cinema.library.MediaTitleParser
 import com.kivo.cinema.library.NasIndexStore
 import com.kivo.cinema.library.NasLibraryGrouping
@@ -40,35 +41,28 @@ internal object SmbDetail {
         val facts = onlyDetails(parsed.title.ifBlank { fileName }, parsed.year)
         // 限时增强：拿得到就补简介/评分/演员；拿不到（无 key/无网/超时）仍是可读可播的文件事实页。
         val details = (enrich(context, parsed.title, parsed.year, preferTv = false) ?: facts)
-            .withLocalHero()
+            .withLocalHero("$sourceId/$share/$path")
         // 码率用「文件体积 ÷ TMDB 时长」估算：能算就填，算不出（缺时长）给 0 让 UI 不显示。
         val runSec = ((details.runtimeMin ?: 0) * 60).toLong()
         val bps = video?.size?.takeIf { it > 0L && runSec > 0L }?.let { it * 8L / runSec } ?: 0L
+        // 画质档从文件名读（零网络）：替代旧「写死空串」——那会让胶囊变空圈、主标题空着。
+        val tech = MediaQualityInfo.from(fileName)
         return DetailContent(
             details = details,
-            // 片源就是入口那个文件：给出真实体积，别让页面显示"暂无可用资源"（文件明明在）。
+            // 片源就是入口那个文件：给出真实体积，别让页面显示"暂无可用资源"。
             media = video?.let {
-                ResourceMedia(
-                    resolution = "",   // 不探测分辨率：要读远端文件头，不值得为一行胶囊付网络
-                    sizeBytes = it.size,
-                    bitrateBps = bps,
-                    sourceLabel = "NAS",
-                    streams = null,
-                )
+                ResourceMedia(tech.resolution, it.size, bps, "NAS", null, tech.dynamicRange)
             },
-            quality = "",
+            quality = tech.resolution,
             playIntent = playIntent(context, sourceId, share, path, fileName),
             tmdbId = 0,
             tmdbIsTv = false,
             noPlayReason = "",
             serverName = "NAS",
-            // 幕布专用：只有 [NAS_HERO_SCHEME] 才走本地海报（并裁掉底部烧死的片名）。
-            // 其余 URL（演员头像/剧照/相似海报）**必须返回 null**，交给各自的默认加载器 ——
-            // 否则所有头像都会变成同一张图（真机上就是这么出错的）。
+            // 幕布：本地图裁烧字带；TMDB hero 失败回退本地；其余 URL 返回 null 交给默认加载器（防串图）。
             loadImage = { url ->
-                if (!url.startsWith(NAS_HERO_SCHEME)) null
-                else loadPoster(context, sourceId, share, path, video?.posterPath, parsed.title, parsed.year)
-                    ?.trimTitleBand()
+                val local = suspend { loadPoster(context, sourceId, share, path, video?.posterPath, parsed.title, parsed.year)?.trimTitleBand() }
+                when { url.startsWith(NAS_HERO_SCHEME) -> local(); url == details.heroArtworkUrl -> com.kivo.cinema.ui.design.TmdbImageCache.load(url) ?: local(); else -> null }
             },
         )
     }
@@ -109,7 +103,7 @@ internal object SmbDetail {
             ?.let { playIntent(context, sourceId, share, it, first.label) }
         val facts = onlyDetails(series.title, series.year)
         val details = (enrich(context, series.title, series.year, preferTv = true) ?: facts)
-            .withLocalHero()
+            .withLocalHero("$sourceId/$share/$rootDir/${series.title}")
         return DetailContent(
             details = details,
             media = null,
@@ -127,9 +121,8 @@ internal object SmbDetail {
             playEpisode = { ep -> playIntent(context, sourceId, share, ep.id, ep.name) },
             serverName = "NAS",
             loadImage = { url ->
-                if (!url.startsWith(NAS_HERO_SCHEME)) null
-                else loadPoster(context, sourceId, share, first.path, series.posterPath, series.title, series.year)
-                    ?.trimTitleBand()
+                val local = suspend { loadPoster(context, sourceId, share, first.path, series.posterPath, series.title, series.year)?.trimTitleBand() }
+                when { url.startsWith(NAS_HERO_SCHEME) -> local(); url == details.heroArtworkUrl -> com.kivo.cinema.ui.design.TmdbImageCache.load(url) ?: local(); else -> null }
             },
         )
     }
@@ -138,14 +131,17 @@ internal object SmbDetail {
     private const val NAS_HERO_SCHEME = "kivo-nas-hero://"
 
     /**
-     * 把幕布地址改成 [NAS_HERO_SCHEME]。
+     * 把幕布地址改成 [NAS_HERO_SCHEME] + **本片唯一标识**。
      *
-     * 【为什么要改】`loadImage` 是**一个**回调，既服务幕布（页级大图）又服务演员头像/剧照/相似海报。
-     * 只要它"忽略参数一律返回本地海报"，那些小图就全变成同一张 —— 真机表现为所有演员同一张头像、剧照全灰。
-     * 给幕布一个专属 scheme 后，[loadImage] 只认它，其它 URL 返回 null 交回默认加载器，各取各图。
+     * [loadImage] 是**一个**回调，既服务幕布又服务演员头像/剧照/相似海报：只认本 scheme，
+     * 其它 URL 返回 null 交回默认加载器，各取各图（否则演员头像会全同一张）。
+     *
+     * 必须带唯一标识：`TmdbImage` 以 **URL 本身**作缓存 key（内存+磁盘）。早先固定串
+     * `kivo-nas-hero://hero` 让第一部片的图占住该 key，之后每部片都命中它
+     * （真机表现为「所有详情页都是犯罪都市4」）。把 `sourceId/share/path` 编进来才互不相同。
      */
-    private fun TmdbDetail.Details.withLocalHero(): TmdbDetail.Details =
-        copy(heroArtworkUrl = NAS_HERO_SCHEME + "hero")
+    private fun TmdbDetail.Details.withLocalHero(token: String): TmdbDetail.Details =
+        copy(heroArtworkUrl = backdropUrl?.takeIf { it.isNotBlank() } ?: (NAS_HERO_SCHEME + android.net.Uri.encode(token)))
 
     /** 增强预算：超过就用文件事实（详情页不能被网络拖住）。 */
     private const val TMDB_BUDGET_MS = 2_500L

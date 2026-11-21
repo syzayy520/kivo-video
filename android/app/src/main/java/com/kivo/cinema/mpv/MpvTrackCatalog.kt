@@ -17,6 +17,7 @@ package com.kivo.cinema.mpv
  * track-list/<i>/default        → 是否是默认轨
  * track-list/<i>/codec          → 编码名
  * track-list/<i>/external       → 是否外挂
+ * track-list/<i>/external-filename → 外挂字幕的本地文件路径（仅外挂轨有）
  * ```
  *
  * 【为什么用属性路径逐项读，而不是让 native 把 track-list 解析成 JSON】
@@ -42,6 +43,14 @@ class MpvTrackCatalog(private val session: MpvSession) {
         val isDefault: Boolean,
         val codec: String,
         val external: Boolean,
+        /** P9 · G：`forced` / `hearing-impaired` —— 字幕列表要给「强制 / 听障」徽章。 */
+        val forced: Boolean = false,
+        val hearingImpaired: Boolean = false,
+        /**
+         * 外挂轨的本地文件路径（`track-list/<i>/external-filename`）。
+         * 内嵌轨没有这个字段 ⇒ 空串；**读不到就是空串，不编造**。
+         */
+        val externalFilename: String = "",
     ) {
         /** 界面上显示的名字：有标题用标题，否则用语言，否则用类型 + 序号。 */
         fun displayName(fallbackIndex: Int): String = when {
@@ -67,6 +76,11 @@ class MpvTrackCatalog(private val session: MpvSession) {
                 isDefault = session.property("track-list/$index/default") == "yes",
                 codec = session.property("track-list/$index/codec").orEmpty(),
                 external = session.property("track-list/$index/external") == "yes",
+                // P9 · G：两枚徽章的真值。读不到按 false（不编）。
+                forced = session.property("track-list/$index/forced") == "yes",
+                hearingImpaired = session.property("track-list/$index/hearing-impaired") == "yes",
+                // P9 · H 删除外挂：路径只对外挂轨有效，内嵌轨读不到 ⇒ 空串（不编）。
+                externalFilename = session.property("track-list/$index/external-filename").orEmpty(),
             )
         }
         return result
@@ -132,6 +146,8 @@ class MpvTrackCatalog(private val session: MpvSession) {
      * 挂载一条外挂字幕（.srt / .ass）。
      *
      * @param path 本地文件路径。mpv 自己去读这个文件。
+     * @param title 显示名（可选）。导入的字幕文件带内容哈希前缀，直接当轨名很丑
+     *   ⇒ 用原始文件名做标题。mpv 语法：`sub-add <url> [flags] [title] [lang]`。
      * @return true = 命令下发成功。
      *
      * 【为什么不自己解析字幕再画】
@@ -139,8 +155,12 @@ class MpvTrackCatalog(private val session: MpvSession) {
      * 我们若再解析一遍再画一遍，就是两套字幕同时显示、两个位置。
      * 外挂字幕的正确接法就是把文件交给 mpv（`sub-add` 命令）。
      */
-    fun addExternalSubtitle(path: String): Boolean =
-        session.command("sub-add", path)
+    fun addExternalSubtitle(path: String, title: String? = null): Boolean {
+        val safePath = "\"${path.replace("\"", "'")}\""
+        val safeTitle = title?.replace("\"", "'")?.takeIf { it.isNotBlank() }
+        val args = if (safeTitle == null) "$safePath select" else "$safePath select \"$safeTitle\""
+        return session.command("sub-add", args)
+    }
 
     /** 卸载外挂字幕。 */
     fun removeExternalSubtitle(id: Int): Boolean =

@@ -1,6 +1,5 @@
 package com.kivo.cinema.ui.compose.player
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -31,7 +30,8 @@ internal fun PlayerCaptureButton(
             .playerSafeArea(WindowInsetsSides.Horizontal)
             .padding(start = PlayerTokens.captureFloatStart.dp)
             .size(PlayerTokens.captureFloatSize.dp)
-            .background(PlayerTokens.panelSurface, CircleShape)
+            // 与面板同一材质族：圆钮也用渐变底 + 边缘体系，不再是一块纯黑圆片。
+            .playerPanelSurface(elevation = 8.dp, shape = CircleShape)
             .semantics { contentDescription = "截取当前帧" }
             .pointerInput(Unit) { detectTapGestures(onTap = { onCapture() }) },
         contentAlignment = Alignment.Center,

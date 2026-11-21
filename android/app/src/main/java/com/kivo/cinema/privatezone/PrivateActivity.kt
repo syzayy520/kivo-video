@@ -33,13 +33,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kivo.cinema.evidence.IoTrace
 import com.kivo.cinema.privacy.PrivacyLockFlow
 import com.kivo.cinema.privacy.PrivacyLockMode
 import com.kivo.cinema.privacy.PrivacyPassword
 import com.kivo.cinema.sources.access.SourceAccessSession
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /**
  * 私密区海报墙（39 卡重构）：应用内独立数字密码解锁后只渲染 private.json 里的条目。
@@ -187,17 +184,8 @@ class PrivateActivity : ComponentActivity() {
         onClick: () -> Unit) {
         Column(modifier = Modifier.combinedClickable(
             onClick = onClick, onLongClick = onLongClick)) {
-            val bitmap by produceState<android.graphics.Bitmap?>(null, item.path) {
-                value = withContext(Dispatchers.IO) {
-                    IoTrace.measure("private.posterCard") {
-                        runCatching {
-                            @Suppress("DEPRECATION")
-                            android.media.ThumbnailUtils.createVideoThumbnail(
-                                item.path, MS.Video.Thumbnails.MINI_KIND)
-                        }.getOrNull()
-                    }
-                }
-            }
+            val bitmap = android.media.ThumbnailUtils.createVideoThumbnail(
+                item.path, MS.Video.Thumbnails.MINI_KIND)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -205,10 +193,9 @@ class PrivateActivity : ComponentActivity() {
                     .clip(RoundedCornerShape(8.dp))
                     .background(Color(0xFF2C2C2E))
             ) {
-                val bitmapValue = bitmap
-                if (bitmapValue != null) {
+                if (bitmap != null) {
                     Image(
-                        bitmap = bitmapValue.asImageBitmap(),
+                        bitmap = bitmap.asImageBitmap(),
                         contentDescription = item.title,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()

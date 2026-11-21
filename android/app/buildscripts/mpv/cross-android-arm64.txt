@@ -15,8 +15,9 @@
 # 编译与链接仍然能找到依赖，不会变成"编得过但链错"的静默错误。
 
 [binaries]
-# 用 NDK 的带 target 前缀 wrapper：它自带 --target=aarch64-linux-android26，
+# 用 NDK 的带 target 前缀 wrapper：它自带 --target=aarch64-linux-android28，
 # 不需要在 c_args 里再写一遍。
+
 c = 'C:/Android/sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/windows-x86_64/bin/aarch64-linux-android26-clang.cmd'
 cpp = 'C:/Android/sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/windows-x86_64/bin/aarch64-linux-android26-clang++.cmd'
 ar = 'C:/Android/sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-ar.exe'

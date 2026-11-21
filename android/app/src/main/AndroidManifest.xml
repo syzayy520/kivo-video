@@ -36,6 +36,7 @@
                 <activity android:name=".emby.EmbyActivity" android:exported="true"/>
                 <activity android:name=".emby.aggregate.ui.AggregateActivity" android:exported="false"/>
                 <activity android:name=".privatezone.PrivateActivity" android:exported="true"/>
+                <activity android:name=".ui.detail.DetailActivity" android:exported="true"/>
                 <activity android:name=".ui.detail.MovieDetailActivity"/>
         <!-- C3 观影日历：从「我的」周历/日历入口进入，只读统计，不对外导出。
              主题用应用默认的 Theme.KivoCinema（没有 Theme.Kivo 这个资源，写错会在安装时崩）。 -->
@@ -49,14 +50,16 @@
             android:supportsPictureInPicture="true"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation"
             android:exported="true" />
-        <!-- D12-0：取证宿主，不是产品入口。产品播放全部走 PlayerComposeActivity；
-             这里摘掉 MAIN/LAUNCHER（此前安装后桌面会出现第二个图标，点开是黑屏 + 状态字）。
-             tools/ 下 31 个脚本仍用显式 am start 与 kivo.* 探针开关启动本 Activity，不受影响。 -->
         <activity
             android:name=".ui.PlayerActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
             android:exported="true"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <!-- P13-A 帧率能力探针：无 UI，采集完即 finish。
              单独一条 Activity 的理由：它不需要 Surface、不需要片源，

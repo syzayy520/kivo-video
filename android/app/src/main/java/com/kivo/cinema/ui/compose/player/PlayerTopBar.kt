@@ -203,7 +203,15 @@ private fun TopIconButton(
     Box(
         modifier = Modifier
             .size(PlayerTokens.actionHitBox.dp)
-            .alpha(if (dimmed) 0.45f else 1f)
+            // P10 §10：激活白 100% / 未激活白 62%；"已关闭"（弹幕关）仍取更暗的 45%，
+            // 它是真状态而不是未激活，压得更低才能一眼看出关着。
+            .alpha(
+                when {
+                    dimmed -> 0.45f
+                    active -> PlayerPanelStyle.barActiveAlpha
+                    else -> PlayerPanelStyle.barInactiveAlpha
+                },
+            )
             .semantics {
                 contentDescription = label
                 role = Role.Button
@@ -222,6 +230,11 @@ private fun TopIconButton(
             },
         contentAlignment = Alignment.Center,
     ) {
+        // v3（2026-11-21，SenPlayer 对齐）：顶栏按下**不再画圆**。
+        // 实测 SenPlayer 顶栏图标按住 0.12s / 0.4s 与未按帧的图标区完全一致
+        // （亮像素 1859→1859，diff≈0），它没有按压圆、也不变暗；
+        // 我们保留 glyph 变暗（下方 `pressAlpha`）作为最低限度的"点到了"反馈，去掉圆底。
+        // 顺带销项 O3：顶栏名义 8% 被 barInactiveAlpha 0.62 压成 ≈5% 的分歧不再存在。
         // 听视频激活＝白圆底黑耳机（反白圆），不是通用绿色高亮。
         val inverted = action == "audioMode" && active
         Box(
@@ -236,11 +249,8 @@ private fun TopIconButton(
         ) {
             PlayerGlyph(
                 kind = glyph,
-                color = when {
-                    inverted -> Color.Black
-                    active -> PlayerTokens.activeAccent
-                    else -> PlayerTokens.textPrimary
-                },
+                // 激活色统一白（§10）：绿色只留给源卡健康点。
+                color = if (inverted) Color.Black else PlayerTokens.textPrimary,
                 modifier = Modifier.size(glyphSize.dp),
             )
         }

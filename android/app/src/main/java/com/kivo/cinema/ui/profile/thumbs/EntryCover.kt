@@ -8,20 +8,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.kivo.cinema.evidence.IoTrace
 import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.ui.design.decodeImageFileCapped
 import com.kivo.cinema.ui.profile.model.WatchEntry
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /**
  * 列表条目的封面槽（待看票根卡 16:9、在看海报 2:3 共用，避免两份重复解码实现）。
@@ -30,16 +26,12 @@ import kotlinx.coroutines.withContext
  * （PROF-02 冻结语义），本槽只解码本地文件；http 或空值一律退回 [DesignTokens.groupedFill]
  * 占位 —— 不引入图片加载依赖，也不画假封面。
  *
- * D11：解码在 `produceState + Dispatchers.IO` 中完成，主线程只收 [ImageBitmap]；
- * [maxDim] 仍按卡片实际像素上限裁剪，避免大图占用内存。
+ * 取舍：解码在 `remember(posterPath)` 中同步完成（与 [com.kivo.cinema.ui.profile.ContinueHero]
+ * 同法），因此 [maxDim] 按卡片实际像素上限裁剪，避免主线程解大图。
  */
 @Composable
 fun EntryCover(entry: WatchEntry, aspectRatio: Float, maxDim: Int = DefaultMaxDim) {
-    val cover by produceState<ImageBitmap?>(null, entry.posterPath, maxDim) {
-        value = withContext(Dispatchers.IO) {
-            IoTrace.measure("profile.entryCover") { decodeCover(entry.posterPath, maxDim) }
-        }
-    }
+    val cover = remember(entry.posterPath, maxDim) { decodeCover(entry.posterPath, maxDim) }
     Box(
         Modifier
             .fillMaxWidth()
@@ -47,10 +39,9 @@ fun EntryCover(entry: WatchEntry, aspectRatio: Float, maxDim: Int = DefaultMaxDi
             .clip(RoundedCornerShape(CoverCorner))
             .background(DesignTokens.groupedFill),
     ) {
-        val coverValue = cover
-        if (coverValue != null) {
+        if (cover != null) {
             Image(
-                bitmap = coverValue,
+                bitmap = cover,
                 contentDescription = entry.title,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),

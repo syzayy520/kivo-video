@@ -144,8 +144,6 @@ internal fun HeroPage(
             } else {
                 Text(card.title, color = fg, fontSize = 34.sp, fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center, maxLines = 2,
-                    // P0-3：Emby 服务器名可能是「中文\n无空格长英文注音」，缺 overflow 会左右溢出屏幕。
-                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth().offset(y = (368 + pullDp).dp).padding(horizontal = 16.dp))
             }
             Column(Modifier.fillMaxWidth().offset(y = (META_TOP_DP + pullDp).dp).padding(horizontal = 16.dp)) {
@@ -156,13 +154,10 @@ internal fun HeroPage(
                     color = fg.copy(alpha = .92f), maxLines = 2, overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
-            // P0-3：无评分时隐藏整块徽章，不再显示假的「Emby 0.0」。
-            card.rating?.takeIf { it > 0f }?.let { score ->
-                Box(Modifier.offset(y = (BADGE_TOP_DP + pullDp).dp).fillMaxWidth()) {
-                    RatingBadges(
-                        listOf(card.ratingSource to score.toFloat()), Modifier.fillMaxWidth(),
-                        alignCenter = true, valueColor = fg)
-                }
+            Box(Modifier.offset(y = (BADGE_TOP_DP + pullDp).dp).fillMaxWidth()) {
+                RatingBadges(
+                    listOf(card.ratingSource to (card.rating ?: 0f).toFloat()), Modifier.fillMaxWidth(),
+                    alignCenter = true, valueColor = fg)
             }
         }
     }

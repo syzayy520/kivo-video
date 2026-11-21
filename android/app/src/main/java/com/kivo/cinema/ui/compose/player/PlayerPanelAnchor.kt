@@ -37,16 +37,16 @@ sealed interface PlayerPanelAnchor {
  */
 internal object PlayerPanelGeometry {
 
-    /** 面板与屏幕左右边缘的最小距离。 */
-    const val edgeGap = 12f
+    /** 面板与屏幕左右边缘的最小距离（P10 §5：12 → 16，给 28dp 阴影留出外溢边）。 */
+    const val edgeGap = 16f
 
-    /** 面板与触发控件的间隙（顶栏下沿 / 按钮行上沿之外）。 */
-    const val anchorGap = 6f
+    /** 面板与触发控件的间隙（顶栏下沿 / 按钮行上沿之外；P10：6 → 8）。 */
+    const val anchorGap = 8f
 
-    /** 顶栏图标面板的顶边：顶栏总高 + 间隙（= 80pt，紧贴图标行下沿）。 */
+    /** 顶栏图标面板的顶边：顶栏总高 + 间隙（P10 后间隙 8，面板贴图标行下沿）。 */
     fun topIconTop(): Float = PlayerTokens.topBarHeight + anchorGap
 
-    /** 底栏按钮面板的底边距屏底：按钮行高 + 下留白 + 间隙（= 63pt，面板底边贴按钮行上方）。 */
+    /** 底栏按钮面板的底边距屏底：按钮行高 + 下留白 + 间隙（P10 后间隙 8，面板底边贴按钮行上方）。 */
     fun bottomActionBottom(): Float = PlayerTokens.bottomPad + PlayerTokens.buttonRowHeight + anchorGap
 
     /** 第 [index] 个（`TOP_ACTIONS` 下标）图标在**当前可见行**里的位置。 */

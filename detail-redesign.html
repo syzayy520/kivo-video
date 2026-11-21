@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>奥德赛 · 详情页重设计 v2</title>
+<style>
+/* ============================================================
+   设计系统 v2 —— 克制的层级变量，统一 token，无装饰性 emoji
+   ============================================================ */
+:root {
+  /* 间距：8 的倍数 */
+  --s-1:4px; --s-2:8px; --s-3:16px; --s-4:24px; --s-5:32px;
+  --s-6:40px; --s-7:48px; --s-8:64px;
+  /* 字号 5 级 */
+  --fs-xs:12px; --fs-sm:14px; --fs-md:16px; --fs-lg:20px; --fs-xl:34px;
+  /* 字重 */
+  --fw-r:400; --fw-m:500; --fw-sb:600; --fw-b:700; --fw-eb:800;
+  /* 圆角 */
+  --r-sm:10px; --r-md:14px; --r-lg:18px; --r-xl:24px; --r-2xl:28px; --r-full:999px;
+  /* 亮态色板 */
+  --paper:#F4F3F8;
+  --card:#FFFFFF;
+  --card-2:#FAFAFD;
+  --ink-1:#161821;
+  --ink-2:#55576A;
+  --ink-3:#9295A6;
+  --hairline:rgba(22,24,33,.07);
+  --hairline-2:rgba(22,24,33,.12);
+  /* 强调色（取自红头盔，降饱和） */
+  --accent:#C8402F;
+  --accent-deep:#A63224;
+  --accent-soft:rgba(200,64,47,.09);
+  --accent-line:rgba(200,64,47,.45);
+  --gold:#E0B53C;
+  --green:#2F9E5E;
+  /* Hero 深色 */
+  --night-1:#0B0E18;
+  --night-2:#141A2E;
+  /* 多层阴影：环境光 + 主投影 + 接触阴影 */
+  --elev-1:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+  --elev-2:0 1px 2px rgba(16,24,40,.04), 0 8px 20px -6px rgba(16,24,40,.10);
+  --elev-3:0 2px 6px rgba(16,24,40,.06), 0 18px 40px -12px rgba(16,24,40,.18);
+  --elev-panel:0 -16px 44px -16px rgba(8,10,24,.38);
+  /* 动效曲线 */
+  --spring:cubic-bezier(.34,1.35,.5,1);
+  --spring-soft:cubic-bezier(.22,1.15,.36,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --ease-in-out:cubic-bezier(.65,0,.35,1);
+  /* 玻璃 */
+  --glass-grad:linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.07));
+  --glass-edge:inset 0 1px 0 rgba(255,255,255,.38), inset 0 -1px 0 rgba(255,255,255,.07);
+  --glass-shadow:0 10px 30px rgba(4,8,20,.32);
+  --page-pad:16px;
+  --content-max:390px;
+}
+[data-theme="dark"] {
+  --paper:#0E1120;
+  --card:#171B2E;
+  --card-2:#1D2238;
+  --ink-1:#F1F2F7;
+  --ink-2:#A9ADC2;
+  --ink-3:#6E7390;
+  --hairline:rgba(255,255,255,.07);
+  --hairline-2:rgba(255,255,255,.14);
+  --accent-soft:rgba(224,96,80,.14);
+  --elev-1:0 1px 2px rgba(0,0,0,.3);
+  --elev-2:0 1px 2px rgba(0,0,0,.35), 0 8px 20px -6px rgba(0,0,0,.45);
+  --elev-3:0 2px 6px rgba(0,0,0,.4), 0 18px 40px -12px rgba(0,0,0,.55);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#0E1120; --card:#171B2E; --card-2:#1D2238;
+    --ink-1:#F1F2F7; --ink-2:#A9ADC2; --ink-3:#6E7390;
+    --hairline:rgba(255,255,255,.07); --hairline-2:rgba(255,255,255,.14);
+    --accent-soft:rgba(224,96,80,.14);
+    --elev-1:0 1px 2px rgba(0,0,0,.3);
+    --elev-2:0 1px 2px rgba(0,0,0,.35), 0 8px 20px -6px rgba(0,0,0,.45);
+    --elev-3:0 2px 6px rgba(0,0,0,.4), 0 18px 40px -12px rgba(0,0,0,.55);
+  }
+}
+
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html { font-size:16px; }
+body {
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",sans-serif;
+  background:#070912;
+  color:var(--ink-1);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  max-width:var(--content-max);
+  margin:0 auto;
+  min-height:100vh;
+  overflow-x:hidden;
+  position:relative;
+}
+button { font-family:inherit; cursor:pointer; border:none; background:none; color:inherit; }
+img { display:block; max-width:100%; }
+.num { font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1; }
+
+/* ========== 全局胶片颗粒（材质感） ========== */
+.grain {
+  position:fixed; inset:0; z-index:60; pointer-events:none;
+  opacity:.05; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ========== 滚动揭场 ========== */
+.reveal { opacity:0; transform:translateY(22px); transition:opacity .7s var(--ease-out), transform .7s var(--ease-out); }
+.reveal.in { opacity:1; transform:none; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+  .reveal { opacity:1; transform:none; }
+}
+
+.hide-scrollbar::-webkit-scrollbar { display:none; }
+.hide-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+
+/* 焦点可达性 */
+:focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
+
+/* ============================================================
+   折叠导航栏 —— 液态玻璃
+   ============================================================ */
+.nav-collapsed { position:sticky; top:0; z-index:100; height:0; pointer-events:none; }
+.nav-inner {
+  position:absolute; top:0; left:0; right:0;
+  height:52px; padding:0 12px;
+  display:flex; align-items:center; gap:10px;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(24px) saturate(1.7);
+  -webkit-backdrop-filter:blur(24px) saturate(1.7);
+  border-bottom:.5px solid var(--hairline);
+  transform:translateY(-100%);
+  transition:transform .45s var(--ease-out);
+  pointer-events:auto;
+}
+[data-theme="dark"] .nav-inner { background:rgba(14,17,32,.72); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .nav-inner { background:rgba(14,17,32,.72); }
+}
+.nav-collapsed.shown .nav-inner { transform:translateY(0); }
+.nav-back {
+  width:44px; height:44px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:background .2s, transform .25s var(--spring);
+}
+.nav-back:active { transform:scale(.88); background:rgba(0,0,0,.06); }
+.nav-title { flex:1; font-size:var(--fs-md); font-weight:var(--fw-sb); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.02em; }
+.nav-play {
+  min-height:44px; padding:0 18px;
+  background:var(--accent); color:#fff;
+  border-radius:var(--r-full);
+  font-size:13px; font-weight:var(--fw-sb);
+  display:flex; align-items:center; gap:5px; flex-shrink:0;
+  box-shadow:0 6px 16px -4px rgba(200,64,47,.5);
+  transition:transform .2s var(--spring), background .2s;
+}
+.nav-play:active { transform:scale(.94); }
+.nav-play:disabled { background:var(--hairline-2); color:var(--ink-3); box-shadow:none; cursor:not-allowed; }
+
+/* ============================================================
+   Hero —— 五层结构：图 / 色调 / 暗角 / 颗粒 / 信息
+   ============================================================ */
+.hero {
+  position:relative; width:100%; height:600px; overflow:hidden;
+  background:var(--night-2);
+}
+.hero-img {
+  position:absolute; inset:-8% 0;
+  width:100%; height:116%; object-fit:cover;
+  will-change:transform;
+}
+.hero-grade {
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(11,14,24,.25) 0%,rgba(11,14,24,0) 32%,rgba(11,14,24,.55) 68%,rgba(11,14,24,.96) 100%);
+}
+.hero-vignette {
+  position:absolute; inset:0;
+  background:radial-gradient(120% 90% at 50% 38%,rgba(0,0,0,0) 45%,rgba(7,9,18,.55) 100%);
+}
+.hero-side {
+  position:absolute; inset:0;
+  background:linear-gradient(90deg,rgba(7,9,18,.45),rgba(0,0,0,0) 28%,rgba(0,0,0,0) 72%,rgba(7,9,18,.45));
+}
+/* 浮动返回钮：玻璃 + 镜面高光 */
+.floating-back {
+  position:absolute; top:calc(env(safe-area-inset-top,0px) + 10px); left:12px; z-index:90;
+  width:44px; height:44px; border-radius:50%;
+  background:var(--glass-grad);
+  backdrop-filter:blur(20px) saturate(1.6);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:var(--glass-edge), var(--glass-shadow);
+  display:flex; align-items:center; justify-content:center;
+  transition:opacity .4s var(--ease-out), transform .25s var(--spring);
+}
+.floating-back:active { transform:scale(.88); }
+.floating-back.fade-out { opacity:0; pointer-events:none; transform:scale(.8); }
+/* Hero 信息层 */
+.hero-info {
+  position:absolute; left:16px; right:16px; bottom:138px; z-index:20;
+  text-align:center;
+  will-change:transform, opacity;
+}
+.hero-chips { display:flex; gap:7px; justify-content:center; flex-wrap:wrap; margin-bottom:14px; }
+.hero-chip {
+  padding:5px 12px; border-radius:var(--r-full);
+  background:rgba(255,255,255,.14);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.22);
+  color:#fff; font-size:var(--fs-xs); font-weight:var(--fw-m);
+  letter-spacing:.04em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
+}
+.hero-chip.rating { background:var(--accent); border-color:transparent; box-shadow:0 4px 14px -2px rgba(200,64,47,.6); }
+.hero-title {
+  font-size:var(--fs-xl); font-weight:var(--fw-eb); color:#fff;
+  letter-spacing:.14em; line-height:1.12;
+  text-shadow:0 2px 18px rgba(0,0,0,.65), 0 0 1px rgba(0,0,0,.7);
+  margin-bottom:12px;
+}
+.hero-meta {
+  font-size:var(--fs-sm); color:rgba(255,255,255,.92);
+  display:flex; align-items:center; justify-content:center; gap:7px; flex-wrap:wrap;
+  text-shadow:0 1px 8px rgba(0,0,0,.5);
+}
+.hero-meta .dot { opacity:.45; }
+
+/* ============================================================
+   CTA 行 —— 浮于 Hero 底部
+   ============================================================ */
+.cta-row {
+  position:absolute; bottom:26px; left:0; right:0; z-index:25;
+  display:flex; gap:11px; align-items:stretch;
+  padding:0 var(--page-pad);
+}
+.btn-play {
+  flex:1; min-height:52px; padding:0 22px;
+  border-radius:var(--r-full);
+  background:linear-gradient(180deg,#FFFFFF 0%,#ECEAF1 100%);
+  color:#161821;
+  font-size:var(--fs-md); font-weight:var(--fw-b);
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  position:relative; overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95), inset 0 -2px 6px rgba(16,24,40,.08), 0 12px 28px -8px rgba(8,10,24,.55);
+  transition:transform .25s var(--spring), box-shadow .25s, opacity .2s;
+}
+/* 周期流光 */
+.btn-play::after {
+  content:""; position:absolute; top:0; bottom:0; width:46%;
+  background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.75),rgba(255,255,255,0));
+  transform:translateX(-220%);
+  animation:sweep 4.5s var(--ease-in-out) infinite;
+}
+@keyframes sweep { 0%,55% { transform:translateX(-220%);} 82%,100% { transform:translateX(340%);} }
+.btn-play:active { transform:scale(.965); box-shadow:inset 0 2px 8px rgba(16,24,40,.14); }
+.btn-play:disabled { opacity:.55; cursor:not-allowed; }
+.btn-play:disabled::after { animation:none; }
+.btn-play .spinner {
+  width:18px; height:18px; border-radius:50%;
+  border:2.5px solid rgba(0,0,0,.18); border-top-color:#161821;
+  animation:spin .75s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg);} }
+
+.btn-secondary-group {
+  display:flex; border-radius:var(--r-full); overflow:hidden;
+  background:var(--glass-grad);
+  backdrop-filter:blur(20px) saturate(1.6);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:var(--glass-edge), var(--glass-shadow);
+}
+.btn-merged {
+  min-height:52px; padding:0 15px;
+  display:flex; align-items:center; gap:6px;
+  color:#fff; font-size:13px; font-weight:var(--fw-m);
+  transition:background .18s, transform .2s var(--spring);
+}
+.btn-merged + .btn-merged { border-left:1px solid rgba(255,255,255,.16); }
+.btn-merged:active { background:rgba(255,255,255,.12); transform:scale(.94); }
+.btn-merged .heart-filled { display:none; }
+.btn-merged.favorited .heart-filled { display:block; color:#FF5A6E; animation:heartPop .5s var(--spring); }
+.btn-merged.favorited .heart-outline { display:none; }
+@keyframes heartPop { 0%{transform:scale(.5);} 45%{transform:scale(1.4);} 72%{transform:scale(.92);} 100%{transform:scale(1);} }
+/* 收藏波纹 */
+.burst { position:relative; }
+.burst-ring {
+  position:absolute; inset:0; border-radius:50%;
+  border:2px solid rgba(255,90,110,.7);
+  opacity:0; pointer-events:none;
+}
+.burst.go .burst-ring { animation:ring .55s var(--ease-out); }
+@keyframes ring { 0%{opacity:.9; transform:scale(.6);} 100%{opacity:0; transform:scale(1.7);} }
+
+.btn-more {
+  width:52px; min-height:52px; border-radius:50%; flex-shrink:0;
+  background:var(--glass-grad);
+  backdrop-filter:blur(20px) saturate(1.6);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:var(--glass-edge), var(--glass-shadow);
+  display:flex; align-items:center; justify-content:center; color:#fff;
+  transition:transform .25s var(--spring), background .18s;
+}
+.btn-more:active { transform:scale(.88) rotate(90deg); background:rgba(255,255,255,.16); }
+
+/* ============================================================
+   内容面板
+   ============================================================ */
+.content-panel {
+  position:relative; z-index:10;
+  background:var(--paper);
+  border-radius:var(--r-2xl) var(--r-2xl) 0 0;
+  margin-top:-30px;
+  padding:0 var(--page-pad) calc(var(--s-8) + env(safe-area-inset-bottom));
+  box-shadow:var(--elev-panel);
+}
+.panel-handle {
+  width:40px; height:5px; border-radius:var(--r-full);
+  background:var(--hairline-2);
+  margin:0 auto; position:relative; top:10px; margin-bottom:22px;
+}
+
+/* ========== 简介 ========== */
+.synopsis { margin-bottom:var(--s-5); }
+.synopsis p {
+  font-size:var(--fs-sm); color:var(--ink-2); line-height:1.68;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  transition:-webkit-line-clamp .35s var(--ease-out);
+}
+.synopsis.expanded p { -webkit-line-clamp:unset; }
+.synopsis-toggle {
+  margin-top:6px; min-height:44px;
+  display:inline-flex; align-items:center; gap:3px;
+  font-size:var(--fs-sm); font-weight:var(--fw-sb); color:var(--accent);
+}
+.synopsis-toggle svg { transition:transform .35s var(--spring); }
+.synopsis.expanded .synopsis-toggle svg { transform:rotate(180deg); }
+
+/* ========== 评分 ========== */
+.ratings {
+  display:flex; gap:4px;
+  padding:14px 8px;
+  background:var(--card);
+  border:1px solid var(--hairline);
+  border-radius:var(--r-lg);
+  box-shadow:var(--elev-1);
+  margin-bottom:var(--s-5);
+}
+.rating-item { flex:1; text-align:center; padding:2px 4px; position:relative; min-width:0; }
+.rating-item + .rating-item::before {
+  content:""; position:absolute; left:0; top:14%; bottom:14%; width:1px; background:var(--hairline);
+}
+.rating-score { font-size:17px; font-weight:var(--fw-b); color:var(--ink-1); line-height:1.15; }
+.rating-source { font-size:10.5px; color:var(--ink-3); margin-top:3px; letter-spacing:.03em; white-space:nowrap; }
+.rating-bar { height:3px; background:var(--hairline); border-radius:2px; margin-top:7px; overflow:hidden; }
+.rating-bar-fill { height:100%; border-radius:2px; width:0; transition:width 1s var(--ease-out) .2s; }
+.rating-empty .rating-score { color:var(--ink-3); font-weight:var(--fw-r); opacity:.55; }
+.rating-empty .rating-source { opacity:.55; }
+.rating-empty .rating-bar { display:none; }
+
+/* ========== 区块通用 ========== */
+.section { margin-bottom:var(--s-6); }
+.section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--s-3); min-height:28px; }
+.section-title { font-size:var(--fs-lg); font-weight:var(--fw-b); letter-spacing:-.01em; }
+.section-link {
+  display:inline-flex; align-items:center; gap:2px;
+  min-height:44px; padding:0 6px; margin:-6px;
+  font-size:var(--fs-sm); color:var(--ink-3);
+  transition:color .2s, transform .2s var(--spring);
+}
+.section-link:active { transform:scale(.94); color:var(--accent); }
+.section-badge {
+  font-size:11px; font-weight:var(--fw-sb); letter-spacing:.08em;
+  color:var(--ink-3); border:1px solid var(--hairline-2);
+  padding:4px 9px; border-radius:var(--r-full);
+  min-height:26px; display:inline-flex; align-items:center;
+}
+
+/* ========== 播放资源 ========== */
+.resource-status { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:var(--fw-m); }
+.status-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.status-dot.ok { background:var(--green); box-shadow:0 0 0 3px rgba(47,158,94,.15); }
+.status-dot.err { background:var(--accent); box-shadow:0 0 0 3px rgba(200,64,47,.14); }
+.status-dot.idle { background:var(--ink-3); }
+.mini-spinner {
+  width:13px; height:13px; border-radius:50%;
+  border:2px solid var(--hairline-2); border-top-color:var(--ink-2);
+  animation:spin .75s linear infinite;
+}
+.resource-list { display:flex; flex-direction:column; gap:10px; }
+.resource-card {
+  display:flex; align-items:center; gap:12px;
+  padding:14px 14px;
+  background:var(--card);
+  border:1.5px solid var(--hairline);
+  border-radius:var(--r-lg);
+  box-shadow:var(--elev-1);
+  transition:border-color .25s, background .25s, transform .25s var(--spring), box-shadow .25s;
+  cursor:pointer; min-height:64px;
+}
+@media (hover:hover) { .resource-card:hover { transform:translateY(-2px); box-shadow:var(--elev-2); } }
+.resource-card:active { transform:scale(.985); }
+.resource-card.selected {
+  border-color:var(--accent-line);
+  background:var(--accent-soft);
+  box-shadow:0 0 0 3px rgba(200,64,47,.08), var(--elev-1);
+}
+.resource-icon {
+  width:42px; height:42px; border-radius:var(--r-md); flex-shrink:0;
+  background:var(--card-2); border:1px solid var(--hairline);
+  display:flex; align-items:center; justify-content:center; color:var(--ink-2);
+}
+.resource-card.selected .resource-icon { color:var(--accent); border-color:var(--accent-line); }
+.resource-main { flex:1; min-width:0; }
+.resource-titleline { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.resource-title { font-size:var(--fs-md); font-weight:var(--fw-sb); }
+.resource-meta { font-size:var(--fs-xs); color:var(--ink-3); margin-top:3px; }
+.resource-badge {
+  padding:2px 8px; border-radius:7px; font-size:10.5px; font-weight:var(--fw-b);
+  letter-spacing:.04em; flex-shrink:0;
+}
+.resource-badge.fourk { background:rgba(230,81,0,.12); color:#E65100; }
+.resource-badge.hd { background:rgba(21,101,192,.1); color:#1565C0; }
+.resource-badge.atmos { background:rgba(123,31,162,.1); color:#7B1FA2; }
+.resource-check {
+  width:26px; height:26px; border-radius:50%; flex-shrink:0;
+  background:var(--hairline);
+  display:flex; align-items:center; justify-content:center;
+  transition:background .3s var(--spring);
+}
+.resource-card.selected .resource-check { background:var(--accent); }
+.resource-check svg path {
+  stroke-dasharray:24; stroke-dashoffset:24;
+  transition:stroke-dashoffset .45s var(--spring) .08s;
+}
+.resource-card.selected .resource-check svg path { stroke-dashoffset:0; }
+/* 骨架 */
+.skeleton-card { padding:14px; background:var(--card); border-radius:var(--r-lg); border:1px solid var(--hairline); box-shadow:var(--elev-1); }
+.skeleton {
+  background:linear-gradient(90deg,var(--hairline) 25%,rgba(128,128,140,.13) 50%,var(--hairline) 75%);
+  background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px;
+}
+@keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+.sk-row { display:flex; gap:12px; align-items:center; }
+.sk-circle { width:42px; height:42px; border-radius:var(--r-md); flex-shrink:0; }
+.sk-lines { flex:1; }
+.sk-line { height:13px; margin-bottom:9px; }
+.sk-line:last-child { margin-bottom:0; width:58%; }
+/* 空 / 错 */
+.resource-state {
+  padding:var(--s-5) var(--s-3); text-align:center;
+  background:var(--card); border-radius:var(--r-lg); border:1px solid var(--hairline); box-shadow:var(--elev-1);
+}
+.state-icon {
+  width:52px; height:52px; margin:0 auto var(--s-3);
+  border-radius:50%; background:var(--card-2); border:1px solid var(--hairline);
+  display:flex; align-items:center; justify-content:center; color:var(--ink-3);
+}
+.resource-state.error .state-icon { color:var(--accent); background:var(--accent-soft); border-color:var(--accent-line); }
+.state-title { font-size:var(--fs-md); font-weight:var(--fw-sb); margin-bottom:4px; }
+.state-desc { font-size:var(--fs-xs); color:var(--ink-3); margin-bottom:14px; }
+.resource-retry {
+  min-height:44px; padding:0 22px;
+  background:var(--accent); color:#fff; border-radius:var(--r-full);
+  font-size:var(--fs-sm); font-weight:var(--fw-sb);
+  transition:transform .2s var(--spring);
+}
+.resource-retry:active { transform:scale(.95); }
+
+/* ========== 媒体信息 ========== */
+.media-info {
+  background:var(--card); border:1px solid var(--hairline);
+  border-radius:var(--r-lg); box-shadow:var(--elev-1); overflow:hidden;
+}
+.media-toggle {
+  width:100%; min-height:52px; padding:0 16px;
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:var(--fs-md); font-weight:var(--fw-m);
+}
+.media-toggle svg:last-child { transition:transform .35s var(--spring); }
+.media-info.expanded .media-toggle svg:last-child { transform:rotate(180deg); }
+.media-body { max-height:0; overflow:hidden; transition:max-height .45s var(--ease-out); }
+.media-info.expanded .media-body { max-height:640px; }
+.media-row {
+  display:flex; padding:11px 16px; border-top:1px solid var(--hairline);
+  font-size:var(--fs-sm); gap:16px;
+}
+.media-label { width:84px; flex-shrink:0; color:var(--ink-3); font-size:13px; }
+.media-value { flex:1; color:var(--ink-1); }
+.media-studio {
+  padding:14px 16px 18px; border-top:1px solid var(--hairline);
+  display:flex; justify-content:center;
+}
+.studio-logo {
+  font-size:13px; font-weight:var(--fw-b); letter-spacing:.18em;
+  color:#1565C0; text-transform:uppercase; font-family:"Helvetica Neue",Arial,sans-serif;
+}
+
+/* ========== 横滑轮播：方向锁 ========== */
+.scroll-row {
+  display:flex; gap:var(--s-3);
+  overflow-x:auto; -webkit-overflow-scrolling:touch;
+  touch-action:pan-x; overscroll-behavior-inline:contain;
+  padding:2px 2px 6px;
+  scroll-snap-type:x mandatory;
+}
+.scroll-row > * { scroll-snap-align:start; }
+
+/* ========== 演职员 ========== */
+.cast-card { width:84px; flex-shrink:0; text-align:center; padding:4px; }
+.cast-avatar {
+  width:80px; height:80px; margin:0 auto 9px;
+  border-radius:50%; padding:2.5px;
+  background:conic-gradient(from 160deg,var(--accent),rgba(200,64,47,.15),var(--hairline-2),var(--accent));
+  transition:transform .3s var(--spring);
+}
+.cast-card:active .cast-avatar { transform:scale(.93); }
+.cast-avatar img { width:100%; height:100%; border-radius:50%; object-fit:cover; border:2.5px solid var(--card); }
+.cast-name {
+  font-size:13px; font-weight:var(--fw-sb); line-height:1.3;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cast-role {
+  font-size:11px; color:var(--ink-3); margin-top:2px; line-height:1.3;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cast-card.director .cast-role { color:var(--accent); font-weight:var(--fw-sb); }
+
+/* ========== 家长指南 ========== */
+.guide-card {
+  width:178px; flex-shrink:0;
+  background:var(--card); border:1px solid var(--hairline);
+  border-radius:var(--r-lg); padding:14px;
+  box-shadow:var(--elev-1);
+  transition:transform .25s var(--spring);
+}
+.guide-card:active { transform:scale(.96); }
+.guide-rail { width:4px; height:34px; border-radius:2px; margin-bottom:10px; }
+.guide-rail.sexual { background:#E8B720; }
+.guide-rail.violence { background:#E0493C; }
+.guide-rail.language { background:#7E57C2; }
+.guide-rail.drugs { background:#26A69A; }
+.guide-level { font-size:var(--fs-md); font-weight:var(--fw-sb); margin-bottom:3px; }
+.guide-desc { font-size:var(--fs-xs); color:var(--ink-3); }
+
+/* ========== 分类 ========== */
+.genre-list { display:flex; flex-wrap:wrap; gap:10px; }
+.genre-chip {
+  min-height:44px; padding:0 20px;
+  background:var(--card); border:1px solid var(--hairline);
+  border-radius:var(--r-full);
+  font-size:var(--fs-sm); font-weight:var(--fw-m);
+  box-shadow:var(--elev-1);
+  display:inline-flex; align-items:center;
+  transition:transform .22s var(--spring), background .2s, color .2s, border-color .2s;
+}
+.genre-chip:active { transform:scale(.93); background:var(--accent-soft); color:var(--accent); border-color:var(--accent-line); }
+@media (hover:hover) { .genre-chip:hover { background:var(--accent-soft); color:var(--accent); border-color:var(--accent-line); } }
+
+/* ========== 剧照 ========== */
+.still-card {
+  width:264px; flex-shrink:0;
+  border-radius:var(--r-lg); overflow:hidden;
+  border:1px solid var(--hairline);
+  box-shadow:var(--elev-1);
+  aspect-ratio:16/9; position:relative;
+  background:var(--night-2);
+  transition:transform .3s var(--spring);
+}
+.still-card:active { transform:scale(.97); }
+.still-card img { width:100%; height:100%; object-fit:cover; }
+.still-card::after {
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.18),rgba(0,0,0,0) 40%);
+  pointer-events:none;
+}
+
+/* ========== 相似作品 ========== */
+.similar-card {
+  width:272px; flex-shrink:0;
+  background:var(--card); border:1px solid var(--hairline);
+  border-radius:var(--r-lg); overflow:hidden;
+  box-shadow:var(--elev-1);
+  transition:transform .3s var(--ease-out), box-shadow .3s, opacity .3s;
+}
+@media (hover:hover) { .similar-card:hover { transform:translateY(-3px); box-shadow:var(--elev-3); } }
+.similar-card:active { transform:scale(.98); }
+.similar-card.swapping { opacity:0; transform:translateY(10px) scale(.98); }
+.similar-poster { aspect-ratio:1.6/1; overflow:hidden; background:var(--night-2); }
+.similar-poster img { width:100%; height:100%; object-fit:cover; }
+.similar-info { padding:13px 14px 15px; }
+.similar-title {
+  font-size:var(--fs-md); font-weight:var(--fw-sb); margin-bottom:5px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.similar-meta {
+  font-size:var(--fs-xs); color:var(--ink-3);
+  display:flex; align-items:center; gap:5px; margin-bottom:7px;
+}
+.similar-desc {
+  font-size:var(--fs-xs); color:var(--ink-2); line-height:1.55;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+
+/* ========== 刷新 ========== */
+.refresh-wrap { display:flex; justify-content:center; padding:var(--s-3) 0 var(--s-2); }
+.refresh-btn {
+  display:inline-flex; align-items:center; gap:8px;
+  min-height:48px; padding:0 24px;
+  background:var(--card); border:1px solid var(--hairline);
+  border-radius:var(--r-full);
+  font-size:var(--fs-sm); font-weight:var(--fw-m); color:var(--ink-2);
+  box-shadow:var(--elev-1);
+  transition:transform .25s var(--spring), color .2s;
+}
+.refresh-btn:active { transform:scale(.95); color:var(--accent); }
+.refresh-btn.loading svg { animation:spin .8s linear infinite; }
+
+/* ============================================================
+   Sheet —— 手势下拉关闭
+   ============================================================ */
+.sheet-backdrop {
+  position:fixed; inset:0; z-index:1000;
+  background:rgba(7,9,18,.52);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  opacity:0; pointer-events:none;
+  transition:opacity .35s var(--ease-out);
+}
+.sheet-backdrop.visible { opacity:1; pointer-events:auto; }
+.sheet {
+  position:fixed; left:0; right:0; bottom:0; z-index:1001;
+  max-width:var(--content-max); margin:0 auto;
+  background:var(--card);
+  border-radius:var(--r-2xl) var(--r-2xl) 0 0;
+  box-shadow:0 -10px 48px rgba(0,0,0,.35);
+  transform:translateY(105%);
+  transition:transform .48s var(--spring);
+  touch-action:pan-y;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.sheet.visible { transform:translateY(0); }
+.sheet.dragging { transition:none; }
+.sheet-dragzone { padding:10px 0 4px; touch-action:pan-y; cursor:grab; }
+.sheet-handle { width:40px; height:5px; border-radius:var(--r-full); background:var(--hairline-2); margin:0 auto; }
+.sheet-item {
+  width:100%; min-height:56px; padding:0 20px;
+  display:flex; align-items:center; gap:14px;
+  font-size:var(--fs-md); font-weight:var(--fw-m);
+  transition:background .18s;
+}
+.sheet-item:active { background:var(--hairline); }
+.sheet-icon {
+  width:34px; height:34px; border-radius:11px; flex-shrink:0;
+  background:var(--card-2); border:1px solid var(--hairline);
+  display:flex; align-items:center; justify-content:center; color:var(--ink-2);
+}
+.sheet-cancel {
+  justify-content:center; font-weight:var(--fw-sb);
+  border-top:8px solid var(--paper);
+  margin-top:6px;
+}
+
+/* ========== 开发面板 ========== */
+.dev-toggle {
+  position:fixed; right:0; top:50%; transform:translateY(-50%);
+  z-index:9998;
+  width:38px; height:52px;
+  border-radius:14px 0 0 14px;
+  background:rgba(14,17,32,.82);
+  backdrop-filter:blur(14px);
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  border:1px solid rgba(255,255,255,.14); border-right:none;
+}
+.dev-panel {
+  position:fixed; right:0; top:50%; transform:translateY(-50%);
+  z-index:9999;
+  width:138px;
+  background:rgba(14,17,32,.92);
+  backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.14); border-right:none;
+  border-radius:16px 0 0 16px;
+  padding:12px 10px;
+  display:flex; flex-direction:column; gap:6px;
+  color:#fff; font-size:11px;
+}
+.dev-panel.hidden { display:none; }
+.dev-panel label { font-size:10px; color:rgba(255,255,255,.5); margin-top:6px; letter-spacing:.05em; }
+.dev-panel button {
+  padding:7px 9px; border-radius:8px;
+  background:rgba(255,255,255,.09); color:#fff; font-size:11px;
+  text-align:left; min-height:36px;
+  display:flex; align-items:center;
+  transition:background .15s;
+}
+.dev-panel button.active { background:var(--accent); }
+
+/* ========== 小屏 ========== */
+@media (max-width:360px) {
+  :root { --page-pad:12px; --fs-xl:30px; }
+  .btn-merged span { display:none; }
+  .btn-merged { padding:0 14px; }
+  .ratings { padding:12px 4px; gap:2px; }
+  .rating-score { font-size:15px; }
+}
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ========== 折叠导航 ========== -->
+<nav class="nav-collapsed" id="navCollapsed" aria-hidden="true">
+  <div class="nav-inner">
+    <button class="nav-back" aria-label="返回">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="nav-title">奥德赛</div>
+    <button class="nav-play" id="navPlayBtn" aria-label="播放影片">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span>播放</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ========== Hero ========== -->
+<section class="hero" id="hero">
+  <img class="hero-img" id="heroImg" alt="奥德赛电影主视觉：红头盔战士立于迷雾战场" data-prompt="Epic cinematic film still, ancient Greek warrior king in bronze armor with red horsehair plume helmet shouting on battlefield, blue armored soldiers silhouettes in misty forest, cold teal fog, dramatic god rays, floating embers, shallow depth of field, high detail movie still" data-size="portrait_16_9" />
+  <div class="hero-grade"></div>
+  <div class="hero-vignette"></div>
+  <div class="hero-side"></div>
+
+  <button class="floating-back" id="floatingBack" aria-label="返回">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+
+  <div class="hero-info" id="heroInfo">
+    <div class="hero-chips">
+      <span class="hero-chip">冒险</span>
+      <span class="hero-chip">动作</span>
+      <span class="hero-chip">奇幻</span>
+      <span class="hero-chip rating">PG-13</span>
+    </div>
+    <h1 class="hero-title">奥德赛</h1>
+    <div class="hero-meta">
+      <span>2026年7月15日</span><span class="dot">·</span>
+      <span>英国 / 美国</span><span class="dot">·</span>
+      <span>2小时53分钟</span>
+    </div>
+  </div>
+
+  <div class="cta-row">
+    <button class="btn-play" id="btnPlay">
+      <svg class="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span class="play-label">播放</span>
+    </button>
+    <div class="btn-secondary-group">
+      <button class="btn-merged" id="btnWatchlist" aria-label="添加到片单">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        <span>片单</span>
+      </button>
+      <button class="btn-merged burst" id="btnFav" aria-label="收藏">
+        <span class="burst-ring"></span>
+        <svg class="heart-outline" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <svg class="heart-filled" width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+    </div>
+    <button class="btn-more" id="btnMore" aria-label="更多操作">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- ========== 内容面板 ========== -->
+<main class="content-panel">
+  <div class="panel-handle" aria-hidden="true"></div>
+
+  <!-- 简介 -->
+  <section class="synopsis reveal" id="synopsis">
+    <p>《奥德赛》特洛伊战争结束后，伊萨卡国王奥德修斯（马特·达蒙 饰）踏上归途，却因触怒神明而漂泊十年。与此同时，他的妻子珀涅罗珀坚守王宫，儿子忒勒马科斯长大成人。这场漫长的归乡之旅，交织着诸神的考验、海洋的凶险与人性的挣扎。</p>
+    <button class="synopsis-toggle" id="synopsisToggle" aria-expanded="false">
+      <span class="toggle-text">更多</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </section>
+
+  <!-- 评分 -->
+  <section class="section reveal" aria-label="评分">
+    <div class="ratings" id="ratings">
+      <div class="rating-item" data-value="8.4" data-decimals="1">
+        <div class="rating-score num">0.0</div><div class="rating-source">IMDb</div>
+        <div class="rating-bar"><div class="rating-bar-fill" style="background:#E0B53C"></div></div>
+      </div>
+      <div class="rating-item" data-value="8.0" data-decimals="1">
+        <div class="rating-score num">0.0</div><div class="rating-source">TMDB</div>
+        <div class="rating-bar"><div class="rating-bar-fill" style="background:#01B4E4"></div></div>
+      </div>
+      <div class="rating-item" data-value="8.7" data-decimals="1">
+        <div class="rating-score num">0.0</div><div class="rating-source">Metacritic</div>
+        <div class="rating-bar"><div class="rating-bar-fill" style="background:#E64478"></div></div>
+      </div>
+      <div class="rating-item" data-value="9.4" data-decimals="1" data-suffix="">
+        <div class="rating-score num">0.0</div><div class="rating-source">烂番茄</div>
+        <div class="rating-bar"><div class="rating-bar-fill" style="background:#FA320A"></div></div>
+      </div>
+      <div class="rating-item rating-empty">
+        <div class="rating-score">—</div><div class="rating-source">豆瓣</div>
+        <div class="rating-bar"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 播放资源 -->
+  <section class="section reveal" aria-labelledby="resourcesTitle">
+    <div class="section-header">
+      <h2 class="section-title" id="resourcesTitle">播放资源</h2>
+      <span class="resource-status" id="resourceStatus"></span>
+    </div>
+    <div class="resource-list" id="resourceList"></div>
+  </section>
+
+  <!-- 媒体信息 -->
+  <section class="section reveal" aria-label="媒体信息">
+    <div class="media-info" id="mediaInfo">
+      <button class="media-toggle" id="mediaToggle" aria-expanded="false">
+        <span class="toggle-text">展开媒体信息</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="media-body">
+        <div class="media-row"><span class="media-label">导演</span><span class="media-value">克里斯托弗·诺兰</span></div>
+        <div class="media-row"><span class="media-label">编剧</span><span class="media-value">乔纳森·诺兰</span></div>
+        <div class="media-row"><span class="media-label">语言</span><span class="media-value">英语</span></div>
+        <div class="media-row"><span class="media-label">字幕</span><span class="media-value">简体中文 / 繁体中文 / 英语</span></div>
+        <div class="media-row"><span class="media-label">分辨率</span><span class="media-value">最高 4K UHD</span></div>
+        <div class="media-row"><span class="media-label">音频</span><span class="media-value">杜比全景声</span></div>
+        <div class="media-row"><span class="media-label">发行日期</span><span class="media-value">2026年7月15日</span></div>
+        <div class="media-studio"><span class="studio-logo">Universal Pictures</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 演职员 -->
+  <section class="section reveal" aria-labelledby="castTitle">
+    <div class="section-header">
+      <h2 class="section-title" id="castTitle">演员阵容</h2>
+      <button class="section-link" aria-label="查看全部演员">全部
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div class="scroll-row hide-scrollbar" id="castRow">
+      <div class="cast-card director">
+        <div class="cast-avatar"><img data-prompt="Photorealistic studio portrait headshot of distinguished male film director in his 50s, gray hair, black suit, charcoal background, soft cinematic light" data-size="square" alt="导演 克里斯托弗·诺兰" loading="lazy"></div>
+        <div class="cast-name">克里斯托弗·诺兰</div><div class="cast-role">导演</div>
+      </div>
+      <div class="cast-card">
+        <div class="cast-avatar"><img data-prompt="Photorealistic portrait headshot of rugged handsome male actor in his 40s, short brown hair, light stubble, dark blue studio background" data-size="square" alt="马特·达蒙" loading="lazy"></div>
+        <div class="cast-name">马特·达蒙</div><div class="cast-role">Odysseus</div>
+      </div>
+      <div class="cast-card">
+        <div class="cast-avatar"><img data-prompt="Photorealistic portrait headshot of young British male actor with curly brown hair, warm beige studio background, soft light" data-size="square" alt="汤姆·霍兰德" loading="lazy"></div>
+        <div class="cast-name">汤姆·霍兰德</div><div class="cast-role">Telemachus</div>
+      </div>
+      <div class="cast-card">
+        <div class="cast-avatar"><img data-prompt="Photorealistic portrait headshot of elegant woman with long dark brown hair, deep burgundy studio background, cinematic light" data-size="square" alt="安妮·海瑟薇" loading="lazy"></div>
+        <div class="cast-name">安妮·海瑟薇</div><div class="cast-role">Penelope</div>
+      </div>
+      <div class="cast-card">
+        <div class="cast-avatar"><img data-prompt="Photorealistic portrait headshot of pale young male actor with tousled dark hair, moody teal background, cinematic" data-size="square" alt="罗伯特·帕丁森" loading="lazy"></div>
+        <div class="cast-name">罗伯特·帕丁森</div><div class="cast-role">Antinous</div>
+      </div>
+      <div class="cast-card">
+        <div class="cast-avatar"><img data-prompt="Photorealistic portrait headshot of young woman with wavy auburn hair, sage green studio background, soft light" data-size="square" alt="西尔莎·罗南" loading="lazy"></div>
+        <div class="cast-name">西尔莎·罗南</div><div class="cast-role">Athena</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 家长指南 -->
+  <section class="section reveal" aria-labelledby="guideTitle">
+    <div class="section-header">
+      <h2 class="section-title" id="guideTitle">家长指南</h2>
+      <span class="section-badge">PG-13</span>
+    </div>
+    <div class="scroll-row hide-scrollbar">
+      <div class="guide-card"><div class="guide-rail sexual"></div><div class="guide-level">性与裸露</div><div class="guide-desc">轻微 · 855 票</div></div>
+      <div class="guide-card"><div class="guide-rail violence"></div><div class="guide-level">暴力与血腥</div><div class="guide-desc">严重 · 527 票</div></div>
+      <div class="guide-card"><div class="guide-rail language"></div><div class="guide-level">粗口</div><div class="guide-desc">温和 · 312 票</div></div>
+      <div class="guide-card"><div class="guide-rail drugs"></div><div class="guide-level">烟酒毒品</div><div class="guide-desc">无 · 1024 票</div></div>
+    </div>
+  </section>
+
+  <!-- 分类 -->
+  <section class="section reveal" aria-labelledby="genreTitle">
+    <div class="section-header"><h2 class="section-title" id="genreTitle">类型</h2></div>
+    <div class="genre-list">
+      <button class="genre-chip">冒险</button>
+      <button class="genre-chip">动作</button>
+      <button class="genre-chip">奇幻</button>
+      <button class="genre-chip">史诗</button>
+      <button class="genre-chip">神话</button>
+    </div>
+  </section>
+
+  <!-- 剧照 -->
+  <section class="section reveal" aria-labelledby="stillTitle">
+    <div class="section-header">
+      <h2 class="section-title" id="stillTitle">剧照</h2>
+      <button class="section-link" aria-label="查看全部剧照">全部
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div class="scroll-row hide-scrollbar">
+      <div class="still-card"><img data-prompt="Cinematic ancient Greek trireme warships with red sails entering burning harbor at dusk, smoke and embers, epic film still, teal and orange grade" data-size="landscape_16_9" alt="剧照：燃烧的港口" loading="lazy"></div>
+      <div class="still-card"><img data-prompt="Dark cinematic bronze engraving THE ODYSSEY on black stone, floating sparks, dramatic rim lighting, movie title card" data-size="landscape_16_9" alt="剧照：片名石碑" loading="lazy"></div>
+      <div class="still-card"><img data-prompt="Massive storm waves crashing on rocky cliff under thunder clouds, tiny ship silhouette, epic scale cinematic film still" data-size="landscape_16_9" alt="剧照：风暴之海" loading="lazy"></div>
+      <div class="still-card"><img data-prompt="Ancient Greek marble temple ruins in mist at golden hour, lone warrior silhouette, atmospheric cinematic film still" data-size="landscape_16_9" alt="剧照：雾中神庙" loading="lazy"></div>
+    </div>
+  </section>
+
+  <!-- 相似作品 -->
+  <section class="section reveal" aria-labelledby="similarTitle">
+    <div class="section-header"><h2 class="section-title" id="similarTitle">相似作品</h2></div>
+    <div class="scroll-row hide-scrollbar" id="similarRow"></div>
+  </section>
+
+  <div class="refresh-wrap">
+    <button class="refresh-btn" id="refreshBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      <span>换一批相似作品</span>
+    </button>
+  </div>
+</main>
+
+<!-- ========== Sheet ========== -->
+<div class="sheet-backdrop" id="sheetBackdrop"></div>
+<div class="sheet" id="moreSheet" role="dialog" aria-modal="true" aria-label="更多操作">
+  <div class="sheet-dragzone" id="sheetDragzone"><div class="sheet-handle"></div></div>
+  <button class="sheet-item">
+    <span class="sheet-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+    <span>添加到日历</span>
+  </button>
+  <button class="sheet-item">
+    <span class="sheet-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+    <span>下载离线观看</span>
+  </button>
+  <button class="sheet-item">
+    <span class="sheet-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+    <span>标记已观看</span>
+  </button>
+  <button class="sheet-item">
+    <span class="sheet-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+    <span>分享给朋友</span>
+  </button>
+  <button class="sheet-item">
+    <span class="sheet-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>
+    <span>复制链接</span>
+  </button>
+  <button class="sheet-item sheet-cancel" id="sheetCancel">取消</button>
+</div>
+
+<!-- ========== 开发面板 ========== -->
+<button class="dev-toggle" id="devToggle" aria-label="开发控制面板">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+</button>
+<div class="dev-panel hidden" id="devPanel">
+  <label>播放资源状态</label>
+  <button data-res="loading">加载中</button>
+  <button data-res="ready" class="active">已就绪</button>
+  <button data-res="empty">无资源</button>
+  <button data-res="error">加载失败</button>
+  <label>播放按钮</label>
+  <button data-play="enabled" class="active">可用</button>
+  <button data-play="disabled">禁用</button>
+  <button data-play="loading">加载</button>
+  <label>主题</label>
+  <button data-theme="auto" class="active">跟随系统</button>
+  <button data-theme="light">浅色</button>
+  <button data-theme="dark">深色</button>
+</div>
+
+<script>
+/* ============================================================
+   工具
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const imgURL = (prompt, size) =>
+  `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(prompt)}&image_size=${size}`;
+
+/* 所有 data-prompt 图片注入真实素材 */
+document.querySelectorAll('img[data-prompt]').forEach(el => {
+  el.src = imgURL(el.dataset.prompt, el.dataset.size || 'landscape_16_9');
+});
+
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ============================================================
+   资源数据与状态机
+   ============================================================ */
+const RESOURCES = [
+  { id:1, title:'蓝光 4K REMUX', meta:'21.3 GB · 杜比全景声 · 内封字幕', badges:[{t:'4K',c:'fourk'},{t:'ATMOS',c:'atmos'}], selected:true },
+  { id:2, title:'1080p BluRay',  meta:'8.7 GB · DTS 5.1', badges:[{t:'HD',c:'hd'}], selected:false },
+  { id:3, title:'720p WEB-DL',   meta:'2.1 GB · AAC 2.0', badges:[], selected:false },
+];
+
+const ICON = {
+  file: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  empty: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  error: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+};
+
+const resourceList = $('#resourceList');
+const resourceStatus = $('#resourceStatus');
+
+function statusHTML(kind, text) {
+  if (kind === 'loading') return `<span class="mini-spinner"></span><span style="color:var(--ink-3)">${text}</span>`;
+  if (kind === 'ok') return `<span class="status-dot ok"></span><span style="color:var(--green)">${text}</span>`;
+  if (kind === 'err') return `<span class="status-dot err"></span><span style="color:var(--accent)">${text}</span>`;
+  return `<span class="status-dot idle"></span><span style="color:var(--ink-3)">${text}</span>`;
+}
+
+function renderResources(state) {
+  resourceList.innerHTML = '';
+  if (state === 'loading') {
+    resourceStatus.innerHTML = statusHTML('loading', '加载中');
+    resourceList.innerHTML = [0,1,2].map(() => `
+      <div class="skeleton-card">
+        <div class="sk-row">
+          <div class="skeleton sk-circle"></div>
+          <div class="sk-lines">
+            <div class="skeleton sk-line" style="width:55%"></div>
+            <div class="skeleton sk-line"></div>
+          </div>
+        </div>
+      </div>`).join('');
+  } else if (state === 'ready') {
+    resourceStatus.innerHTML = statusHTML('ok', '已就绪');
+    RESOURCES.forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'resource-card' + (r.selected ? ' selected' : '');
+      card.innerHTML = `
+        <div class="resource-icon">${ICON.file}</div>
+        <div class="resource-main">
+          <div class="resource-titleline">
+            ${r.badges.map(b => `<span class="resource-badge ${b.c}">${b.t}</span>`).join('')}
+            <span class="resource-title">${r.title}</span>
+          </div>
+          <div class="resource-meta">${r.meta}</div>
+        </div>
+        <div class="resource-check">${ICON.check}</div>`;
+      card.addEventListener('click', () => {
+        resourceList.querySelectorAll('.resource-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+      });
+      resourceList.appendChild(card);
+    });
+  } else if (state === 'empty') {
+    resourceStatus.innerHTML = statusHTML('idle', '暂无');
+    resourceList.innerHTML = `
+      <div class="resource-state">
+        <div class="state-icon">${ICON.empty}</div>
+        <div class="state-title">暂无可用资源</div>
+        <div class="state-desc">该影片可能尚未上线或已下架</div>
+      </div>`;
+  } else if (state === 'error') {
+    resourceStatus.innerHTML = statusHTML('err', '加载失败');
+    resourceList.innerHTML = `
+      <div class="resource-state error">
+        <div class="state-icon">${ICON.error}</div>
+        <div class="state-title">网络错误</div>
+        <div class="state-desc">无法获取播放资源列表</div>
+        <button class="resource-retry" id="retryBtn">重试</button>
+      </div>`;
+    $('#retryBtn').addEventListener('click', () => {
+      renderResources('loading');
+      setPlayState('loading');
+      setTimeout(() => { renderResources('ready'); setPlayState('enabled'); }, 1400);
+    });
+  }
+}
+
+/* ============================================================
+   播放按钮状态机（与资源状态联动）
+   ============================================================ */
+const btnPlay = $('#btnPlay');
+const navPlayBtn = $('#navPlayBtn');
+function playIcon() {
+  return '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+}
+function setPlayState(state) {
+  btnPlay.disabled = state !== 'enabled';
+  if (state === 'enabled') {
+    btnPlay.innerHTML = playIcon() + '<span class="play-label">播放</span>';
+    navPlayBtn.disabled = false;
+    navPlayBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>播放</span>';
+  } else if (state === 'loading') {
+    btnPlay.innerHTML = '<div class="spinner"></div><span class="play-label">准备中</span>';
+    navPlayBtn.disabled = true;
+    navPlayBtn.innerHTML = '<span class="mini-spinner" style="border-color:rgba(255,255,255,.35);border-top-color:#fff"></span><span>准备中</span>';
+  } else {
+    btnPlay.innerHTML = playIcon() + '<span class="play-label">暂不可用</span>';
+    navPlayBtn.disabled = true;
+    navPlayBtn.innerHTML = playIcon().replace('width="18"','width="13"').replace('height="18"','height="13"') + '<span>播放</span>';
+  }
+}
+
+/* ============================================================
+   滚动编排：Hero 视差 / 导航交接
+   ============================================================ */
+const hero = $('#hero');
+const heroImg = $('#heroImg');
+const heroInfo = $('#heroInfo');
+const navCollapsed = $('#navCollapsed');
+const floatingBack = $('#floatingBack');
+
+function onScroll() {
+  const y = window.scrollY || 0;
+  const h = hero.offsetHeight;
+  if (!reduceMotion) {
+    heroImg.style.transform = `translateY(${y * 0.28}px) scale(1.02)`;
+    const fade = Math.min(1, y / (h * 0.42));
+    heroInfo.style.opacity = 1 - fade;
+    heroInfo.style.transform = `translateY(${y * 0.18}px)`;
+  }
+  const past = y > h - 70;
+  navCollapsed.classList.toggle('shown', past);
+  navCollapsed.setAttribute('aria-hidden', String(!past));
+  floatingBack.classList.toggle('fade-out', past);
+}
+addEventListener('scroll', onScroll, { passive:true });
+
+/* ============================================================
+   滚动揭场（错峰）
+   ============================================================ */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const siblings = [...e.target.parentElement.children].filter(c => c.classList.contains('reveal'));
+      e.target.style.transitionDelay = (Math.min(siblings.indexOf(e.target), 4) * 70) + 'ms';
+      e.target.classList.add('in');
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold:.12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+/* 评分数字滚动 + 进度条 */
+function animateRating(item) {
+  const target = parseFloat(item.dataset.value);
+  const scoreEl = item.querySelector('.rating-score');
+  const bar = item.querySelector('.rating-bar-fill');
+  const decimals = parseInt(item.dataset.decimals || '0', 10);
+  const t0 = performance.now(), dur = 950;
+  function tick(t) {
+    const p = Math.min(1, (t - t0) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    scoreEl.textContent = (target * eased).toFixed(decimals);
+    if (p < 1) requestAnimationFrame(tick);
+    else scoreEl.textContent = target.toFixed(decimals);
+  }
+  requestAnimationFrame(tick);
+  if (bar) bar.style.width = (target * 10) + '%';
+}
+const ratingIO = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { animateRating(e.target); ratingIO.unobserve(e.target); }
+  });
+}, { threshold:.4 });
+document.querySelectorAll('.rating-item[data-value]').forEach(el => ratingIO.observe(el));
+
+/* ============================================================
+   展开交互
+   ============================================================ */
+const synopsis = $('#synopsis');
+$('#synopsisToggle').addEventListener('click', () => {
+  const expanded = synopsis.classList.toggle('expanded');
+  $('#synopsisToggle').setAttribute('aria-expanded', expanded);
+  $('#synopsisToggle .toggle-text').textContent = expanded ? '收起' : '更多';
+});
+const mediaInfo = $('#mediaInfo');
+$('#mediaToggle').addEventListener('click', () => {
+  const expanded = mediaInfo.classList.toggle('expanded');
+  $('#mediaToggle').setAttribute('aria-expanded', expanded);
+  $('#mediaToggle .toggle-text').textContent = expanded ? '收起媒体信息' : '展开媒体信息';
+});
+
+/* 收藏：弹跳 + 波纹 */
+const btnFav = $('#btnFav');
+btnFav.addEventListener('click', () => {
+  const fav = btnFav.classList.toggle('favorited');
+  if (fav) {
+    btnFav.classList.remove('burst');
+    void btnFav.offsetWidth;
+    btnFav.classList.add('burst', 'go');
+  }
+});
+
+/* ============================================================
+   Sheet：开关 + 下拉手势 + 滚动锁
+   ============================================================ */
+const sheet = $('#moreSheet');
+const backdrop = $('#sheetBackdrop');
+let scrollLockY = 0;
+
+function openSheet() {
+  scrollLockY = window.scrollY;
+  sheet.classList.add('visible');
+  backdrop.classList.add('visible');
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${scrollLockY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+}
+function closeSheet() {
+  sheet.classList.remove('visible', 'dragging');
+  sheet.style.transform = '';
+  backdrop.classList.remove('visible');
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  window.scrollTo(0, scrollLockY);
+}
+$('#btnMore').addEventListener('click', openSheet);
+backdrop.addEventListener('click', closeSheet);
+$('#sheetCancel').addEventListener('click', closeSheet);
+addEventListener('keydown', e => { if (e.key === 'Escape' && sheet.classList.contains('visible')) closeSheet(); });
+
+/* 下拉手势（带橡皮筋阻尼 + 速度判定） */
+const dragzone = $('#sheetDragzone');
+let drag = null;
+dragzone.addEventListener('pointerdown', e => {
+  drag = { y:e.clientY, dy:0, lastY:e.clientY, lastT:performance.now(), vy:0 };
+  sheet.classList.add('dragging');
+  dragzone.setPointerCapture(e.pointerId);
+});
+dragzone.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const raw = e.clientY - drag.y;
+  drag.dy = raw > 0 ? raw * 0.72 : raw * 0.35; /* 橡皮筋 */
+  const now = performance.now();
+  drag.vy = (e.clientY - drag.lastY) / Math.max(1, now - drag.lastT);
+  drag.lastY = e.clientY; drag.lastT = now;
+  sheet.style.transform = `translateY(${drag.dy}px)`;
+  backdrop.style.opacity = String(Math.max(0, 1 - drag.dy / 500));
+});
+function endDrag() {
+  if (!drag) return;
+  sheet.classList.remove('dragging');
+  const shouldClose = drag.dy > 110 || drag.vy > 0.55;
+  drag = null;
+  backdrop.style.opacity = '';
+  if (shouldClose) closeSheet();
+  else sheet.style.transform = '';
+}
+dragzone.addEventListener('pointerup', endDrag);
+dragzone.addEventListener('pointercancel', endDrag);
+
+/* ============================================================
+   手势锁定：滚动后误触抑制（位移 > 12px 的 click 一律吞掉）
+   ============================================================ */
+let pd = { x:0, y:0 };
+addEventListener('pointerdown', e => { pd.x = e.clientX; pd.y = e.clientY; }, { passive:true });
+addEventListener('click', e => {
+  if (Math.hypot(e.clientX - pd.x, e.clientY - pd.y) > 12) {
+    e.stopPropagation(); e.preventDefault();
+  }
+}, true);
+
+/* ============================================================
+   相似作品：三批真数据，真换图
+   ============================================================ */
+const similarRow = $('#similarRow');
+const BATCHES = [
+  [
+    { title:'特洛伊', score:'7.2', year:'2004', prompt:'Movie poster style ancient Trojan warrior with golden shield and spear, warm golden battlefield, dramatic cinematic lighting', desc:'特洛伊王子帕里斯掳走斯巴达王后海伦，希腊联军向特洛伊城发起长达十年的围攻。' },
+    { title:'斯巴达300勇士', score:'7.6', year:'2006', prompt:'Movie poster style Spartan warriors in red capes forming phalanx, dark stylized cinematic, bold contrast', desc:'温泉关一役，斯巴达国王列奥尼达率三百勇士抵御波斯百万大军。' },
+    { title:'角斗士', score:'8.2', year:'2000', prompt:'Movie poster style Roman gladiator in colosseum, dust and sunlight rays, cinematic portrait', desc:'罗马将军马克西姆斯沦为奴隶，在角斗场中一步步走向复仇。' },
+  ],
+  [
+    { title:'诸神之战', score:'6.9', year:'2010', prompt:'Movie poster style Greek god with lightning, purple storm clouds, mythological fantasy cinematic', desc:'半神珀尔修斯击败美杜莎与海怪克拉肯，为人类带来和平。' },
+    { title:'宙斯之子', score:'6.4', year:'2014', prompt:'Movie poster style Hercules hero with lion skin, golden hour, mythic adventure cinematic', desc:'赫拉克勒斯必须完成十二项试炼才能获得永生。' },
+    { title:'大力神', score:'6.2', year:'2014', prompt:'Movie poster style ancient hero wrestling lion, terracotta tones, dramatic cinematic poster', desc:'赫拉克勒斯踏上危险旅程，直面自己的过去与黑暗。' },
+  ],
+  [
+    { title:'指环王：护戒使者', score:'9.0', year:'2001', prompt:'Movie poster style fantasy ring quest, green shire hills and epic mountain, cinematic adventure', desc:'一枚能毁灭世界的魔戒落入年轻霍比特人手中，远征队踏上销毁之旅。' },
+    { title:'霍比特人：意外之旅', score:'7.9', year:'2012', prompt:'Movie poster style hobbit adventurer on mountain path, warm earth tones, cinematic', desc:'比尔博·巴金斯被十三位矮人说服，踏上夺回宝藏的冒险。' },
+    { title:'加勒比海盗', score:'8.1', year:'2003', prompt:'Movie poster style pirate ship on turquoise sea, swashbuckling adventure, cinematic', desc:'传奇海盗杰克船长展开惊心动魄的航海冒险。' },
+  ],
+];
+let batchIndex = 0;
+const starSVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="#E0B53C"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+function renderSimilar() {
+  const batch = BATCHES[batchIndex % BATCHES.length];
+  similarRow.innerHTML = batch.map(s => `
+    <div class="similar-card">
+      <div class="similar-poster"><img src="${imgURL(s.prompt, 'landscape_4_3')}" alt="${s.title}海报" loading="lazy"></div>
+      <div class="similar-info">
+        <div class="similar-title">${s.title}</div>
+        <div class="similar-meta">${starSVG}<span class="num">${s.score}</span><span>·</span><span>${s.year}</span></div>
+        <div class="similar-desc">${s.desc}</div>
+      </div>
+    </div>`).join('');
+}
+renderSimilar();
+const refreshBtn = $('#refreshBtn');
+refreshBtn.addEventListener('click', () => {
+  if (refreshBtn.classList.contains('loading')) return;
+  refreshBtn.classList.add('loading');
+  refreshBtn.querySelector('span').textContent = '正在换一批';
+  similarRow.querySelectorAll('.similar-card').forEach(c => c.classList.add('swapping'));
+  setTimeout(() => {
+    batchIndex++;
+    renderSimilar(true);
+    refreshBtn.classList.remove('loading');
+    refreshBtn.querySelector('span').textContent = '换一批相似作品';
+  }, 650);
+});
+
+/* ============================================================
+   开发面板
+   ============================================================ */
+const devPanel = $('#devPanel');
+$('#devToggle').addEventListener('click', () => devPanel.classList.toggle('hidden'));
+
+devPanel.querySelectorAll('[data-res]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    devPanel.querySelectorAll('[data-res]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const res = btn.dataset.res;
+    renderResources(res);
+    if (res === 'ready') setPlayState('enabled');
+    else if (res === 'loading') setPlayState('loading');
+    else setPlayState('disabled');
+  });
+});
+devPanel.querySelectorAll('[data-play]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    devPanel.querySelectorAll('[data-play]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    setPlayState(btn.dataset.play);
+  });
+});
+devPanel.querySelectorAll('[data-theme]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    devPanel.querySelectorAll('[data-theme]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const t = btn.dataset.theme;
+    if (t === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', t);
+  });
+});
+
+/* ============================================================
+   初始化
+   ============================================================ */
+renderResources('ready');
+setPlayState('enabled');
+onScroll();
+</script>
+</body>
+</html>

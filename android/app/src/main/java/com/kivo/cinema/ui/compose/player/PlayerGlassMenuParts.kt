@@ -1,120 +1,144 @@
 package com.kivo.cinema.ui.compose.player
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
+import androidx.compose.material3.Text
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
+import com.kivo.cinema.ui.compose.player.row.PlayerTogglePill
 
 /**
- * 玻璃面板的行内构件：分隔线、行首、行尾、滚动条。
+ * 玻璃面板的行内构件（P10 版）：**分组分隔线 + 行尾控件**。
  *
- * 从 [PlayerGlassMenu] 拆出（原文件加 D14 语义后 304 行，超 300 上限）。
- * 拆分口径：本文件只画"一行之内/之间的零件"，不决定面板布局与滚动行为——
- * 那些留在主文件，两者因此可独立改动而不互相牵连。
+ * 与 P10 前的差别：
+ * · 分隔线只出现在**组间**，白 8% → **白 6%**，缩进交给列的 20dp 内边距；
+ * · 行首零件（[MenuLeading]：icon / 左勾）**删除** —— 列表行不再放装饰图标，
+ *   勾与 chevron 一律到行尾（§5），文字从 20dp 起；
+ * · 滚动条迁到 [PlayerPanelScroll.PanelScrollbar]（它需要 ScrollState 与自动隐藏计时，
+ *   与"一行之内/之间"的零件不是同一件事）。
+ *
+ * 本文件只画"一行之内/之间"的零件，不决定面板布局与滚动行为。
  */
 
-/** 分隔线：白 8%，**从文本左缘起**（不是通栏），与实测一致。 */
+/** 组间分隔线：白 6%，上下各 4dp，横向由列的 20dp 内边距决定。 */
 @Composable
 internal fun MenuSeparator() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = PlayerTokens.rowTitleInset.dp, top = 4.dp, bottom = 4.dp)
+            .padding(vertical = PlayerPanelStyle.dividerPad)
             .height(1.dp)
-            .clip(RoundedCornerShape(0.5.dp))
-            .background(PlayerTokens.panelDivider),
+            .background(PlayerPanelStyle.dividerColor),
     )
 }
 
 /**
- * 行首：有 icon 时 icon 心在 +30、题在 +65；
- * 无 icon 时选中勾心在 +25、题在 +43（倍速列表的实测排布）。
+ * 行尾：chevron（钻入 16dp 白 45%）/ 开关 / 勾（16dp 白 90%，出现时 140ms spring 放大）。
+ *
+ * 【勾为什么有动画】§8：`spring(0.7, 500)` + scale 0.8→1。切换轨道时如果勾"啪"地出现，
+ * 用户很难确认刚才点的是哪一行；140ms 的放大就是那一下"对，是它"。
  */
-@Composable
-internal fun MenuLeading(item: PlayerOptionItem) {
-    val hasIcon = item.icon != null
-    val inset = if (hasIcon) PlayerTokens.rowIconTitleInset else PlayerTokens.rowTitleInset
-    Box(
-        modifier = Modifier.width(inset.dp),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        if (hasIcon) {
-            PlayerGlyph(
-                kind = item.icon!!,
-                color = PlayerTokens.textPrimary,
-                modifier = Modifier
-                    .padding(start = 21.dp)
-                    .size(PlayerTokens.rowIconSize.dp),
-            )
-        } else if (item.selected && item.control == PlayerRowControl.CHECK) {
-            PlayerGlyph(
-                kind = "check",
-                color = PlayerTokens.textPrimary,
-                modifier = Modifier
-                    .padding(start = 18.dp)
-                    .size(PlayerTokens.rowCheckSize.dp),
-                strokeWidth = 2.2f,
-            )
-        }
-    }
-}
-
-/** 行尾：chevron（钻入）/ 开关 pill / 白勾（带 icon 的列表）/ 无。 */
 @Composable
 internal fun MenuTrailing(item: PlayerOptionItem) {
     when {
         item.control == PlayerRowControl.CHEVRON -> PlayerGlyph(
             kind = "chevron-right",
-            color = PlayerTokens.chevron,
+            color = PlayerPanelStyle.chevronColor,
             modifier = Modifier
                 .padding(start = 8.dp)
-                .size(PlayerTokens.chevronSize.dp),
+                .size(PlayerPanelStyle.rowChevronSize),
         )
         item.control == PlayerRowControl.TOGGLE -> PlayerTogglePill(
             on = item.on,
             modifier = Modifier.padding(start = 8.dp),
         )
-        item.icon != null && item.selected -> PlayerGlyph(
-            kind = "check",
-            color = PlayerTokens.textPrimary,
-            modifier = Modifier
-                .padding(start = 8.dp)
-                .size(PlayerTokens.rowCheckSize.dp),
-            strokeWidth = 2.2f,
-        )
+        item.control == PlayerRowControl.CHECK && item.selected -> SelectCheck()
     }
 }
 
-/** 滚动条：3pt 白 40%，贴右内 6pt，高度按可视比例。 */
+/** 行尾勾：选中态出现时 140ms spring(0.7, 500) 放大 0.8→1，同时淡入。 */
 @Composable
-internal fun MenuScrollbar(fraction: Float, visible: Boolean, modifier: Modifier = Modifier) {
-    if (!visible) return
-    Canvas(
-        modifier = modifier
-            .padding(end = PlayerTokens.scrollbarInset.dp)
-            .width(PlayerTokens.scrollbarWidth.dp)
-            .height(72.dp),
+private fun SelectCheck() {
+    // 用 Animatable 而不是 animateFloatAsState：后者的首帧初值等于目标值，不会动。
+    val progress = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        progress.animateTo(1f, spring(dampingRatio = 0.7f, stiffness = 500f))
+    }
+    val p = progress.value.coerceIn(0f, 1f)
+    PlayerGlyph(
+        kind = "check",
+        color = PlayerPanelStyle.checkColor.copy(
+            alpha = PlayerPanelStyle.checkColor.alpha * p,
+        ),
+        modifier = Modifier
+            .padding(start = 8.dp)
+            .size(PlayerPanelStyle.rowCheckSize)
+            .graphicsLayer {
+                val s = 0.8f + 0.2f * p
+                scaleX = s
+                scaleY = s
+            },
+        strokeWidth = 2.2f,
+    )
+}
+
+/** 面板头（56 高：18/24 题 + 12/17 副，§4/§5）。 */
+@Composable
+internal fun MenuHeader(title: String, subtitle: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(PlayerPanelStyle.headerHeight)
+            .padding(end = PlayerPanelStyle.rowTrailingPad),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        val thumbH = size.height * 0.4f
-        val y = (size.height - thumbH) * fraction.coerceIn(0f, 1f)
-        drawRoundRect(
-            color = PlayerTokens.scrollbar,
-            topLeft = Offset(0f, y),
-            size = Size(size.width, thumbH),
-            cornerRadius = CornerRadius(size.width / 2f),
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                color = PlayerPanelStyle.titleColor,
+                fontSize = PlayerPanelStyle.titleSize.sp,
+                lineHeight = PlayerPanelStyle.titleLineHeight.sp,
+                letterSpacing = PlayerPanelStyle.titleTracking.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (subtitle.isNotBlank()) {
+                Text(
+                    text = subtitle,
+                    color = PlayerPanelStyle.subtitleColor,
+                    fontSize = PlayerPanelStyle.subtitleSize.sp,
+                    lineHeight = PlayerPanelStyle.subtitleLineHeight.sp,
+                    letterSpacing = PlayerPanelStyle.subtitleTracking.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        if (subtitle.isNotBlank()) {
+            PlayerGlyph(
+                kind = "chevron-down",
+                color = PlayerPanelStyle.chevronColor,
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .size(14.dp),
+            )
+        }
     }
 }

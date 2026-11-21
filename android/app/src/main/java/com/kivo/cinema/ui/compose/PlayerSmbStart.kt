@@ -195,6 +195,9 @@ internal fun PlayerComposeActivity.startMpvPlayback(
             android.os.Handler(mainLooper).post(positionPoll)
             applyProbeSubtitle(session)
             applyProbeMpvOptions(session)
+            applyProbeSubtitleWrites(session)
+            applyProbeSubtitleUrl()
+            applyProbeSubtitleCodec()
             // 354：同名外挂字幕交还内核原生 `sub-auto=exact`（支持全部文本格式与编码探测）。
             // 273 v35：落点 seek 取证钩子（URL 与 SMB 两条链路共用本函数 ⇒ 挂这里两边都覆盖）。
             // 【为什么必须有它】见 PlayerProbeLandingSeek.kt 的文件头：
@@ -240,33 +243,34 @@ internal fun PlayerComposeActivity.startMpvPlayback(
  *  所以这里传进来的必须是**只给预览用**的那份源（SMB 是第二份 SmbByteSource，
  *  HTTP 是第二段 HttpOriginSource）—— 绝不能把主播放的源传进来。 */
 internal fun PlayerComposeActivity.mountNetworkThumbnails(source: com.kivo.cinema.net.ByteSource) {
-    // 主重试真重建：旧 reader 的内核/线程/代理先收（release 会关它注册的旧源），避免泄漏与抢链路。
-    thumbnailReader?.release()
+    thumbnailReader?.release() // 同步作废旧请求，内核/代理仍异步收尾。
+    thumbnailBitmap = null
+    thumbnailUnavailableReason = "预览帧准备中…"
     netThumbSource = source
     val reader = com.kivo.cinema.thumbnail.MpvThumbnailReader(
         applicationContext, source, cacheDir,
         extraMpvOptions = probeThumbOptions(),
-        // 274 · 实验开关：预览单次响应上限（--ei kivo.thumbMaxRangeKb N，0 = 旧行为）。
         maxRangeBytesOverride = intent.getIntExtra("kivo.thumbMaxRangeKb", 0).toLong() * 1024L,
     )
     thumbnailReader = reader
-    // 预热期空框也要有字：内核起好前拖动，用户看到的是"准备中"而不是黑框猜谜。
-    thumbnailUnavailableReason = "预览帧准备中…"
-    reader.onThumbnailReady = { _, bitmap ->
+    fun current(request: com.kivo.cinema.thumbnail.PreviewRequest) =
+        !finishRequested && !isDestroyed && thumbnailReader === reader &&
+            reader.isCurrent(request) && previewMs >= 0 && previewMs * 1000 == request.positionUs
+    reader.onThumbnailReady = { request, bitmap ->
         android.os.Handler(mainLooper).post {
+            if (!current(request)) return@post
             thumbnailBitmap = bitmap
             thumbnailUnavailableReason = ""
         }
     }
-    reader.onUnavailable = { reason ->
-        android.os.Handler(mainLooper).post { thumbnailUnavailableReason = reason }
+    reader.onUnavailable = { request, reason ->
+        android.os.Handler(mainLooper).post {
+            if (!current(request)) return@post
+            thumbnailBitmap = null
+            thumbnailUnavailableReason = reason.ifBlank { "预览帧不可用" }
+        }
     }
-    // 【关掉拖动预览时不要预热】
-    // 预热不是"顺手做一下"：它会起**第二个 mpv 内核**（多一个 4K HEVC 的
-    // MediaCodec 解码器 + 一整套 libplacebo 上下文），并把片源从 0 顺序读到
-    // 20–35 MB（真机 273-E：4K 片源上 ≈20 MiB / ≈17 s）。
-    // 预览关着的时候，这些带宽和内存全是白花 —— 实测本机就关着预览，
-    // 却在起播后十几秒里白下 26–38 MiB。
+    // 预览关闭不预热：第二内核会额外读 20–35 MB（273-E），不能白占带宽。
     if (playbackPrefs.scrubPreview) {
         // 273 v15：预热挪到**首帧之后**（见 [prewarmThumbnails]）——
         // 预览内核要自己开一条源站连接，而起播第一跳要的也是空连接，

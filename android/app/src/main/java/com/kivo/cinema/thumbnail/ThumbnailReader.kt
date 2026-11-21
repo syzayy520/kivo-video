@@ -9,20 +9,9 @@ import android.os.HandlerThread
 import android.util.LruCache
 
 /**
- * 独立缩略图读取器（215 / v3.1）：低分辨率 MediaCodec 实例 + LRU 缓存。
- *
- * 与主播放会话**完全解耦**（设计稿 D1）：独立 MediaExtractor + MediaCodec
- * 打开同一文件，seek 独立——主链路零干扰。
- * v3.1：输入源双形态（本地路径 / [android.media.MediaDataSource] 网络字节源），
- * SMB/mpv 链路的拖动预览帧由此供给（[ThumbInput] / [ByteSourceMediaDataSource]）。
- *
- * 懒初始化（D3）：首次 [seekTo] 才开解码器；5 秒无请求释放。
- *
- * 线程模型：全部操作在 [HandlerThread] 上串行执行（MediaCodec 非线程安全）。
- * 公开 API 线程安全（post 到 handler）。**latest-wins**：快速拖动时新请求
- * 顶掉排队中的旧请求（只留最新一个），防解码队列堆积成"拖完还在补帧"。
- *
- * LRU 缓存（D2）：键 = 秒级位置（同秒复用），容量 50 张。
+ * 独立 MediaExtractor + MediaCodec，不影响主播放会话；支持路径 / MediaDataSource。
+ * 首次 seek 懒初始化，5 秒闲置释放；HandlerThread 串行解码，秒级 LRU 缓存 50 张。
+ * 请求身份贯穿排队、解码与回调，latest-wins 不只撤销排队，也拒绝旧任务发布。
  */
 class ThumbnailReader private constructor(
     private val input: ThumbInput,
@@ -54,8 +43,8 @@ class ThumbnailReader private constructor(
     private val handler = Handler(thread.looper)
 
     /// 回调：缩略图就绪（在 handler 线程调）
-    override var onThumbnailReady: ((positionUs: Long, bitmap: Bitmap) -> Unit)? = null
-    override var onUnavailable: ((reason: String) -> Unit)? = null
+    @Volatile override var onThumbnailReady: ((request: PreviewRequest, bitmap: Bitmap) -> Unit)? = null
+    @Volatile override var onUnavailable: ((request: PreviewRequest, reason: String) -> Unit)? = null
 
     // ---- 取证计数（AC1 / AC3）：全部在 handler 线程读写 ----
     private var requests = 0
@@ -65,45 +54,59 @@ class ThumbnailReader private constructor(
     private var coldFirstLatencyMs = -1L          // 首次请求（含解码器 init）——AC1 主判据
     private val warmLatenciesMs = ArrayList<Long>()
 
-    /**
-     * seek 到指定位置并解码缩略图。
-     * 线程安全；回调在 handler 线程。latest-wins：排队中的旧请求被最新请求顶掉。
-     */
+    @Volatile private var closing = false
+    private val requestGate = PreviewRequestGate()
+    private var decodeWorker: Runnable? = null // 仅在 requestGate 锁内访问。
+
     override fun seekTo(positionUs: Long) {
-        latestRequestAtMs = android.os.SystemClock.elapsedRealtime()
-        latestUs = positionUs
-        handler.removeCallbacks(decodeWorker)
-        handler.post(decodeWorker)
+        synchronized(requestGate) {
+            if (closing) return
+            val request = requestGate.next(positionUs)
+            val requestAt = android.os.SystemClock.elapsedRealtime()
+            decodeWorker?.let { handler.removeCallbacks(it) }
+            decodeWorker = Runnable { decode(request, requestAt) }.also { handler.post(it) }
+        }
     }
 
-    @Volatile private var latestUs = -1L
-    @Volatile private var latestRequestAtMs = 0L
+    override fun invalidate() {
+        synchronized(requestGate) {
+            requestGate.invalidate()
+            decodeWorker?.let { handler.removeCallbacks(it) }
+            decodeWorker = null
+        }
+    }
 
-    private val decodeWorker = Runnable {
-        val positionUs = latestUs
-        val requestAt = latestRequestAtMs
+    override fun isCurrent(request: PreviewRequest): Boolean = !closing && requestGate.isCurrent(request)
+
+    private fun decode(request: PreviewRequest, requestAt: Long) {
+        if (!isCurrent(request)) return
         requests += 1
-        val key = (positionUs / 1_000_000).toInt()
+        val key = (request.positionUs / 1_000_000).toInt()
         cache.get(key)?.let { cached ->
             cacheHits += 1
             recordLatency(requestAt)
-            onThumbnailReady?.invoke(positionUs, cached)
-            return@Runnable
+            if (isCurrent(request)) onThumbnailReady?.invoke(request, cached)
+            return
         }
-        ensureInitialized()
-        val bitmap = if (initialized) decodeFrameAt(positionUs) else null
-        if (bitmap != null) {
-            cache.put(key, bitmap)
-            recordLatency(requestAt)
-            onThumbnailReady?.invoke(positionUs, bitmap)
-        } else {
-            decodeFailures += 1
-            onUnavailable?.invoke(
-                if (initFailed) "本地解码不可用（无视频轨或容器不支持）"
-                else "本地解码失败（关键帧追不到目标时刻）",
-            )
+        try {
+            ensureInitialized()
+            if (!isCurrent(request)) return
+            val bitmap = if (initialized) decodeFrameAt(request.positionUs) else null
+            if (bitmap != null) {
+                cache.put(key, bitmap)
+                recordLatency(requestAt)
+                if (isCurrent(request)) onThumbnailReady?.invoke(request, bitmap)
+            } else {
+                decodeFailures += 1
+                if (isCurrent(request)) onUnavailable?.invoke(
+                    request,
+                    if (initFailed) "本地解码不可用（无视频轨或容器不支持）"
+                    else "本地解码失败（关键帧追不到目标时刻）",
+                )
+            }
+        } finally {
+            scheduleRelease()
         }
-        scheduleRelease()
     }
 
     private fun recordLatency(requestAtMs: Long) {
@@ -147,9 +150,15 @@ class ThumbnailReader private constructor(
 
     /// 释放全部资源（handler 线程上安全调）。
     override fun release() {
-        handler.post {
-            releaseCodecInternal()
-            cache.evictAll()
+        synchronized(requestGate) {
+            if (closing) return
+            closing = true
+            invalidate()
+            handler.removeCallbacks(releaseRunnable)
+            handler.post {
+                releaseCodecInternal()
+                cache.evictAll()
+            }
         }
     }
 

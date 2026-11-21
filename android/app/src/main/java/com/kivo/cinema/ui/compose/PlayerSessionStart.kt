@@ -121,11 +121,30 @@ internal fun PlayerComposeActivity.maybeStartPlayback(holder: SurfaceHolder) {
     lastTouchMs = System.currentTimeMillis()
     android.os.Handler(mainLooper).post(positionPoll)
     durationMs = probeDurationUs(media.absolutePath) / 1000
-    statusText = if (hasAudio) "正在播放" else "正在播放 · 片源没有音轨"
+    // P9 · I：legacy 本地链路没有字幕管线 —— 文案与一次性提示同时说明。
+    statusText = if (hasAudio) "正在播放 · 无字幕" else "正在播放 · 片源没有音轨 · 无字幕"
+    hintNoSubtitleSupport("兼容内核")
+    thumbnailReader?.release()
+    thumbnailBitmap = null
+    thumbnailUnavailableReason = "预览帧准备中…"
     val reader = com.kivo.cinema.thumbnail.ThumbnailReader(media.absolutePath)
     thumbnailReader = reader
-    reader.onThumbnailReady = { _, bitmap ->
-        android.os.Handler(mainLooper).post { thumbnailBitmap = bitmap }
+    fun current(request: com.kivo.cinema.thumbnail.PreviewRequest) =
+        !finishRequested && !isDestroyed && thumbnailReader === reader &&
+            reader.isCurrent(request) && previewMs >= 0 && previewMs * 1000 == request.positionUs
+    reader.onThumbnailReady = { request, bitmap ->
+        android.os.Handler(mainLooper).post {
+            if (!current(request)) return@post
+            thumbnailBitmap = bitmap
+            thumbnailUnavailableReason = ""
+        }
+    }
+    reader.onUnavailable = { request, reason ->
+        android.os.Handler(mainLooper).post {
+            if (!current(request)) return@post
+            thumbnailBitmap = null
+            thumbnailUnavailableReason = reason.ifBlank { "本地预览帧不可用" }
+        }
     }
     // 本地片源同样侧载弹幕（旧版只有 SMB 路径调它，本地片弹幕永远空）。
     loadDanmaku(media.absolutePath)
@@ -153,9 +172,15 @@ internal fun PlayerComposeActivity.startNetworkPlayback(
         if (finishRequested || isDestroyed || smbNetSession !== netSession) return@start
         if (result == 0) {
             durationMs = netSession.durationUs / 1000
-            statusText = if (netSession.hasAudio) "正在播放" else "正在播放 · 片源没有音轨"
+            // P9 · I：平台硬解同样没有字幕管线（软解走 PlayerSmbSoftStart，各自提示）。
+            statusText = if (netSession.hasAudio) {
+                "正在播放 · 无字幕"
+            } else {
+                "正在播放 · 片源没有音轨 · 无字幕"
+            }
             phase = PlayerPhase.Playing
             isPlaying = true
+            hintNoSubtitleSupport("平台硬解")
             lastTouchMs = System.currentTimeMillis()
             android.os.Handler(mainLooper).post(positionPoll)
             updatePipParams()

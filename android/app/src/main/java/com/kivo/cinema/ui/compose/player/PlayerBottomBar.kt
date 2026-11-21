@@ -1,6 +1,5 @@
 package com.kivo.cinema.ui.compose.player
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -59,12 +58,10 @@ internal fun PlayerBottomBar(
     positionMs: Long,
     durationMs: Long,
     showRemaining: Boolean,
-    scrubPreview: Boolean,
     showNextButton: Boolean,
     bufferedFraction: Float,
-    thumbnailBitmap: Bitmap?,
-    thumbUnavailable: String,
-    previewMs: Long,
+    scrub: com.kivo.cinema.ui.compose.player.seek.PlayerScrubState,
+    previewAnchor: com.kivo.cinema.ui.compose.player.seek.PlayerSeekPreviewAnchor,
     resolutionLabel: String,
     activeAction: String,
     expandedPanel: String,
@@ -79,11 +76,10 @@ internal fun PlayerBottomBar(
     onScrubEnd: () -> Unit,
     onTextAction: (String) -> Unit,
     onPanelSelect: (PlayerOptionItem) -> Unit,
-    onCapture: () -> Unit,
     onEpisodeOrder: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var dragTargetMs by remember { mutableStateOf<Long?>(null) }
+    val shownMs = if (scrub.visible) scrub.targetMs else positionMs
 
     Box(modifier = modifier.fillMaxWidth()) {
         Box(
@@ -120,27 +116,23 @@ internal fun PlayerBottomBar(
                     .padding(horizontal = PlayerTokens.bottomSidePad.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TimeText(text = formatPlayerTime(dragTargetMs ?: positionMs))
+                TimeText(text = formatPlayerTime(shownMs))
                 Spacer(Modifier.width(PlayerTokens.trackStartGap.dp))
                 PlayerSeekTrack(
                     positionMs = positionMs,
                     durationMs = durationMs,
                     bufferedFraction = bufferedFraction,
-                    thumbnailBitmap = thumbnailBitmap,
-                    thumbUnavailable = thumbUnavailable,
-                    previewMs = previewMs,
-                    scrubPreview = scrubPreview,
-                    onDragTarget = { dragTargetMs = it },
+                    scrub = scrub,
+                    previewAnchor = previewAnchor,
                     onScrub = onScrub,
                     onSeek = onSeek,
                     onScrubEnd = onScrubEnd,
-                    onCapture = onCapture,
                     modifier = Modifier.weight(1f),
                 )
                 Spacer(Modifier.width(PlayerTokens.trackEndGap.dp))
                 TimeText(
                     text = if (showRemaining && durationMs > 0)
-                        "-" + formatPlayerTime((durationMs - (dragTargetMs ?: positionMs)).coerceAtLeast(0L))
+                        "-" + formatPlayerTime((durationMs - (shownMs)).coerceAtLeast(0L))
                     else formatPlayerTime(durationMs),
                     modifier = Modifier.hideWhenCoveredByPanel(panelRect),
                 )

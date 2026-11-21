@@ -50,16 +50,6 @@ class PinchScaleState internal constructor() {
     var scale by mutableFloatStateOf(MIN_SCALE)
         private set
 
-    /**
-     * 当前是否有 ≥2 指按下（双指手势进行中）。
-     *
-     * 审查 P1-3：Initial pass 的 `consume()` 不跨到单指检测器的 Main pass，
-     * 单靠 consume 挡不住"一边缩放一边跳进度"。单指检测器在回调里读这个标记
-     * 显式排除多指，才是可靠的互斥（Compose 状态 ⇒ 读到的是最新值）。
-     */
-    var pinching by mutableStateOf(false)
-        internal set
-
     /** 叠乘一次手势 zoom 增量（每帧调用）；夹紧到合法区间，非法值直接忽略。 */
     fun applyZoom(zoom: Float) {
         if (!zoom.isFinite() || zoom <= 0f || zoom == 1f) return
@@ -70,6 +60,10 @@ class PinchScaleState internal constructor() {
     fun reset() {
         scale = MIN_SCALE
     }
+
+    /** 是否正在双指捏合（`PlayerGestureLayer` 用它判断"别打断当前手势"）。 */
+    var pinching by mutableStateOf(false)
+        internal set
 }
 
 /** 缩放下限：1.0（不缩小；缩小会让 SurfaceView 露出黑底）。 */
@@ -102,19 +96,19 @@ fun Modifier.pinchZoom(state: PinchScaleState, locked: Boolean): Modifier =
     this.pointerInput(locked) {
         awaitEachGesture {
             awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-            try {
-                do {
-                    val event = awaitPointerEvent(PointerEventPass.Initial)
-                    val multi = event.changes.count { it.pressed } >= 2
-                    state.pinching = multi
-                    if (multi && !locked) {
-                        state.applyZoom(event.calculateZoom())
-                        event.changes.forEach { it.consume() }
-                    }
-                } while (event.changes.any { it.pressed })
-            } finally {
-                // 手势结束（含取消）必须清标记，否则单指检测器会一直被误排除。
-                state.pinching = false
-            }
+            do {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                // ⚠️ `pinching` 必须按**真实指数**置位。之前在 down 时就无条件置 true，
+                // 而手势层把 `pinching` 当"双指进行中"的打断信号 ⇒ 单指手势刚 down
+                // 就被 cancel，tap/双击/横滑/竖滑/长按**全部失灵**（2026-11-21 真机实证：
+                // touchLog probe down 全部 consumed=false、tap 后控制条永不出现）。
+                val twoFingers = event.changes.count { it.pressed } >= 2
+                state.pinching = twoFingers
+                if (twoFingers && !locked) {
+                    state.applyZoom(event.calculateZoom())
+                    event.changes.forEach { it.consume() }
+                }
+            } while (event.changes.any { it.pressed })
+            state.pinching = false
         }
     }

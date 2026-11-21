@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -39,7 +40,6 @@ import com.kivo.cinema.ui.profile.model.ProfileDashboard
 import com.kivo.cinema.ui.profile.model.TrendStat
 import com.kivo.cinema.ui.profile.model.WatchEntry
 import com.kivo.cinema.ui.profile.modules.ModuleManagerSheet
-import com.kivo.cinema.ui.profile.modules.ProfileModulePrefs
 import com.kivo.cinema.ui.profile.overview.HistoryHeatmap
 import com.kivo.cinema.ui.profile.overview.TodaySummaryCard
 import com.kivo.cinema.ui.shell.ShellInsets
@@ -81,8 +81,8 @@ fun ProfilePage(
     // 周历选中态存日期字符串（CalendarDay 不是 Saveable，日期键是稳定身份）。
     var selectedDate by rememberSaveable { mutableStateOf(dashboard.selectedDay?.date) }
     var showModules by rememberSaveable { mutableStateOf(false) }
-    // D10：真值由 ProfileModulePrefs 持有（启动期 bind），本页只观察；切换写盘后自动重组。
-    val enabledModules by ProfileModulePrefs.enabled
+    // 模块开关只活在本页会话内：没有模块存储，见 ModuleManagerSheet 的「未覆盖项」。
+    var enabledModules by remember(dashboard.modules) { mutableStateOf(dashboard.modules.toSet()) }
 
     val selectedDay = dashboard.calendar.firstOrNull { it.date == selectedDate } ?: dashboard.selectedDay
     val openEntry: (WatchEntry) -> Unit = { onOpenItem(it.title) }
@@ -109,7 +109,7 @@ fun ProfilePage(
                     onEdit = onEditEnvironment,
                 )
             }
-            if (ProfileModulePrefs.visibleBlock("week")) item(key = "week") {
+            item(key = "week") {
                 WeekStrip(
                     days = dashboard.calendar,
                     selected = selectedDay,
@@ -120,10 +120,10 @@ fun ProfilePage(
                     },
                 )
             }
-            if (ProfileModulePrefs.visibleBlock("today")) item(key = "today") { TodaySummaryCard(dashboard.today) }
-            if (ProfileModulePrefs.visibleBlock("history-title")) item(key = "history-title") { SectionTitle("历史观看") }
-            if (ProfileModulePrefs.visibleBlock("history")) item(key = "history") { HistoryHeatmap(cells = dashboard.history) }
-            if (ProfileModulePrefs.visibleBlock("watchlist")) item(key = "watchlist") {
+            item(key = "today") { TodaySummaryCard(dashboard.today) }
+            item(key = "history-title") { SectionTitle("历史观看") }
+            item(key = "history") { HistoryHeatmap(cells = dashboard.history) }
+            item(key = "watchlist") {
                 WatchlistSection(
                     entries = dashboard.watchlist,
                     onOpen = openEntry,
@@ -132,27 +132,23 @@ fun ProfilePage(
                 )
             }
             item(key = "collections-watching") {
-                val showCollection = ProfileModulePrefs.visibleBlock("collections")
-                val showWatching = ProfileModulePrefs.visibleBlock("watching")
-                if (showCollection || showWatching) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = DesignTokens.screenPad.dp),
-                        horizontalArrangement = Arrangement.spacedBy(DesignTokens.gap.dp),
-                    ) {
-                        if (showCollection) Box(Modifier.weight(1f)) {
-                            CollectionSection(entries = dashboard.collections, onOpen = openEntry)
-                        }
-                        if (showWatching) Box(Modifier.weight(1f)) {
-                            WatchingSection(
-                                entries = dashboard.watching,
-                                onOpen = openEntry,
-                                onMore = onOpenWatching,
-                            )
-                        }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = DesignTokens.screenPad.dp),
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.gap.dp),
+                ) {
+                    Box(Modifier.weight(1f)) {
+                        CollectionSection(entries = dashboard.collections, onOpen = openEntry)
+                    }
+                    Box(Modifier.weight(1f)) {
+                        WatchingSection(
+                            entries = dashboard.watching,
+                            onOpen = openEntry,
+                            onMore = onOpenWatching,
+                        )
                     }
                 }
             }
-            if (ProfileModulePrefs.visibleBlock("monthly")) item(key = "monthly") {
+            item(key = "monthly") {
                 MonthlyChart(
                     label = dashboard.monthLabel,
                     points = dashboard.monthPoints,
@@ -161,8 +157,8 @@ fun ProfilePage(
                 )
             }
             item(key = "top-shows") { TopShowsCard(dashboard.topShows) }
-            if (ProfileModulePrefs.visibleBlock("genre-title")) item(key = "genre-title") { SectionTitle("类型分布") }
-            if (ProfileModulePrefs.visibleBlock("genres")) item(key = "genres") {
+            item(key = "genre-title") { SectionTitle("类型分布") }
+            item(key = "genres") {
                 GenreDonut(
                     slices = dashboard.genres,
                     // 环心总时长取本月（基准图 1.7h 与「本月观看」同值）；部/集数只有今日口径可用。
@@ -186,7 +182,9 @@ fun ProfilePage(
         if (showModules) {
             ModuleManagerSheet(
                 enabled = enabledModules,
-                onToggle = { module, checked -> ProfileModulePrefs.setEnabled(module, checked) },
+                onToggle = { module, checked ->
+                    enabledModules = if (checked) enabledModules + module else enabledModules - module
+                },
                 onDismiss = { showModules = false },
             )
         }
@@ -196,9 +194,7 @@ fun ProfilePage(
 /** 趋势卡逐条入列（数量由数据决定，不固定 2 条）：key 带序号，避免同名统计项撞 key。 */
 private fun androidx.compose.foundation.lazy.LazyListScope.trendsItems(trends: List<TrendStat>) {
     trends.forEachIndexed { index, stat ->
-        if (ProfileModulePrefs.visibleTrend(index)) {
-            item(key = "trend-$index-${stat.name}") { TrendCard(stat) }
-        }
+        item(key = "trend-$index-${stat.name}") { TrendCard(stat) }
     }
 }
 

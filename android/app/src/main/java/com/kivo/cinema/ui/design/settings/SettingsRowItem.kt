@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
@@ -103,13 +102,13 @@ private fun RowChevron() {
         val h = size.height
         val stroke = SettingsRowChevronStroke.toPx()
         drawLine(
-            SettingsChevronColor,
+            DesignTokens.textSub,
             Offset(w * 0.28f, h * 0.20f),
             Offset(w * 0.72f, h * 0.50f),
             strokeWidth = stroke, cap = StrokeCap.Round,
         )
         drawLine(
-            SettingsChevronColor,
+            DesignTokens.textSub,
             Offset(w * 0.72f, h * 0.50f),
             Offset(w * 0.28f, h * 0.80f),
             strokeWidth = stroke, cap = StrokeCap.Round,
@@ -117,18 +116,17 @@ private fun RowChevron() {
     }
 }
 
-private val SettingsRowMinHeight = 50.dp
+private val SettingsRowMinHeight = 46.dp
 private val SettingsRowSidePad = 14.dp
 private val SettingsRowSidePadNoChevron = 20.dp
 private val SettingsRowChevronSize = 12.dp
 private val SettingsRowValueGap = 6.dp
-private val SettingsRowChevronStroke = 1.2.dp
-private val SettingsChevronColor = Color(0xFFC7C7CC)
+private val SettingsRowChevronStroke = 1.4.dp
 private const val SettingsRowTitleSize = 15f
 private const val SettingsRowTitleLine = 19f
 private const val SettingsRowSubSize = 12f
 private const val SettingsRowSubLine = 15f
-private const val SettingsRowValueSize = 15f
+private const val SettingsRowValueSize = 13f
 
 @Preview(name = "SettingsRowItem 单行 / 带副标题 / 带右值 / 无 chevron", widthDp = 360, showBackground = true)
 @Composable

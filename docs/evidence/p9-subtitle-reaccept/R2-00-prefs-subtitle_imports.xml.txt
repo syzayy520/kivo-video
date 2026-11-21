@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <set name="smb://55ccf8d3-ccec-4652-b19f-a42d3580e7b3/12T/剧集/69两头勾.6ixtynin9.The.Series.S01.2023.1080p.NF.WEB-DL.H264.DDP5.1-OurTV/69两头勾.6ixtynin9.The.Series.S01E01.2023.1080p.NF.WEB-DL.H264.DDP5.1-OurTV.mkv">
+        <string>/data/user/0/com.kivo.cinema/files/subtitles/e1bab4f75375-kivo-import-test.srt</string>
+    </set>
+    <set name="file:/sdcard/Movies/Kivo/kivo-panel-dark.mp4">
+        <string>/data/user/0/com.kivo.cinema/files/subtitles/931e71778c4f-demo.srt</string>
+        <string>/data/user/0/com.kivo.cinema/files/subtitles/46c701361183-demo.srt</string>
+    </set>
+    <set name="file:/sdcard/Movies/Kivo/kivo-panel-bright.mp4">
+        <string>/data/user/0/com.kivo.cinema/files/subtitles/b8a03b8d6af9-dup-a.srt</string>
+    </set>
+    <set name="file:kivo-retest.mp4">
+        <string>/data/user/0/com.kivo.cinema/files/subtitles/e1bab4f75375-kivo-import-test.srt</string>
+        <string>/data/user/0/com.kivo.cinema/files/subtitles/8f1ffc9e05bf-QQ-望星空-卓依婷-surround.lrc</string>
+    </set>
+</map>

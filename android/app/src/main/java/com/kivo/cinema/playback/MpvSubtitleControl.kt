@@ -2,6 +2,7 @@ package com.kivo.cinema.playback
 
 import com.kivo.cinema.mpv.MpvSession
 import com.kivo.cinema.mpv.MpvTrackCatalog
+import com.kivo.cinema.playback.subtitle.SubtitleSecondaryControl
 import java.io.File
 
 /**
@@ -61,12 +62,65 @@ class MpvSubtitleControl(
         return ok
     }
 
-    /** 关闭字幕。 */
+    /**
+     * 关闭字幕 —— 主位与次位**一起**关。
+     *
+     * 【为什么不能只写 `sid=no`】mpv 的次字幕是独立轨位：真机 P9 复验实测，
+     * 次字幕在用时点「关闭字幕」只发 `sid="no"`，次字幕那一行照旧显示
+     * （`secondary-sid="1"` 留着）—— 用户看到的是"关了还在"。
+     * 「关闭字幕」是产品语义（一条都不显示），所以次位有值也一并清。
+     *
+     * @return true = 两个轨位都已关门（次位本来就没开也算成功）。
+     */
     fun disableSubtitles(): Boolean {
-        val ok = tracks.disableTrack("sub")
-        if (!ok) reportError("关闭字幕失败")
-        return ok
+        val mainOk = tracks.disableTrack("sub")
+        val secondary = session.property("secondary-sid")?.trim()?.toIntOrNull()
+        val secondaryOk = secondary == null || session.setProperty("secondary-sid", "no")
+        if (!mainOk) reportError("关闭字幕失败")
+        else if (!secondaryOk) reportError("次字幕未能关闭（id=$secondary）")
+        return mainOk && secondaryOk
     }
+
+    /**
+     * 卸载一条外挂字幕（P9 · H）。
+     *
+     * 【删除当前主轨之后的兜底】`sub-remove` 不保证 mpv 会自动选下一个：
+     * 读回 `sid` —— 仍是已删 id 或已无选择时，选剩余第一条；一条都不剩就显式
+     * `sid=no`。兜底本身也失败时**回传给调用方**（[RemovalResult.warning]），
+     * 不让界面停在"有轨但看不见"的暧昧态，也不再静默吞掉失败。
+     *
+     * 【为什么兜底要排除次字幕轨】主次同轨会叠印（重影）。若剩下的唯一候选
+     * 正是 `secondary-sid`，选它等于制造重影 ⇒ 直接 `sid=no`。
+     *
+     * @return [RemovalResult.removed] = `sub-remove` 是否成功；
+     *   [RemovalResult.warning] = 移除成功但兜底切换/关闭失败的原因（成功为 null）。
+     */
+    fun removeExternalSubtitle(trackId: Int): RemovalResult {
+        if (!tracks.removeExternalSubtitle(trackId)) {
+            reportError("删除字幕失败（id=$trackId）")
+            return RemovalResult(removed = false, warning = null)
+        }
+        // 取证埋点已迁到调用方：`SubtitlePanelActions` 的 `sub-remove ok` 行（走 smbTrace）。
+        // 原因：本机 MIUI logcat 全空，`android.util.Log` 在真机读不到（p9 家族树 §6.6）；
+        // 且 playback 层不该反向依赖 UI 层的 smbTrace。
+        var warning: String? = null
+        val current = tracks.currentTrackId("sub")
+        if (current == trackId || current < 0) {
+            val secondaryId = SubtitleSecondaryControl.currentId(session)
+            val remaining = tracks.subtitleTracks()
+                .firstOrNull { it.id != trackId && it.id != secondaryId }
+            if (remaining != null) {
+                if (!tracks.selectTrack("sub", remaining.id)) warning = "删除后切换字幕失败"
+            } else if (!tracks.disableTrack("sub")) {
+                warning = "删除后关闭字幕失败"
+            }
+        }
+        if (warning != null) reportError(warning)
+        return RemovalResult(removed = true, warning = warning)
+    }
+
+    /** 卸载结果：轨道是否真的移除 + 兜底失败原因（UI 决定怎么提示）。 */
+    data class RemovalResult(val removed: Boolean, val warning: String?)
 
     /**
      * 当前字幕轨是否在**显示**。

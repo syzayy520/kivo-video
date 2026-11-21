@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="secondary_visible" value="true" />
+    <string name="border_style">OUTLINE</string>
+    <string name="color">#FFFFFFFF</string>
+    <int name="font_size" value="40" />
+    <string name="ass_mode">SOURCE</string>
+    <int name="margin_y" value="40" />
+    <boolean name="bold" value="false" />
+    <float name="shadow_offset" value="0.0" />
+    <string name="outline_color">#FF000000</string>
+    <float name="spacing" value="0.0" />
+    <int name="pos" value="100" />
+    <float name="border_size" value="3.0" />
+    <string name="back_color">#99000000</string>
+    <int name="secondary_pos" value="15" />
+</map>

@@ -1,0 +1,35 @@
+nodes:34
+[0,215][266,347] focused=false clickable=false | 下载内容
+[66,347][285,479] focused=false clickable=true | 图片
+[307,347][526,479] focused=false clickable=true | 音频
+[548,347][767,479] focused=false clickable=true | 视频
+[789,347][1008,479] focused=false clickable=true | 文档
+[1030,347][1080,479] focused=false clickable=true | 大型文件
+[66,479][882,644] focused=false clickable=false | “下载”中的文件
+[882,495][1014,627] focused=false clickable=true | 列表视图
+[0,80][154,212] focused=false clickable=true | 显示根目录
+[198,109][418,183] focused=false clickable=false | 下载内容
+[816,80][948,212] focused=false clickable=true | 搜索
+[948,80][1080,212] focused=false clickable=true | 更多选项
+[196,695][496,747] focused=false clickable=false | .td35e11a_865F85AE2BEE75ED42808A818742B1E8C7004282716870C46E33434CB0FD5D88B76BC8F2CFB7A87D07849662958663ED
+[681,695][819,747] focused=false clickable=false | 123云盘
+[196,850][378,902] focused=false clickable=false | _.FloatDot
+[681,850][834,902] focused=false clickable=false | Movie! +
+[196,1005][378,1057] focused=false clickable=false | AudioSlim
+[681,1005][981,1057] focused=false clickable=false | downloaded_rom
+[196,1160][496,1212] focused=false clickable=false | image.pngAWSAccessKeyId=ASIA2F3EMEYEU5JAS5CR&Signature=ZmJTFrvQ+a
+[681,1160][981,1212] focused=false clickable=false | image.pngAWSAccessKeyId=ASIA2F3EMEYE4UJ47ASQ&Signature=MFddJ5xvIIOXsJ8N
+[196,1315][362,1367] focused=false clickable=false | Telegram
+[681,1315][981,1367] focused=false clickable=false | image.pngAWSAccessKeyId=ASIA2F3EMEYEUKGM57SI&Signature=zIahwUTEIoz7pVq+qiU+iMFd1rw=&x-amz-security-token=IQoJb3JpZ2luX2VjEFgaCXVzLWVhc3QtMSJHMEUCIQDQLgvICjE09gqVxZLCmya4iwGdZkXKZuvxOPkAtbC6AwIgQBrhp2HqkgE3kgQMXXet4f5zO
+[196,1470][258,1522] focused=false clickable=false | QQ
+[681,1470][981,1522] focused=false clickable=false | com.ss.android.article.video
+[196,1625][496,1677] focused=false clickable=false | 音乐老人包_按年代逻辑
+[681,1625][981,1677] focused=false clickable=false | QuarkCloudDrive
+[196,1780][255,1832] focused=false clickable=false | .csj
+[681,1780][981,1832] focused=false clickable=false | QwenDownloads
+[196,1935][352,1987] focused=false clickable=false | 青听音乐
+[681,1935][920,1987] focused=false clickable=false | BaiduNetdisk
+[196,2090][433,2142] focused=false clickable=false | DuckDuckGo
+[681,2090][934,2142] focused=false clickable=false | UCDownloads
+[196,2245][385,2276] focused=false clickable=false | .7934039a
+[681,2245][792,2276] focused=false clickable=false | 10398

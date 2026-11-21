@@ -1,10 +1,10 @@
 package com.kivo.cinema.ui.compose
 
-import android.util.Log
 import com.kivo.cinema.playback.MpvPlaybackSession
+import com.kivo.cinema.ui.compose.player.subtitle.applySubtitleProbeWrites
 
 /**
- * 取证钩子（253-P6-2 字幕 / 215 缩略图压测）。
+ * 取证钩子（253-P6-2 字幕 / mpv 选项 A/B / 缩略图探针）。p215 压测在 PlayerProbeStress.kt。
  *
  * 【为什么与播放页 UI 分开】这两段都由 intent extra 驱动、只在取证时跑，
  * 不是用户功能。混在 Activity 里会让"组合根"读起来像业务代码。
@@ -43,24 +43,29 @@ internal fun PlayerComposeActivity.applyProbeSubtitle(session: MpvPlaybackSessio
             else "字幕轨 #$subtitleId 选中失败：${session.lastError}"
             // 外挂 SRT 走 libass 文本通路，PGS 走位图通路 —— 挂一条 SRT 就能一刀切开：
             // SRT 能显示 ⇒ 合成通路正常，问题在位图解码；SRT 也不显示 ⇒ 整个字幕层有问题。
-            val subFile = intent.getStringExtra("kivo.subFile")
-            if (!subFile.isNullOrBlank()) {
-                val file = java.io.File(filesDir, subFile)
-                if (file.isFile) {
-                    val added = session.loadExternalSubtitle(file)
-                    smbTrace("probe sub-add $subFile added=$added")
-                    // mpv 不会自动选外挂轨，挂上后必须选中。
-                    if (added) {
-                        val pick = session.tracks.externalSubtitleIds().firstOrNull()
-                        if (pick != null) {
-                            val sel = session.selectSubtitle(pick)
-                            smbTrace("probe sub-select id=$pick ok=$sel")
-                            statusText = "外挂字幕 #$pick 已选中"
-                        }
-                    }
-                } else {
-                    smbTrace("probe sub-add $subFile NOT FOUND")
+            // P9-F 取证：支持逗号分隔挂多个外挂（第一个当主字幕，其余留在
+            // 次字幕列表里做 dual-subtitle 选择验证）。
+            val subFiles = intent.getStringExtra("kivo.subFile")
+                ?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+            var firstAdded: Int? = null
+            for (name in subFiles) {
+                val file = java.io.File(filesDir, name)
+                if (!file.isFile) {
+                    smbTrace("probe sub-add $name NOT FOUND")
+                    continue
                 }
+                val added = session.loadExternalSubtitle(file)
+                smbTrace("probe sub-add $name added=$added")
+                if (added && firstAdded == null) {
+                    firstAdded = session.tracks.externalSubtitleIds().firstOrNull()
+                }
+            }
+            // mpv 不会自动选外挂轨，挂上后必须选中。
+            val pick = firstAdded
+            if (pick != null) {
+                val sel = session.selectSubtitle(pick)
+                smbTrace("probe sub-select id=$pick ok=$sel")
+                statusText = "外挂字幕 #$pick 已选中"
             }
         }, selectDelayMs)
     }
@@ -109,6 +114,41 @@ internal fun PlayerComposeActivity.applyProbeMpvOptions(session: MpvPlaybackSess
             smbTrace("probe mpv-opt $name=$value ok=$ok")
         }
     }, 3_000)
+}
+
+
+
+
+internal fun PlayerComposeActivity.applyProbeSubtitleCodec() {
+    // 取证钩子：`--es kivo.subCodec BIG5` —— 走**与面板选中完全同一条** applySubtitleEncoding。
+    // 延迟默认 3s；`--ei kivo.subCodecDelayMs` 可推后（A5 暂停态取证：kivo.freeze 的 pause
+    // 发生在 onCreate+5.2s，切换探针必须排在它之后才能测到 paused=true 的分支）。
+    val cp = intent.getStringExtra("kivo.subCodec")?.trim().orEmpty()
+    if (cp.isEmpty()) return
+    val delayMs = intent.getIntExtra("kivo.subCodecDelayMs", 3_000).coerceAtLeast(0).toLong()
+    android.os.Handler(mainLooper).postDelayed({
+        smbTrace("probe sub-codec=$cp")
+        applySubtitleEncoding(cp)
+    }, delayMs)
+}
+
+internal fun PlayerComposeActivity.applyProbeSubtitleUrl() {
+    // 取证钩子：`--es kivo.subUrl "http://192.168.5.142:8899/remote.srt"`。
+    // 与产品路径 importSubtitleUrl 共用同一段代码 —— 本机 MIUI 没有 `cmd clipboard`，
+    // 剪贴板无法用 adb 设值，只能从"执行入口"这一层取证。
+    val url = intent.getStringExtra("kivo.subUrl")?.trim().orEmpty()
+    if (url.isEmpty()) return
+    smbTrace("probe sub-url $url")
+    importSubtitleUrl(url)
+}
+
+internal fun PlayerComposeActivity.applyProbeSubtitleWrites(session: MpvPlaybackSession) {
+    val spec = intent.getStringExtra("kivo.subWrite")?.trim().orEmpty()
+    if (spec.isEmpty()) return
+    android.os.Handler(mainLooper).postDelayed({
+        val native = session.nativeOrNull() ?: return@postDelayed
+        applySubtitleProbeWrites(spec, native)
+    }, 2_000)
 }
 
 /**
@@ -195,9 +235,12 @@ internal fun PlayerComposeActivity.scheduleThumbProbe() {
         val reader = thumbnailReader ?: return@postDelayed
         controlsVisible = true
         lastTouchMs = System.currentTimeMillis()
-        previewMs = sec * 1000L
-        reader.seekTo(sec * 1_000_000L)
-        android.os.Handler(mainLooper).postDelayed({ previewMs = -1L }, 5000)
+        val posMs = sec * 1000L
+        previewMs = posMs
+        previewRequestedMs = posMs
+        if (!scrub.active) scrub.begin(posMs) else scrub.update(posMs)
+        reader.seekTo(posMs * 1000)
+        android.os.Handler(mainLooper).postDelayed({ previewMs = -1L; scrub.cancel() }, 5000)
     }, 6000)
 }
 
@@ -215,16 +258,24 @@ internal fun PlayerComposeActivity.runThumbScan(index: Int, points: Int) {
     val reader = thumbnailReader ?: return
     if (index >= points) {
         // 回到扫描中段（必已缓存）：cache-hit 通道应瞬时出帧。
-        if (durationMs > 0) reader.seekTo(durationMs / 2 * 1000L)
+        if (durationMs > 0) {
+            val posMs = durationMs / 2
+            previewMs = posMs
+            previewRequestedMs = posMs
+            scrub.update(posMs)
+            reader.seekTo(posMs * 1000)
+        }
         android.os.Handler(mainLooper).postDelayed({ writeThumbScanEvidence() }, 2500)
         return
     }
     if (durationMs > 0) {
-        val posUs = ((index + 0.5) / points * durationMs).toLong() * 1000L
-        previewMs = posUs / 1000
+        val posMs = ((index + 0.5) / points * durationMs).toLong()
+        previewMs = posMs
+        previewRequestedMs = posMs
+        if (!scrub.active) scrub.begin(posMs) else scrub.update(posMs)
         controlsVisible = true
         lastTouchMs = System.currentTimeMillis()
-        reader.seekTo(posUs)
+        reader.seekTo(posMs * 1000)
     }
     android.os.Handler(mainLooper).postDelayed({ runThumbScan(index + 1, points) }, 250)
 }
@@ -244,58 +295,3 @@ internal fun PlayerComposeActivity.writeThumbScanEvidence() {
     }.start()
 }
 
-// ---- 215 取证 harness（`kivo.evidence=p215`）：60 点扫描 + 主链路 writeStats 对照 ----
-
-internal fun PlayerComposeActivity.scheduleP215Stress() {
-    android.os.Handler(mainLooper).postDelayed({ runP215Stress(0) }, 2000)
-}
-
-internal fun PlayerComposeActivity.runP215Stress(index: Int) {
-    val session = playbackSession ?: return
-    val reader = thumbnailReader ?: return
-    val evidenceDir = java.io.File(getExternalFilesDir(null), "evidence").apply { mkdirs() }
-    if (index == 0) {
-        statusText = "p215 baseline writeStats..."
-        session.writeStats("${evidenceDir.absolutePath}/p215-stats-baseline.json")
-        stressDurationUs = probeDurationUs(currentMediaPath())
-    }
-    if (index >= 60) {
-        // 扫描完补一次已缓存位置（cache_hit 通道），再收证据。
-        statusText = "p215 scan done, cache-hit probe..."
-        reader.seekTo(stressDurationUs / 4)   // 60 点覆盖全片，1/4 处必已缓存
-        android.os.Handler(mainLooper).postDelayed({ finishP215Stress(evidenceDir) }, 1500)
-        return
-    }
-    if (index == 30 && evidenceName == "p215") {
-        // 预览演示窗口：与拖动共用同一条浮窗 UI（给截图留确定性窗口）。
-        previewMs = (stressDurationUs / 2) / 1000
-        controlsVisible = true
-        android.os.Handler(mainLooper).postDelayed({ previewMs = -1L }, 4000)
-    }
-    if (stressDurationUs > 0) {
-        reader.seekTo(((index + 0.5) / 60.0 * stressDurationUs).toLong())
-    }
-    statusText = "p215 scan ${index + 1}/60"
-    android.os.Handler(mainLooper).postDelayed({ runP215Stress(index + 1) }, 250)
-}
-
-internal fun PlayerComposeActivity.finishP215Stress(evidenceDir: java.io.File) {
-    val session = playbackSession ?: return
-    val reader = thumbnailReader ?: return
-    session.writeStats("${evidenceDir.absolutePath}/p215-stats-stress.json")
-    val meta = org.json.JSONObject()
-    meta.put("device_model", android.os.Build.MODEL)
-    meta.put("device_product", android.os.Build.PRODUCT)
-    meta.put("media", mediaOverridePath.ifBlank { "located-test-media" })
-    meta.put("stress_points", 60)
-    meta.put("scan_spacing_ms", 250)
-    val root = org.json.JSONObject()
-    root.put("schema", "kivo.p215.thumbnail/1")
-    root.put("generated_at_unix_ms", System.currentTimeMillis())
-    root.put("meta", meta)
-    root.put("thumbnail", org.json.JSONObject(reader.evidenceJson()))
-    val out = java.io.File(evidenceDir, "p215-thumb.json")
-    out.writeText(root.toString(2))
-    statusText = "p215 evidence written: ${out.name}"
-    Log.i(PlayerComposeActivity.TAG, "p215 evidence: $out")
-}

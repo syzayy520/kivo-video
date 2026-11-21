@@ -1,17 +1,10 @@
 package com.kivo.cinema.ui.compose
 
-import com.kivo.cinema.ui.compose.player.DoubleTapZone
+import com.kivo.cinema.ui.compose.player.PlayerPanelStyle
 import com.kivo.cinema.ui.compose.player.PlayerPhase
 import com.kivo.cinema.ui.compose.player.resolutionTier
+import com.kivo.cinema.ui.compose.player.toastIsError
 
-/**
- * 动作路由：顶栏 / 底栏 / 状态层的点击 → 会话调用。
- *
- * 【为什么单独一个文件】这里只有"点哪儿调哪儿"，没有面板内容计算、没有手势数学。
- * 三者混在一个 Activity 里时，改一个图标语义要在两千行里翻找。
- */
-
-/** 顶栏片名：优先传入标题，否则文件名。 */
 internal fun PlayerComposeActivity.currentTitle(): String {
     intent.getStringExtra("kivo.label")?.takeIf { it.isNotBlank() }?.let { return it }
     intent.getStringExtra("kivo.smbPath")?.takeIf { it.isNotBlank() }?.let { return it.substringAfterLast('/') }
@@ -19,163 +12,15 @@ internal fun PlayerComposeActivity.currentTitle(): String {
     return "正在播放"
 }
 
-/**
- * 底栏画质标签（"4K" 位置）。
- *
- * 用 nativeOrNull：本函数在 Compose 重组时调用，会话未起时也会走到，
- * 会抛的 native() 直接崩掉整个界面。标错比不标更糟，所以够不上就不标。
- */
 internal fun PlayerComposeActivity.resolutionLabel(): String {
     val native = mpvNetSession?.nativeOrNull() ?: return lastResolutionLabel
     val width = runCatching { native.property("video-params/w")?.toIntOrNull() }.getOrNull()
     val height = runCatching { native.property("video-params/h")?.toIntOrNull() }.getOrNull()
     if (width == null || height == null || width <= 0 || height <= 0) return lastResolutionLabel
-    // 分档唯一规则在 PlayerResolution：宽银幕（1920×870）也报 1080P，与资源面板一致。
     val label = resolutionTier(width, height)
-    // 听视频态 vid=no 读不到 video-params ⇒ 沿用最后一次真值（实测保留 4K 标）。
     if (label.isNotEmpty()) lastResolutionLabel = label
     return label.ifEmpty { lastResolutionLabel }
 }
-
-/**
- * 统一 seek 入口（四条链路）。
- *
- * @param waitLandingFirstSlice 273 v42：**远跳**时先等落点窗口的第一片就绪，
- *   再让内核跳过去（消除首帧之后那 0.5 s 的 demux 缓存空档）。
- *   只给"拖动/跳转到未缓存位置"用；双击快进/快退是小幅跳转，不需要等。
- */
-internal fun PlayerComposeActivity.seekTo(ms: Long, waitLandingFirstSlice: Boolean = false) {
-    // 317 · 统一在入口裁剪到 [0, durationMs]。
-    //
-    // 【为什么放在这里而不是各调用点】双击快进算的是 `positionMs + 15s`，
-    // 在片尾附近会超出片长；横滑 seek 已经自己 coerce 过，但长按/面板跳转等
-    // 还有别的调用点 —— 与其在每个调用点各写一遍（早晚漏一个），不如收口到唯一入口。
-    // 时长未知（0）时只保证非负，不瞎猜上限。
-    val clamped = if (durationMs > 0L) ms.coerceIn(0L, durationMs) else ms.coerceAtLeast(0L)
-    // 274 · 实验开关：`--ei kivo.noWaitLanding 1` ⇒ 跳过"落点前置等待"（回到 v35 行为）。
-    //
-    // 【为什么要这个开关】在确定性本地源（0.6 MB/s = 1.9×码率）上实测：
-    //   无拖动 23.87 fps · 带拖动 **5.32 fps** ⇒ **拖动是元凶**。
-    // 而"落点前置等待"（v42）会让内核**等 4 MiB 的落点窗口就绪**，
-    // 慢源站下这个窗口要十几秒 ⇒ 预取泵抢光带宽 ⇒ **播放被饿死**。
-    // ⇒ 这个开关用来把"等待"这一项单独摘出来验证。
-    val waitLanding = waitLandingFirstSlice &&
-        intent.getIntExtra("kivo.noWaitLanding", 0) == 0
-
-    // 273 v35：落点预取与"用哪个内核"**无关** —— 先把落点那一簇抓进内存，
-    // 再让内核跳过去。
-    //
-    // 【为什么必须放最前，而不是放在某个分支里】
-    // 原实现把 prefetchSeek 放在 `mpvNetSession != null` 分支内，而那个字段
-    // **全仓只有 PlayerSmbStart.kt:152 一处赋值** ⇒ 只有走 SMB 软解降级时才非空。
-    // Emby/URL 链路走的是 PlayerUrlStart → startNetworkPlayback →
-    // `smbNetSession = netSession`（字段名有误导：它同时承载 SMB 与 URL 两条链路）。
-    // ⇒ **Emby 播放时 mpvNetSession 恒为 null ⇒ prefetchSeek 从未执行**
-    // ⇒ 落点窗口从未建立 ⇒ 真机 seek→首帧 3453 ms（拖动后白屏 2-4 s）。
-    //
-    // 【为什么提出来是对的】
-    // ① 预取是**源站侧**动作，内核是**播放侧**动作 —— 两者本无耦合；
-    // ② `urlPrep?.source` 只在有 URL 源时非空 ⇒ SMB/本地链路自然跳过（幂等）；
-    // ③ force=true 只在**用户松手**时调（onSeek → seekTo），
-    //    拖动途中不调 ⇒ 不会重现 v26 的"一次拖动开 19 条连接"风暴；
-    // ④ 让路闸的 landingInFlight 判的是"落点窗口在飞" ⇒ 窗口建了，
-    //    v31 那套让路机制才第一次真正生效（此前恒 false）。
-    val source = urlPrep?.source
-    val landingOffset = source?.prefetchSeek(ms, force = true) ?: -1L
-
-    // 273 v42：**远跳**时等落点第一片就绪再跳。
-    //
-    // 【为什么等】真机 v35-land：内核在预取发起后 **2 ms** 就跳过去了，
-    // 而窗口第一片 **348 ms** 后才到 ⇒ 内核先把 demux 缓存读空（首帧出来），
-    // 紧接着缓存耗尽 ⇒ `Enter buffering` **499 ms**。
-    // 等第一片到齐再跳 ⇒ 内核一落地就有整簇可解 ⇒ 那个空档消失。
-    //
-    // 【为什么不等整块】整块 4 MiB / 4 片并行下完要 2683 ms（真机），
-    // 等整块会把首帧拖到 2.7 s —— 比现在 1.16 s **更差**。
-    //
-    // 【为什么不等太久】等 1200 ms 就放弃：源站慢时不能把用户的跳转卡住
-    // ⇒ 超时后照常跳（功能不缺，只是没加速）。
-    //
-    // 【为什么 landingOffset < 0 就不等】预取没发起（cues 没备好 / 落点超出
-    // 片源长度 / 落点已在窗口内）⇒ 没有可等的窗口 ⇒ 直接跳。
-    if (waitLanding && source != null && landingOffset >= 0L) {
-        seekAfterLandingReady(ms, source, landingOffset)
-        return
-    }
-    performSeek(ms)
-}
-
-/**
- * 273 v42：等落点窗口第一片就绪后再执行真正的 seek。
- *
- * 【为什么要绕一圈】`awaitWindow` 是**阻塞**的（`lock.wait`）⇒ 不能在主线程调。
- * ⇒ 后台线程等，主线程发 seek。
- *
- * 【兜底】等待期间用户可能又发了一次 seek（连续拖动）⇒ 用 [LandingSeekState]
- * 序号丢弃过期的等待结果，避免"跳回旧位置"。
- */
-private fun PlayerComposeActivity.seekAfterLandingReady(
-    ms: Long,
-    source: com.kivo.cinema.net.HttpOriginSource,
-    landingOffset: Long,
-) {
-    val seq = landingSeek.begin()
-    Thread({
-        // 273 v44：上限**跟着源站当前的快慢走**，不写死。
-        // 【为什么】写死 1200 ms 是在源站 3 MB/s 时量的；
-        // 源站慢到 1.4 MB/s 时首片表头就要 1190 ms ⇒ 频繁超时 ⇒ 修复失效
-        // （真机 v43 配对实验：等待超时那轮 seek→首帧 2758 ms）。
-        val budget = source.landingWaitBudgetMs(LANDING_WAIT_TIMEOUT_MS)
-        val ready = source.awaitLandingReady(landingOffset, budget)
-        runOnUiThread {
-            if (!landingSeek.isCurrent(seq)) return@runOnUiThread
-            if (!ready) {
-                com.kivo.cinema.net.NetDiag.log(
-                    "[landing] 等落点第一片超时（${budget}ms）⇒ 照常跳",
-                )
-            } else {
-                com.kivo.cinema.net.NetDiag.log(
-                    "[landing] 落点第一片已就绪 ⇒ 跳过去（预算 ${budget}ms）",
-                )
-            }
-            performSeek(ms)
-        }
-    }, "KivoLandingSeek").apply { isDaemon = true }.start()
-}
-
-/** 真正执行 seek（四条链路）。 */
-private fun PlayerComposeActivity.performSeek(ms: Long) {
-    val soft = smbSoftSession
-    when {
-        soft != null -> {
-            soft.seekTo(ms * 1000)
-            // 声音是独立链路，必须一起定位，否则画面对了声音还是旧的。
-            smbSoftAudio?.seekTo(ms * 1000)
-            positionMs = ms
-        }
-        mpvNetSession != null -> {
-            // 301 · 改**异步**：`seekTo` 要等落点（真机 300 实测每次 100–216 ms，
-            // 上限 1.5 s），在主线程调等于把 UI 占住。而且快速拖动会排队执行多次，
-            // 画面逐个跳过去。`seekToAsync` 由会话单线程串行 + 票据比大小：
-            // 只有**最后一个**目标会真的发到内核，中间目标直接跳过。
-            mpvNetSession?.seekToAsync(ms * 1000, exact = playbackPrefs.seekExact)
-        }
-        smbNetSession != null -> smbNetSession?.seekTo(ms * 1000)
-        else -> playbackSession?.seekTo(ms * 1000)
-    }
-}
-
-/**
- * 273 v42：等待落点第一片的**上限**（毫秒）。
- *
- * 【为什么是 1200】真机 v42：第一片源站表头就要 **336–413 ms**，
- * 再加传输时间 ⇒ 900 ms 太紧（实测超时）。1200 ms 留 2.5 倍余量。
- *
- * 【为什么不更长】再长就会让用户的跳转显得"卡住"——
- * 那比多一次 200 ms 的缓冲更糟（用户会觉得"按了没反应"）。
- */
-private const val LANDING_WAIT_TIMEOUT_MS = 1200L
-
 
 internal fun PlayerComposeActivity.togglePlayPause() {
     lastTouchMs = System.currentTimeMillis()
@@ -184,11 +29,8 @@ internal fun PlayerComposeActivity.togglePlayPause() {
         if (soft.setPaused(nowPaused) == 0) {
             isPlaying = !nowPaused
             smbSoftAudio?.setPaused(nowPaused)
-            // 用户主动暂停/播放优先于音画闸门：不清掉闸门状态，
-            // 恢复播放后闸门还记着"已压住"，音频就再也起不来。
             smbSoftAudioGated = nowPaused
         } else {
-            // 控制失败是"操作没生效"，不是"播放挂了" ⇒ 走轻提示，不劫持播放状态层。
             showToast("播放控制失败：${soft.nativeError()}")
             controlsVisible = true
         }
@@ -198,8 +40,6 @@ internal fun PlayerComposeActivity.togglePlayPause() {
         network.setPaused(network.state == com.kivo.cinema.playback.NetworkPlaybackSession.State.PLAYING)
         return
     }
-    // mpv 链路：setPaused 写 pause yes/no，isPlaying 由桥轮询 state 同步。
-    // 漏了这条时暂停键在 mpv 路径静默无反应（真机实测死钮，2026-11-12）。
     mpvNetSession?.let { mpv ->
         val nowPaused = isPlaying
         Thread { mpv.setPaused(nowPaused) }.start()
@@ -214,14 +54,14 @@ internal fun PlayerComposeActivity.togglePlayPause() {
     }
 }
 
-/** 顶栏 8 个动作入口（语义序见 player-ui-v3 §1.1）。 */
 internal fun PlayerComposeActivity.onTopAction(kind: String) {
     lastTouchMs = System.currentTimeMillis()
+    // P9 取证（dev-only）：确认顶部图标点击是否到达路由层。
+    if (intent.getBooleanExtra("kivo.touchLog", false)) smbTrace("router topAction=$kind panel=$activePanel")
     when (kind) {
-        // 投屏（v3.1：DLNA 直达设备 sheet；AirPlay 专有协议已整条移除）。
-        "cast" -> openCastSheet()
+        // P10 §17：投屏浮卡没有「收起」堆在底部，再点图标即关闭（toggle）。
+        "cast" -> if (castSheetVisible) castSheetVisible = false else openCastSheet()
         "danmaku" -> {
-            // 铁律：没有弹幕文件时不许"开了但什么都不显示"，明说原因。
             if (!danmakuOn && !danmakuSettings.hasItems) {
                 showToast("未找到弹幕文件（danmaku/<片名>.xml）")
                 return
@@ -230,20 +70,16 @@ internal fun PlayerComposeActivity.onTopAction(kind: String) {
             flashAction("danmaku")
             showToast(if (danmakuOn) "弹幕已开启" else "弹幕已关闭")
         }
-        // 圈弹长按 = 弹幕操作面板（形态8，◐ 触发方式待 iPhone 补证）。
         "danmaku-panel" -> togglePanel("danmakuOps")
         "pip" -> enterPictureInPicture()
         "clapper" -> togglePanel("skip")
         "expand" -> togglePanel("quality")
-        // 圈波形＝音轨列表（形态4；不是均衡器）。
         "audio" -> togglePanel("audio")
         "captions" -> togglePanel("subtitle")
-        // 耳机＝听视频态（形态13）：短按切 vid=no/auto，控制条保留。
         "audioMode" -> setAudioOnly(!audioOnly)
     }
 }
 
-/** 顶栏主页：回资源库（播放页留在回退栈里）。 */
 internal fun PlayerComposeActivity.onHome() {
     lastTouchMs = System.currentTimeMillis()
     runCatching {
@@ -251,11 +87,6 @@ internal fun PlayerComposeActivity.onHome() {
     }.onFailure { showToast("无法打开资源库：${it.message}") }
 }
 
-/**
- * BACK 层级（v3.1b §九）：面板 → 投屏 sheet → 控制条 → 退出播放。
- * 此前全 app 没有 BACK 处理：面板开着按 BACK 直接 finish（真机实测）。
- * 返回 true = 已消费；false = 交给默认 finish。
- */
 internal fun PlayerComposeActivity.handleBack(): Boolean {
     when {
         activePanel.isNotEmpty() -> {
@@ -272,10 +103,6 @@ internal fun PlayerComposeActivity.handleBack(): Boolean {
     return true
 }
 
-/**
- * 拖动预览左边的相机钮：截当前帧为剧照（mpv `screenshot-to-file`）。
- * 落在私有 captures 目录 —— 不申请存储权限，也不往相册里塞东西。
- */
 internal fun PlayerComposeActivity.onCapture() {
     lastTouchMs = System.currentTimeMillis()
     val mpv = mpvNetSession
@@ -293,10 +120,6 @@ internal fun PlayerComposeActivity.onCapture() {
     }.start()
 }
 
-/**
- * 屏幕锁定（§1.5 / §二）。入口 ◐：长按播放键（入口未录到，见设计稿 §六）。
- * 加锁后 chrome 全收、只留挂锁；双击/长按通道保留。
- */
 internal fun PlayerComposeActivity.onToggleLock() {
     lastTouchMs = System.currentTimeMillis()
     screenLocked = !screenLocked
@@ -312,7 +135,6 @@ internal fun PlayerComposeActivity.onToggleLock() {
     }
 }
 
-/** 锁定态单击 = 仅唤出挂锁（2.5s 后自隐，◐ 停留时长待补证）。 */
 internal fun PlayerComposeActivity.onLockHint() {
     lastTouchMs = System.currentTimeMillis()
     showLockHint()
@@ -323,23 +145,22 @@ private fun PlayerComposeActivity.showLockHint() {
     android.os.Handler(mainLooper).postDelayed({ lockHintVisible = false }, 2_500)
 }
 
-/** 选集带右上的"顺序播放"：剧集列表未接入 ⇒ 明说，不静默。 */
 internal fun PlayerComposeActivity.onEpisodeOrder() {
     lastTouchMs = System.currentTimeMillis()
     showToast("剧集列表尚未接入资源库，暂不能切换播放顺序")
 }
 
-/** 底栏右侧文字按钮。 */
 internal fun PlayerComposeActivity.onBottomTextAction(kind: String) {
     lastTouchMs = System.currentTimeMillis()
+    if (intent.getBooleanExtra("kivo.touchLog", false)) smbTrace("router bottomAction=$kind panel=$activePanel")
     togglePanel(kind)
 }
 
 internal fun PlayerComposeActivity.togglePanel(kind: String) {
     activePanel = if (activePanel == kind) "" else kind
+    if (intent.getBooleanExtra("kivo.touchLog", false)) smbTrace("router togglePanel->$activePanel")
 }
 
-/** 状态层"重试" = 重新起播当前源。 */
 internal fun PlayerComposeActivity.onRetry() {
     lastTouchMs = System.currentTimeMillis()
     statusText = "正在重连…"
@@ -349,8 +170,6 @@ internal fun PlayerComposeActivity.onRetry() {
         phase = PlayerPhase.Failed("播放窗口已失效，请退出后重新进入")
         return
     }
-    // libmpv 内核互斥：旧内核不关，新会话永远停在 PREPARING（真机复验：重试后一直转圈）。
-    // stop() 是异步的 ⇒ 必须等它真的关掉再起新的。
     val oldMpv = mpvNetSession
     closeNetworkPlayback()
     playbackStarted = false
@@ -363,44 +182,24 @@ internal fun PlayerComposeActivity.onRetry() {
     }, "KivoPlayerRetry").start()
 }
 
-/**
- * 双击（左=快退 / 中=播放暂停 / 右=快进），步长与动作由操控设置（264）决定。
- * 双击时画面在动，用户看不出这次点击干了什么 ⇒ 居中图标闪 0.6s 是零成本确认。
- * 锁定态是否响应由 lockAllowGestures 门控；动作设为「无」时不闪不响应。
- */
-internal fun PlayerComposeActivity.onDoubleTap(zone: DoubleTapZone) {
-    if (screenLocked && !playbackPrefs.lockAllowGestures) return
-    val action = when (zone) {
-        DoubleTapZone.FORWARD, DoubleTapZone.BACKWARD -> playbackPrefs.doubleTapSidesAction
-        DoubleTapZone.TOGGLE_PLAY -> playbackPrefs.doubleTapCenterAction
-    }
-    if (action == "none") return
-    lastTouchMs = System.currentTimeMillis()
-    flashZone = zone
-    android.os.Handler(mainLooper).postDelayed({ flashZone = null }, 600)
-    when (zone) {
-        DoubleTapZone.FORWARD -> seekTo(positionMs + playbackPrefs.seekForwardSeconds * 1000L)
-        DoubleTapZone.BACKWARD -> seekTo((positionMs - playbackPrefs.seekBackwardSeconds * 1000L).coerceAtLeast(0L))
-        DoubleTapZone.TOGGLE_PLAY -> togglePlayPause()
-    }
-}
-
-/**
- * "下一集"。铁律：不许静默降级。
- * 剧集列表还没接进资源库 ⇒ 明确告诉用户，而不是点了没反应。
- */
 internal fun PlayerComposeActivity.onNextEpisode() {
     lastTouchMs = System.currentTimeMillis()
     showToast("剧集列表尚未接入资源库，暂不能切换下一集")
 }
 
-/** 轻提示：默认 1.8s 后自动消失（落在 1.0–2.0s 停留区间）；起播规格等可指定停留时长。 */
-internal fun PlayerComposeActivity.showToast(message: String, durationMs: Long = 1_800) {
+/**
+ * 提示停留：成功 1.8s / 失败 2.6s（P10 §3）。判据与琥珀点同源（[toastIsError]），
+ * 避免"带错误标记却一闪而过"。
+ */
+internal fun PlayerComposeActivity.showToast(
+    message: String,
+    durationMs: Long = if (toastIsError(message)) PlayerPanelStyle.toastErrorMs
+    else PlayerPanelStyle.toastSuccessMs,
+) {
     toastText = message
     android.os.Handler(mainLooper).postDelayed({ toastText = "" }, durationMs)
 }
 
-/** 顶栏动作的短暂高亮（切换成功的零成本确认）。 */
 internal fun PlayerComposeActivity.flashAction(kind: String) {
     activeAction = kind
     android.os.Handler(mainLooper).postDelayed({ activeAction = "" }, 1_500)

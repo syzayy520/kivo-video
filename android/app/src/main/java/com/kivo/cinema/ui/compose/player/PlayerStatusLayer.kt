@@ -73,19 +73,18 @@ private fun FailedPanel(reason: String, onRetry: () -> Unit, modifier: Modifier 
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .padding(horizontal = 40.dp)
-                .clip(RoundedCornerShape(PlayerTokens.panelRadius.dp))
-                .background(PlayerTokens.panelSurface)
+                .playerPanelSurface()
                 .padding(horizontal = 24.dp, vertical = 20.dp),
         ) {
             Text(
                 text = "播放失败",
-                color = PlayerTokens.textPrimary,
+                color = PlayerPanelStyle.titleColor,
                 fontSize = PlayerTokens.panelTitleSize.sp,
             )
             Spacer(Modifier.height(6.dp))
             Text(
                 text = reason,
-                color = PlayerTokens.textSecondary,
+                color = PlayerPanelStyle.subtitleColor,
                 fontSize = PlayerTokens.panelSubtitleSize.sp,
                 textAlign = TextAlign.Center,
                 maxLines = 3,
@@ -119,12 +118,16 @@ private fun ReconnectHint(modifier: Modifier = Modifier) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
         Text(
             text = "网络中断，正在重连…",
-            color = PlayerTokens.textPrimary,
+            color = PlayerPanelStyle.titleColor,
             fontSize = 13.sp,
             modifier = Modifier
                 .padding(bottom = PlayerTokens.bottomScrimHeight.dp + 12.dp)
-                .clip(RoundedCornerShape(50))
-                .background(PlayerTokens.panelSurface)
+                // 轻提示也走同一材质族，但更薄：小圆角、浅阴影、不加顶部受光。
+                .playerPanelSurface(
+                    radius = 14.dp,
+                    elevation = 8.dp,
+                    sheen = androidx.compose.ui.graphics.Color.Transparent,
+                )
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         )
     }
@@ -136,11 +139,10 @@ private fun EndedPanel(modifier: Modifier = Modifier) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(
             text = "播放结束",
-            color = PlayerTokens.textPrimary,
+            color = PlayerPanelStyle.titleColor,
             fontSize = PlayerTokens.panelTitleSize.sp,
             modifier = Modifier
-                .clip(RoundedCornerShape(PlayerTokens.panelRadius.dp))
-                .background(PlayerTokens.panelSurface)
+                .playerPanelSurface()
                 .padding(horizontal = 22.dp, vertical = 14.dp),
         )
     }

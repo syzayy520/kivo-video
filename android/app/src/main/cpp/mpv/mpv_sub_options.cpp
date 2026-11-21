@@ -64,10 +64,20 @@ bool apply_sub_options(mpv_handle* handle,
     options.push_back({"osd-fonts-dir", dir.c_str(), true});
     options.push_back({"osd-font", family.c_str(), true});
     options.push_back({"sub-font", family.c_str(), true});
-    // 字号：mpv 默认按视频高度的比例算字号。
+    // 字号：mpv 默认按视频高度的比例算字号（scaled pixel，720 高为基准）。
     // sub-scale 是百分比因子且会破坏 ASS 缩放，sub-font-size 是绝对字号，
-    // 只对纯文本字幕的默认字号生效。52 px 在 1080 高的画面上约等于 5%。
-    options.push_back({"sub-font-size", "52", true});
+    // 只对纯文本字幕的默认字号生效。
+    //
+    // 【40 的来历（P9 · A）】1080 高画面上 40 → 约 60 px ≈ 5.6% 屏高，
+    // 落在"5–5.5%"的目标带；旧值 52 → 78 px ≈ 7.2%，中文双行会盖住主体。
+    // 这个数必须与 Kotlin 的 SubtitleStyle.DEFAULT_FONT_SIZE（落盘默认与面板重置）
+    // 以及面板注释保持**同源** —— 曾经 52/55/注释三处各写一个数。
+    options.push_back({"sub-font-size", "40", true});
+    // 底距：mpv 默认 22，字幕几乎贴住屏幕下缘（横屏手势条/挖孔屏更明显）。
+    // 40 → 1080 高约 60 px。**只对非 ASS 文本字幕生效**（mpv 手册：
+    // "vertical margins of unstyled text subtitles"）；ASS 的位置由源样式
+    // 或 sub-pos 决定 —— 面板文案必须写明"仅文本字幕"。
+    options.push_back({"sub-margin-y", "40", true});
     // 自动加载同名字幕文件（外挂 .srt/.ass 放在媒体旁边）。
     //
     // 【354 · 为什么是 exact 而不是 fuzzy】

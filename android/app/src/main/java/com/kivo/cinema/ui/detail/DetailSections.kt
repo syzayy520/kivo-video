@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kivo.cinema.tmdb.TmdbDetail
 import com.kivo.cinema.ui.design.DesignTokens
+import com.kivo.cinema.ui.design.PosterPlaceholder
 import com.kivo.cinema.ui.design.TmdbImage
 
 /** 家长指南卡片高（帧实测 55×0.914）。 */
@@ -78,8 +79,9 @@ internal fun CastRow(cast: List<TmdbDetail.CastMember>, fg: Color, fgSub: Color,
                     if (url != null) {
                         TmdbImage(url, member.name, Modifier.fillMaxSize(), loader = loader)
                     } else {
-                        Box(Modifier.fillMaxSize()
-                            .background(Color(0xFFE3DEEA), CircleShape))
+                        PosterPlaceholder(Modifier.fillMaxSize(),
+                            bg = DesignTokens.canvasFill,
+                            initial = member.name.firstOrNull()?.uppercaseChar()?.toString())
                     }
                 }
                 Spacer(Modifier.height(DETAIL_CAST_NAME_GAP_DP.dp))

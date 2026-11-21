@@ -94,6 +94,10 @@ internal class MpvKernelApi(
     /** 关闭字幕。 */
     fun disableSubtitles(): Boolean = subtitles().disableSubtitles()
 
+    /** 卸载一条外挂字幕（P9 · H）。返回移除结果与兜底失败原因。 */
+    fun removeExternalSubtitle(trackId: Int): MpvSubtitleControl.RemovalResult =
+        subtitles().removeExternalSubtitle(trackId)
+
     /** 当前字幕轨是否在**显示**（挂了 ≠ 选了 ≠ 可见，三态分开）。 */
     fun isSubtitleVisible(): Boolean = subtitles().isSubtitleVisible()
 

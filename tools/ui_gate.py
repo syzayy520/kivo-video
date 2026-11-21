@@ -79,6 +79,17 @@ def in_tokens_dir(path):
     return "tokens" in path.relative_to(KT_ROOT).parts[:-1]
 
 
+# 令牌表文件：**裸色是它们的产出**（定义颜色/尺寸的地方），与 tokens/ 目录同等对待。
+# 豁免必须明示：scan() 会把命中数量记进 `bare_color_exempt`，报告与 JSON 都打印文件清单，
+# 不允许"悄悄少算"（铁律：靠隐藏换来的全绿比红更危险）。
+TOKEN_FILE_SUFFIXES = ("Style.kt", "Tokens.kt", "Palette.kt")
+
+
+def is_token_file(path):
+    """令牌定义文件：tokens/ 目录内，或文件名是 *Style/*Tokens/*Palette。"""
+    return in_tokens_dir(path) or path.name.endswith(TOKEN_FILE_SUFFIXES)
+
+
 def count_lines(path):
     # 与 `wc -l` 一致：只数换行符，末行无换行时不计。
     return path.read_bytes().count(b"\n")
@@ -88,6 +99,7 @@ def scan():
     files = kt_files()
     over_limit = {}
     bare_by_file = {}
+    exempt_by_file = {}
     pages = []
     pages_missing_preview = []
 
@@ -99,10 +111,12 @@ def scan():
 
         text = path.read_text(encoding="utf-8", errors="replace")
 
-        if not in_tokens_dir(path):
-            hits = len(BARE_HEX_RE.findall(text)) + len(BARE_NAMED_RE.findall(text))
-            if hits:
-                bare_by_file[relpath] = hits
+        raw_hits = len(BARE_HEX_RE.findall(text)) + len(BARE_NAMED_RE.findall(text))
+        if raw_hits:
+            if is_token_file(path):
+                exempt_by_file[relpath] = raw_hits
+            else:
+                bare_by_file[relpath] = raw_hits
 
         if path.name.endswith("Page.kt"):
             pages.append(relpath)
@@ -130,6 +144,8 @@ def scan():
         },
         "bare_color_total": sum(bare_by_file.values()),
         "bare_color_by_file": dict(sorted(bare_by_file.items(), key=lambda kv: (-kv[1], kv[0]))),
+        "bare_color_exempt_total": sum(exempt_by_file.values()),
+        "bare_color_exempt_by_file": dict(sorted(exempt_by_file.items(), key=lambda kv: (-kv[1], kv[0]))),
         "page_count": len(pages),
         "page_preview_missing": len(pages_missing_preview),
         "page_preview_missing_files": pages_missing_preview,
@@ -151,6 +167,10 @@ def baseline_doc(m):
         "generated_at": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
         "files_over_300": m["files_over_300"],
         "bare_color_total": m["bare_color_total"],
+        # 逐文件明细必须落盘：只存总数时，回归（+n）无法定位到文件——2026-11-22 的 +1
+        # 就因为旧 baseline 没存明细而查不到根源。铁律「豁免必须明示」同样适用于回归归因。
+        "bare_color_by_file": m["bare_color_by_file"],
+        "bare_color_exempt_by_file": m["bare_color_exempt_by_file"],
         "page_preview_missing": m["page_preview_missing"],
         "page_preview_missing_files": m["page_preview_missing_files"],
         "thresholds": {
@@ -236,6 +256,14 @@ def print_report(m, violations, regressions, warnings, notes, baseline_path=None
         print(f"   {relpath:<60} {hits}")
     if not top:
         print("   （无）")
+    exempt = m.get("bare_color_exempt_by_file") or {}
+    if exempt:
+        print(
+            f"   【明示豁免·令牌表】{m.get('bare_color_exempt_total', 0)} 处"
+            "（裸色是这些文件的定义内容，与 tokens/ 同等对待）"
+        )
+        for relpath, hits in exempt.items():
+            print(f"      exempt {relpath:<50} {hits}")
 
     print()
     print("── 3. Preview（每个 *Page.kt 至少 1 个 @Preview）")
@@ -300,6 +328,8 @@ def main(argv=None):
                 },
                 "bare_color_total": metrics["bare_color_total"],
                 "bare_color_by_file": metrics["bare_color_by_file"],
+                "bare_color_exempt_total": metrics["bare_color_exempt_total"],
+                "bare_color_exempt_by_file": metrics["bare_color_exempt_by_file"],
                 "page_count": metrics["page_count"],
                 "page_preview_missing": metrics["page_preview_missing"],
                 "page_preview_missing_files": metrics["page_preview_missing_files"],

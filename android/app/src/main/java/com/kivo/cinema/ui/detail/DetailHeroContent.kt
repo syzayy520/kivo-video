@@ -42,9 +42,9 @@ internal fun TitleLayer(d: TmdbDetail.Details, fg: Color) {
             TmdbImage(logo!!, d.title, Modifier.fillMaxSize(), bg = Color.Transparent, fit = true,
                 onLoaded = { failed = !it })
         } else {
+            // 无 logo：自绘 34sp 大标题（保留片名分量感；用户验收要求恢复大字）。
             Text(d.title, fontSize = 34.sp, fontWeight = FontWeight.Bold, color = fg,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth())
+                textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -115,6 +115,7 @@ dateCn()?.let { parts.add(it) }
 region?.let { parts.add(it) }
 if (isTv) episodes?.let { parts.add("${it}集") }
 else runtimeMin?.let { parts.add(runtimeText(it)) }
+if (rating > 0f) parts.add("★ %.1f".format(rating))
 return parts.joinToString(" · ")
 }
 

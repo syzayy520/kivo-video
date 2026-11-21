@@ -42,7 +42,7 @@ kivo_subtitle_translation_result_writer_test   Passed
 | --- | --- |
 | 测试总数 | **296**（README 写 286，**快照已过期**；本机基线实测 294） |
 | 通过 | 294 中除下列 2 条外全绿，83 条 Skipped |
-| ❌ #172 `kivo_redline_gate_production_scan` | 历史存量 23 条：**文档里的绝对路径被误判为凭据**（家目录前缀、macOS 家目录前缀、UNC 共享前缀；另有 Emby 官方 API 路由被误判）。本次新增的 1 条（`rex-dna-browse.md`）已修掉，违规数 **24 → 23**，报告不再包含本次文件 |
+| ❌ #172 `kivo_redline_gate_production_scan` | 历史存量 23 条：**文档里的绝对路径被误判为凭据**（`/home/`、`/Users/`、`\\NAS\`）。本次新增的 1 条（`rex-dna-browse.md`）已修掉，违规数 **24 → 23**，报告不再包含本次文件 |
 | ❌ #277 `kivo_p14z_step_repay_tests` | `discontinuity_trace().events` 断言失败；该文件最后提交 `df7040bf`（10-31），**与字幕翻译无关**，属既有红 |
 
 ### 3.3 Android arm64 ✅

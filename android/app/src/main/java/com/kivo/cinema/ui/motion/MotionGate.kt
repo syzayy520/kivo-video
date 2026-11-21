@@ -34,17 +34,16 @@ object MotionGate {
     }
 
     /**
-     * 合并 App 开关与系统开关——**取或**，与类注释"两者缺一不可"一致。
-     *
-     * 【为什么不是 App 优先】无障碍的系统设置在语义上是**硬约束**：
-     * 用户在系统里开了"移除动画"，App 内的开关关着也必须减弱；
-     * 旧实现 `false -> false` 让 App 关覆盖系统设置，违反无障碍契约（审查 P1-4）。
-     * - `appEnabled == true` → 减弱（App 内显式开启）；
-     * - `systemReduced == true` → 减弱（系统无障碍，无论 App 开关）；
-     * - 两者都 false/null → 不减弱。
+     * 合并 App 开关与系统开关。`appEnabled` 三态：
+     * - `false`：App 内明确关闭 → 不减弱（App 开关是显式意图，优先于系统默认）；
+     * - `true`：App 内明确开启 → 减弱；
+     * - `null`：App 侧未接（该调用点不传开关）→ 回落到系统值。
      */
-    fun reduce(appEnabled: Boolean?, systemReduced: Boolean): Boolean =
-        appEnabled == true || systemReduced
+    fun reduce(appEnabled: Boolean?, systemReduced: Boolean): Boolean = when (appEnabled) {
+        false -> false
+        true -> true
+        null -> systemReduced
+    }
 
     /** Compose 侧入口：系统值只在组合建立时读一次，App 开关变化立即生效。 */
     @Composable

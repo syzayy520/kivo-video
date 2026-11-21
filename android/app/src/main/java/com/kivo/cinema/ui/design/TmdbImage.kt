@@ -3,7 +3,6 @@ package com.kivo.cinema.ui.design
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
@@ -13,9 +12,13 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import okhttp3.Request
 import java.io.File
 import java.io.IOException
 import java.security.MessageDigest
+import java.util.concurrent.TimeUnit
 
 /** Shared image loader. Disk entries retain the response bytes, including PNG alpha. */
 object TmdbImageCache {
@@ -35,6 +38,15 @@ object TmdbImageCache {
         File(dir, key)
     }
 
+    /** 图片专用：现代 TLS + HTTP/2，ClientHello 与浏览器一致（绕过按旧指纹的 reset）。 */
+    private val http: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(8, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
+            .build()
+    }
+
     /** Blocking; callers use Dispatchers.IO. Failed responses are never persisted. */
     fun load(url: String, token: String? = null): Bitmap? {
         // 缓存键不含 token：同一张图不因换 token 重复下载（URL 已含 itemId+tag）。
@@ -48,37 +60,33 @@ object TmdbImageCache {
                 return it
             }
         }
-        // A transient socket reset must not leave a visible poster empty for the whole visit.
-        // Retry transport failures once; a missing image or invalid bytes are not transport failures.
+        // OkHttp：现代 TLS + HTTP/2，ClientHello 与浏览器一致，避免被中间设备按旧指纹 reset。
+        // 重试一次传输失败；404/坏字节不重试。
         repeat(2) { attempt ->
-          try {
-            val conn = com.kivo.cinema.tmdb.TmdbClient.staticOpen(url)
             try {
-                conn.connectTimeout = 8000
-                conn.readTimeout = 20000
-                // 317：Emby 的剧集缩略图要鉴权（TMDB 的不需要）⇒ 可选 header，不影响原有调用。
-                if (!token.isNullOrBlank()) conn.setRequestProperty("X-Emby-Token", token)
-                if (conn.responseCode !in 200..299) return null
-                val bytes = conn.inputStream.use { it.readBytes() }
-                val bitmap = decodeImageCapped(bytes) ?: return null
-                put(url, bitmap)
-                if (token != null) com.kivo.cinema.net.NetDiag.log("[img] net ${url.takeLast(28)}")
-                if (disk != null) runCatching {
-                    val temporary = File.createTempFile("image-", ".tmp", disk.parentFile)
-                    try { temporary.writeBytes(bytes); temporary.renameTo(disk) }
-                    finally { temporary.delete() }
+                val req = Request.Builder().url(url).apply {
+                    if (!token.isNullOrBlank()) header("X-Emby-Token", token)
+                }.build()
+                http.newCall(req).execute().use { resp ->
+                    if (!resp.isSuccessful) return null
+                    val bytes = resp.body?.bytes() ?: return null
+                    val bitmap = decodeImageCapped(bytes) ?: return null
+                    put(url, bitmap)
+                    if (token != null) com.kivo.cinema.net.NetDiag.log("[img] net ${url.takeLast(28)}")
+                    if (disk != null) runCatching {
+                        val temporary = File.createTempFile("image-", ".tmp", disk.parentFile)
+                        try { temporary.writeBytes(bytes); temporary.renameTo(disk) }
+                        finally { temporary.delete() }
+                    }
+                    return bitmap
                 }
-                return bitmap
-            } finally { conn.disconnect() }
-          } catch (_: IOException) {
-              if (attempt == 0) Thread.sleep(200)
-          } catch (_: Exception) { return null }
+            } catch (_: IOException) {
+                if (attempt == 0) Thread.sleep(200)
+            } catch (_: Exception) { return null }
         }
         return null
     }
 }
-
-val TmdbPlaceholder = Color(0xFFE9E4EE)
 
 /** 255 #30：解码上限——original 海报可达 2000×3000+，按最长边 ≤1600 采样，防 48 格缓存撑爆内存。 */
 internal fun decodeImageCapped(bytes: ByteArray, maxDim: Int = 1600): Bitmap? {
@@ -112,7 +120,7 @@ fun TmdbImage(
     url: String,
     contentDescription: String,
     modifier: Modifier = Modifier,
-    bg: Color = TmdbPlaceholder,
+    bg: Color = DesignTokens.posterPlaceholder,
     fit: Boolean = false,
     onLoaded: ((Boolean) -> Unit)? = null,
     loader: (suspend (String) -> Bitmap?)? = null,
@@ -127,7 +135,10 @@ fun TmdbImage(
         bmp = loaded
         report?.invoke(loaded != null)
     }
-    Box(modifier.background(bg)) {
+    Box(modifier) {
+        // 首帧/加载失败/unsupported 时显示规范占位；bg=Transparent 时组件只留 glyph，
+        // 不画不透明底（PlatformCards/StudioCards 靠此规避浅底显露坑）。
+        PosterPlaceholder(Modifier.fillMaxSize(), bg = bg)
         bmp?.let {
             Image(it.asImageBitmap(), contentDescription,
                 contentScale = if (fit) ContentScale.Fit else ContentScale.Crop,

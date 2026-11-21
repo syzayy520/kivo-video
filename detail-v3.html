@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>奥德赛 · 详情页 v3（原图骨架改进版）</title>
+<style>
+/* ============================================================
+   v3 设计原则：骨架 100% 沿用原 App，只修截图实证缺陷
+   浅色内容区 #F1F0F8 / 深色只存在于 Hero 图片区
+   ============================================================ */
+:root {
+  /* 原图色板（目测值，保持不变） */
+  --bg-page:#F1F0F8;        /* 浅薰衣草内容底 */
+  --bg-card:#F8F8FC;        /* 卡片底，仅比页面亮一点 */
+  --bg-card-solid:#FFFFFF;
+  --ink-1:#1A1A1F;
+  --ink-2:#5B5B66;
+  --ink-3:#8A8A96;          /* 原图灰字，仅用于 ≥13px 的辅助文字 */
+  --hairline:rgba(26,26,31,.08);
+  --hairline-2:rgba(26,26,31,.14);
+  --night:#0F0F23;
+  --green:#4CB050;
+  --gold:#F5C518;
+  --rail-yellow:#F2C230;
+  --rail-red:#E5473E;
+  --rail-purple:#7E57C2;
+  --rail-teal:#26A69A;
+  --danger:#E5473E;
+  /* 间距：沿用原图节奏，向 8 的倍数取整 */
+  --p:16px;
+  --s-1:8px; --s-2:16px; --s-3:24px; --s-4:32px;
+  --r-card:16px; --r-chip:999px; --r-sheet:24px;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html { font-size:16px; }
+body {
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",sans-serif;
+  background:var(--bg-page);
+  color:var(--ink-1);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  max-width:430px; margin:0 auto;
+  overflow-x:hidden;
+}
+button { font-family:inherit; border:none; background:none; color:inherit; cursor:pointer; }
+img { display:block; max-width:100%; }
+.num { font-variant-numeric:tabular-nums; }
+.hide-scrollbar::-webkit-scrollbar { display:none; }
+.hide-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+:focus-visible { outline:2px solid rgba(10,132,255,.9); outline-offset:2px; border-radius:6px; }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+
+/* ============================================================
+   折叠导航：原图没有，按原图玻璃语言补的唯一新结构
+   ============================================================ */
+.nav-collapsed { position:sticky; top:0; z-index:100; height:0; pointer-events:none; }
+.nav-inner {
+  position:absolute; top:0; left:0; right:0; height:52px;
+  display:flex; align-items:center; gap:8px; padding:0 10px;
+  background:rgba(241,240,248,.78);
+  backdrop-filter:blur(20px) saturate(1.6); -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border-bottom:.5px solid var(--hairline);
+  transform:translateY(-100%); transition:transform .4s var(--ease);
+  pointer-events:auto;
+}
+.nav-collapsed.shown .nav-inner { transform:translateY(0); }
+.nav-back {
+  width:44px; height:44px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .2s, transform .2s;
+}
+.nav-back:active { transform:scale(.9); background:rgba(0,0,0,.06); }
+.nav-title { flex:1; font-size:16px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nav-play {
+  min-height:44px; padding:0 18px; border-radius:var(--r-chip);
+  background:var(--ink-1); color:#fff; font-size:14px; font-weight:600;
+  display:flex; align-items:center; gap:5px;
+  transition:transform .2s, opacity .2s;
+}
+.nav-play:active { transform:scale(.95); }
+.nav-play:disabled { opacity:.4; pointer-events:none; }
+
+/* ============================================================
+   Hero：全出血图 + 底部渐变，深色只在这里
+   ============================================================ */
+.hero {
+  position:relative; height:600px; overflow:hidden;
+  background:var(--night);
+}
+.hero-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; will-change:transform; }
+.hero-mask {
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(15,15,35,.35) 0%,rgba(15,15,35,0) 30%,rgba(15,15,35,.55) 66%,rgba(15,15,35,.97) 100%);
+}
+.hero-vignette {
+  position:absolute; inset:0;
+  background:radial-gradient(120% 90% at 50% 36%,rgba(0,0,0,0) 46%,rgba(7,9,18,.45) 100%);
+}
+/* 返回钮：原图玻璃圆钮，位置尺寸一致 */
+.floating-back {
+  position:absolute; top:calc(env(safe-area-inset-top,0px) + 10px); left:12px; z-index:40;
+  width:44px; height:44px; border-radius:50%;
+  background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.08));
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 8px 24px rgba(4,8,20,.3);
+  display:flex; align-items:center; justify-content:center;
+  transition:opacity .35s var(--ease), transform .25s;
+}
+.floating-back:active { transform:scale(.9); }
+.floating-back.fade-out { opacity:0; pointer-events:none; }
+
+/* Hero 底部信息：保持原图"标题→元信息→CTA→简介→评分"的顺序与居中气质 */
+.hero-content {
+  position:absolute; left:var(--p); right:var(--p); bottom:22px; z-index:20;
+}
+.hero-title {
+  text-align:center; color:#fff;
+  font-size:34px; font-weight:800; letter-spacing:.12em; /* 修复①：灰蓝→近白，字距 0.3em→0.12em，仍保留仪式感 */
+  text-shadow:0 2px 16px rgba(0,0,0,.6);
+  margin-bottom:10px;
+}
+.hero-meta {
+  text-align:center; color:rgba(255,255,255,.92);
+  font-size:13px; display:flex; justify-content:center; gap:7px; flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.hero-meta .dot { opacity:.45; }
+
+/* CTA 三件套：形态完全沿用原图 */
+.cta-row { display:flex; gap:11px; align-items:stretch; margin-bottom:18px; }
+.btn-play {
+  flex:1; min-height:50px; border-radius:var(--r-chip);
+  background:#fff; color:#0F0F23;
+  font-size:16px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  box-shadow:0 10px 26px -8px rgba(8,10,24,.5);
+  transition:transform .2s, opacity .2s;
+}
+.btn-play:active { transform:scale(.97); }
+.btn-play:disabled { opacity:.55; pointer-events:none; }
+.btn-play .spinner {
+  width:17px; height:17px; border-radius:50%;
+  border:2.5px solid rgba(0,0,0,.18); border-top-color:#0F0F23;
+  animation:spin .75s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg);} }
+.btn-merge {
+  display:flex; border-radius:var(--r-chip); overflow:hidden;
+  background:linear-gradient(135deg,rgba(255,255,255,.17),rgba(255,255,255,.07));
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 8px 24px rgba(4,8,20,.28);
+}
+.btn-merge button {
+  min-height:50px; padding:0 14px; display:flex; align-items:center; gap:6px;
+  color:#fff; font-size:13px; font-weight:500;
+  transition:background .18s, transform .2s;
+}
+.btn-merge button + button { border-left:1px solid rgba(255,255,255,.16); }
+.btn-merge button:active { background:rgba(255,255,255,.12); transform:scale(.94); }
+.heart-fill { display:none; }
+.btn-merge .faved .heart-fill { display:block; color:#FF5A6E; }
+.btn-merge .faved .heart-line { display:none; }
+.btn-more {
+  width:50px; min-height:50px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.17),rgba(255,255,255,.07));
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 8px 24px rgba(4,8,20,.28);
+  display:flex; align-items:center; justify-content:center; color:#fff;
+  transition:transform .25s, background .18s;
+}
+.btn-more:active { transform:scale(.9) rotate(90deg); }
+
+/* 简介：保留两行截断，补"更多"入口（修复④） */
+.synopsis { margin-bottom:16px; }
+.synopsis p {
+  font-size:13px; line-height:1.65; color:rgba(255,255,255,.92);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.synopsis.expanded p { -webkit-line-clamp:unset; }
+.synopsis-toggle {
+  margin-top:4px; min-height:44px;
+  display:inline-flex; align-items:center; gap:3px;
+  font-size:13px; font-weight:600; color:rgba(255,255,255,.72);
+}
+.synopsis-toggle svg { transition:transform .3s var(--ease); }
+.synopsis.expanded .synopsis-toggle svg { transform:rotate(180deg); }
+
+/* 评分行：沿用原图"小标识+数字"横排，不加进度条/卡片，豆瓣补"—"（修复⑤） */
+.ratings { display:flex; justify-content:center; align-items:flex-start; gap:0; }
+.rating-item { flex:1; text-align:center; padding:0 2px; min-width:0; }
+.rating-item + .rating-item { border-left:1px solid rgba(255,255,255,.14); }
+.rating-mark {
+  height:18px; display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:800; letter-spacing:.02em; margin-bottom:3px;
+}
+.mark-imdb { color:#F5C518; font-style:italic; }
+.mark-tmdb { color:#4FD0E7; }
+.mark-meta { color:#E64478; }
+.mark-rt { color:#FF6358; }
+.mark-douban { color:#58A86B; }
+.rating-score { font-size:15px; font-weight:700; color:#fff; }
+.rating-empty .rating-score { color:rgba(255,255,255,.45); font-weight:400; }
+.rating-name { font-size:10px; color:rgba(255,255,255,.6); margin-top:1px; white-space:nowrap; }
+
+/* ============================================================
+   内容面板：修复②——干净的圆角分界，消灭灰紫中间态
+   ============================================================ */
+.content-panel {
+  position:relative; z-index:10;
+  background:var(--bg-page);
+  border-radius:24px 24px 0 0;
+  margin-top:-26px;
+  padding:8px var(--p) calc(48px + env(safe-area-inset-bottom));
+  box-shadow:0 -12px 36px -14px rgba(8,10,24,.35);
+}
+.panel-handle { width:38px; height:5px; border-radius:99px; background:var(--hairline-2); margin:6px auto 20px; }
+
+.section { margin-bottom:var(--s-4); }
+.section-header {
+  display:flex; align-items:center; justify-content:space-between;
+  min-height:28px; margin-bottom:var(--s-2);
+}
+.section-title { font-size:18px; font-weight:700; color:var(--ink-1); }
+.section-title.with-colon::after { content:""; } /* 修复⑩：统一标题样式，去掉原图只有资源区带冒号的不一致 */
+.section-link {
+  display:inline-flex; align-items:center; gap:2px;
+  min-height:44px; padding:0 6px; margin:-6px;
+  font-size:14px; color:var(--ink-3);
+}
+.section-link:active { color:var(--ink-1); }
+.section-badge {
+  font-size:11px; font-weight:600; letter-spacing:.06em; color:var(--ink-2);
+  border:1px solid var(--hairline-2); padding:4px 10px; border-radius:var(--r-chip);
+  min-height:26px; display:inline-flex; align-items:center;
+}
+.resource-state-pill {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:12px; font-weight:500; color:var(--ink-3);
+}
+.dot-state { width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 0 3px rgba(76,176,80,.15); }
+.dot-state.idle { background:var(--ink-3); box-shadow:none; }
+.dot-state.err { background:var(--danger); box-shadow:0 0 0 3px rgba(229,71,62,.14); }
+.mini-spinner {
+  width:13px; height:13px; border-radius:50%;
+  border:2px solid var(--hairline-2); border-top-color:var(--ink-2);
+  animation:spin .75s linear infinite;
+}
+
+/* ============================================================
+   播放资源：保持原图卡片形态，修可见性/状态/信息量（修复③）
+   ============================================================ */
+.resource-list { display:flex; flex-direction:column; gap:10px; }
+.resource-card {
+  width:100%; text-align:left; /* 修复：原图卡片只占半宽右侧留白，现全宽 */
+  display:flex; align-items:center; gap:12px;
+  padding:14px; min-height:72px;
+  background:var(--bg-card);
+  border:1.5px solid var(--hairline);
+  border-radius:var(--r-card);
+  transition:border-color .25s, background .25s, transform .2s;
+}
+.resource-card:active { transform:scale(.985); }
+.resource-card.selected {
+  border-color:var(--ink-1);               /* 修复⑥：中性墨色选中，不用红色 */
+  background:var(--bg-card-solid);
+}
+.resource-icon {
+  width:42px; height:42px; flex-shrink:0; border-radius:12px;
+  background:#fff; border:1px solid var(--hairline);
+  display:flex; align-items:center; justify-content:center; color:var(--ink-2);
+}
+.resource-card.selected .resource-icon { color:var(--ink-1); }
+.resource-main { flex:1; min-width:0; }
+.resource-titleline { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.resource-title { font-size:15px; font-weight:600; color:var(--ink-1); }
+.resource-meta { font-size:12px; color:var(--ink-3); margin-top:3px; }
+.tag {
+  padding:2px 7px; border-radius:7px; font-size:10.5px; font-weight:700; letter-spacing:.03em;
+}
+.tag-4k { background:rgba(230,81,0,.1); color:#E65100; }
+.tag-hd { background:rgba(21,101,192,.09); color:#1565C0; }
+.tag-audio { background:rgba(123,31,162,.09); color:#7B1FA2; }
+.resource-available {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:11px; color:var(--green); font-weight:600; flex-shrink:0;
+}
+.resource-check {
+  width:26px; height:26px; border-radius:50%; flex-shrink:0;
+  background:var(--hairline);
+  display:flex; align-items:center; justify-content:center;
+  transition:background .25s var(--ease);
+}
+.resource-card.selected .resource-check { background:var(--ink-1); }
+.resource-check svg path { stroke-dasharray:24; stroke-dashoffset:24; transition:stroke-dashoffset .4s var(--ease) .05s; }
+.resource-card.selected .resource-check svg path { stroke-dashoffset:0; }
+/* 骨架 */
+.skeleton-card { padding:14px; background:var(--bg-card); border-radius:var(--r-card); border:1px solid var(--hairline); }
+.sk-row { display:flex; gap:12px; align-items:center; }
+.sk-circle { width:42px; height:42px; border-radius:12px; flex-shrink:0; }
+.sk-lines { flex:1; }
+.sk-line { height:13px; margin-bottom:9px; }
+.sk-line:last-child { margin-bottom:0; width:58%; }
+.skeleton {
+  background:linear-gradient(90deg,var(--hairline) 25%,rgba(128,128,140,.14) 50%,var(--hairline) 75%);
+  background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px;
+}
+@keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+/* 空/错 */
+.resource-state {
+  padding:28px 16px; text-align:center;
+  background:var(--bg-card); border-radius:var(--r-card); border:1px solid var(--hairline);
+}
+.resource-state.error .state-icon { color:var(--danger); background:rgba(229,71,62,.08); border-color:rgba(229,71,62,.3); }
+.state-icon {
+  width:50px; height:50px; margin:0 auto 12px; border-radius:50%;
+  background:#fff; border:1px solid var(--hairline);
+  display:flex; align-items:center; justify-content:center; color:var(--ink-3);
+}
+.state-title { font-size:15px; font-weight:600; margin-bottom:4px; }
+.state-desc { font-size:12px; color:var(--ink-3); margin-bottom:14px; }
+.resource-retry {
+  min-height:44px; padding:0 22px; border-radius:var(--r-chip);
+  background:var(--ink-1); color:#fff; font-size:14px; font-weight:600;
+}
+.resource-retry:active { transform:scale(.96); }
+.will-play {
+  margin-top:10px; font-size:12px; color:var(--ink-3);
+  display:flex; align-items:center; gap:5px;
+}
+.will-play strong { color:var(--ink-2); font-weight:600; }
+
+/* 媒体信息：沿用原图居中文案，展开为原地延展（修复：不跳页） */
+.media-info {
+  background:var(--bg-card); border:1px solid var(--hairline);
+  border-radius:var(--r-card); overflow:hidden;
+}
+.media-toggle {
+  width:100%; min-height:50px; padding:0 16px;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  font-size:15px; font-weight:500; color:var(--ink-2);
+}
+.media-toggle svg:last-child { transition:transform .3s var(--ease); }
+.media-info.expanded .media-toggle svg:last-child { transform:rotate(180deg); }
+.media-body { max-height:0; overflow:hidden; transition:max-height .45s var(--ease); }
+.media-info.expanded .media-body { max-height:600px; }
+.media-row { display:flex; padding:11px 16px; border-top:1px solid var(--hairline); font-size:14px; gap:16px; }
+.media-label { width:80px; flex-shrink:0; color:var(--ink-3); font-size:13px; }
+.media-value { flex:1; color:var(--ink-1); }
+/* 制片公司：保留原图居中 logo，修复孤儿感——收进媒体信息面板底部 */
+.media-studio { padding:14px 16px 18px; border-top:1px solid var(--hairline); display:flex; justify-content:center; }
+.studio-logo { font-size:13px; font-weight:700; letter-spacing:.18em; color:#1565C0; text-transform:uppercase; }
+
+/* 横滑轨道：统一左右边距 16px，右侧露头提示可滑（修复⑨） */
+.scroll-row {
+  display:flex; gap:14px; overflow-x:auto;
+  -webkit-overflow-scrolling:touch; touch-action:pan-x;
+  overscroll-behavior-inline:contain; scroll-snap-type:x mandatory;
+  margin:0 calc(-1 * var(--p)); padding:2px var(--p) 6px;
+}
+.scroll-row > * { scroll-snap-align:start; }
+
+/* 演职人员：补区块标题（原图缺失），修孤行换行（修复⑦） */
+.cast-card { width:82px; flex-shrink:0; text-align:center; padding:2px; }
+.cast-avatar {
+  width:72px; height:72px; margin:0 auto 8px; border-radius:50%;
+  padding:2px; background:var(--hairline-2);
+  transition:transform .25s var(--ease);
+}
+.cast-card:active .cast-avatar { transform:scale(.93); }
+.cast-card.director .cast-avatar { background:conic-gradient(from 160deg,var(--ink-1),rgba(26,26,31,.15),var(--hairline-2),var(--ink-1)); }
+.cast-avatar img { width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid var(--bg-card); }
+.cast-name {
+  font-size:13px; font-weight:600; line-height:1.3; color:var(--ink-1);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cast-role {
+  font-size:11px; margin-top:2px; line-height:1.3; color:var(--ink-3);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cast-card.director .cast-role { color:var(--ink-1); font-weight:600; }
+
+/* 家长指南：保留原图色条卡，修边距不对称；严重度文字强化（修复⑧） */
+.guide-card {
+  width:168px; flex-shrink:0;
+  background:var(--bg-card); border:1px solid var(--hairline);
+  border-radius:var(--r-card); padding:14px;
+}
+.guide-card:active { transform:scale(.97); }
+.guide-rail { width:4px; height:32px; border-radius:2px; margin-bottom:10px; }
+.guide-rail.sexual { background:var(--rail-yellow); }
+.guide-rail.violence { background:var(--rail-red); }
+.guide-rail.language { background:var(--rail-purple); }
+.guide-rail.drugs { background:var(--rail-teal); }
+.guide-level { font-size:15px; font-weight:600; margin-bottom:3px; }
+.guide-desc { font-size:12px; color:var(--ink-3); }
+.guide-meter { display:flex; gap:3px; margin-top:9px; }
+.guide-meter i { height:4px; flex:1; border-radius:2px; background:var(--hairline-2); }
+.guide-meter i.on { background:var(--ink-3); }
+
+/* 分类：保留原图胶囊 */
+.genre-list { display:flex; flex-wrap:wrap; gap:10px; }
+.genre-chip {
+  min-height:44px; padding:0 20px; border-radius:var(--r-chip);
+  background:var(--bg-card); border:1px solid var(--hairline);
+  font-size:14px; font-weight:500; color:var(--ink-1);
+  display:inline-flex; align-items:center;
+  transition:transform .2s, background .2s;
+}
+.genre-chip:active { transform:scale(.94); background:#fff; }
+
+/* 剧照：保留原图 16:9 横卡，右侧露头 */
+.still-card {
+  width:264px; flex-shrink:0; aspect-ratio:16/9;
+  border-radius:14px; overflow:hidden; background:var(--night);
+}
+.still-card:active { transform:scale(.98); }
+.still-card img { width:100%; height:100%; object-fit:cover; }
+
+/* 相似作品：保留原图左图右文卡，仅压缩简介到两行、统一日期格式 */
+.similar-card {
+  width:300px; flex-shrink:0;
+  background:var(--bg-card); border:1px solid var(--hairline);
+  border-radius:var(--r-card); overflow:hidden;
+  display:flex;
+  transition:transform .25s var(--ease);
+}
+.similar-card:active { transform:scale(.98); }
+.similar-poster { width:132px; flex-shrink:0; aspect-ratio:1.42/1; background:var(--night); }
+.similar-poster img { width:100%; height:100%; object-fit:cover; }
+.similar-info { flex:1; min-width:0; padding:11px 12px; }
+.similar-title { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:4px; }
+.similar-meta { font-size:12px; color:var(--ink-3); display:flex; align-items:center; gap:4px; margin-bottom:6px; }
+.similar-desc {
+  font-size:12px; color:var(--ink-2); line-height:1.5;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+
+/* 刷新：保留原图低姿态，换成语义正确的刷新图标（修复⑪） */
+.refresh-wrap { display:flex; justify-content:center; padding:var(--s-2) 0 0; }
+.refresh-btn {
+  display:inline-flex; align-items:center; gap:7px;
+  min-height:48px; padding:0 18px;
+  font-size:14px; color:var(--ink-2); font-weight:500;
+}
+.refresh-btn:active { color:var(--ink-1); }
+.refresh-btn.loading svg { animation:spin .8s linear infinite; }
+
+/* ============================================================
+   更多菜单：沿用截图 2 的悬浮圆角面板形态（不是底部 sheet）
+   ============================================================ */
+.menu-backdrop {
+  position:fixed; inset:0; z-index:1000;
+  background:rgba(7,9,18,.4);
+  opacity:0; pointer-events:none; transition:opacity .3s var(--ease);
+}
+.menu-backdrop.visible { opacity:1; pointer-events:auto; }
+.menu-panel {
+  position:fixed; z-index:1001;
+  left:50%; top:24%; transform:translate(-50%,-14px) scale(.96);
+  width:calc(100% - 48px); max-width:360px;
+  background:rgba(250,250,252,.92);
+  backdrop-filter:blur(24px) saturate(1.7); -webkit-backdrop-filter:blur(24px) saturate(1.7);
+  border:1px solid rgba(255,255,255,.5);
+  border-radius:var(--r-sheet);
+  box-shadow:0 24px 60px -12px rgba(8,10,24,.45);
+  opacity:0; pointer-events:none;
+  transition:opacity .3s var(--ease), transform .35s var(--ease);
+  overflow:hidden;
+}
+.menu-panel.visible { opacity:1; pointer-events:auto; transform:translate(-50%,0) scale(1); }
+.menu-item {
+  width:100%; min-height:56px; padding:0 18px;
+  display:flex; align-items:center; gap:14px;
+  font-size:16px; color:var(--ink-1);
+  transition:background .18s;
+}
+.menu-item + .menu-item { border-top:.5px solid var(--hairline); }
+.menu-item:active { background:rgba(0,0,0,.05); }
+.menu-icon {
+  width:32px; height:32px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; color:var(--ink-2);
+}
+
+/* 小屏 */
+@media (max-width:360px) {
+  .btn-merge button span { display:none; }
+  .btn-merge button { padding:0 13px; }
+  .hero-title { font-size:30px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 折叠导航（唯一新增结构，沿用玻璃语言） -->
+<nav class="nav-collapsed" id="navCollapsed" aria-hidden="true">
+  <div class="nav-inner">
+    <button class="nav-back" aria-label="返回">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="nav-title">奥德赛</div>
+    <button class="nav-play" id="navPlayBtn" aria-label="播放影片">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span>播放</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ================= Hero（深色只存在于此） ================= -->
+<section class="hero" id="hero">
+  <img class="hero-img" id="heroImg" alt="奥德赛电影主视觉：红头盔战士立于迷雾战场"
+       data-prompt="Epic cinematic film still, ancient Greek warrior king in bronze armor with red horsehair plume helmet shouting on battlefield, blue armored soldiers silhouettes in misty forest, cold teal fog, dramatic god rays, floating embers, shallow depth of field, high detail movie still"
+       data-size="portrait_16_9">
+  <div class="hero-mask"></div>
+  <div class="hero-vignette"></div>
+
+  <button class="floating-back" id="floatingBack" aria-label="返回">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+
+  <div class="hero-content">
+    <h1 class="hero-title">奥德赛</h1>
+    <div class="hero-meta">
+      <span>2026年7月15日</span><span class="dot">·</span>
+      <span>英国 / 美国</span><span class="dot">·</span>
+      <span>2小时53分钟</span>
+    </div>
+
+    <div class="cta-row">
+      <button class="btn-play" id="btnPlay">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span class="play-label">播放</span>
+      </button>
+      <div class="btn-merge">
+        <button id="btnWatchlist" aria-label="添加到片单">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          <span>片单</span>
+        </button>
+        <button id="btnFav" aria-label="收藏">
+          <svg class="heart-line" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <svg class="heart-fill" width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+      </div>
+      <button class="btn-more" id="btnMore" aria-label="更多操作">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+      </button>
+    </div>
+
+    <div class="synopsis" id="synopsis">
+      <p>《奥德赛》特洛伊战争结束后，伊萨卡国王奥德修斯踏上归途，却因触怒神明而漂泊十年。与此同时，他的妻子珀涅罗珀坚守王宫，儿子忒勒马科斯长大成人。这场漫长的归乡之旅，交织着诸神的考验、海洋的凶险与人性的挣扎。</p>
+      <button class="synopsis-toggle" id="synopsisToggle" aria-expanded="false">
+        <span class="toggle-text">更多</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    </div>
+
+    <div class="ratings" aria-label="多平台评分">
+      <div class="rating-item">
+        <div class="rating-mark mark-imdb">IMDb</div>
+        <div class="rating-score num">8.4</div>
+        <div class="rating-name">IMDb</div>
+      </div>
+      <div class="rating-item">
+        <div class="rating-mark mark-tmdb">TMDB</div>
+        <div class="rating-score num">8.0</div>
+        <div class="rating-name">TMDB</div>
+      </div>
+      <div class="rating-item">
+        <div class="rating-mark mark-meta">META</div>
+        <div class="rating-score num">8.7</div>
+        <div class="rating-name">Metacritic</div>
+      </div>
+      <div class="rating-item">
+        <div class="rating-mark mark-rt">RT</div>
+        <div class="rating-score num">94%</div>
+        <div class="rating-name">烂番茄</div>
+      </div>
+      <div class="rating-item rating-empty">
+        <div class="rating-mark mark-douban">豆</div>
+        <div class="rating-score">—</div>
+        <div class="rating-name">豆瓣</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 浅色内容面板（原图全部区块，顺序不变） ================= -->
+<main class="content-panel">
+  <div class="panel-handle" aria-hidden="true"></div>
+
+  <!-- 播放资源 -->
+  <section class="section" aria-labelledby="resourcesTitle">
+    <div class="section-header">
+      <h2 class="section-title" id="resourcesTitle">播放资源</h2>
+      <span class="resource-state-pill" id="resourceStatus"></span>
+    </div>
+    <div class="resource-list" id="resourceList" role="radiogroup" aria-label="播放资源选择"></div>
+    <div class="will-play" id="willPlay"></div>
+  </section>
+
+  <!-- 媒体信息（含制片公司，修复孤儿 logo） -->
+  <section class="section" aria-label="媒体信息">
+    <div class="media-info" id="mediaInfo">
+      <button class="media-toggle" id="mediaToggle" aria-expanded="false">
+        <span class="toggle-text">展开媒体信息</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="media-body">
+        <div class="media-row"><span class="media-label">导演</span><span class="media-value">克里斯托弗·诺兰</span></div>
+        <div class="media-row"><span class="media-label">编剧</span><span class="media-value">乔纳森·诺兰</span></div>
+        <div class="media-row"><span class="media-label">语言</span><span class="media-value">英语</span></div>
+        <div class="media-row"><span class="media-label">字幕</span><span class="media-value">简体中文 / 繁体中文 / 英语</span></div>
+        <div class="media-row"><span class="media-label">分辨率</span><span class="media-value">最高 4K UHD</span></div>
+        <div class="media-row"><span class="media-label">音频</span><span class="media-value">杜比全景声</span></div>
+        <div class="media-row"><span class="media-label">发行日期</span><span class="media-value">2026年7月15日</span></div>
+        <div class="media-studio"><span class="studio-logo">Universal Pictures</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 演职人员（补标题，修孤行） -->
+  <section class="section" aria-labelledby="castTitle">
+    <div class="section-header">
+      <h2 class="section-title" id="castTitle">演职人员</h2>
+      <button class="section-link" aria-label="查看全部演职人员">查看全部
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div class="scroll-row hide-scrollbar" id="castRow">
+      <div class="cast-card director">
+        <div class="cast-avatar"><img data-prompt="Photorealistic studio portrait headshot of distinguished male film director in his 50s, gray hair, black suit, charcoal background, soft cinematic light" data-size="square" alt="导演 克里斯托弗·诺兰" loading="lazy"></div>
+        <div class="cast-name">诺兰</div><div class="cast-role">导演</div>
+      </div>
+      <div class="cast-card">
+        <div class="cast-avatar"><img data-prompt="Photorealistic portrait headshot of rugged handsome male actor in his 40s, short brown hair, light stubble, dark blue studio background" data-size="square" alt="马特·达蒙" loading="lazy"></div>
+        <div class="cast-name">马特·达蒙</div><div class="cast-role">Odysseus</div>
+      </div>
+      <div class="cast-card">
+        <div class="cast-avatar"><img data-prompt="Photorealistic portrait headshot of young British male actor with curly brown hair, warm beige studio background, soft light" data-size="square" alt="汤姆·霍兰德" loading="lazy"></div>
+        <div class="cast-name">汤姆·霍兰德</div><div class="cast-role">Telemachus</div>
+      </div>
+      <div class="cast-card">
+        <div class="cast-avatar"><img data-prompt="Photorealistic portrait headshot of elegant woman with long dark brown hair, deep burgundy studio background, cinematic light" data-size="square" alt="安妮·海瑟薇" loading="lazy"></div>
+        <div class="cast-name">安妮·海瑟薇</div><div class="cast-role">Penelope</div>
+      </div>
+      <div class="cast-card">
+        <div class="cast-avatar"><img data-prompt="Photorealistic portrait headshot of pale young male actor with tousled dark hair, moody teal background, cinematic" data-size="square" alt="罗伯特·帕丁森" loading="lazy"></div>
+        <div class="cast-name">罗伯特·帕丁森</div><div class="cast-role">Antinous</div>
+      </div>
+      <div class="cast-card">
+        <div class="cast-avatar"><img data-prompt="Photorealistic portrait headshot of young woman with wavy auburn hair, sage green studio background, soft light" data-size="square" alt="西尔莎·罗南" loading="lazy"></div>
+        <div class="cast-name">西尔莎·罗南</div><div class="cast-role">Athena</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 家长指南（色条卡保留，边距修正，严重度用 meter 补强） -->
+  <section class="section" aria-labelledby="guideTitle">
+    <div class="section-header">
+      <h2 class="section-title" id="guideTitle">家长指南</h2>
+      <span class="section-badge">PG-13</span>
+    </div>
+    <div class="scroll-row hide-scrollbar">
+      <div class="guide-card">
+        <div class="guide-rail sexual"></div>
+        <div class="guide-level">性与裸露</div>
+        <div class="guide-desc">轻微 · 855 票</div>
+        <div class="guide-meter"><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="guide-card">
+        <div class="guide-rail violence"></div>
+        <div class="guide-level">暴力与血腥</div>
+        <div class="guide-desc">严重 · 527 票</div>
+        <div class="guide-meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+      </div>
+      <div class="guide-card">
+        <div class="guide-rail language"></div>
+        <div class="guide-level">粗口</div>
+        <div class="guide-desc">温和 · 312 票</div>
+        <div class="guide-meter"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+      </div>
+      <div class="guide-card">
+        <div class="guide-rail drugs"></div>
+        <div class="guide-level">烟酒毒品</div>
+        <div class="guide-desc">无 · 1024 票</div>
+        <div class="guide-meter"><i></i><i></i><i></i><i></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 分类（胶囊保留） -->
+  <section class="section" aria-labelledby="genreTitle">
+    <div class="section-header"><h2 class="section-title" id="genreTitle">分类</h2></div>
+    <div class="genre-list">
+      <button class="genre-chip">冒险</button>
+      <button class="genre-chip">动作</button>
+      <button class="genre-chip">奇幻</button>
+    </div>
+  </section>
+
+  <!-- 剧照（16:9 横卡保留） -->
+  <section class="section" aria-labelledby="stillTitle">
+    <div class="section-header">
+      <h2 class="section-title" id="stillTitle">剧照</h2>
+    </div>
+    <div class="scroll-row hide-scrollbar">
+      <div class="still-card"><img data-prompt="Cinematic ancient Greek trireme warships with red sails entering burning harbor at dusk, smoke and embers, epic film still, teal and orange grade" data-size="landscape_16_9" alt="剧照：燃烧的港口" loading="lazy"></div>
+      <div class="still-card"><img data-prompt="Dark cinematic bronze engraving THE ODYSSEY on black stone, floating sparks, dramatic rim lighting, movie title card" data-size="landscape_16_9" alt="剧照：片名石碑" loading="lazy"></div>
+      <div class="still-card"><img data-prompt="Massive storm waves crashing on rocky cliff under thunder clouds, tiny ship silhouette, epic scale cinematic film still" data-size="landscape_16_9" alt="剧照：风暴之海" loading="lazy"></div>
+      <div class="still-card"><img data-prompt="Ancient Greek marble temple ruins in mist at golden hour, lone warrior silhouette, atmospheric cinematic film still" data-size="landscape_16_9" alt="剧照：雾中神庙" loading="lazy"></div>
+    </div>
+  </section>
+
+  <!-- 相似作品（左图右文卡保留，日期格式与 Hero 统一） -->
+  <section class="section" aria-labelledby="similarTitle">
+    <div class="section-header"><h2 class="section-title" id="similarTitle">相似作品</h2></div>
+    <div class="scroll-row hide-scrollbar" id="similarRow"></div>
+  </section>
+
+  <div class="refresh-wrap">
+    <button class="refresh-btn" id="refreshBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      <span>刷新</span>
+    </button>
+  </div>
+</main>
+
+<!-- 更多菜单：截图 2 的悬浮圆角面板 -->
+<div class="menu-backdrop" id="menuBackdrop"></div>
+<div class="menu-panel" id="menuPanel" role="dialog" aria-modal="true" aria-label="更多操作">
+  <button class="menu-item">
+    <span class="menu-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+    <span>添加到日历</span>
+  </button>
+  <button class="menu-item">
+    <span class="menu-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+    <span>下载</span>
+  </button>
+  <button class="menu-item">
+    <span class="menu-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+    <span>标记已观看</span>
+  </button>
+</div>
+
+<script>
+/* ============ 真图注入 ============ */
+const imgURL = (p, s) => `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(p)}&image_size=${s}`;
+document.querySelectorAll('img[data-prompt]').forEach(el => { el.src = imgURL(el.dataset.prompt, el.dataset.size || 'landscape_16_9'); });
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ============ 资源数据（字段保守：只放截图能支撑的 + 通用规格位） ============ */
+const RESOURCES = [
+  { id:1, name:'iLoveHD 蓝光 4K', meta:'4K · HEVC · 杜比全景声 · 内封字幕', tags:[{t:'4K',c:'tag-4k'},{t:'ATMOS',c:'tag-audio'}], available:true, selected:true },
+  { id:2, name:'iLoveHD 高清 1080p', meta:'1080p · AVC · DTS 5.1', tags:[{t:'HD',c:'tag-hd'}], available:true, selected:false },
+  { id:3, name:'ISO 原盘镜像', meta:'原盘镜像 · 暂不可直接播放', tags:[], available:false, selected:false },
+];
+const ICON = {
+  file:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  check:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  empty:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  error:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+};
+const resourceList = document.getElementById('resourceList');
+const resourceStatus = document.getElementById('resourceStatus');
+const willPlay = document.getElementById('willPlay');
+const btnPlay = document.getElementById('btnPlay');
+const navPlayBtn = document.getElementById('navPlayBtn');
+
+function setPlay(ready, label) {
+  btnPlay.disabled = !ready;
+  if (ready) {
+    btnPlay.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><span class="play-label">播放</span>';
+    navPlayBtn.disabled = false;
+  } else {
+    btnPlay.innerHTML = label === 'loading'
+      ? '<div class="spinner"></div><span class="play-label">准备中</span>'
+      : '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><span class="play-label">暂不可用</span>';
+    navPlayBtn.disabled = true;
+  }
+}
+function updateWillPlay() {
+  const sel = RESOURCES.find(r => r.selected && r.available);
+  willPlay.innerHTML = sel
+    ? `将播放：<strong>${sel.name}</strong>`
+    : '<strong>当前没有可播放的资源</strong>';
+}
+function renderResources(state) {
+  resourceList.innerHTML = '';
+  if (state === 'loading') {
+    resourceStatus.innerHTML = '<span class="mini-spinner"></span><span>加载中</span>';
+    resourceList.innerHTML = [0,1,2].map(() => `
+      <div class="skeleton-card"><div class="sk-row">
+        <div class="skeleton sk-circle"></div>
+        <div class="sk-lines"><div class="skeleton sk-line" style="width:55%"></div><div class="skeleton sk-line"></div></div>
+      </div></div>`).join('');
+    willPlay.textContent = '';
+    setPlay(false, 'loading');
+    return;
+  }
+  if (state === 'empty') {
+    resourceStatus.innerHTML = '<span class="dot-state idle"></span><span>暂无</span>';
+    resourceList.innerHTML = `<div class="resource-state">
+      <div class="state-icon">${ICON.empty}</div>
+      <div class="state-title">暂无可用资源</div>
+      <div class="state-desc">该影片可能尚未上线或已下架</div></div>`;
+    willPlay.textContent = ''; setPlay(false);
+    return;
+  }
+  if (state === 'error') {
+    resourceStatus.innerHTML = '<span class="dot-state err"></span><span>加载失败</span>';
+    resourceList.innerHTML = `<div class="resource-state error">
+      <div class="state-icon">${ICON.error}</div>
+      <div class="state-title">网络错误</div>
+      <div class="state-desc">无法获取播放资源列表</div>
+      <button class="resource-retry" id="retryBtn">重试</button></div>`;
+    willPlay.textContent = ''; setPlay(false);
+    document.getElementById('retryBtn').addEventListener('click', () => {
+      renderResources('loading');
+      setTimeout(() => renderResources('ready'), 1400);
+    });
+    return;
+  }
+  resourceStatus.innerHTML = '<span class="dot-state"></span><span>已就绪</span>';
+  RESOURCES.forEach(r => {
+    const card = document.createElement('button');
+    card.className = 'resource-card' + (r.selected ? ' selected' : '');
+    card.setAttribute('role', 'radio');
+    card.setAttribute('aria-checked', String(r.selected));
+    card.disabled = !r.available;
+    card.innerHTML = `
+      <div class="resource-icon">${ICON.file}</div>
+      <div class="resource-main">
+        <div class="resource-titleline">
+          ${r.tags.map(t => `<span class="tag ${t.c}">${t.t}</span>`).join('')}
+          <span class="resource-title">${r.name}</span>
+        </div>
+        <div class="resource-meta">${r.meta}</div>
+      </div>
+      ${r.available
+        ? (r.selected ? `<div class="resource-check">${ICON.check}</div>` : '<span class="resource-available">可播放</span>')
+        : '<span class="resource-available" style="color:var(--ink-3)">不可用</span>'}`;
+    card.addEventListener('click', () => {
+      if (!r.available) return;
+      RESOURCES.forEach(x => x.selected = false);
+      r.selected = true;
+      renderResources('ready');
+    });
+    resourceList.appendChild(card);
+  });
+  updateWillPlay();
+  setPlay(true);
+}
+
+/* ============ 展开交互 ============ */
+const synopsis = document.getElementById('synopsis');
+document.getElementById('synopsisToggle').addEventListener('click', e => {
+  const expanded = synopsis.classList.toggle('expanded');
+  e.currentTarget.setAttribute('aria-expanded', expanded);
+  e.currentTarget.querySelector('.toggle-text').textContent = expanded ? '收起' : '更多';
+});
+const mediaInfo = document.getElementById('mediaInfo');
+document.getElementById('mediaToggle').addEventListener('click', e => {
+  const expanded = mediaInfo.classList.toggle('expanded');
+  e.currentTarget.setAttribute('aria-expanded', expanded);
+  e.currentTarget.querySelector('.toggle-text').textContent = expanded ? '收起媒体信息' : '展开媒体信息';
+});
+
+/* ============ 收藏（克制反馈） ============ */
+const btnFav = document.getElementById('btnFav');
+btnFav.addEventListener('click', () => btnFav.classList.toggle('faved'));
+
+/* ============ 更多菜单（悬浮面板形态） ============ */
+const menuPanel = document.getElementById('menuPanel');
+const menuBackdrop = document.getElementById('menuBackdrop');
+const openMenu = () => { menuPanel.classList.add('visible'); menuBackdrop.classList.add('visible'); };
+const closeMenu = () => { menuPanel.classList.remove('visible'); menuBackdrop.classList.remove('visible'); };
+document.getElementById('btnMore').addEventListener('click', openMenu);
+menuBackdrop.addEventListener('click', closeMenu);
+addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+
+/* ============ 滚动：rAF 节流 + 高度缓存 ============ */
+const hero = document.getElementById('hero');
+const heroImg = document.getElementById('heroImg');
+const navCollapsed = document.getElementById('navCollapsed');
+const floatingBack = document.getElementById('floatingBack');
+let heroH = hero.offsetHeight, ticking = false;
+addEventListener('resize', () => { heroH = hero.offsetHeight; });
+function onScroll() {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => {
+    const y = scrollY;
+    if (!reduceMotion) heroImg.style.transform = `translateY(${y * 0.25}px) scale(1.02)`;
+    const past = y > heroH - 80;
+    navCollapsed.classList.toggle('shown', past);
+    navCollapsed.setAttribute('aria-hidden', String(!past));
+    floatingBack.classList.toggle('fade-out', past);
+    ticking = false;
+  });
+}
+addEventListener('scroll', onScroll, { passive:true });
+
+/* ============ 误触抑制：只针对真实触摸滑动，键盘/读屏 click 放行 ============ */
+let touchStart = null;
+addEventListener('touchstart', e => { touchStart = { x:e.touches[0].clientX, y:e.touches[0].clientY }; }, { passive:true });
+addEventListener('click', e => {
+  if (e.detail === 0 || !touchStart) return;           // 键盘/读屏触发的 click 不拦
+  const t = e.changedTouches && e.changedTouches[0];
+  if (!t) { touchStart = null; return; }
+  if (Math.hypot(t.clientX - touchStart.x, t.clientY - touchStart.y) > 12) {
+    e.stopPropagation(); e.preventDefault();
+  }
+  touchStart = null;
+}, true);
+
+/* ============ 相似作品（左图右文，沿用原图形态） ============ */
+const SIMILAR = [
+  { title:'特洛伊', score:'7.2', year:'2004年', prompt:'Movie poster style ancient Trojan warrior with golden shield and spear, warm golden battlefield, dramatic cinematic lighting', desc:'特洛伊王子帕里斯掳走斯巴达王后海伦，希腊联军发起长达十年的围攻。' },
+  { title:'斯巴达300勇士', score:'7.6', year:'2006年', prompt:'Movie poster style Spartan warriors in red capes forming phalanx, dark stylized cinematic, bold contrast', desc:'温泉关一役，斯巴达国王列奥尼达率三百勇士抵御波斯大军。' },
+  { title:'角斗士', score:'8.2', year:'2000年', prompt:'Movie poster style Roman gladiator in colosseum, dust and sunlight rays, cinematic portrait', desc:'罗马将军马克西姆斯沦为奴隶，在角斗场中走向复仇之路。' },
+  { title:'天国王朝', score:'8.1', year:'2005年', prompt:'Movie poster style medieval crusader knight before golden Jerusalem walls, epic desert light, cinematic', desc:'铁匠贝里昂守护耶路撒冷，在信仰与战争之间寻找救赎。' },
+];
+const starSVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="#F5C518"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+document.getElementById('similarRow').innerHTML = SIMILAR.map(s => `
+  <div class="similar-card">
+    <div class="similar-poster"><img src="${imgURL(s.prompt,'landscape_4_3')}" alt="${s.title}海报" loading="lazy"></div>
+    <div class="similar-info">
+      <div class="similar-title">${s.title}</div>
+      <div class="similar-meta">${starSVG}<span class="num">${s.score}</span><span>·</span><span>${s.year}</span></div>
+      <div class="similar-desc">${s.desc}</div>
+    </div>
+  </div>`).join('');
+
+/* 刷新：低姿态保留，仅换文案反馈 */
+const refreshBtn = document.getElementById('refreshBtn');
+refreshBtn.addEventListener('click', () => {
+  if (refreshBtn.classList.contains('loading')) return;
+  refreshBtn.classList.add('loading');
+  refreshBtn.querySelector('span').textContent = '刷新中';
+  setTimeout(() => {
+    refreshBtn.classList.remove('loading');
+    refreshBtn.querySelector('span').textContent = '刷新';
+  }, 900);
+});
+
+/* ============ 初始化：默认就绪；URL 带 #state=loading|empty|error 可审状态 ============ */
+const initialState = (location.hash.replace('#state=','') || 'ready');
+renderResources(['loading','empty','error','ready'].includes(initialState) ? initialState : 'ready');
+onScroll();
+</script>
+</body>
+</html>

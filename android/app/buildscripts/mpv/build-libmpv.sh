@@ -20,6 +20,11 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=toolchain.env
 source "$HERE/toolchain.env"
 
+# Windows Store 的 python3.exe 是坏存根（指向不存在的 3.14）；meson 的 project() 会调它。
+# 项目内 shim 把真正的 Python310 暴露成 python3，前置到 PATH（不改系统）。
+KIVO_SHIM="$(cd "$HERE/../../../.." && pwd)/.codeartsdoer/toolchain-shim"
+[ -x "$KIVO_SHIM/python3.exe" ] && export PATH="$KIVO_SHIM:$PATH"
+
 CLEAN=0
 [ "${1:-}" = "--clean" ] && CLEAN=1
 

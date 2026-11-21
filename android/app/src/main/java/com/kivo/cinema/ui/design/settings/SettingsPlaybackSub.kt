@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.kivo.cinema.playback.PlaybackPrefs
+import com.kivo.cinema.playback.subtitle.SubtitleAssMode
+import com.kivo.cinema.playback.subtitle.SubtitleStyleStore
 
 /**
  * 播放设置子页（262 播放设置卡，参考 0206–0209 八节）。
@@ -35,7 +37,8 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
     val autoResume = remember(revision) { prefs.autoResume }
     val autoPip = remember(revision) { prefs.autoPip }
     val subtitleLanguage = remember(revision) { prefs.subtitleLanguage }
-    val ignoreAssStyle = remember(revision) { prefs.ignoreAssStyle }
+    val styleStore = remember { SubtitleStyleStore(context) }
+    val assMode = remember(revision) { styleStore.load().assMode }
     val wifiBufferMb = remember(revision) { prefs.wifiBufferMb }
     val cellBufferMb = remember(revision) { prefs.cellBufferMb }
     val renderMode = remember(revision) { prefs.renderMode }
@@ -146,10 +149,11 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
             ChipCardDivider()
             SwitchRow("启用字幕 HDR 效果", false, enabled = false, subtitle = "字幕 HDR 尚未接入") {}
             ChipCardDivider()
-            SwitchRow("忽略特效字幕样式", ignoreAssStyle,
-                subtitle = "剥离 ASS 特效，按统一样式渲染字幕") { prefs.ignoreAssStyle = it; revision++ }
+            StepperRow("ASS 字幕样式", assMode.label,
+                subtitle = "源样式保留排版特效；仅缩放只放大字号；统一样式覆盖源排版",
+                icon = SettingsIcons.subtitle, iconColor = SettingsVisuals.teal) { picker = "ass" }
         }
-        Footnote("字幕渲染由播放内核负责；忽略特效样式可让花哨字幕更可读。")
+        Footnote("字幕渲染由播放内核负责；与播放器内「字幕显示设置」共用同一份配置。")
     }
 
     when (picker) {
@@ -179,5 +183,12 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
         "lang" -> SettingsPicker(true, "字幕首选语言",
             PlaybackPrefs.LANGUAGES.map { PickerOption(it.code, it.label) },
             subtitleLanguage, { prefs.subtitleLanguage = it; revision++ }, { picker = null })
+        "ass" -> SettingsPicker(true, "ASS 字幕样式",
+            SubtitleAssMode.entries.map { PickerOption(it.name, it.label) },
+            assMode.name, {
+                val mode = SubtitleAssMode.entries.firstOrNull { m -> m.name == it } ?: assMode
+                styleStore.update { s -> s.copy(assMode = mode) }
+                revision++
+            }, { picker = null })
     }
 }

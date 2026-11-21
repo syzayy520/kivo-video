@@ -6,6 +6,10 @@ import com.kivo.cinema.mpv.LocalRangeServer
 import com.kivo.cinema.mpv.MpvSession
 import com.kivo.cinema.net.ByteSource
 import com.kivo.cinema.net.NetDiag
+import com.kivo.cinema.playback.subtitle.SubtitleDelayMemory
+import com.kivo.cinema.playback.subtitle.SubtitleSourceKey
+import com.kivo.cinema.playback.subtitle.SubtitleStyleApplier
+import com.kivo.cinema.playback.subtitle.SubtitleStyleStore
 import java.io.File
 
 /**
@@ -143,9 +147,14 @@ internal class MpvStartSequence(
         // initialize 之后不可写的选项（真机 -3 = PROPERTY_UNAVAILABLE），
         // 而它是插值能否真正生效的前提（见 [VideoInterpolation]）。
         val interp = VideoInterpolation.plan(app, VideoInterpolationSwitch.isEnabled(prefs, intent))
+        // W3-R1 取证/能力通道：`--es kivo.subCodepage GBK`。
+        // sub-codepage 是 demuxer 的**初始化**选项（运行期改不了），所以只能在这里给。
+        val subCodepage = intent?.getStringExtra("kivo.subCodepage")?.trim()
+            ?.takeIf { it.isNotEmpty() } ?: "auto"
         native.initialize(
             vo = vo,
             ao = "audiotrack",
+            subCodepage = subCodepage,
             logFile = File(app.filesDir, "mpv-kernel.log").absolutePath,
             subFontsDir = fonts.dir,
             subFontFamily = fonts.family,
@@ -266,8 +275,20 @@ internal class MpvStartSequence(
         } else {
             NetDiag.log("[color] 出画模式 = legacy（render API + legacy RA）")
         }
-        // ASS 特效：忽略=剥成统一样式，否则保留源特效（面板仍可临时改写）。
-        native.setProperty("sub-ass-override", if (prefs.ignoreAssStyle) "yes" else "no")
+        // P9 · 字幕样式（C）：全局样式 + 本片源记住的延迟，必须在 loadFile 前下发。
+        // 【为什么是这里】`sub-ass-override` 是 UPDATE_SUB_HARD —— 它决定"用不用
+        // ASS 源样式"，字幕轨建立之后再改不可靠；字号/颜色虽可热改，但一起下发
+        // 能保证第一句字幕出现时就是用户选的样式（不会闪一帧默认值）。
+        // 片源键与观看记录同口径（URL / SMB 三元组 / 本地路径），换片不串延迟。
+        val subtitleStyle = SubtitleStyleStore(app).load()
+        val subtitleSourceKey = SubtitleSourceKey.fromIntent(intent)
+        val subtitleMemory = SubtitleDelayMemory(app)
+        val subtitleDelay = subtitleMemory.load(subtitleSourceKey)
+        // SUB-M5：次字幕延迟与主延迟同口径（同片源键、独立键位），非 0 才下发。
+        val secondarySubtitleDelay = subtitleMemory.loadSecondary(subtitleSourceKey)
+        SubtitleStyleApplier.applyAtStart(
+            native, subtitleStyle, subtitleDelay, secondarySubtitleDelay,
+        )
         // 字幕首选语言：须在 loadFile 前设，自动选轨才匹配。
         val slang = prefs.subtitleSlang()
         if (slang.isNotEmpty()) native.setProperty("slang", slang)

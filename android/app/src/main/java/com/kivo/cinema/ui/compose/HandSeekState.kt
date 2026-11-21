@@ -17,7 +17,7 @@ package com.kivo.cinema.ui.compose
  * ## 为什么不用 `mutableStateOf`
  * 四个字段只在 pointerInput 回调里读写，**从不参与重组**。用快照态等于每帧付一次
  * Snapshot 写入与失效检查（MOT-08 记过同类浪费），而这里的语义需求是"纯计算中间量"。
- * 真正驱动 UI 的是 `hudSeekTargetMs`/`previewMs` 那几个 Activity 级快照态，它们不变。
+ * 真正驱动 UI 的是共享的 `scrub`（PlayerScrubState）与 `previewMs`，它们不变。
  *
  * ## 为什么不做全局单例
  * 单例就是旧 bug 的另一种写法。若将来有第二个调用方（例如桌面端或测试），

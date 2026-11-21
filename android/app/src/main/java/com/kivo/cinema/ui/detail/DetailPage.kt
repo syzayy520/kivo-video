@@ -40,7 +40,6 @@ import com.kivo.cinema.media.marks.FilmMark
 import com.kivo.cinema.ui.design.AppearancePrefs
 import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.ui.design.PosterPalette
-import com.kivo.cinema.ui.design.RatingBadges
 import com.kivo.cinema.ui.design.TmdbImageCache
 import com.kivo.cinema.ui.design.home.rememberHeroPullZoom
 import com.kivo.cinema.ui.detail.actions.DetailActionRow
@@ -208,12 +207,6 @@ internal fun DetailPage(
                             },
                             onOpenMore = { overlay.openMore(it) })
                         if (d.overview.isNotBlank()) Overview(d.overview, fg)
-                        if (d.rating > 0f) {
-                            Box(Modifier.fillMaxWidth().padding(top = 14.dp)) {
-                                RatingBadges(listOf(d.ratingSource to d.rating),
-                                    modifier = Modifier.fillMaxWidth(), alignCenter = true, valueColor = fg)
-                            }
-                        }
                         if (isPreview) {
                             // 336 R2：列表快照阶段片源/季集尚未解析，留白即可（完整详情到达会补上），
                             // 不显示"没有匹配的本地视频"误导用户。

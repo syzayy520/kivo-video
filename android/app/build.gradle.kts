@@ -112,6 +112,9 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.webkit:webkit:1.12.1")
+    // 图片加载：HttpURLConnection 的 ClientHello 是 TLS1.2+HTTP/1.1，会被中间设备按指纹 reset；
+    // OkHttp 走现代 TLS + HTTP/2，与浏览器一致，能过。仅用于 TmdbImageCache。
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // SMB：libsmb2（third_party/libsmb2-android），协议逻辑在 smb/ + jni_smb2_bridge.cxx。
     // 243 S1 删除了 jcifs-ng 与它的 slf4j-simple 诊断依赖（旧后端已被 libsmb2 取代）。
 

@@ -34,7 +34,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kivo.cinema.ui.components.KivoBackPill
 import com.kivo.cinema.ui.design.DesignTokens
 
 /**
@@ -69,10 +68,13 @@ internal fun CalendarTopBar(onBack: () -> Unit, onToday: () -> Unit) {
             .padding(horizontal = DesignTokens.screenPad.dp, vertical = DesignTokens.gap.dp),
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            KivoBackPill(
-                onClick = onBack,
-                background = DesignTokens.canvasFill.copy(alpha = BackCapsuleAlpha),
-                visualSize = BackHit,
+            Box(
+                modifier = Modifier
+                    .size(BackHit)
+                    .clip(CircleShape)
+                    .background(DesignTokens.canvasFill.copy(alpha = BackCapsuleAlpha))
+                    .clickable(role = Role.Button, onClick = onBack),
+                contentAlignment = Alignment.Center,
             ) {
                 Chevron(pointsLeft = true, size = BackGlyph, color = DesignTokens.textMain)
             }
@@ -98,45 +100,7 @@ internal fun CalendarTopBar(onBack: () -> Unit, onToday: () -> Unit) {
     }
 }
 
-/** 月 / 年分段切换：两枚独立胶囊，不做轨道（轨道会让 30dp 的胶囊显小）。 */
-@Composable
-internal fun CalendarViewSwitch(yearView: Boolean, onSelectMonth: () -> Unit, onSelectYear: () -> Unit) {
-    Row(
-        modifier = Modifier.padding(horizontal = DesignTokens.screenPad.dp),
-        horizontalArrangement = Arrangement.spacedBy(SwitchGap),
-    ) {
-        SwitchCapsule(label = "月", selected = !yearView, onClick = onSelectMonth)
-        SwitchCapsule(label = "年", selected = yearView, onClick = onSelectYear)
-    }
-}
 
-/** 期间行：左右各 48dp 命中，中间文字居中；月视图切月、年视图切年由调用方决定。 */
-@Composable
-internal fun CalendarPeriodRow(
-    label: String,
-    onPrev: () -> Unit,
-    onNext: () -> Unit,
-    prevLabel: String = "上个月",
-    nextLabel: String = "下个月",
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignTokens.screenPad.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        PeriodArrow(pointsLeft = true, label = prevLabel, onClick = onPrev)
-        Text(
-            text = label,
-            modifier = Modifier.weight(1f),
-            fontSize = PeriodTextSize,
-            fontWeight = FontWeight.Bold,
-            color = DesignTokens.textMain,
-            textAlign = TextAlign.Center,
-        )
-        PeriodArrow(pointsLeft = false, label = nextLabel, onClick = onNext)
-    }
-}
 
 /** 空态：40dp 日历线框 + 一句引导。无记录时不画网格，也不给「今天」按钮之外的假入口。 */
 @Composable
@@ -199,6 +163,7 @@ private fun CalendarGlyph() {
     }
 }
 
+
 private val BackHit = 44.dp
 private val BackGlyph = 18.dp
 private val TitleTopGap = 6.dp
@@ -206,11 +171,18 @@ private val PageTitleSize = 28.sp
 private val TodayTextSize = 13.sp
 private val TodaySidePad = 8.dp
 private val TodayVerticalPad = 8.dp
+// UNBLOCK(2026-11-22)：ArrowHit / ArrowGlyph 在 CalendarChromeControls.kt 里已是 `internal`（48dp / 16dp），
+// 顶层属性同包同名会冲突 ⇒ 本文件不再重复定义，命中区统一用 48dp。
+private val SwitchHeight = 30.dp
+private val SwitchWidth = 56.dp
+private val SwitchCorner = 15.dp
 private val SwitchGap = 6.dp
+private val SwitchTextSize = 13.sp
 private val PeriodTextSize = 16.sp
 private val GlyphSize = 40.dp
 private val GlyphStroke = 1.5.dp
 private val GlyphCorner = 7.dp
+private val ChevronStroke = 1.8.dp
 private val EmptyGlyphGap = 16.dp
 private val EmptySidePad = 40.dp
 private val EmptyHintSize = 13.sp
@@ -228,5 +200,47 @@ private fun CalendarChromePreview() {
         Spacer(Modifier.height(24.dp))
         // 空态：居中图标 + 引导句（40dp 图标，13sp textSub）
         CalendarEmptyState(modifier = Modifier.fillMaxWidth().height(260.dp))
+    }
+}
+
+// UNBLOCK(2026-11-22)：以下两段从 HEAD 恢复 —— 迁移（CalendarChromeControls.kt）尚未完成，
+// CalendarPage 与 Preview 仍在调用它们。恢复后即可编译；请原作者在收尾迁移时一并删除。
+/** 月 / 年分段切换：两枚独立胶囊，不做轨道（轨道会让 30dp 的胶囊显小）。 */
+@Composable
+internal fun CalendarViewSwitch(yearView: Boolean, onSelectMonth: () -> Unit, onSelectYear: () -> Unit) {
+    Row(
+        modifier = Modifier.padding(horizontal = DesignTokens.screenPad.dp),
+        horizontalArrangement = Arrangement.spacedBy(SwitchGap),
+    ) {
+        SwitchCapsule(label = "月", selected = !yearView, onClick = onSelectMonth)
+        SwitchCapsule(label = "年", selected = yearView, onClick = onSelectYear)
+    }
+}
+
+/** 期间行：左右各 48dp 命中，中间文字居中；月视图切月、年视图切年由调用方决定。 */
+@Composable
+internal fun CalendarPeriodRow(
+    label: String,
+    onPrev: () -> Unit,
+    onNext: () -> Unit,
+    prevLabel: String = "上个月",
+    nextLabel: String = "下个月",
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = DesignTokens.screenPad.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        PeriodArrow(pointsLeft = true, label = prevLabel, onClick = onPrev)
+        Text(
+            text = label,
+            modifier = Modifier.weight(1f),
+            fontSize = PeriodTextSize,
+            fontWeight = FontWeight.Bold,
+            color = DesignTokens.textMain,
+            textAlign = TextAlign.Center,
+        )
+        PeriodArrow(pointsLeft = false, label = nextLabel, onClick = onNext)
     }
 }

@@ -17,7 +17,7 @@ data class TmdbProvider(
 /**
  * 流媒体平台拉取器（首页「观看平台」横排）。
  *
- * 端点：`GET /watch/providers/movie?watch_region={region}&language=${TmdbLocale.tag()}`。
+ * 端点：`GET /watch/providers/movie?watch_region={region}&language=zh-CN`。
  * 取图：`logo_path` → `w154`（平台 logo 在卡内约 40dp 高，w154 已足够且体积小）。
  * 排序：按该 region 的 `display_priority` 升序（✅ 实测 HK 段为 Netflix 1 / Amazon 2 / Apple 2）。
  *
@@ -27,7 +27,7 @@ data class TmdbProvider(
  * UI 必须按「空 → 整段不渲染」处理；要展示平台行只能由调用方显式传 `region = "HK"` 等。
  *
  * [titles]：`GET /discover/movie?with_watch_providers={id}&watch_region={region}`
- * `&sort_by=popularity.desc&language=${TmdbLocale.tag()}`，按人气取前 `limit` 条 `poster_path` → w185。
+ * `&sort_by=popularity.desc&language=zh-CN`，按人气取前 `limit` 条 `poster_path` → w185。
  * **刻意不放进 [movie]**：8 个平台各拉一次 discover 会让首页首屏多 8 次串行请求
  * （实测单次 100–400ms 量级，◐ 推断），由调用方只对展示前几名调
  * [titles] 后 `copy(titles = …)` 填充，请求数可控。
@@ -42,7 +42,7 @@ object TmdbProviders {
     fun movie(client: TmdbClient, region: String = "CN", limit: Int = 8): List<TmdbProvider> {
         if (limit <= 0) return emptyList()
         val results = TmdbHome(client)
-            .get("/watch/providers/movie?watch_region=$region&language=${TmdbLocale.tag()}").first
+            .get("/watch/providers/movie?watch_region=$region&language=zh-CN").first
             ?.optJSONArray("results") ?: return emptyList()
         val ranked = ArrayList<Ranked>(results.length())
         for (i in 0 until results.length()) {
@@ -75,7 +75,7 @@ object TmdbProviders {
         if (providerId <= 0 || limit <= 0) return emptyList()
         val arr = TmdbHome(client).get(
             "/discover/movie?with_watch_providers=$providerId&watch_region=$region" +
-                "&sort_by=popularity.desc&language=${TmdbLocale.tag()}"
+                "&sort_by=popularity.desc&language=zh-CN"
         ).first?.optJSONArray("results") ?: return emptyList()
         val out = ArrayList<String>(limit)
         for (i in 0 until arr.length()) {

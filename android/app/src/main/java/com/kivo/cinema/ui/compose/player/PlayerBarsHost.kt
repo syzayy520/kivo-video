@@ -1,6 +1,5 @@
 package com.kivo.cinema.ui.compose.player
 
-import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -38,6 +37,8 @@ import com.kivo.cinema.ui.motion.MotionGate
 internal fun BoxScope.PlayerBarsSlot(
     visible: Boolean,
     reduceMotion: Boolean,
+    /** 面板打开中：两条栏**不隐藏**（自动隐藏已在 SessionBridge 暂停），只压到 55%（§13）。 */
+    panelOpen: Boolean,
     title: String,
     speedText: String,
     activeAction: String,
@@ -47,12 +48,10 @@ internal fun BoxScope.PlayerBarsSlot(
     positionMs: Long,
     durationMs: Long,
     showRemaining: Boolean,
-    scrubPreview: Boolean,
     showNextButton: Boolean,
     bufferedFraction: Float,
-    thumbnailBitmap: Bitmap?,
-    thumbUnavailable: String,
-    previewMs: Long,
+    scrub: com.kivo.cinema.ui.compose.player.seek.PlayerScrubState,
+    previewAnchor: com.kivo.cinema.ui.compose.player.seek.PlayerSeekPreviewAnchor,
     resolutionLabel: String,
     expandedPanel: String,
     panelItems: List<PlayerOptionItem>,
@@ -68,7 +67,6 @@ internal fun BoxScope.PlayerBarsSlot(
     onScrubEnd: () -> Unit,
     onTextAction: (String) -> Unit,
     onPanelSelect: (PlayerOptionItem) -> Unit,
-    onCapture: () -> Unit,
     onEpisodeOrder: () -> Unit,
 ) {
     // G1 门有两个来源：面板宿主算出的系统值，以及 App 内「减弱动画效果」开关。
@@ -85,6 +83,7 @@ internal fun BoxScope.PlayerBarsSlot(
         visible = visible,
         reduceMotion = reduced,
         fromTop = true,
+        dimmed = panelOpen,
         modifier = Modifier.align(Alignment.TopCenter),
     ) {
         PlayerTopBar(
@@ -102,6 +101,7 @@ internal fun BoxScope.PlayerBarsSlot(
         visible = visible,
         reduceMotion = reduced,
         fromTop = false,
+        dimmed = panelOpen,
         modifier = Modifier.align(Alignment.BottomCenter),
     ) {
         PlayerBottomBar(
@@ -109,12 +109,10 @@ internal fun BoxScope.PlayerBarsSlot(
             positionMs = positionMs,
             durationMs = durationMs,
             showRemaining = showRemaining,
-            scrubPreview = scrubPreview,
             showNextButton = showNextButton,
             bufferedFraction = bufferedFraction,
-            thumbnailBitmap = thumbnailBitmap,
-            thumbUnavailable = thumbUnavailable,
-            previewMs = previewMs,
+            scrub = scrub,
+            previewAnchor = previewAnchor,
             resolutionLabel = resolutionLabel,
             activeAction = activeAction,
             expandedPanel = expandedPanel,
@@ -129,7 +127,6 @@ internal fun BoxScope.PlayerBarsSlot(
             onScrubEnd = onScrubEnd,
             onTextAction = onTextAction,
             onPanelSelect = onPanelSelect,
-            onCapture = onCapture,
             onEpisodeOrder = onEpisodeOrder,
         )
     }
@@ -160,6 +157,7 @@ private fun BarSlot(
     visible: Boolean,
     reduceMotion: Boolean,
     fromTop: Boolean,
+    dimmed: Boolean = false,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -197,7 +195,8 @@ private fun BarSlot(
         modifier = modifier
             .onSizeChanged { heightPx = it.height.toFloat() }
             .graphicsLayer {
-                this.alpha = alpha
+                // 面板打开时压暗（§10/§13）：×0.55 只改透明度，动画/装卸机制不变。
+                this.alpha = alpha * if (dimmed) PlayerPanelStyle.barDimmedAlpha else 1f
                 // G1：减弱动画时位移归零，只留 α —— 否则 100ms 内仍有 height/6 的滑移。
                 translationY = if (reduceMotion) 0f else sign * (heightPx / 6f) * t
             },

@@ -182,6 +182,7 @@ bool Session::initialize(const std::string& vo, const std::string& ao,
                         const std::string& log_file,
                         const std::string& sub_fonts_dir,
                         const std::string& sub_font_family,
+                        const std::string& sub_codepage,
                         bool hdr_surface,
                         bool interpolation,
                         double display_fps,
@@ -205,7 +206,8 @@ bool Session::initialize(const std::string& vo, const std::string& ao,
     std::string hwdec;
     std::string option_error;
     if (!apply_mpv_options(handle, vo, ao, log_file, sub_fonts_dir, sub_font_family,
-                           hdr_surface, interpolation, display_fps, hwdec, option_error)) {
+                           sub_codepage, hdr_surface, interpolation, display_fps,
+                           hwdec, option_error)) {
         error = option_error;
         mark_step(log_file.c_str(), "options-rejected");
         return false;

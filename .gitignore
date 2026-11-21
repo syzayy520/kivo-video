@@ -64,3 +64,10 @@ android/app/src/main/jniLibs/
 docs/evidence/**/*.mp4
 docs/evidence/**/*.mkv
 docs/evidence/**/*.bin
+
+# 竞品拆解证据：APK 二进制（版权敏感、单文件数十 MB）与资源解析 dump（45 万行、
+# 可由 APK 用 parse 脚本随时重生成），均不进库 —— 2026-11-21 接手收口批次明示登记
+docs/evidence/p9-material-study/apk/
+docs/evidence/p9-material-study/parse/bili-resources.txt
+docs/evidence/p9-material-study/parse/sen-resources.txt
+docs/evidence/p9-material-study/parse/dex-bili/

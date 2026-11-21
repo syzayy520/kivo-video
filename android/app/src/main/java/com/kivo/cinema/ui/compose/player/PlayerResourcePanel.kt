@@ -62,7 +62,7 @@ internal fun PlayerResourcePanel(
         ) {
             Text(
                 text = "播放资源:",
-                color = PlayerTokens.textPrimary,
+                color = PlayerPanelStyle.rowTitleColor,
                 fontSize = PlayerTokens.panelTitleSize.sp,
                 maxLines = 1,
             )
@@ -99,7 +99,7 @@ private fun ResourceChip(chip: PlayerOptionItem, onSelect: () -> Unit) {
     ) {
         Text(
             text = chip.title,
-            color = PlayerTokens.textPrimary,
+            color = PlayerPanelStyle.rowTitleColor,
             fontSize = PlayerTokens.textButtonSize.sp,
             maxLines = 1,
         )
@@ -109,19 +109,21 @@ private fun ResourceChip(chip: PlayerOptionItem, onSelect: () -> Unit) {
 /** 源卡：徽章 / 体积+码率 / 源名+绿勾。meta 用 " · " 分成两段（装配层约定）。 */
 @Composable
 private fun SourceCard(source: PlayerOptionItem, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(PlayerTokens.panelRadius.dp)
     val meta = source.subtitle.split(" · ")
     Column(
         modifier = modifier
             .width(PlayerTokens.sourceCardWidth.dp)
-            .clip(shape)
-            .border(1.dp, PlayerTokens.sourceCardBorder, shape)
-            .background(PlayerTokens.panelSurface)
+            .playerPanelSurface(
+                radius = PlayerTokens.panelRadius.dp,
+                elevation = 12.dp,
+                // 源卡是浮在底栏渐变上的独立卡：保留实测的白 35% 描边，只换底与光影。
+                edge = PlayerTokens.sourceCardBorder,
+            )
             .padding(14.dp),
     ) {
         Text(
             text = source.title,
-            color = PlayerTokens.textPrimary,
+            color = PlayerPanelStyle.rowTitleColor,
             fontSize = PlayerTokens.sourceBadgeSize.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
@@ -132,26 +134,26 @@ private fun SourceCard(source: PlayerOptionItem, modifier: Modifier = Modifier) 
         ) {
             PlayerGlyph(
                 kind = "film",
-                color = PlayerTokens.textSecondary,
+                color = PlayerPanelStyle.rowSubtitleColor,
                 modifier = Modifier.size(14.dp),
             )
             Text(
                 text = meta.getOrElse(0) { "" },
-                color = PlayerTokens.textSecondary,
+                color = PlayerPanelStyle.rowSubtitleColor,
                 fontSize = PlayerTokens.sourceMetaSize.sp,
                 maxLines = 1,
                 modifier = Modifier.padding(start = 6.dp),
             )
             PlayerGlyph(
                 kind = "bitrate",
-                color = PlayerTokens.textSecondary,
+                color = PlayerPanelStyle.rowSubtitleColor,
                 modifier = Modifier
                     .padding(start = 18.dp)
                     .size(14.dp),
             )
             Text(
                 text = meta.getOrElse(1) { "" },
-                color = PlayerTokens.textSecondary,
+                color = PlayerPanelStyle.rowSubtitleColor,
                 fontSize = PlayerTokens.sourceMetaSize.sp,
                 maxLines = 1,
                 modifier = Modifier.padding(start = 6.dp),
@@ -170,7 +172,7 @@ private fun SourceCard(source: PlayerOptionItem, modifier: Modifier = Modifier) 
             )
             Text(
                 text = source.value,
-                color = PlayerTokens.textPrimary,
+                color = PlayerPanelStyle.rowTitleColor,
                 fontSize = PlayerTokens.sourceMetaSize.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

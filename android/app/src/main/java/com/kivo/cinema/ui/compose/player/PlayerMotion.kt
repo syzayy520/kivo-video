@@ -35,6 +35,19 @@ internal object PlayerMotion {
     const val panelSwapExitMs = 120
     const val toastEnterMs = 200
     const val toastExitMs = 250
+    // 双击/长按闪光反馈：入场 120ms、停留 160ms（与 contentFadeMs/exitMs 同量级）。
+    // 箭头动画全程 = 停留 ×2；接力间隔与全程一致（repeat(2) 会用到）。
+    // 长按 HUD：进出场与箭头时长（与 flash 同族，120/160/320ms）。
+    const val longPressEnterMs = 120
+    const val longPressExitMs = 160
+    const val longPressArrowMs = 320
+    // 音量/边界指示条：进出场时长。
+    const val hudBoundaryEnterMs = 120
+    const val hudBoundaryExitMs = 160
+    const val flashArrowMs = 320
+    const val flashRelayMs = 320
+    const val flashEnterMs = 120
+    const val flashDurationMs = 160
     const val trackMs = 150
     // 预览浮窗（缩略图 α 拖动 0→1 / 松手 1→0，d=0.15s）。
     const val previewEnterMs = 150
