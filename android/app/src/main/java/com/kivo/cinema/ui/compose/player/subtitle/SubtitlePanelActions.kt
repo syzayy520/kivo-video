@@ -8,6 +8,7 @@ import com.kivo.cinema.playback.subtitle.subtitlePathKey
 import com.kivo.cinema.ui.compose.PlayerComposeActivity
 import com.kivo.cinema.ui.compose.aiSubtitleController
 import com.kivo.cinema.ui.compose.applySubtitleEncoding
+import com.kivo.cinema.ui.compose.currentMediaPath
 import com.kivo.cinema.ui.compose.flashAction
 import com.kivo.cinema.ui.compose.importSubtitleFromClipboard
 import com.kivo.cinema.ui.compose.launchSubtitleImport
@@ -329,23 +330,60 @@ internal fun PlayerComposeActivity.handleAiSubtitleRow() {
     val subTracks = mpv.tracksOrNull()?.subtitleTracks().orEmpty()
     val track = subTracks.firstOrNull { it.id == sid }
     // ch4 打印全轨明细——探针 mount select id=1 不代表点击瞬间 sid 仍是它。
-    smbTrace("ai-row ch4 sid=$sid tracks=" + subTracks.joinToString(";") { "${it.id}/ext=${it.external}/file=${it.externalFilename}" })
-    if (track == null || !track.external) {
-        showToast("请先挂载英文外挂字幕（SRT）")
+    smbTrace("ai-row ch4 sid=$sid tracks=" + subTracks.joinToString(";") { "${it.id}/ext=${it.external}/codec=${it.codec}/file=${it.externalFilename}" })
+    if (track == null) {
+        showToast("请先选中一条英文字幕轨")
         return
     }
-    val sourcePath = track.externalFilename
+    if (track.external) {
+        // 外挂轨：文件直接可读，走统一启动路径。
+        startTranslationFromSource(track.externalFilename)
+        return
+    }
+    if (!isTextSubtitleCodec(track.codec)) {
+        val reason = if (isBitmapSubtitleCodec(track.codec)) {
+            "位图字幕（图片）暂不支持翻译"
+        } else {
+            "该字幕格式暂不支持翻译（${track.codec}）"
+        }
+        smbTrace("ai-row ch4b rejected $reason")
+        showToast(reason)
+        return
+    }
+    // 内嵌文本轨：FFmpeg 提取是耗时 IO（avformat 遍历源文件），放后台线程；
+    // 不用 sub-dump——本构建 libmpv 无此命令（2026-11-22 源码+实测闭环）。
+    val ordinal = subTracks.filter { !it.external && isTextSubtitleCodec(it.codec) }.indexOf(track)
+    val mediaPath = currentMediaPath()
+    smbTrace("ai-row ch4b embedded extract ordinal=$ordinal codec=${track.codec} media=$mediaPath")
+    statusText = "AI 中文字幕：正在提取内嵌字幕…"
+    Thread {
+        val srt = com.kivo.cinema.bridge.NativePlayer.nativeExtractEmbeddedSubtitle(mediaPath, ordinal)
+        if (srt == null) {
+            val reason = com.kivo.cinema.bridge.NativePlayer.nativeEmbeddedExtractLastError()
+            smbTrace("ai-row ch4b extract-failed $reason")
+            runOnUiThread { showToast("内嵌字幕提取失败：$reason") }
+            return@Thread
+        }
+        val dumpFile = java.io.File(filesDir, "embedded-current.srt")
+        dumpFile.writeText(srt, Charsets.UTF_8)
+        smbTrace("ai-row ch4b extracted len=${srt.length}")
+        startTranslationFromSource(dumpFile.absolutePath)
+    }.start()
+}
+
+/// 读源文件并启动翻译（ch5~ch7）。外挂主线程/内嵌提取后台线程都会走到——
+/// toast 一律 runOnUiThread（后台线程直接 toast 抛 Looper 异常）。
+private fun PlayerComposeActivity.startTranslationFromSource(sourcePath: String) {
+    val controller = aiSubtitleController()
     val sourceFile = java.io.File(sourcePath)
     smbTrace("ai-row ch5 path=$sourcePath exists=${sourceFile.exists()} readable=${sourceFile.canRead()} len=${sourceFile.length()}")
     // 不凭扩展名拒收（2026-11-22 真机根因）：导入通道登记文件名是
-    // <内容哈希>-<显示名>（无 .srt 后缀），endsWith(".srt") 把 exists/readable
-    // 均为 true 的合法 SRT 拒在这里——此前所有轮次的「无 worker 无产物」
-    // 全是这个 return。文件类型由内容判定：nativeParseCues 装配失败走
-    // no cues parsed 失败路径（非空 reason，G9），SRT-only 边界由解析器保证。
+    // <内容哈希>-<显示名>（无 .srt 后缀）。文件类型由内容判定：nativeParseCues
+    // 装配失败走 no cues parsed 失败路径（非空 reason，G9）。
     val sourceText = try {
         java.io.File(sourcePath).readText(Charsets.UTF_8)
     } catch (error: Exception) {
-        showToast("读取字幕失败：${error.message}")
+        runOnUiThread { showToast("读取字幕失败：${error.message}") }
         return
     }
     smbTrace("ai-row ch6 textLen=${sourceText.length}")
@@ -353,9 +391,6 @@ internal fun PlayerComposeActivity.handleAiSubtitleRow() {
     statusText = "AI 中文字幕：翻译中"
     val started = controller.startTranslation(
         sourceText,
-        // 原 `playheadMs = durationMs` 把总时长当播放头——领先窗口失效（从片头
-        // 开始译）。orderBlocksForPlayhead 只排序不裁剪（containing+after+before
-        // 全量返回），所以它不是不翻译的根因，但语义必须修。
         playheadMs = positionMs,
         onProgress = { progress ->
             // 状态可见性走 statusText（既有通道）——toast 每块弹太吵。
@@ -400,6 +435,6 @@ internal fun PlayerComposeActivity.handleAiSubtitleRow() {
         },
     )
     smbTrace("ai-row ch7 started=$started")
-    if (!started) showToast("AI 翻译已在进行中")
+    if (!started) runOnUiThread { showToast("AI 翻译已在进行中") }
 }
 

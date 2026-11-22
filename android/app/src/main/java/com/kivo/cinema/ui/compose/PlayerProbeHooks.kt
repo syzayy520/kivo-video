@@ -204,6 +204,18 @@ internal fun PlayerComposeActivity.applyProbeAiSmoke() {
                 statusText = "AI 冒烟：模型加载失败"
                 return@Thread
             }
+            if (mode == "embedded") {
+                // 内封验证（2026-11-22）：不挂外挂 SRT——select 第一条内嵌轨后
+                // 直调 handler（ch4 的内嵌文本 sub-dump 分支是被测对象）。
+                val mpv = mpvNetSession
+                val embeddedTrack = mpv?.tracksOrNull()?.subtitleTracks()
+                    ?.firstOrNull { !it.external }
+                if (embeddedTrack != null) { mpv.selectSubtitle(embeddedTrack.id) }
+                aiTrace("ai-smoke embedded select id=${embeddedTrack?.id ?: -1} codec=${embeddedTrack?.codec ?: "-"}")
+                aiTrace("ai-smoke embedded invoking-handler")
+                runOnUiThread { handleAiSubtitleRow() }
+                return@Thread
+            }
             // 【英文字幕就位】内置测试 SRT 写入 files/ 并挂载（面板行点击路径
             // 需要 sid 有值——T-C 真机验证补全，2026-11-21）。
             val enSrt = java.io.File(filesDir, "e2e-test-en.srt")

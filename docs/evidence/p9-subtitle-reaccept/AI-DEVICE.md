@@ -299,3 +299,38 @@
   证明新 APK、统一文件日志替代 logcat、等待 ≥40s（sleep 8 曾把正常翻译误判
   为未启动）、直调 handler 消 UI 变量、每分支 trace 替代 toast 时序赌博、
   每次只改一个有证据支持的问题。
+
+## 19. 内封字幕 AI 翻译（FFmpeg 提取）收口（2026-11-22）
+
+- **需求**：用户真机手动点内嵌轨 AI 行 8 次被旧版 ch4 拒（`!track.external`
+  →「请先挂载英文外挂字幕」），提出「内封字幕质量更高，能取内封更好」。
+- **方案演变（sub-dump 证伪 → FFmpeg 提取）**：初版用 mpv `sub-dump` 导出内嵌轨，
+  实测 `ch4b rejected 内嵌字幕导出失败`；源码证实**本构建 libmpv 没有 sub-dump
+  命令**（`C:/re-tools/mpv-build/mpv/player/command.c` 命令表只有 dump-cache 系列，
+  `player/`+`sub/` 全树 grep `sub-dump` 零命中）。改走 **FFmpeg avformat 提取**
+  （与 SenPlayer 同架构；MKV 解封装是项目既定路线「平台解封装器不解析
+  SeekHead→Cues」；Android 端 libavformat.so 与 kivo_backend_ffmpeg 均在）。
+- **实现**：新增 `cpp/jni/jni_embedded_subtitle_bridge.cxx`（avformat 打开源文件
+  → 第 ordinal 条文本字幕流（SUBRIP/MOV_TEXT）→ 逐包按 PTS/duration 拼 SRT；
+  失败 reason 经 `nativeEmbeddedExtractLastError` 回传，G9）；ch4 三分支
+  （外挂直读 / 内嵌**后台线程**提取（耗时 IO 不上主线程）/ 位图拒绝带 reason）；
+  ch5~ch7 抽 `startTranslationFromSource`（toast 一律 runOnUiThread）；
+  探针加 `embedded` 模式（select 内嵌轨 → 直调 handler）；测试片
+  `embedded-en.mkv`（ffmpeg 封装内嵌 subrip）/ `embedded-en.mp4`（mov_text）。
+- **真机验证（b6e950ee，两轮）**：① 提取 **66ms**、len=112、时间轴忠实容器
+  PTS（`00:00:01,021→03,021` 为 MKV 封装真实值，非提取误差）→ 翻译 **22.73s**
+  llm=2 failed=0 → 中文 SRT 三件套落盘；② 重跑提取逐位一致（cacheKey 确定性）
+  → **缓存命中 total=0 秒回** → `mount-pre eof=no idle=no pos=57.121/60.021`
+  在播 → **mounted added=true newId=2**。
+- **EOS 边界同款复现**：首轮续播近片尾 + 翻译 22.73s → onDone 时
+  `mount-pre idle=yes pos=null dur=null`（会话空闲），added=false
+  （cmdErr=error running command）——走既有「译文已保存，下次播放自动加载」
+  文案与缓存兜底（第二轮即由缓存路径挂载成功）。
+- **口径修复（宁缺勿错）**：Kotlin `isTextSubtitleCodec` 收窄到与 C++ 严格同口径
+  （只 SUBRIP/MOV_TEXT）——ASS/SSA/WebVTT 的 Dialogue 转换未实现（**v1 偏差
+  登记**），放行会导致 ordinal 映射错位或 reason 不准，故归「该字幕格式暂不
+  支持翻译（codec）」非空 reason。
+- **排障教训（追加）**：p220 的 smbTrace 有**缓冲延迟**——embedded 首轮 grep
+  时 handler 的 tap begin 尚未落盘，重读才见（一度误判「runOnUiThread 未执行」；
+  截图证明主线程正常后重读确认 handler 早已执行）——「读不到 ≠ 没发生」再次
+  成立，证据读取要给 flush 留余量或复读确认。

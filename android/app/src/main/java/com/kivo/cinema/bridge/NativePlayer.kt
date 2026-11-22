@@ -200,6 +200,14 @@ object NativePlayer {
     /** 最近一次失败原因。本机 logcat 不可用，失败原因只能走这条通道回传。 */
     external fun nativeSessionLastError(handle: Long): String
 
+    // ---- AI 字幕翻译：内嵌文本轨提取（FFmpeg avformat，独立功能不碰播放会话） ----
+
+    /** 提取第 [ordinal] 条文本字幕流为 SRT 全文；失败返回 null（原因见 [nativeEmbeddedExtractLastError]）。 */
+    external fun nativeExtractEmbeddedSubtitle(path: String, ordinal: Int): String?
+
+    /** 最近一次内嵌提取的失败原因（非空 reason，G9）。 */
+    external fun nativeEmbeddedExtractLastError(): String
+
     // ---- 211：软解兜底（FFmpeg 旁路会话）。句柄与硬解会话互不相通。 ----
 
     /** 创建软解会话句柄。返回 0 表示创建失败。 */

@@ -635,6 +635,7 @@ add_library(kivo_player SHARED
     "jni/jni_session_handle.cxx"
     "jni/jni_session_evidence_bridge.cxx"
     "jni/jni_ffmpeg_bridge.cxx"
+    "jni/jni_embedded_subtitle_bridge.cxx"
     "jni/jni_subtitle_bridge.cxx"
     "jni/jni_smb2_bridge.cxx"
     "jni/jni_smb2_list.cxx"
