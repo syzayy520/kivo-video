@@ -23,6 +23,11 @@ class AiSubtitleController(private val context: Context) {
 
     private val client: AiEngineClient = LocalAiEngineClient()
     private val runningJob = AtomicReference<TranslationJob?>(null)
+
+    /// 面板行投影用：运行中任务的进度快照（TRANSLATING 态副行数据源，UX v3 §3）。
+    /// onProgress 更新、worker finally 清空——终态由 lastTranslationPath（缓存命中）表达。
+    @Volatile var currentProgress: TranslationJobProgress? = null
+        private set
     private val stateMachine = TranslationStateMachineState()
 
     /// libkivo_ai.so 是否可用（不可用时入口灰显，reason 固定）。
@@ -102,6 +107,7 @@ class AiSubtitleController(private val context: Context) {
         if (runningJob.get() != null) { return false }
 
         val job = TranslationJob(client, context) { progress ->
+            currentProgress = progress
             onProgress?.invoke(progress)
         }
         runningJob.set(job)
@@ -127,6 +133,7 @@ class AiSubtitleController(private val context: Context) {
                 TranslationJobResult(null, 0, 0, 0, 0, 0, cancelled = false)
             } finally {
                 runningJob.set(null)
+                currentProgress = null
             }
             lastTranslationPath = result.translationPath ?: lastTranslationPath
             diag("ai-ctrl onDone-enter path=${result.translationPath ?: "null"}")

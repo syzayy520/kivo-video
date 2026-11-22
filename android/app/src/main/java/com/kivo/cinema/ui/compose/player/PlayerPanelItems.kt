@@ -11,10 +11,15 @@ import androidx.compose.ui.platform.LocalContext
 import com.kivo.cinema.playback.MpvPlaybackSession
 import com.kivo.cinema.playback.PlaybackPrefs
 import com.kivo.cinema.playback.subtitle.SubtitleCodecMemory
+import com.kivo.cinema.subtitle.SubtitleIssue
 import com.kivo.cinema.ui.compose.PlayerComposeActivity
+import com.kivo.cinema.ui.compose.aiSubtitleController
 import com.kivo.cinema.ui.compose.currentSubtitleFileKey
 import com.kivo.cinema.ui.compose.player.subtitle.SubtitlePanelRows
+import com.kivo.cinema.ui.compose.player.subtitle.aiRowSubtitle
+import com.kivo.cinema.ui.compose.player.subtitle.isTextSubtitleCodec
 import com.kivo.cinema.ui.compose.readProperty
+import com.kivo.cinema.ui.compose.smbTrace
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -46,6 +51,11 @@ internal fun rememberPanelItems(
     // revision = 写侧每次成功写入后 +1：stepper/重置之后读侧必须重算，
     // 否则面板上的数字停在旧值（读侧没有别的刷新信号）。
     LaunchedEffect(kind, session, danmakuOn, danmakuSettings, origin, revision) {
+        // 投影态观察 trace：string 接口读 track-list/count 稳定返回 0（2026-11-22
+        // 实测），node 接口枚举（tracksOrNull）同样空——字幕条件层在本会话不可
+        // 靠，withAiSubtitle 跳过该层（乐观 AVAILABLE），通道修复列后续。
+        val subCount = session?.readProperty("track-list/count")?.trim()?.toIntOrNull() ?: 0
+        (context as? PlayerComposeActivity)?.smbTrace("panel-ai-proj kind=$kind session=${session != null} subCount=$subCount")
         items = if (kind.isBlank()) {
             emptyList()
         } else {
@@ -82,6 +92,32 @@ internal fun panelTitle(kind: String): String = when (kind) {
 private fun stripAiRow(items: List<PlayerOptionItem>, aiEnabled: Boolean): List<PlayerOptionItem> =
     if (aiEnabled) items else items.filter { it.tag != "sub-ai" }
 
+/**
+ * AI 行副行投影（UX v3 §3 四态，T-C 评审登记偏差的落地）：
+ * Controller.entryState 快照 → aiRowSubtitle 文案，写入 sub-ai 行副行。
+ * 面板打开时快照一次；onDone 的 panelRevision++ 是完成态的刷新通道。
+ */
+private fun withAiSubtitle(items: List<PlayerOptionItem>, context: Context): List<PlayerOptionItem> {
+    val activity = context as? PlayerComposeActivity
+    if (activity == null) {
+        android.util.Log.w("kivo-ai-proj", "context not PlayerComposeActivity: $context")
+        return items
+    }
+    activity.smbTrace("ai-row-proj enter items=${items.size}")
+    val controller = activity.aiSubtitleController()
+    // 字幕条件层跳过（偏差登记）：track-list 判定不可靠（string 接口 count=0 /
+    // node 接口枚举空，2026-11-22 实测），乐观投影 AVAILABLE；无字幕片的纠正由
+    // 点击 toast 给非空 reason（ch4/ch4b），不静默。通道修复列后续。
+    val state = controller.entryState(
+        featureEnabled = true,
+        hasEnglishSrt = true,
+        subtitleIssue = SubtitleIssue.NONE,
+    )
+    val subtitleText = aiRowSubtitle(state, controller.currentProgress)
+    activity.smbTrace("ai-row-proj state=$state text=$subtitleText")
+    return items.map { if (it.tag == "sub-ai") it.copy(subtitle = subtitleText) else it }
+}
+
 /** 真正的枚举 —— 只在 IO 线程跑。 */
 private fun enumeratePanel(
     kind: String,
@@ -113,7 +149,7 @@ private fun enumeratePanel(
             data.audioTracks(catalog.audioTracks(), catalog.currentTrackId("audio")) +
                 forms.audioExtras(mpv.readProperty("audio-delay")?.toDoubleOrNull() ?: 0.0)
         }
-        "subtitle" -> stripAiRow(SubtitlePanelRows.entry(mpv), PlaybackPrefs(context).aiSubtitleEnabled)
+        "subtitle" -> stripAiRow(withAiSubtitle(SubtitlePanelRows.entry(mpv), context), PlaybackPrefs(context).aiSubtitleEnabled)
         "subtitleTracks" -> {
             val catalog = mpv.tracksOrNull() ?: return forms.notReady()
             val embedded = catalog.subtitleTracks().filter { !it.external }
@@ -123,7 +159,7 @@ private fun enumeratePanel(
         "subtitleExternal" -> {
             val catalog = mpv.tracksOrNull() ?: return forms.notReady()
             val external = catalog.subtitleTracks().filter { it.external }
-            if (external.isEmpty()) stripAiRow(forms.noExternalSubtitles(), PlaybackPrefs(context).aiSubtitleEnabled)
+            if (external.isEmpty()) stripAiRow(withAiSubtitle(forms.noExternalSubtitles(), context), PlaybackPrefs(context).aiSubtitleEnabled)
             else SubtitlePanelRows.external(external, catalog.currentTrackId("sub"))
         }
         "subtitleSecondary" -> {

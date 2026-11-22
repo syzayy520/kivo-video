@@ -369,3 +369,36 @@
   /data/local/tmp/），且 git-bash 会转换设备路径——命令一律带
   `MSYS_NO_PATHCONV=1`。④ **LazyColumn 滚动区外的行不进 dump**——面板行
   判据要选无滚动变量的短页（外挂空态页 3 行），或两状态同滚动位对照。
+
+## 21. AI 行四态投影（UX v3 §3）收口（2026-11-22）
+
+- **背景**：T-C 评审登记偏差——面板「AI 中文字幕」行是静态行，状态投影走
+  点击反馈；本轮落地行内副行实时投影。
+- **实现**：① `AiSubtitleController.currentProgress`（@Volatile，onProgress
+  更新 / worker finally 清空——TRANSLATING 态副行数据源）；② 新增
+  `AiRowSubtitle.kt`（AiEntryState → 副行文案纯映射，18 态全覆盖，上屏中文
+  无开发备注）；③ 面板装配注入 `withAiSubtitle`（PlayerPanelItems 的入口面板
+  与外挂空态两处：entryState 快照 → 文案 → copy(subtitle=)）。
+- **真机验证（trace+渲染双证据）**：`ai-row-proj enter items=10 →
+  state=AVAILABLE text=点击翻译为中文`（入口面板）+ `enter items=2 →
+  state=AVAILABLE text=点击翻译为中文`（外挂空态页）+ 渲染
+  `content-desc="AI 中文字幕，点击翻译为中文"`——投影输出与渲染一致。
+- **排障链（三轮收敛）**：① 副行恒 NO_FILE 文案 → 发现 **IO 线程读
+  track-list 间歇失败**（同一时刻主线程 `sid=3` 成功、IO 的
+  `subtitleTracks()` 返回空——铁律「属性只能主线程读」在 track-list 上
+  复现）→ 主线程读挪进 LaunchedEffect block；② 仍失败 → **Composable body
+  读数被闭包捕获旧值**（LaunchedEffect key 不含它）→ 读数挪进 block 主线程段；
+  ③ 加 trace 后实锤 **string 接口读 `track-list/count` 稳定返回 0**（三次全部）
+  且 node 接口枚举（tracksOrNull）同样空——**判定通道整体不可靠** → **跳过
+  字幕条件层**：subtitleIssue 恒 NONE、乐观 AVAILABLE，无字幕片的纠正由点击
+  toast 给非空 reason（ch4/ch4b），不静默。
+- **偏差登记**：① TRANSLATING/COMPLETED 态的真机渲染断言未完成（与 AVAILABLE
+  同一 entryState→映射→渲染路径，态差异仅为 aiRowSubtitle 文案；缓存秒回无
+  TRANSLATING 窗口可抓）——列后续补断言；② 进度实时跳动未做（onProgress 每
+  块触发会让面板整列重枚举）——面板打开时快照 + onDone panelRevision 刷新；
+  ③ track-list 读通道修复（node 接口主线程读/observe_property）列后续——修复
+  后可恢复 SUBTITLE_*/MODEL_* 条件态副行；④ 上一轮 dump 旧文案疑云（代码相同
+  却显示跳条件层前的文案）判为 dump/装机时序噪声，本轮 trace+渲染双证据覆盖。
+- **工具教训（追加）**：smbTrace 是 PlayerComposeActivity 扩展——无 receiver
+  的顶层 @Composable（rememberPanelItems）里调用须 `context as? PlayerComposeActivity`
+  转换；`logcat` 的 `Log.w` 作 as? 失败的兜底通道（应用日志刷掉系统层日志仍在）。
