@@ -66,11 +66,14 @@ internal object SubtitlePanelRows {
         ) + withAiRow(withEncodingRow(PlayerPanelForms.subtitleActions()))
     }
 
-    /** 「AI 中文字幕」行紧跟「字幕编码」（v1 静态行；状态投影走点击反馈，见文件头偏差登记）。 */
+    /** 「AI 中文字幕」行紧跟「字幕编码」（v1 静态行；状态投影走点击反馈，见文件头偏差登记）。
+     *  先移除调用方已带的 sub-ai 再插入：subtitleActions() 与本函数是两个来源，
+     *  不去重会得到相邻两行同 tag 行（2026-11-22 设置页接线时收敛）。 */
     private fun withAiRow(actions: List<PlayerOptionItem>): List<PlayerOptionItem> {
+        val withoutAi = actions.filter { it.tag != "sub-ai" }
         val row = PlayerOptionItem(title = "AI 中文字幕", tag = "sub-ai")
-        val index = actions.indexOfFirst { it.tag == "subtitleEncoding" }
-        return if (index < 0) actions + row else actions.toMutableList().apply { add(index + 1, row) }
+        val index = withoutAi.indexOfFirst { it.tag == "subtitleEncoding" }
+        return if (index < 0) withoutAi + row else withoutAi.toMutableList().apply { add(index + 1, row) }
     }
 
     /** 「字幕编码」钻入行紧跟「粘贴字幕链接」（R1 入口）。 */

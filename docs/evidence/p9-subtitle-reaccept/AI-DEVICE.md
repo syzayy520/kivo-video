@@ -334,3 +334,38 @@
   时 handler 的 tap begin 尚未落盘，重读才见（一度误判「runOnUiThread 未执行」；
   截图证明主线程正常后重读确认 handler 早已执行）——「读不到 ≠ 没发生」再次
   成立，证据读取要给 flush 留余量或复读确认。
+
+## 20. 设置页 AI 子页接线 + 播放页入口显隐收口（2026-11-22）
+
+- **背景**：p265 时代设置页 AI 子页全置灰（无后端）；T-B/T-C/§19 引擎与内封
+  链路落地后，置灰理由失效的行接真。
+- **接真四项**：① `PlaybackPrefs.aiSubtitleEnabled`（默认 ON）——设置页总开关
+  「启用 AI 字幕」接真写回，关闭 = 播放页面板隐藏「AI 中文字幕」入口行（UX v3
+  禁用态=行隐藏，不灰显不占位）；② 「使用 AI 翻译」只读联动总开关（enabled=false
+  显示真值，识别内核接入后再拆分——不放假开关）；③ 翻译用量卡真实统计
+  （SettingsStore.aiTranslationStats：ai_subs 产物实测）；④ 播放页消费点
+  `stripAiRow`（PlayerPanelItems 的 entry 与外挂空态两处过滤）。
+- **保持置灰（如实，无后端）**：语音转字幕/ASR 模型页 13 语言（无识别内核）、
+  系统源语言（无系统翻译接口）——reason 措辞不变。
+- **顺手收敛既有结构问题**：`subtitleActions()` 与 `withAiRow` 是 sub-ai 的
+  两个来源，不处理会出现相邻两行同 tag 行——`withAiRow` 改为先移除再插入，
+  保证全面板唯一。
+- **真机验证（b6e950ee，uiautomator dump 文本断言，全部可复算）**：
+  ① 设置页：用量卡「已产出译文字幕 **2 份** / 空间占用 **884 B**」（与
+  ai_subs 实况 6 文件吻合）；总开关 checked=true clickable=true、联动行
+  enabled=false 只读真值。② **OFF 双取证**：UI `checked=false` +
+  `playback_prefs.xml` `ai_subtitle_enabled value="false"`；播放页外挂空态页
+  三断言——「无外挂字幕」=1、「导入字幕」=1、**「AI 中文字幕」=0**（同页同
+  滚动位，AI 行被精确移除）。③ **ON 回归双取证**：UI checked=true + prefs
+  value=true；播放页同路径「AI 中文字幕」=**1** 回归。证据截图
+  `settings-ai-player-row-on.png`（ON 回归态）。
+- **排障教训（追加）**：① **设备锁屏 PIN 阻断全部 UI 验证**——多轮 sleep
+  累计无输入超时锁屏，uiautomator dump 只剩 systemui scrim（1870 字节）；
+  dump 内容直接点名锁屏层（keyguard/scrim），请用户输 PIN 后继续——长链路
+  UI 验证期间要定期 `input keyevent WAKEUP` 保活或接受中断重续。② **Compose
+  过渡动画期 tap 会命中过渡中的旧页元素**（AI 入口 tap 后 1.5s 内 tap 开关，
+  命中根页跳进「播放」子页）——tap 链每步先 dump 确认页面稳定再操作。③
+  **MIUI 的 uiautomator dump 默认写 `/sdcard/window_dump.xml`**（非标准
+  /data/local/tmp/），且 git-bash 会转换设备路径——命令一律带
+  `MSYS_NO_PATHCONV=1`。④ **LazyColumn 滚动区外的行不进 dump**——面板行
+  判据要选无滚动变量的短页（外挂空态页 3 行），或两状态同滚动位对照。

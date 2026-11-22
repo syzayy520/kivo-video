@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.kivo.cinema.playback.MpvPlaybackSession
+import com.kivo.cinema.playback.PlaybackPrefs
 import com.kivo.cinema.playback.subtitle.SubtitleCodecMemory
 import com.kivo.cinema.ui.compose.PlayerComposeActivity
 import com.kivo.cinema.ui.compose.currentSubtitleFileKey
@@ -77,6 +78,10 @@ internal fun panelTitle(kind: String): String = when (kind) {
     else -> ""
 }
 
+/** AI 总开关关闭（UX v3 禁用态）：移除面板里的「AI 中文字幕」入口行，不灰显不占位。 */
+private fun stripAiRow(items: List<PlayerOptionItem>, aiEnabled: Boolean): List<PlayerOptionItem> =
+    if (aiEnabled) items else items.filter { it.tag != "sub-ai" }
+
 /** 真正的枚举 —— 只在 IO 线程跑。 */
 private fun enumeratePanel(
     kind: String,
@@ -108,7 +113,7 @@ private fun enumeratePanel(
             data.audioTracks(catalog.audioTracks(), catalog.currentTrackId("audio")) +
                 forms.audioExtras(mpv.readProperty("audio-delay")?.toDoubleOrNull() ?: 0.0)
         }
-        "subtitle" -> SubtitlePanelRows.entry(mpv)
+        "subtitle" -> stripAiRow(SubtitlePanelRows.entry(mpv), PlaybackPrefs(context).aiSubtitleEnabled)
         "subtitleTracks" -> {
             val catalog = mpv.tracksOrNull() ?: return forms.notReady()
             val embedded = catalog.subtitleTracks().filter { !it.external }
@@ -118,7 +123,7 @@ private fun enumeratePanel(
         "subtitleExternal" -> {
             val catalog = mpv.tracksOrNull() ?: return forms.notReady()
             val external = catalog.subtitleTracks().filter { it.external }
-            if (external.isEmpty()) forms.noExternalSubtitles()
+            if (external.isEmpty()) stripAiRow(forms.noExternalSubtitles(), PlaybackPrefs(context).aiSubtitleEnabled)
             else SubtitlePanelRows.external(external, catalog.currentTrackId("sub"))
         }
         "subtitleSecondary" -> {

@@ -67,6 +67,11 @@ class PlaybackPrefs(context: Context) {
         get() = sp.getString("subtitle_language", "system") ?: "system"
         set(v) { sp.edit().putString("subtitle_language", v).apply() }
 
+    /** AI 字幕总开关（UX v3）：false = 播放页面板隐藏「AI 中文字幕」入口行。 */
+    var aiSubtitleEnabled: Boolean
+        get() = sp.getBoolean("ai_subtitle_enabled", true)
+        set(v) { sp.edit().putBoolean("ai_subtitle_enabled", v).apply() }
+
     /** 忽略特效字幕样式：true = 剥离 ASS 特效按统一样式渲染。 */
     var ignoreAssStyle: Boolean
         get() = sp.getBoolean("ignore_ass_style", false)

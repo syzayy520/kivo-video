@@ -46,6 +46,18 @@ internal class SettingsStore(context: Context) {
         return files.count { it.isFile } to files.sumOf { if (it.isFile) it.length() else 0L }
     }
 
+    // AI 字幕翻译产物目录（T-B/T-C）：译文 SRT + journal + manifest 三件套。
+    private val aiSubsDir get() = File(app.filesDir, "ai_subs")
+
+    /** AI 翻译产物的真实统计：已产出译文份数 / journal 数 / 总字节。 */
+    fun aiTranslationStats(): Triple<Int, Int, Long> {
+        val files = aiSubsDir.listFiles() ?: return Triple(0, 0, 0L)
+        val srt = files.count { it.isFile && it.name.endsWith(".srt") }
+        val journal = files.count { it.isFile && it.name.endsWith(".journal") }
+        val bytes = files.filter { it.isFile }.sumOf { it.length() }
+        return Triple(srt, journal, bytes)
+    }
+
     fun imageCacheBytes(): Long = dirBytes(imageDir)
     fun ratingCacheBytes(): Long = if (ratingFile.isFile) ratingFile.length() else 0L
 
