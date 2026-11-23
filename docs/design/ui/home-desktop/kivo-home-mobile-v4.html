@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kivo 首页 · 手机 v4（逐块）</title>
+<!--
+  kivo 首页 · 手机视觉稿 v4 —— 逐块推进
+  画布：393 × 873 dp（Redmi K40）
+  本轮：块 1 · Hero + 顶部取色过渡（沿用参考作做法：剧照取色铺满底部，上滑时剧照模糊淡出、底色渐亮、文字由白转黑）
+  已确认：块 1 Hero、继续观看（含片源签条）、院线新片、今日动漫
+  本轮：最近入库（建议新增）/ 本周更新（取色卡）/ 热门剧集 / 高分片单 / 分类浏览
+  设计语言：全页统一「取色」——Hero、本周更新、高分片单、分类卡的底色都取自其内图片
+  已移除：常看的面孔、本周趋势；待做：底部导航
+  预览参数：?y=300 打开即滚动到 300dp，用于截图对比
+-->
+<style>
+:root {
+  /* ---- 底色 ---- */
+  --bg: #F1F0F3;              /* 滚动后的亮底（近参考作的冷灰，略收紫） */
+  --hero-ink: #2C3038;        /* 剧照取色失败时的兜底暗色 */
+
+  /* ---- 文字（随滚动插值，由 JS 写入 --fg / --fg2） ---- */
+  --text-1: #16161A;
+  --text-2: #6A6970;
+  --on-dark: #FFFFFF;
+  --on-dark-2: rgba(255,255,255,.82);
+
+  /* ---- 品牌 / 功能 ---- */
+  --brass: #C98A3B; --brass-ink: #8F5A1C;
+  --quality: #2F6F5E; --lib: #3FA383;
+  --rate-imdb: #F5C518; --rate-tmdb-a: #01B4E4; --rate-tmdb-b: #90CEA1; --rate-douban: #2E963D;
+
+  /* ---- 毛玻璃 ---- */
+  --glass: rgba(255,255,255,.6); --glass-stroke: rgba(255,255,255,.7); --blur: 22px;
+
+  /* ---- 字体：K40（HyperOS）系统字体即 MiSans，Compose 默认就会用到；数字统一等宽 ---- */
+  --font: "MiSans", "HarmonyOS Sans SC", "PingFang SC", -apple-system, "Microsoft YaHei UI", "Segoe UI", sans-serif;
+  --font-num: "SF Pro Rounded", ui-rounded, "HarmonyOS Sans SC", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
+
+  /* ---- 尺寸 ---- */
+  --pad: 16px; --gap: 12px; --gap-section: 36px;
+  --r-12: 12px; --r-16: 16px; --r-full: 999px;
+  --hero-h: 600px;
+  --ease: cubic-bezier(.2,.7,.2,1); --dur: 220ms;
+}
+
+/* ===== 预览外壳 ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #D8D6D2; font-family: var(--font); -webkit-font-smoothing: antialiased; }
+.stage { display: flex; gap: 40px; justify-content: center; padding: 40px 24px; }
+.phone {
+  position: relative; width: 393px; height: 873px; border-radius: 48px; overflow: hidden;
+  background: var(--bg); box-shadow: 0 0 0 10px #111, 0 30px 80px rgba(0,0,0,.3);
+  isolation: isolate;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* 图片占位：用两团色斑模拟「剧照」，让取色/模糊效果看得出来 */
+.ph {
+  --h: 210; --l: 42%;
+  position: relative; overflow: hidden; display: block;
+  background:
+    radial-gradient(38% 30% at 28% 30%, hsl(var(--h) 18% calc(var(--l) + 30%)) 0%, transparent 70%),
+    radial-gradient(40% 34% at 74% 36%, hsl(calc(var(--h) + 20) 14% calc(var(--l) - 14%)) 0%, transparent 72%),
+    radial-gradient(60% 40% at 50% 78%, hsl(calc(var(--h) - 10) 16% calc(var(--l) - 6%)) 0%, transparent 70%),
+    linear-gradient(170deg, hsl(var(--h) 14% calc(var(--l) + 6%)), hsl(var(--h) 16% calc(var(--l) - 16%)));
+}
+.ph-tag {
+  position: absolute; left: 6px; top: 6px; z-index: 1;
+  font: 500 9px/1 var(--font-mono); color: rgba(255,255,255,.8);
+  background: rgba(0,0,0,.28); padding: 3px 5px; border-radius: 4px; white-space: nowrap;
+}
+
+/* 状态栏遮罩：模糊 + 向下渐隐，透明度随滚动出现 */
+.status-veil {
+  position: absolute; top: 0; left: 0; right: 0; height: 64px; z-index: 25; pointer-events: none;
+  opacity: var(--veil, 0);
+  background: linear-gradient(180deg, rgba(241,240,243,.92) 0%, rgba(241,240,243,.6) 55%, rgba(241,240,243,0) 100%);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%); mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+}
+/* 状态栏 */
+.statusbar {
+  position: absolute; top: 0; left: 0; right: 0; height: 46px; z-index: 30; pointer-events: none;
+  display: flex; align-items: center; justify-content: space-between; padding: 8px 30px 0;
+  font: 600 15px/1 var(--font-num); color: var(--fg, #fff);
+}
+.sb-icons { display: flex; gap: 6px; } .sb-icons i { display: block; background: currentColor; border-radius: 3px; }
+
+/* =========================================================
+   块 1 · 取色底（固定在视口，不随内容滚动）
+   剧照的模糊版铺满全屏 → 上滑时整体淡出，露出亮底
+   落地：Android 12+ RenderEffect.createBlurEffect；或 Palette 取主色 + 渐变兜底
+   ========================================================= */
+.backdrop { position: absolute; inset: 0; z-index: 0; opacity: var(--bd-op, 1); pointer-events: none; }
+.backdrop .ph { position: absolute; inset: -60px; filter: blur(48px) saturate(1.1); transform: scale(1.15); }
+.backdrop::after { content: ""; position: absolute; inset: 0; background: rgba(18,20,24,.42); }
+
+.scroll { position: absolute; inset: 0; z-index: 1; overflow-y: auto; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+
+/* =========================================================
+   块 1 · Hero
+   ========================================================= */
+.hero { position: relative; height: var(--hero-h); }
+/* 清晰剧照：底部用遮罩溶进取色底，而不是叠一层渐变色 */
+.hero-img {
+  position: absolute; inset: 0 0 -40px; will-change: transform, filter;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 52%, transparent 96%);
+          mask-image: linear-gradient(180deg, #000 0%, #000 52%, transparent 96%);
+  transform: translateY(var(--hero-y, 0)) scale(var(--hero-s, 1));
+  filter: blur(var(--hero-blur, 0));
+  opacity: var(--hero-fade, 1);   /* 上滑时剧照被亮底「洗白」 */
+}
+.hero-img .ph-tag { left: auto; right: 16px; top: 54px; }
+.hero-shade {   /* 状态栏可读性 + 文字区压暗，很轻 */
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,.28) 0%, rgba(0,0,0,0) 14%, rgba(0,0,0,0) 48%, rgba(0,0,0,.2) 78%, rgba(0,0,0,0) 100%);
+}
+.hero-body {
+  position: absolute; left: 24px; right: 24px; bottom: 34px; text-align: center; color: var(--on-dark);
+  opacity: var(--hero-op, 1); transform: translateY(var(--body-y, 0));
+}
+/* 片名 Logo 位（落地为透明 PNG 艺术字） */
+.logo-slot {
+  position: relative; display: inline-block; margin-bottom: 18px; padding: 4px 18px 10px;
+  font-size: 46px; font-weight: 700; letter-spacing: .08em; line-height: 1.1;
+  border-bottom: 1px dashed rgba(255,255,255,.28); text-shadow: 0 2px 12px rgba(0,0,0,.25);
+}
+.logo-slot small { position: absolute; right: 0; bottom: -13px; font: 500 9px/1 var(--font-mono); letter-spacing: 0; color: rgba(255,255,255,.5); }
+.meta { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 16px; font-weight: 500; letter-spacing: .02em; }
+.meta .sep { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .55; }
+.synopsis {
+  margin: 8px auto 0; max-width: 340px; font-size: 14px; line-height: 1.45; color: var(--on-dark-2);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.ratings { margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 14px; }
+.rating { display: inline-flex; align-items: center; gap: 5px; font: 500 15px/1 var(--font-num); }
+.badge { height: 14px; padding: 0 3px; border-radius: 3px; display: inline-grid; place-items: center; font: 800 8px/1 var(--font); letter-spacing: .02em; }
+.badge.imdb { background: var(--rate-imdb); color: #000; }
+.badge.tmdb { background: linear-gradient(90deg, var(--rate-tmdb-b), var(--rate-tmdb-a)); color: #0D253F; }
+.badge.douban { background: var(--rate-douban); color: #fff; width: 14px; padding: 0; font-size: 9px; }
+/* kivo 唯一的加法：库内可播时，评分行尾跟一个极轻的画质标 */
+.lib-mark { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 8px; border-radius: var(--r-full);
+  font: 600 10px/1 var(--font-num); letter-spacing: .04em; color: #fff; background: rgba(255,255,255,.16);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.lib-mark::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--lib); }
+.dots { margin-top: 26px; display: flex; justify-content: center; align-items: center; gap: 9px; }
+.dots button { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.35); transition: background var(--dur), transform var(--dur); }
+.dots button:hover { background: rgba(255,255,255,.65); }
+.dots button.is-on { background: #fff; }
+.dots button.far { transform: scale(.7); }
+.dots button.farther { transform: scale(.5); }
+
+/* =========================================================
+   通用 · 区块标题（颜色随滚动从白过渡到黑）
+   ========================================================= */
+.section { margin-top: var(--gap-section); }
+.sec-head { display: flex; align-items: center; padding: 0 var(--pad); margin-bottom: 12px; }
+.sec-head h2 { margin: 0; font-size: 22px; font-weight: 600; color: var(--fg, #fff); }
+.sec-more { margin-left: auto; color: var(--fg, #fff); display: grid; place-items: center; width: 28px; height: 28px; }
+.sec-more svg { width: 20px; height: 20px; stroke-width: 2.2; }
+.hscroll { display: flex; gap: var(--gap); overflow-x: auto; scrollbar-width: none; padding: 0 var(--pad); scroll-snap-type: x mandatory; scroll-padding: 0 var(--pad); }
+.hscroll::-webkit-scrollbar { display: none; }
+.hscroll > * { flex: none; scroll-snap-align: start; }
+
+/* 片源签条 */
+.strip { display: inline-flex; height: 20px; border-radius: 5px; overflow: hidden; font: 600 10px/20px var(--font-num); white-space: nowrap; }
+.strip span { padding: 0 6px; }
+.strip .q { background: var(--quality); color: #fff; }
+.strip .q + .q { background: #3B8571; }
+.strip .s { background: rgba(20,20,24,.5); color: #fff; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+
+/* ---------- 继续看（沿用 v3，文字改随滚动着色） ---------- */
+.cw { position: relative; width: 300px; aspect-ratio: 16 / 9; border-radius: var(--r-16); overflow: hidden; display: block; }
+.cw .ph { position: absolute; inset: 0; --l: 46%; }
+.cw::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(10,10,14,.8) 0%, rgba(10,10,14,0) 58%); }
+.cw .strip { position: absolute; left: 12px; top: 12px; z-index: 1; }
+.cw-info { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 1; color: #fff; }
+.cw-t { font-size: 16px; font-weight: 600; }
+.cw-m { margin-top: 2px; font-size: 12px; color: var(--on-dark-2); }
+.chapters { position: relative; margin-top: 10px; height: 3px; border-radius: 2px; background: rgba(255,255,255,.26); }
+.chapters .fill { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--brass); }
+.chapters .tick { position: absolute; top: -2px; width: 2px; height: 7px; border-radius: 1px; background: rgba(255,255,255,.5); }
+
+/* ---------- 海报卡（院线新片 / 今日动漫，沿用 v3） ---------- */
+.poster { width: 120px; display: block; position: relative; }
+.poster .ph { aspect-ratio: 2 / 3; border-radius: var(--r-12); }
+.poster .strip { position: absolute; left: 6px; bottom: 6px; z-index: 1; }
+.p-t { margin-top: 8px; font-size: 14px; font-weight: 500; color: var(--fg, #fff); }
+.p-m { margin-top: 1px; font: 400 12px/1.3 var(--font-num); color: var(--fg2, rgba(255,255,255,.7)); }
+.want { position: absolute; right: 6px; top: 6px; z-index: 2; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #fff;
+  background: rgba(20,20,24,.4); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.want svg { width: 15px; height: 15px; stroke-width: 2.4; }
+.want.is-on { background: var(--brass); }
+.want .on { display: none; } .want.is-on .on { display: block; } .want.is-on .off { display: none; }
+
+/* 区块副标题（可选） */
+.sec-sub { margin-left: 8px; font: 400 13px/1 var(--font-num); color: var(--fg2, rgba(255,255,255,.7)); }
+
+/* =========================================================
+   取色卡 · 本周更新
+   底色取自海报（落地：Palette 取 muted 色，提亮到 L≈90%）
+   ========================================================= */
+.upd {
+  --h: 210; position: relative; overflow: hidden;
+  width: 276px; height: 124px; border-radius: 22px; padding: 12px 14px 12px 12px;
+  display: grid; grid-template-columns: 66px 1fr; gap: 14px; align-items: center;
+  background: linear-gradient(125deg, hsl(var(--h) 36% 92%), hsl(calc(var(--h) + 22) 28% 85%));
+  transition: transform var(--dur) var(--ease);
+}
+.upd:active { transform: scale(.98); }
+.upd .ph { width: 66px; height: 99px; border-radius: 10px; box-shadow: 0 8px 16px -8px rgba(0,0,0,.45); }
+.upd-when { display: flex; align-items: center; gap: 6px; font: 600 12px/1 var(--font-num); color: hsl(var(--h) 30% 34%); }
+.upd-when.today { color: var(--brass-ink); }
+.upd-when.today::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--brass); }
+.upd-t { margin-top: 9px; font-size: 17px; font-weight: 600; color: var(--text-1); letter-spacing: -.01em; }
+.upd-m { margin-top: 3px; font: 400 13px/1.3 var(--font-num); color: hsl(var(--h) 12% 38%); }
+.upd-lib { margin-top: 10px; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--quality); }
+.upd-lib::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--lib); }
+
+/* =========================================================
+   取色卡 · 高分片单（深色：亮区里唯一的「暗场」，给页面节奏）
+   ========================================================= */
+.best {
+  --h1: 230; --h2: 20; --h3: 190;
+  position: relative; overflow: hidden; width: 300px; height: 396px; border-radius: 28px;
+  padding: 22px 22px 18px; display: flex; flex-direction: column; color: #fff;
+  background:
+    radial-gradient(60% 42% at 50% 46%, hsl(var(--h1) 28% 44% / .95) 0%, transparent 72%),
+    radial-gradient(48% 38% at 8% 78%, hsl(var(--h2) 32% 36% / .9) 0%, transparent 72%),
+    radial-gradient(48% 38% at 92% 78%, hsl(var(--h3) 32% 36% / .9) 0%, transparent 72%),
+    hsl(var(--h1) 16% 19%);
+  transition: transform var(--dur) var(--ease);
+}
+.best:active { transform: scale(.985); }
+.best-k { font: 600 11px/1 var(--font-num); letter-spacing: .14em; color: rgba(255,255,255,.62); }
+.best h3 { margin: 8px 0 0; font-size: 24px; font-weight: 600; letter-spacing: -.01em; }
+.best-stage { position: relative; flex: 1; margin: 8px -22px 0; }
+.best-stage .ph { position: absolute; border-radius: 12px; }
+.b-main { width: 126px; height: 189px; left: 50%; top: 18px; transform: translateX(-50%); z-index: 2;
+  box-shadow: 0 18px 30px -10px rgba(0,0,0,.6); }
+.b-side { width: 94px; height: 141px; top: 46px; filter: brightness(.72) saturate(.9); box-shadow: 0 12px 22px -10px rgba(0,0,0,.55); }
+.b-side.l { left: 26px; transform: rotate(-8deg); }
+.b-side.r { right: 26px; transform: rotate(8deg); }
+.score {
+  position: absolute; left: 6px; bottom: 6px; z-index: 1; height: 20px; padding: 0 7px; border-radius: 999px;
+  display: inline-flex; align-items: center; font: 700 11px/1 var(--font-num); color: #fff;
+  background: rgba(20,20,24,.45); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.b-main .score { background: var(--brass); }
+.best-foot { display: flex; align-items: center; justify-content: space-between; }
+.best-foot span { font: 400 12px/1.4 var(--font-num); color: rgba(255,255,255,.72); }
+.best-go { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(255,255,255,.14); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.best-go svg { width: 18px; height: 18px; stroke-width: 2.2; }
+
+/* =========================================================
+   取色卡 · 分类浏览（两行横滑；标题左上，海报扇形从右下探出）
+   ========================================================= */
+.cats { display: grid; grid-auto-flow: column; grid-template-rows: 96px 96px; gap: 12px; }
+.cat {
+  --h: 30; position: relative; overflow: hidden; width: 172px; border-radius: 22px; padding: 16px;
+  background: linear-gradient(140deg, hsl(var(--h) 40% 92%), hsl(calc(var(--h) + 18) 30% 84%));
+  transition: transform var(--dur) var(--ease);
+}
+.cat:active { transform: scale(.97); }
+.cat b { display: block; font-size: 17px; font-weight: 600; color: var(--text-1); }
+.cat small { display: block; margin-top: 4px; font: 400 12px/1 var(--font-num); color: hsl(var(--h) 18% 38%); }
+.cat .ph { position: absolute; width: 46px; height: 69px; border-radius: 7px; box-shadow: 0 6px 12px -6px rgba(0,0,0,.5); }
+.cat .ph:nth-of-type(1) { right: 52px; bottom: -22px; transform: rotate(-14deg); }
+.cat .ph:nth-of-type(2) { right: 26px; bottom: -12px; transform: rotate(-3deg); z-index: 1; }
+.cat .ph:nth-of-type(3) { right: -4px; bottom: -20px; transform: rotate(10deg); }
+
+/* 待重做占位 */
+.todo { margin: var(--gap-section) var(--pad) 0; height: 120px; border-radius: 20px; border: 1.5px dashed rgba(22,22,26,.18);
+  display: grid; place-items: center; text-align: center; font-size: 13px; line-height: 1.6; color: var(--text-2); }
+
+/* 底部导航（待重做，暂用 v3） */
+.tabbar { position: absolute; left: 16px; right: 16px; bottom: 22px; z-index: 20; height: 64px; border-radius: var(--r-full); padding: 6px; display: flex;
+  background: var(--glass); border: 1px solid var(--glass-stroke); box-shadow: 0 10px 30px rgba(0,0,0,.14);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(170%); backdrop-filter: blur(var(--blur)) saturate(170%); }
+.tab { flex: 1; border-radius: var(--r-full); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 500; color: #5E5D64; }
+.tab svg { width: 22px; height: 22px; }
+.tab.is-on { color: var(--text-1); font-weight: 600; background: rgba(255,255,255,.7); }
+.avatar { width: 24px; height: 24px; border-radius: 50%; --h: 210; --l: 58%; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-discover" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="M12 7.5c.5 2.3 1.9 3.9 4.5 4.5-2.6.6-4 2.2-4.5 4.5-.5-2.3-1.9-3.9-4.5-4.5 2.6-.6 4-2.2 4.5-4.5Z"/></symbol>
+  <symbol id="i-library" viewBox="0 0 24 24"><rect x="3.5" y="4" width="4" height="16" rx="1.5"/><rect x="9.5" y="7" width="4" height="13" rx="1.5"/><path d="m15.6 8.4 3.8-1 3 11.6-3.8 1z"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h9M18 7h2M4 17h2M11 17h9"/><circle cx="15.5" cy="7" r="2.5"/><circle cx="8.5" cy="17" r="2.5"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+</svg>
+
+<div class="stage">
+<div class="phone" id="phone">
+  <div class="status-veil"></div>
+  <div class="statusbar"><span class="num">21:30</span><span class="sb-icons"><i style="width:16px;height:10px"></i><i style="width:14px;height:10px;border-radius:5px"></i><i style="width:24px;height:11px"></i></span></div>
+
+  <!-- 块 1 · 取色底 -->
+  <div class="backdrop" id="backdrop"><span class="ph" id="bdImg"></span></div>
+
+  <div class="scroll" id="sc">
+    <!-- 块 1 · Hero -->
+    <section class="hero">
+      <div class="hero-img ph" id="heroImg"><span class="ph-tag">Hero 剧照 · 393×640</span></div>
+      <div class="hero-shade"></div>
+      <div class="hero-body">
+        <div class="logo-slot" id="heroTitle">雾港来信<small>片名 Logo 位</small></div>
+        <div class="meta num" id="heroMeta"></div>
+        <p class="synopsis" id="heroSyn"></p>
+        <div class="ratings num" id="heroRates"></div>
+        <div class="dots" id="dots"></div>
+      </div>
+    </section>
+
+    <!-- 继续看 -->
+    <section class="section" style="margin-top:22px">
+      <div class="sec-head"><h2>继续观看</h2><a class="sec-more" href="#"><svg class="i"><use href="#i-right"/></svg></a></div>
+      <div class="hscroll" id="cwRow"></div>
+    </section>
+
+    <!-- 最近入库（建议新增：私人片库独有，原作没有） -->
+    <section class="section">
+      <div class="sec-head"><h2>最近入库</h2><span class="sec-sub num">本周 +23</span><a class="sec-more" href="#"><svg class="i"><use href="#i-right"/></svg></a></div>
+      <div class="hscroll" id="rowLib"></div>
+    </section>
+
+    <!-- 本周更新（取色卡） -->
+    <section class="section">
+      <div class="sec-head"><h2>本周更新</h2><span class="sec-sub num">今天 2 部</span><a class="sec-more" href="#"><svg class="i"><use href="#i-right"/></svg></a></div>
+      <div class="hscroll" id="rowUpd"></div>
+    </section>
+
+    <!-- 院线新片（已确认） -->
+    <section class="section">
+      <div class="sec-head"><h2>院线新片</h2><a class="sec-more" href="#"><svg class="i"><use href="#i-right"/></svg></a></div>
+      <div class="hscroll" id="rowNew"></div>
+    </section>
+
+    <!-- 热门剧集 -->
+    <section class="section">
+      <div class="sec-head"><h2>热门剧集</h2><a class="sec-more" href="#"><svg class="i"><use href="#i-right"/></svg></a></div>
+      <div class="hscroll" id="rowTv"></div>
+    </section>
+
+    <!-- 今日动漫（已确认） -->
+    <section class="section">
+      <div class="sec-head"><h2>今日动漫</h2><a class="sec-more" href="#"><svg class="i"><use href="#i-right"/></svg></a></div>
+      <div class="hscroll" id="rowAnime"></div>
+    </section>
+
+    <!-- 高分片单（取色深卡） -->
+    <section class="section">
+      <div class="sec-head"><h2>高分片单</h2></div>
+      <div class="hscroll" id="rowBest"></div>
+    </section>
+
+    <!-- 分类浏览（取色浅卡，两行横滑） -->
+    <section class="section">
+      <div class="sec-head"><h2>分类浏览</h2><a class="sec-more" href="#"><svg class="i"><use href="#i-right"/></svg></a></div>
+      <div class="hscroll"><div class="cats" id="cats"></div></div>
+    </section>
+    <div style="height:140px"></div>
+  </div>
+
+  <nav class="tabbar">
+    <button class="tab is-on"><svg class="i"><use href="#i-discover"/></svg>发现</button>
+    <button class="tab"><svg class="i"><use href="#i-library"/></svg>片库</button>
+    <button class="tab"><span class="avatar ph"></span>我的</button>
+    <button class="tab"><svg class="i"><use href="#i-settings"/></svg>设置</button>
+  </nav>
+</div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const HERO = [
+  { t:'雾港来信', h:210, g:'犯罪 悬疑', d:'2026-11-20', syn:'港城接连出现三封无名信，每一封都提前写下了下一位死者的名字。刚调回刑侦队的女警与停职的老探长，必须在雨季结束前找到寄信人。', r:{ imdb:'7.9', tmdb:'6.9', douban:'8.2' }, lib:'4K HDR' },
+  { t:'北纬三十度', h:30, g:'冒险 剧情', d:'2026-10-02', syn:'一支民间科考队沿北纬三十度线穿越六个国家，寻找三十年前失踪的父辈留下的最后一段录音。', r:{ imdb:'7.4', tmdb:'7.1' }, lib:'4K' },
+  { t:'长夜行舟', h:250, g:'剧情 家庭', d:'2026-09-14', syn:'摆渡人老周在江上撑了四十年船。大桥通车那天，他决定最后一次载着全家，把那条航线完整走一遍。', r:{ imdb:'8.1', douban:'8.7' }, lib:null },
+  { t:'山茶与盐', h:350, g:'爱情 剧情', d:'2026-08-21', syn:'海边盐场的女儿和山里茶园的少年，因为一场台风被困在同一座小镇，也被困在两家人二十年的旧账里。', r:{ tmdb:'7.8', douban:'8.0' }, lib:'1080p' },
+];
+const LABEL = { imdb:'IMDb', tmdb:'TMDB', douban:'豆' };
+const CW = [
+  { t:'雾港来信', m:'S1 · E3 · 剩 42 分钟', p:.28, h:205, q:['4K','HDR10'], src:'NAS', ticks:[12,31,54,78] },
+  { t:'长夜行舟', m:'剩 1 小时 06 分', p:.41, h:250, q:['1080p'], src:'Emby', ticks:[20,48,70] },
+  { t:'白鲸档案', m:'S1 · E9 · 剩 8 分钟', p:.86, h:200, q:['4K'], src:'SMB', ticks:[25,60] },
+];
+const NEW = [['夜航星','11 月 20 日',230,['4K','NAS']],['落日车站','11 月 14 日',20,null],['潮汐计划','11 月 8 日',190,['4K','Emby']],['无声证人','11 月 6 日',0,null],['青梧巷','10 月 31 日',140,['1080p','NAS']]];
+const ANIME = [['机械少女的日常','更新至 E07',230,['1080p','NAS']],['青空投递员','更新至 E05',200,null],['夏至之庭','更新至 E11',140,['4K','Emby']],['第十三号站台','更新至 E03',260,null]];
+
+const strip = (q, src) => q ? `<span class="strip">${q.map(x => `<span class="q">${x}</span>`).join('')}${src ? `<span class="s">${src}</span>` : ''}</span>` : '';
+const poster = ([t, m, h, src]) => `<a class="poster" href="#"><span class="ph" style="--h:${h}"><span class="ph-tag">海报 2:3</span>${src ? strip(src.slice(0, -1), src.at(-1)) : ''}</span>
+  ${src ? '' : '<button class="want" aria-label="想看"><svg class="i off"><use href="#i-plus"/></svg><svg class="i on"><use href="#i-check"/></svg></button>'}
+  <div class="p-t ellipsis">${t}</div><div class="p-m">${m}</div></a>`;
+
+$('#cwRow').innerHTML = CW.map(c => `<a class="cw" href="#"><span class="ph" style="--h:${c.h}"></span>${strip(c.q, c.src)}
+  <div class="cw-info"><div class="cw-t">${c.t}</div><div class="cw-m num">${c.m}</div>
+  <div class="chapters"><span class="fill" style="width:${c.p * 100}%"></span>${c.ticks.map(x => `<span class="tick" style="left:${x}%"></span>`).join('')}</div></div></a>`).join('');
+$('#rowNew').innerHTML = NEW.map(poster).join('');
+$('#rowAnime').innerHTML = ANIME.map(poster).join('');
+
+const LIB = [['逆光少年','今天 · NAS',45,['4K','HDR10','NAS']],['黑匣子','昨天 · SMB',270,['4K','SMB']],['青梧巷','2 天前 · NAS',140,['1080p','NAS']],['长街旧事','3 天前 · Emby',25,['4K','Emby']],['潮汐计划','4 天前 · Emby',190,['4K','Emby']]];
+const TV = [['山茶与盐','更新至 E08',350,['4K','Emby']],['白鲸档案','全 12 集',200,['4K','NAS']],['南方的雨','更新至 E16',160,null],['午夜电台','更新至 E06',280,null],['灯塔守夜人','全 10 集',205,['1080p','NAS']]];
+const UPD = [
+  { w:'今天 20:00', today:1, t:'雾港来信', m:'第 4 集 · 犯罪', h:210, lib:1 },
+  { w:'今天 22:30', today:1, t:'灯塔守夜人', m:'第 7 集 · 奇幻', h:205 },
+  { w:'明天 20:00', t:'山茶与盐', m:'第 9 集 · 爱情', h:350, lib:1 },
+  { w:'周一 19:30', t:'南方的雨', m:'第 17 集 · 剧情', h:160 },
+];
+const BEST = [
+  { t:'高分电影', k:'豆瓣 8.5+', n:'186 部 · 库内可播 52', hs:[230,20,190], sc:['9.1','8.9','8.7'] },
+  { t:'高分剧集', k:'豆瓣 8.5+', n:'128 部 · 库内可播 41', hs:[210,350,160], sc:['9.3','9.0','8.8'] },
+];
+const CATS = [['动作',20,312],['科幻',205,188],['悬疑',235,172],['爱情',345,240],['动画',265,386],['纪录片',150,95],['喜剧',45,264],['家庭',15,214]];
+
+$('#rowLib').innerHTML = LIB.map(poster).join('');
+$('#rowTv').innerHTML = TV.map(poster).join('');
+$('#rowUpd').innerHTML = UPD.map(u => `
+  <a class="upd" href="#" style="--h:${u.h}"><span class="ph" style="--h:${u.h}"></span>
+    <div style="min-width:0"><div class="upd-when${u.today ? ' today' : ''}">${u.w}</div>
+      <div class="upd-t ellipsis">${u.t}</div><div class="upd-m">${u.m}</div>
+      ${u.lib ? '<span class="upd-lib">播出后自动入库</span>' : ''}</div></a>`).join('');
+$('#rowBest').innerHTML = BEST.map(b => `
+  <a class="best" href="#" style="--h1:${b.hs[0]};--h2:${b.hs[1]};--h3:${b.hs[2]}">
+    <div class="best-k">${b.k}</div><h3>${b.t}</h3>
+    <div class="best-stage">
+      <span class="ph b-side l" style="--h:${b.hs[1]}"><span class="score">${b.sc[1]}</span></span>
+      <span class="ph b-side r" style="--h:${b.hs[2]}"><span class="score">${b.sc[2]}</span></span>
+      <span class="ph b-main" style="--h:${b.hs[0]}"><span class="score">${b.sc[0]}</span></span>
+    </div>
+    <div class="best-foot"><span>${b.n}</span><span class="best-go"><svg class="i"><use href="#i-right"/></svg></span></div>
+  </a>`).join('');
+$('#cats').innerHTML = CATS.map(([n, h, c]) => `
+  <a class="cat" href="#" style="--h:${h}"><b>${n}</b><small>库内 ${c}</small>
+    <span class="ph" style="--h:${(h + 40) % 360}"></span><span class="ph" style="--h:${h}"></span><span class="ph" style="--h:${(h + 300) % 360}"></span></a>`).join('');
+
+/* Hero 切换：剧照与取色底同步换色 */
+const DOTS = 10;
+$('#dots').innerHTML = Array.from({ length: DOTS }, (_, i) => `<button aria-label="第 ${i + 1} 部"></button>`).join('');
+function setHero(i) {
+  const s = HERO[i % HERO.length];
+  $('#heroImg').style.setProperty('--h', s.h); $('#bdImg').style.setProperty('--h', s.h);
+  $('#heroTitle').firstChild.textContent = s.t;
+  $('#heroMeta').innerHTML = `<span>${s.g}</span><span class="sep"></span><span>${s.d}</span>`;
+  $('#heroSyn').textContent = s.syn;
+  $('#heroRates').innerHTML = Object.entries(s.r).map(([k, v]) => `<span class="rating"><span class="badge ${k}">${LABEL[k]}</span>${v}</span>`).join('')
+    + (s.lib ? `<span class="lib-mark">${s.lib}</span>` : '');
+  document.querySelectorAll('#dots button').forEach((b, k) => {
+    b.classList.toggle('is-on', k === i);
+    const dist = Math.abs(k - i);           /* 远端圆点缩小（沿用参考作做法） */
+    b.classList.toggle('far', dist === 8); b.classList.toggle('farther', dist >= 9);
+  });
+}
+document.querySelectorAll('#dots button').forEach((b, i) => b.addEventListener('click', () => setHero(i)));
+setHero(0);
+let auto = 0; setInterval(() => { if (sc.scrollTop < 50) setHero(auto = (auto + 1) % HERO.length); }, 6000);
+
+/* 滚动联动：剧照视差 + 渐进模糊 + 文字淡出；取色底淡出；文字由白转黑 */
+const sc = $('#sc'), phone = $('#phone');
+const lerp = (a, b, t) => Math.round(a + (b - a) * t);
+const clamp = v => Math.max(0, Math.min(1, v));
+function onScroll() {
+  const y = sc.scrollTop;
+  const pHero = clamp((y - 60) / 420);                  /* Hero 自身的退场进度 */
+  const pBg = clamp((y - 80) / 340);            /* 底色由暗转亮的进度（晚于 Hero 开始） */
+  const st = phone.style;
+  st.setProperty('--hero-y', `${y * 0.45}px`);
+  st.setProperty('--hero-s', 1 + pHero * 0.06);
+  st.setProperty('--hero-blur', `${pHero * 14}px`);
+  st.setProperty('--hero-op', 1 - clamp((y - 200) / 220));   /* 文字先跟着上移，后段才淡出 */
+  st.setProperty('--hero-fade', 1 - 0.72 * pBg);
+  st.setProperty('--body-y', `${y * 0.15}px`);
+  st.setProperty('--bd-op', 1 - pBg);
+  st.setProperty('--veil', clamp((y - 380) / 120));
+  const t = clamp((pBg - 0.5) / 0.2);            /* 文字在底色足够亮之后才集中翻转，避免中灰 */
+  const c = lerp(255, 22, t), c2r = lerp(255, 106, t), a2 = (0.72 + 0.28 * t).toFixed(2);
+  st.setProperty('--fg', `rgb(${c},${c},${lerp(255, 26, t)})`);
+  st.setProperty('--fg2', `rgba(${c2r},${lerp(255, 105, t)},${lerp(255, 112, t)},${a2})`);
+}
+sc.addEventListener('scroll', onScroll, { passive: true });
+const y0 = +(new URLSearchParams(location.search).get('y') || 0);
+sc.scrollTop = y0; onScroll();
+
+document.addEventListener('click', e => {
+  const w = e.target.closest('.want'); if (w) { e.preventDefault(); w.classList.toggle('is-on'); return; }
+  const t = e.target.closest('.tab'); if (t) document.querySelectorAll('.tab').forEach(x => x.classList.toggle('is-on', x === t));
+  if (e.target.closest('a[href="#"]')) e.preventDefault();
+});
+</script>
+</body>
+</html>

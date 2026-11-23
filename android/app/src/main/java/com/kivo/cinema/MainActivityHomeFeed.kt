@@ -149,12 +149,8 @@ private const val NAS_INDEX_TTL_MS = 24L * 60 * 60 * 1000
 internal fun MainActivity.refreshNasLibrary() {
     Thread {
         val store = com.kivo.cinema.library.NasIndexStore(this)
-        var videos = store.read()
-        // 源被删/隐藏后，索引里的旧条目要作废，否则首页会挂出点开就失败的卡片。
-        runCatching {
-            com.kivo.cinema.sources.SourceRepository(com.kivo.cinema.sources.storage.SourceStore(this))
-                .read().getOrNull()?.filter { !it.hidden }?.map { it.id }?.toSet()
-        }.getOrNull()?.let { alive -> videos = videos.filter { it.sourceId in alive } }
+        // 源被删/隐藏后，索引里的旧条目要作废（口径见 NasLibraryIndex，与「查看全部」页共用）。
+        var videos = com.kivo.cinema.library.NasLibraryIndex.aliveVideos(this, store)
         val stale = System.currentTimeMillis() - store.scannedAtMs() > NAS_INDEX_TTL_MS
         if (videos.isEmpty() || stale) {
             val scanned = com.kivo.cinema.library.NasScanService.scanAll(this)

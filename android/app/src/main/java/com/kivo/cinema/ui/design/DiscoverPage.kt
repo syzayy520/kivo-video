@@ -142,18 +142,8 @@ fun DiscoverPage(
 
     // 317 · 适配成中立 HeroCard（HeroPage 不再依赖 TmdbHome.Item）。
     // DISC-08 ✅：hero 整卡可点 → 按 id 反查回 TmdbHome.Item 再走详情。
-    // D13：首帧直接用列表自带海报（零网络、不可能空），竖版顶部海报在 IO 线程补齐后按 id 覆盖。
-    // 不用 produceState：它的 initialValue 只在首次组合求值，heroCandidates 从空变非空时不会重算，
-    // 真机上表现为 hero 整块高度 0（"继续观看"顶到屏幕最上）。
-    var heroImages by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
-    LaunchedEffect(heroCandidates) {
-        heroImages = withContext(Dispatchers.IO) {
-            heroCandidates.mapNotNull { item -> topPoster(item)?.let { item.id to it } }.toMap()
-        }
-    }
-    val heroCards = remember(heroCandidates, heroImages) {
-        heroCandidates.map { item -> heroCardOf(item, heroImages[item.id] ?: item.posterHeroUrl) }
-    }
+    // D13 首帧/补图策略见 home/HeroCardsState.kt（新旧两版共用）。
+    val heroCards = com.kivo.cinema.ui.design.home.rememberHeroCards(heroCandidates, topPoster)
 
     Box(Modifier.fillMaxSize()) {
       // 页面底 = scrimColor（hero 海报吸色 → 随滚动渐变到 pageBackground）。

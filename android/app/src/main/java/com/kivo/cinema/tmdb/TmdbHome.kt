@@ -193,12 +193,15 @@ class TmdbHome(private val client: TmdbClient) {
             HomeData(j?.optJSONArray("results")?.let { parseItems(it) } ?: emptyList(), err)
         }
 
-    fun nowPlaying(): HomeData = items("/movie/now_playing?language=${TmdbLocale.tag()}")
-    fun onTheAir(): HomeData = items("/tv/on_the_air?language=${TmdbLocale.tag()}")
+    /** 榜单第 [page] 页（路径见 [TmdbList]；首页行与「查看全部」页共用）。 */
+    fun list(kind: TmdbList, page: Int = 1): HomeData = items(kind.path(page))
+
+    fun nowPlaying(): HomeData = list(TmdbList.NOW_PLAYING)
+    fun onTheAir(): HomeData = list(TmdbList.ON_THE_AIR)
     fun trendingWeek(): HomeData = items("/trending/all/week?language=${TmdbLocale.tag()}")
 
     /** 高分剧集（首页「高分剧集」行；✅ 实测 /tv/top_rated 返回 20 条，首条 龙珠超：比鲁斯 9.629）。 */
-    fun topRatedTv(): HomeData = items("/tv/top_rated?language=${TmdbLocale.tag()}")
+    fun topRatedTv(): HomeData = list(TmdbList.TOP_RATED_TV)
 
     /** 近一月·热门综艺（homeBuiltIn.popular.variety.past.month；真人秀 10764）。 */
     fun varietyPastMonth(): HomeData {
@@ -213,9 +216,7 @@ class TmdbHome(private val client: TmdbClient) {
     }
 
     /** 今日动漫（homeBuiltIn.today.s.anime；动画 16 + 日语原声，按人气）。 */
-    fun todayAnime(): HomeData =
-        items("/discover/tv?language=${TmdbLocale.tag()}&with_genres=16" +
-            "&with_original_language=ja&sort_by=popularity.desc")
+    fun todayAnime(): HomeData = list(TmdbList.TODAY_ANIME)
 
     /** hero 候选：本周趋势前 10 颗（t22/t18/0082 圆点实测均 10）。 */
     fun heroCandidates(limit: Int = 10): List<Item> =

@@ -75,6 +75,26 @@ object TmdbGenres {
     }
 
     /**
+     * 给前 `max` 个类型各配一张**互不重复**的底图（串行，总请求 ≤ max，与 [backdropFor] 共用同一缓存 URL）。
+     * 热门片常同时属于多个类型，取「首条」会让「动作」「冒险」撞同一张图；这里顺着人气往下找第一张未被占用的。
+     * 某类型候选全被占用或无图 → 保持 null（不造假，卡片退回纯色底）。
+     */
+    fun fillDistinctBackdrops(client: TmdbClient, genres: List<TmdbGenre>, max: Int): List<TmdbGenre> {
+        val used = HashSet<String>()
+        return genres.mapIndexed { index, genre ->
+            if (index >= max || genre.id <= 0) return@mapIndexed genre
+            val arr = TmdbHome(client).get(discoverUrl(genre.id)).first?.optJSONArray("results")
+            var pick: String? = null
+            if (arr != null) for (i in 0 until arr.length()) {
+                val path = TmdbHome.imgPath(arr.optJSONObject(i), "backdrop_path") ?: continue
+                val url = "${TmdbHome.IMG}/w780$path"
+                if (used.add(url)) { pick = url; break }
+            }
+            genre.copy(backdropUrl = pick)
+        }
+    }
+
+    /**
      * 只给前 `max` 个类型补底图（串行，总请求 ≤ max）。已带底图的项不重复请求。
      * 返回新列表：前 `max` 项为 copy 后的值，其余保持原对象。
      */

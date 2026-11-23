@@ -32,22 +32,12 @@ import com.kivo.cinema.sources.SourceOpen
 import com.kivo.cinema.sources.ui.SourcesScreen
 import com.kivo.cinema.stats.WatchStore
 import com.kivo.cinema.tmdb.TmdbHome
-import com.kivo.cinema.tmdb.TmdbGenre
-import com.kivo.cinema.tmdb.TmdbGenres
-import com.kivo.cinema.tmdb.TmdbPeople
-import com.kivo.cinema.tmdb.TmdbPerson
-import com.kivo.cinema.tmdb.TmdbProvider
-import com.kivo.cinema.tmdb.TmdbProviders
-import com.kivo.cinema.tmdb.TmdbStudio
-import com.kivo.cinema.tmdb.TmdbStudios
 import com.kivo.cinema.ui.design.AnimatedGradientBg
 import com.kivo.cinema.ui.design.CapsuleNavBar
 import com.kivo.cinema.ui.design.DesignTokens
-import com.kivo.cinema.ui.design.DiscoverPage
 import com.kivo.cinema.ui.design.WatchingPage
 import com.kivo.cinema.ui.design.home.HomeTitleSheet
 import com.kivo.cinema.ui.design.settings.SettingsPage
-import com.kivo.cinema.ui.detail.MovieDetailActivity
 import com.kivo.cinema.ui.profile.ProfilePage
 import com.kivo.cinema.ui.profile.ProfileStats
 import com.kivo.cinema.ui.profile.model.ProfileDashboard
@@ -76,10 +66,6 @@ internal class HomeShellState {
     var ambientDark by mutableStateOf(false)                 // 首页环境暗底（导航玻璃/状态栏联动）
     var localVideoCount by mutableStateOf<Int?>(null)        // 本地可见视频数；不可读为 null
 }
-
-/** 首屏新增请求预算：只补前 4 个平台的拼贴海报、前 6 个类型的底图（失败项保持空，不造假）。 */
-private const val PROVIDER_TILE_COUNT = 4
-private const val GENRE_BACKDROP_COUNT = 6
 
 /**
  * App Shell 的路由编排（从 MainActivity 抽出，控行数）：4 页切换 + 胶囊导航 + 浮层。
@@ -162,70 +148,7 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                             Intent(activity, PrivateActivity::class.java)) },
                         videoCount = state.localVideoCount,
                     )
-                    1 -> {
-                        // B3：6 个新模块的数据（无 key/无网 → 空列表 → 模块整段隐藏，不造假）。
-                        // TmdbHome.get 自带 12h 列表缓存，回页只是重建快照。
-                        val tmdbClient = activity.tmdb
-                        val tmdbHome = activity.tmdbHome
-                        val people by produceState(emptyList<TmdbPerson>(), tmdbClient) {
-                            value = withContext(Dispatchers.IO) { TmdbPeople.popular(tmdbClient) }
-                        }
-                        val providers by produceState(emptyList<TmdbProvider>(), tmdbClient) {
-                            // watch_region=CN 实测 0 条（TMDB 无大陆平台数据）；取 US 段（实测 296 条，
-                            // Netflix/Disney+ 等国际平台齐平竞品展示口径）。◐ 区域口径是取舍，不是事实断言。
-                            value = withContext(Dispatchers.IO) {
-                                TmdbProviders.movie(tmdbClient, region = "US").mapIndexed { i, p ->
-                                    if (i < PROVIDER_TILE_COUNT) p.copy(titles = TmdbProviders.titles(tmdbClient, p.id)) else p
-                                }
-                            }
-                        }
-                        val genres by produceState(emptyList<TmdbGenre>(), tmdbClient) {
-                            value = withContext(Dispatchers.IO) {
-                                TmdbGenres.fillBackdrops(tmdbClient, TmdbGenres.movie(tmdbClient), max = GENRE_BACKDROP_COUNT)
-                            }
-                        }
-                        // 分类海报墙：第一个类型的人气前 10 张；genres 未就绪时为空、不发请求（见 DiscoverPage genrePosterUrls）。
-                        val genrePosterUrls by produceState(emptyList<String>(), tmdbClient, genres) {
-                            value = withContext(Dispatchers.IO) {
-                                genres.firstOrNull()?.let { TmdbGenres.posters(tmdbClient, it.id) }.orEmpty()
-                            }
-                        }
-                        val topRatedTv by produceState(emptyList<TmdbHome.Item>(), tmdbClient) {
-                            value = withContext(Dispatchers.IO) { tmdbHome.topRatedTv().items }
-                        }
-                        val studios by produceState(emptyList<TmdbStudio>(), tmdbClient) {
-                            value = withContext(Dispatchers.IO) { TmdbStudios.featured(tmdbClient) }
-                        }
-                        DiscoverPage(
-                            previewEnabled = previewEnabled, continueItems = state.homeEntries,
-                            nasSections = state.nasSections,
-                            heroCandidates = state.heroCandidates,
-                            nowPlaying = state.nowPlaying,
-                            onTheAir = state.onTheAir,
-                            trending = state.trending,
-                            variety = state.variety,
-                            todayAnime = state.todayAnime,
-                            topPoster = { activity.tmdbHome.topVotedPosterUrl(it) },
-                            logoFor = { activity.tmdbHome.logoUrlFor(it) },
-                            trailerFor = { activity.tmdbHome.trailerFor(it) },
-                            proxyAddress = activity.tmdb.proxyAddr(),
-                            generation = state.homeGeneration,
-                            posterOf = { activity.entryPoster(it) },
-                            onOpenItem = { activity.openHomeEntry(it) },
-                            onOpenNasItem = { activity.openNasEntry(it) },
-                            onOpenTmdbItem = { activity.startActivity(MovieDetailActivity.intent(activity, it)) },
-                            tmdbError = state.tmdbError,
-                            onRetryTmdb = { activity.refreshHomeFeed() },
-                            onAmbientDark = { state.ambientDark = it },
-                            onShowWatching = { showWatching = true },
-                            people = people,
-                            providers = providers,
-                            genres = genres,
-                            genrePosterUrls = genrePosterUrls,
-                            topRatedTv = topRatedTv,
-                            studios = studios,
-                        )
-                    }
+                    1 -> DiscoverTab(activity, state, previewEnabled) { showWatching = true }
                     3 -> {
                         // 看板读取磁盘 + MediaStore（阻塞），放 IO；「我的」页自身预留导航高度，
                         // 所以这个分支不需要 Shell 兜底 padding。

@@ -33,6 +33,13 @@ object AppearancePrefs {
     var reduceMotion by mutableStateOf(false)
         private set
 
+    /**
+     * 首页新版（v6）预览：true＝发现页用 `DiscoverPageV6`，false＝旧版 `DiscoverPage`。
+     * 默认 true（新旧对比阶段先看新版）；键 `home_v6`。家族树见 docs/design/ui/home-v6/。
+     */
+    var homeV6 by mutableStateOf(true)
+        private set
+
     /** 幂等绑定：进程内首次读盘；此后所有写都经本对象，状态与盘一致。 */
     fun bind(context: Context) {
         if (sp != null) return
@@ -43,6 +50,7 @@ object AppearancePrefs {
         hideNavLabels = p.getBoolean("hide_nav_labels", false)
         hapticMode = p.getString("haptic_mode", "auto") ?: "auto"
         reduceMotion = p.getBoolean("reduce_motion", false)
+        homeV6 = p.getBoolean("home_v6", true)
     }
 
     fun updateShowStills(value: Boolean) {
@@ -68,6 +76,11 @@ object AppearancePrefs {
     fun updateReduceMotion(value: Boolean) {
         reduceMotion = value
         sp?.edit()?.putBoolean("reduce_motion", value)?.apply()
+    }
+
+    fun updateHomeV6(value: Boolean) {
+        homeV6 = value
+        sp?.edit()?.putBoolean("home_v6", value)?.apply()
     }
 
     /** 触感可用性：禁用＝关；自动＝系统报低电量时关（不自设阈值）；始终＝开。 */

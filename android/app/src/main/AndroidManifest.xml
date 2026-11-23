@@ -44,6 +44,16 @@
             android:name=".ui.profile.calendar.CalendarActivity"
             android:exported="false"
             android:theme="@style/Theme.KivoCinema" />
+        <!-- 首页 v6「查看全部」：TMDB 榜单分页网格（docs/design/ui/home-v6/family-tree.md §7）。 -->
+        <activity
+            android:name=".ui.design.home.v6.list.HomeListActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KivoCinema" />
+        <!-- 首页 v6 NAS 分类「查看全部」：读本地片库索引的三列网格（family-tree.md §8）。 -->
+        <activity
+            android:name=".ui.design.home.v6.list.NasCategoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KivoCinema" />
 <activity
             android:name=".ui.compose.PlayerComposeActivity"
             android:screenOrientation="landscape"

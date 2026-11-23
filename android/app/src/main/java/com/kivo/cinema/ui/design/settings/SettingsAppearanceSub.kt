@@ -75,6 +75,10 @@ private fun AppearanceCoreCards(push: (AppearanceDrill) -> Unit) {
     }
     Spacer(Modifier.height(14.dp))
     SectionCard("首页") {
+        SwitchRow("首页新版（预览）", AppearancePrefs.homeV6,
+            subtitle = "开＝v6 新版首页；关＝原版首页。两版并存，用于对比取舍。",
+            onChange = { AppearancePrefs.updateHomeV6(it) })
+        ChipCardDivider()
         SwitchRow("固定首页布局", false, enabled = false, onChange = {})
     }
     Footnote("首页布局编辑未开放，无锁定对象；此开关未接线。")

@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kivo 首页 · 手机 v3</title>
+<!--
+  kivo 首页 · 手机视觉稿 v3
+  画布：393 × 873 dp（Redmi K40：1080×2400 @2.75x）；左右安全边距 20
+  保留原作「高级感」的来源：全屏沉浸剧照 / 大字号大留白 / 毛玻璃浮层 / 剧照着色 / 几乎无边框
+  kivo 独有：① 放映厅→大厅（顶部暗区承载个人内容，下方亮区承载发现）
+            ② 片源签条（画质 + 来源，只在库内可播时出现）
+            ③ 2.39:1 银幕画幅（专题、续播大图）  ④ 黄铜编号标题  ⑤ 本周更新日历
+  预览：URL 加 ?long 可展开为长图（无内部滚动），用于整页对比
+-->
+<style>
+/* =========================================================
+   设计 Token
+   ========================================================= */
+:root {
+  /* ---- 底与面 ---- */
+  --bg:        #F3F2EF;   /* 大厅（亮区）底色：中性偏暖 */
+  --surface:   #FFFFFF;   /* 卡片表面（只在需要承托时使用） */
+  --surface-2: #E9E6E1;   /* 凹陷：分段控件、口味卡 */
+  --hall-tint: #EAE4DA;   /* 高分大卡底 */
+  /* 放映厅（暗区）底色由剧照色相 --h 推导：hsl(h 14% 17%) */
+
+  /* ---- 文字 ---- */
+  --text-1: #17171B;
+  --text-2: #6A6970;      /* 在 --bg 上 ≈ 5.0:1 */
+  --text-3: #A6A4AA;
+  --on-dark:   #FFFFFF;
+  --on-dark-2: rgba(255,255,255,.74);
+  --on-dark-3: rgba(255,255,255,.45);
+
+  /* ---- 品牌与功能 ---- */
+  --brass:      #C98A3B;  /* 品牌黄铜：编号、激活、进度 */
+  --brass-ink:  #8F5A1C;
+  --brass-tint: #F3E7D6;
+  --quality:    #2F6F5E;  /* 片源签条画质段 */
+  --lib:        #3FA383;  /* 库内可播圆点 */
+
+  /* ---- 毛玻璃 ---- */
+  --glass:        rgba(255,255,255,.62);
+  --glass-dark:   rgba(30,30,36,.38);
+  --glass-stroke: rgba(255,255,255,.7);
+  --blur: 22px;
+
+  /* ---- 字体（理想：HarmonyOS Sans SC + SF Pro Rounded 数字） ---- */
+  --font: "HarmonyOS Sans SC", "MiSans", "PingFang SC", -apple-system, "Microsoft YaHei UI", "Segoe UI", sans-serif;
+  --font-num: "SF Pro Rounded", ui-rounded, "HarmonyOS Sans SC", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
+
+  /* ---- 字号 ---- */
+  --fs-11: 11px; --fs-12: 12px; --fs-13: 13px; --fs-14: 14px; --fs-15: 15px; --fs-16: 16px;
+  --fs-20: 20px; --fs-22: 22px; --fs-40: 40px; --fs-56: 56px;
+
+  /* ---- 间距 ---- */
+  --pad: 20px;            /* 屏幕左右边距 */
+  --gap: 12px;            /* 卡片间距 */
+  --gap-section: 40px;    /* 区块间距 */
+
+  /* ---- 圆角 ---- */
+  --r-6: 6px; --r-10: 10px; --r-12: 12px; --r-16: 16px; --r-20: 20px; --r-24: 24px; --r-full: 999px;
+
+  /* ---- 阴影 ---- */
+  --sh-glass: 0 10px 30px rgba(0,0,0,.14);
+  --sh-poster: 0 8px 18px -6px rgba(20,20,24,.35);
+
+  --ease: cubic-bezier(.2,.7,.2,1); --dur: 220ms; --dwell: 6s;
+}
+
+/* =========================================================
+   预览外壳（非设计内容）
+   ========================================================= */
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #D8D6D2; font-family: var(--font); color: var(--text-1); -webkit-font-smoothing: antialiased; }
+.stage { display: flex; gap: 56px; justify-content: center; align-items: flex-start; padding: 40px 24px 80px; flex-wrap: wrap; }
+.frame-label { font: 500 13px/1 var(--font); color: #55545A; margin: 0 0 14px 6px; }
+.phone {
+  position: relative; width: 393px; height: 873px; border-radius: 48px; overflow: hidden;
+  background: var(--bg); box-shadow: 0 0 0 10px #111, 0 30px 80px rgba(0,0,0,.3);
+}
+.scroll { height: 100%; overflow-y: auto; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+body.long .phone { height: auto; }
+body.long .scroll { height: auto; overflow: visible; }
+
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* 图片占位 */
+.ph {
+  --h: 30; --l: 42%;
+  position: relative; overflow: hidden; display: block;
+  background:
+    radial-gradient(110% 80% at 30% 18%, hsl(var(--h) 26% calc(var(--l) + 16%) / .9), transparent 62%),
+    linear-gradient(155deg, hsl(var(--h) 20% var(--l)), hsl(calc(var(--h) + 24) 24% calc(var(--l) - 17%)));
+}
+.ph-tag {
+  position: absolute; left: 6px; top: 6px; z-index: 1;
+  font: 500 9px/1 var(--font-mono); color: rgba(255,255,255,.8);
+  background: rgba(0,0,0,.28); padding: 3px 5px; border-radius: 4px; white-space: nowrap;
+}
+
+/* 横滑行 */
+.hscroll {
+  display: flex; gap: var(--gap); overflow-x: auto; scrollbar-width: none;
+  padding: 0 var(--pad); scroll-snap-type: x mandatory; scroll-padding: 0 var(--pad);
+}
+.hscroll::-webkit-scrollbar { display: none; }
+.hscroll > * { flex: none; scroll-snap-align: start; }
+
+/* =========================================================
+   状态栏（系统）
+   ========================================================= */
+.statusbar {
+  position: absolute; top: 0; left: 0; right: 0; height: 44px; z-index: 30;
+  display: flex; align-items: center; justify-content: space-between; padding: 6px 28px 0;
+  font: 600 15px/1 var(--font-num); color: #fff; pointer-events: none;
+}
+.statusbar.dark { color: var(--text-1); }
+.sb-icons { display: flex; gap: 6px; align-items: center; }
+.sb-icons i { display: block; background: currentColor; border-radius: 2px; }
+
+/* =========================================================
+   模块 0 · 顶部浮层（字标 + 片源状态 + 搜索）
+   ========================================================= */
+.topbar {
+  position: absolute; top: 50px; left: 0; right: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 var(--pad);
+}
+.wordmark { display: flex; align-items: center; gap: 8px; color: #fff; font: 700 22px/1 var(--font-num); letter-spacing: -.02em; }
+.wordmark i { width: 14px; height: 6px; border-radius: 2px; background: var(--brass); }
+.top-actions { display: flex; gap: 10px; }
+.gbtn {
+  height: 40px; min-width: 40px; border-radius: var(--r-full); padding: 0 12px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  color: #fff; font-size: var(--fs-12); font-weight: 500;
+  background: var(--glass-dark); border: 1px solid rgba(255,255,255,.18);
+  -webkit-backdrop-filter: blur(var(--blur)); backdrop-filter: blur(var(--blur));
+  transition: background var(--dur);
+}
+.gbtn:hover { background: rgba(30,30,36,.55); }
+.gbtn svg { width: 20px; height: 20px; }
+.gbtn .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lib); box-shadow: 0 0 0 3px rgba(63,163,131,.25); }
+
+/* =========================================================
+   放映厅（暗区）：Hero + 继续看 —— 底色由剧照色相推导，最后渐亮进大厅
+   ========================================================= */
+.theater {
+  --h: 210;
+  position: relative; padding-bottom: 72px;
+  background: linear-gradient(180deg,
+    hsl(var(--h) 14% 17%) 0%, hsl(var(--h) 14% 17%) calc(100% - 140px), var(--bg) 100%);
+  transition: background 600ms var(--ease);
+}
+
+/* ---------- 模块 1 · Hero ---------- */
+.hero { position: relative; height: 580px; }
+.hero > .ph { position: absolute; inset: 0; --l: 40%; }
+.hero > .ph .ph-tag { left: auto; right: var(--pad); top: 100px; }
+.hero-scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    rgba(0,0,0,.38) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0) 42%,
+    hsl(var(--h) 14% 17% / .7) 72%, hsl(var(--h) 14% 17%) 100%);
+}
+.hero-body { position: absolute; left: var(--pad); right: var(--pad); bottom: 8px; color: var(--on-dark); }
+.eyebrow { font: 600 var(--fs-11)/1 var(--font-num); letter-spacing: .16em; color: var(--brass); }
+.title-slot {
+  position: relative; margin-top: 12px; display: inline-block;
+  font-size: var(--fs-40); font-weight: 700; line-height: 1.1; letter-spacing: .02em;
+  padding-bottom: 6px; border-bottom: 1px dashed rgba(255,255,255,.25);
+}
+.title-slot small { position: absolute; right: 0; bottom: -14px; font: 500 9px/1 var(--font-mono); color: var(--on-dark-3); white-space: nowrap; }
+.pitch {
+  margin: 20px 0 0; font-size: var(--fs-15); line-height: 1.55; color: var(--on-dark-2);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.facts { margin-top: 12px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; font-size: var(--fs-12); color: var(--on-dark-2); }
+.facts .sep { width: 3px; height: 3px; border-radius: 50%; background: var(--on-dark-3); }
+.score { display: inline-flex; align-items: baseline; gap: 4px; }
+.score em { font-style: normal; font-size: 10px; letter-spacing: .04em; color: var(--on-dark-3); }
+.score b { font: 600 var(--fs-14)/1 var(--font-num); color: #fff; }
+.scores { margin-top: 8px; display: flex; gap: 14px; }
+.hero-body .strip { margin-top: 14px; }
+/* 分段进度：替代分页点（独有） */
+.pager { margin-top: 20px; display: flex; gap: 6px; }
+.pager button { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,.22); overflow: hidden; position: relative; }
+.pager button::before { content: ""; position: absolute; inset: -10px 0; }  /* 加大点击区 */
+.pager i { display: block; height: 100%; width: 0; background: #fff; }
+.pager button.done i { width: 100%; background: rgba(255,255,255,.55); }
+.pager button.is-on i { animation: dwell var(--dwell) linear forwards; }
+@keyframes dwell { to { width: 100%; } }
+
+/* =========================================================
+   组件 · 片源签条（独有）
+   ========================================================= */
+.strip {
+  display: inline-flex; height: 20px; border-radius: 5px; overflow: hidden;
+  font: 600 10px/20px var(--font-num); letter-spacing: .02em; white-space: nowrap;
+}
+.strip span { padding: 0 6px; }
+.strip .q { background: var(--quality); color: #fff; }
+.strip .q + .q { background: #3B8571; }
+.strip .s { background: rgba(255,255,255,.18); color: #fff; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+
+/* =========================================================
+   通用 · 区块标题（黄铜编号）
+   ========================================================= */
+.section { margin-top: var(--gap-section); }
+.sec-head { display: flex; align-items: baseline; gap: 8px; padding: 0 var(--pad); margin-bottom: 14px; }
+.sec-idx { font: 600 var(--fs-12)/1 var(--font-num); color: var(--brass-ink); letter-spacing: .04em; }
+.sec-head h2 { margin: 0; font-size: var(--fs-22); font-weight: 600; line-height: 1.2; letter-spacing: -.01em; }
+.sec-more { margin-left: auto; display: inline-flex; align-items: center; font-size: var(--fs-13); color: var(--text-2); transition: color var(--dur); }
+.sec-more:hover { color: var(--text-1); }
+.sec-more svg { width: 16px; height: 16px; }
+.theater .sec-idx { color: var(--brass); }
+.theater .sec-head h2 { color: #fff; }
+.theater .sec-more { color: var(--on-dark-2); }
+
+/* ---------- 模块 2 · 继续看（暗区内） ---------- */
+.cw { position: relative; width: 300px; aspect-ratio: 16 / 9; border-radius: var(--r-16); overflow: hidden; display: block; }
+.cw .ph { position: absolute; inset: 0; --l: 44%; transition: transform 500ms var(--ease); }
+.cw:hover .ph { transform: scale(1.04); }
+.cw::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(10,10,14,.82) 0%, rgba(10,10,14,0) 58%); }
+.cw .strip { position: absolute; left: 12px; top: 12px; z-index: 1; }
+.cw-info { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 1; color: #fff; }
+.cw-t { font-size: var(--fs-16); font-weight: 600; }
+.cw-m { margin-top: 2px; font-size: var(--fs-12); color: var(--on-dark-2); }
+.chapters { position: relative; margin-top: 10px; height: 3px; border-radius: 2px; background: rgba(255,255,255,.26); }
+.chapters .fill { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--brass); }
+.chapters .tick { position: absolute; top: -2px; width: 2px; height: 7px; border-radius: 1px; background: rgba(255,255,255,.5); }
+.cw-more {
+  position: absolute; right: 8px; top: 8px; z-index: 2; width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff; background: rgba(0,0,0,.28);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.cw-more svg { width: 18px; height: 18px; }
+
+/* =========================================================
+   大厅（亮区）
+   ========================================================= */
+.hall { padding-bottom: 140px; }
+.hall .section:first-child { margin-top: 8px; }
+
+/* ---------- 模块 3 · 本周更新（独有） ---------- */
+.days { display: flex; justify-content: space-between; padding: 0 var(--pad); }
+.day {
+  width: 44px; height: 62px; border-radius: var(--r-16);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  color: var(--text-2); position: relative; transition: background var(--dur), color var(--dur);
+}
+.day span { font-size: var(--fs-11); }
+.day b { font: 600 var(--fs-16)/1 var(--font-num); color: var(--text-1); }
+.day:hover { background: var(--surface-2); }
+.day.is-today::after { content: ""; position: absolute; bottom: 6px; width: 4px; height: 4px; border-radius: 50%; background: var(--brass); }
+.day.is-on { background: var(--text-1); color: rgba(255,255,255,.7); }       /* 选中态 */
+.day.is-on b { color: #fff; }
+.day:disabled { color: var(--text-3); cursor: default; }                      /* 禁用：当天无更新 */
+.day:disabled b { color: var(--text-3); }
+.day:disabled:hover { background: none; }
+.eps { margin-top: 14px; padding: 0 var(--pad); display: flex; flex-direction: column; gap: 4px; }
+.ep { display: grid; grid-template-columns: 44px 1fr auto; gap: 14px; align-items: center; padding: 8px; margin: 0 -8px; border-radius: var(--r-12); transition: background var(--dur); }
+.ep:hover { background: rgba(23,23,27,.04); }
+.ep .ph { width: 44px; height: 66px; border-radius: 8px; --l: 44%; }
+.ep-t { font-size: var(--fs-15); font-weight: 500; }
+.ep-m { margin-top: 3px; font: 400 var(--fs-12)/1.3 var(--font-num); color: var(--text-2); display: flex; align-items: center; gap: 6px; }
+.lib-tag { color: var(--quality); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.lib-tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--lib); }
+.ep .chev { color: var(--text-3); width: 18px; height: 18px; }
+
+/* ---------- 组件 · 海报卡 ---------- */
+.poster { width: 120px; display: block; position: relative; }
+.poster .ph {
+  aspect-ratio: 2 / 3; border-radius: var(--r-12);
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.poster:hover .ph { transform: translateY(-3px); box-shadow: var(--sh-poster); }
+.poster .strip { position: absolute; left: 6px; bottom: 6px; z-index: 1; }
+.poster .strip .s { background: rgba(20,20,24,.5); }
+.p-t { margin-top: 8px; font-size: var(--fs-14); font-weight: 500; }
+.p-m { margin-top: 1px; font: 400 var(--fs-12)/1.3 var(--font-num); color: var(--text-2); }
+.want {
+  position: absolute; right: 6px; top: 6px; z-index: 2; width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff; background: rgba(20,20,24,.4);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: background var(--dur), transform var(--dur);
+}
+.want svg { width: 15px; height: 15px; stroke-width: 2.4; }
+.want:hover { transform: scale(1.08); }
+.want.is-on { background: var(--brass); }      /* 选中态：已想看 */
+.want .on { display: none; } .want.is-on .on { display: block; } .want.is-on .off { display: none; }
+
+/* ---------- 模块 5 · 本周趋势 ---------- */
+.seg { margin-left: auto; display: inline-flex; padding: 2px; border-radius: var(--r-full); background: var(--surface-2); align-self: center; }
+.seg button { height: 26px; padding: 0 12px; border-radius: var(--r-full); font-size: var(--fs-12); font-weight: 500; color: var(--text-2); transition: all var(--dur); }
+.seg button.is-on { background: var(--surface); color: var(--text-1); box-shadow: 0 1px 2px rgba(0,0,0,.08); }  /* 选中态 */
+.rank-col { width: 310px; display: flex; flex-direction: column; gap: 4px; }
+.rank-row { display: grid; grid-template-columns: 26px 96px 1fr auto; gap: 12px; align-items: center; padding: 6px 0; }
+.rank-n { font: 600 20px/1 var(--font-num); text-align: center; }
+.rank-n.top { color: var(--brass-ink); }
+.rank-row .ph { width: 96px; height: 54px; border-radius: 8px; --l: 44%; }
+.rank-t { font-size: var(--fs-14); font-weight: 500; }
+.rank-m { font-size: var(--fs-12); color: var(--text-2); margin-top: 2px; }
+.delta { font: 600 10px/1 var(--font-num); padding: 4px 6px; border-radius: var(--r-full); }
+.d-up { color: var(--quality); background: rgba(47,111,94,.1); }
+.d-down { color: var(--text-3); background: var(--surface-2); }
+.d-new { color: var(--brass-ink); background: var(--brass-tint); }
+
+/* ---------- 模块 6 · 编辑专题（2.39:1 银幕） ---------- */
+.feature { margin: 0 var(--pad); border-radius: var(--r-24); overflow: hidden; background: #1F2025; color: #fff; display: block; }
+.feature .ph { aspect-ratio: 2.39 / 1; --h: 28; --l: 50%; }
+.feature-body { padding: 18px 20px 20px; }
+.feature h3 { margin: 8px 0 0; font-size: var(--fs-20); font-weight: 600; line-height: 1.3; }
+.feature p { margin: 8px 0 0; font-size: var(--fs-13); line-height: 1.6; color: var(--on-dark-2); }
+.feature-foot { margin-top: 16px; display: flex; align-items: center; gap: 18px; font-size: var(--fs-11); color: var(--on-dark-3); }
+.feature-foot b { display: block; font: 600 var(--fs-16)/1.2 var(--font-num); color: #fff; }
+.feature-go { margin-left: auto; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.12); transition: background var(--dur); }
+.feature:hover .feature-go { background: var(--brass); }
+.feature-go svg { width: 18px; height: 18px; }
+
+/* ---------- 模块 8 · 按口味找片 ---------- */
+.taste { padding: 0 var(--pad); display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+.taste-big {
+  grid-column: span 2; position: relative; overflow: hidden; height: 156px; padding: 20px;
+  border-radius: var(--r-24); background: var(--hall-tint); display: block;
+}
+.taste-big .big { font: 700 var(--fs-56)/1 var(--font-num); letter-spacing: -.03em; }
+.taste-big h4 { margin: 8px 0 0; font-size: var(--fs-16); font-weight: 600; }
+.taste-big p { margin: 2px 0 0; font-size: var(--fs-12); color: var(--text-2); }
+.fan { position: absolute; right: 8px; bottom: -30px; width: 170px; height: 160px; }
+.fan .ph { position: absolute; bottom: 0; width: 82px; height: 123px; border-radius: 8px; box-shadow: var(--sh-poster); transition: transform 300ms var(--ease); }
+.fan .ph:nth-child(1) { left: 0; transform: rotate(-10deg); --h: 210; }
+.fan .ph:nth-child(2) { left: 46px; transform: rotate(-1deg) translateY(-10px); --h: 18; z-index: 1; }
+.fan .ph:nth-child(3) { left: 92px; transform: rotate(9deg); --h: 160; }
+.taste-big:hover .fan .ph:nth-child(1) { transform: rotate(-14deg) translateX(-6px); }
+.taste-big:hover .fan .ph:nth-child(3) { transform: rotate(13deg) translateX(6px); }
+.taste-tile {
+  --tint: 30; height: 76px; padding: 0 14px; border-radius: var(--r-20); background: var(--surface);
+  display: flex; align-items: center; gap: 12px; transition: transform var(--dur) var(--ease);
+}
+.taste-tile:active { transform: scale(.97); }
+.taste-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: hsl(var(--tint) 40% 93%); color: hsl(var(--tint) 35% 32%); flex: none; }
+.taste-ico svg { width: 22px; height: 22px; }
+.taste-tile b { display: block; font-size: var(--fs-15); font-weight: 600; }
+.taste-tile small { font: 400 var(--fs-11)/1.3 var(--font-num); color: var(--text-2); }
+
+/* ---------- 模块 9 · 常看的面孔 ---------- */
+.faces { display: grid; grid-auto-flow: column; grid-template-rows: auto auto; gap: 10px; }
+.face {
+  display: grid; grid-template-columns: 40px auto; gap: 10px; align-items: center;
+  padding: 6px 14px 6px 6px; border-radius: var(--r-full); background: var(--surface); white-space: nowrap;
+}
+.face .ph { width: 40px; height: 40px; border-radius: 50%; --l: 50%; }
+.face b { display: block; font-size: var(--fs-14); font-weight: 600; }
+.face small { font-size: var(--fs-11); color: var(--text-2); }
+
+/* ---------- 模块 10 · 平台与出品方 ---------- */
+.logos { display: grid; grid-auto-flow: column; grid-template-rows: 64px 64px; gap: 10px; }
+.logo-tile { width: 116px; border-radius: var(--r-16); background: var(--surface); display: grid; place-items: center; }
+.logo-slot { width: 84px; height: 28px; border-radius: 6px; border: 1.2px dashed #D0CBC2; display: grid; place-items: center; font: 500 9px/1 var(--font-mono); color: var(--text-2); }
+
+/* =========================================================
+   底部浮动导航（毛玻璃胶囊，黄铜点标识选中）
+   ========================================================= */
+.tabbar {
+  position: absolute; left: 16px; right: 16px; bottom: 22px; z-index: 20; height: 64px;
+  border-radius: var(--r-full); padding: 6px; display: flex;
+  background: var(--glass); border: 1px solid var(--glass-stroke); box-shadow: var(--sh-glass);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(170%); backdrop-filter: blur(var(--blur)) saturate(170%);
+}
+body.long .tabbar { position: sticky; margin: -86px 16px 22px; }
+.tab {
+  flex: 1; border-radius: var(--r-full); position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  font-size: var(--fs-11); font-weight: 500; color: #5E5D64; transition: color var(--dur), background var(--dur);
+}
+.tab svg { width: 22px; height: 22px; }
+.tab:hover { color: var(--text-1); }
+.tab.is-on { color: var(--text-1); font-weight: 600; background: rgba(255,255,255,.7); }   /* 选中态 */
+.tab.is-on::after { content: ""; position: absolute; top: 5px; right: calc(50% - 18px); width: 5px; height: 5px; border-radius: 50%; background: var(--brass); }
+.avatar { width: 24px; height: 24px; border-radius: 50%; --h: 210; --l: 58%; }
+
+/* =========================================================
+   模块 11 · 二级列表页
+   ========================================================= */
+.list-top {
+  position: sticky; top: 0; z-index: 10; padding: 50px var(--pad) 10px;
+  display: grid; grid-template-columns: 40px 1fr 40px; align-items: center;
+  background: linear-gradient(180deg, var(--bg) 80%, rgba(243,242,239,0));
+}
+.list-top h1 { margin: 0; text-align: center; font-size: var(--fs-16); font-weight: 600; }
+.list-top .gbtn { color: var(--text-1); background: var(--glass); border-color: var(--glass-stroke); box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 0; }
+.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 6px var(--pad) 16px; }
+.chip {
+  flex: none; height: 32px; padding: 0 14px; border-radius: var(--r-full); background: var(--surface);
+  font-size: var(--fs-13); font-weight: 500; color: var(--text-2); display: inline-flex; align-items: center; gap: 4px;
+  transition: all var(--dur);
+}
+.chip.is-on { background: var(--text-1); color: #fff; }                                      /* 选中态 */
+.chip:disabled { background: transparent; color: var(--text-3); box-shadow: inset 0 0 0 1px #DAD6CF; cursor: not-allowed; } /* 禁用态 */
+.chip svg { width: 14px; height: 14px; stroke-width: 2.4; }
+.list-grid { padding: 0 var(--pad) 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px 12px; }
+.list-grid .poster { width: auto; }
+.list-meta { padding: 0 var(--pad) 12px; font: 400 var(--fs-12)/1 var(--font-num); color: var(--text-2); }
+</style>
+</head>
+<body>
+
+<!-- ============ 图标（自绘线稿 · 24 网格 · 1.8 描边） ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-discover" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="M12 7.5c.5 2.3 1.9 3.9 4.5 4.5-2.6.6-4 2.2-4.5 4.5-.5-2.3-1.9-3.9-4.5-4.5 2.6-.6 4-2.2 4.5-4.5Z"/></symbol>
+  <symbol id="i-library" viewBox="0 0 24 24"><rect x="3.5" y="4" width="4" height="16" rx="1.5"/><rect x="9.5" y="7" width="4" height="13" rx="1.5"/><path d="m15.6 8.4 3.8-1 3 11.6-3.8 1z"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h9M18 7h2M4 17h2M11 17h9"/><circle cx="15.5" cy="7" r="2.5"/><circle cx="8.5" cy="17" r="2.5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="6" cy="12" r=".9"/><circle cx="12" cy="12" r=".9"/><circle cx="18" cy="12" r=".9"/></symbol>
+  <symbol id="i-sofa" viewBox="0 0 24 24"><path d="M5 11V8.5A2.5 2.5 0 0 1 7.5 6h9A2.5 2.5 0 0 1 19 8.5V11"/><path d="M3 13.5a2 2 0 0 1 4 0V15h10v-1.5a2 2 0 0 1 4 0V18H3z"/><path d="M5 18v1.5M19 18v1.5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M10 3.5c.7 3.6 2.6 5.6 6 6.3-3.4.7-5.3 2.7-6 6.3-.7-3.6-2.6-5.6-6-6.3 3.4-.7 5.3-2.7 6-6.3Z"/><path d="M18 14.5c.3 1.6 1.1 2.5 2.5 2.8-1.4.3-2.2 1.2-2.5 2.8-.3-1.6-1.1-2.5-2.5-2.8 1.4-.3 2.2-1.2 2.5-2.8Z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-mount" viewBox="0 0 24 24"><path d="m2.5 19 6.5-10 4 6 2.5-3.5L21.5 19z"/><circle cx="17" cy="6" r="2"/></symbol>
+</svg>
+
+<div class="stage">
+
+<!-- ================================== 画面 A · 首页 ================================== -->
+<div>
+<p class="frame-label">A · 首页（393 × 873，可滚动）</p>
+<div class="phone">
+  <div class="statusbar"><span class="num">21:30</span><span class="sb-icons"><i style="width:16px;height:10px"></i><i style="width:14px;height:10px;border-radius:5px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+  <div class="scroll" id="homeScroll">
+
+    <!-- ===== 放映厅（暗区） ===== -->
+    <div class="theater" id="theater">
+
+      <!-- 模块 0 · 顶部浮层 -->
+      <div class="topbar">
+        <div class="wordmark">kivo<i></i></div>
+        <div class="top-actions">
+          <button class="gbtn num" aria-label="片源状态"><span class="dot"></span>3 源在线</button>
+          <button class="gbtn" aria-label="搜索" style="padding:0"><svg class="i"><use href="#i-search"/></svg></button>
+        </div>
+      </div>
+
+      <!-- 模块 1 · Hero -->
+      <section class="hero">
+        <div class="ph" id="heroImg"><span class="ph-tag">Hero 竖版剧照 · 393×580</span></div>
+        <div class="hero-scrim"></div>
+        <div class="hero-body">
+          <div class="eyebrow num" id="heroEyebrow">今日放映 · 01 / 05</div>
+          <div class="title-slot" id="heroTitle">雾港来信<small>片名 Logo 位</small></div>
+          <p class="pitch" id="heroPitch"></p>
+          <div class="facts" id="heroFacts"></div>
+          <div class="scores" id="heroScores"></div>
+          <div id="heroStrip"></div>
+          <div class="pager" id="pager"></div>
+        </div>
+      </section>
+
+      <!-- 模块 2 · 继续看 -->
+      <section class="section" style="margin-top:36px">
+        <div class="sec-head"><span class="sec-idx num">01</span><h2>继续看</h2><a class="sec-more" href="#">记录<svg class="i"><use href="#i-right"/></svg></a></div>
+        <div class="hscroll" id="cwRow"></div>
+      </section>
+    </div>
+
+    <!-- ===== 大厅（亮区） ===== -->
+    <div class="hall">
+
+      <!-- 模块 3 · 本周更新 -->
+      <section class="section">
+        <div class="sec-head"><span class="sec-idx num">02</span><h2>本周更新</h2><a class="sec-more" href="#">追剧日历<svg class="i"><use href="#i-right"/></svg></a></div>
+        <div class="days" id="days"></div>
+        <div class="eps" id="eps"></div>
+      </section>
+
+      <!-- 模块 4 · 院线新片 -->
+      <section class="section">
+        <div class="sec-head"><span class="sec-idx num">03</span><h2>院线新片</h2><a class="sec-more" href="#">全部<svg class="i"><use href="#i-right"/></svg></a></div>
+        <div class="hscroll" id="rowNew"></div>
+      </section>
+
+      <!-- 模块 5 · 本周趋势 -->
+      <section class="section">
+        <div class="sec-head"><span class="sec-idx num">04</span><h2>本周趋势</h2>
+          <div class="seg" id="rankSeg"><button class="is-on" data-k="movie">电影</button><button data-k="tv">剧集</button></div></div>
+        <div class="hscroll" id="rank"></div>
+      </section>
+
+      <!-- 模块 6 · 编辑专题 -->
+      <section class="section">
+        <a class="feature" href="#">
+          <span class="ph"><span class="ph-tag">专题横幅 · 353×148 · 2.39:1</span></span>
+          <div class="feature-body">
+            <div class="eyebrow">本月专题</div>
+            <h3>周末不出门清单 · 综艺篇</h3>
+            <p>十二档适合窝在沙发上看完的综艺。没有大道理，只有一群人认真地玩、认真地吃。</p>
+            <div class="feature-foot">
+              <div><b class="num">12</b>部作品</div><div><b class="num">7</b>库内可播</div><div><b class="num">38h</b>总时长</div>
+              <span class="feature-go"><svg class="i"><use href="#i-arrow"/></svg></span>
+            </div>
+          </div>
+        </a>
+      </section>
+
+      <!-- 模块 7 · 今日动漫 -->
+      <section class="section">
+        <div class="sec-head"><span class="sec-idx num">05</span><h2>今日动漫</h2><a class="sec-more" href="#">全部<svg class="i"><use href="#i-right"/></svg></a></div>
+        <div class="hscroll" id="rowAnime"></div>
+      </section>
+
+      <!-- 模块 8 · 按口味找片 -->
+      <section class="section">
+        <div class="sec-head"><span class="sec-idx num">06</span><h2>按口味找片</h2></div>
+        <div class="taste">
+          <a class="taste-big" href="#">
+            <div class="big num">8.5+</div><h4>高分剧集</h4><p class="num">128 部 · 41 部在你的库里</p>
+            <div class="fan"><span class="ph"></span><span class="ph"></span><span class="ph"></span></div>
+          </a>
+          <a class="taste-tile" href="#" style="--tint:30"><span class="taste-ico"><svg class="i"><use href="#i-sofa"/></svg></span><span><b>合家欢</b><small>库内 214</small></span></a>
+          <a class="taste-tile" href="#" style="--tint:265"><span class="taste-ico"><svg class="i"><use href="#i-spark"/></svg></span><span><b>动画</b><small>库内 386</small></span></a>
+          <a class="taste-tile" href="#" style="--tint:205"><span class="taste-ico"><svg class="i"><use href="#i-eye"/></svg></span><span><b>悬疑</b><small>库内 172</small></span></a>
+          <a class="taste-tile" href="#" style="--tint:150"><span class="taste-ico"><svg class="i"><use href="#i-mount"/></svg></span><span><b>纪录片</b><small>库内 95</small></span></a>
+        </div>
+      </section>
+
+      <!-- 模块 9 · 常看的面孔 -->
+      <section class="section">
+        <div class="sec-head"><span class="sec-idx num">07</span><h2>常看的面孔</h2><a class="sec-more" href="#">全部<svg class="i"><use href="#i-right"/></svg></a></div>
+        <div class="hscroll"><div class="faces" id="faces"></div></div>
+      </section>
+
+      <!-- 模块 10 · 平台与出品方 -->
+      <section class="section">
+        <div class="sec-head"><span class="sec-idx num">08</span><h2>平台与出品方</h2></div>
+        <div class="hscroll"><div class="logos" id="logos"></div></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- 底部导航 -->
+  <nav class="tabbar" id="tabbar">
+    <button class="tab is-on"><svg class="i"><use href="#i-discover"/></svg>发现</button>
+    <button class="tab"><svg class="i"><use href="#i-library"/></svg>片库</button>
+    <button class="tab"><span class="avatar ph"></span>我的</button>
+    <button class="tab"><svg class="i"><use href="#i-settings"/></svg>设置</button>
+  </nav>
+</div>
+</div>
+
+<!-- ================================== 画面 B · 二级列表页 ================================== -->
+<div>
+<p class="frame-label">B · 院线新片 · 全部</p>
+<div class="phone">
+  <div class="statusbar dark"><span class="num">21:31</span><span class="sb-icons"><i style="width:16px;height:10px"></i><i style="width:14px;height:10px;border-radius:5px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+  <div class="scroll">
+    <div class="list-top">
+      <button class="gbtn" aria-label="返回"><svg class="i"><use href="#i-left"/></svg></button>
+      <h1>院线新片</h1>
+      <button class="gbtn" aria-label="更多"><svg class="i"><use href="#i-more"/></svg></button>
+    </div>
+    <div class="chips" id="chips">
+      <button class="chip is-on"><svg class="i"><use href="#i-check"/></svg>只看库内</button>
+      <button class="chip">4K</button><button class="chip">HDR10</button>
+      <button class="chip">评分最高</button>
+      <button class="chip" disabled>杜比视界</button>
+    </div>
+    <div class="list-meta num">48 部 · 库内可播 21 部</div>
+    <div class="list-grid" id="listGrid"></div>
+  </div>
+</div>
+</div>
+
+</div>
+
+<script>
+if (location.search.includes('long')) document.body.classList.add('long');
+
+/* ======================= 演示数据（虚构） ======================= */
+const HERO = [
+  { t:'雾港来信', h:210, pitch:'一封信、一个名字，一座雨下个不停的港城。', facts:['2026','犯罪 / 悬疑','12 集'], s:{ IMDb:'7.9', TMDB:'6.9', 豆瓣:'8.2' }, q:['4K','HDR10'], src:'书房 NAS' },
+  { t:'北纬三十度', h:30, pitch:'跟着父辈留下的一段录音，走完一条横穿六国的纬线。', facts:['2026','冒险 / 剧情','118 分钟'], s:{ IMDb:'7.4', TMDB:'7.1' }, q:['4K'], src:'客厅 Emby' },
+  { t:'长夜行舟', h:250, pitch:'大桥通车那天，摆渡人决定最后一次把全家载过江。', facts:['2026','剧情 / 家庭','132 分钟'], s:{ IMDb:'8.1', 豆瓣:'8.7' }, q:['1080p'], src:'书房 NAS' },
+  { t:'冰原回声', h:195, pitch:'冰层下传来的信号，节奏和他们的心跳一模一样。', facts:['2026','科幻 / 惊悚','8 集'], s:{ IMDb:'7.2', TMDB:'7.0' }, q:null },
+  { t:'山茶与盐', h:350, pitch:'一场台风，把盐场的女儿和茶园的少年困在同一个夏天。', facts:['2026','爱情 / 剧情','24 集'], s:{ TMDB:'7.8', 豆瓣:'8.0' }, q:['4K','HDR10'], src:'客厅 Emby' },
+];
+const CW = [
+  { t:'雾港来信', m:'S1 · E3 · 剩 42 分钟', p:.28, h:205, q:['4K','HDR10'], src:'NAS', ticks:[12,31,54,78] },
+  { t:'长夜行舟', m:'剩 1 小时 06 分', p:.41, h:250, q:['1080p'], src:'Emby', ticks:[20,48,70] },
+  { t:'白鲸档案', m:'S1 · E9 · 剩 8 分钟', p:.86, h:200, q:['4K'], src:'SMB', ticks:[25,60] },
+];
+const WEEK = [
+  { d:'一', n:17, eps:[['白鲸档案','E12 · 20:00',200,1],['午夜电台','E06 · 22:00',280,0]] },
+  { d:'二', n:18, eps:[['南方的雨','E16 · 19:30',160,1]] },
+  { d:'三', n:19, eps:[] },
+  { d:'四', n:20, eps:[['雾港来信','E04 · 20:00',210,1],['归途','E20 · 21:00',15,0],['云上小馆','E10 · 18:00',40,0]] },
+  { d:'五', n:21, eps:[['山茶与盐','E08 · 20:00',350,1],['灯塔守夜人','E07 · 22:30',205,0]] },
+  { d:'六', n:22, eps:[['逃离迷宫','E03 · 20:00',120,0],['长街旧事','E11 · 21:00',25,1]], today:true },
+  { d:'日', n:23, eps:[['二十四节气','E02 · 19:00',90,0]] },
+];
+const NEW = [
+  ['夜航星','11 月 20 日',230,['4K','NAS']],['落日车站','11 月 14 日',20,null],['潮汐计划','11 月 8 日',190,['4K','Emby']],
+  ['无声证人','11 月 6 日',0,null],['青梧巷','10 月 31 日',140,['1080p','NAS']],['边境线上','10 月 29 日',30,null],
+  ['逆光少年','10 月 24 日',45,['4K','Emby']],['黑匣子','10 月 12 日',270,['4K','SMB']],
+];
+const ANIME = [
+  ['机械少女的日常','更新至 E07',230,['1080p','NAS']],['青空投递员','更新至 E05',200,null],['夏至之庭','更新至 E11',140,['4K','Emby']],
+  ['第十三号站台','更新至 E03',260,null],['猫町物语','更新至 E09',35,['1080p','NAS']],['星屑旅团','更新至 E06',290,null],
+];
+const RANK = {
+  movie: [['夜航星','2026 · 剧情','up','↑3',230],['潮汐计划','2026 · 科幻','new','新',190],['边境线上','2026 · 动作','down','↓1',30],
+          ['落日车站','2026 · 悬疑','up','↑5',20],['无声证人','2026 · 犯罪','down','↓2',0],['青梧巷','2026 · 爱情','up','↑1',140],
+          ['逆光少年','2026 · 运动','new','新',45],['雪落无声','2025 · 剧情','down','↓4',210],['黑匣子','2026 · 惊悚','up','↑2',270]],
+  tv:    [['雾港来信','2026 · 犯罪','up','↑2',210],['山茶与盐','2026 · 爱情','down','↓1',350],['冰原回声','2026 · 科幻','new','新',195],
+          ['白鲸档案','2026 · 悬疑','up','↑4',200],['南方的雨','2026 · 剧情','down','↓2',160],['午夜电台','2026 · 都市','up','↑1',280],
+          ['归途','2025 · 家庭','down','↓3',15],['灯塔守夜人','2026 · 奇幻','new','新',205],['云上小馆','2026 · 美食','up','↑6',40]],
+};
+const FACES = [['林知远','雾港来信'],['沈霁','夜航星'],['周屿白','长夜行舟'],['许南星','山茶与盐'],['陆青禾','落日车站'],['顾舟','冰原回声'],['温以宁','青梧巷'],['程默','暗河']];
+const LOGOS = ['平台 A','出品方 B','平台 C','出品方 D','平台 E','出品方 F','平台 G','出品方 H','平台 I','出品方 J'];
+
+/* ======================= 组件 ======================= */
+const $ = s => document.querySelector(s);
+const strip = (q, src) => q ? `<span class="strip">${q.map(x => `<span class="q">${x}</span>`).join('')}${src ? `<span class="s">${src}</span>` : ''}</span>` : '';
+const poster = ([t, m, h, src]) => `
+  <a class="poster" href="#">
+    <span class="ph" style="--h:${h}"><span class="ph-tag">海报 2:3</span>${src ? strip(src.slice(0, -1), src.at(-1)) : ''}</span>
+    ${src ? '' : '<button class="want" aria-label="想看"><svg class="i off"><use href="#i-plus"/></svg><svg class="i on"><use href="#i-check"/></svg></button>'}
+    <div class="p-t ellipsis">${t}</div><div class="p-m">${m}</div>
+  </a>`;
+
+$('#cwRow').innerHTML = CW.map(c => `
+  <a class="cw" href="#"><span class="ph" style="--h:${c.h}"><span class="ph-tag" style="left:auto;right:44px">16:9</span></span>
+    ${strip(c.q, c.src)}
+    <button class="cw-more" aria-label="更多" onclick="event.preventDefault()"><svg class="i"><use href="#i-more"/></svg></button>
+    <div class="cw-info"><div class="cw-t">${c.t}</div><div class="cw-m num">${c.m}</div>
+      <div class="chapters"><span class="fill" style="width:${c.p * 100}%"></span>${c.ticks.map(x => `<span class="tick" style="left:${x}%"></span>`).join('')}</div></div>
+  </a>`).join('');
+
+/* 本周更新 */
+function renderDay(i) {
+  document.querySelectorAll('.day').forEach((d, k) => d.classList.toggle('is-on', k === i));
+  $('#eps').innerHTML = WEEK[i].eps.map(([t, m, h, lib]) => `
+    <a class="ep" href="#"><span class="ph" style="--h:${h}"></span>
+      <div style="min-width:0"><div class="ep-t ellipsis">${t}</div><div class="ep-m"><span>${m}</span>${lib ? '<span class="lib-tag">已入库</span>' : ''}</div></div>
+      <svg class="i chev"><use href="#i-right"/></svg></a>`).join('');
+}
+$('#days').innerHTML = WEEK.map((d, i) => `<button class="day${d.today ? ' is-today' : ''}" ${d.eps.length ? '' : 'disabled'} data-i="${i}"><span>${d.today ? '今天' : '周' + d.d}</span><b class="num">${d.n}</b></button>`).join('');
+$('#days').addEventListener('click', e => { const b = e.target.closest('.day'); if (b && !b.disabled) renderDay(+b.dataset.i); });
+renderDay(WEEK.findIndex(d => d.today));
+
+$('#rowNew').innerHTML = NEW.map(poster).join('');
+$('#rowAnime').innerHTML = ANIME.map(poster).join('');
+
+function renderRank(k) {
+  const L = RANK[k], cols = [L.slice(0, 3), L.slice(3, 6), L.slice(6, 9)];
+  $('#rank').innerHTML = cols.map((col, c) => `<div class="rank-col">${col.map(([t, m, dk, dv, h], i) => {
+    const n = c * 3 + i + 1;
+    return `<a class="rank-row" href="#"><span class="rank-n num${n <= 3 ? ' top' : ''}">${n}</span><span class="ph" style="--h:${h}"></span>
+      <div style="min-width:0"><div class="rank-t ellipsis">${t}</div><div class="rank-m">${m}</div></div><span class="delta d-${dk}">${dv}</span></a>`;
+  }).join('')}</div>`).join('');
+}
+renderRank('movie');
+$('#rankSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  $('#rankSeg').querySelectorAll('button').forEach(x => x.classList.toggle('is-on', x === b)); renderRank(b.dataset.k);
+});
+
+$('#faces').innerHTML = FACES.map(([n, w], i) => `<a class="face" href="#"><span class="ph" style="--h:${(i * 53 + 20) % 360}"></span><span><b>${n}</b><small>${w}</small></span></a>`).join('');
+$('#logos').innerHTML = LOGOS.map(n => `<a class="logo-tile" href="#"><span class="logo-slot">${n}</span></a>`).join('');
+$('#listGrid').innerHTML = NEW.filter(x => x[3]).concat(NEW.filter(x => x[3]), NEW.filter(x => x[3])).slice(0, 12).map(poster).join('');
+
+/* Hero */
+let cur = 0;
+$('#pager').innerHTML = HERO.map((_, i) => `<button aria-label="第 ${i + 1} 部"><i></i></button>`).join('');
+function setHero(i) {
+  cur = i; const s = HERO[i];
+  $('#heroImg').style.setProperty('--h', s.h);
+  $('#theater').style.setProperty('--h', s.h);           /* 放映厅随剧照着色 */
+  $('#heroEyebrow').textContent = `今日放映 · ${String(i + 1).padStart(2, '0')} / ${String(HERO.length).padStart(2, '0')}`;
+  $('#heroTitle').firstChild.textContent = s.t;
+  $('#heroPitch').textContent = s.pitch;
+  $('#heroFacts').innerHTML = s.facts.map(f => `<span class="num">${f}</span>`).join('<span class="sep"></span>');
+  $('#heroScores').innerHTML = Object.entries(s.s).map(([k, v]) => `<span class="score"><em>${k}</em><b>${v}</b></span>`).join('');
+  $('#heroStrip').innerHTML = strip(s.q, s.src);
+  document.querySelectorAll('#pager button').forEach((b, k) => {
+    b.classList.remove('is-on'); void b.offsetWidth;
+    b.classList.toggle('is-on', k === i); b.classList.toggle('done', k < i);
+  });
+}
+document.querySelectorAll('#pager button').forEach((b, i) => {
+  b.addEventListener('click', () => setHero(i));
+  b.querySelector('i').addEventListener('animationend', () => setHero((cur + 1) % HERO.length));
+});
+setHero(0);
+
+/* 交互：想看 / 导航 / 筛选 */
+document.addEventListener('click', e => {
+  const w = e.target.closest('.want'); if (w) { e.preventDefault(); w.classList.toggle('is-on'); return; }
+  const t = e.target.closest('.tab'); if (t) document.querySelectorAll('.tab').forEach(x => x.classList.toggle('is-on', x === t));
+  const c = e.target.closest('.chip'); if (c && !c.disabled) c.classList.toggle('is-on');
+  if (e.target.closest('a[href="#"]')) e.preventDefault();
+});
+</script>
+</body>
+</html>

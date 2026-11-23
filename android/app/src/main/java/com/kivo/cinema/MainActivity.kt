@@ -130,22 +130,10 @@ class MainActivity : ComponentActivity() {
      * 剧集键（`smb-series://`）带目录，单片键带文件，两者都进详情页、由详情页决定形态。
      */
     internal fun openNasEntry(entry: com.kivo.cinema.library.HomeEntry) {
-        val coords = com.kivo.cinema.library.NasSeries.parseKey(entry.key)
-        if (coords != null) {
-            startActivity(
-                com.kivo.cinema.ui.detail.MovieDetailActivity.smbIntent(
-                    this, coords.sourceId, coords.share, coords.rootDir,
-                    isSeries = true, title = coords.title,
-                ),
-            )
-            return
-        }
-        val p = com.kivo.cinema.library.SmbContinueKey.parse(entry.key) ?: return
-        startActivity(
-            com.kivo.cinema.ui.detail.MovieDetailActivity.smbIntent(
-                this, p.sourceId, p.share, p.path, isSeries = false,
-            ),
-        )
+        // 路由口径见 NasEntryRoute（与「查看全部」分类页共用）；解析失败不静默，给出原因。
+        val intent = com.kivo.cinema.ui.design.home.nasEntryIntent(this, entry)
+        if (intent != null) startActivity(intent)
+        else android.widget.Toast.makeText(this, "无法定位这部影片在 NAS 上的位置，请重新扫描片库", android.widget.Toast.LENGTH_SHORT).show()
     }
 
     /**
