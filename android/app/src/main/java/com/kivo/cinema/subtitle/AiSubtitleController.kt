@@ -1,6 +1,8 @@
 package com.kivo.cinema.subtitle
 
 import android.content.Context
+import com.kivo.cinema.subtitle.remote.RemoteAiEngineClient
+import com.kivo.cinema.subtitle.remote.RemoteEnginePrefs
 import java.util.concurrent.atomic.AtomicReference
 
 // ============================================================================
@@ -21,29 +23,45 @@ import java.util.concurrent.atomic.AtomicReference
 
 class AiSubtitleController(private val context: Context) {
 
-    private val client: AiEngineClient = sharedClient
+    private val client: AiEngineClient = localClient
     private val runningJob = AtomicReference<TranslationJob?>(null)
 
     companion object {
-        /// 进程级共享引擎 client。线程契约：所有 native 调用都走同一个单线程
-        /// executor（C++ 单例 mutex 的调用方约定）——各入口各自 new client =
-        /// 多线程并发进 native + executor 泄漏；且第二个 client 的 loadModel
-        /// 会 g_engine.reset() 销毁第一个正在用的引擎（2026-11-21 冒烟实测）。
-        /// 在线字幕路径（详情页）与播放面板因此必须共享同一实例。
-        internal val sharedClient: AiEngineClient by lazy { LocalAiEngineClient() }
+        /// 本地引擎 client（进程级共享：所有 native 调用走同一个单线程 executor，
+        /// C++ 单例 mutex 的调用方约定；第二个 client 的 loadModel 会 g_engine.reset()
+        /// 销毁正在用的引擎——2026-11-21 冒烟实测）。
+        private val localClient: AiEngineClient by lazy { LocalAiEngineClient() }
 
-        /// 共享模型装载：isReady → ModelStore 发现 → loadModel。
+        /// 远程引擎 client（同样进程级单例——单线程 executor 的线程契约）。
+        @Volatile
+        private var remoteClient: RemoteAiEngineClient? = null
+
+        /// 引擎选择（design.md ai-online-2026-11-25 §四）：按配置返回本地/远程单例。
+        /// 切换即时生效（下一次翻译起）；两实现共享同一 AiEngineClient 形状。
+        @Synchronized
+        fun engineClient(context: Context): AiEngineClient {
+            val prefs = RemoteEnginePrefs(context)
+            return if (prefs.useRemote) {
+                remoteClient ?: RemoteAiEngineClient(context.applicationContext).also { remoteClient = it }
+            } else {
+                localClient
+            }
+        }
+
+        /// 共享装载：远程引擎 = 配置完整即就绪；本地 = isReady → ModelStore → loadModel。
         /// 返回 null = 就绪；非空 = 用户可见中文原因（G9）。
-        /// 未就绪时才 loadModel —— 此时没有「正在用的引擎」，重建无害。
+        /// 本地未就绪时才 loadModel —— 此时没有「正在用的引擎」，重建无害。
         internal fun ensureModelLoadedReason(context: Context): String? {
+            val remote = RemoteEnginePrefs(context)
+            if (remote.useRemote) { return remote.configError() }
             if (!AiTranslationNative.available) { return "AI 翻译库不可用" }
-            if (sharedClient.isReady()) { return null }
+            if (localClient.isReady()) { return null }
             val model = AiSubtitleModelStore.findModel(context)
                 ?: return "未找到翻译模型：${AiSubtitleModelStore.guidance(context)}"
-            return if (sharedClient.loadModel(model.absolutePath)) {
+            return if (localClient.loadModel(model.absolutePath)) {
                 null
             } else {
-                "模型加载失败：${sharedClient.lastError() ?: "未知原因"}"
+                "模型加载失败：${localClient.lastError() ?: "未知原因"}"
             }
         }
     }
@@ -57,8 +75,12 @@ class AiSubtitleController(private val context: Context) {
     /// libkivo_ai.so 是否可用（不可用时入口灰显，reason 固定）。
     fun isNativeAvailable(): Boolean = AiTranslationNative.available
 
-    /// 引擎是否就绪（模型已加载）。
-    fun isEngineReady(): Boolean = AiTranslationNative.available && client.isReady()
+    /// 引擎是否就绪（本地 = 模型已加载；远程 = 配置完整）。
+    fun isEngineReady(): Boolean {
+        val remote = RemoteEnginePrefs(context)
+        if (remote.useRemote) { return remote.configError() == null }
+        return AiTranslationNative.available && client.isReady()
+    }
 
     /// 入口态解析（UX v3 §3：功能开关由调用方传入——设置页总开关）。
     fun entryState(
@@ -66,6 +88,31 @@ class AiSubtitleController(private val context: Context) {
         hasEnglishSrt: Boolean,
         subtitleIssue: SubtitleIssue,
     ): AiEntryState {
+        val remotePrefs = RemoteEnginePrefs(context)
+        if (remotePrefs.useRemote) {
+            // 远程引擎不依赖 libkivo_ai.so 与本地模型——入口态只看配置完整性。
+            return if (remotePrefs.configError() == null) {
+                resolveAiEntryState(
+                    AiEntryConditions(
+                        featureEnabled = featureEnabled,
+                        taskState = if (runningJob.get() != null) TranslationTaskState.TRANSLATING else null,
+                        cacheHit = lastTranslationPath != null,
+                        subtitleIssue = subtitleIssue,
+                        modelIssue = ModelIssue.NONE,
+                    )
+                )
+            } else {
+                resolveAiEntryState(
+                    AiEntryConditions(
+                        featureEnabled = featureEnabled,
+                        taskState = null,
+                        cacheHit = false,
+                        subtitleIssue = subtitleIssue,
+                        modelIssue = ModelIssue.MISSING,
+                    )
+                )
+            }
+        }
         if (!AiTranslationNative.available) { return AiEntryState.FEATURE_DISABLED }
         val modelIssue = when {
             isEngineReady() -> ModelIssue.NONE
@@ -126,7 +173,7 @@ class AiSubtitleController(private val context: Context) {
     ): Boolean {
         if (runningJob.get() != null) { return false }
 
-        val job = TranslationJob(client, context) { progress ->
+        val job = TranslationJob(engineClient(context), context) { progress ->
             currentProgress = progress
             onProgress?.invoke(progress)
         }

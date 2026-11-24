@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.kivo.cinema.playback.PlaybackPrefs
 import com.kivo.cinema.playback.subtitle.SubtitleAssMode
 import com.kivo.cinema.playback.subtitle.SubtitleStyleStore
+import com.kivo.cinema.ui.subtitles.online.AiEngineSettings
 import com.kivo.cinema.ui.subtitles.online.OnlineSubtitleSettings
 
 /**
@@ -159,6 +160,7 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
             com.kivo.cinema.subtitle.online.OnlineSubtitlePrefs(context),
             onChanged = { revision++ },
         )
+        AiEngineSettings(onChanged = { revision++ })
     }
 
     when (picker) {

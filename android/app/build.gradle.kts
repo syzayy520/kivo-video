@@ -123,4 +123,8 @@ dependencies {
     // modified-UTF-8 这类边界 bug 一直没被测出来。junit 4.13.2 已在本地 Gradle 缓存，
     // 加这一行不需要联网。
     testImplementation("junit:junit:4.13.2")
+
+    // org.json 在单测 JVM 上是 android.jar 桩类（方法全抛 not mocked）——
+    // RemoteEngineProtocols（在线 AI 翻译编解码）要在 JVM 跑真 JSON，补真实实现。
+    testImplementation("org.json:json:20240303")
 }
