@@ -83,10 +83,20 @@ internal fun SearchOverlay(
         recentVersion++
         onOpenEntry(entry)
     }
+    /** 取消/返回②：搜过且有结果也记入最近搜索（不只靠键盘「搜索」键，后者部分 IME 不发 action）。 */
+    val cancelQuery = {
+        val term = search.query.trim()
+        if (term.isNotEmpty() && search.entries.isNotEmpty()) {
+            recent.add(term)
+            recentVersion++
+        }
+        search.clear()
+        mode = SearchMode.Home
+    }
 
     BackHandler {
         when (mode) {
-            SearchMode.Query -> { search.clear(); mode = SearchMode.Home }
+            SearchMode.Query -> cancelQuery()
             SearchMode.Browse -> mode = SearchMode.Home
             SearchMode.Home -> onClose()
         }
@@ -123,7 +133,7 @@ internal fun SearchOverlay(
                 )
                 SearchMode.Query -> SearchQueryPage(
                     repo = search,
-                    onCancel = { search.clear(); mode = SearchMode.Home },
+                    onCancel = { cancelQuery() },
                     onVoice = startVoice,
                     onOpen = openEntry,
                     onSubmitQuery = {
