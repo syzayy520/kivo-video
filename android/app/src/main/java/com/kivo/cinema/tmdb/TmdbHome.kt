@@ -193,6 +193,25 @@ class TmdbHome(private val client: TmdbClient) {
             HomeData(j?.optJSONArray("results")?.let { parseItems(it) } ?: emptyList(), err)
         }
 
+    /** 带分页元信息的列表（搜索/筛选页用；解析、缓存、错误分类与首页同源）。 */
+    data class PagedHomeData(
+        val items: List<Item>,
+        val total: Int,
+        val totalPages: Int,
+        val errorKind: String?,
+    )
+
+    /** internal：search/multi、trending/day、discover 筛选共用同一条 get + parseItems 链路。 */
+    internal fun pagedItems(path: String): PagedHomeData {
+        val (j, err) = get(path)
+        return PagedHomeData(
+            items = j?.optJSONArray("results")?.let { parseItems(it) } ?: emptyList(),
+            total = j?.optInt("total_results") ?: 0,
+            totalPages = j?.optInt("total_pages") ?: 0,
+            errorKind = err,
+        )
+    }
+
     /** 榜单第 [page] 页（路径见 [TmdbList]；首页行与「查看全部」页共用）。 */
     fun list(kind: TmdbList, page: Int = 1): HomeData = items(kind.path(page))
 

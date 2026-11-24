@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kivo 搜索页 · 对齐首页风格</title>
+<style>
+:root{--board:#DCDCE2;--cap:#55555B;--capb:#1A1A1A;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--board:#0B0B0E;--cap:#9A9AA3;--capb:#F4F4F7;color-scheme:dark}}
+:root[data-theme="dark"]{--board:#0B0B0E;--cap:#9A9AA3;--capb:#F4F4F7;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--board);font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:24px 16px 48px}
+.board{display:flex;gap:32px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+.cap{width:393px;margin-bottom:10px;font-size:13px;color:var(--cap)}.cap b{color:var(--capb);font-size:15px;margin-right:6px}
+/* 手机内部:固定浅色,和首页一致 */
+.phone{--page:#F2F2F7;--t1:#1A1A1A;--t2:#8E8E93;--hair:rgba(0,0,0,.06);--pill:#E8E9ED;--green:#2E6E5E;--star:#D9922B;--pad:20px;
+ width:393px;height:873px;position:relative;overflow:hidden;border-radius:40px;background:var(--page);color:var(--t1);box-shadow:0 30px 60px rgba(0,0,0,.18)}
+.status{position:absolute;top:0;left:0;right:0;height:44px;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:6px 22px 0;font-size:15px;font-weight:500;background:linear-gradient(var(--page) 60%,transparent)}
+.bt{width:22px;height:11px;border-radius:3px;border:1.5px solid #333;position:relative}.bt::after{content:"";position:absolute;inset:1px;right:5px;background:#333;border-radius:1px}
+.scroll{position:absolute;inset:0;overflow:hidden;padding-top:44px}
+.title{font-size:32px;font-weight:700;padding:8px var(--pad) 12px}
+.field{margin:0 var(--pad);height:46px;border-radius:14px;background:#fff;display:flex;align-items:center;gap:9px;padding:0 14px;box-shadow:0 1px 3px rgba(0,0,0,.05),inset 0 0 0 1px var(--hair)}
+.field .ph{flex:1;font-size:16px;color:var(--t2)}.field .val{flex:1;font-size:16px}
+.field.focus{box-shadow:0 0 0 1.5px rgba(10,132,255,.5)}
+.caret{display:inline-block;width:2px;height:19px;background:#0A84FF;vertical-align:-4px;margin-left:1px;border-radius:1px}
+.clear{width:18px;height:18px;border-radius:50%;background:#C7C7CC;display:flex;align-items:center;justify-content:center}
+.frow{display:flex;align-items:center;gap:14px;padding-right:var(--pad)}.frow .field{flex:1;margin-right:0}.cancel{font-size:16px;color:#0A84FF}
+.sec{margin-top:26px}
+.sh{display:flex;justify-content:space-between;align-items:center;padding:0 var(--pad);margin-bottom:14px}
+.sh h2{font-size:20px;font-weight:700}.sh .g{font-size:14px;color:var(--t2);display:flex;align-items:center;gap:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 var(--pad)}
+.chip{height:34px;padding:0 14px;border-radius:17px;background:#fff;font-size:14px;display:flex;align-items:center}
+/* 海报轨道:与首页一致 */
+.rail{display:flex;gap:12px;padding:0 var(--pad);overflow:hidden}
+.c{flex:0 0 106px;min-width:0}
+.p{position:relative;overflow:hidden;border-radius:12px;aspect-ratio:2/3;width:100%}
+.p::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.p i{position:absolute;left:8px;right:8px;bottom:26px;font-style:normal;font-weight:700;font-size:13px;color:#fff;line-height:1.25;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.rk{position:absolute;left:8px;top:2px;font-size:38px;font-weight:800;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.35);z-index:2}
+.bd{position:absolute;left:6px;bottom:6px;font-size:12px;color:#fff;background:rgba(40,40,44,.55);padding:2px 7px;border-radius:7px;z-index:2}
+.t{font-size:15px;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m{font-size:13px;color:var(--t2);margin-top:2px;white-space:nowrap}.m s{text-decoration:none;color:var(--star)}
+/* 分类浏览卡:沿用首页 */
+.types{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 var(--pad)}
+.ty{height:86px;border-radius:14px;position:relative;overflow:hidden}
+.ty::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(0,0,0,.7),rgba(0,0,0,.2) 85%)}
+.ty div{position:absolute;left:14px;bottom:11px;z-index:2;color:#fff}.ty b{display:block;font-size:18px;font-weight:500}.ty em{font-style:normal;font-size:9px;letter-spacing:2.4px;opacity:.8}
+/* 底栏:与首页同款 */
+.navfade{position:absolute;left:0;right:0;bottom:0;height:100px;z-index:18;background:linear-gradient(to top,var(--page) 45%,transparent)}
+.nav{position:absolute;left:16px;right:16px;bottom:22px;display:flex;gap:12px;z-index:19}
+.pillbar{flex:1;height:52px;border-radius:26px;background:var(--pill);display:flex;align-items:center;padding:0 5px;box-shadow:0 4px 14px rgba(0,0,0,.1)}
+.nt{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:10px;color:#4B5563}.nt svg{width:24px;height:24px}
+.sbtn{width:52px;height:52px;border-radius:26px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.1)}
+/* ② */
+.best{margin:16px var(--pad) 0;height:190px;border-radius:14px;position:relative;overflow:hidden}
+.best::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8),transparent 65%)}
+.best .ov{position:absolute;left:16px;right:16px;bottom:14px;z-index:2;color:#fff;display:flex;align-items:flex-end;justify-content:space-between}
+.best .k{font-size:12px;opacity:.8}.best h3{font-size:22px;margin:3px 0}.best p{font-size:13px;opacity:.85}
+.go{height:36px;padding:0 16px;border-radius:18px;background:rgba(255,255,255,.92);color:#000;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.list{margin:0 var(--pad)}.li{display:flex;gap:12px;align-items:center;padding:8px 0}.li+.li{border-top:1px solid var(--hair)}
+.li .p{width:46px;flex:0 0 46px;border-radius:8px}.li.off .p{opacity:.55}
+.li .t{margin:0;font-size:15px}.li mark{background:none;color:#0A84FF;font-weight:600}
+.sp{display:inline-flex;margin-top:6px;border-radius:5px;overflow:hidden;font-size:11px;color:#fff;font-style:normal}
+.sp b{background:var(--green);padding:1px 6px;font-weight:400}.sp u{text-decoration:none;background:rgba(110,110,116,.6);padding:1px 6px}
+.kb{position:absolute;left:0;right:0;bottom:0;height:282px;background:#D3D5DB;z-index:25;padding:8px 4px 0}
+.kbbar{height:36px;display:flex;align-items:center;padding:0 14px;font-size:17px;margin-bottom:6px}.kbbar span{flex:1;text-align:center}
+.kr{display:flex;gap:6px;justify-content:center;margin-bottom:11px}
+.k{height:43px;flex:0 0 33px;border-radius:5px;background:#FCFCFE;box-shadow:0 1px 0 rgba(0,0,0,.25);font-size:20px;display:flex;align-items:center;justify-content:center}
+.k.w{flex:0 0 46px;background:#ADB3BC;font-size:14px}.k.sp2{flex:0 0 190px;font-size:14px}.k.go2{flex:0 0 86px;background:#0A84FF;color:#fff;font-size:15px}
+/* ③④ */
+.top{display:flex;align-items:center;justify-content:space-between;padding:4px var(--pad) 6px}
+.cb{width:40px;height:40px;border-radius:20px;background:var(--pill);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.top h1{font-size:17px;font-weight:600}
+.tabs{display:flex;gap:22px;padding:8px var(--pad) 0;overflow:hidden;white-space:nowrap;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.tabs span{font-size:16px;color:var(--t2);padding-bottom:9px;position:relative;flex:0 0 auto}.tabs .on{color:var(--t1);font-weight:700}
+.tabs .on::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:16px;height:3px;border-radius:2px;background:var(--t1)}
+.seg{margin:12px var(--pad) 0;height:34px;border-radius:10px;background:rgba(118,118,128,.12);display:flex;padding:2px}
+.seg span{flex:1;display:flex;align-items:center;justify-content:center;font-size:13px;color:#3C3C43;border-radius:8px}.seg .on{background:#fff;font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.08)}
+.fr{display:flex;align-items:center;gap:6px;padding:5px 0 5px var(--pad);white-space:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 90%,transparent);mask-image:linear-gradient(90deg,#000 90%,transparent)}
+.fr .lb{font-size:12px;color:var(--t2);width:30px;flex:0 0 auto}.fr span{flex:0 0 auto;font-size:13px;padding:5px 11px;border-radius:14px}
+.fr .lb+span{margin-left:0}.fr span.on{background:var(--t1);color:#fff;font-weight:600}
+.sum{display:flex;justify-content:space-between;align-items:center;padding:12px var(--pad) 12px;font-size:12px;color:var(--t2)}.sum b{color:var(--t1);font-weight:600}
+.tog{display:flex;align-items:center;gap:7px;color:#3C3C43}
+.sw{width:34px;height:20px;border-radius:10px;background:#34C759;position:relative}.sw::after{content:"";position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 12px;padding:0 var(--pad)}
+.sticky{position:absolute;top:44px;left:0;right:0;z-index:22;padding:8px var(--pad);background:rgba(242,242,247,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--hair);font-size:14px;font-weight:600;display:flex;gap:6px;align-items:center}
+.sticky em{font-style:normal;color:var(--t2);font-weight:400}
+.notes{max-width:1300px;margin:30px auto 0;font-size:13px;line-height:1.8;color:var(--cap)}.notes li{margin-left:18px}
+</style></head><body>
+<div class="board">
+
+<div><div class="cap"><b>① 搜索首页</b>版式与首页一致:大标题、海报轨道、分类卡</div>
+<div class="phone"><div class="status"><span>9:42</span><span class="bt"></span></div>
+<div class="scroll">
+ <div class="title">搜索</div>
+ <div class="field"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><span class="ph">片名、演员、导演</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></div>
+ <div class="sec"><div class="sh"><h2>最近搜索</h2><span class="g">清除</span></div><div class="chips"><span class="chip">黑帮领地</span><span class="chip">诺兰</span><span class="chip">美国恐怖故事</span><span class="chip">马东锡</span><span class="chip">海贼王</span></div></div>
+ <div class="sec"><div class="sh"><h2>热搜榜</h2><span class="g">今日<svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="#8E8E93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.500 1.500L6.500 7l-5 5.500"/></svg></span></div><div class="rail" id="r1"></div></div>
+ <div class="sec"><div class="sh"><h2>分类</h2></div><div class="types" id="ty"></div></div>
+</div><div class="navfade"></div><div class="nav"></div></div></div>
+
+<div><div class="cap"><b>② 输入中</b>边输边出结果,来源角标沿用首页的 NAS 标</div>
+<div class="phone"><div class="status"><span>9:42</span><span class="bt"></span></div>
+<div class="scroll" style="padding-top:52px">
+ <div class="frow"><div class="field focus" style="margin-left:var(--pad)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><span class="val">黑帮<span class="caret"></span></span><span class="clear"><svg width="8" height="8" viewBox="0 0 8 8" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M1 1l6 6M7 1L1 7"/></svg></span></div><span class="cancel">取消</span></div>
+ <div class="best" data-h="350"><div class="ov"><div><div class="k">最佳匹配 · 剧集</div><h3>黑帮领地</h3><p>2025 · 犯罪 / 剧情 · ★ 8.2</p></div><div class="go"><svg width="11" height="11" viewBox="0 0 14 14"><path d="M3 1.500v11l9-5.500z"/></svg>播放</div></div></div>
+ <div class="sec" style="margin-top:20px"><div class="sh" style="margin-bottom:4px"><h2 style="font-size:18px">影片</h2><span class="g">全部 12<svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="#8E8E93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.500 1.500L6.500 7l-5 5.500"/></svg></span></div>
+  <div class="list">
+   <div class="li"><div class="p" data-h="20"></div><div><div class="t">犯罪都市4:<mark>黑帮</mark>清算</div><div class="m">电影 · 2024 · ★ 7.1</div><span class="sp"><b>4K</b><u>NAS</u></span></div></div>
+   <div class="li off"><div class="p" data-h="280"></div><div><div class="t">囚笼:<mark>黑帮</mark>之女</div><div class="m">电影 · 2023 · ★ 6.4</div><span class="sp"><u>TMDB · 未入库</u></span></div></div>
+  </div></div>
+</div>
+<div class="kb"><div class="kbbar"><span>黑帮</span><span>黑帮领地</span><span>黑帮老大</span></div><div id="kk"></div></div></div></div>
+
+<div><div class="cap"><b>③ 分类筛选</b>海报网格与首页同尺寸,分辨率角标放左下</div>
+<div class="phone"><div class="status"><span>9:42</span><span class="bt"></span></div>
+<div class="scroll">
+ <div class="top"><div class="cb"><svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="#1A1A1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L2 8l6 6"/></svg></div><h1>片库筛选</h1><div class="cb"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></div></div>
+ <div class="tabs"><span>全部</span><span>剧集</span><span class="on">电影</span><span>动漫</span><span>综艺</span><span>演唱会</span><span>纪录片</span></div>
+ <div class="seg"><span class="on">最近更新</span><span>最新上映</span><span>影片评分</span></div>
+ <div style="margin-top:10px">
+  <div class="fr"><span class="lb">类型</span><span>全部</span><span>动作</span><span class="on">犯罪</span><span>剧情</span><span>悬疑</span><span>科幻</span><span>喜剧</span></div>
+  <div class="fr"><span class="lb">地区</span><span class="on">全部</span><span>大陆</span><span>香港</span><span>美国</span><span>韩国</span><span>日本</span><span>英国</span></div>
+  <div class="fr"><span class="lb">年份</span><span class="on">全部</span><span>2026</span><span>2025</span><span>2024</span><span>2023</span><span>2010s</span><span>更早</span></div>
+ </div>
+ <div class="sum"><span>共 <b>128</b> 部</span><span class="tog">只看可播<span class="sw"></span></span></div>
+ <div class="grid" id="g1"></div>
+</div><div class="navfade"></div><div class="nav"></div></div></div>
+
+<div><div class="cap"><b>④ 滚动后</b>筛选条收成一行摘要吸顶</div>
+<div class="phone"><div class="status"><span>9:42</span><span class="bt"></span></div>
+<div class="scroll"><div style="height:46px"></div><div class="grid" id="g2"></div></div>
+<div class="sticky">电影<em>·</em>犯罪<em>·</em>全部<em>·</em>最近更新</div>
+<div class="navfade"></div><div class="nav"></div></div></div>
+</div>
+
+<ul class="notes">
+ <li>底色用首页的纯色 #F2F2F7,去掉渐变、光斑和所有额外强调色;选中态保持你原稿的黑底白字。</li>
+ <li>榜单、结果、网格都复用首页的海报卡:2:3、圆角 12、标题常规字重、下方灰色副信息、橙色星标。</li>
+ <li>热搜榜改成带白色大名次数字的海报轨道,和首页「高分电影」同一语言;来源角标用首页的「分辨率 | NAS」分体样式。</li>
+ <li>海报和剧照是灰调渐变占位,真实图片放进来后遮罩与裁切效果会更接近首页。</li>
+</ul>
+<script>
+function bg(h,a){return 'linear-gradient(170deg,hsl('+h+' 16% '+(a||40)+'%),hsl('+((h+25)%360)+' 22% 13%))'}
+function card(o){return '<div class="c"><div class="p" style="background:'+bg(o.h)+'">'+(o.r?'<span class="rk">'+o.r+'</span>':'')+(o.x?'<i>'+o.t+'</i>':'')+(o.b?'<span class="bd">'+o.b+'</span>':'')+'</div><div class="t">'+o.t+'</div><div class="m">'+(o.s?'<s>★</s> '+o.s+' · ':'')+o.y+'</div></div>'}
+document.getElementById('r1').innerHTML=[{t:'黑帮领地',h:350,r:1,s:'8.2',y:'2025',x:1},{t:'犯罪都市4',h:20,r:2,s:'7.1',y:'2024',x:1},{t:'世界尽头的一场谋杀',h:215,r:3,s:'7.0',y:'2025',x:1},{t:'美国恐怖故事',h:150,r:4,s:'8.0',y:'2011',x:1}].map(card).join('');
+var g=[{t:'犯罪都市4',h:20,y:'2024',b:'1080p'},{t:'捕风追影',h:210,y:'2025',b:'1080p'},{t:'火遮眼',h:0,y:'2026',b:'4K'},{t:'野兽之心',h:90,y:'2025',b:'1080p'},{t:'另一个妈妈',h:5,y:'2025',b:'1080p'},{t:'哪吒之魔童闹海',h:195,y:'2025',b:'HDR'},{t:'暗巷',h:280,y:'2024',b:'4K'},{t:'海岸线',h:170,y:'2023',b:'1080p'},{t:'夜行者',h:240,y:'2022',b:'1080p'}];
+document.getElementById('g1').innerHTML=g.slice(0,6).map(card).join('');
+document.getElementById('g2').innerHTML=g.slice(3,9).map(card).join('');
+document.querySelectorAll('.p[data-h]').forEach(function(e){e.style.background=bg(+e.dataset.h)});
+document.querySelectorAll('.best').forEach(function(e){e.style.background=bg(+e.dataset.h,34)});
+var ty=[['剧集','SERIES',25],['电影','MOVIES',215],['动漫','ANIME',300],['综艺','VARIETY',45],['演唱会','CONCERT',350],['纪录片','DOCUMENTARY',160]];
+document.getElementById('ty').innerHTML=ty.map(function(x){return '<div class="ty" style="background:'+bg(x[2],36)+'"><div><b>'+x[0]+'</b><em>'+x[1]+'</em></div></div>'}).join('');
+var ic={'发现':'<circle cx="12" cy="12" r="9" fill="none" stroke="#4B5563" stroke-width="1.800"/><path d="M15.500 8.500l-2 5-5 2 2-5z" fill="#4B5563"/>','我的':'<circle cx="12" cy="8" r="4.200" fill="#4B5563"/><path d="M3.500 20.500c1.400-4.200 4.600-6.300 8.500-6.300s7.100 2.100 8.500 6.300z" fill="#4B5563"/>','资源库':'<path d="M4 8l2-4h12l2 4z" fill="#4B5563"/><rect x="3" y="9" width="18" height="10" rx="2.500" fill="#4B5563"/>','设置':'<circle cx="12" cy="12" r="8" fill="#4B5563"/><circle cx="12" cy="12" r="3" fill="#E8E9ED"/>'};
+var nav='<div class="pillbar">'+Object.keys(ic).map(function(k){return '<div class="nt"><svg viewBox="0 0 24 24">'+ic[k]+'</svg>'+k+'</div>'}).join('')+'</div><div class="sbtn"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2.300" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.600-3.600"/></svg></div>';
+document.querySelectorAll('.nav').forEach(function(n){n.innerHTML=nav});
+var kk='';['qwertyuiop','asdfghjkl','zxcvbnm'].forEach(function(r,i){kk+='<div class="kr">'+(i==2?'<span class="k w">⇧</span>':'')+r.split('').map(function(c){return '<span class="k">'+c+'</span>'}).join('')+(i==2?'<span class="k w">⌫</span>':'')+'</div>'});
+kk+='<div class="kr"><span class="k w">123</span><span class="k sp2">空格</span><span class="k go2">搜索</span></div>';document.getElementById('kk').innerHTML=kk;
+</script>
+</body></html>

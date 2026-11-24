@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kivo 搜索页 · 精修稿</title>
+<style>
+:root{color-scheme:light;--bg:#F3F2F7;--ink:#16161A;--ink2:#6C6C73;--hair:rgba(22,22,26,.07);--ok:#2E7D5E;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#DCDBE2;color:var(--ink);font:14px/1.3 "MiSans","HarmonyOS Sans SC","PingFang SC","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:28px 16px 48px}
+.board{display:flex;flex-wrap:wrap;gap:36px 40px;justify-content:center;align-items:flex-start}
+.cap{max-width:393px;margin-bottom:12px;font-size:13px;color:var(--ink2)}.cap b{color:var(--ink);font-size:15px;margin-right:8px}
+.phone{width:393px;height:873px;position:relative;overflow:hidden;border-radius:44px;background:var(--bg);box-shadow:0 0 0 1px rgba(22,22,26,.08),0 40px 70px -30px rgba(40,36,60,.35)}
+.sa{position:absolute;inset:0;padding-top:44px;overflow:hidden}
+.st{position:absolute;top:0;left:0;right:0;height:44px;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:6px 28px 0 32px;font-size:15px;font-weight:600;background:linear-gradient(var(--bg) 55%,rgba(243,242,247,0))}
+.glass{background:rgba(255,255,255,.66);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(22,22,26,.04),0 1px 2px rgba(22,22,26,.06),0 12px 28px -6px rgba(22,22,26,.16);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%)}
+
+/* 取色占位图：每张图一个色相，遮罩同色相，不用中性黑 */
+.art{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 75% 15%,hsl(var(--h) 62% 64%),transparent 62%),radial-gradient(90% 80% at 15% 95%,hsl(var(--h2) 55% 34%),transparent 70%),linear-gradient(160deg,hsl(var(--h) 46% 40%),hsl(var(--h) 50% 17%))}
+.art::before{content:attr(data-c);position:absolute;right:-4px;bottom:-12px;font-size:var(--g,72px);font-weight:800;line-height:1;color:rgba(255,255,255,.14)}
+.th::after,.img::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(22,22,26,.08)}
+
+.title{font-size:34px;line-height:40px;font-weight:700;padding:6px 16px 8px;letter-spacing:.2px}
+.field{margin:0 16px;height:48px;border-radius:16px;background:#fff;display:flex;align-items:center;gap:10px;padding:0 14px;color:var(--ink2);box-shadow:0 0 0 1px var(--hair),0 1px 1px rgba(22,22,26,.04),0 12px 24px -14px rgba(22,22,26,.28)}
+.ph,.val{flex:1;font-size:16px}.val{color:var(--ink)}
+.field.focus{box-shadow:0 0 0 1.5px var(--ink),0 12px 26px -12px rgba(22,22,26,.4)}
+.caret{display:inline-block;width:2px;height:19px;background:var(--ink);vertical-align:-4px;margin-left:1px;border-radius:1px}
+.clr{width:18px;height:18px;border-radius:50%;background:#C4C3C9;color:#fff;display:flex;align-items:center;justify-content:center}
+.frow{display:flex;align-items:center;gap:14px;padding-right:16px}.frow .field{flex:1;margin:0 0 0 16px}
+.cancel{font-size:16px;font-weight:500}
+
+.sec{margin-top:22px}
+.sh{display:flex;justify-content:space-between;align-items:baseline;padding:0 16px;margin-bottom:10px}
+.sh h2{font-size:20px;line-height:26px;font-weight:700;letter-spacing:-.2px}.sh a{font-size:13px;color:var(--ink2)}
+
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px}
+.tile{height:68px;border-radius:14px;box-shadow:0 8px 16px -10px rgba(22,22,26,.35)}
+.tile::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,hsl(var(--h) 42% 9%/.8),hsl(var(--h) 42% 9%/.2) 85%)}
+.tile .ov{position:absolute;left:14px;bottom:11px;z-index:2;color:#fff}
+.tile b{display:block;font-size:17px;line-height:21px;font-weight:600}.tile em{font-style:normal;font-size:10px;letter-spacing:1.6px;opacity:.78}
+
+.chips,.tabs,.fp{display:flex;overflow:hidden;white-space:nowrap;-webkit-mask:linear-gradient(90deg,#000 calc(100% - 32px),transparent);mask:linear-gradient(90deg,#000 calc(100% - 32px),transparent)}
+.chips{gap:8px;padding:0 16px}
+.chips span{flex:none;height:34px;padding:0 14px;border-radius:17px;display:flex;align-items:center;font-size:13px;background:rgba(255,255,255,.6);box-shadow:0 0 0 1px var(--hair)}
+
+.hot{margin:0 16px;background:#fff;border-radius:18px;padding:4px 0;box-shadow:0 0 0 1px var(--hair),0 12px 24px -16px rgba(22,22,26,.25)}
+.hr{display:flex;align-items:center;gap:12px;height:64px;padding:0 14px}.hr+.hr{box-shadow:inset 0 1px 0 var(--hair)}
+.rk{width:24px;text-align:center;font:800 17px/1 "Helvetica Neue",Arial,sans-serif}.rk.one{font-size:22px}
+.th{flex:none;width:40px;height:56px;border-radius:7px}
+.tx{flex:1;min-width:0}.tt{font-size:15px;font-weight:500;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mm{font-size:12px;line-height:16px;color:var(--ink2);margin-top:3px}
+.mv{font-size:11px;font-weight:600;color:var(--ink2);min-width:28px;text-align:right}.mv.n{color:#B5731F}
+
+.best{margin:16px 16px 0;height:188px;border-radius:26px;box-shadow:0 18px 30px -18px hsl(var(--h) 50% 20%/.7)}
+.best::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,hsl(var(--h) 45% 10%/.92),hsl(var(--h) 45% 10%/.5) 42%,transparent 78%)}
+.best .ov{position:absolute;left:16px;right:10px;bottom:10px;z-index:2;color:#fff;display:flex;align-items:flex-end;justify-content:space-between}
+.best .k{font-size:11px;font-weight:600;opacity:.8}.best h3{font-size:22px;line-height:28px;margin:2px 0}.best p{font-size:12px;opacity:.85;margin-bottom:4px}
+.go{height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.94);color:#000;font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px}
+.list{margin:0 16px}.li{display:flex;gap:12px;align-items:center;height:94px;padding:10px 0}.li+.li{box-shadow:inset 0 1px 0 var(--hair)}
+.li .th{width:52px;height:74px;border-radius:9px}.li .mm{margin-top:4px}
+.li mark{background:none;color:inherit;font-weight:700;box-shadow:inset 0 -7px 0 rgba(201,138,59,.3)}
+.src{font-size:11px;color:var(--ok);margin-top:5px;display:flex;align-items:center;gap:5px}.src::before{content:"";width:6px;height:6px;border-radius:50%;background:#34C759}
+.src.tm{color:var(--ink2)}.src.tm::before{background:#C4C3C9}
+
+.kb{position:absolute;left:0;right:0;bottom:0;height:282px;background:#D3D4DB;padding:6px 4px 0;z-index:25}
+.kbar{height:38px;display:flex;align-items:center;font-size:16px}.kbar span{flex:1;text-align:center}.kbar span:first-child{font-weight:600}
+.kr{display:flex;gap:6px;justify-content:center;margin-bottom:11px}
+.kr i{font-style:normal;flex:0 0 33px;height:43px;border-radius:6px;background:#fff;box-shadow:0 1px 0 rgba(22,22,26,.28);display:flex;align-items:center;justify-content:center;font-size:20px}
+.kr i.w{flex-basis:46px;background:#AEB2BB;font-size:16px}.kr i.w2{flex-basis:52px;background:#AEB2BB;font-size:15px}.kr i.sp{flex-basis:184px;font-size:15px}.kr i.kg{flex-basis:92px;background:var(--ink);color:#fff;font-size:15px}
+.kb u{position:absolute;left:50%;bottom:8px;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--ink)}
+
+.top3{display:flex;align-items:center;justify-content:space-between;padding:4px 16px 6px}.top3 h1{font-size:17px;font-weight:600}
+.rb{width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center}
+.tabs{gap:22px;padding:8px 16px 0}.tabs span{font-size:16px;font-weight:500;color:var(--ink2);padding-bottom:9px;position:relative}
+.tabs .on{color:var(--ink);font-weight:700}.tabs .on::after{content:"";position:absolute;left:50%;bottom:0;width:16px;height:3px;margin-left:-8px;border-radius:2px;background:var(--ink)}
+.fp{gap:8px;padding:10px 16px 0}
+.fp span{flex:none;height:34px;padding:0 10px 0 13px;border-radius:17px;display:flex;align-items:center;gap:3px;font-size:13px;background:#fff;box-shadow:0 0 0 1px var(--hair)}
+.fp .on{background:rgba(22,22,26,.08);font-weight:600;box-shadow:0 0 0 1px rgba(22,22,26,.14)}
+.sum{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}.sum .n{font-size:12px;color:var(--ink2)}.sum b{color:var(--ink);font-weight:600}
+.tog{display:flex;align-items:center;gap:8px;font-size:12px}
+.sw{width:44px;height:26px;border-radius:13px;background:var(--ok);position:relative}.sw::after{content:"";position:absolute;right:2px;top:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px;padding:0 16px}
+.gc .img{aspect-ratio:2/3;border-radius:12px;box-shadow:0 10px 18px -12px rgba(22,22,26,.4)}
+.gc .t{font-size:13px;font-weight:500;line-height:18px;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gc .s{font-size:11px;line-height:15px;color:var(--ink2);margin-top:2px}.gc .s i{font-style:normal;color:#C98A3B}
+.q{position:absolute;top:6px;right:6px;z-index:2;font-size:10px;font-weight:700;letter-spacing:.3px;padding:2px 6px;border-radius:5px;background:rgba(0,0,0,.42);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff}.q.hdr{color:#FFD37A}
+
+.navfade{position:absolute;left:0;right:0;bottom:0;height:100px;z-index:18;background:linear-gradient(to top,rgba(243,242,247,.96) 45%,rgba(243,242,247,0))}
+.nav{position:absolute;left:16px;right:16px;bottom:22px;display:flex;gap:12px;z-index:19}
+.pill{flex:1;height:56px;border-radius:28px;display:flex;padding:0 6px}
+.nt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10.5px;color:#5C5B63}
+.sbtn{width:56px;height:56px;border-radius:28px;display:flex;align-items:center;justify-content:center}.sbtn.on{background:var(--ink);color:#fff;box-shadow:0 10px 22px -8px rgba(22,22,26,.5)}
+</style></head><body>
+<div class="board" id="b"></div>
+<script>
+const I=(d,w=24,s=1.9)=>`<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${s}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const P={s:'<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0013 0M12 17.5V21"/>',bk:'<path d="m14.5 6-6 6 6 6"/>',x:'<path d="M7 7l10 10M17 7 7 17"/>',dn:'<path d="m7 10 5 5 5-5"/>',play:'<path d="M7.5 5v14l11.5-7z" fill="currentColor"/>',
+d:'<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',u:'<circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20c.9-3.7 3.6-5.6 7.2-5.6s6.3 1.9 7.2 5.6"/>',l:'<rect x="3.5" y="9" width="17" height="11.5" rx="2.6"/><path d="M6.5 6h11M9 3h6"/>',g:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'};
+const T=h=>`--h:${h};--h2:${(h+45)%360}`;
+const SB=`<div class="st"><b>9:43</b><svg width="66" height="12" viewBox="0 0 66 12"><g fill="#16161A"><rect y="8" width="3" height="4" rx=".8"/><rect x="5" y="5.5" width="3" height="6.5" rx=".8"/><rect x="10" y="3" width="3" height="9" rx=".8"/><rect x="15" width="3" height="12" rx=".8"/><rect x="38" y=".5" width="24" height="11" rx="3.4" fill="none" stroke="#16161A" opacity=".4"/><rect x="40" y="2.5" width="16" height="7" rx="2"/><rect x="63" y="4" width="1.8" height="4" rx=".9" opacity=".4"/></g></svg></div>`;
+const NAV=`<div class="navfade"></div><div class="nav"><div class="pill glass">${[['d','发现'],['u','我的'],['l','资源库'],['g','设置']].map(([k,t])=>`<div class="nt">${I(P[k])}${t}</div>`).join('')}</div><div class="sbtn on">${I(P.s,26,2.2)}</div></div>`;
+const KB=`<div class="kb"><div class="kbar"><span>黑帮</span><span>黑帮领地</span><span>黑帮老大</span><span>黑帮电影</span></div>${['qwertyuiop','asdfghjkl','⇧zxcvbnm⌫'].map(r=>`<div class="kr">${[...r].map(c=>`<i class="${'⇧⌫'.includes(c)?'w':''}">${c}</i>`).join('')}</div>`).join('')}<div class="kr"><i class="w2">123</i><i class="sp">空格</i><i class="kg">搜索</i></div><u></u></div>`;
+
+const tiles=[['剧集','SERIES',210],['电影','MOVIES',18],['动漫','ANIME',335],['综艺','VARIETY',150],['演唱会','CONCERT',268],['纪录片','DOCUMENTARY',42]];
+const hot=[['黑帮领地','剧集 · 犯罪 · ★ 8.2',208,'▲ 3'],['犯罪都市4','电影 · 动作 · ★ 7.1',18,'新'],['世界尽头的一场谋杀','剧集 · 悬疑 · ★ 7.0',165,'—']];
+const s1=`<div class="phone">${SB}<div class="sa">
+<div class="title">搜索</div>
+<div class="field">${I(P.s,19,2.1)}<span class="ph">片名、演员、导演</span>${I(P.mic,19,2)}</div>
+<div class="sec"><div class="sh"><h2>分类</h2></div><div class="tiles">${tiles.map(([a,b,h])=>`<div class="tile art" style="${T(h)}"><div class="ov"><b>${a}</b><em>${b}</em></div></div>`).join('')}</div></div>
+<div class="sec"><div class="sh"><h2>最近搜索</h2><a>清除</a></div><div class="chips">${['黑帮领地','诺兰','美国恐怖故事','马东锡','海贼王','沙丘'].map(x=>`<span>${x}</span>`).join('')}</div></div>
+<div class="sec"><div class="sh"><h2>热搜榜</h2><a>今日 ›</a></div><div class="hot">${hot.map(([t,m,h,v],i)=>`<div class="hr"><span class="rk${i?'':' one'}">${i+1}</span><div class="th art" data-c="${t[0]}" style="${T(h)};--g:36px"></div><div class="tx"><div class="tt">${t}</div><div class="mm">${m}</div></div><span class="mv${v=='新'?' n':''}">${v}</span></div>`).join('')}</div></div>
+</div>${NAV}</div>`;
+
+const res=[['犯罪都市4：<mark>黑帮</mark>清算','电影 · 2024 · 动作 · ★ 7.1','NAS 可播 · 4K',0,18],['囚笼：<mark>黑帮</mark>之女','电影 · 2023 · 惊悚 · ★ 6.4','TMDB · 未入库',1,285]];
+const s2=`<div class="phone">${SB}<div class="sa" style="padding-top:52px">
+<div class="frow"><div class="field focus">${I(P.s,19,2.1)}<span class="val">黑帮<i class="caret"></i></span><span class="clr">${I(P.x,10,2.6)}</span></div><span class="cancel">取消</span></div>
+<div class="best art" style="${T(208)}"><div class="ov"><div><div class="k">最佳匹配 · 剧集</div><h3>黑帮领地</h3><p>2025 · 犯罪 / 剧情 · ★ 8.2 · 第 1 季</p></div><div class="go">${I(P.play,12,2)}播放</div></div></div>
+<div class="sec" style="margin-top:16px"><div class="sh" style="margin-bottom:0"><h2 style="font-size:17px">影片</h2><a>全部 12 ›</a></div><div class="list">${res.map(([t,m,s,n,h])=>`<div class="li"><div class="th art" data-c="${t[0]}" style="${T(h)};--g:38px"></div><div class="tx"><div class="tt">${t}</div><div class="mm">${m}</div><div class="src${n?' tm':''}">${s}</div></div></div>`).join('')}</div></div>
+</div>${KB}</div>`;
+
+const mv=[['犯罪都市4','7.1','1h49','4K',18],['囚笼','6.4','1h20','',285],['暗夜交易','7.4','1h52','HDR',200],['雾港','6.9','2h04','',160],['最后一单','7.2','1h37','4K',30],['裂缝','6.6','1h45','',320],['无声证词','7.8','2h11','HDR',245],['黑色假期','6.8','1h33','',350],['北纬三十度','7.0','1h58','4K',120]];
+const s3=`<div class="phone">${SB}<div class="sa">
+<div class="top3"><div class="rb glass">${I(P.bk,20,2.2)}</div><h1>片库筛选</h1><div class="rb glass">${I(P.s,19,2.1)}</div></div>
+<div class="tabs">${['全部','剧集','电影','动漫','综艺','演唱会','纪录片'].map(x=>`<span${x=='电影'?' class="on"':''}>${x}</span>`).join('')}</div>
+<div class="fp">${[['类型 · 犯罪',1],['地区',0],['年份',0],['排序 · 最近更新',0]].map(([x,o])=>`<span${o?' class="on"':''}>${x}${I(P.dn,14,2.2)}</span>`).join('')}</div>
+<div class="sum"><span class="n">共 <b>128</b> 部</span><span class="tog">只看可播<span class="sw"></span></span></div>
+<div class="grid">${mv.map(([t,r,d,q,h])=>`<div class="gc"><div class="img art" data-c="${t[0]}" style="${T(h)}">${q?`<span class="q${q=='HDR'?' hdr':''}">${q}</span>`:''}</div><div class="t">${t}</div><div class="s"><i>★</i> ${r} · ${d}</div></div>`).join('')}</div>
+</div>${NAV}</div>`;
+
+document.getElementById('b').innerHTML=[['① 搜索首页','点底栏放大镜进入',s1],['② 输入中','边输边出结果，不用按回车',s2],['③ 分类筛选','点「电影」进入',s3]].map(([a,b,s])=>`<div><div class="cap"><b>${a}</b>${b}</div>${s}</div>`).join('');
+const fit=()=>{const k=Math.min(1,(document.documentElement.clientWidth-32)/393);document.querySelectorAll('.phone').forEach(p=>p.style.zoom=k)};
+addEventListener('resize',fit);fit();
+</script></body></html>

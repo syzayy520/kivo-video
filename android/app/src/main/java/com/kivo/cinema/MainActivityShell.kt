@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kivo.cinema.emby.aggregate.ui.AggregateActivity
 import com.kivo.cinema.library.HomeEntry
 import com.kivo.cinema.library.MediaItem
 import com.kivo.cinema.privatezone.PrivateActivity
@@ -77,6 +76,8 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
     // 「在看」是「我的」模块的二级页，不再是第 5 个 Tab 路由（B2 / SHELL-02）：
     // 覆盖层状态独立于 page，返回即关闭，不改变底部 Tab 位置。
     var showWatching by rememberSaveable { mutableStateOf(false) }
+    // 「搜索」是一级入口（底栏放大镜）：全屏覆盖层，①③④ 带底栏、② 输入中不带。
+    var showSearch by rememberSaveable { mutableStateOf(false) }
     var sourceNavigationGuard by remember { mutableStateOf<((() -> Unit) -> Unit)?>(null) }
     var showUnlock by remember { mutableStateOf(false) }
     var unlockAction by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -105,9 +106,7 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
                     else page = next
                 }
             },
-            onSearch = {
-                activity.startActivity(Intent(activity, AggregateActivity::class.java))
-            },
+            onSearch = { showSearch = true },
             onDark = page == 1 && state.ambientDark,
         )
     }
@@ -185,7 +184,7 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
             // 距底 22pt（帧实测）；发现页深色环境时转暗扁平（E11，269）
             // 导航条要避让系统手势区：edge-to-edge 下不避让会被手势条压住（272 审计 D7）。
             // 「在看」覆盖层是全屏二级页，期间不渲染胶囊（否则点击会穿透到 Tab 切换）。
-            if (page != 0 && !showWatching) Box(Modifier.align(Alignment.BottomCenter)
+            if (page != 0 && !showWatching && !showSearch) Box(Modifier.align(Alignment.BottomCenter)
                 .navigationBarsPadding().padding(bottom = 22.dp)) {
                 shellNavigation()
             }
@@ -207,6 +206,11 @@ internal fun MainShell(activity: MainActivity, state: HomeShellState) {
             }
         }
     }
+            // 「搜索」覆盖层：scaffold 托管在 MainActivitySearch.kt。
+            if (showSearch) activity.SearchOverlayScaffold(
+                onBack = { showSearch = false },
+                onSelectTab = { showSearch = false; page = it },
+            )
     selectedTitle?.let { title ->
         HomeTitleSheet(title) { selectedTitle = null }
     }

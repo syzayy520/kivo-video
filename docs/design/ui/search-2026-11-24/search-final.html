@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kivo 搜索页 · 定稿</title>
+<style>
+/* 底色/导航取自 ui/tokens/DesignPalette.Light；黄铜取自 home/v6/V6Metrics.brass */
+:root{--bg1:#F0ECF6;--bg2:#EFEEF5;--ink:#16161A;--t2:#6C6B73;--t3:#A3A2A9;--t4:#3E3D44;--hair:rgba(20,18,30,.06);
+ --brass:#C98A3B;--ok:#15783A;--okdot:#34C759;--blue:#0A84FF;--pad:13px;
+ --pill-h:34px;--inset:10px;--thumb-r:8px;--card-pad:8px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#DCDCE2 radial-gradient(120% 80% at 50% 0%,#E9E8ED,#D6D5DC) fixed;color:var(--ink);padding:28px 20px 48px;
+ font-family:MiSans,"HarmonyOS Sans SC","PingFang SC","Noto Sans SC","Microsoft YaHei UI",sans-serif;-webkit-font-smoothing:antialiased}
+.board{display:flex;flex-wrap:wrap;gap:34px 36px;justify-content:center;align-items:flex-start;max-width:1300px;margin:0 auto}
+.cap{width:393px;margin-bottom:12px;font-size:13px;color:#55555B}.cap b{color:var(--ink);font-size:15px;margin-right:6px}
+.tnum{font-variant-numeric:tabular-nums}
+.phone{width:393px;height:873px;position:relative;overflow:hidden;isolation:isolate;border-radius:40px;background:linear-gradient(180deg,var(--bg1),var(--bg2));
+ box-shadow:0 0 0 1px rgba(20,18,30,.08),0 0 0 8px rgba(255,255,255,.5),0 46px 80px -34px rgba(40,36,60,.36)}
+.sa{position:absolute;inset:0;overflow:hidden;padding-top:44px}
+.status{position:absolute;top:0;left:0;right:0;height:44px;z-index:40;display:flex;justify-content:space-between;align-items:center;padding:0 26px;
+ font-size:14px;font-weight:600;background:linear-gradient(to bottom,rgba(240,236,246,.99) 72%,rgba(240,236,246,0))}
+.status i{font-style:normal;font-size:11px}
+
+/* 玻璃：白 66% + 亮边 */
+.glass{position:relative;isolation:isolate;backdrop-filter:blur(22px) saturate(170%);background:rgba(255,255,255,.66);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 1px 2px rgba(20,18,30,.05),0 10px 24px -8px rgba(20,18,30,.14)}
+.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;border:1px solid transparent;
+ background:linear-gradient(160deg,rgba(255,255,255,.95),rgba(255,255,255,.25) 45%,rgba(255,255,255,.65)) border-box;
+ -webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.onimg{background:rgba(255,255,255,.26);color:#fff;backdrop-filter:blur(18px);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 4px 14px rgba(0,0,0,.18)}
+
+/* 取色模糊渐变：--tint 为封面下半部主色压暗 */
+.tint{position:relative;overflow:hidden;isolation:isolate;border-radius:var(--r)}
+.tint>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--pos,center)}
+.tint::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:3;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(20,18,30,.07)}
+.veil{position:absolute;left:0;right:0;bottom:0;z-index:2;color:#fff}
+.veil::before{content:"";position:absolute;inset:0;backdrop-filter:blur(var(--blur,18px)) saturate(140%);
+ -webkit-mask:linear-gradient(to top,#000 40%,transparent);mask:linear-gradient(to top,#000 40%,transparent)}
+.veil::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgb(var(--tint)/.88),rgb(var(--tint)/.5) 50%,rgb(var(--tint)/0))}
+.veil>*{position:relative;z-index:1}
+
+.title{font-size:34px;line-height:42px;font-weight:700;padding:6px var(--pad) 12px;letter-spacing:.3px}
+.field{margin:0 var(--pad);height:46px;border-radius:23px;display:flex;align-items:center;gap:9px;padding:0 8px 0 16px;color:var(--t2)}
+.field .ph{flex:1;font-size:16px}.field .val{flex:1;font-size:16px;color:var(--ink)}
+.caret{display:inline-block;width:2px;height:19px;background:var(--blue);vertical-align:-4px;margin-left:1px;border-radius:1px}
+.field.focus{box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 1.5px rgba(10,132,255,.42),0 6px 16px -6px rgba(10,132,255,.18)}
+.ib{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;flex:none}
+.clr{width:18px;height:18px;border-radius:50%;background:#B9B8BF;display:grid;place-items:center;margin-right:9px}
+.fieldrow{display:flex;align-items:center;padding-left:var(--pad)}.fieldrow .field{flex:1;margin:0}
+.cancel{height:48px;padding:0 var(--pad) 0 12px;display:flex;align-items:center;font-size:16px;font-weight:500}
+
+.sec{margin-top:22px}
+.sh{display:flex;justify-content:space-between;align-items:center;padding:0 var(--pad);margin-bottom:10px;min-height:28px}
+.sh h2{font-size:20px;line-height:28px;font-weight:700}
+.sh a{font-size:13px;color:var(--t2);display:flex;align-items:center;gap:2px}
+
+.chips{display:flex;gap:8px;padding:0 var(--pad);overflow:hidden;-webkit-mask:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+.chip{flex:none;height:34px;padding:0 14px;border-radius:17px;background:rgba(255,255,255,.74);font-size:14px;display:flex;align-items:center;
+ box-shadow:inset 0 0 0 1px var(--hair),0 6px 12px -10px rgba(20,18,30,.2)}
+
+/* 分类：六个一屏全见，3 列 × 2 行 */
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:0 var(--pad)}
+.cat{--r:14px;height:84px;box-shadow:0 10px 18px -14px rgba(20,18,30,.45)}
+.cat .veil{height:80%;--blur:12px;padding:0 10px 9px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:0 0 14px 14px}
+.cat b{font-size:16px;line-height:21px;font-weight:600;text-shadow:0 1px 8px rgba(0,0,0,.28)}
+.cat em{font-style:normal;font-size:8.5px;line-height:12px;letter-spacing:1.6px;color:rgba(255,255,255,.82);font-weight:500}
+
+.hot{margin:0 var(--pad);padding:var(--card-pad);border-radius:16px;background:rgba(255,255,255,.76);box-shadow:inset 0 0 0 1px var(--hair),0 10px 20px -16px rgba(20,18,30,.22)}
+.hr{display:flex;align-items:center;gap:12px;padding:6px 6px 6px 4px;position:relative}
+.hr+.hr::before{content:"";position:absolute;top:0;left:86px;right:6px;height:1px;background:var(--hair)}
+.rk{width:18px;font-size:17px;font-weight:800;color:var(--t3);text-align:center;font-family:"Helvetica Neue",Arial,sans-serif;flex:none}.rk.top{color:var(--ink)}
+.th{width:40px;height:60px;border-radius:var(--thumb-r);overflow:hidden;flex:none;position:relative;background:#cfcdd6}
+.th img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+.th::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(20,18,30,.07)}
+.tx{flex:1;min-width:0}
+.tt{font-size:15px;line-height:20px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mm{font-size:12px;line-height:16px;color:var(--t2);margin-top:3px}.mm i,.s i{font-style:normal;color:var(--brass)}
+.up{font-size:12px;font-weight:600;color:var(--t2);flex:none}
+.new{font-size:10px;font-weight:700;letter-spacing:.3px;border:1px solid rgba(22,22,26,.28);border-radius:5px;padding:0 5px;flex:none}
+
+.best{--r:27px;margin:14px var(--pad) 0;height:208px;box-shadow:0 22px 34px -22px rgb(var(--tint)/.6),0 2px 6px rgba(20,18,30,.06)}
+.best .veil{height:72%;--blur:24px;padding:0 16px 14px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:0 0 27px 27px}
+.best .veil::before{display:none}
+.best .bk{font-size:11px;letter-spacing:1.2px;color:rgba(255,255,255,.82);font-weight:600}
+.best h3{font-size:22px;line-height:28px;font-weight:700;margin:3px 0 2px}
+.best p{font-size:12px;color:rgba(255,255,255,.8);padding-right:104px}
+.best .go{position:absolute;z-index:4;right:var(--inset);bottom:var(--inset);height:var(--pill-h);padding:0 16px;border-radius:17px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600}
+.list{margin:0 var(--pad)}
+.li{display:flex;gap:12px;align-items:center;padding:10px 0;position:relative}
+.li+.li::before{content:"";position:absolute;top:0;left:64px;right:0;height:1px;background:var(--hair)}
+.li .th{width:52px;height:78px;border-radius:9px}
+.li .tt mark{background:linear-gradient(transparent 64%,rgba(201,138,59,.30) 0);color:var(--ink);font-weight:700;padding:0 1px}
+.src{font-size:11px;color:var(--ok);margin-top:5px;display:flex;align-items:center;gap:5px;font-weight:500}
+.src::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--okdot)}.src.tm{color:var(--t2)}.src.tm::before{background:#BEBDC4}
+.kb{position:absolute;left:0;right:0;bottom:0;height:282px;background:#D3D5DB;z-index:25;padding:8px 4px 0}
+.kr{display:flex;gap:6px;justify-content:center;margin-bottom:11px}
+.k{height:43px;flex:0 0 33px;border-radius:5px;background:#FCFCFE;box-shadow:0 1px 0 rgba(0,0,0,.25);font-size:20px;display:flex;align-items:center;justify-content:center;font-style:normal}
+.k.w{flex:0 0 46px;background:#ADB3BC;font-size:14px}.k.sp{flex:0 0 190px;font-size:14px}.k.go{flex:0 0 86px;background:var(--ink);color:#fff;font-size:15px;font-weight:600}
+.kbar{height:36px;display:flex;gap:18px;align-items:center;padding:0 14px;font-size:17px;margin-bottom:6px}.kbar span:first-child{font-weight:600}
+
+.bar3{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:4px var(--pad);height:52px}
+.bar3 h1{text-align:center;font-size:17px;font-weight:650}
+.back{width:44px;height:44px;border-radius:50%;display:grid;place-items:center}
+.tabs{display:flex;gap:22px;padding:2px var(--pad) 0;overflow:hidden;white-space:nowrap;-webkit-mask:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}
+.tabs span{font-size:16px;color:var(--t2);padding:10px 0 12px;position:relative}
+.tabs span.on{color:var(--ink);font-weight:700;font-size:17px}
+.tabs span.on::after{content:"";position:absolute;left:50%;bottom:3px;transform:translateX(-50%);width:16px;height:3px;border-radius:2px;background:var(--ink)}
+.fr{display:flex;align-items:center;height:38px;padding-left:var(--pad);white-space:nowrap;overflow:hidden;-webkit-mask:linear-gradient(90deg,#000 calc(100% - 30px),transparent)}
+.fr .lb{width:36px;flex:none;font-size:12px;color:var(--t2)}
+.fr span:not(.lb){font-size:13px;color:var(--t4);padding:6px 12px;border-radius:15px}
+.fr span.on{background:var(--ink);color:#fff;font-weight:600}
+.sum{display:flex;justify-content:space-between;align-items:center;padding:10px var(--pad) 10px}
+.sum .n{font-size:12px;color:var(--t2)}.sum .n b{color:var(--ink);font-weight:600}
+.rt{display:flex;align-items:center;gap:10px}
+.dd{height:30px;padding:0 10px 0 12px;border-radius:15px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:3px}
+.tog{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--t4)}
+.sw{width:38px;height:23px;border-radius:12px;background:var(--okdot);position:relative}
+.sw::after{content:"";position:absolute;right:2px;top:2px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 10px;padding:0 var(--pad)}
+.gc .img{position:relative;aspect-ratio:2/3;border-radius:12px;overflow:hidden;background:#cfcdd6;box-shadow:0 8px 16px -12px rgba(20,18,30,.4)}
+.gc .img::after{content:"";position:absolute;inset:0;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(20,18,30,.07)}
+.gc img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+.gc .t{font-size:13px;font-weight:500;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gc .s{font-size:11px;color:var(--t2);margin-top:2px}
+.q{position:absolute;top:6px;right:6px;z-index:2;font-size:9px;font-weight:700;letter-spacing:.4px;padding:2px 5px;border-radius:5px;
+ background:rgba(0,0,0,.42);backdrop-filter:blur(8px);color:#fff}.q.hdr{color:#FFD37A}
+
+/* ④ 吸顶摘要 */
+.stick{position:absolute;top:44px;left:0;right:0;z-index:30;padding:0 0 10px;background:rgba(240,236,246,.78);backdrop-filter:blur(22px) saturate(170%);
+ box-shadow:0 1px 0 var(--hair)}
+.summ{display:flex;align-items:center;justify-content:space-between;padding:0 var(--pad)}
+.summ .pl{height:34px;border-radius:17px;padding:0 8px 0 12px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.summ .pl s{text-decoration:none;color:var(--t3)}
+.summ .pl .x{width:22px;height:22px;border-radius:50%;background:rgba(20,18,30,.06);display:grid;place-items:center}
+
+/* 底栏：与 CapsuleNavBar 同结构（50dp 胶囊 + 50dp 圆钮，选中=白 60% 胶囊+原色前景）；玻璃化是本稿提议 */
+.navfade{position:absolute;left:0;right:0;bottom:0;height:110px;z-index:18;pointer-events:none;background:linear-gradient(to top,rgba(239,238,245,.96) 30%,rgba(239,238,245,0))}
+.nav{position:absolute;left:16px;right:16px;bottom:22px;display:flex;gap:12px;z-index:19}
+.pill{flex:1;height:54px;border-radius:27px;display:flex;align-items:center;padding:0 5px}
+.nt{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:10px;color:#4B5563}
+.sbtn{width:54px;height:54px;border-radius:27px;display:grid;place-items:center;color:var(--ink)}
+.sbtn.on{background:rgba(255,255,255,.92)}
+
+.notes{max-width:1250px;margin:40px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:30px;font-size:13px;line-height:1.75;color:#3C3C43}
+.notes h4{font-size:14px;color:var(--ink);margin-bottom:6px}.notes li{margin-left:16px}
+.notes table{border-collapse:collapse;width:100%}.notes td{padding:3px 6px 3px 0;vertical-align:top;border-top:1px solid rgba(0,0,0,.06)}
+.notes td:first-child{white-space:nowrap;color:var(--t2)}
+</style></head><body>
+<div class="board" id="b"></div>
+
+<div class="notes">
+ <div><h4>整合来源</h4><table>
+  <tr><td>结构 / 动线</td><td>原稿 search.html：三屏分工、六大分类、最近搜索、热搜榜、最佳匹配、来源签条、三行筛选、只看可播</td></tr>
+  <tr><td>视觉精修</td><td>kivo-search-v2：玻璃亮边、取色模糊渐变、同心圆角、次要字 #6C6B73、黄铜星标、关键词黄铜下划线、蓝色只留给光标和焦点、搜索键改墨色、④ 吸顶摘要</td></tr>
+  <tr><td>排序下拉</td><td>精修稿 / v2：排序从分段控件改为结果数旁的小下拉，筛选区少一整行</td></tr>
+  <tr><td>标题</td><td>v2：筛选页标题用当前分类名，去掉重复的右上角搜索钮</td></tr>
+ </table></div>
+ <div><h4>没吸收的</h4><ul>
+  <li><b>对齐首页风格稿</b>：生成的色块占位代替真实封面，角标出现 1080p，和已定的「只留 4K / HDR」冲突。</li>
+  <li><b>分类改横滑</b>（v2 / 精修稿）：六个分类只露出 2.5 个，用户要找「纪录片」得先滑。定稿改成 3 列 × 2 行，一屏全见，高度只比横滑多 9px。</li>
+  <li><b>类型/地区/年份全收进下拉</b>（精修稿）：更省空间，但筛选项被藏起来，要多点一下才能看到。定稿保留三行横滑胶囊，只把排序收成下拉。</li>
+  <li><b>海报下写时长</b>（精修稿）：和首页「★ 评分 · 年份」口径不一致。</li></ul></div>
+ <div><h4>落地注意</h4><ul>
+  <li>底栏玻璃化（白 66% + 亮边）改的是全局 <code>CapsuleNavBar</code>，会影响首页等所有页；如果只想改搜索页，就保留现有 #E8E9ED 实心胶囊。</li>
+  <li>取色渐变的 <code>--tint</code> = 封面下半部主色压暗到亮度 ≤20%，项目里已有 <code>PosterPalette.kt</code> 可复用。</li>
+  <li>分类卡请用 TMDB 无文字剧照（<code>include_image_language=null</code>），本稿素材从截图裁切，个别带片名字。</li>
+  <li>④ 的吸顶摘要在筛选区滚出视口时出现，点摘要展开回三行筛选。</li></ul></div>
+</div>
+
+<script>
+const I=(d,w=24,s=1.9)=>`<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${s}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const P={s:'<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0013 0M12 17.5V21"/>',
+ bk:'<path d="m14.5 6-6 6 6 6"/>',x:'<path d="M7 7l10 10M17 7 7 17"/>',dn:'<path d="m7 10 5 5 5-5"/>',f:'<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+ d:'<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',u:'<circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20c.9-3.7 3.6-5.6 7.2-5.6s6.3 1.9 7.2 5.6"/>',
+ l:'<path d="M5 8l1.8-4h10.4L19 8"/><rect x="3" y="8" width="18" height="12" rx="2.6"/><path d="M8 13.5h8"/>',
+ g:'<circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M5.5 18.5l1.8-1.8M16.7 7.3l1.8-1.8"/>'};
+const TINT={b_action:'47 46 53',b_dragonball:'51 48 53',b_dutton:'72 37 18',b_ironfist:'49 49 52',b_odyssey:'40 26 23',hero:'64 42 37',p_onepiece:'47 53 54',p_murder:'29 29 51'};
+const A=n=>`assets/${n}.jpg`;
+const SB=`<div class="status"><span>9:43</span><i>5G ▮▮▮ 76%</i></div>`;
+const NAV=`<div class="navfade"></div><div class="nav"><div class="pill glass">${[['d','发现'],['u','我的'],['l','资源库'],['g','设置']].map(([k,t])=>`<div class="nt">${I(P[k])}${t}</div>`).join('')}</div><div class="sbtn glass on">${I(P.s,25,2.2)}</div></div>`;
+const KB=`<div class="kb"><div class="kbar"><span>黑帮</span><span>黑帮领地</span><span>黑帮老大</span><span>黑帮电影</span></div>${['qwertyuiop','asdfghjkl','⇧zxcvbnm⌫'].map(r=>`<div class="kr">${[...r].map(c=>`<i class="k${'⇧⌫'.includes(c)?' w':''}">${c}</i>`).join('')}</div>`).join('')}<div class="kr"><i class="k w">123</i><i class="k sp">空格</i><i class="k go">搜索</i></div></div>`;
+
+const cats=[['剧集','SERIES','b_dutton'],['电影','MOVIES','b_odyssey'],['动漫','ANIME','p_onepiece','center 30%'],['综艺','VARIETY','b_ironfist'],['演唱会','CONCERT','b_dragonball'],['纪录片','DOCUMENTARY','b_action']];
+const hot=[['黑帮领地','剧集 · 犯罪 · <i>★</i> 8.2','hero','<span class="up">↑ 3</span>'],['犯罪都市4','电影 · 动作 · <i>★</i> 7.1','p_crime','<span class="new">NEW</span>'],
+ ['世界尽头的一场谋杀','剧集 · 悬疑 · <i>★</i> 7.0','p_murder',''],['69 两头勾','剧集 · 剧情 · <i>★</i> 7.3','p_69','']];
+const s1=`<div class="phone">${SB}<div class="sa">
+<div class="title">搜索</div>
+<div class="field glass">${I(P.s,19,2.1)}<span class="ph">片名、演员、导演</span><span class="ib">${I(P.mic,19,2)}</span></div>
+<div class="sec"><div class="sh"><h2>最近搜索</h2><a>清除</a></div><div class="chips">${['黑帮领地','诺兰','美国恐怖故事','马东锡','海贼王','沙丘'].map(x=>`<span class="chip">${x}</span>`).join('')}</div></div>
+<div class="sec"><div class="sh"><h2>分类</h2></div><div class="cats">${cats.map(([a,b,i,p])=>`<div class="cat tint" style="--tint:${TINT[i]};${p?'--pos:'+p:''}"><img src="${A(i)}" alt=""><div class="veil"><b>${a}</b><em>${b}</em></div></div>`).join('')}</div></div>
+<div class="sec"><div class="sh"><h2>热搜榜</h2><a>今日 ${I(P.dn,13,2.2)}</a></div><div class="hot">${hot.map(([t,m,i,v],n)=>`<div class="hr"><span class="rk${n<3?' top':''}">${n+1}</span><div class="th"><img src="${A(i)}" alt=""></div><div class="tx"><div class="tt">${t}</div><div class="mm tnum">${m}</div></div>${v}</div>`).join('')}</div></div>
+</div>${NAV}</div>`;
+
+const res=[['犯罪都市4：<mark>黑帮</mark>清算','电影 · 2024 · 动作 · <i>★</i> 7.1','NAS 可播 · 4K','','p_crime'],['囚笼：<mark>黑帮</mark>之女','电影 · 2023 · 惊悚 · <i>★</i> 6.4','TMDB · 未入库',' tm','p_captifs']];
+const s2=`<div class="phone">${SB}<div class="sa" style="padding-top:50px">
+<div class="fieldrow"><div class="field glass focus">${I(P.s,19,2.1)}<span class="val">黑帮<i class="caret"></i></span><span class="clr" style="color:#fff">${I(P.x,10,2.6)}</span></div><span class="cancel">取消</span></div>
+<div class="best tint" style="--tint:${TINT.hero};--pos:center 25%"><img src="${A('hero')}" alt=""><div class="veil"><div class="bk">最佳匹配 · 剧集</div><h3>黑帮领地</h3><p class="tnum">2025 · 犯罪 / 剧情 · ★ 8.2 · 第 1 季</p></div><div class="go onimg"><svg width="12" height="12" viewBox="0 0 14 14"><path d="M3 1.5v11l9-5.5z" fill="#fff"/></svg>播放</div></div>
+<div class="sec" style="margin-top:16px"><div class="sh" style="margin-bottom:0"><h2 style="font-size:17px">影片</h2><a>全部 12 ›</a></div><div class="list">${res.map(([t,m,s,c,i])=>`<div class="li"><div class="th"><img src="${A(i)}" alt=""></div><div class="tx"><div class="tt">${t}</div><div class="mm tnum">${m}</div><div class="src${c}">${s}</div></div></div>`).join('')}</div></div>
+</div>${KB}</div>`;
+
+const mv=[['黑帮领地','8.2','hero','HDR'],['犯罪都市4','7.1','p_crime','4K'],['囚笼','6.4','p_captifs',''],['世界尽头的一场谋杀','7.0','p_murder','4K'],['69 两头勾','7.3','p_69',''],['美国恐怖故事','8.0','p_ahs','HDR'],
+ ['宝可梦','7.6','p_pokemon',''],['哆啦A梦','8.1','p_doraemon','4K'],['航海王','8.7','p_onepiece','']];
+const grid=a=>`<div class="grid">${a.map(([t,r,i,q])=>`<div class="gc"><div class="img"><img src="${A(i)}" alt="">${q?`<span class="q${q=='HDR'?' hdr':''}">${q}</span>`:''}</div><div class="t">${t}</div><div class="s tnum"><i>★</i> ${r} · 2025</div></div>`).join('')}</div>`;
+const head=`<div class="bar3"><div class="back glass">${I(P.bk,19,2.2)}</div><h1>电影</h1><span></span></div>`;
+const tabs=`<div class="tabs">${['全部','剧集','电影','动漫','综艺','演唱会','纪录片'].map(x=>`<span${x=='电影'?' class="on"':''}>${x}</span>`).join('')}</div>`;
+const fr=(lb,xs,on)=>`<div class="fr"><span class="lb">${lb}</span>${xs.map(x=>`<span${x==on?' class="on"':''}>${x}</span>`).join('')}</div>`;
+const s3=`<div class="phone">${SB}<div class="sa">${head}${tabs}
+${fr('类型',['全部','动作','犯罪','剧情','悬疑','科幻','喜剧','恐怖'],'犯罪')}${fr('地区',['全部','大陆','香港','美国','韩国','日本','英国'],'全部')}${fr('年份',['全部','2026','2025','2024','2023','2010s','更早'],'2025')}
+<div class="sum"><span class="n">共 <b class="tnum">128</b> 部</span><div class="rt"><span class="dd glass">最近更新${I(P.dn,13,2.2)}</span><span class="tog">只看可播<span class="sw"></span></span></div></div>
+${grid(mv)}</div>${NAV}</div>`;
+
+const s4=`<div class="phone">${SB}<div class="sa" style="padding-top:150px">${grid(mv.slice(3).concat(mv.slice(0,3)))}</div>
+<div class="stick">${head}<div class="summ"><span class="pl glass">${I(P.f,15,2)}犯罪<s>·</s>2025<s>·</s>最近更新<span class="x">${I(P.dn,12,2.4)}</span></span><span class="n" style="font-size:12px;color:var(--t2)">共 <b style="color:var(--ink)">128</b> 部</span></div></div>${NAV}</div>`;
+
+document.getElementById('b').innerHTML=[['① 搜索首页','点底栏放大镜进入',s1],['② 输入中','边输边出结果，不用按回车',s2],['③ 分类筛选','点「电影」进入',s3],['④ 滚动后','三行筛选收成一行摘要吸顶，点开可展开',s4]]
+ .map(([a,b,s])=>`<div><div class="cap"><b>${a}</b>${b}</div>${s}</div>`).join('');
+const fit=()=>{const k=Math.min(1,(document.documentElement.clientWidth-32)/393);document.querySelectorAll('.phone,.cap').forEach(p=>p.style.zoom=k)};
+addEventListener('resize',fit);fit();
+</script>
+</body></html>
