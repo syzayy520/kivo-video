@@ -162,3 +162,18 @@ App 侧已做的稳健修复（`ui/search/home/SearchField.kt`）：
 - 顺带修复：**第三源库 >5000 被 `MAX_PAGES=50` 截断可能漏片** → 上限提到 100（10000），
   达到上限时 notice 明示「库较大，仅索引前 N 条」，不静默漏片。
 - 诊断 Log/写文件代码已清理（debug 文件仅排障使用）。
+## 十四、搜索自查五项修复（2026-11-24 18:00）
+
+用户问「搜索这一块还有没有什么问题」，自查并修复：
+
+| # | 问题 | 修法与验证 |
+| --- | --- | --- |
+| 1 | 动漫分类 `with_original_language=ja` 把国产动漫排除 | `SearchModels.Anime` 去掉语言限制，只按 genre=16 |
+| 2 | 海报卡年份为空时显示「7.0 · 」尾巴 | `BrowsePosterGrid` 年份空则不拼「 · 」 |
+| 3 | 翻页加载更多失败无提示（静默） | `BrowseFooter`：`error != null && !empty` 显示「加载更多失败，点这里重试」 |
+| 4 | Emby 来源直接摆域名（nl2.lovehd.de 突兀） | 改用 `EmbyServerNames.resolve`（与首页同源）。`guyu-names3.xml`：《谷雨》显示 **nyamedia 可播** |
+| 5 | 演唱会/音乐视频不在 Emby 可播匹配 | `loadSource` types 加 `MusicVideo` |
+
+- 大库索引首次需等待（池 11815 条），就绪后自动刷新可播签条（实测「未入库 → nyamedia 可播」）。
+- 已知限制（未改）：演员/导演搜索只出作品（person 无海报被解析过滤）；演唱会分类 = TMDB 音乐电影近似；
+  同名不同剧（如《谷雨》与《谷雨街后巷》）会同时命中，年份用于可播匹配区分。

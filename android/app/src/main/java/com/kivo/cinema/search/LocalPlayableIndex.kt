@@ -97,7 +97,11 @@ class LocalPlayableIndex(private val app: Context) {
             playable = nas != null || embyHit != null || media != null,
             sourceLabel = when {
                 nas != null -> "NAS 可播"
-                embyHit != null -> "${embyHit.source.name} 可播"
+                embyHit != null -> runCatching {
+                    com.kivo.cinema.emby.EmbyServerNames.resolve(
+                        app, embyHit.source.client, embyHit.source.id, embyHit.source.name,
+                    )
+                }.getOrDefault(embyHit.source.name) + " 可播"
                 media != null -> "本地可播"
                 else -> "TMDB · 未入库"
             },

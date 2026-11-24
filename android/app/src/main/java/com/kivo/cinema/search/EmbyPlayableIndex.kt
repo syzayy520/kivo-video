@@ -6,6 +6,7 @@ import com.kivo.cinema.emby.EmbyAuthCache
 import com.kivo.cinema.emby.EmbyClient
 import com.kivo.cinema.emby.EmbyErrors
 import com.kivo.cinema.emby.EmbyItem
+import com.kivo.cinema.emby.EmbyServerNames
 import com.kivo.cinema.emby.aggregate.AggregateSource
 import com.kivo.cinema.library.TitleMatch
 import com.kivo.cinema.sources.SourceRepository
@@ -120,7 +121,7 @@ class EmbyPlayableIndex(private val app: Context) {
         repeat(MAX_PAGES) {
             val page = source.client.items(
                 source.auth, start = start, limit = PAGE_SIZE,
-                types = "Movie,Series", sort = 1, rich = true,
+                types = "Movie,Series,MusicVideo", sort = 1, rich = true,
             )
             out += page.items.map { Entry(source, it) }
             start += page.items.size
@@ -141,6 +142,11 @@ class EmbyPlayableIndex(private val app: Context) {
         TitleMatch.matches(entry.item.name, query) || TitleMatch.matches(query, entry.item.name)
     }
 
+    /** 来源显示名：与首页同源（Public ServerName，如 hohai/iLoveHD），不直接摆域名。 */
+    private fun displayName(entry: Entry): String = runCatching {
+        EmbyServerNames.resolve(app, entry.source.client, entry.source.id, entry.source.name)
+    }.getOrDefault(entry.source.name)
+
     fun toEntry(entry: Entry): SearchEntry = SearchEntry(
         key = "emby:${entry.source.id}:${entry.item.id}",
         title = entry.item.name,
@@ -151,7 +157,7 @@ class EmbyPlayableIndex(private val app: Context) {
         backdropUrl = null,
         isTv = entry.item.series,
         playable = true,
-        sourceLabel = "${entry.source.name} 可播",
+        sourceLabel = "${displayName(entry)} 可播",
         quality = null,
         emby = entry,
     )

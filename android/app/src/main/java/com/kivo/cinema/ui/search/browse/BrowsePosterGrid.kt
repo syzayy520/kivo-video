@@ -56,8 +56,8 @@ internal fun BrowsePosterCard(entry: SearchEntry, onOpen: (SearchEntry) -> Unit)
         Row(Modifier.padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("★", color = V6Metrics.brass, fontSize = 10.sp)
             Text(
-                " %.1f · %s".format(entry.rating, entry.year), color = DesignTokens.textSub,
-                fontSize = 11.sp, maxLines = 1,
+                " %.1f".format(entry.rating) + if (entry.year.isNotEmpty()) " · ${entry.year}" else "",
+                color = DesignTokens.textSub, fontSize = 11.sp, maxLines = 1,
             )
         }
     }
@@ -76,6 +76,7 @@ internal fun BrowseFooter(
 ) {
     val text = when {
         error != null && empty -> "$error，点这里重试"
+        error != null -> "加载更多失败，点这里重试"
         loading -> if (empty) "正在加载…" else "正在加载更多…"
         empty && reachedEnd -> "这个条件下暂时没有内容"
         reachedEnd -> "已显示全部 $count 部"
@@ -85,7 +86,7 @@ internal fun BrowseFooter(
     Column(Modifier.fillMaxWidth().padding(vertical = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         if (text != null) Text(
             text, fontSize = 13.sp, color = DesignTokens.textSub, textAlign = TextAlign.Center,
-            modifier = Modifier.then(if (error != null && empty) Modifier.clickable(onClick = onRetry) else Modifier),
+            modifier = Modifier.then(if (error != null) Modifier.clickable(onClick = onRetry) else Modifier),
         )
         if (notice != null) Text(
             notice, fontSize = 11.sp, color = DesignTokens.textSub, textAlign = TextAlign.Center,

@@ -48,7 +48,7 @@ enum class SearchCategory(
     All("全部", "", "", ""),
     Series("剧集", "SERIES", "tv", ""),
     Movie("电影", "MOVIES", "movie", ""),
-    Anime("动漫", "ANIME", "tv", "16", "ja"),
+    Anime("动漫", "ANIME", "tv", "16"),
     Variety("综艺", "VARIETY", "tv", "10764"),
     Concert("演唱会", "CONCERT", "movie", "10402"),
     Documentary("纪录片", "DOCUMENTARY", "movie", "99");
