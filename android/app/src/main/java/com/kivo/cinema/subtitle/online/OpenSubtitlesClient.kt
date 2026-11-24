@@ -19,10 +19,17 @@ class OpenSubtitlesClient(private val tmdb: TmdbClient, private val prefs: Onlin
         season: Int? = null,
         episode: Int? = null,
         page: Int = 1,
+        year: Int? = null,
     ): List<OnlineSubtitle> {
+        // OpenSubtitles 要求 query ≥ 3 字符（中文两字片名《谷雨》会被 400 拒）——
+        // 短片名自动补年份凑长并收窄匹配面（year 来自详情页 TMDB date）。
+        var effectiveQuery = query
+        if (effectiveQuery.codePointCount(0, effectiveQuery.length) < 3 && year != null) {
+            effectiveQuery = "$effectiveQuery $year"
+        }
         val url = buildString {
             append("https://api.opensubtitles.com/api/v1/subtitles?query=")
-            append(URLEncoder.encode(query, "UTF-8"))
+            append(URLEncoder.encode(effectiveQuery, "UTF-8"))
             if (languages.isNotBlank()) append("&languages=$languages")
             season?.let { append("&season=$it") }
             episode?.let { append("&episode=$it") }
@@ -39,6 +46,9 @@ class OpenSubtitlesClient(private val tmdb: TmdbClient, private val prefs: Onlin
                 .readBytes().decodeToString()
             if (code == 401 || code == 403) {
                 throw IOException("OpenSubtitles 需要 Api-Key（opensubtitles.com 免费注册后填入设置）")
+            }
+            if (code == 400 && text.contains("too short")) {
+                throw IOException("OpenSubtitles 片名太短（至少 3 个字符）且没有年份可补")
             }
             if (code !in 200..299) throw IOException("OpenSubtitles HTTP $code：${text.take(120)}")
             text

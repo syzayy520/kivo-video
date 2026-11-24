@@ -22,7 +22,7 @@ class OnlineSubtitleRepository(
     suspend fun search(query: String, year: Int? = null, locale: Locale = Locale.getDefault()): Result = coroutineScope {
         val errors = mutableListOf<String>()
         val os = async(Dispatchers.IO) {
-            runCatching { openSubtitles.search(query, languageQuery(locale)) }
+            runCatching { openSubtitles.search(query, languages = languageQuery(locale), year = year) }
                 .getOrElse {
                     errors += "OpenSubtitles：${it.message ?: "搜索失败"}"
                     emptyList()

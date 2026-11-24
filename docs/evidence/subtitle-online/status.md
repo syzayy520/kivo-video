@@ -67,3 +67,14 @@ TMDB 域名可直连所以 TMDB 搜索正常，OpenSubtitles 域名被网络拦�
 - SubHD 错误提示仍然正常（网络不可达属环境限制，不静默降级）。
 
 **端到端闭环验证通过：搜索 → 下载 → 落库 → 文件内容有效。**
+## 九、字幕准备移到详情页 + 短片名补年份（2026-11-25 05:50）
+
+用户反馈「播放面板翻译无响应」+ 产品决策「提前下载和翻译是刚需」：
+
+- **详情页入口**：更多菜单「下载」→ 在线字幕面板（预填详情片名+年份）。`detail-online.xml` 实测面板打开预填「谷雨」✓
+- **通用化重构**：`OnlineSubtitleSheetContent`（通用）+ 播放薄壳（autoAttach=true 挂载）+ 详情页壳（autoAttach=false 落库+预登记）
+- **videoKey 预登记**：NAS 单片/本地详情与播放 path 同口径 → 下载后 `remember` 登记 → 起播 `findRegisteredByPath` 自动挂载；**剧集 path 不一致不预登记**（如实限制）
+- **翻译进度**：`OnlineSubtitleTranslator` 加 `onProgress`（块提交粒度），面板显示「翻译中 x/y 条…」（修复「无响应」感知）
+- **短片名补年份**：OpenSubtitles 要求 query ≥3 字符（实测「谷雨」→ 400 Query is too short）——
+  query<3 字符且详情页有年份时自动补（「谷雨 2026」→ 0 条真实空态，`guyu-year.xml` ✓）
+- **notice 独立行**：原塞在搜索按钮旁被长文本挤压不可见（真机确认）→ 移到搜索行下方独立 Text（`guyu-year.xml` SubHD 错误可见 ✓）
