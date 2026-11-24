@@ -23,6 +23,7 @@
 #include "llama.h"
 
 #include <algorithm>
+#include <android/log.h>
 #include <cmath>
 #include <mutex>
 #include <unordered_set>
@@ -30,6 +31,17 @@
 namespace kivo::cinema_engine {
 
 namespace {
+
+/// llama.cpp 的 LLAMA_LOG_* 默认走 stderr（Android 上不可见）——桥到 logcat。
+/// 排查 native 翻译问题的关键证据通道（get_logits_ith 失败会打 reason）。
+void kivo_llama_log(ggml_log_level level, const char * text, void * /*user*/)
+{
+    const android_LogPriority priority =
+        level == GGML_LOG_LEVEL_ERROR ? ANDROID_LOG_ERROR : ANDROID_LOG_INFO;
+    __android_log_print(priority, "kivo-ai", "%s", text);
+}
+
+bool llama_log_bridge_installed = false;
 
 /// 源文本的 token 估算（行级早停的「源行 ×3」基准用字符粗估折算 ——
 /// 精确计数在 prompt 预算层做）。
@@ -75,6 +87,10 @@ struct RepetitionGuard
 LlamaSubtitleEngine::LlamaSubtitleEngine(const LlamaEngineConfig& config)
     : config_(config)
 {
+    if (!llama_log_bridge_installed) {
+        llama_log_set(kivo_llama_log, nullptr);
+        llama_log_bridge_installed = true;
+    }
     llama_backend_init();
     llama_model_params model_params = llama_model_default_params();
     model_params.n_gpu_layers = 0;   // CPU 口径（Vulkan 不在 T-B 范围）
@@ -213,6 +229,15 @@ SubtitleTranslationBatch LlamaSubtitleEngine::translate(
     RepetitionGuard repetition;
     bool stopped_early = false;
     llama_pos next_pos = static_cast<llama_pos>(n_prompt);
+    // 采样前防御：输出缓冲里没有 logits 时 llama_sampler_sample 内部会
+    // GGML_ASSERT 崩进程（release 版 get_logits_ith 返回 nullptr）——
+    // 必须转成可见失败回退原文，绝不崩溃。
+    if (llama_get_logits_ith(ctx_, -1) == nullptr) {
+        last_error_ = "logits missing after prefill (prompt tokens=" +
+                      std::to_string(n_prompt) + ")";
+        llama_batch_ext_free(batch_ext);
+        return batch;
+    }
     llama_token next = llama_sampler_sample(sampler_, ctx_, -1);
     consumed_tokens_ += 1;
 
@@ -245,6 +270,13 @@ SubtitleTranslationBatch LlamaSubtitleEngine::translate(
         }
         ++next_pos;
         consumed_tokens_ += 1;
+        if (llama_get_logits_ith(ctx_, -1) == nullptr) {
+            last_error_ = "logits missing after decode step " +
+                          std::to_string(next_pos) + " (generated=" +
+                          std::to_string(generated.size()) + " bytes)";
+            llama_batch_ext_free(batch_ext);
+            return batch;
+        }
         next = llama_sampler_sample(sampler_, ctx_, -1);
         consumed_tokens_ += 1;
     }

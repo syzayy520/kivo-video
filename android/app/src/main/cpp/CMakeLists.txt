@@ -161,6 +161,7 @@ if(EXISTS "${KIVO_LLAMA_ANDROID_DIST}/lib/libllama.a")
     target_link_libraries(kivo_ai
         llama_ext
         kivo_core_subtitle_translation
+        log
     )
     target_compile_features(kivo_ai PRIVATE cxx_std_20)
     if(MSVC)
