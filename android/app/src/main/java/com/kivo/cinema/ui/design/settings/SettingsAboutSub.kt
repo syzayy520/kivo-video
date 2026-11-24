@@ -17,6 +17,12 @@ internal fun SettingsAboutSub(store: SettingsStore, onOpenPrivate: () -> Unit, o
             ValueRow("版本", store.versionLabel)
         }
         Spacer(Modifier.height(14.dp))
+        SectionCard("数据与致谢") {
+            ValueRow("OpenSubtitles", "在线字幕搜索与下载（官方 API）")
+            ValueRow("SubHD", "中文字幕搜索（subhd.tv）")
+        }
+        Footnote("感谢 OpenSubtitles 与 SubHD 及其字幕作者分享的公开字幕资源；仅用于个人语言学习。")
+        Spacer(Modifier.height(14.dp))
         SectionCard("私密与安全") {
             ChevronRow("应用内数字密码", "私密区 · 隐藏源 · 改密", onClick = onOpenPrivate)
         }

@@ -69,6 +69,8 @@ class PlayerComposeActivity : ComponentActivity() {
      */
     internal var lastSubtitleFileKey: String? = null
     internal var activePanel by mutableStateOf("")
+    /** 在线字幕面板（subtitle/online）：由字幕操作「搜索字幕」打开，不占 activePanel。 */
+    internal var showOnlineSubtitle by mutableStateOf(false)
     internal var activeAction by mutableStateOf("")
     internal var flashZone by mutableStateOf<com.kivo.cinema.ui.compose.player.DoubleTapZone?>(null)
     internal var flashEventId by mutableStateOf(0L)
@@ -271,6 +273,9 @@ class PlayerComposeActivity : ComponentActivity() {
         urlPrep = null
         playbackSession?.close()
         playbackSession = null
+        // BACK 退出即停后台播放服务：Activity 销毁 = 用户明确退出，服务持有的会话随 onDestroy 一并关闭。
+        // HOME 不触发 onDestroy，「后台继续播放音频」开关语义不受影响（该服务仅旧内核本地链路启动）。
+        runCatching { stopService(android.content.Intent(this, com.kivo.cinema.playback.PlaybackService::class.java)) }
         super.onDestroy()
     }
 }

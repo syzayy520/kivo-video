@@ -81,6 +81,7 @@ internal fun PlayerComposeActivity.handleSubtitleSelect(
     if (panel !in SUBTITLE_PANELS) return false
     when {
         item.tag == "sub-import" -> launchSubtitleImport()
+        item.tag == "sub-online" -> showOnlineSubtitle = true
         item.tag == "sub-import-url" -> importSubtitleFromClipboard()
         item.tag == "sub-ai" -> handleAiSubtitleRow()
         // 「字幕编码」是钻入行：只换面板，不碰内核（与 Router 的 CHEVRON 同口径）。

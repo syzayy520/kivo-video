@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.unit.dp
 import com.kivo.cinema.ui.compose.player.PlayerTokens
+import com.kivo.cinema.ui.design.DesignTokens
+import com.kivo.cinema.ui.subtitles.online.OnlineSubtitleTab
 import kotlinx.coroutines.delay
 
 @Composable
@@ -203,6 +205,12 @@ internal fun PlayerComposeActivity.PlayerRoot() {
                     .align(Alignment.TopStart)
                     .offset(x = cardX.dp, y = 82.dp),
                 )
+            }
+            // 在线字幕面板（subtitle/online）：全屏覆盖，数据与播放只读分离。
+            if (showOnlineSubtitle) {
+                Box(Modifier.fillMaxSize().background(DesignTokens.pageBackground)) {
+                    OnlineSubtitleTab(onClose = { showOnlineSubtitle = false })
+                }
             }
         }
     }

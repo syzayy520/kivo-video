@@ -22,7 +22,7 @@ internal object PlayerPanelForms {
      * **行序与既有 tag 不变**；「粘贴字幕链接」(`sub-import-url`) 紧跟「导入字幕」。
      */
     fun subtitleActions(): List<PlayerOptionItem> = listOf(
-        disabled("搜索字幕", "搜索服务未接入", section = ACTION_SECTION),
+        PlayerOptionItem(title = "搜索字幕", tag = "sub-online"),
         PlayerOptionItem(title = "导入字幕", tag = "sub-import"),
         PlayerOptionItem(title = "粘贴字幕链接", tag = "sub-import-url"),
         PlayerOptionItem(

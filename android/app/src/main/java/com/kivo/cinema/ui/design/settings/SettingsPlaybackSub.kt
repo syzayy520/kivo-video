@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.kivo.cinema.playback.PlaybackPrefs
 import com.kivo.cinema.playback.subtitle.SubtitleAssMode
 import com.kivo.cinema.playback.subtitle.SubtitleStyleStore
+import com.kivo.cinema.ui.subtitles.online.OnlineSubtitleSettings
 
 /**
  * 播放设置子页（262 播放设置卡，参考 0206–0209 八节）。
@@ -154,6 +155,10 @@ internal fun SettingsPlaybackSub(onBack: () -> Unit) {
                 icon = SettingsIcons.subtitle, iconColor = SettingsVisuals.teal) { picker = "ass" }
         }
         Footnote("字幕渲染由播放内核负责；与播放器内「字幕显示设置」共用同一份配置。")
+        OnlineSubtitleSettings(
+            com.kivo.cinema.subtitle.online.OnlineSubtitlePrefs(context),
+            onChanged = { revision++ },
+        )
     }
 
     when (picker) {
