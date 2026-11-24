@@ -78,3 +78,38 @@ TMDB 域名可直连所以 TMDB 搜索正常，OpenSubtitles 域名被网络拦�
 - **短片名补年份**：OpenSubtitles 要求 query ≥3 字符（实测「谷雨」→ 400 Query is too short）——
   query<3 字符且详情页有年份时自动补（「谷雨 2026」→ 0 条真实空态，`guyu-year.xml` ✓）
 - **notice 独立行**：原塞在搜索按钮旁被长文本挤压不可见（真机确认）→ 移到搜索行下方独立 Text（`guyu-year.xml` SubHD 错误可见 ✓）
+## 十、修复「翻译失败：Index: 0, Size: 0」（2026-11-25 07:30）
+
+**现象**（`translate-error.png`）：详情页在线字幕面板点「译成中文」→「翻译失败：Index: 0, Size: 0」
+（英文异常原文上屏，违反 G9）。
+
+**根因（两层，`translate-error.png` 时序吻合）**：
+
+1. **崩溃本体**：`LocalAiEngineClient` 引擎失败时返回 `AiTranslateResponse(emptyList(), error)`
+   —— **空列表**（契约注释写明「error 非空 = 整批失败，slots 为空列表」），而
+   `TranslationJob.run` 只判 `slots == null` → 空列表滑过检查 → 块循环 `slots[0]`
+   抛 IndexOutOfBoundsException（TranslationJob.kt 原 161/201 行）。
+   ZIP 假设排除：cues 解析成功才会进块循环，说明下载文件是有效 SRT。
+2. **引擎为何失败**：`OnlineSubtitleTranslator` 每次 new `LocalAiEngineClient` 且**从未
+   loadModel**（模型装载只在播放路径 `AiSubtitleController.ensureModelLoaded`）。
+   详情页直达 + 新进程 → 引擎未就绪 → `nativeTranslateBlock` 失败 → 空槽位。
+   顺带发现：每次 new client = 单线程 executor 泄漏 + 与播放面板各自线程进 native
+   （违反「所有 native 调用走同一个线程」的 C++ 单实例契约）。
+
+**修复（4 文件，均在既有家族树内）**：
+
+- `TranslationJob.kt`：空 slots 整批失败 + `TranslationJobResult.reason` 字段透传中文原因
+- `AiSubtitleController.kt`：`companion.sharedClient` 进程级共享（消除泄漏/多线程进 native）+
+  `ensureModelLoadedReason`（未就绪才 loadModel——此时无「正在用的引擎」，重建无害）+
+  startTranslation 失败分支带 reason
+- `OnlineSubtitleTranslator.kt`：翻译前经 `ensureModelLoadedReason` 装载模型 + 用共享 client
+- `OnlineSubtitleSheet.kt`：失败分支显示 `result.reason`（G9）
+
+**真机复验（force-stop 后详情页直达 = 原崩溃场景）**：
+
+- 点「译成中文」→「翻译准备中…」→ 45 秒后「翻译中 4/2003 条…」→ 35 秒后 12/2003
+  —— 模型自动装载成功（设备上有 Qwen3-1.7B-Q4_K_M 1.28GB）、翻译真实运行、
+  **不再崩溃**。证据：`translate-fixed-running.png`
+- 测试片：《饥饿游戏：收获日出》详情页 → 更多操作 → 下载 → 搜「Hunger Games」→
+  英语 SRT（IMAX.EDITION.BRRip，↓119889）→ 译成中文
+- 已知遗留不变：SubHD「网络不可达」提示（环境限制）；2003 条翻译分钟级，面板可离开稍后回来

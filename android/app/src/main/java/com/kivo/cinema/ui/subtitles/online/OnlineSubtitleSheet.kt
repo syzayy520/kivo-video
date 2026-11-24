@@ -129,7 +129,7 @@ internal fun OnlineSubtitleSheetContent(
             outcome.onSuccess { result ->
                 val path = result.translationPath
                 if (path.isNullOrBlank()) {
-                    progressText = "翻译未完成，请检查模型与网络"
+                    progressText = result.reason ?: "翻译未完成，请检查模型与网络"
                     return@onSuccess
                 }
                 importRemote(com.kivo.cinema.playback.subtitle.RemoteSubtitle(File(path), item.title + "（中文）"))

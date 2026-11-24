@@ -21,8 +21,32 @@ import java.util.concurrent.atomic.AtomicReference
 
 class AiSubtitleController(private val context: Context) {
 
-    private val client: AiEngineClient = LocalAiEngineClient()
+    private val client: AiEngineClient = sharedClient
     private val runningJob = AtomicReference<TranslationJob?>(null)
+
+    companion object {
+        /// 进程级共享引擎 client。线程契约：所有 native 调用都走同一个单线程
+        /// executor（C++ 单例 mutex 的调用方约定）——各入口各自 new client =
+        /// 多线程并发进 native + executor 泄漏；且第二个 client 的 loadModel
+        /// 会 g_engine.reset() 销毁第一个正在用的引擎（2026-11-21 冒烟实测）。
+        /// 在线字幕路径（详情页）与播放面板因此必须共享同一实例。
+        internal val sharedClient: AiEngineClient by lazy { LocalAiEngineClient() }
+
+        /// 共享模型装载：isReady → ModelStore 发现 → loadModel。
+        /// 返回 null = 就绪；非空 = 用户可见中文原因（G9）。
+        /// 未就绪时才 loadModel —— 此时没有「正在用的引擎」，重建无害。
+        internal fun ensureModelLoadedReason(context: Context): String? {
+            if (!AiTranslationNative.available) { return "AI 翻译库不可用" }
+            if (sharedClient.isReady()) { return null }
+            val model = AiSubtitleModelStore.findModel(context)
+                ?: return "未找到翻译模型：${AiSubtitleModelStore.guidance(context)}"
+            return if (sharedClient.loadModel(model.absolutePath)) {
+                null
+            } else {
+                "模型加载失败：${sharedClient.lastError() ?: "未知原因"}"
+            }
+        }
+    }
 
     /// 面板行投影用：运行中任务的进度快照（TRANSLATING 态副行数据源，UX v3 §3）。
     /// onProgress 更新、worker finally 清空——终态由 lastTranslationPath（缓存命中）表达。
@@ -67,11 +91,7 @@ class AiSubtitleController(private val context: Context) {
 
     /// 模型加载：ModelStore 发现 → client.loadModel。返回 false 时
     /// lastError()/guidance() 给出原因与路径指引（G9 非空 reason）。
-    fun ensureModelLoaded(): Boolean {
-        if (client.isReady()) { return true }
-        val model = AiSubtitleModelStore.findModel(context) ?: return false
-        return client.loadModel(model.absolutePath)
-    }
+    fun ensureModelLoaded(): Boolean = ensureModelLoadedReason(context) == null
 
     /// 诊断双写：logcat + 外部 ai-smoke.log。此前「ai-smoke.log 无 done 行」的
     /// 盲区源于面板路径不写外部日志（只有探针写）；logcat 主缓冲在 mpv 日志
@@ -114,12 +134,12 @@ class AiSubtitleController(private val context: Context) {
         Thread {
             diag("ai-ctrl worker-started")
             val result = try {
-                val loaded = ensureModelLoaded()
-                diag("ai-ctrl ensure-loaded=$loaded")
-                if (!loaded) {
+                val loadReason = ensureModelLoadedReason(context)
+                diag("ai-ctrl ensure-loaded=${loadReason == null}")
+                if (loadReason != null) {
                     // 模型加载失败必须明确终止——此前返回值被丢弃，job.run 会在
                     // 引擎未就绪下继续跑，真正的失败原因被推迟且掩埋。
-                    TranslationJobResult(null, 0, 0, 0, 0, 0, cancelled = false)
+                    TranslationJobResult(null, 0, 0, 0, 0, 0, cancelled = false, reason = loadReason)
                 } else {
                     diag("ai-ctrl before-job-run")
                     job.run(sourceSrt, playheadMs).also {
@@ -130,7 +150,10 @@ class AiSubtitleController(private val context: Context) {
                 // 完整堆栈双写——此前 catch 静默吞掉（G9 注释空转），worker 内
                 // 任何异常都只剩 2 秒 toast，根因无从取证。
                 diag("ai-ctrl worker-catch ${throwable.javaClass.name}: ${throwable.message}\n${android.util.Log.getStackTraceString(throwable)}")
-                TranslationJobResult(null, 0, 0, 0, 0, 0, cancelled = false)
+                TranslationJobResult(
+                    null, 0, 0, 0, 0, 0, cancelled = false,
+                    reason = "翻译任务异常：${throwable.message ?: throwable.javaClass.simpleName}",
+                )
             } finally {
                 runningJob.set(null)
                 currentProgress = null

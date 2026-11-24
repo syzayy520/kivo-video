@@ -51,6 +51,8 @@ data class TranslationJobResult(
     val failedFallbacks: Int,
     val totalCues: Int,
     val cancelled: Boolean,
+    /// 失败时的用户可见中文原因（G9 非空 reason；成功/取消 = null）。
+    val reason: String? = null,
 )
 
 class TranslationJob(
@@ -158,14 +160,20 @@ class TranslationJob(
             latch.await(15, TimeUnit.MINUTES)
             android.util.Log.i("kivo-ai", "job: block=${block.first} latch released")
             val slots = response?.slots?.toMutableList()
-            if (slots == null) {
-                // 引擎未就绪/整批失败 → 任务失败。
-                output = reduceTranslation(state, TranslationEvent.Failed("engine not ready"))
+            if (slots == null || slots.isEmpty()) {
+                // 引擎未就绪/整批失败 → 任务失败。空列表也是失败载荷：
+                // LocalAiEngineClient 的失败响应恒为 (emptyList, error)，此前只判
+                // null，空列表滑进块循环在 slots[0] 处抛 IndexOutOfBounds
+                //（2026-11-25 真机实测「Index: 0, Size: 0」上屏）。
+                val reason = response?.error?.takeIf { it.isNotBlank() }
+                    ?.let { "AI 翻译引擎未就绪：$it" }
+                    ?: "AI 翻译引擎未就绪"
+                output = reduceTranslation(state, TranslationEvent.Failed(reason))
                 state = output.state
                 journal.appendEvent(TranslationJournalEvents.JOB_FAILED)
                 journal.flush()
                 writeManifest(state, cacheKey, sourceHash, cues.size, failedCount)
-                return failResult(state.lastError ?: "engine not ready")
+                return failResult(reason)
             }
 
             // 缺号聚合重试（重试不变量：缺失行重组小编号块 —— 评审 E29）。
@@ -261,7 +269,7 @@ class TranslationJob(
 
     private fun failResult(reason: String): TranslationJobResult {
         onProgress?.invoke(TranslationJobProgress("FAILED", 0, 0, null))
-        return TranslationJobResult(null, 0, 0, 0, 0, 0, cancelled = false)
+        return TranslationJobResult(null, 0, 0, 0, 0, 0, cancelled = false, reason = reason)
     }
 
     private fun writeManifest(
