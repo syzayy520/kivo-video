@@ -81,6 +81,7 @@ class SearchRepository(
             .filterNot { TitleMatch.normalize(it.title) in covered }
             .distinctBy { it.key }
         val all = localOnly + remoteEntries
+
         val err = if (all.isEmpty()) remote.errorKind?.let(::errorText) else null
         val notice = listOfNotNull(localState.denied, emby.notice)
             .joinToString("；").ifBlank { null }

@@ -147,3 +147,18 @@ App 侧已做的稳健修复（`ui/search/home/SearchField.kt`）：
   `VoiceSearchController.kt`（识别）+ `VoiceSearchDialog.kt`（UI）+ `RECORD_AUDIO` 权限。
   迭代：居中巨卡 → 底部面板 → 近乎不透明面板 + 文案去重 + 主按钮收窄 + 次按钮浅底 + 失败「键盘输入」退路。
   终版 `13-voice-final2.png` 评审：不透字、层级协调、可定稿。
+## 十三、《谷雨》匹配问题定位（2026-11-24 17:45）
+
+用户报告：电视剧《谷雨》Emby 里有，搜索显示没有，却出现在「动画」里。
+
+诊断（`emby-index-debug.txt` / `search-debug.txt`）：
+- Emby 池 **11815 条**（三源 2382/4433/5000），《谷雨》三源都有（year=2026）。
+- 搜索 remote：《谷雨》标 `emby.bangumi.ca 可播`，`guyu-final2.xml` 最佳匹配签条 = **emby.bangumi.ca 可播**。
+- 「出现在动画里」的是 **《谷雨街后巷》**（TMDB 另一部动画剧集，id 331159，genres 含 16），
+  与《谷雨》（id 279155，剧情）同名命中，不是《谷雨》被错分类。
+- **时序问题**：首次搜索时 Emby 池未拉完 → 标「未入库」；池就绪后 `search.refresh()` 自动刷成可播
+  （`guyu-final.xml` 未入库 → `guyu-final2.xml` 可播）。
+- 用户看不到可播的根因：**原稿最佳匹配大卡没有来源签条** → 已补签条（绿点 + sourceLabel）。
+- 顺带修复：**第三源库 >5000 被 `MAX_PAGES=50` 截断可能漏片** → 上限提到 100（10000），
+  达到上限时 notice 明示「库较大，仅索引前 N 条」，不静默漏片。
+- 诊断 Log/写文件代码已清理（debug 文件仅排障使用）。

@@ -1,14 +1,17 @@
 package com.kivo.cinema.ui.search.query
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,6 +64,19 @@ internal fun BestMatchCard(entry: SearchEntry, onOpen: (SearchEntry) -> Unit) {
                     bestMeta(entry), fontSize = 12.sp, color = DesignTokens.canvasFill.copy(alpha = .8f),
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
+                // 可播来源签条：用户要一眼看出「Emby/NAS 里有这部」（原稿只有 meta，识别不出来源）。
+                Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        Modifier.size(6.dp).clip(CircleShape)
+                            .background(if (entry.playable) SearchTokens.playableDot else SearchTokens.idleDot),
+                    )
+                    Spacer(Modifier.size(5.dp))
+                    Text(
+                        entry.sourceLabel, fontSize = 11.sp, fontWeight = FontWeight.Medium,
+                        color = if (entry.playable) SearchTokens.playableDot
+                        else DesignTokens.canvasFill.copy(alpha = .65f),
+                    )
+                }
             }
         }
     }

@@ -83,6 +83,10 @@ class EmbyPlayableIndex(private val app: Context) {
                 async(Dispatchers.IO) {
                     slots.withPermit {
                         runCatching { loadSource(record) }.getOrElse {
+                            if (it is EmbyLibraryTruncated) {
+                                failures += "${it.sourceName}：库较大，仅索引前 ${MAX_PAGES * PAGE_SIZE} 条"
+                                return@getOrElse it.entries
+                            }
                             failures += "${record.name}：${EmbyErrors.reason(it)}"
                             emptyList()
                         }
@@ -94,6 +98,7 @@ class EmbyPlayableIndex(private val app: Context) {
         ready = true
         loadedAtMs = System.currentTimeMillis()
         notice = if (failures.isEmpty()) null else "部分 Emby 源未接入：" + failures.joinToString("；")
+
         version.value++
     }
 
@@ -121,8 +126,11 @@ class EmbyPlayableIndex(private val app: Context) {
             start += page.items.size
             if (page.items.size < PAGE_SIZE) return out
         }
-        return out
+        throw EmbyLibraryTruncated(record.name, out)
     }
+
+    /** 达到分页上限：保留已拉取条目，同时上报「库更大，索引不全」（不静默漏片）。 */
+    private class EmbyLibraryTruncated(val sourceName: String, val entries: List<Entry>) : Exception()
 
     fun match(title: String, year: String): Entry? = pool.firstOrNull { entry ->
         yearCompatible(entry.item.year, year) &&
@@ -151,6 +159,6 @@ class EmbyPlayableIndex(private val app: Context) {
     private companion object {
         const val TTL_MS = 10L * 60 * 1000
         const val PAGE_SIZE = 100
-        const val MAX_PAGES = 50
+        const val MAX_PAGES = 100
     }
 }
