@@ -55,3 +55,15 @@ TMDB 域名可直连所以 TMDB 搜索正常，OpenSubtitles 域名被网络拦�
 - **SubHD 网络不可达/详情页解析失败** → 「SubHD 搜索到了影视但未能解析出字幕（网络不可达或站点被墙）」
 - `final2.xml` 实测两源错误消息都可见（不静默降级 ✓）。
 - 用户在设置填入 Api-Key 后 OpenSubtitles 搜索即可工作；SubHD 需配置代理。
+## 八、填入 Api-Key 后完整闭环验证（2026-11-25 05:15）
+
+用户在设置填入 Api-Key + 账号后真机重试：
+
+- **搜索 ✓**：`after-key.xml` 搜索「Lowlifes」出 3 条 OpenSubtitles 简体中文字幕结果
+  （Lowlife.Love.2015 ↓1537 / BD ↓636 / 下众之爱 ↓54，语言标签「简体 · SRT」）。
+- **下载 ✓ 落库 ✓**：`files/subtitles/7fb2aaa14bcf-Lowlife.Love.2015.720p.BluRay.x264-WiKi.chs.srt`
+  已存在（哈希前缀+原始名）。
+- **内容 ✓**：SRT 格式简体中文对话（「不要」「我要回去了」…），非 HTML 错误页面。
+- SubHD 错误提示仍然正常（网络不可达属环境限制，不静默降级）。
+
+**端到端闭环验证通过：搜索 → 下载 → 落库 → 文件内容有效。**
