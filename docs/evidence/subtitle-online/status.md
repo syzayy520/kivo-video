@@ -47,3 +47,11 @@ TMDB 域名可直连所以 TMDB 搜索正常，OpenSubtitles 域名被网络拦�
 - OpenSubtitles 搜索失败需配置 tmdb_proxy.txt（网络环境，非代码 bug）。
 - SubHD 下载被 Cloudflare 拦截（可见降级提示），搜索展示不受影响。
 - 外语字幕「译成中文」依赖 AI 翻译模型已就绪。
+## 七、错误分类精确化（2026-11-24 20:30）
+
+真机复验发现原始错误文案「搜索失败（网络或服务异常）」不精确，改为按真实原因分类：
+
+- **OpenSubtitles 403/401** → 「OpenSubtitles 需要 Api-Key（opensubtitles.com 免费注册后填入设置）」
+- **SubHD 网络不可达/详情页解析失败** → 「SubHD 搜索到了影视但未能解析出字幕（网络不可达或站点被墙）」
+- `final2.xml` 实测两源错误消息都可见（不静默降级 ✓）。
+- 用户在设置填入 Api-Key 后 OpenSubtitles 搜索即可工作；SubHD 需配置代理。

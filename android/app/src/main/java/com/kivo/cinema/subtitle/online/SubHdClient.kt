@@ -19,11 +19,19 @@ class SubHdClient(private val tmdb: TmdbClient) {
 
     fun search(query: String, year: Int? = null): List<OnlineSubtitle> {
         val ids = mediaIds(query, year)
-        return ids.flatMap { (id, _) -> runCatching { subtitlesOf(id) }.getOrDefault(emptyList()) }
+            ?: throw IOException("SubHD 搜索失败（网络不可达或站点被墙，请配置代理后重试）")
+        if (ids.isEmpty()) throw IOException("SubHD 没有找到相关影视，换个片名试试")
+        val results = ids.map { (id, _) ->
+            runCatching { subtitlesOf(id) }
+                .getOrElse { if (it is IOException) throw it else emptyList() }
+        }
+        val all = results.flatten()
+        if (all.isEmpty()) throw IOException("SubHD 搜索到了影视但未能解析出字幕（网络不可达或站点被墙）")
+        return all
     }
 
-    private fun mediaIds(query: String, year: Int?): List<Pair<String, Int?>> {
-        val body = get("/search/${URLEncoder.encode(query, "UTF-8")}") ?: return emptyList()
+    private fun mediaIds(query: String, year: Int?): List<Pair<String, Int?>>? {
+        val body = get("/search/${URLEncoder.encode(query, "UTF-8")}") ?: return null
         val out = LinkedHashSet<String>()
         Regex("/d/(\\d+)").findAll(body).forEach { out += it.groupValues[1] }
         return out.take(3).map { it to year }

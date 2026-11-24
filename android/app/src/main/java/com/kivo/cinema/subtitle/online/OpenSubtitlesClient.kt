@@ -28,7 +28,23 @@ class OpenSubtitlesClient(private val tmdb: TmdbClient, private val prefs: Onlin
             episode?.let { append("&episode=$it") }
             append("&page=$page")
         }
-        val body = httpGet(tmdb, url) ?: throw IOException("OpenSubtitles 搜索失败（网络或服务异常）")
+        val conn = tmdb.openConnection(url)
+        val body = try {
+            conn.connectTimeout = 20_000
+            conn.readTimeout = 30_000
+            conn.setRequestProperty("Accept", "application/json")
+            if (prefs.apiKey.isNotBlank()) conn.setRequestProperty("Api-Key", prefs.apiKey)
+            val code = conn.responseCode
+            val text = (if (code in 200..299) conn.inputStream else conn.errorStream)
+                .readBytes().decodeToString()
+            if (code == 401 || code == 403) {
+                throw IOException("OpenSubtitles 需要 Api-Key（opensubtitles.com 免费注册后填入设置）")
+            }
+            if (code !in 200..299) throw IOException("OpenSubtitles HTTP $code：${text.take(120)}")
+            text
+        } finally {
+            conn.disconnect()
+        }
         val data = JSONObject(body).optJSONArray("data") ?: return emptyList()
         return (0 until data.length()).mapNotNull { i ->
             runCatching { parse(data.getJSONObject(i)) }.getOrNull()
