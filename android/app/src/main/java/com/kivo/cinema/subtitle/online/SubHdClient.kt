@@ -17,17 +17,28 @@ class SubHdClient(private val tmdb: TmdbClient) {
 
     private val hosts = listOf("https://subhd.tv", "https://subhd.me")
 
-    fun search(query: String, year: Int? = null): List<OnlineSubtitle> {
-        val ids = mediaIds(query, year)
-            ?: throw IOException("SubHD 搜索失败（网络不可达或站点被墙，请配置代理后重试）")
-        if (ids.isEmpty()) throw IOException("SubHD 没有找到相关影视，换个片名试试")
-        val results = ids.map { (id, _) ->
-            runCatching { subtitlesOf(id) }
-                .getOrElse { if (it is IOException) throw it else emptyList() }
+    fun search(query: String, year: Int? = null, debugContext: android.content.Context? = null): List<OnlineSubtitle> {
+        try {
+            val ids = mediaIds(query, year)
+                ?: throw IOException("SubHD 搜索失败（网络不可达或站点被墙，请配置代理后重试）")
+            if (ids.isEmpty()) throw IOException("SubHD 没有找到相关影视，换个片名试试")
+            val results = ids.map { (id, _) ->
+                runCatching { subtitlesOf(id) }
+                    .getOrElse { if (it is IOException) throw it else emptyList() }
+            }
+            val all = results.flatten()
+            if (all.isEmpty()) throw IOException("SubHD 搜索到了影视但未能解析出字幕（网络不可达或站点被墙）")
+            return all
+        } catch (e: Exception) {
+            debugContext?.let { ctx ->
+                runCatching {
+                    java.io.File(ctx.filesDir, "subhd-debug.txt").writeText(
+                        "query=$query\nerror=${e.message}\ncause=${e.cause?.message ?: "none"}\nhost=$activeHost\n",
+                    )
+                }
+            }
+            throw e
         }
-        val all = results.flatten()
-        if (all.isEmpty()) throw IOException("SubHD 搜索到了影视但未能解析出字幕（网络不可达或站点被墙）")
-        return all
     }
 
     private fun mediaIds(query: String, year: Int?): List<Pair<String, Int?>>? {

@@ -12,6 +12,7 @@ import java.util.Locale
 class OnlineSubtitleRepository(
     private val openSubtitles: OpenSubtitlesClient,
     private val subHd: SubHdClient,
+    private val debugContext: android.content.Context? = null,
 ) {
     data class Result(
         val items: List<OnlineSubtitle>,
@@ -28,7 +29,7 @@ class OnlineSubtitleRepository(
                 }
         }
         val hd = async(Dispatchers.IO) {
-            runCatching { subHd.search(query, year) }
+            runCatching { subHd.search(query, year, debugContext) }
                 .getOrElse {
                     errors += "SubHD：${it.message ?: "搜索失败"}"
                     emptyList()

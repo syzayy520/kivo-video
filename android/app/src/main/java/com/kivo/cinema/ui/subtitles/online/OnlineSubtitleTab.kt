@@ -60,7 +60,7 @@ internal fun PlayerComposeActivity.OnlineSubtitleTab(onClose: () -> Unit) {
     val prefs = remember { OnlineSubtitlePrefs(context) }
     val repo = remember {
         val tmdb = TmdbClient(this)
-        OnlineSubtitleRepository(OpenSubtitlesClient(tmdb, prefs), SubHdClient(tmdb))
+        OnlineSubtitleRepository(OpenSubtitlesClient(tmdb, prefs), SubHdClient(tmdb), this)
     }
     val downloader = remember {
         OnlineSubtitleDownloader(OpenSubtitlesClient(TmdbClient(this), prefs), SubHdClient(TmdbClient(this)),
