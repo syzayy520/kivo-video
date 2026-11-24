@@ -16,6 +16,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- 267：缺 VIBRATE 时 performHapticFeedback 抛 SecurityException，触感反馈会静默失效。 -->
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <!-- 搜索页语音卡：App 内 SpeechRecognizer 识别（不再调起系统语音弹窗）。 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
@@ -42,16 +44,6 @@
              主题用应用默认的 Theme.KivoCinema（没有 Theme.Kivo 这个资源，写错会在安装时崩）。 -->
         <activity
             android:name=".ui.profile.calendar.CalendarActivity"
-            android:exported="false"
-            android:theme="@style/Theme.KivoCinema" />
-        <!-- 首页 v6「查看全部」：TMDB 榜单分页网格（docs/design/ui/home-v6/family-tree.md §7）。 -->
-        <activity
-            android:name=".ui.design.home.v6.list.HomeListActivity"
-            android:exported="false"
-            android:theme="@style/Theme.KivoCinema" />
-        <!-- 首页 v6 NAS 分类「查看全部」：读本地片库索引的三列网格（family-tree.md §8）。 -->
-        <activity
-            android:name=".ui.design.home.v6.list.NasCategoryActivity"
             android:exported="false"
             android:theme="@style/Theme.KivoCinema" />
 <activity

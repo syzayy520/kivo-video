@@ -89,6 +89,30 @@ android/app/src/main/java/com/kivo/cinema/
 
 ## 四·补、实现期登记的偏差（收口时回写）
 
+### 语音卡重设计（2026-11-24 晚，用户「语音识别的卡片有点丑」）
+
+**误改记录**：先把「语音卡」误解为最佳匹配大卡，做了 v2，用户指出后已回滚（大卡维持原稿不变）。
+
+用户指的是**系统语音识别弹窗**（`com.xiaomi.mibrain.speech` 的 AsrActivity，旧式白框对话框），
+样式不受 App 控制。改法：**不再调起系统弹窗**，改用 `SpeechRecognizer` 在 App 进程内识别，
+自绘 Kivo 风语音卡：
+
+- 模态玻璃卡（居中、圆角 28、白 66% 玻璃 + hairline），背景 scrim 暗化；
+- 标题「正在倾听」+ 实时声波（`onRmsChanged` 驱动 7 条竖条，音量映射高度）；
+- 主按钮「说完了」（结束并取结果）+ 次按钮「取消」（可逆退出，系统弹窗没有）；
+- 状态反馈：监听中 / 识别中 / 无声音 / 无权限 / 不可用，全部非空文案；
+- 权限：`RECORD_AUDIO` 运行时申请，拒绝给可见原因；`isRecognitionAvailable=false` 时回退系统 RecognizerIntent。
+
+**v2 改形（用户「看着别扭」复审）**：居中巨卡改为**底部轻面板**（左右 12dp、圆角 28、白玻璃 blur 24、
+遮罩 .32），不遮分类/热搜；按钮改「次按钮文字在左 + 主胶囊 weight 在右」；
+失败态新增「键盘输入」退路（关卡进②自动聚焦），不再只有取消/重试。
+
+文件家族树新增：
+```
+├── search/VoiceSearchController.kt          # SpeechRecognizer 封装：权限/监听/结果/错误/释放
+└── ui/search/voice/VoiceSearchDialog.kt     # Kivo 风语音卡：玻璃卡 + 声波 + 取消/说完了
+```
+
 - **Emby 已集成（2026-11-24 第二批）**：`EmbyPlayableIndex` 对已授权源（非隐藏、开聚合搜索、非 SMB）
   复用 `EmbyAuthCache` 登录，后台拉全库标题池（Movie+Series，100/页、上限 5000 条/源、10 分钟内存缓存），
   ② 搜索、③④ 可播标注与「只看可播」共用同一池；池就绪后自动重搜/重筛。

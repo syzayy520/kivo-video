@@ -136,3 +136,14 @@ App 侧已做的稳健修复（`ui/search/home/SearchField.kt`）：
   （`cancelQuery()`，取消按钮与系统返回键同路径）。搜索键 `onSubmitQuery` 保留。
 - 真机验证（`recent-final.xml`）：输入 spider 出结果 → 点取消 → ①最近搜索第一条 = **spider**。
 - 临时验证目录 `build/verify-tree` 已清理；本卡全部待办闭环。
+## 十二、语音卡与三项交互修复（2026-11-24 深夜）
+
+- **误改回滚**：最佳匹配大卡曾被误改为 v2，用户指出后回滚原稿；后按用户决策**去掉大卡播放钮**
+  （`no-play.xml`：`HAS_PLAY=False`）。
+- **点搜索框边框进首页海报详情**：根因是覆盖层未兜底消费点击，边框/空白点击穿透到首页第一个海报。
+  `SearchOverlay` 根容器加 `pointerInput { detectTapGestures(onTap = {}) }` 拦截；
+  真机 `step-e.xml`：②空白区点击后仍停搜索页，不再进详情。
+- **语音卡**：系统旧弹窗 → App 内 `SpeechRecognizer` + 自绘底部轻面板。
+  `VoiceSearchController.kt`（识别）+ `VoiceSearchDialog.kt`（UI）+ `RECORD_AUDIO` 权限。
+  迭代：居中巨卡 → 底部面板 → 近乎不透明面板 + 文案去重 + 主按钮收窄 + 次按钮浅底 + 失败「键盘输入」退路。
+  终版 `13-voice-final2.png` 评审：不透字、层级协调、可定稿。

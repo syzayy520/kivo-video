@@ -3,8 +3,7 @@ package com.kivo.cinema.ui.search.query
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,14 +23,11 @@ import com.kivo.cinema.search.SearchEntry
 import com.kivo.cinema.ui.design.DesignTokens
 import com.kivo.cinema.ui.design.TmdbImage
 import com.kivo.cinema.ui.history.TintedArtwork
-import com.kivo.cinema.ui.history.glassSurface
-import com.kivo.cinema.ui.search.SearchGlyph
-import com.kivo.cinema.ui.search.SearchIcon
 import com.kivo.cinema.ui.search.SearchTokens
 
 /**
  * ② 最佳匹配大卡：剧照底 + 取色模糊渐变（复用 TintedArtwork，veil 72% / blur 24）。
- * 「播放」钮只在真实可播时出现（打开既有详情页，由详情页完成起播）；未入库不画假播放。
+ * 播放钮已按用户决策去除（2026-11-24）：整卡点击进详情，由详情页完成起播。
  */
 @Composable
 internal fun BestMatchCard(entry: SearchEntry, onOpen: (SearchEntry) -> Unit) {
@@ -64,21 +60,7 @@ internal fun BestMatchCard(entry: SearchEntry, onOpen: (SearchEntry) -> Unit) {
                 Text(
                     bestMeta(entry), fontSize = 12.sp, color = DesignTokens.canvasFill.copy(alpha = .8f),
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(end = 104.dp),
                 )
-            }
-            if (entry.playable) Row(
-                Modifier.align(Alignment.BottomEnd).padding(10.dp)
-                    .height(34.dp)
-                    .glassSurface(RoundedCornerShape(17.dp), onImage = true)
-                    .clip(RoundedCornerShape(17.dp))
-                    .clickable { onOpen(entry) }
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                SearchGlyph(SearchIcon.Play, DesignTokens.canvasFill, Modifier.size(12.dp))
-                Spacer(Modifier.size(6.dp))
-                Text("播放", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.canvasFill)
             }
         }
     }

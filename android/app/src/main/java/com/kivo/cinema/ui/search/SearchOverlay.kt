@@ -12,6 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -25,6 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.kivo.cinema.search.BrowseRepository
@@ -33,10 +35,12 @@ import com.kivo.cinema.search.HotSearchRepository
 import com.kivo.cinema.search.RecentSearchStore
 import com.kivo.cinema.search.SearchEntry
 import com.kivo.cinema.search.SearchRepository
+import com.kivo.cinema.search.VoiceSearchController
 import com.kivo.cinema.ui.motion.MotionGate
 import com.kivo.cinema.ui.search.browse.SearchBrowsePage
 import com.kivo.cinema.ui.search.home.SearchHomePage
 import com.kivo.cinema.ui.search.query.SearchQueryPage
+import com.kivo.cinema.ui.search.voice.VoiceSearchDialog
 
 private enum class SearchMode { Home, Query, Browse }
 
@@ -68,14 +72,28 @@ internal fun SearchOverlay(
             search.onQuery(text)
         }
     }
+    val voiceController = remember { VoiceSearchController(context) }
+    var voiceVisible by remember { mutableStateOf(false) }
+    val voicePermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) {
+            voiceVisible = true
+            voiceController.start()
+        } else {
+            Toast.makeText(context, "没有麦克风权限，无法语音搜索", Toast.LENGTH_SHORT).show()
+        }
+    }
     val startVoice = {
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, java.util.Locale.getDefault())
-        try {
-            voice.launch(intent)
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(context, "这台设备没有可用的语音识别服务", Toast.LENGTH_SHORT).show()
+
+        val granted = androidx.core.content.ContextCompat.checkSelfPermission(
+            context, android.Manifest.permission.RECORD_AUDIO,
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        if (granted) {
+            voiceVisible = true
+            voiceController.start()
+        } else {
+            voicePermission.launch(android.Manifest.permission.RECORD_AUDIO)
         }
     }
     val openEntry = { entry: SearchEntry ->
@@ -102,10 +120,12 @@ internal fun SearchOverlay(
         }
     }
     DisposableEffect(Unit) {
-        onDispose { search.clear(); browse.close() }
+        onDispose { search.clear(); browse.close(); voiceController.release() }
     }
 
-    Box(Modifier.fillMaxSize()) {
+    // 覆盖层兜底消费点击：②编辑态搜索框只有文本区接收输入，边框/空白处的点击
+    // 若放掉会穿透到下层首页第一个海报详情（真机复现）。这里统一拦截，不做任何跳转。
+    Box(Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures(onTap = {}) }) {
         AnimatedContent(
             targetState = mode,
             transitionSpec = { fadeIn(tween(duration)) togetherWith fadeOut(tween(duration)) },
@@ -153,6 +173,24 @@ internal fun SearchOverlay(
             Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 22.dp)) {
                 navSlot()
             }
+        }
+        if (voiceVisible) {
+            VoiceSearchDialog(
+                controller = voiceController,
+                onCancel = { voiceController.cancel(); voiceVisible = false },
+                onResult = { text ->
+                    recent.add(text); recentVersion++
+                    voiceVisible = false
+                    mode = SearchMode.Query
+                    search.onQuery(text)
+                },
+                onKeyboardInput = {
+                    // 识别失败的退路：关掉语音卡，直接进②键盘输入（自动聚焦弹键盘）。
+                    voiceController.cancel()
+                    voiceVisible = false
+                    mode = SearchMode.Query
+                },
+            )
         }
     }
 }
