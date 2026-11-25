@@ -17,7 +17,11 @@ enum class RemoteProvider(
     val defaultModel: String,
     val protocol: RemoteProtocol,
 ) {
-    SILICONFLOW("SiliconFlow", "https://api.siliconflow.cn/v1", "tencent/Hunyuan-MT-7B", RemoteProtocol.OPENAI_COMPATIBLE),
+    // 预置模型 2026-11-25 裸 API 实测三轮（PC 端同 key 计时）：
+    // ① Hunyuan-MT-7B 不遵 JSON（纯译文直出）② Qwen3.5-9B 思考反噬（75.8s/块）+
+    // chat_template_kwargs 关思考失败 ③ GLM-5.3-Flash 6s+ 思考关不掉
+    // ④ **DeepSeek-V4.1-Flash 3.4s/块 JSON ✓** → 默认取它（¥2/¥8，2003 条约 ¥0.5）。
+    SILICONFLOW("SiliconFlow", "https://api.siliconflow.cn/v1", "deepseek-ai/DeepSeek-V4.1-Flash", RemoteProtocol.OPENAI_COMPATIBLE),
     DEEPSEEK("DeepSeek", "https://api.deepseek.com/v1", "deepseek-flash", RemoteProtocol.OPENAI_COMPATIBLE),
     OPENAI("OpenAI", "https://api.openai.com/v1", "gpt-4o-mini", RemoteProtocol.OPENAI_COMPATIBLE),
     GEMINI("Gemini", "https://generativelanguage.googleapis.com/v1beta/openai", "gemini-3.5-flash-lite", RemoteProtocol.OPENAI_COMPATIBLE),

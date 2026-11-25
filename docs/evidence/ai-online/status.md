@@ -70,3 +70,46 @@ Anthropic system 字段与单 user 消息、OpenAI/Anthropic 响应解析、按 
 3. Anthropic 走原生 /v1/messages（SenPlayer 同款）；Gemini 走 v1beta OpenAI 兼容层
 4. OpenRouter 预置 + X-Title 溯源头；目标语言 v1 固定 Simplified Chinese（字段已参数化）
 5. 引擎切换即时生效（engineClient 按配置返回单例）；远程失败不静默回退本地
+
+## 六、端到端实测与性能优化（2026-11-25 08:30–09:00）
+
+**测试连接真机验证**：用户已填 SiliconFlow key → 「✓ 连通（92 个模型）」（`test-connection.png`）。
+
+**模型实测四轮（PC 裸 API 计时，10 条块）**：
+
+| 模型 | 耗时 | reasoning | JSON | 结论 |
+| --- | --- | --- | --- | --- |
+| tencent/Hunyuan-MT-7B | — | — | ✗ | 纯译文直出不遵 JSON（真机实测解析失败） |
+| Qwen/Qwen3.5-9B | 75.8s | 7763 字符 | ✓ | 思考反噬；chat_template_kwargs 关思考无效 |
+| zai-org/GLM-5.3-Flash | 6.0–6.8s | 487–670 | ✓ | 思考关不掉；真机 8 条/分钟 |
+| **deepseek-ai/DeepSeek-V4.1-Flash** | **3.4s** | 527 | ✓ | **最快 → 改为预置默认**（¥2/¥8，2003 条 ≈ ¥0.5） |
+
+**架构提速：块流水线（本轮正式破「TranslationJob 不动」承诺，性能目标驱动）**：
+- `AiEngineClient` 加 `supportsParallelBlocks()`（默认 false = 本地行为不变）
+- `RemoteAiEngineClient` override true；`TranslationJob` 块循环改预取窗口（远程 4 路，
+  本地 1 路 = 原串行）；context 只带原文（DEC-14）→ 预取不依赖前块译文，窗口安全
+- 裸 API 3.4s/块 × 串行 = 234 条仍要 ~5 分钟；4 路并发预期 ~1 分钟
+
+**在线翻译报错链路真机验证**（Hunyuan-MT 轮）：「AI 翻译引擎未就绪：服务商返回内容
+无法解析（no json object in reply），请重试或更换模型」——中文原因清晰（G9 ✓）。
+
+**《笼困》资源端到端**（用户指定真实资源，用户已在面板选好 Caged/英语 SRT/↓10659）：
+- 发起翻译：234 条（用户真实观看场景）；GLM 轮实测 8 条/分钟
+- DeepSeek+流水线版复测因设备升级 PIN 锁屏（非 App 问题）暂停，待用户解锁
+
+## 七、字幕库（用户 2026-11-25 指出缺失：已下载/已翻译必须可见可管）
+
+- 新文件 `ui/subtitles/library/SubtitleLibraryDialog.kt`：两组列表（AI 翻译成品 =
+  filesDir/ai_subs 下 .srt；已下载字幕 = filesDir/subtitles），条目显示
+  可读名/大小/日期/删除；入口在 AI 翻译引擎卡片「打开字幕库（已翻译 / 已下载）」
+- 坑：Kotlin 块注释**可嵌套**——头注释里 `ai_subs/*.srt` 与 `subtitles/*` 的 `/*`
+  会吞掉闭合符致全文件 Unclosed comment，已改写为文字描述
+- 保存方案现状（如实告知）：翻译成品 = filesDir/ai_subs/\<cacheKey\>.srt（filesDir
+  不被系统清理）；**v1 无块级续翻——进程被杀 = 进度全丢**（用户《笼困》第一次
+  长翻译即因此丢失）；块级续翻缓存是下一个卡
+
+## 八、待办
+
+1. 用户解锁设备 → 《笼困》234 条 DeepSeek+流水线复测（预期 ~1 分钟）→ 翻译成品在
+   字幕库可见 → 播放挂载验证
+2. 块级续翻（杀进程不丢进度）——独立卡

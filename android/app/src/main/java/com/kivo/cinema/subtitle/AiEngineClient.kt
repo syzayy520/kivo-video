@@ -43,6 +43,10 @@ data class AiTranslateResponse(
 /// 不许直接摸 AiTranslationNative（不暴露 native 句柄，DEC-13）。
 interface AiEngineClient {
 
+    /// 是否支持块级并发。远程 HTTP 引擎 = true（TranslationJob 预取窗口流水线）；
+    /// 本地 native = false（单线程 executor 契约，C++ 单实例 mutex 调用方约定）。
+    fun supportsParallelBlocks(): Boolean = false
+
     /// 加载模型（重复调用 = 替换模型文件并重建引擎）。
     /// 返回 false 时 lastError() 给出原因。
     fun loadModel(modelPath: String): Boolean

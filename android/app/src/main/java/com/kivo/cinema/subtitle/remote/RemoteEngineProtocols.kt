@@ -84,24 +84,37 @@ object RemoteEngineProtocols {
 
     /**
      * 模型回复 → 槽位。三级兜底：
-     * ① 整体 JSON ② 文本内首个 {...} 平衡块（模型包 markdown 代码块）③ 失败 → 整块 error。
+     * ① 整体 JSON ② 文本内首个 {...} 平衡块（模型包 markdown 代码块）
+     * ③ **纯文本行映射**（Hunyuan-MT 等翻译特化模型不遵 JSON 指令、直接逐行输出
+     * 译文——2026-11-25 真机实测；行数 == 块行数即按行对齐，序号前缀剥离）
+     * ④ 全部失败 → 整块 error（交缺号重试）。
      * id = 块内行号字符串；缺号/null = null 槽位。
      */
     fun parseSlots(content: String?, expected: Int): Parsed {
         if (content.isNullOrBlank()) { return Parsed(List(expected) { null }, "empty reply") }
         val json = extractJsonObject(content)
-            ?: return Parsed(List(expected) { null }, "no json object in reply")
-        val translations = runCatching { json.getJSONArray("translations") }.getOrNull()
-            ?: return Parsed(List(expected) { null }, "no translations array")
-        val map = HashMap<String, String>()
-        for (i in 0 until translations.length()) {
-            val item = translations.optJSONObject(i) ?: continue
-            val id = item.optString("id").trim()
-            if (id.isNotEmpty()) { map[id] = item.optString("text") }
+        if (json != null) {
+            val translations = runCatching { json.getJSONArray("translations") }.getOrNull()
+            if (translations != null) {
+                val map = HashMap<String, String>()
+                for (i in 0 until translations.length()) {
+                    val item = translations.optJSONObject(i) ?: continue
+                    val id = item.optString("id").trim()
+                    if (id.isNotEmpty()) { map[id] = item.optString("text") }
+                }
+                if (map.isNotEmpty()) { return Parsed((0 until expected).map { map[it.toString()] }) }
+            }
         }
-        if (map.isEmpty()) { return Parsed(List(expected) { null }, "empty translations") }
-        return Parsed((0 until expected).map { map[it.toString()] })
+        val lines = content.lines().map { it.trim() }.filter { it.isNotBlank() }
+        if (lines.size == expected) {
+            return Parsed(lines.map { stripOrdinalPrefix(it) })
+        }
+        return Parsed(List(expected) { null }, "no json object in reply")
     }
+
+    /// 行级兜底剥离「1. / 1、 / 1: / 1)」类序号前缀（特化模型常带）。
+    private fun stripOrdinalPrefix(line: String): String =
+        line.replace(Regex("^\\d+\\s*[.、:：)）]\\s*"), "")
 
     /** 整体 JSON 或嵌在文本（```json …``` / 散文）中的首个平衡 {...}。 */
     private fun extractJsonObject(text: String): JSONObject? {

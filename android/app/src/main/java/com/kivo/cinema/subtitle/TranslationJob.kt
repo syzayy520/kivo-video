@@ -136,29 +136,48 @@ class TranslationJob(
         var llmCount = 0
         var failedCount = 0
 
-        for (block in orderedBlocks) {
-            if (cancelled.get()) { break }
-
-            // context = 前块末 2 条原文（DEC-14：只带原文进 user 段，N1）。
+        // ---- 块流水线：远程引擎（supportsParallelBlocks）按 4 路预取窗口并发，
+        //      当前块等待期间后续块已在飞行中（裸 API 3.4s/块，串行下 234 条仍
+        //      要 ~5 分钟）；本地引擎窗口 = 1，行为与原串行完全一致。
+        //      context 只带原文（DEC-14），预取不依赖前块译文——窗口安全。
+        val prefetchWindow = if (client.supportsParallelBlocks()) 4 else 1
+        class Inflight(
+            val block: SimpleBlock,
+            val prevContext: List<String>,
+            @Volatile var response: AiTranslateResponse?,
+            val latch: CountDownLatch,
+        )
+        val inflight = ArrayDeque<Inflight>()
+        var submitted = 0
+        fun submitInflight(block: SimpleBlock): Inflight {
             val contextStart = if (block.first >= 2) block.first - 2 else 0
             val prevContext = cues.subList(contextStart, block.first).map { it.text }
-
             val request = AiTranslateRequest(
                 sourceLines = cues.subList(block.first, block.lastExclusive).map { it.text },
                 useFewshot = true,
                 contextLines = prevContext,
             )
-            var response: AiTranslateResponse? = null
-            // 【latch 同步】translateBlock 是异步回调（DEC-13 接口）——
-            // 不等待就读 response 是竞态（回调几乎必然未执行，实测恒 null）。
+            val entry = Inflight(block, prevContext, null, CountDownLatch(1))
             android.util.Log.i("kivo-ai", "job: block=${block.first} submitting")
-            val latch = CountDownLatch(1)
             client.translateBlock(request) { result ->
-                response = result.getOrNull()
-                latch.countDown()
+                entry.response = result.getOrNull()
+                entry.latch.countDown()
             }
-            latch.await(15, TimeUnit.MINUTES)
+            return entry
+        }
+
+        while (submitted < orderedBlocks.size || inflight.isNotEmpty()) {
+            // 填满预取窗口。
+            while (inflight.size < prefetchWindow && submitted < orderedBlocks.size) {
+                inflight.addLast(submitInflight(orderedBlocks[submitted++]))
+            }
+            if (cancelled.get()) { break }
+            val entry = inflight.removeFirst()
+            val block = entry.block
+            val prevContext = entry.prevContext
+            entry.latch.await(15, TimeUnit.MINUTES)
             android.util.Log.i("kivo-ai", "job: block=${block.first} latch released")
+            val response = entry.response
             val slots = response?.slots?.toMutableList()
             if (slots == null || slots.isEmpty()) {
                 // 引擎未就绪/整批失败 → 任务失败。空列表也是失败载荷：

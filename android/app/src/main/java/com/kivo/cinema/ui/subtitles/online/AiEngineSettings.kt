@@ -45,6 +45,7 @@ internal fun AiEngineSettings(onChanged: () -> Unit) {
     val prefs = remember { RemoteEnginePrefs(context) }
     var showProvider by remember { mutableStateOf(false) }
     var showConfig by remember { mutableStateOf(false) }
+    var showLibrary by remember { mutableStateOf(false) }
     var testRunning by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -85,7 +86,12 @@ internal fun AiEngineSettings(onChanged: () -> Unit) {
             },
         )
         if (testResult != null) Footnote(testResult ?: "")
+        ChevronRow("打开字幕库（已翻译 / 已下载）", onClick = { showLibrary = true })
         Footnote("开启在线翻译即表示字幕文本将发送至所选服务商；翻译费用由您在该服务商的账户承担。国内网络访问 OpenAI/Gemini 可在应用数据目录 tmdb_proxy.txt 配置代理。")
+    }
+
+    if (showLibrary) {
+        com.kivo.cinema.ui.subtitles.library.SubtitleLibraryDialog(onDismiss = { showLibrary = false })
     }
 
     if (showProvider) AlertDialog(

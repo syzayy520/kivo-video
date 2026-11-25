@@ -33,6 +33,10 @@ class RemoteAiEngineClient(private val context: android.content.Context) : AiEng
 
     override fun loadModel(modelPath: String): Boolean = true
 
+    /// HTTP 引擎无 native 单线程约束——TranslationJob 按 4 路预取窗口流水线化
+    ///（2026-11-25 裸 API 实测 3.4s/块，串行下 234 条仍要 ~5 分钟，并发后 ~1 分钟）。
+    override fun supportsParallelBlocks(): Boolean = true
+
     override fun translateBlock(
         request: AiTranslateRequest,
         onResult: (Result<AiTranslateResponse>) -> Unit,
