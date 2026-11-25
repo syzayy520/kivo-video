@@ -39,6 +39,19 @@ Anthropic system 字段与单 user 消息、OpenAI/Anthropic 响应解析、按 
 | 错误路径（未填 key 点测试连接） | **「✗ 请填写 API Key」**——本地校验即拦截，不发起网络请求，G9 | ✓ |
 | 服务商切换 | 选「自定义」后配置标题与服务商 ValueRow 联动 | ✓ |
 
+## 三b、本地引擎回归（3d44e89f 收口后真机复验，2026-11-25 08:10）
+
+引擎选择改动（engineClient / entryState / isEngineReady）触碰 AI 门面，按
+「UI 改动不得破坏既有交互」铁律真机回归既有路径：
+
+- 全新进程 → 主页 → 饥饿游戏详情页 → 更多操作 → 下载 → 搜「Hunger Games」→
+  英语 SRT → 译成中文（useRemote=false 走本地引擎，覆盖安装后首译）
+- 「翻译准备中…」→「翻译中 9/2003 条…」→ 40 秒后「12/2003」**持续推进，零失败**
+- entryState 远程分支未误伤本地入口态；本地模型装载/缓存/进度回调全部原行为
+- 证据：`local-engine-regression.png`（进度行 12/2003）
+- 环境干扰如实登记：期间设备弹出 SiliconFlow 实名验证系统弹窗（非本 App UI），
+  点「暂不验证」关闭后翻译未被打断
+
 ## 四、端到端（待用户 key 后补验）
 
 - 免费路径：SiliconFlow 注册 → 填 key（默认模型 tencent/Hunyuan-MT-7B）→ 测试连接 →
