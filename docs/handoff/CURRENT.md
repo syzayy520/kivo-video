@@ -1,3 +1,10 @@
+> 2026-11-25 **在线 AI 翻译引擎已收口（交接见 [HANDOFF-2026-11-25-ai-online.md](HANDOFF-2026-11-25-ai-online.md)）**：
+> 在线字幕「译成中文」支持 7 档服务商（SiliconFlow/DeepSeek/OpenAI/Gemini/OpenRouter/Anthropic/自定义，
+> OpenAI 兼容+Anthropic 双协议，SenPlayer 逆向对齐）；SiliconFlow 预置 DeepSeek-V4.1-Flash（模型四轮实测淘汰
+> Hunyuan/Qwen/GLM）+ 远程 4 路块流水线；字幕库面板（已翻译/已下载可见可删）；Caged 234 条 PC 同款链路
+> 151s 0 缺号、成品已推回设备。**待办**：App 内 DeepSeek 复测（导航坑见交接 §五-1）、块级续翻（杀进程丢进度，
+> 用户已不满）、翻译完自动挂载。测试连接真机 ✓「92 个模型」；本地引擎回归 12/2003 零失败。
+
 > 2026-11-21 **播放页手势全部失灵已修复（用户报告）**：根因=收尾手势重写批次里
 > `PlayerPinch.pinchZoom` 在 down 时无条件 `state.pinching = true`，而 `PlayerGestureLayer`
 > 把 `pinching` 当"双指进行中"打断信号 ⇒ 单指手势刚按下就被自己 cancel，tap/双击/横竖滑/长按全灭
