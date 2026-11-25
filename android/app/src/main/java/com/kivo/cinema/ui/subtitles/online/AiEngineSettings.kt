@@ -112,37 +112,51 @@ internal fun AiEngineSettings(onChanged: () -> Unit) {
         confirmButton = { TextButton(onClick = { showProvider = false }) { Text("关闭") } },
     )
 
-    if (showConfig) AlertDialog(
-        onDismissRequest = { showConfig = false },
-        title = { Text("接口配置（${prefs.provider.label}）", fontSize = 17.sp) },
-        text = {
-            Column {
-                if (prefs.provider == RemoteProvider.CUSTOM) {
+    if (showConfig) {
+        // 输入必须走 Compose 本地状态：直接绑 SharedPreferences 读值不触发重组，
+        // 敲键盘后 TextField 永远显示旧值（2026-11-25 真机实测「填写不进去」）。
+        // OnlineSubtitleSettings 登录弹窗同款模式：本地态输入，保存才落盘。
+        var keyInput by remember { mutableStateOf(prefs.apiKey) }
+        var modelInput by remember { mutableStateOf(prefs.model) }
+        var urlInput by remember { mutableStateOf(prefs.customBaseUrl) }
+        AlertDialog(
+            onDismissRequest = { showConfig = false },
+            title = { Text("接口配置（${prefs.provider.label}）", fontSize = 17.sp) },
+            text = {
+                Column {
+                    if (prefs.provider == RemoteProvider.CUSTOM) {
+                        OutlinedTextField(
+                            value = urlInput,
+                            onValueChange = { urlInput = it },
+                            label = { Text("接口地址（如 https://…/v1）") }, singleLine = true,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
                     OutlinedTextField(
-                        value = prefs.customBaseUrl,
-                        onValueChange = { prefs.customBaseUrl = it },
-                        label = { Text("接口地址（如 https://…/v1）") }, singleLine = true,
+                        value = keyInput, onValueChange = { keyInput = it },
+                        label = { Text("API Key") }, singleLine = true,
                     )
                     Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = modelInput, onValueChange = { modelInput = it },
+                        label = {
+                            Text("模型名" + (prefs.provider.defaultModel.takeIf { it.isNotBlank() }
+                                ?.let { "（默认 $it）" } ?: ""))
+                        },
+                        singleLine = true,
+                    )
                 }
-                OutlinedTextField(
-                    value = prefs.apiKey, onValueChange = { prefs.apiKey = it },
-                    label = { Text("API Key") }, singleLine = true,
-                )
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = prefs.model, onValueChange = { prefs.model = it },
-                    label = {
-                        Text("模型名" + (prefs.provider.defaultModel.takeIf { it.isNotBlank() }
-                            ?.let { "（默认 $it）" } ?: ""))
-                    },
-                    singleLine = true,
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onChanged(); showConfig = false }) { Text("保存") }
-        },
-        dismissButton = { TextButton(onClick = { showConfig = false }) { Text("取消") } },
-    )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    prefs.apiKey = keyInput
+                    prefs.model = modelInput
+                    prefs.customBaseUrl = urlInput
+                    onChanged()
+                    showConfig = false
+                }) { Text("保存") }
+            },
+            dismissButton = { TextButton(onClick = { showConfig = false }) { Text("取消") } },
+        )
+    }
 }

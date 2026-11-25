@@ -112,7 +112,7 @@ v1 固定 Simplified Chinese（参数化字段已留，多目标语言是后续�
 
 | 服务商 | 端点 | 协议 | 预置模型 | 认证 |
 | --- | --- | --- | --- | --- |
-| SiliconFlow | `https://api.siliconflow.cn/v1` | OpenAI 兼容 | `tencent/Hunyuan-MT-7B` | Bearer |
+| SiliconFlow | `https://api.siliconflow.cn/v1` | OpenAI 兼容 | `tencent/Hunyuan-MT-7B`（**限免非长期免费**，以价目页为准） | Bearer |
 | DeepSeek | `https://api.deepseek.com/v1` | OpenAI 兼容 | `deepseek-flash` | Bearer |
 | OpenAI | `https://api.openai.com/v1` | OpenAI 兼容 | mini 档 | Bearer |
 | Gemini | `https://generativelanguage.googleapis.com/v1beta/openai` | OpenAI 兼容层 | `gemini-3.5-flash-lite` | Bearer |

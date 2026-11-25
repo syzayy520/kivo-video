@@ -29,7 +29,7 @@
 | **Google Gemini** | **Flash/Flash-Lite 免费层可用**；3.5 Flash-Lite 官方定位「optimized for … **translation**」 | Flash-Lite $0.30 输入 / $2.50 输出 每百万；3.6/3.8 Flash $0.75/$3.75 | 全球用户零成本首选 |
 | **OpenRouter**（聚合） | `:free` 后缀模型免费（DeepSeek/GLM/Llama free 等） | 一个 key 通吃 400+ 模型；自动 fallback | 海外用户一站式 |
 | **DeepSeek** | 无免费额度（充值制） | flash $0.15–0.3 输入 / $0.6–1.2 输出；2003 条 ≈ $0.05 | 国内直连 ✓ |
-| **SiliconFlow** | **tencent/Hunyuan-MT-7B 免费**（翻译特化） | DeepSeek-V4.1-Flash ¥2/¥8 | 国内直连 ✓ |
+| **SiliconFlow** | **tencent/Hunyuan-MT-7B 限免**（2026-11-25 用户注册页实测为限时免费，**非长期免费**，以价目页为准） | DeepSeek-V4.1-Flash ¥2/¥8；长期低价比照 Qwen3.5-9B ¥0.5/¥4.0 | 国内直连 ✓ |
 
 ### ⚠️ 公开知识（未逐家抓取，待装机核实）
 

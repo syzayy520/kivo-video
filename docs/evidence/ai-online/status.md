@@ -54,8 +54,9 @@ Anthropic system 字段与单 user 消息、OpenAI/Anthropic 响应解析、按 
 
 ## 四、端到端（待用户 key 后补验）
 
-- 免费路径：SiliconFlow 注册 → 填 key（默认模型 tencent/Hunyuan-MT-7B）→ 测试连接 →
-  任意外语字幕「译成中文」→ 全程分钟级、0 丢条
+- 免费/低价路径：SiliconFlow 注册 → 填 key（默认模型 tencent/Hunyuan-MT-7B，**注册页显示限免**
+  ——**用户 2026-11-25 实测更正：是限时免费不是长期免费**，长期使用比照 Qwen3.5-9B ¥0.5/4.0）→
+  测试连接 → 任意外语字幕「译成中文」→ 全程分钟级、0 丢条
 - 性能锚点：2003 条 ≤ 10 分钟（串行 81 块 × 上限 7s/块余量）
 - 已知风险（如实登记）：Hunyuan-MT-7B 为翻译特化模型，可能不遵 JSON 输出指令——
   解析层已兜底（缺号重试 + 行级 fallback 原文），若实测不遵 JSON 则把 SiliconFlow
